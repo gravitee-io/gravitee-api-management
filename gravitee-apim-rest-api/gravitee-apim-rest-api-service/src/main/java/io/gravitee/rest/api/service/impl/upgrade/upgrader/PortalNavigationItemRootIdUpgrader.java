@@ -23,14 +23,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -45,11 +43,6 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class PortalNavigationItemRootIdUpgrader implements Upgrader {
 
-    private static final int MAX_PARENT_CHAIN_DEPTH = 50;
-
-    /**
-     * Sentinel value for "no root" in the domain; repository may store null/empty or this UUID string.
-     */
     private static final String ZERO_ROOT_ID = "00000000-0000-0000-0000-000000000000";
 
     private final EnvironmentRepository environmentRepository;
@@ -70,10 +63,10 @@ public class PortalNavigationItemRootIdUpgrader implements Upgrader {
 
     @Override
     public boolean upgrade() throws UpgraderException {
-        return this.wrapException(this::applyUpgrade);
+        return this.wrapException(this::migrateAllEnvironments);
     }
 
-    private boolean applyUpgrade() throws TechnicalException {
+    private boolean migrateAllEnvironments() throws TechnicalException {
         for (final var environment : environmentRepository.findAll()) {
             migrateEnvironment(environment.getOrganizationId(), environment.getId());
         }
@@ -81,27 +74,51 @@ public class PortalNavigationItemRootIdUpgrader implements Upgrader {
     }
 
     private void migrateEnvironment(String organizationId, String environmentId) throws TechnicalException {
-        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(
-            organizationId,
-            environmentId
+        List<PortalNavigationItem> items = new ArrayList<>(
+            portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId)
         );
+        if (items.isEmpty()) {
+            return;
+        }
 
-        Map<String, PortalNavigationItem> itemsById = items
+        List<PortalNavigationItem> roots = items
             .stream()
-            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        Map<String, String> rootIdsByItemId = new HashMap<>();
+            .filter(item -> item.getParentId() == null)
+            .toList();
+        Deque<PortalNavigationItem> queue = new ArrayDeque<>(roots);
+        items.removeAll(roots);
+
+        Map<String, String> resolved = new HashMap<>();
         int updatedCount = 0;
 
-        for (PortalNavigationItem item : items) {
-            if (!needsRootIdMigration(item)) {
-                rootIdsByItemId.put(item.getId(), item.getRootId());
-                continue;
+        while (!queue.isEmpty()) {
+            PortalNavigationItem item = queue.removeFirst();
+
+            String rootId = item.getParentId() == null ? item.getId() : resolved.get(item.getParentId());
+            resolved.put(item.getId(), rootId);
+
+            if (needsRootIdMigration(item)) {
+                item.setRootId(rootId);
+                portalNavigationItemRepository.update(item);
+                updatedCount++;
             }
 
-            item.setRootId(findRootId(item, itemsById, rootIdsByItemId));
-            portalNavigationItemRepository.update(item);
-            rootIdsByItemId.put(item.getId(), item.getRootId());
-            updatedCount++;
+            List<PortalNavigationItem> children = items
+                .stream()
+                .filter(child -> item.getId().equals(child.getParentId()))
+                .toList();
+            queue.addAll(children);
+            items.removeAll(children);
+        }
+
+        if (!items.isEmpty()) {
+            List<String> unresolvedIds = items.stream().map(PortalNavigationItem::getId).toList();
+            throw new TechnicalException(
+                "Unable to resolve rootId for portal navigation items in environment " +
+                    environmentId +
+                    ". Unresolved item ids: " +
+                    String.join(", ", unresolvedIds)
+            );
         }
 
         log.debug("Updated {} portal navigation items for environment {}", updatedCount, environmentId);
@@ -110,63 +127,5 @@ public class PortalNavigationItemRootIdUpgrader implements Upgrader {
     private static boolean needsRootIdMigration(PortalNavigationItem item) {
         String rootId = item.getRootId();
         return rootId == null || rootId.isBlank() || ZERO_ROOT_ID.equals(rootId);
-    }
-
-    private static void cacheRootId(List<String> visitedItemIds, String rootId, Map<String, String> rootIdsByItemId) {
-        for (String itemId : visitedItemIds) {
-            rootIdsByItemId.put(itemId, rootId);
-        }
-    }
-
-    private static String findRootId(
-        PortalNavigationItem item,
-        Map<String, PortalNavigationItem> itemsById,
-        Map<String, String> rootIdsByItemId
-    ) {
-        String cached = rootIdsByItemId.get(item.getId());
-        if (cached != null) {
-            return cached;
-        }
-
-        List<String> visitedItemIds = new ArrayList<>();
-        Set<String> visitedItemIdSet = new HashSet<>();
-        PortalNavigationItem current = item;
-        int depth = 0;
-
-        while (depth < MAX_PARENT_CHAIN_DEPTH) {
-            String currentId = current.getId();
-
-            String cachedRootId = rootIdsByItemId.get(currentId);
-            if (cachedRootId != null) {
-                cacheRootId(visitedItemIds, cachedRootId, rootIdsByItemId);
-                return cachedRootId;
-            }
-
-            if (!visitedItemIdSet.add(currentId)) {
-                cacheRootId(visitedItemIds, currentId, rootIdsByItemId);
-                rootIdsByItemId.put(currentId, currentId);
-                return currentId;
-            }
-
-            visitedItemIds.add(currentId);
-
-            if (current.getParentId() == null) {
-                cacheRootId(visitedItemIds, currentId, rootIdsByItemId);
-                return currentId;
-            }
-
-            PortalNavigationItem parent = itemsById.get(current.getParentId());
-            if (parent == null) {
-                cacheRootId(visitedItemIds, currentId, rootIdsByItemId);
-                return currentId;
-            }
-
-            current = parent;
-            depth++;
-        }
-
-        String fallbackRootId = visitedItemIds.isEmpty() ? item.getId() : visitedItemIds.get(visitedItemIds.size() - 1);
-        cacheRootId(visitedItemIds, fallbackRootId, rootIdsByItemId);
-        return fallbackRootId;
     }
 }

@@ -229,24 +229,23 @@ public class PortalNavigationItemRootIdUpgraderTest {
 
     @Test
     @SneakyThrows
-    void should_handle_orphaned_child_gracefully() {
+    void should_throw_when_orphaned_items_cannot_be_resolved() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
         PortalNavigationItem orphan = navItem("orphan", "missing-parent", null);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(orphan));
 
-        assertThat(upgrader.upgrade()).isTrue();
+        final ThrowingRunnable throwing = () -> upgrader.upgrade();
 
-        ArgumentCaptor<PortalNavigationItem> captor = ArgumentCaptor.forClass(PortalNavigationItem.class);
-        verify(portalNavigationItemRepository, times(1)).update(captor.capture());
-
-        assertThat(captor.getValue().getRootId()).isEqualTo("orphan");
+        Exception exception = assertThrows(UpgraderException.class, throwing);
+        assertThat(exception.getMessage()).contains("Unable to resolve rootId");
+        verify(portalNavigationItemRepository, never()).update(any());
     }
 
     @Test
     @SneakyThrows
-    void should_handle_cyclic_parent_reference_gracefully() {
+    void should_throw_when_cycle_prevents_root_resolution() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
         PortalNavigationItem nodeA = navItem("A", "B", null);
@@ -256,14 +255,11 @@ public class PortalNavigationItemRootIdUpgraderTest {
             List.of(nodeA, nodeB)
         );
 
-        assertThat(upgrader.upgrade()).isTrue();
+        final ThrowingRunnable throwing = () -> upgrader.upgrade();
 
-        ArgumentCaptor<PortalNavigationItem> captor = ArgumentCaptor.forClass(PortalNavigationItem.class);
-        verify(portalNavigationItemRepository, times(2)).update(captor.capture());
-
-        for (PortalNavigationItem updated : captor.getAllValues()) {
-            assertThat(updated.getRootId()).isNotNull().isNotBlank();
-        }
+        Exception exception = assertThrows(UpgraderException.class, throwing);
+        assertThat(exception.getMessage()).contains("Unable to resolve rootId");
+        verify(portalNavigationItemRepository, never()).update(any());
     }
 
     @Test
