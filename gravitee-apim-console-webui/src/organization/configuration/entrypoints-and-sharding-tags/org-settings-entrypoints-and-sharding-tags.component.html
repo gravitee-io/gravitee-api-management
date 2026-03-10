@@ -266,6 +266,14 @@
           <td mat-cell *matCellDef="let entrypoint">{{ entrypoint.tagsName.join(', ') }}</td>
         </ng-container>
 
+        <!-- Environments Column -->
+        <ng-container matColumnDef="environments">
+          <th mat-header-cell *matHeaderCellDef id="environments">Environments</th>
+          <td mat-cell *matCellDef="let entrypoint">
+            {{ entrypoint.environmentNames.length > 0 ? entrypoint.environmentNames.join(', ') : 'All' }}
+          </td>
+        </ng-container>
+
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
