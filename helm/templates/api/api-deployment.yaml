@@ -273,7 +273,7 @@ spec:
               mountPath: /opt/graviteeio-management-api/config/hazelcast-cache.xml
               subPath: hazelcast-cache.xml
           {{- end }}
-          {{- if .Values.api.logging.debug }}
+          {{- if or .Values.api.logging.debug .Values.api.logback.override }}
             - name: {{ $logbackVolumeName }}
               mountPath: /opt/graviteeio-management-api/config/logback.xml
               subPath: logback.xml
