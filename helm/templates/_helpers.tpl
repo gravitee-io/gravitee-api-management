@@ -278,7 +278,7 @@ Usage:
 {{ include "gateway.logbackVolumeName" . }}
 */}}
 {{- define "gateway.logbackVolumeName" -}}
-{{- if and (include "gateway.externalConfig" .) (.Values.gateway.logging.debug) }}
+{{- if and (include "gateway.externalConfig" .) (or .Values.gateway.logging.debug .Values.gateway.logback.override) }}
 {{- print "logback" -}}
 {{- else -}}
 {{- print "config" -}}
@@ -315,7 +315,7 @@ Usage:
 {{ include "api.logbackVolumeName" . }}
 */}}
 {{- define "api.logbackVolumeName" -}}
-{{- if and (include "api.externalConfig" .) (.Values.api.logging.debug) }}
+{{- if and (include "api.externalConfig" .) (or .Values.api.logging.debug .Values.api.logback.override) }}
 {{- print "logback" -}}
 {{- else -}}
 {{- print "config" -}}
