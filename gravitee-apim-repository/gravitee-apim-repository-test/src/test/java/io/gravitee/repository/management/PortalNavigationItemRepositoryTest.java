@@ -303,6 +303,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(false)
             .configuration("{}")
             .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("unpublished-item")
             .build();
 
         portalNavigationItemRepository.create(unpublishedItem);
@@ -359,6 +360,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(false)
             .configuration("{}")
             .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("unpublished-item-2")
             .build();
 
         portalNavigationItemRepository.create(unpublishedItem);
@@ -390,6 +392,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(true)
             .configuration("{}")
             .visibility(PortalNavigationItem.Visibility.PRIVATE)
+            .rootId("private-item")
             .build();
 
         PortalNavigationItem publicItem = PortalNavigationItem.builder()
@@ -403,6 +406,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(true)
             .configuration("{}")
             .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("public-item")
             .build();
 
         portalNavigationItemRepository.create(privateItem);

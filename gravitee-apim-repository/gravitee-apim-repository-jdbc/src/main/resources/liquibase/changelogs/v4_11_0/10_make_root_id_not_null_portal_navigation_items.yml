@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_10_make_root_id_not_null_portal_navigation_items
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            sql: UPDATE ${gravitee_prefix}portal_navigation_items SET root_id = id WHERE root_id IS NULL
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}portal_navigation_items
+            columnName: root_id
+            columnDataType: nvarchar(64)

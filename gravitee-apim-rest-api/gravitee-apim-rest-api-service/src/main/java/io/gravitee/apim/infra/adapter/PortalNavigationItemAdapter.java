@@ -16,16 +16,19 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.portal_page.model.*;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
 import org.springframework.util.StringUtils;
 
 @Mapper
 public interface PortalNavigationItemAdapter {
+    Logger log = NodeLoggerFactory.getLogger(PortalNavigationItemAdapter.class);
     PortalNavigationItemAdapter INSTANCE = Mappers.getMapper(PortalNavigationItemAdapter.class);
 
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -155,7 +158,11 @@ public interface PortalNavigationItemAdapter {
 
     @Named("repositoryRootIdToDomain")
     default PortalNavigationItemId repositoryRootIdToDomain(String rootId) {
-        return StringUtils.hasText(rootId) ? PortalNavigationItemId.of(rootId) : PortalNavigationItemId.zero();
+        if (StringUtils.hasText(rootId)) {
+            return PortalNavigationItemId.of(rootId);
+        }
+        log.warn("Portal navigation item has null or blank rootId; mapping to zero. This is unexpected after rootId backfill.");
+        return PortalNavigationItemId.zero();
     }
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")

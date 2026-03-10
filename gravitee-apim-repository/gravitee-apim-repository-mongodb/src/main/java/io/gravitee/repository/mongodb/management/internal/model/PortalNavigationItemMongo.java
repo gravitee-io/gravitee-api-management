@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import jakarta.annotation.Nonnull;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -30,7 +31,10 @@ public class PortalNavigationItemMongo {
     private PortalNavigationItem.Type type;
     private PortalNavigationItem.Area area;
     private String parentId;
+
+    @Nonnull
     private String rootId;
+
     private Integer order;
     private String configuration;
     private boolean published;

@@ -139,14 +139,14 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
-        void should_map_null_or_empty_rootId_to_zero() {
-            // Given - repository item with null rootId
+        void should_map_blank_or_empty_rootId_to_zero() {
+            // Given - repository item with empty rootId (rootId is non-nullable; empty/blank still mapped defensively)
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder(
                 "550e8400-e29b-41d4-a716-446655440000",
                 "My Folder",
-                "550e8400-e29b-41d4-a716-446655440001"
+                "550e8400-e29b-41d4-a716-446655440001",
+                ""
             );
-            repositoryItem.setRootId(null);
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -155,8 +155,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(entity).isInstanceOf(PortalNavigationFolder.class);
             assertThat(((PortalNavigationFolder) entity).getRootId()).isEqualTo(PortalNavigationItemId.zero());
 
-            // Given - repository item with empty rootId
-            repositoryItem.setRootId("");
+            // Given - repository item with blank rootId
+            repositoryItem.setRootId("   ");
 
             // When
             entity = adapter.toEntity(repositoryItem);
