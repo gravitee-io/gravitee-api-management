@@ -1,0 +1,42 @@
+---
+description: Use meaningful naming for functions, variables, and types.
+globs: ["**/*.ts", "**/*.tsx", "**/*.html", "**/*.java"]
+alwaysApply: false
+---
+
+# Meaningful Naming
+
+Names should describe what something does or represents. Prefer names that make the operation and data flow explicit.
+
+## Example: Function names
+
+```typescript
+// ❌ BAD - "get" + "already added" is vague; source of data is unclear
+function getAlreadyAddedApiIds(items: PortalNavigationItem[]): string[] {
+  return items.filter((i): i is PortalNavigationApi => i.type === 'API').map(i => i.apiId);
+}
+
+// ✅ GOOD - clearly describes the operation: extract API IDs from navigation items
+function extractApiIdsFromNavigationItems(items: PortalNavigationItem[]): string[] {
+  return items.filter((i): i is PortalNavigationApi => i.type === 'API').map(i => i.apiId);
+}
+```
+
+
+## Example: Variable names
+
+```typescript
+// ❌ BAD - unnecessary contraction; inconsistent with file convention
+const comp = fixture.componentInstance;
+comp.onNodeMenuAction(...);
+
+// ✅ GOOD - use full, descriptive names; follow established patterns in the file
+const component = fixture.componentInstance;
+component.onNodeMenuAction(...);
+```
+
+## Guidelines
+
+- **Functions**: Use verb + noun that reflects the operation (extract, collect, derive, compute, find).
+- **Variables**: Name after the concept they hold, not the type. Avoid contractions (`comp`, `el`, `attr`, `c`) unless they are an established pattern in the file.
+- **Booleans**: Use `is`, `has`, `can`, `should` prefixes.

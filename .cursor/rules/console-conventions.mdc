@@ -1,6 +1,6 @@
 ---
 description: Console conventions: layout, shared components, testing, architecture for gravitee-apim-console-webui.
-globs: ["**/*.component.ts", "**/*.module.ts", "**/*.directive.ts", "**/*.pipe.ts", "**/*.scss", "**/*.html", "**/shared/**/*.ts"]
+globs: ["**/*.component.ts", "**/*.module.ts", "**/*.directive.ts", "**/*.pipe.ts", "**/*.scss", "**/*.html", "**/*.spec.ts", "**/*.harness.ts", "**/shared/**/*.ts"]
 ---
 
 # Console Conventions (gravitee-apim-console-webui)
@@ -28,6 +28,8 @@ Applies only inside **gravitee-apim-console-webui**. Use with `particles-design-
 ## Testing
 
 - Use `GioTestingModule` and `CONSTANTS_TESTING` from `shared/testing` in specs.
+- Prefer harness methods over `document.querySelector` / `querySelectorAll`. Add appropriate methods to the component harness (`.harness.ts`) and use them in specs. Use `querySelector` only when there is no other choice.
+- Before creating a custom harness class, search the codebase for existing patterns. Prefer built-in harnesses (`SpanHarness`, `DivHarness`, `MatButtonHarness`, etc.) from `@gravitee/ui-particles-angular/testing` or Angular Material with `locatorFor` / `locatorForOptional` / `locatorForAll` and a selector. Example: `locatorForOptional(SpanHarness.with({ selector: '[data-testid="..."]' }))`.
 
 ## Storybook
 
