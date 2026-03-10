@@ -5,7 +5,8 @@
       "referenceId": "DEFAULT",
       "referenceType": "ORGANIZATION",
       "value": "https://public-api.company.com",
-      "tags": "public"
+      "tags": "public",
+      "environmentIds": "env1;env2"
    },
    {
       "id": "aaeddaec-0e94-4f49-adda-ec0e947f4965",
