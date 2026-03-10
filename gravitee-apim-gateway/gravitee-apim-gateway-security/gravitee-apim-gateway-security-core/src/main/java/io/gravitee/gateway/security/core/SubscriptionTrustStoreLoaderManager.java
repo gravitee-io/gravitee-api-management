@@ -55,41 +55,44 @@ public class SubscriptionTrustStoreLoaderManager {
      */
     public void registerSubscription(Subscription subscription, Set<String> deployOnServers) {
         certificates.computeIfPresent(subscription.getId(), (id, currentState) -> {
-            try {
-                Set<SubscriptionCertificate> newState = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
-                // compute diff to minimize disruption: add new certificates before removing old ones to avoid traffic cuts
-                Set<SubscriptionCertificate> toAdd = newState
-                    .stream()
-                    .filter(newCert -> !currentState.contains(newCert))
-                    .collect(Collectors.toSet());
-                Set<SubscriptionCertificate> toRemove = currentState
-                    .stream()
-                    .filter(existing -> !newState.contains(existing))
-                    .collect(Collectors.toSet());
-                Set<SubscriptionCertificate> toUpdate = currentState.stream().filter(newState::contains).collect(Collectors.toSet());
+            Set<SubscriptionCertificate> newState = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+            // compute diff to minimize disruption: add new certificates before removing old ones to avoid traffic cuts
+            Set<SubscriptionCertificate> toAdd = newState
+                .stream()
+                .filter(newCert -> !currentState.contains(newCert))
+                .collect(Collectors.toSet());
+            Set<SubscriptionCertificate> toRemove = currentState
+                .stream()
+                .filter(existing -> !newState.contains(existing))
+                .collect(Collectors.toSet());
+            Set<SubscriptionCertificate> toUpdate = currentState.stream().filter(newState::contains).collect(Collectors.toSet());
 
+            try {
                 // manage truststore loaders
                 // register what is new first to avoid traffic cuts
                 for (SubscriptionCertificate s : toAdd) {
                     registerSubscriptionTrustStoreLoader(s, deployOnServers);
                 }
-
-                // remove what is no longer needed
-                toRemove.forEach(this::unregisterSubscriptionTrustStoreLoader);
-
-                // update the subscription that may have changed
-                toUpdate.forEach(s -> subscriptions.put(new CacheKey(s), subscription));
-
-                // update
-                var state = new HashSet<>(currentState);
-                state.addAll(toAdd);
-                state.removeAll(toRemove);
-                return state;
             } catch (MalformedCertificateException e) {
-                log.error(e.getMessage(), e.getCause());
+                log.error("Error while registering certificates", e);
+                for (SubscriptionCertificate s : toAdd) {
+                    unregisterSubscriptionTrustStoreLoader(s);
+                }
                 // keep the current state if anything goes wrong
                 return currentState;
             }
+
+            // remove what is no longer needed
+            toRemove.forEach(this::unregisterSubscriptionTrustStoreLoader);
+
+            // update the subscription that may have changed
+            toUpdate.forEach(s -> subscriptions.put(new CacheKey(s), subscription));
+
+            // update
+            var state = new HashSet<>(currentState);
+            state.addAll(toAdd);
+            state.removeAll(toRemove);
+            return state;
         });
         certificates.computeIfAbsent(subscription.getId(), id -> {
             try {
