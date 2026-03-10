@@ -19,6 +19,7 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -64,16 +65,28 @@ export const DEFAULT_PAGINATION = {
   perPage: 10,
 };
 
+const DEFAULT_SORT = { active: 'name', direction: 'asc' as const };
+
 const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
   pagination: { index: DEFAULT_PAGINATION.page, size: DEFAULT_PAGINATION.perPage },
   searchTerm: '',
+  sort: DEFAULT_SORT,
 };
 
 @Component({
   selector: 'api-product-apis',
   templateUrl: './api-product-apis.component.html',
   styleUrls: ['./api-product-apis.component.scss'],
-  imports: [MatButtonModule, MatIconModule, MatTableModule, MatTooltipModule, GioAvatarModule, GioIconsModule, GioTableWrapperModule],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatSortModule,
+    MatTableModule,
+    MatTooltipModule,
+    GioAvatarModule,
+    GioIconsModule,
+    GioTableWrapperModule,
+  ],
   standalone: true,
 })
 export class ApiProductApisComponent implements OnInit {
@@ -158,6 +171,13 @@ export class ApiProductApisComponent implements OnInit {
       .subscribe();
   }
 
+  private toApiSortBy(filters: ApiProductApisTableWrapperFilters): string | undefined {
+    const sort = filters.sort;
+    if (!sort?.active || sort.direction === '') return undefined;
+    const field = sort.active === 'contextPath' ? 'paths' : sort.active;
+    return sort.direction === 'desc' ? `-${field}` : field;
+  }
+
   private loadApisForProduct(
     apiProductId: string,
     filters: ApiProductApisTableWrapperFilters,
@@ -166,7 +186,8 @@ export class ApiProductApisComponent implements OnInit {
     const page = filters.pagination?.index ?? DEFAULT_PAGINATION.page;
     const perPage = filters.pagination?.size ?? DEFAULT_PAGINATION.perPage;
     const query = filters.searchTerm?.trim() ?? '';
-    return this.apiProductV2Service.getApis(apiProductId, page, perPage, query).pipe(
+    const sortBy = this.toApiSortBy(filters);
+    return this.apiProductV2Service.getApis(apiProductId, page, perPage, query, sortBy).pipe(
       catchError((err: unknown) => {
         // 404 can occur when the product was deleted elsewhere, user opened a bookmark with a removed id, or the id in the URL is invalid.
         if (err instanceof HttpErrorResponse && err.status === 404) {
@@ -194,7 +215,7 @@ export class ApiProductApisComponent implements OnInit {
     return data.map(api => ({
       id: api.id,
       name: api.name,
-      picture: api._links?.['pictureUrl'],
+      picture: api._links?.['pictureUrl'] ?? (api as { links?: { pictureUrl?: string } }).links?.pictureUrl,
       contextPath: getApiContextPath(api) || '-',
       definition: 'HTTP Proxy Gravitee',
       version: api.apiVersion || '-',

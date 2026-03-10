@@ -24,7 +24,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
 import io.gravitee.common.data.domain.Page;
@@ -32,6 +31,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -85,7 +85,7 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
         void should_return_empty_list_when_product_has_no_apis() {
             var apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("My Product").apiIds(Set.of()).build();
             when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<Api>(List.of(), 0, 0, 0))
+                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(), 1, 10, 0))
             );
 
             Response response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
@@ -109,9 +109,13 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
                 .apiIds(Set.of("api-1", "api-2"))
                 .build();
 
-            var coreApi = Api.builder().id("api-1").name("My API").definitionVersion(DefinitionVersion.V4).build();
+            var genericApi = new ApiEntity();
+            genericApi.setId("api-1");
+            genericApi.setName("My API");
+            genericApi.setDefinitionVersion(DefinitionVersion.V4);
+
             when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(coreApi), 1, 10, 2))
+                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(genericApi), 1, 10, 2))
             );
 
             Response response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
@@ -129,7 +133,7 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_pass_pagination_and_search_to_use_case() {
+        void should_pass_pagination_and_query_to_use_case() {
             var apiProduct = ApiProduct.builder()
                 .id(API_PRODUCT_ID)
                 .environmentId(ENV_ID)
@@ -137,7 +141,7 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
                 .apiIds(Set.of("api-1"))
                 .build();
             when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<Api>(List.of(), 2, 20, 0))
+                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(), 2, 20, 0))
             );
 
             rootTarget().queryParam("page", 2).queryParam("perPage", 20).queryParam("query", "search-term").request().get();
@@ -145,7 +149,10 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
             verify(getApiProductApisUseCase).execute(
                 argThat(
                     input ->
-                        input.pageable().getPageNumber() == 2 && input.pageable().getPageSize() == 20 && "search-term".equals(input.query())
+                        API_PRODUCT_ID.equals(input.apiProductId()) &&
+                        "search-term".equals(input.query()) &&
+                        input.pageable().getPageNumber() == 2 &&
+                        input.pageable().getPageSize() == 20
                 )
             );
         }
