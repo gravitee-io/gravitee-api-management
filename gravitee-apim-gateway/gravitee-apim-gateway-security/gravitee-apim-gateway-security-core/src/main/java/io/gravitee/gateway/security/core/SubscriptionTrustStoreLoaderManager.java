@@ -22,6 +22,7 @@ import io.gravitee.gateway.security.core.exception.MalformedCertificateException
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.VertxServer;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +39,7 @@ import lombok.CustomLog;
 @CustomLog
 public class SubscriptionTrustStoreLoaderManager {
 
-    private final Map<String, Set<SubscriptionCertificate>> certificates = new ConcurrentHashMap<>();
+    private final Map<String, Set<SubscriptionCertificate>> certificates = new HashMap<>();
     private final Map<CacheKey, Subscription> subscriptions = new ConcurrentHashMap<>();
     private final Multimap<CacheKey, SubscriptionTrustStoreLoader> truststoreLoaders = MultimapBuilder.hashKeys().hashSetValues().build();
     private final ServerManager serverManager;
@@ -47,6 +48,11 @@ public class SubscriptionTrustStoreLoaderManager {
         this.serverManager = serverManager;
     }
 
+    /**
+     * Register a new subscription. This is called sequentially for each subscription, so no need for concurrent maps here
+     * @param subscription the subscription to register
+     * @param deployOnServers the servers on which the subscription is deployed
+     */
     public void registerSubscription(Subscription subscription, Set<String> deployOnServers) {
         certificates.computeIfPresent(subscription.getId(), (id, currentState) -> {
             try {
@@ -97,6 +103,10 @@ public class SubscriptionTrustStoreLoaderManager {
         });
     }
 
+    /**
+     * Unregister a subscription. This is called sequentially for each subscription, so no need for concurrent maps here
+     * @param subscription the subscription to unregister
+     */
     public void unregisterSubscription(Subscription subscription) {
         certificates.computeIfPresent(subscription.getId(), (id, currentState) -> {
             currentState.forEach(this::unregisterSubscriptionTrustStoreLoader);
@@ -104,6 +114,14 @@ public class SubscriptionTrustStoreLoaderManager {
         });
     }
 
+    /**
+     * Retrieves a {@link Subscription} based on the provided API, plan, and certificate fingerprint. It is in the critical path of the Gateway, hence the concurrent map is used to ensure fast and secure lookups.
+     *
+     * @param api the identifier of the API for which the subscription is associated; must not be null.
+     * @param plan the identifier of the plan associated with the subscription; must not be null.
+     * @param certificateFingerprint the fingerprint of the certificate used to uniquely identify the subscription; must not be null.
+     * @return an {@link Optional} containing the matching {@link Subscription} if found, or an empty {@link Optional} if no matching subscription exists.
+     */
     public Optional<Subscription> getByCertificate(String api, String plan, String certificateFingerprint) {
         return Optional.ofNullable(subscriptions.get(new CacheKey(api, plan, certificateFingerprint)));
     }
