@@ -26,7 +26,7 @@ tests:
       - isNotNull:
           path: data["gravitee.yml"]
 
-  - it: Should generate gateway-configmap.yaml  when logging.debug is true
+  - it: Should generate gateway-configmap.yaml when logging.debug is true
     template: gateway/gateway-configmap.yaml
     set:
       gateway:
