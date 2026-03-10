@@ -223,7 +223,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     }
 
     @Test
-    void should_not_update_subscriptions_when_no_active_certificates() {
+    void should_clear_certificate_when_no_active_certificates() {
         // Given: an mTLS plan
         Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
@@ -239,10 +239,10 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         // When
         service.updateActiveMTLSSubscriptions(APPLICATION_ID);
 
-        // Then: subscription should remain unchanged
+        // Then: subscription should be updated with empty string
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
-        assertThat(result.getClientCertificate()).isEqualTo(existingEncodedCert);
-        assertThat(result.getCreatedAt()).isSameAs(result.getUpdatedAt());
+        assertThat(result.getClientCertificate()).isEmpty();
+        assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
     }
 
     @Test
@@ -302,6 +302,31 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         KeyStore ks = keyStore.get();
         assertThat(ks.getCertificate("0")).isEqualTo(KeyStoreUtils.loadPemCertificates(PEM_CERTIFICATE_1)[0]);
         assertThat(ks.getCertificate("1")).isEqualTo(KeyStoreUtils.loadPemCertificates(PEM_CERTIFICATE_2)[0]);
+    }
+
+    @Test
+    void should_clear_certificate_on_all_mtls_subscriptions_when_no_active_certificates() {
+        // Given: an mTLS plan with 2 subscriptions and all certificates revoked
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
+        planCrudService.initWith(List.of(mtlsPlan));
+
+        SubscriptionEntity subscription1 = buildSubscription("sub-1", APPLICATION_ID, PLAN_ID, null);
+        SubscriptionEntity subscription2 = buildSubscription("sub-2", APPLICATION_ID, PLAN_ID, null);
+        subscriptionCrudService.initWith(List.of(subscription1, subscription2));
+
+        ClientCertificate revokedCert = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
+        clientCertificateCrudService.initWith(List.of(revokedCert));
+
+        // When
+        service.updateActiveMTLSSubscriptions(APPLICATION_ID);
+
+        // Then: both subscriptions should be updated with empty string
+        SubscriptionEntity result1 = subscriptionCrudService.get("sub-1");
+        SubscriptionEntity result2 = subscriptionCrudService.get("sub-2");
+        assertThat(result1.getClientCertificate()).isEmpty();
+        assertThat(result2.getClientCertificate()).isEmpty();
+        assertThat(result1.getCreatedAt()).isNotEqualTo(result1.getUpdatedAt());
+        assertThat(result2.getCreatedAt()).isNotEqualTo(result2.getUpdatedAt());
     }
 
     @Test
