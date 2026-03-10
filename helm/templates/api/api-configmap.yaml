@@ -1,4 +1,4 @@
-{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug)) -}}
+{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug) (.Values.api.logback.override)) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -280,6 +280,44 @@ data:
     {{- if .Values.api.configuration.logging }}
     logging: {{- toYaml .Values.api.configuration.logging | nindent 6 }}
     {{- end }}
+
+    {{- if .Values.api.node }}
+    node:
+      {{- if .Values.api.node.logging }}
+      logging:
+        {{- if .Values.api.node.logging.mdc }}
+        mdc:
+          {{- if .Values.api.node.logging.mdc.format }}
+          format: {{ .Values.api.node.logging.mdc.format | quote }}
+          {{- end }}
+          {{- if .Values.api.node.logging.mdc.separator }}
+          separator: {{ .Values.api.node.logging.mdc.separator | quote }}
+          {{- end }}
+          {{- if .Values.api.node.logging.mdc.nullValue }}
+          nullValue: {{ .Values.api.node.logging.mdc.nullValue | quote }}
+          {{- end }}
+          {{- if .Values.api.node.logging.mdc.include }}
+          include:
+            {{- range .Values.api.node.logging.mdc.include }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.api.node.logging.pattern }}
+        pattern:
+          {{- if hasKey .Values.api.node.logging.pattern "overrideLogbackXml" }}
+          overrideLogbackXml: {{ .Values.api.node.logging.pattern.overrideLogbackXml }}
+          {{- end }}
+          {{- if .Values.api.node.logging.pattern.console }}
+          console: {{ .Values.api.node.logging.pattern.console | quote }}
+          {{- end }}
+          {{- if .Values.api.node.logging.pattern.file }}
+          file: {{ .Values.api.node.logging.pattern.file | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
     security:
       trustAll: {{ .Values.security.trustAll | default false }}
       providers:
@@ -676,7 +714,10 @@ data:
     </hazelcast>
     {{- end }}
 
-    {{- if .Values.api.logging.debug }}
+    {{- if .Values.api.logback.override }}
+  logback.xml: |
+{{ .Values.api.logback.content | indent 4 }}
+    {{- else if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
     <!--
