@@ -1428,7 +1428,7 @@
                 <dependency>
                     <groupId>com.graviteesource.entrypoint</groupId>
                     <artifactId>gravitee-entrypoint-mcp-tool-server</artifactId>
-                    <version>${gravitee-entrypoint-mcp.version}</version>
+                    <version>${gravitee-entrypoint-mcp-tool-server.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
