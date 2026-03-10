@@ -58,6 +58,7 @@ describe('AppComponent', () => {
           order: 0,
           url: '/link1',
           published: true,
+          rootId: 'l1',
         },
         {
           id: 'l2',
@@ -69,6 +70,7 @@ describe('AppComponent', () => {
           order: 1,
           url: '/link2',
           published: true,
+          rootId: 'l2',
         },
       ];
 

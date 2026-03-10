@@ -67,6 +67,7 @@ describe('homepageContentResolver', () => {
       organizationId: 'org-id',
       type: 'PAGE',
       portalPageContentId: 'homepage-content',
+      rootId: 'page-123',
     };
 
     const mockPageContent: PortalPageContent = {

@@ -27,9 +27,9 @@ export const makeItem = (
   title: string,
   order?: number,
   parentId?: string | null,
-  rootId?: string | null,
+  rootId?: string,
 ): PortalNavigationItem => {
-  const root = rootId ?? (parentId ? undefined : id);
+  const root = rootId ?? id;
   switch (type) {
     case 'FOLDER':
       return fakePortalNavigationFolder({ id, title, order, parentId, rootId: root });

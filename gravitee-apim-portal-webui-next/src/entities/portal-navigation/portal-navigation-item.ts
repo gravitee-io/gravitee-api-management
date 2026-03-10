@@ -26,7 +26,7 @@ export interface BasePortalNavigationItem {
   type: PortalNavigationItemType;
   area: PortalArea;
   parentId?: string | null;
-  rootId?: string | null;
+  rootId: string;
   order: number;
   published: boolean;
 }
