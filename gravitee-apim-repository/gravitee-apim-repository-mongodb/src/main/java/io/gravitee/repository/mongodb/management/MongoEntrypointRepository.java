@@ -128,8 +128,8 @@ public class MongoEntrypointRepository implements EntrypointRepository {
                 final Entrypoint entrypoint = new Entrypoint();
                 entrypoint.setId(entrypointMongo.getId());
                 entrypoint.setTarget(entrypointMongo.getTarget());
-                entrypointMongo.setReferenceId(entrypoint.getReferenceId());
-                entrypointMongo.setReferenceType(entrypoint.getReferenceType());
+                entrypoint.setReferenceId(entrypointMongo.getReferenceId());
+                entrypoint.setReferenceType(entrypointMongo.getReferenceType());
                 entrypoint.setValue(entrypointMongo.getValue());
                 entrypoint.setTags(entrypointMongo.getTags());
                 entrypoint.setEnvironmentIds(entrypointMongo.getEnvironmentIds());
