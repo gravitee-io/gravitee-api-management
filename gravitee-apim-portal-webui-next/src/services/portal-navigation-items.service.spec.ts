@@ -52,6 +52,7 @@ describe('PortalNavigationItemsService', () => {
         order: 0,
         portalPageContentId: 'content1',
         published: true,
+        rootId: '1',
       },
       {
         id: '2',
@@ -63,6 +64,7 @@ describe('PortalNavigationItemsService', () => {
         order: 1,
         url: '/apis',
         published: true,
+        rootId: '2',
       },
     ];
 
@@ -95,6 +97,7 @@ describe('PortalNavigationItemsService', () => {
         area: 'TOP_NAVBAR',
         order: 2,
         published: true,
+        rootId: 'x',
       },
     ]);
 
