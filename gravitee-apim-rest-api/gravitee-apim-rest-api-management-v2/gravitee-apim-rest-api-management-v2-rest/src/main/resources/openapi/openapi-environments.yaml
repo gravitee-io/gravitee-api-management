@@ -2017,7 +2017,7 @@ components:
           example: true
         visibility:
           $ref: "#/components/schemas/PortalVisibility"
-      required: [ id, organizationId, environmentId, title, type, area, order, published, visibility ]
+      required: [ id, organizationId, environmentId, title, type, area, order, published, visibility, rootId ]
       discriminator:
         propertyName: type
         mapping:

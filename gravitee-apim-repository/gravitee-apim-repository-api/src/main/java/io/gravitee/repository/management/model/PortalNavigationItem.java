@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -64,6 +65,7 @@ public class PortalNavigationItem {
 
     private String parentId;
 
+    @Nonnull
     private String rootId;
 
     private Integer order;

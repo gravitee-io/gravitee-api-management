@@ -6451,7 +6451,7 @@ components:
                 order:
                     type: integer
                     description: The order of the navigation item
-            required: [id, organizationId, environmentId, title, type, area, order]
+            required: [id, organizationId, environmentId, title, type, area, order, rootId]
             discriminator:
                 propertyName: type
                 mapping:
