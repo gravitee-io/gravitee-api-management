@@ -33,6 +33,7 @@ public class Entrypoint {
     private String target;
     private String value;
     private String tags;
+    private String environmentIds;
     private String referenceId;
     private EntrypointReferenceType referenceType;
 
@@ -66,6 +67,14 @@ public class Entrypoint {
 
     public void setTags(String tags) {
         this.tags = tags;
+    }
+
+    public String getEnvironmentIds() {
+        return environmentIds;
+    }
+
+    public void setEnvironmentIds(String environmentIds) {
+        this.environmentIds = environmentIds;
     }
 
     public String getReferenceId() {
@@ -112,6 +121,9 @@ public class Entrypoint {
             '\'' +
             ", tags='" +
             tags +
+            '\'' +
+            ", environmentIds='" +
+            environmentIds +
             '\'' +
             ", referenceId='" +
             referenceId +
