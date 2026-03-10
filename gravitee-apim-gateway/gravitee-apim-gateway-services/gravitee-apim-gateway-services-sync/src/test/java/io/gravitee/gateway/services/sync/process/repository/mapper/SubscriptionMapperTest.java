@@ -90,7 +90,7 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getConfiguration()).isEqualTo(
             objectMapper.readValue(subscription.getConfiguration(), SubscriptionConfiguration.class)
         );
-        assertThat(subscriptionMapped.getMetadata()).containsEntry("referenceId", "api").containsEntry("referenceType", "API");
+        assertThat(subscriptionMapped.getMetadata()).isEmpty();
     }
 
     @Test
@@ -114,7 +114,7 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getConsumerStatus()).isEqualTo(io.gravitee.gateway.api.service.Subscription.ConsumerStatus.STARTED);
         assertThat(subscriptionMapped.getType()).isEqualTo(io.gravitee.gateway.api.service.Subscription.Type.STANDARD);
         assertThat(subscriptionMapped.getConfiguration()).isNull();
-        assertThat(subscriptionMapped.getMetadata()).containsEntry("referenceId", "api").containsEntry("referenceType", "API");
+        assertThat(subscriptionMapped.getMetadata()).isEmpty();
     }
 
     @Test
@@ -147,7 +147,7 @@ class SubscriptionMapperTest {
 
         assertThat(mapped).hasSize(2);
         assertThat(mapped).extracting(io.gravitee.gateway.api.service.Subscription::getApi).containsExactlyInAnyOrder("api1", "api2");
-        assertThat(mapped).allMatch(s -> "id".equals(s.getId()) && "product-1".equals(s.getMetadata().get("productId")));
+        assertThat(mapped).allMatch(s -> "id".equals(s.getId()) && "product-1".equals(s.getApiProductId()));
     }
 
     @Test

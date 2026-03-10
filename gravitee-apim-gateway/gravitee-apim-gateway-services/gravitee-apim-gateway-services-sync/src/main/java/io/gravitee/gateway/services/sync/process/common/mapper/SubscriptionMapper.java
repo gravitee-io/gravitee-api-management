@@ -32,9 +32,6 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 public class SubscriptionMapper {
 
-    public static final String METADATA_REFERENCE_ID = "referenceId";
-    public static final String METADATA_REFERENCE_TYPE = "referenceType";
-
     private final ObjectMapper objectMapper;
     private final ApiProductRegistry apiProductRegistry;
 
@@ -83,15 +80,6 @@ public class SubscriptionMapper {
             .map(apiId -> {
                 Subscription sub = toSubscription(subscriptionModel);
                 sub.setApi(apiId); // Override with individual API
-
-                // Preserve product info in metadata for debugging/tracking
-                Map<String, String> metadata = sub.getMetadata();
-                if (metadata == null) {
-                    metadata = new HashMap<>();
-                    sub.setMetadata(metadata);
-                }
-                metadata.put("productId", productId);
-                metadata.put("exploded", "true");
                 sub.setApiProductId(productId);
 
                 return sub;
@@ -131,12 +119,6 @@ public class SubscriptionMapper {
         Map<String, String> metadata = subscriptionModel.getMetadata() != null
             ? new HashMap<>(subscriptionModel.getMetadata())
             : new HashMap<>();
-        if (subscriptionModel.getReferenceId() != null) {
-            metadata.put(METADATA_REFERENCE_ID, subscriptionModel.getReferenceId());
-        }
-        if (subscriptionModel.getReferenceType() != null) {
-            metadata.put(METADATA_REFERENCE_TYPE, subscriptionModel.getReferenceType().name());
-        }
         subscription.setMetadata(metadata);
         subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
         return subscription;
@@ -149,16 +131,9 @@ public class SubscriptionMapper {
     public Subscription toSubscriptionForApi(io.gravitee.repository.management.model.Subscription subscriptionModel, String apiId) {
         Subscription sub = toSubscription(subscriptionModel);
         sub.setApi(apiId);
-        Map<String, String> metadata = sub.getMetadata();
-        if (metadata == null) {
-            metadata = new HashMap<>();
-            sub.setMetadata(metadata);
-        }
         if (subscriptionModel.getReferenceId() != null) {
-            metadata.put("productId", subscriptionModel.getReferenceId());
             sub.setApiProductId(subscriptionModel.getReferenceId());
         }
-        metadata.put("exploded", "true");
         return sub;
     }
 
