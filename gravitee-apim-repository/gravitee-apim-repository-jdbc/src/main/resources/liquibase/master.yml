@@ -266,6 +266,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_8_0/04_add_hrid_to_apis_table.yml
     - include:
+        - file: liquibase/changelogs/v4_8_0/05_add_environment_ids_to_entrypoints_table.yml
+    - include:
         - file: liquibase/changelogs/v4_9_0/00_add_hrid_to_applications_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/01_add_hrid_to_plans_table.yml
