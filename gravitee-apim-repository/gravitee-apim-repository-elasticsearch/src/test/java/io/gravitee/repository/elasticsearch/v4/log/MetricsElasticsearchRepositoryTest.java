@@ -74,7 +74,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.total()).isEqualTo(8);
             assertThat(result.data()).isEqualTo(
                 List.of(
                     Metrics.builder()
@@ -127,42 +127,43 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.total()).isEqualTo(8);
             assertThat(result.data()).isEqualTo(
                 List.of(
                     Metrics.builder()
-                        .requestId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
+                        .requestId("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4")
                         .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                        .applicationId("613dc986-41ce-4b5b-bdc9-8641cedb5bdb")
-                        .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
+                        .applicationId("1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
+                        .planId("972b5d75-7901-4afd-ab5d-757901eafd0b")
                         .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
-                        .transactionId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
+                        .transactionId("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4")
                         .requestEnded(true)
-                        .method(HttpMethod.POST)
-                        .status(202)
-                        .timestamp(yesterday + "T14:08:59.901Z")
-                        .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
+                        .method(HttpMethod.DELETE)
+                        .status(404)
+                        .timestamp(today + "T06:54:30.047Z")
+                        .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                         .uri("/jgi-message-logs-kafka/")
-                        .gatewayResponseTime(645L)
-                        .requestContentLength(21L)
-                        .responseContentLength(0L)
+                        .gatewayResponseTime(213L)
+                        .requestContentLength(0L)
+                        .responseContentLength(41L)
                         .build(),
                     Metrics.builder()
-                        .requestId("aed3a207-d5c0-4073-93a2-07d5c0007336")
+                        .requestId("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
                         .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                        .applicationId("f37a5799-0490-43f6-ba57-990490f3f678")
-                        .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
+                        .applicationId("1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
+                        .planId("972b5d75-7901-4afd-ab5d-757901eafd0b")
                         .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
-                        .transactionId("aed3a207-d5c0-4073-93a2-07d5c0007336")
+                        .transactionId("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
                         .requestEnded(true)
-                        .method(HttpMethod.GET)
-                        .status(200)
-                        .timestamp(yesterday + "T14:08:45.994Z")
-                        .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
+                        .method(HttpMethod.DELETE)
+                        .status(404)
+                        .timestamp(today + "T06:54:30.047Z")
+                        .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                         .uri("/jgi-message-logs-kafka/")
-                        .gatewayResponseTime(29703L)
+                        .gatewayResponseTime(200L)
                         .requestContentLength(0L)
-                        .responseContentLength(28L)
+                        .responseContentLength(41L)
+                        .errorKey("NO_ENDPOINT_FOUND")
                         .build()
                 )
             );
@@ -246,14 +247,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.total()).isEqualTo(6);
             assertThat(result.data())
                 .extracting(Metrics::getRequestId)
                 .containsExactly(
                     "e71f2ae0-7673-4d7e-9f2a-e076730d7e69",
                     "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48",
+                    "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
                     "26c61cfc-a4cc-4272-861c-fca4cc2272ab",
-                    "5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4"
+                    "5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4",
+                    "b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901"
                 );
         }
 
@@ -300,14 +303,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.total()).isEqualTo(6);
             assertThat(result.data())
                 .extracting(Metrics::getRequestId, Metrics::getTimestamp)
                 .containsExactly(
                     tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z"),
+                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", today + "T06:55:39.245Z"),
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", today + "T06:55:39.245Z"),
-                    tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z")
+                    tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z"),
+                    tuple("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901", today + "T06:54:30.047Z")
                 );
         }
 
@@ -323,11 +328,12 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(5);
+            assertThat(result.total()).isEqualTo(6);
             assertThat(result.data())
                 .extracting(Metrics::getRequestId, Metrics::getMethod)
                 .containsExactly(
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", HttpMethod.GET),
+                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", HttpMethod.POST),
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", HttpMethod.POST),
                     tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", HttpMethod.POST),
                     tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", HttpMethod.GET),
@@ -364,7 +370,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.total()).isEqualTo(8);
             assertThat(result.data()).isEqualTo(
                 List.of(
                     Metrics.builder()
@@ -417,42 +423,43 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.total()).isEqualTo(8);
             assertThat(result.data()).isEqualTo(
                 List.of(
                     Metrics.builder()
-                        .requestId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
+                        .requestId("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4")
                         .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                        .applicationId("613dc986-41ce-4b5b-bdc9-8641cedb5bdb")
-                        .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
+                        .applicationId("1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
+                        .planId("972b5d75-7901-4afd-ab5d-757901eafd0b")
                         .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
-                        .transactionId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
+                        .transactionId("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4")
                         .requestEnded(true)
-                        .method(HttpMethod.POST)
-                        .status(202)
-                        .timestamp(yesterday + "T14:08:59.901Z")
-                        .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
+                        .method(HttpMethod.DELETE)
+                        .status(404)
+                        .timestamp(today + "T06:54:30.047Z")
+                        .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                         .uri("/jgi-message-logs-kafka/")
-                        .gatewayResponseTime(645L)
-                        .requestContentLength(21L)
-                        .responseContentLength(0L)
+                        .gatewayResponseTime(213L)
+                        .requestContentLength(0L)
+                        .responseContentLength(41L)
                         .build(),
                     Metrics.builder()
-                        .requestId("aed3a207-d5c0-4073-93a2-07d5c0007336")
+                        .requestId("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
                         .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                        .applicationId("f37a5799-0490-43f6-ba57-990490f3f678")
-                        .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
+                        .applicationId("1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
+                        .planId("972b5d75-7901-4afd-ab5d-757901eafd0b")
                         .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
-                        .transactionId("aed3a207-d5c0-4073-93a2-07d5c0007336")
+                        .transactionId("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
                         .requestEnded(true)
-                        .method(HttpMethod.GET)
-                        .status(200)
-                        .timestamp(yesterday + "T14:08:45.994Z")
-                        .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
+                        .method(HttpMethod.DELETE)
+                        .status(404)
+                        .timestamp(today + "T06:54:30.047Z")
+                        .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                         .uri("/jgi-message-logs-kafka/")
-                        .gatewayResponseTime(29703L)
+                        .gatewayResponseTime(200L)
                         .requestContentLength(0L)
-                        .responseContentLength(28L)
+                        .responseContentLength(41L)
+                        .errorKey("NO_ENDPOINT_FOUND")
                         .build()
                 )
             );
@@ -546,7 +553,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(10);
+            assertThat(result.total()).isEqualTo(12);
             assertThat(result.data())
                 .extracting(Metrics::getRequestId)
                 .contains(
@@ -605,14 +612,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.total()).isEqualTo(6);
             assertThat(result.data())
                 .extracting(Metrics::getRequestId, Metrics::getTimestamp)
                 .containsExactly(
                     tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z"),
+                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", today + "T06:55:39.245Z"),
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", today + "T06:55:39.245Z"),
-                    tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z")
+                    tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z"),
+                    tuple("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901", today + "T06:54:30.047Z")
                 );
         }
 
@@ -628,7 +637,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(22);
+            assertThat(result.total()).isEqualTo(23);
             assertThat(result.data())
                 .extracting(Metrics::getRequestId, Metrics::getMethod)
                 .contains(
@@ -866,6 +875,34 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             assertThat(result).isNotNull();
             assertThat(result.total()).isZero();
             assertThat(result.data()).isEmpty();
+        }
+    }
+
+    @Nested
+    class SearchConnectionLogErrorKeys {
+
+        @Test
+        void should_return_empty_list_when_no_logs_for_api() {
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "non-existing-api-id", null, null);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_distinct_error_keys_for_api() {
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "f1608475-dd77-4603-a084-75dd775603e9", null, null);
+
+            assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND")
+                .doesNotHaveDuplicates();
+        }
+
+        @Test
+        void should_not_return_error_keys_from_other_apis() {
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "4a6895d5-a1bc-4041-a895-d5a1bce041ae", null, null);
+
+            assertThat(result).isEmpty();
         }
     }
 }

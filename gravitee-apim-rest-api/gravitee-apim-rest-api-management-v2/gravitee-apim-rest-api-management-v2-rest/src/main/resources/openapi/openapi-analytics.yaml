@@ -1095,6 +1095,24 @@ components:
                 type: string
             example: "d0152e36-ad24-4f74-a4df-443074d5a796"
 
+        From:
+            name: from
+            in: query
+            required: false
+            description: The start time of the range
+            schema:
+                type: integer
+                format: int64
+
+        To:
+            name: to
+            in: query
+            required: false
+            description: The end time of the range
+            schema:
+                type: integer
+                format: int64
+
     schemas:
         ApiName:
             type: string
@@ -1228,6 +1246,7 @@ components:
                 - MCP_PROXY_RESOURCE
                 - MCP_PROXY_PROMPT
                 - API_TYPE
+                - ERROR_KEY
             description: Available filter names for filtering analytics data
 
         Operator:

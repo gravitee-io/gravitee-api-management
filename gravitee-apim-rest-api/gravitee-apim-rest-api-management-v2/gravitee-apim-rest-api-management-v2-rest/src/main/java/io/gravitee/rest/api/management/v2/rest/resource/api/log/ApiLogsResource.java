@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.
 
 import io.gravitee.apim.core.log.use_case.SearchApiAggregatedMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
+import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogErrorKeysUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAggregatedMessageLogsMapper;
@@ -42,6 +43,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 
 public class ApiLogsResource extends AbstractResource {
 
@@ -60,6 +62,9 @@ public class ApiLogsResource extends AbstractResource {
     @Inject
     private SearchApiMessageLogsUseCase searchApiMessageLogsUseCase;
 
+    @Inject
+    private SearchApiConnectionLogErrorKeysUseCase searchErrorKeysUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
@@ -76,6 +81,18 @@ public class ApiLogsResource extends AbstractResource {
             .data(ApiLogsMapper.INSTANCE.mapToList(response.data()))
             .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
             .links(computePaginationLinks(response.total(), paginationParam));
+    }
+
+    @Path("/error-keys")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    public List<String> getApiLogErrorKeys(@BeanParam @Valid SearchLogsParam searchLogsParam) {
+        var output = searchErrorKeysUseCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchApiConnectionLogErrorKeysUseCase.Input(apiId, searchLogsParam.getFrom(), searchLogsParam.getTo())
+        );
+        return output.errorKeys();
     }
 
     @Path("/{requestId}/messages")

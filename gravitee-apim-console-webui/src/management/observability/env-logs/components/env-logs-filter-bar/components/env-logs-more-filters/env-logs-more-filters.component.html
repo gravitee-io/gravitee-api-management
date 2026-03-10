@@ -132,6 +132,15 @@
             <mat-label>Response time (ms)</mat-label>
             <input matInput type="number" formControlName="responseTime" placeholder="Greater than or equal (ms)" />
           </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Error Types</mat-label>
+            <mat-select formControlName="errorKeys" [multiple]="true">
+              @for (errorKey of errorKeysOptions; track errorKey) {
+                <mat-option [value]="errorKey">{{ errorKey }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
         </div>
       </form>
     }

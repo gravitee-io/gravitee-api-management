@@ -75,9 +75,15 @@ describe('EnvLogsComponent', () => {
   });
 
   afterEach(() => {
+    flushErrorKeys();
     httpTestingController.verify();
     fixture.destroy();
   });
+
+  function flushErrorKeys() {
+    const reqs = httpTestingController.match(req => req.url.includes('/analytics/error-keys'));
+    reqs.forEach(req => req.flush([]));
+  }
 
   function flushSearch(response: SearchLogsResponse, searchUrl: string = SEARCH_URL) {
     const req = httpTestingController.expectOne({ method: 'POST', url: searchUrl });
@@ -297,5 +303,22 @@ describe('EnvLogsComponent', () => {
     expect(logs[1].api).toBe('My API');
     expect(logs[0].application).toBe('My App');
     expect(logs[1].application).toBe('My App');
+  }));
+
+  it('should re-fetch logs with filters when onFiltersChanged is called', fakeAsync(() => {
+    initComponent();
+
+    component.onFiltersChanged({
+      filters: [{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }],
+    });
+    fixture.detectChanges();
+    tick(1);
+
+    const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+    expect(req.request.body.filters).toEqual([{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }]);
+    req.flush(EMPTY_RESPONSE);
+    fixture.detectChanges();
+
+    expect(component.pagination().page).toBe(1);
   }));
 });

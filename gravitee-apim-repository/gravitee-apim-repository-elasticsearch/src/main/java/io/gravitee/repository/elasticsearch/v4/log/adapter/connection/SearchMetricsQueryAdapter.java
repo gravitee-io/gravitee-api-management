@@ -73,6 +73,8 @@ public class SearchMetricsQueryAdapter {
 
         addUriFilter(filter, mustFilterList);
 
+        addErrorKeysFilter(filter, mustFilterList);
+
         addResponseTimeRangesFilter(filter, mustFilterList);
 
         if (!mustFilterList.isEmpty()) {
@@ -101,14 +103,20 @@ public class SearchMetricsQueryAdapter {
     }
 
     private static void addUriFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
-        var uriKeyword = filter.getUri();
+        String uriKeyword = filter.getUri();
         if (uriKeyword != null && !uriKeyword.isBlank()) {
-            var beginningSlash = uriKeyword.startsWith("/") ? "" : "/";
-            var endingWildcard = uriKeyword.endsWith("*") ? "" : "*";
+            String beginningSlash = uriKeyword.startsWith("/") ? "" : "/";
+            String endingWildcard = uriKeyword.endsWith("*") ? "" : "*";
 
-            mustFilterList.add(
-                JsonObject.of("wildcard", JsonObject.of(RequestV2MetricsV4Fields.URI, beginningSlash + uriKeyword + endingWildcard))
-            );
+            String fullUri = beginningSlash + uriKeyword + endingWildcard;
+
+            mustFilterList.add(JsonObject.of("wildcard", JsonObject.of(RequestV2MetricsV4Fields.URI, fullUri)));
+        }
+    }
+
+    private static void addErrorKeysFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getErrorKeys())) {
+            mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, filter.getErrorKeys().toArray())));
         }
     }
 

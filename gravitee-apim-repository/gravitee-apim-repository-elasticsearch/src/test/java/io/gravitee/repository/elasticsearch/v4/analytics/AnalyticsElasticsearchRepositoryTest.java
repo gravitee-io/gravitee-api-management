@@ -112,9 +112,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID));
 
             assertThat(result).hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getTotal()).isEqualTo(11);
+                assertThat(countAggregate.getTotal()).isEqualTo(13);
                 assertThat(countAggregate.getCountBy()).containsAllEntriesOf(
-                    Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L)
+                    Map.of("http-post", 5L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L)
                 );
             });
         }
@@ -148,9 +148,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(averageAggregate -> {
-                assertThat(averageAggregate.getAverage()).isCloseTo(20261.25, offset(0.1d));
+                assertThat(averageAggregate.getAverage()).isCloseTo(20280.25, offset(0.1d));
                 assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(
-                    Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 400.0)
+                    Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 476.0)
                 );
             });
         }
@@ -184,11 +184,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(responseStatusAggregate -> {
-                assertRanges(responseStatusAggregate.getRanges(), 3L, 8L);
+                assertRanges(responseStatusAggregate.getRanges(), 4L, 9L);
                 var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                 assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                 assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
-                assertRanges(statusRangesCountByEntrypoint.get("http-post"), 2L, 1L);
+                assertRanges(statusRangesCountByEntrypoint.get("http-post"), 3L, 2L);
                 assertRanges(statusRangesCountByEntrypoint.get("webhook"), 0L, 1L);
                 assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
                 assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
@@ -206,11 +206,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(responseStatusAggregate -> {
-                assertRanges(responseStatusAggregate.getRanges(), 7L, 11L);
+                assertRanges(responseStatusAggregate.getRanges(), 8L, 12L);
                 var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                 assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                 assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
-                assertRanges(statusRangesCountByEntrypoint.get("http-post"), 2L, 1L);
+                assertRanges(statusRangesCountByEntrypoint.get("http-post"), 3L, 2L);
                 assertRanges(statusRangesCountByEntrypoint.get("webhook"), 0L, 1L);
                 assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
                 assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
@@ -357,8 +357,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404");
                 softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
-                softly.assertThat(result.getStatusCount().get("202")).hasSize((int) nbBuckets).contains(1L, atIndex(61));
-                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(2L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("202")).hasSize((int) nbBuckets).contains(2L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(3L, atIndex(61));
             });
         }
 
@@ -397,7 +397,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 softly
                     .assertThat(result.getStatusCount().get("202"))
                     .hasSize((int) nbBuckets)
-                    .haveExactly(1, is(1))
+                    .haveExactly(1, is(2))
                     .haveAtMost(1, not(is(0)));
                 softly
                     .assertThat(
@@ -408,7 +408,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                             .mapToLong(l -> l)
                             .sum()
                     )
-                    .isEqualTo(2);
+                    .isEqualTo(3);
                 softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).haveAtMost(2, not(is(0)));
             });
         }
@@ -499,11 +499,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(result.getRequestsPerSecond()).isEqualTo(2.3148148148148147E-5);
-                softly.assertThat(result.getRequestsTotal()).isEqualTo(4L);
+                softly.assertThat(result.getRequestsPerSecond()).isEqualTo(3.4722222222222224E-5);
+                softly.assertThat(result.getRequestsTotal()).isEqualTo(6L);
                 softly.assertThat(result.getResponseMinTime()).isEqualTo(20.0);
                 softly.assertThat(result.getResponseMaxTime()).isEqualTo(30000.0);
-                softly.assertThat(result.getResponseAvgTime()).isEqualTo(7800.0);
+                softly.assertThat(result.getResponseAvgTime()).isEqualTo(5396.67, withPrecision(0.1d));
             });
         }
 
@@ -519,11 +519,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(result.getRequestsPerSecond()).isCloseTo(6.36574074074074E-5, withPrecision(.01d));
-                softly.assertThat(result.getRequestsTotal()).isEqualTo(11L);
+                softly.assertThat(result.getRequestsPerSecond()).isCloseTo(7.523148148148148E-5, withPrecision(.01d));
+                softly.assertThat(result.getRequestsTotal()).isEqualTo(13L);
                 softly.assertThat(result.getResponseMinTime()).isEqualTo(2.0);
                 softly.assertThat(result.getResponseMaxTime()).isEqualTo(30000.0);
-                softly.assertThat(result.getResponseAvgTime()).isCloseTo(2916.3635, withPrecision(.01d));
+                softly.assertThat(result.getResponseAvgTime()).isCloseTo(2558.46, withPrecision(.01d));
             });
         }
 
@@ -715,10 +715,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(bucket200.get(28)).isEqualTo(1L);
 
             assertThat(bucket202).hasSizeGreaterThan(61);
-            assertThat(bucket202.get(61)).isEqualTo(1L);
+            assertThat(bucket202.get(61)).isEqualTo(2L);
 
             assertThat(bucket404).hasSizeGreaterThan(61);
-            assertThat(bucket404.get(61)).isEqualTo(2L);
+            assertThat(bucket404.get(61)).isEqualTo(3L);
         }
 
         @Test
@@ -784,7 +784,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var bucket404 = histogram.counts().get("404");
             assertThat(bucket404).hasSizeGreaterThan(61);
-            assertThat(bucket404.get(61)).isEqualTo(2L);
+            assertThat(bucket404.get(61)).isEqualTo(3L);
         }
     }
 
@@ -946,9 +946,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .isPresent()
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
-                    assertThat(stats.count()).isEqualTo(8.0f);
-                    assertThat(stats.sum()).isEqualTo(131864.0f);
-                    assertThat(stats.avg()).isEqualTo(16483.0f);
+                    assertThat(stats.count()).isEqualTo(10.0f);
+                    assertThat(stats.sum()).isEqualTo(133044.0f);
+                    assertThat(stats.avg()).isEqualTo(13304.4f);
                     assertThat(stats.min()).isEqualTo(19.0f);
                     assertThat(stats.max()).isEqualTo(60000.0f);
                 });
@@ -1021,7 +1021,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 )
             );
             assertThat(result).hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.total()).isEqualTo(11);
+                assertThat(countAggregate.total()).isEqualTo(13);
             });
         }
 

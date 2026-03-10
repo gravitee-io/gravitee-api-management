@@ -36,104 +36,57 @@ public final class FilterContext {
     private String uri;
     private Long responseTimeFrom;
     private Long responseTimeTo;
+    private Set<String> errorKeys;
+
+    private <T> Set<T> limitBy(Set<T> current, Set<T> incoming) {
+        if (incoming == null) {
+            return current;
+        }
+        if (current == null) {
+            return new HashSet<>(incoming);
+        }
+        current.retainAll(incoming);
+        return current;
+    }
 
     public void limitByApiIds(Set<String> apiIds) {
-        if (apiIds == null) {
-            return;
-        }
-        if (this.apiIds == null) {
-            this.apiIds = new HashSet<>(apiIds);
-        } else {
-            this.apiIds.retainAll(apiIds);
-        }
+        this.apiIds = limitBy(this.apiIds, apiIds);
     }
 
     public void limitByApplicationIds(Set<String> applicationIds) {
-        if (applicationIds == null) {
-            return;
-        }
-        if (this.applicationIds == null) {
-            this.applicationIds = new HashSet<>(applicationIds);
-        } else {
-            this.applicationIds.retainAll(applicationIds);
-        }
+        this.applicationIds = limitBy(this.applicationIds, applicationIds);
     }
 
     public void limitByPlanIds(Set<String> planIds) {
-        if (planIds == null) {
-            return;
-        }
-        if (this.planIds == null) {
-            this.planIds = new HashSet<>(planIds);
-        } else {
-            this.planIds.retainAll(planIds);
-        }
+        this.planIds = limitBy(this.planIds, planIds);
     }
 
     public void limitByHttpMethods(Set<HttpMethod> methods) {
-        if (methods == null) {
-            return;
-        }
-        if (this.methods == null) {
-            this.methods = new HashSet<>(methods);
-        } else {
-            this.methods.retainAll(methods);
-        }
+        this.methods = limitBy(this.methods, methods);
     }
 
     public void limitByHttpStatuses(Set<Integer> statuses) {
-        if (statuses == null) {
-            return;
-        }
-        if (this.statuses == null) {
-            this.statuses = new HashSet<>(statuses);
-        } else {
-            this.statuses.retainAll(statuses);
-        }
+        this.statuses = limitBy(this.statuses, statuses);
     }
 
     public void limitByEntrypointIds(Set<String> entrypointIds) {
-        if (entrypointIds == null) {
-            return;
-        }
-        if (this.entrypointIds == null) {
-            this.entrypointIds = new HashSet<>(entrypointIds);
-        } else {
-            this.entrypointIds.retainAll(entrypointIds);
-        }
+        this.entrypointIds = limitBy(this.entrypointIds, entrypointIds);
     }
 
     public void limitByMcpMethods(Set<String> mcpMethods) {
-        if (mcpMethods == null) {
-            return;
-        }
-        if (this.mcpMethods == null) {
-            this.mcpMethods = new HashSet<>(mcpMethods);
-        } else {
-            this.mcpMethods.retainAll(mcpMethods);
-        }
+        this.mcpMethods = limitBy(this.mcpMethods, mcpMethods);
     }
 
     public void limitByTransactionIds(Set<String> transactionIds) {
-        if (transactionIds == null) {
-            return;
-        }
-        if (this.transactionIds == null) {
-            this.transactionIds = new HashSet<>(transactionIds);
-        } else {
-            this.transactionIds.retainAll(transactionIds);
-        }
+        this.transactionIds = limitBy(this.transactionIds, transactionIds);
     }
 
     public void limitByRequestIds(Set<String> requestIds) {
-        if (requestIds == null) {
-            return;
-        }
-        if (this.requestIds == null) {
-            this.requestIds = new HashSet<>(requestIds);
-        } else {
-            this.requestIds.retainAll(requestIds);
-        }
+        this.requestIds = limitBy(this.requestIds, requestIds);
+    }
+
+    public void limitByErrorKeys(Set<String> errorKeys) {
+        this.errorKeys = limitBy(this.errorKeys, errorKeys);
     }
 
     public void limitByUri(String uri) {
@@ -203,5 +156,9 @@ public final class FilterContext {
 
     public Optional<Long> responseTimeTo() {
         return Optional.ofNullable(responseTimeTo);
+    }
+
+    public Optional<Set<String>> errorKeys() {
+        return Optional.ofNullable(errorKeys);
     }
 }

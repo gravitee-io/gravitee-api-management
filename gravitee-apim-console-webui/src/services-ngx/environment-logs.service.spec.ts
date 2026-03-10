@@ -116,5 +116,50 @@ describe('EnvironmentLogsService', () => {
       );
       req.flush(mockResponse);
     });
+    it('should include filters in the request body when provided', done => {
+      service
+        .searchLogs({
+          timeRange: { from: '2025-01-01T00:00:00Z', to: '2025-01-31T23:59:59Z' },
+          filters: [{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }],
+        })
+        .subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`,
+      });
+      expect(req.request.body).toEqual(
+        expect.objectContaining({
+          filters: [{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }],
+        }),
+      );
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should append requestId as a filter in the request body', done => {
+      service.searchLogs({ requestId: 'req-123' }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`,
+      });
+      expect(req.request.body).toEqual(
+        expect.objectContaining({
+          filters: [{ name: 'REQUEST_ID', operator: 'EQ', value: 'req-123' }],
+        }),
+      );
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should omit filters from the request body when none are provided', done => {
+      service.searchLogs({ timeRange: { from: '2025-01-01T00:00:00Z', to: '2025-01-31T23:59:59Z' } }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`,
+      });
+      expect(req.request.body.filters).toBeUndefined();
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
   });
 });

@@ -2387,6 +2387,33 @@ paths:
                     $ref: "#/components/responses/ApiLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/logs/error-keys:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get API log error keys
+            description: |-
+                Returns a list of distinct error keys found in connection logs for the specified API.
+
+                User must have the API_LOG[READ] permission.
+            operationId: getApiLogErrorKeys
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            responses:
+                "200":
+                    description: List of error keys.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: string
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/logs/{requestId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"

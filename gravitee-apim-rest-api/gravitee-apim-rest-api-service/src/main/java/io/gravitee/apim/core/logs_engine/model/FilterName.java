@@ -27,4 +27,5 @@ public enum FilterName {
     REQUEST_ID,
     URI,
     RESPONSE_TIME,
+    ERROR_KEY,
 }
