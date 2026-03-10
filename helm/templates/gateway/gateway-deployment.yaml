@@ -249,7 +249,7 @@ spec:
             - name: config
               mountPath: /opt/graviteeio-gateway/config/gravitee.yml
               subPath: gravitee.yml
-          {{- if .Values.gateway.logging.debug }}
+          {{- if or .Values.gateway.logging.debug .Values.gateway.logback.override }}
             - name: {{ $logbackVolumeName }}
               mountPath: /opt/graviteeio-gateway/config/logback.xml
               subPath: logback.xml
