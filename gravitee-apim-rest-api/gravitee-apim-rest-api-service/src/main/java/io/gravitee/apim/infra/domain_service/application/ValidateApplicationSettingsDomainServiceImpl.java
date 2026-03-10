@@ -45,6 +45,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import joptsimple.internal.Strings;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -138,6 +140,11 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             errors.add(Error.warning("clientCertificate is deprecated, use clientCertificates instead"));
             errors.addAll(validateCertificatePem(tls.getClientCertificate()).errors());
         } else if (hasList) {
+            Set<String> certs = tls.getClientCertificates().stream().map(CreateClientCertificate::certificate).collect(Collectors.toSet());
+            if (certs.size() != tls.getClientCertificates().size()) {
+                errors.add(Error.severe("client certificate content must be unique"));
+                return errors;
+            }
             for (var cert : tls.getClientCertificates()) {
                 errors.addAll(validateCertificateEntry(cert));
             }
