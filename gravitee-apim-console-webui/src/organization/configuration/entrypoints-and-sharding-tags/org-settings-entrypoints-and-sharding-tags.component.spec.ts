@@ -286,6 +286,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
           target: 'Target',
           entrypoint: 'Entrypoint',
           tags: 'Sharding Tags',
+          environments: 'Environments',
           actions: '',
         },
       ]);
@@ -294,6 +295,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
           target: 'HTTP',
           entrypoint: expect.stringContaining('https://googl.co'),
           tags: 'External',
+          environments: 'All',
           actions: 'editdelete',
         },
       ]);
@@ -446,6 +448,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       await addButtonMenu.clickItem({ text: 'HTTP' });
 
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
       expect(await submitButton.isDisabled()).toBeTruthy();
@@ -463,6 +466,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
         target: 'HTTP',
         value: 'https://my.entry',
         tags: ['tag-1'],
+        environmentIds: [],
       });
     });
 
@@ -476,6 +480,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       await addButtonMenu.clickItem({ text: 'Kafka' });
 
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
 
       const addMappingDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#addMappingDialog' }));
 
@@ -499,6 +504,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
         target: 'KAFKA',
         value: '{apiHost}.entry.my:9092',
         tags: ['tag-1'],
+        environmentIds: [],
       });
     });
 
@@ -518,6 +524,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       await editButton.click();
 
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
 
@@ -536,6 +543,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
         target: 'HTTP',
         value: 'https://my.new.entry',
         tags: ['tag-2'],
+        environmentIds: [],
       });
     });
   });

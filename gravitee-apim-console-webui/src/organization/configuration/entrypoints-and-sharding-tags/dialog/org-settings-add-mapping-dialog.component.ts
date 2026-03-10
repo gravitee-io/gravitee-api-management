@@ -19,6 +19,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
 import { Entrypoint } from '../../../../entities/entrypoint/entrypoint';
+import { EnvironmentService } from '../../../../services-ngx/environment.service';
 import { TagService } from '../../../../services-ngx/tag.service';
 import { kafkaBootstrapDomainPatternValidator, portValidator } from '../org-settings-entrypoints-and-sharding-tags.utils';
 
@@ -29,6 +30,7 @@ export type OrgSettingAddMappingDialogData = {
 
 type MappingFormGroup = {
   tags: FormControl<string[]>;
+  environmentIds: FormControl<string[]>;
   httpValue?: FormControl<string>;
   kafkaDomain?: FormControl<string>;
   kafkaPort?: FormControl<string>;
@@ -47,11 +49,13 @@ export class OrgSettingAddMappingDialogComponent {
   isUpdate = false;
   mappingForm: FormGroup<MappingFormGroup>;
   tags$? = this.tagService.list().pipe(shareReplay(1));
+  environments$ = this.environmentService.list().pipe(shareReplay(1));
 
   constructor(
     public dialogRef: MatDialogRef<OrgSettingAddMappingDialogComponent>,
     @Inject(MAT_DIALOG_DATA) confirmDialogData: OrgSettingAddMappingDialogData,
     private readonly tagService: TagService,
+    private readonly environmentService: EnvironmentService,
   ) {
     this.entrypoint = confirmDialogData.entrypoint;
     this.target = confirmDialogData.target;
@@ -59,6 +63,7 @@ export class OrgSettingAddMappingDialogComponent {
 
     this.mappingForm = new FormGroup({
       tags: new FormControl(this.entrypoint?.tags ?? []),
+      environmentIds: new FormControl(this.entrypoint?.environmentIds ?? []),
     });
 
     switch (this.target) {
@@ -104,6 +109,7 @@ export class OrgSettingAddMappingDialogComponent {
     const updatedEntrypoint = {
       ...(this.entrypoint?.id ? { id: this.entrypoint.id } : {}),
       tags: formValue.tags,
+      environmentIds: formValue.environmentIds,
       value,
       target: this.target,
     };

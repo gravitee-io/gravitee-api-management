@@ -58,6 +58,8 @@ type EntrypointTableDS = {
   url: string;
   tags: string[];
   tagsName: string[];
+  environmentIds: string[];
+  environmentNames: string[];
 }[];
 @Component({
   selector: 'org-settings-entrypoints-and-sharding-tags',
@@ -84,7 +86,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   entrypointsTableDS: EntrypointTableDS;
   filteredEntrypointsTableDS: EntrypointTableDS;
   entrypointsTableUnpaginatedLength = 0;
-  entrypointsTableDisplayedColumns: string[] = ['target', 'entrypoint', 'tags', 'actions'];
+  entrypointsTableDisplayedColumns: string[] = ['target', 'entrypoint', 'tags', 'environments', 'actions'];
   shardingTagsLicenseOptions = { feature: ApimFeature.APIM_SHARDING_TAGS };
   hasShardingTagsLock$: Observable<boolean>;
 
@@ -173,12 +175,15 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.entrypoints = entrypoints;
+        const envNameById = new Map(environmentsPortalSettings.map(eps => [eps.environment.id, eps.environment.name]));
         this.entrypointsTableDS = entrypoints.map(entrypoint => ({
           id: entrypoint.id,
           target: MAPPING_TARGET_DISPLAYABLE[entrypoint.target],
           url: entrypoint.value,
           tags: entrypoint.tags,
           tagsName: (entrypoint.tags ?? []).map(tagId => tags.find(t => t.id === tagId)?.name ?? tagId),
+          environmentIds: entrypoint.environmentIds ?? [],
+          environmentNames: (entrypoint.environmentIds ?? []).map(envId => envNameById.get(envId) ?? envId),
         }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
         this.entrypointsTableUnpaginatedLength = this.entrypointsTableDS.length;
