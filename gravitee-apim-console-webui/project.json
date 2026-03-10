@@ -169,9 +169,11 @@
       "executor": "@nx/jest:jest",
       "options": {
         "jestConfig": "gravitee-apim-console-webui/jest.config.js",
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "codeCoverage": true,
+        "coverageReporters": ["text", "text-summary", "html", "lcov"]
       },
-      "outputs": ["{workspaceRoot}/coverage/gravitee-apim-console-webui"]
+      "outputs": ["{workspaceRoot}/gravitee-apim-console-webui/coverage"]
     },
     "lint": {},
     "lint-eslint": {},
