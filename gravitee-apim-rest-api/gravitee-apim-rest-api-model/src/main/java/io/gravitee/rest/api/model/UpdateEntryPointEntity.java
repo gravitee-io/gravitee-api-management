@@ -38,6 +38,8 @@ public class UpdateEntryPointEntity {
     @Size(min = 1)
     private String[] tags;
 
+    private String[] environmentIds;
+
     public String getId() {
         return id;
     }
@@ -68,6 +70,14 @@ public class UpdateEntryPointEntity {
 
     public void setTags(String[] tags) {
         this.tags = tags;
+    }
+
+    public String[] getEnvironmentIds() {
+        return environmentIds;
+    }
+
+    public void setEnvironmentIds(String[] environmentIds) {
+        this.environmentIds = environmentIds;
     }
 
     @Override
