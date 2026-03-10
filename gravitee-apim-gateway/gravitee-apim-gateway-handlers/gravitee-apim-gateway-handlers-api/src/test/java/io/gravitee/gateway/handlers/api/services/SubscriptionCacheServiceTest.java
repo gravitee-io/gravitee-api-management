@@ -270,6 +270,29 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
+        void should_update_trust_store_when_subscription_transitions_to_empty_certificate() {
+            // Register with a client certificate
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(subscription);
+
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
+            assertThat(subscriptionService.getByClientCertificate(subscription)).isPresent();
+
+            // Re-register with empty string — simulates all certs expired
+            Subscription updatedWithEmptyCert = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "", PLAN_ID);
+            subscriptionService.register(updatedWithEmptyCert);
+
+            // Subscription should still be registered by ID with the new cert value
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent().get().isEqualTo(updatedWithEmptyCert);
+
+            // New cert entry is present
+            assertThat(subscriptionService.getByClientCertificate(updatedWithEmptyCert)).isPresent();
+
+            // Trust store loaders should have been re-registered with the new cert
+            verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(updatedWithEmptyCert), eq(Set.of()));
+        }
+
+        @Test
         void should_not_register_subscription_when_subscription_is_not_accepted() {
             Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.CLOSED.name());
