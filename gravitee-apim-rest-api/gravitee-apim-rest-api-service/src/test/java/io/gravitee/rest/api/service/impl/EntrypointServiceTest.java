@@ -54,6 +54,8 @@ public class EntrypointServiceTest {
     private static final String VALUE = "https://api.mycompany.com";
     private static final String TAG = "private;product";
     private static final String[] TAGS = new String[] { "private", "product" };
+    private static final String ENVIRONMENT_IDS = "env1;env2";
+    private static final String[] ENVIRONMENT_IDS_ARRAY = new String[] { "env1", "env2" };
 
     private static final String NEW_VALUE = "https://public-api.mycompany.com";
     private static final String NEW_TAG = "public;product";
@@ -82,6 +84,7 @@ public class EntrypointServiceTest {
         entrypointCreated.setTarget(HTTP);
         entrypointCreated.setValue(VALUE);
         entrypointCreated.setTags(TAG);
+        entrypointCreated.setEnvironmentIds(ENVIRONMENT_IDS);
         when(entrypointRepository.create(any())).thenReturn(entrypointCreated);
         when(
             entrypointRepository.findByIdAndReference(
@@ -104,12 +107,17 @@ public class EntrypointServiceTest {
         entrypoint.setTarget(EntrypointEntity.Target.HTTP);
         entrypoint.setValue(VALUE);
         entrypoint.setTags(TAGS);
+        entrypoint.setEnvironmentIds(ENVIRONMENT_IDS_ARRAY);
         final EntrypointEntity entrypointEntity = entrypointService.create(GraviteeContext.getExecutionContext(), entrypoint);
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(EntrypointEntity.Target.HTTP, entrypointEntity.getTarget());
         assertEquals(VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
         assertEquals(2, entrypointEntity.getTags().length);
+        assertNotNull(entrypointEntity.getEnvironmentIds());
+        assertEquals(2, entrypointEntity.getEnvironmentIds().length);
+        assertEquals("env1", entrypointEntity.getEnvironmentIds()[0]);
+        assertEquals("env2", entrypointEntity.getEnvironmentIds()[1]);
     }
 
     @Test

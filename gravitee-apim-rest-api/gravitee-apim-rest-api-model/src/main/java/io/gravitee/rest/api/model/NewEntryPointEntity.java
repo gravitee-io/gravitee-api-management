@@ -36,6 +36,8 @@ public class NewEntryPointEntity {
     @Size(min = 1)
     private String[] tags;
 
+    private String[] environmentIds;
+
     public EntrypointEntity.Target getTarget() {
         return target;
     }
@@ -58,6 +60,14 @@ public class NewEntryPointEntity {
 
     public void setTags(String[] tags) {
         this.tags = tags;
+    }
+
+    public String[] getEnvironmentIds() {
+        return environmentIds;
+    }
+
+    public void setEnvironmentIds(String[] environmentIds) {
+        this.environmentIds = environmentIds;
     }
 
     @Override
