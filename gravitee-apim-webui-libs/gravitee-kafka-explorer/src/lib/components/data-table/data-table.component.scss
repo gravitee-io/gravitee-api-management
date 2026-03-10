@@ -14,40 +14,18 @@
  * limitations under the License.
  */
 
-.topic-detail {
+.data-table {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__title {
-    margin: 0;
-  }
-
-  &__spacer {
-    flex: 1;
-  }
-
-  &__browse-btn {
-    mat-icon {
-      margin-right: 4px;
-    }
-  }
-
-  mat-card-content {
-    overflow-x: auto;
-  }
-
-  &__link {
-    cursor: pointer;
-  }
-
-  table {
+  &__filter {
     width: 100%;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 32px;
+    color: var(--mat-sys-on-surface-variant);
   }
 }

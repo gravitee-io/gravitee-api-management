@@ -20,69 +20,66 @@
     <mat-card-title>Topics</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <mat-form-field class="topics__filter" appearance="outline">
-      <mat-label>Filter by name</mat-label>
-      <input matInput (input)="onFilterInput($event)" placeholder="Search topics..." />
-    </mat-form-field>
-
-    @if (loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-
-    <table mat-table [dataSource]="topics()">
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let topic">
-          <span class="topics__topic-name">
-            {{ topic.name }}
-            @if (topic.internal) {
-              <gke-badge class="topics__internal-badge">Internal</gke-badge>
-            }
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="partitionCount">
-        <th mat-header-cell *matHeaderCellDef>Partitions</th>
-        <td mat-cell *matCellDef="let topic">{{ topic.partitionCount }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="replicationFactor">
-        <th mat-header-cell *matHeaderCellDef>Replication Factor</th>
-        <td mat-cell *matCellDef="let topic">{{ topic.replicationFactor }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="underReplicatedCount">
-        <th mat-header-cell *matHeaderCellDef>Under-Replicated</th>
-        <td mat-cell *matCellDef="let topic">
-          @if (topic.underReplicatedCount > 0) {
-            <gke-badge color="warning">{{ topic.underReplicatedCount }}</gke-badge>
-          } @else {
-            {{ topic.underReplicatedCount }}
-          }
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="messageCount">
-        <th mat-header-cell *matHeaderCellDef>Number of messages</th>
-        <td mat-cell *matCellDef="let topic">{{ topic.messageCount !== undefined ? (topic.messageCount | number) : '-' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="size">
-        <th mat-header-cell *matHeaderCellDef>Size</th>
-        <td mat-cell *matCellDef="let topic">{{ topic.size | gkeFileSize }}</td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="topics__row" (click)="topicSelect.emit(row.name)"></tr>
-    </table>
-
-    <mat-paginator
-      [length]="totalElements()"
-      [pageIndex]="page()"
+    <gke-data-table
+      [filterable]="true"
+      filterPlaceholder="Search topics..."
+      [loading]="loading()"
+      [empty]="topics().length === 0"
+      [paginated]="true"
+      [totalElements]="totalElements()"
+      [page]="page()"
       [pageSize]="pageSize()"
       [pageSizeOptions]="[25, 50, 100]"
-      (page)="onPageEvent($event)"
-    />
+      (filterChange)="filterChange.emit($event)"
+      (pageChange)="pageChange.emit($event)"
+    >
+      <table mat-table [dataSource]="topics()" matSort (matSortChange)="onSortChange($event)">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let topic">
+            <span class="topics__topic-name">
+              {{ topic.name }}
+              @if (topic.internal) {
+                <gke-badge class="topics__internal-badge">Internal</gke-badge>
+              }
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="partitionCount">
+          <th mat-header-cell *matHeaderCellDef>Partitions</th>
+          <td mat-cell *matCellDef="let topic">{{ topic.partitionCount }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="replicationFactor">
+          <th mat-header-cell *matHeaderCellDef>Replication Factor</th>
+          <td mat-cell *matCellDef="let topic">{{ topic.replicationFactor }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="underReplicatedCount">
+          <th mat-header-cell *matHeaderCellDef>Under-Replicated</th>
+          <td mat-cell *matCellDef="let topic">
+            @if (topic.underReplicatedCount > 0) {
+              <gke-badge color="warning">{{ topic.underReplicatedCount }}</gke-badge>
+            } @else {
+              {{ topic.underReplicatedCount }}
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="messageCount">
+          <th mat-header-cell *matHeaderCellDef>Number of messages</th>
+          <td mat-cell *matCellDef="let topic">{{ topic.messageCount !== undefined ? (topic.messageCount | number) : '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="size">
+          <th mat-header-cell *matHeaderCellDef>Size</th>
+          <td mat-cell *matCellDef="let topic">{{ topic.size | gkeFileSize }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="topics__row" (click)="topicSelect.emit(row.name)"></tr>
+      </table>
+    </gke-data-table>
   </mat-card-content>
 </mat-card>

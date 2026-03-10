@@ -145,7 +145,15 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
                 .findAll()
                 .stream()
                 .sorted(comparing(Token::getLastUseAt, nullsLast(reverseOrder())))
-                .filter(t -> passwordEncoder.matches(token, t.getToken()))
+                .filter(t -> {
+                    try {
+                        return passwordEncoder.matches(token, t.getToken());
+                    } catch (Exception e) {
+                        log.error("Failed to match token with password encoder (token id: {})", t.getId());
+                        log.debug("Failed to match token with password encoder (token id: {})", t.getId(), e);
+                        return false;
+                    }
+                })
                 .findFirst()
                 .orElseThrow(() -> new TokenNotFoundException(token));
 
@@ -153,7 +161,6 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             return tokenRepository.update(matchingToken);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find token entity for a given token value";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }

@@ -17,7 +17,6 @@ package io.gravitee.integration.controller.websocket.auth;
 
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.exchange.controller.websocket.auth.WebSocketControllerAuthentication;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.rest.api.service.TokenService;
@@ -27,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 @CustomLog
@@ -61,7 +59,8 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
                     .map(entry -> new IntegrationCommandContext(true, entry.getKey(), entry.getValue()))
                     .orElse(new IntegrationCommandContext(false));
             } catch (Exception e) {
-                log.warn("Unable to authenticate incoming websocket controller request");
+                log.warn("Token found, but unable to authenticate incoming websocket controller request");
+                log.debug("Token found, but unable to authenticate incoming websocket controller request", e);
             }
         }
 

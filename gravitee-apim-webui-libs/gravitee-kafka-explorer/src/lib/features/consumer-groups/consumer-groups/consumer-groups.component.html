@@ -20,64 +20,66 @@
     <mat-card-title>Consumer Groups</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <mat-form-field class="consumer-groups__filter" appearance="outline">
-      <mat-label>Filter by group ID</mat-label>
-      <input matInput (input)="onFilterInput($event)" placeholder="Search consumer groups..." />
-    </mat-form-field>
-
-    @if (loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-
-    <table mat-table [dataSource]="consumerGroups()">
-      <ng-container matColumnDef="groupId">
-        <th mat-header-cell *matHeaderCellDef>Group ID</th>
-        <td mat-cell *matCellDef="let group">{{ group.groupId }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="state">
-        <th mat-header-cell *matHeaderCellDef>State</th>
-        <td mat-cell *matCellDef="let group">
-          <gke-badge [color]="stateColor(group.state)">{{ group.state }}</gke-badge>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="membersCount">
-        <th mat-header-cell *matHeaderCellDef>Members</th>
-        <td mat-cell *matCellDef="let group">{{ group.membersCount }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="numTopics">
-        <th mat-header-cell *matHeaderCellDef>Topics</th>
-        <td mat-cell *matCellDef="let group">{{ group.numTopics }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="coordinator">
-        <th mat-header-cell *matHeaderCellDef>Coordinator</th>
-        <td mat-cell *matCellDef="let group">{{ group.coordinator?.id }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="totalLag">
-        <th mat-header-cell *matHeaderCellDef>Total Lag</th>
-        <td mat-cell *matCellDef="let group">
-          @if (group.totalLag > 0) {
-            <gke-badge color="warning">{{ group.totalLag | number }}</gke-badge>
-          } @else {
-            {{ group.totalLag | number }}
-          }
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="consumer-groups__row" (click)="groupSelect.emit(row.groupId)"></tr>
-    </table>
-
-    <mat-paginator
-      [length]="totalElements()"
-      [pageIndex]="page()"
+    <gke-data-table
+      [filterable]="true"
+      filterPlaceholder="Search consumer groups..."
+      [loading]="loading()"
+      [empty]="consumerGroups().length === 0"
+      [paginated]="true"
+      [totalElements]="totalElements()"
+      [page]="page()"
       [pageSize]="pageSize()"
       [pageSizeOptions]="[25, 50, 100]"
-      (page)="onPageEvent($event)"
-    />
+      (filterChange)="filterChange.emit($event)"
+      (pageChange)="pageChange.emit($event)"
+    >
+      <table mat-table [dataSource]="consumerGroups()" matSort (matSortChange)="onSortChange($event)">
+        <ng-container matColumnDef="groupId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Group ID</th>
+          <td mat-cell *matCellDef="let group">{{ group.groupId }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef>State</th>
+          <td mat-cell *matCellDef="let group">
+            <gke-badge [color]="stateColor(group.state)">{{ group.state }}</gke-badge>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="membersCount">
+          <th mat-header-cell *matHeaderCellDef>Members</th>
+          <td mat-cell *matCellDef="let group">{{ group.membersCount }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="numTopics">
+          <th mat-header-cell *matHeaderCellDef>Topics</th>
+          <td mat-cell *matCellDef="let group">{{ group.numTopics }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="coordinator">
+          <th mat-header-cell *matHeaderCellDef>Coordinator</th>
+          <td mat-cell *matCellDef="let group">{{ group.coordinator?.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalLag">
+          <th mat-header-cell *matHeaderCellDef>Total Lag</th>
+          <td mat-cell *matCellDef="let group">
+            @if (group.totalLag > 0) {
+              <gke-badge color="warning">{{ group.totalLag | number }}</gke-badge>
+            } @else {
+              {{ group.totalLag | number }}
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="consumer-groups__row"
+          (click)="groupSelect.emit(row.groupId)"
+        ></tr>
+      </table>
+    </gke-data-table>
   </mat-card-content>
 </mat-card>

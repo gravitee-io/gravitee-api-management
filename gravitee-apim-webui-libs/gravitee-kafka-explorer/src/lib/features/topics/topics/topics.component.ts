@@ -16,31 +16,18 @@
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { Sort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 
 import { BadgeComponent } from '../../../components/badge/badge.component';
+import { DataTableComponent } from '../../../components/data-table/data-table.component';
 import { KafkaTopic } from '../../../models/kafka-cluster.model';
 import { FileSizePipe } from '../../../pipes/file-size.pipe';
 
 @Component({
   selector: 'gke-topics',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
-    FileSizePipe,
-    DecimalPipe,
-    BadgeComponent,
-  ],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatSortModule, FileSizePipe, DecimalPipe, BadgeComponent, DataTableComponent],
   templateUrl: './topics.component.html',
   styleUrls: ['./topics.component.scss'],
 })
@@ -53,16 +40,12 @@ export class TopicsComponent {
 
   filterChange = output<string>();
   pageChange = output<{ page: number; pageSize: number }>();
+  sortChange = output<{ active: string; direction: string }>();
   topicSelect = output<string>();
 
   displayedColumns = ['name', 'partitionCount', 'replicationFactor', 'underReplicatedCount', 'messageCount', 'size'];
 
-  onFilterInput(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    this.filterChange.emit(value);
-  }
-
-  onPageEvent(event: PageEvent) {
-    this.pageChange.emit({ page: event.pageIndex, pageSize: event.pageSize });
+  onSortChange(sort: Sort) {
+    this.sortChange.emit({ active: sort.active, direction: sort.direction });
   }
 }

@@ -68,6 +68,32 @@
     &:hover {
       background-color: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
     }
+
+    &--expanded {
+      background-color: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
+    }
+  }
+
+  &__detail-row {
+    height: 0;
+
+    > td {
+      padding: 0;
+      border-bottom-width: 0;
+    }
+
+    &:has(.messages-browser__detail) {
+      height: auto;
+
+      > td {
+        border-bottom-width: 1px;
+      }
+    }
+  }
+
+  &__detail {
+    padding: 16px 24px;
+    overflow: hidden;
   }
 
   &__empty {

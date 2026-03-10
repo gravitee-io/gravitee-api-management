@@ -34,12 +34,6 @@
     font-size: 14px;
   }
 
-  &__empty-message {
-    color: var(--mat-sys-on-surface-variant, #49454f);
-    font-style: italic;
-    margin: 8px 0;
-  }
-
   mat-card-content {
     overflow-x: auto;
   }

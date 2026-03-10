@@ -13,41 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SortDirection } from '@angular/material/sort';
 
-.topic-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+export type SortComparators<T> = Record<string, (a: T, b: T) => number>;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+export function sortData<T>(data: T[], active: string, direction: SortDirection, comparators: SortComparators<T>): T[] {
+  if (!active || direction === '') {
+    return data;
   }
 
-  &__title {
-    margin: 0;
+  const comparator = comparators[active];
+  if (!comparator) {
+    return data;
   }
 
-  &__spacer {
-    flex: 1;
-  }
-
-  &__browse-btn {
-    mat-icon {
-      margin-right: 4px;
-    }
-  }
-
-  mat-card-content {
-    overflow-x: auto;
-  }
-
-  &__link {
-    cursor: pointer;
-  }
-
-  table {
-    width: 100%;
-  }
+  const factor = direction === 'asc' ? 1 : -1;
+  return [...data].sort((a, b) => comparator(a, b) * factor);
 }
