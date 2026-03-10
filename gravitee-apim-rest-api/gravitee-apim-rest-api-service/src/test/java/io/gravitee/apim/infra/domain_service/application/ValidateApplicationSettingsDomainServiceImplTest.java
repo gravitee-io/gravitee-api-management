@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.infra.domain_service.application;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
@@ -317,6 +319,26 @@ class ValidateApplicationSettingsDomainServiceImplTest {
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
+        }
+
+        @Test
+        void should_reject_duplicated_certificate() {
+            var tls = TlsSettings.builder()
+                .clientCertificates(
+                    List.of(
+                        new CreateClientCertificate("cert1", null, null, VALID_PEM),
+                        new CreateClientCertificate("cert2", null, null, VALID_PEM)
+                    )
+                )
+                .build();
+
+            var result = cut.validateAndSanitize(inputWithTls(tls));
+
+            assertThat(result.severe()).isPresent();
+            assertThat(result.severe())
+                .get()
+                .asInstanceOf(LIST)
+                .anyMatch(e -> ((Validator.Error) e).getMessage().contains("client certificate content must be unique"));
         }
     }
 }
