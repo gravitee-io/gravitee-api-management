@@ -115,7 +115,7 @@ export class WebuiLintTestJob {
       }),
       new commands.Run({
         name: 'Run unit tests',
-        command: 'yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>',
+        command: 'yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >> --configuration=ci',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       // For Sonar analysis
