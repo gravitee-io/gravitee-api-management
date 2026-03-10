@@ -26,6 +26,7 @@ public class EntrypointEntity {
     private String id;
     private String value;
     private String[] tags;
+    private String[] environmentIds;
     private Target target;
 
     public String getId() {
@@ -50,6 +51,14 @@ public class EntrypointEntity {
 
     public void setTags(String[] tags) {
         this.tags = tags;
+    }
+
+    public String[] getEnvironmentIds() {
+        return environmentIds;
+    }
+
+    public void setEnvironmentIds(String[] environmentIds) {
+        this.environmentIds = environmentIds;
     }
 
     public Target getTarget() {
