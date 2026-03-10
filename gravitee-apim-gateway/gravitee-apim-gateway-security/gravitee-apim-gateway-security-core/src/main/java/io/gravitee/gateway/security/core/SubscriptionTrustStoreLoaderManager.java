@@ -82,13 +82,11 @@ public class SubscriptionTrustStoreLoaderManager {
                 return currentState;
             }
 
-            // remove what is no longer needed
             toRemove.forEach(this::unregisterSubscriptionTrustStoreLoader);
 
-            // update the subscription that may have changed
             toUpdate.forEach(s -> subscriptions.put(new CacheKey(s), subscription));
 
-            // update
+            // update the entry with what was removed and added
             var state = new HashSet<>(currentState);
             state.addAll(toAdd);
             state.removeAll(toRemove);
