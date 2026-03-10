@@ -70,6 +70,21 @@ paths:
                       type: integer
                       default: 10
                   description: Number of topics per page
+                - name: sortBy
+                  in: query
+                  schema:
+                      type: string
+                      default: name
+                  description: Field to sort by (name)
+                - name: sortOrder
+                  in: query
+                  schema:
+                      type: string
+                      enum:
+                          - asc
+                          - desc
+                      default: asc
+                  description: Sort direction
             requestBody:
                 required: true
                 content:
@@ -185,6 +200,21 @@ paths:
                       type: integer
                       default: 10
                   description: Number of consumer groups per page
+                - name: sortBy
+                  in: query
+                  schema:
+                      type: string
+                      default: groupId
+                  description: Field to sort by (groupId)
+                - name: sortOrder
+                  in: query
+                  schema:
+                      type: string
+                      enum:
+                          - asc
+                          - desc
+                      default: asc
+                  description: Sort direction
             requestBody:
                 required: true
                 content:

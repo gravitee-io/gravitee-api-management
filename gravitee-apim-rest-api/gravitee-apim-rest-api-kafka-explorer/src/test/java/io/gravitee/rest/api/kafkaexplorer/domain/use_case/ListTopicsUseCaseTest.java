@@ -61,7 +61,7 @@ class ListTopicsUseCaseTest {
         );
         clusterDomainService.givenTopics(allTopics);
 
-        var result = useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25));
+        var result = useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25, "name", "asc"));
 
         assertThat(result.topicsPage().data()).hasSize(2);
         assertThat(result.topicsPage().totalCount()).isEqualTo(2);
@@ -81,7 +81,7 @@ class ListTopicsUseCaseTest {
         );
         clusterDomainService.givenTopics(allTopics);
 
-        var result = useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", 0, 25));
+        var result = useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", 0, 25, "name", "asc"));
 
         assertThat(result.topicsPage().data()).hasSize(1);
         assertThat(result.topicsPage().data().get(0).name()).isEqualTo("my-topic");
@@ -95,7 +95,7 @@ class ListTopicsUseCaseTest {
 
         clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
-        assertThatThrownBy(() -> useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25)))
+        assertThatThrownBy(() -> useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25, "name", "asc")))
             .isInstanceOf(KafkaExplorerException.class)
             .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }

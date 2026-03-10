@@ -97,15 +97,26 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+    public TopicsPage listTopics(
+        KafkaClusterConfiguration config,
+        String nameFilter,
+        int page,
+        int perPage,
+        String sortBy,
+        String sortOrder
+    ) {
         if (exception != null) {
             throw exception;
         }
 
+        Comparator<KafkaTopic> comparator = Comparator.comparing(KafkaTopic::name);
+        if ("desc".equalsIgnoreCase(sortOrder)) {
+            comparator = comparator.reversed();
+        }
         List<KafkaTopic> filtered = topics
             .stream()
             .filter(t -> nameFilter == null || nameFilter.isBlank() || t.name().toLowerCase().contains(nameFilter.toLowerCase()))
-            .sorted(Comparator.comparing(KafkaTopic::name))
+            .sorted(comparator)
             .toList();
 
         int totalCount = filtered.size();
@@ -137,16 +148,22 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         String nameFilter,
         String topicFilter,
         int page,
-        int perPage
+        int perPage,
+        String sortBy,
+        String sortOrder
     ) {
         if (exception != null) {
             throw exception;
         }
 
+        Comparator<ConsumerGroup> comparator = Comparator.comparing(ConsumerGroup::groupId);
+        if ("desc".equalsIgnoreCase(sortOrder)) {
+            comparator = comparator.reversed();
+        }
         List<ConsumerGroup> filtered = consumerGroups
             .stream()
             .filter(g -> nameFilter == null || nameFilter.isBlank() || g.groupId().toLowerCase().contains(nameFilter.toLowerCase()))
-            .sorted(Comparator.comparing(ConsumerGroup::groupId))
+            .sorted(comparator)
             .toList();
 
         int totalCount = filtered.size();

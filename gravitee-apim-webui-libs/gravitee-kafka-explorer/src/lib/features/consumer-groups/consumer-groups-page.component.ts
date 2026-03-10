@@ -42,6 +42,8 @@ export class ConsumerGroupsPageComponent implements OnInit {
   private currentFilter = '';
   private currentPage = 0;
   private currentPageSize = 25;
+  private currentSortBy = '';
+  private currentSortOrder = '';
   private readonly filterSubject = new Subject<string>();
 
   ngOnInit() {
@@ -68,10 +70,26 @@ export class ConsumerGroupsPageComponent implements OnInit {
     this.loadConsumerGroups(this.currentFilter, event.page, event.pageSize);
   }
 
+  onSortChange(event: { active: string; direction: string }) {
+    this.currentSortBy = event.active;
+    this.currentSortOrder = event.direction;
+    this.currentPage = 0;
+    this.loadConsumerGroups(this.currentFilter, 0, this.currentPageSize);
+  }
+
   private loadConsumerGroups(nameFilter: string, page: number, pageSize: number) {
     this.consumerGroupsLoading.set(true);
     this.service
-      .listConsumerGroups(this.store.baseURL(), this.store.clusterId(), nameFilter || undefined, page + 1, pageSize)
+      .listConsumerGroups(
+        this.store.baseURL(),
+        this.store.clusterId(),
+        nameFilter || undefined,
+        page + 1,
+        pageSize,
+        undefined,
+        this.currentSortBy || undefined,
+        this.currentSortOrder || undefined,
+      )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: response => {

@@ -131,7 +131,14 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     }
 
     @Override
-    public TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+    public TopicsPage listTopics(
+        KafkaClusterConfiguration config,
+        String nameFilter,
+        int page,
+        int perPage,
+        String sortBy,
+        String sortOrder
+    ) {
         return withAdminClient(config, adminClient -> {
             // Step 1: List all topics (cheap call)
             Collection<TopicListing> listings = adminClient
@@ -148,12 +155,15 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 return new TopicsPage(List.of(), 0, page, perPage);
             }
 
-            // Step 2: Filter by nameFilter (case-insensitive contains)
+            // Step 2: Filter by nameFilter (case-insensitive contains) and sort
+            Comparator<String> nameComparator = "desc".equalsIgnoreCase(sortOrder)
+                ? Comparator.<String>naturalOrder().reversed()
+                : Comparator.naturalOrder();
             List<String> filteredNames = internalFlags
                 .keySet()
                 .stream()
                 .filter(name -> nameFilter == null || nameFilter.isBlank() || name.toLowerCase().contains(nameFilter.toLowerCase()))
-                .sorted()
+                .sorted(nameComparator)
                 .toList();
 
             int totalCount = filteredNames.size();
@@ -348,7 +358,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         String nameFilter,
         String topicFilter,
         int page,
-        int perPage
+        int perPage,
+        String sortBy,
+        String sortOrder
     ) {
         return withAdminClient(config, adminClient -> {
             boolean hasTopicFilter = topicFilter != null && !topicFilter.isBlank();
@@ -356,12 +368,15 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             // Step 1: List all consumer groups
             Collection<ConsumerGroupListing> listings = adminClient.listConsumerGroups().all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            // Step 2: Filter by name
+            // Step 2: Filter by name and sort
+            Comparator<String> groupIdComparator = "desc".equalsIgnoreCase(sortOrder)
+                ? Comparator.<String>naturalOrder().reversed()
+                : Comparator.naturalOrder();
             List<String> filteredGroupIds = listings
                 .stream()
                 .map(ConsumerGroupListing::groupId)
                 .filter(id -> nameFilter == null || nameFilter.isBlank() || id.toLowerCase().contains(nameFilter.toLowerCase()))
-                .sorted()
+                .sorted(groupIdComparator)
                 .toList();
 
             // Step 3: Filter by topic — fetch only the target topic's partition offsets, then filter in-memory

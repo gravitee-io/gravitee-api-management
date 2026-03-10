@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { Sort, MatSortModule, SortDirection } from '@angular/material/sort';
+import { Sort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BadgeComponent } from '../../../components/badge/badge.component';
 import { DataTableComponent } from '../../../components/data-table/data-table.component';
@@ -28,17 +27,7 @@ import { FileSizePipe } from '../../../pipes/file-size.pipe';
 @Component({
   selector: 'gke-topics',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatTableModule,
-    MatSortModule,
-    MatTooltipModule,
-    FileSizePipe,
-    DecimalPipe,
-    BadgeComponent,
-    DataTableComponent,
-  ],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatSortModule, FileSizePipe, DecimalPipe, BadgeComponent, DataTableComponent],
   templateUrl: './topics.component.html',
   styleUrls: ['./topics.component.scss'],
 })
@@ -51,42 +40,12 @@ export class TopicsComponent {
 
   filterChange = output<string>();
   pageChange = output<{ page: number; pageSize: number }>();
+  sortChange = output<{ active: string; direction: string }>();
   topicSelect = output<string>();
 
   displayedColumns = ['name', 'partitionCount', 'replicationFactor', 'underReplicatedCount', 'messageCount', 'size'];
 
-  sortActive = signal('');
-  sortDirection = signal<SortDirection>('');
-
-  sortedTopics = computed(() => {
-    const data = this.topics();
-    const active = this.sortActive();
-    const direction = this.sortDirection();
-    if (!active || direction === '') return data;
-
-    const factor = direction === 'asc' ? 1 : -1;
-    return [...data].sort((a, b) => {
-      switch (active) {
-        case 'name':
-          return a.name.localeCompare(b.name) * factor;
-        case 'partitionCount':
-          return (a.partitionCount - b.partitionCount) * factor;
-        case 'replicationFactor':
-          return (a.replicationFactor - b.replicationFactor) * factor;
-        case 'underReplicatedCount':
-          return ((a.underReplicatedCount ?? 0) - (b.underReplicatedCount ?? 0)) * factor;
-        case 'messageCount':
-          return ((a.messageCount ?? 0) - (b.messageCount ?? 0)) * factor;
-        case 'size':
-          return ((a.size ?? 0) - (b.size ?? 0)) * factor;
-        default:
-          return 0;
-      }
-    });
-  });
-
   onSortChange(sort: Sort) {
-    this.sortActive.set(sort.active);
-    this.sortDirection.set(sort.direction);
+    this.sortChange.emit({ active: sort.active, direction: sort.direction });
   }
 }

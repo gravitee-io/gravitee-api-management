@@ -39,14 +39,19 @@ export class KafkaExplorerService {
     return this.http.post<DescribeClusterResponse>(`${baseURL}/kafka-explorer/describe-cluster`, { clusterId });
   }
 
-  listTopics(baseURL: string, clusterId: string, nameFilter?: string, page = 1, perPage = 25): Observable<ListTopicsResponse> {
-    return this.http.post<ListTopicsResponse>(
-      `${baseURL}/kafka-explorer/list-topics`,
-      { clusterId, nameFilter },
-      {
-        params: { page: page.toString(), perPage: perPage.toString() },
-      },
-    );
+  listTopics(
+    baseURL: string,
+    clusterId: string,
+    nameFilter?: string,
+    page = 1,
+    perPage = 25,
+    sortBy?: string,
+    sortOrder?: string,
+  ): Observable<ListTopicsResponse> {
+    const params: Record<string, string> = { page: page.toString(), perPage: perPage.toString() };
+    if (sortBy) params['sortBy'] = sortBy;
+    if (sortOrder) params['sortOrder'] = sortOrder;
+    return this.http.post<ListTopicsResponse>(`${baseURL}/kafka-explorer/list-topics`, { clusterId, nameFilter }, { params });
   }
 
   describeTopic(baseURL: string, clusterId: string, topicName: string): Observable<DescribeTopicResponse> {
@@ -64,12 +69,15 @@ export class KafkaExplorerService {
     page = 1,
     perPage = 25,
     topicFilter?: string,
+    sortBy?: string,
+    sortOrder?: string,
   ): Observable<ListConsumerGroupsResponse> {
     const body: Record<string, unknown> = { clusterId, nameFilter };
     if (topicFilter) body['topicFilter'] = topicFilter;
-    return this.http.post<ListConsumerGroupsResponse>(`${baseURL}/kafka-explorer/list-consumer-groups`, body, {
-      params: { page: page.toString(), perPage: perPage.toString() },
-    });
+    const params: Record<string, string> = { page: page.toString(), perPage: perPage.toString() };
+    if (sortBy) params['sortBy'] = sortBy;
+    if (sortOrder) params['sortOrder'] = sortOrder;
+    return this.http.post<ListConsumerGroupsResponse>(`${baseURL}/kafka-explorer/list-consumer-groups`, body, { params });
   }
 
   describeConsumerGroup(baseURL: string, clusterId: string, groupId: string): Observable<DescribeConsumerGroupResponse> {
