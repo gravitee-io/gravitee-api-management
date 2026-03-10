@@ -1,0 +1,101 @@
+suite: APIM - API - ConfigMap logback.xml override
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: should use logback content when override is true
+    template: api/api-configmap.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    set:
+      api:
+        logback:
+          override: true
+          content: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <configuration>
+                <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                    <encoder>
+                        <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+                    </encoder>
+                </appender>
+                <root level="INFO">
+                    <appender-ref ref="STDOUT" />
+                </root>
+            </configuration>
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: "<configuration>"
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: "ch.qos.logback.core.ConsoleAppender"
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: '<root level="INFO">'
+
+  - it: should not render logback content when override is false and logging.debug is false
+    template: api/api-configmap.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    set:
+      api:
+        logback:
+          override: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isNull:
+          path: data["logback.xml"]
+
+  - it: should prefer logback override over logging.debug when both are true
+    template: api/api-configmap.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    set:
+      api:
+        logging:
+          debug: true
+        logback:
+          override: true
+          content: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <configuration>
+                <root level="WARN">
+                    <appender-ref ref="STDOUT" />
+                </root>
+            </configuration>
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: '<root level="WARN">'
+      - notMatchRegex:
+          path: data["logback.xml"]
+          pattern: "io.gravitee"
+
+  - it: should use legacy logging.debug when logback.override is false
+    template: api/api-configmap.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    set:
+      api:
+        logging:
+          debug: true
+        logback:
+          override: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: "io.gravitee"
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: "org.eclipse.jetty"

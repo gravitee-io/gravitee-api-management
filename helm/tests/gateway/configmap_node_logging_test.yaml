@@ -1,0 +1,43 @@
+suite: Test Gateway ConfigMap with Node Logging
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: should configure node logging with default values
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "node:\\s+logging:\\s+mdc:\\s+format: \"\\{key\\}: \\{value\\}\"\\s+separator: \" \"\\s+nullValue: \"-\"\\s+include:\\s+- nodeId\\s+- apiId\\s+pattern:\\s+overrideLogbackXml: false\\s+console:"
+
+  - it: should configure node logging with custom MDC includes
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        node:
+          logging:
+            mdc:
+              format: "{key}={value}"
+              separator: ", "
+              nullValue: "N/A"
+              include:
+                - nodeId
+                - apiId
+                - requestId
+            pattern:
+              overrideLogbackXml: true
+              console: "%d{HH:mm:ss} [%mdcList] %msg%n"
+              file: "%d [%mdcList] %m%n"
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "node:\\s+logging:\\s+mdc:\\s+format: \"\\{key\\}=\\{value\\}\"\\s+separator: \", \"\\s+nullValue: \"N/A\"\\s+include:\\s+- nodeId\\s+- apiId\\s+- requestId\\s+pattern:\\s+overrideLogbackXml: true"
+
+  - it: should not render node section when node is not set
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        node: null
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "node:"
