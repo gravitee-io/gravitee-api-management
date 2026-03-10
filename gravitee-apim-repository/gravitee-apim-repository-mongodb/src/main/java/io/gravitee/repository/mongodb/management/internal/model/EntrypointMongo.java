@@ -41,6 +41,7 @@ public class EntrypointMongo {
     private String target;
     private String value;
     private String tags;
+    private String environmentIds;
     private String referenceId;
     private EntrypointReferenceType referenceType;
 }

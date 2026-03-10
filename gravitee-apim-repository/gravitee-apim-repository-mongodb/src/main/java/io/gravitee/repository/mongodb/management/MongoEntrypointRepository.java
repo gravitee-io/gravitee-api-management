@@ -101,6 +101,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
             entrypointMongo.setReferenceId(entrypoint.getReferenceId());
             entrypointMongo.setReferenceType(entrypoint.getReferenceType());
             entrypointMongo.setTags(entrypoint.getTags());
+            entrypointMongo.setEnvironmentIds(entrypoint.getEnvironmentIds());
 
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
             return mapper.map(entrypointMongoUpdated);
@@ -133,6 +134,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
                 entrypointMongo.setReferenceType(entrypoint.getReferenceType());
                 entrypoint.setValue(entrypointMongo.getValue());
                 entrypoint.setTags(entrypointMongo.getTags());
+                entrypoint.setEnvironmentIds(entrypointMongo.getEnvironmentIds());
                 return entrypoint;
             })
             .collect(Collectors.toSet());
