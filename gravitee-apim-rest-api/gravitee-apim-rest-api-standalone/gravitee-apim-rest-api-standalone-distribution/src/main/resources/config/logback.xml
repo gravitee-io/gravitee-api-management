@@ -16,16 +16,32 @@
   -->
 <configuration>
 
+    <!--   Declare the 'mdcList' conversion word used by filtering mechanism in gravitee.yml node.logging options -->
+    <conversionRule conversionWord="mdcList"
+                    converterClass="io.gravitee.node.container.logback.MdcListConverter" />
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [nodeId:%X{nodeId:-not_managed}, envId:%X{envId:-unknown}] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
-        <!--Organization ID and environment ID are both available in the MDC. Use the following pattern to add these in log statements.-->
-        <!--<encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>-->
+
+        <!--       Uncomment to enable Json Encoder -->
+        <!--        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">-->
+        <!--            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">-->
+        <!--                <jsonFormatter-->
+        <!--                        class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">-->
+        <!--                </jsonFormatter>-->
+        <!--                <appendLineSeparator>true</appendLineSeparator>-->
+        <!--                <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSXX</timestampFormat>-->
+        <!--            </layout>-->
+        <!--        </encoder>-->
+
+        <!--        Uncomment to enable Ecs Encoder-->
+        <!--        <encoder class="co.elastic.logging.logback.EcsEncoder">-->
+        <!--            <serviceName>gravitee-management-api</serviceName>-->
+        <!--        </encoder>-->
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -39,12 +55,8 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [nodeId:%X{nodeId:-not_managed}, envId:%X{envId:-unknown}] %-5level %logger{36} - %msg%n%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n%n</pattern>
         </encoder>
-        <!--Organization ID and environment ID are both available in the MDC. Use the following pattern to add these in log statements.-->
-        <!--<encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n%n</pattern>
-        </encoder>-->
     </appender>
 
     <appender name="FILE-UPGRADERS" class="ch.qos.logback.core.rolling.RollingFileAppender">
