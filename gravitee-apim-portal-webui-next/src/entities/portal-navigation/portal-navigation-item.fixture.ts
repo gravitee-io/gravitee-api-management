@@ -28,6 +28,7 @@ export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPag
     area: 'HOMEPAGE',
     portalPageContentId: 'page-content-1',
     published: true,
+    rootId: 'nav-item-1',
   };
 
   if (isFunction(overrides)) {
@@ -50,6 +51,7 @@ export function fakePortalNavigationFolder(overrides?: Partial<PortalNavigationF
     order: 1,
     area: 'HOMEPAGE',
     published: true,
+    rootId: 'nav-folder-1',
   };
 
   if (isFunction(overrides)) {
@@ -73,6 +75,7 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     area: 'HOMEPAGE',
     url: 'https://example.com',
     published: true,
+    rootId: 'nav-link-1',
   };
 
   if (isFunction(overrides)) {
@@ -96,6 +99,7 @@ export function fakePortalNavigationApi(overrides?: Partial<PortalNavigationApi>
     area: 'HOMEPAGE',
     apiId: 'api-1',
     published: true,
+    rootId: 'nav-api-1',
   };
 
   if (isFunction(overrides)) {

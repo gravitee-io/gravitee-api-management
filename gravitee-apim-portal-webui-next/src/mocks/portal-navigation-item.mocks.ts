@@ -27,24 +27,26 @@ export const makeItem = (
   title: string,
   order?: number,
   parentId?: string | null,
+  rootId?: string | null,
 ): PortalNavigationItem => {
+  const root = rootId ?? (parentId ? undefined : id);
   switch (type) {
     case 'FOLDER':
-      return fakePortalNavigationFolder({ id, title, order, parentId });
+      return fakePortalNavigationFolder({ id, title, order, parentId, rootId: root });
     case 'LINK':
-      return fakePortalNavigationLink({ id, title, order, parentId });
+      return fakePortalNavigationLink({ id, title, order, parentId, rootId: root });
     case 'API':
-      return fakePortalNavigationApi({ id, title, order, parentId, apiId: `api-${id}` });
+      return fakePortalNavigationApi({ id, title, order, parentId, rootId: root, apiId: `api-${id}` });
     case 'PAGE':
     default:
-      return fakePortalNavigationPage({ id, title, order, parentId });
+      return fakePortalNavigationPage({ id, title, order, parentId, rootId: root });
   }
 };
 
 export const MOCK_ITEMS = [
-  makeItem('f1', 'FOLDER', 'Folder 1', 0),
-  makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
-  makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
-  makeItem('p2', 'PAGE', 'Page 2', 1, 'f1'),
-  makeItem('p3', 'PAGE', 'Page 3', 1),
+  makeItem('f1', 'FOLDER', 'Folder 1', 0), // root
+  makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1', 'f1'),
+  makeItem('p1', 'PAGE', 'Page 1', 0, 'f2', 'f1'),
+  makeItem('p2', 'PAGE', 'Page 2', 1, 'f1', 'f1'),
+  makeItem('p3', 'PAGE', 'Page 3', 1), // root
 ];
