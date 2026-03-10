@@ -91,49 +91,63 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field data-testid="more-filters-plans">
-            <mat-label>Plan</mat-label>
-            <mat-select formControlName="plans" aria-label="Plan selection" [multiple]="true">
-              @for (plan of plans; track plan.id) {
-                <mat-option [value]="plan.id">{{ plan.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          @if (showPlans()) {
+            <mat-form-field data-testid="more-filters-plans">
+              <mat-label>Plan</mat-label>
+              <mat-select formControlName="plans" aria-label="Plan selection" [multiple]="true">
+                @for (plan of plans(); track plan.id) {
+                  <mat-option [value]="plan.id">{{ plan.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
         </div>
 
         <div class="more-filters__body__block">
           <span class="more-filters__body__title">Additional filters</span>
-          <!-- TODO: Add input validation (e.g. pattern matching) when backend integration is implemented -->
-          <mat-form-field data-testid="more-filters-mcp-method">
-            <mat-label>MCP Method</mat-label>
-            <input matInput formControlName="mcpMethod" placeholder="e.g. tools/list" />
-          </mat-form-field>
 
-          <!-- TODO: Add UUID format validation when backend integration is implemented -->
           <mat-form-field data-testid="more-filters-transaction-id">
             <mat-label>Transaction ID</mat-label>
-            <input matInput formControlName="transactionId" />
+            <input matInput formControlName="transactionId" placeholder="UUID format" />
+            @if (form.controls.transactionId.hasError('pattern')) {
+              <mat-error>Must be a valid UUID</mat-error>
+            }
+            @if (form.controls.transactionId.hasError('maxlength')) {
+              <mat-error>Maximum 36 characters</mat-error>
+            }
           </mat-form-field>
 
-          <!-- TODO: Add UUID format validation when backend integration is implemented -->
           <mat-form-field data-testid="more-filters-request-id">
             <mat-label>Request ID</mat-label>
-            <input matInput formControlName="requestId" />
+            <input matInput formControlName="requestId" placeholder="UUID format" />
+            @if (form.controls.requestId.hasError('pattern')) {
+              <mat-error>Must be a valid UUID</mat-error>
+            }
+            @if (form.controls.requestId.hasError('maxlength')) {
+              <mat-error>Maximum 36 characters</mat-error>
+            }
           </mat-form-field>
 
-          <!-- TODO: Add URI format validation when backend integration is implemented -->
           <mat-form-field data-testid="more-filters-uri">
             <mat-label>URI</mat-label>
             <input matInput formControlName="uri" placeholder="e.g. /api/v1/users" />
+            @if (form.controls.uri.hasError('pattern')) {
+              <mat-error>Contains invalid characters</mat-error>
+            }
+            @if (form.controls.uri.hasError('maxlength')) {
+              <mat-error>Maximum 2048 characters</mat-error>
+            }
           </mat-form-field>
 
-          <!-- TODO: Add min value validation (>= 0) when backend integration is implemented -->
           <mat-form-field data-testid="more-filters-response-time">
             <mat-label>Response time (ms)</mat-label>
             <input matInput type="number" formControlName="responseTime" placeholder="Greater than or equal (ms)" />
+            @if (form.controls.responseTime.hasError('min')) {
+              <mat-error>Must be 0 or greater</mat-error>
+            }
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field data-testid="more-filters-error-keys">
             <mat-label>Error Types</mat-label>
             <mat-select formControlName="errorKeys" [multiple]="true">
               @for (errorKey of errorKeysOptions; track errorKey) {

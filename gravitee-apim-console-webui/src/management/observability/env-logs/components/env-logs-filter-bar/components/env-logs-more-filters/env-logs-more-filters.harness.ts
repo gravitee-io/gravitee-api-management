@@ -24,12 +24,10 @@ export class EnvLogsMoreFiltersHarness extends ComponentHarness {
   private getClearAllButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="more-filters-clear"]' }));
   private getApplyButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="more-filters-apply"]' }));
   private getCloseButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="more-filters-close"]' }));
-  private getPeriodSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-period"]' }));
   private getStatusInput = this.locatorForOptional('[data-testid="more-filters-status-input"]');
   private getEntrypointsSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-entrypoints"]' }));
   private getMethodsSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-methods"]' }));
   private getPlansSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-plans"]' }));
-  private getMcpMethodInput = this.locatorForOptional(MatInputHarness.with({ ancestor: '[data-testid="more-filters-mcp-method"]' }));
   private getTransactionIdInput = this.locatorForOptional(
     MatInputHarness.with({ ancestor: '[data-testid="more-filters-transaction-id"]' }),
   );
@@ -53,10 +51,6 @@ export class EnvLogsMoreFiltersHarness extends ComponentHarness {
     return (await this.getApplyButton()).isDisabled();
   }
 
-  async getPeriod(): Promise<MatSelectHarness | null> {
-    return this.getPeriodSelect();
-  }
-
   async hasStatusInput(): Promise<boolean> {
     return (await this.getStatusInput()) !== null;
   }
@@ -73,10 +67,6 @@ export class EnvLogsMoreFiltersHarness extends ComponentHarness {
     return this.getPlansSelect();
   }
 
-  async getMcpMethod(): Promise<MatInputHarness | null> {
-    return this.getMcpMethodInput();
-  }
-
   async getTransactionId(): Promise<MatInputHarness | null> {
     return this.getTransactionIdInput();
   }
@@ -91,5 +81,13 @@ export class EnvLogsMoreFiltersHarness extends ComponentHarness {
 
   async getResponseTime(): Promise<MatInputHarness | null> {
     return this.getResponseTimeInput();
+  }
+
+  private readonly getErrorKeysSelect = this.locatorForOptional(
+    MatSelectHarness.with({ ancestor: '[data-testid="more-filters-error-keys"]' }),
+  );
+
+  async getErrorKeys(): Promise<MatSelectHarness | null> {
+    return this.getErrorKeysSelect();
   }
 }
