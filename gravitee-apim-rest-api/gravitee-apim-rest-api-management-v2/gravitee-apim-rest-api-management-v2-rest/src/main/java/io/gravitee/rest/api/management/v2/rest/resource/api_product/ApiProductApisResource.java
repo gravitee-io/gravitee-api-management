@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -41,11 +42,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Objects;
 import lombok.CustomLog;
 
-/**
- * APIs sub-resource for an API Product: list/search APIs that belong to the product with Lucene-backed search and pagination.
- */
 @CustomLog
 public class ApiProductApisResource extends AbstractResource {
 
@@ -83,7 +82,7 @@ public class ApiProductApisResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Page<io.gravitee.apim.core.api.model.Api> apisPage = output.apisPage();
+        Page<GenericApiEntity> apisPage = output.apisPage();
         if (apisPage == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -91,13 +90,14 @@ public class ApiProductApisResource extends AbstractResource {
         return Response.ok(toApisResponse(apisPage, paginationParam)).build();
     }
 
-    private ApisResponse toApisResponse(Page<io.gravitee.apim.core.api.model.Api> apisPage, PaginationParam paginationParam) {
+    private ApisResponse toApisResponse(Page<GenericApiEntity> apisPage, PaginationParam paginationParam) {
         long totalCount = apisPage.getTotalElements();
         int pageItemsCount = Math.toIntExact(apisPage.getPageElements());
         List<Api> data = apisPage
             .getContent()
             .stream()
-            .map(coreApi -> ApiMapper.INSTANCE.map(coreApi, uriInfo, null))
+            .map(api -> ApiMapper.INSTANCE.map(api, uriInfo, (Boolean) null))
+            .filter(Objects::nonNull)
             .toList();
         Pagination pagination = totalCount == 0
             ? new Pagination()

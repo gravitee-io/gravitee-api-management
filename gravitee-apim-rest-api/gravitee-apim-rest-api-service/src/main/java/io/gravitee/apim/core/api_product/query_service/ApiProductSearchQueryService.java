@@ -19,6 +19,9 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Set;
 
 public interface ApiProductSearchQueryService {
@@ -29,5 +32,15 @@ public interface ApiProductSearchQueryService {
         Set<String> ids,
         Pageable pageable,
         Sortable sortable
+    );
+
+    Page<GenericApiEntity> searchApis(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        List<String> apiIds,
+        String query,
+        Sortable sortable,
+        Pageable pageable
     );
 }

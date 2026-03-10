@@ -20,6 +20,8 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryServ
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -89,6 +91,21 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
         int end = Math.min(start + pageSize, total);
         List<ApiProduct> pageContent = new ArrayList<>(matched.subList(start, end));
         return new Page<>(pageContent, pageNumber, pageContent.size(), total);
+    }
+
+    @Override
+    public Page<GenericApiEntity> searchApis(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        List<String> apiIds,
+        String query,
+        Sortable sortable,
+        Pageable pageable
+    ) {
+        int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
+        int pageSize = pageable != null ? pageable.getPageSize() : 10;
+        return new Page<>(List.of(), pageNumber, pageSize, 0);
     }
 
     private static Comparator<ApiProduct> comparatorForField(String fieldName) {

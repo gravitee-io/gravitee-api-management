@@ -17,15 +17,12 @@ package io.gravitee.apim.core.api_product.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiAuthorizationDomainService;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.model.Sortable;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +35,8 @@ import lombok.RequiredArgsConstructor;
 public class GetApiProductApisUseCase {
 
     private final ApiProductQueryService apiProductQueryService;
-    private final ApiQueryService apiQueryService;
     private final ApiAuthorizationDomainService apiAuthorizationDomainService;
+    private final ApiProductSearchQueryService apiProductSearchQueryService;
 
     public Output execute(Input input) {
         Optional<ApiProduct> apiProduct = apiProductQueryService.findById(input.apiProductId());
@@ -53,7 +50,7 @@ public class GetApiProductApisUseCase {
             .orElse(List.of());
 
         if (apiIds.isEmpty()) {
-            return new Output(apiProduct, new Page<>(List.of(), 0, 0, 0));
+            return new Output(apiProduct, emptyPage(input.pageable()));
         }
 
         List<String> searchIds = apiIds;
@@ -62,40 +59,32 @@ public class GetApiProductApisUseCase {
                 input.executionContext(),
                 input.userId(),
                 io.gravitee.apim.core.api.model.ApiQueryCriteria.builder().ids(apiIds).build(),
-                input.sortable(),
+                null,
                 true // manageOnly
             );
             if (manageableIds == null || manageableIds.isEmpty()) {
-                return new Output(apiProduct, new Page<>(List.of(), 0, 0, 0));
+                return new Output(apiProduct, emptyPage(input.pageable()));
             }
             searchIds = new ArrayList<>(manageableIds);
         }
 
-        var criteriaBuilder = ApiSearchCriteria.builder().ids(searchIds).environmentId(input.executionContext().getEnvironmentId());
-        if (input.query() != null && !input.query().isBlank()) {
-            criteriaBuilder.name(input.query().strip());
-        }
-        ApiSearchCriteria criteria = criteriaBuilder.build();
+        String query = (input.query() == null || input.query().isBlank()) ? null : input.query().trim();
 
-        Sortable coreSortable = toCoreSortable(input.sortable());
-        Page<Api> apisPage = apiQueryService.search(
-            criteria,
-            coreSortable,
-            input.pageable(),
-            ApiFieldFilter.builder().pictureExcluded(true).build()
+        Page<GenericApiEntity> apis = apiProductSearchQueryService.searchApis(
+            input.executionContext(),
+            input.userId(),
+            input.isAdmin(),
+            searchIds,
+            query,
+            input.sortable(),
+            input.pageable()
         );
 
-        return new Output(apiProduct, apisPage);
+        return new Output(apiProduct, apis);
     }
 
-    private static Sortable toCoreSortable(io.gravitee.rest.api.model.common.Sortable restSortable) {
-        if (restSortable == null || restSortable.getField() == null) {
-            return null;
-        }
-        return Sortable.builder()
-            .field(restSortable.getField())
-            .order(restSortable.isAscOrder() ? Sortable.Order.ASC : Sortable.Order.DESC)
-            .build();
+    private static Page<GenericApiEntity> emptyPage(Pageable pageable) {
+        return new Page<>(List.of(), pageable.getPageNumber(), pageable.getPageSize(), 0);
     }
 
     public record Input(
@@ -108,5 +97,5 @@ public class GetApiProductApisUseCase {
         boolean isAdmin
     ) {}
 
-    public record Output(Optional<ApiProduct> apiProduct, Page<Api> apisPage) {}
+    public record Output(Optional<ApiProduct> apiProduct, Page<GenericApiEntity> apisPage) {}
 }

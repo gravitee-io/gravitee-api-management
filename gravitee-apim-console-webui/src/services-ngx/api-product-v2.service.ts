@@ -97,18 +97,22 @@ export class ApiProductV2Service {
   }
 
   /**
-   * Get paginated list of APIs in an API Product with optional search (Lucene-backed).
+   * Get paginated list of APIs in an API Product with optional search and sort.
    * Calls GET /environments/{envId}/api-products/{apiProductId}/apis
    * @param apiProductId - The API Product ID
    * @param page - Page number (1-based)
    * @param perPage - Page size
-   * @param query - Optional search query (searches name, context path, version, etc.)
+   * @param query - Optional search query (searches name)
+   * @param sortBy - Optional sort (e.g. "name", "-name", "paths", "-paths")
    * @returns Observable of ApisResponse (data, pagination, links)
    */
-  getApis(apiProductId: string, page = 1, perPage = 10, query = ''): Observable<ApisResponse> {
+  getApis(apiProductId: string, page = 1, perPage = 10, query = '', sortBy?: string): Observable<ApisResponse> {
     let params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
     if (query?.trim()) {
       params = params.set('query', query.trim());
+    }
+    if (sortBy?.trim()) {
+      params = params.set('sortBy', sortBy.trim());
     }
     return this.http.get<ApisResponse>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/apis`, {
       params,

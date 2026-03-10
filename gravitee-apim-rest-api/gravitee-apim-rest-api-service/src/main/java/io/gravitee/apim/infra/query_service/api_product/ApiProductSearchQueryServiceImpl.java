@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.query_service.api_product;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
+
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
@@ -22,9 +24,13 @@ import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiProductSearchService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 
@@ -34,9 +40,11 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
     private static final String FILTER_TYPE_API_PRODUCT = "api_product";
 
     private final ApiProductSearchService apiProductSearchService;
+    private final ApiSearchService apiSearchService;
 
-    public ApiProductSearchQueryServiceImpl(ApiProductSearchService apiProductSearchService) {
+    public ApiProductSearchQueryServiceImpl(ApiProductSearchService apiProductSearchService, ApiSearchService apiSearchService) {
         this.apiProductSearchService = apiProductSearchService;
+        this.apiSearchService = apiSearchService;
     }
 
     @Override
@@ -62,5 +70,27 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         }
 
         return apiProductSearchService.search(executionContext, queryBuilder, pageable);
+    }
+
+    @Override
+    public Page<GenericApiEntity> searchApis(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        List<String> apiIds,
+        String query,
+        Sortable sortable,
+        Pageable pageable
+    ) {
+        QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
+        queryBuilder.addFilter(FIELD_TYPE_VALUE, apiIds);
+        if (query != null && !query.isBlank()) {
+            queryBuilder.setQuery(query.trim());
+        }
+        if (sortable != null) {
+            queryBuilder.setSort(sortable);
+        }
+
+        return apiSearchService.search(executionContext, userId, isAdmin, queryBuilder, pageable, false, true);
     }
 }

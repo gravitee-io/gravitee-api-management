@@ -241,6 +241,18 @@ describe('ApiProductV2Service', () => {
       });
       req.flush(response);
     });
+
+    it('should call the API with sortBy when provided', done => {
+      const response = { data: [], pagination: { totalCount: 0, page: 1, perPage: 10 }, links: {} };
+
+      apiProductV2Service.getApis('product-123', 1, 10, '', '-paths').subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-123/apis?page=1&perPage=10&sortBy=-paths`,
+        method: 'GET',
+      });
+      req.flush(response);
+    });
   });
 
   describe('update', () => {
