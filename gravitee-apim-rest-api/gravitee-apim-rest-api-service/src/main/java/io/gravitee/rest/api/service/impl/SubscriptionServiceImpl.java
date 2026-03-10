@@ -870,6 +870,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .application(applicationEntity);
         if (subscriptionEntity != null) {
             paramsBuilder.subscription(subscriptionEntity);
+            String subscribedBy = subscriptionEntity.getSubscribedBy();
+            if (subscribedBy != null) {
+                try {
+                    UserEntity subscribedByUser = userService.findById(executionContext, subscribedBy);
+                    if (subscribedByUser != null) {
+                        paramsBuilder.user(subscribedByUser);
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not resolve subscribed-by user {} for API subscription notification params", subscribedBy, e);
+                }
+            }
         }
         if (subscriptionsUrl != null) {
             paramsBuilder.subscriptionsUrl(subscriptionsUrl);
