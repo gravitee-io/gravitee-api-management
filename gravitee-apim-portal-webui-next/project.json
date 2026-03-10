@@ -110,6 +110,14 @@
       }
     },
     "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/rewrite-lcov-for-sonar.js gravitee-apim-portal-webui-next",
+        "cwd": "{workspaceRoot}"
+      },
+      "dependsOn": ["test:jest"]
+    },
+    "test:jest": {
       "executor": "@nx/jest:jest",
       "options": {
         "jestConfig": "gravitee-apim-portal-webui-next/jest.config.js",
@@ -117,7 +125,13 @@
         "codeCoverage": true,
         "coverageReporters": ["text", "text-summary", "html", "lcov"]
       },
-      "outputs": ["{workspaceRoot}/gravitee-apim-portal-webui-next/coverage"]
+      "outputs": ["{workspaceRoot}/gravitee-apim-portal-webui-next/coverage"],
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "runInBand": true
+        }
+      }
     },
     "lint": {},
     "lint-eslint": {},

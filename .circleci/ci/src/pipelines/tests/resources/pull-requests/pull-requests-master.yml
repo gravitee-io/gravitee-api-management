@@ -597,7 +597,7 @@ jobs:
           command: yarn nx lint << parameters.nx-project >>
       - run:
           name: Run unit tests
-          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>
+          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >> --configuration=ci
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
