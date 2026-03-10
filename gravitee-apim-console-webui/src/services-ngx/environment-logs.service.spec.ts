@@ -17,7 +17,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
-import { EnvironmentLogsService, SearchLogsResponse } from './environment-logs.service';
+import { EnvironmentLogsService, SearchLogsResponse, periodToMs } from './environment-logs.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing/gio-testing.module';
 
@@ -116,50 +116,92 @@ describe('EnvironmentLogsService', () => {
       );
       req.flush(mockResponse);
     });
-    it('should include filters in the request body when provided', done => {
+
+    it('should include all filter types in the request body', done => {
       service
         .searchLogs({
-          timeRange: { from: '2025-01-01T00:00:00Z', to: '2025-01-31T23:59:59Z' },
-          filters: [{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }],
+          apiIds: ['api-1'],
+          applicationIds: ['app-1'],
+          planIds: ['plan-1'],
+          methods: ['GET', 'POST'],
+          statuses: [200, 500],
+          entrypoints: ['http-proxy'],
+          requestId: 'req-uuid',
+          transactionId: 'tx-uuid',
+          uri: '/api/v1',
+          responseTime: 100,
         })
         .subscribe(() => done());
 
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`,
-      });
-      expect(req.request.body).toEqual(
-        expect.objectContaining({
-          filters: [{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }],
-        }),
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      const bodyFilters = req.request.body.filters;
+
+      expect(bodyFilters).toEqual(
+        expect.arrayContaining([
+          { name: 'API', operator: 'IN', value: ['api-1'] },
+          { name: 'APPLICATION', operator: 'IN', value: ['app-1'] },
+          { name: 'PLAN', operator: 'IN', value: ['plan-1'] },
+          { name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] },
+          { name: 'HTTP_STATUS', operator: 'IN', value: ['200', '500'] },
+          { name: 'ENTRYPOINT', operator: 'IN', value: ['http-proxy'] },
+          { name: 'REQUEST_ID', operator: 'EQ', value: 'req-uuid' },
+          { name: 'TRANSACTION_ID', operator: 'EQ', value: 'tx-uuid' },
+          { name: 'URI', operator: 'EQ', value: '/api/v1' },
+          { name: 'RESPONSE_TIME', operator: 'GTE', value: 100 },
+        ]),
       );
+      expect(bodyFilters.length).toBe(10);
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
-    it('should append requestId as a filter in the request body', done => {
-      service.searchLogs({ requestId: 'req-123' }).subscribe(() => done());
+    it('should not include RESPONSE_TIME filter when responseTime is 0', done => {
+      service.searchLogs({ responseTime: 0 }).subscribe(() => done());
 
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`,
-      });
-      expect(req.request.body).toEqual(
-        expect.objectContaining({
-          filters: [{ name: 'REQUEST_ID', operator: 'EQ', value: 'req-123' }],
-        }),
-      );
-      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
-    });
-
-    it('should omit filters from the request body when none are provided', done => {
-      service.searchLogs({ timeRange: { from: '2025-01-01T00:00:00Z', to: '2025-01-31T23:59:59Z' } }).subscribe(() => done());
-
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`,
-      });
+      const req = httpTestingController.expectOne({ method: 'POST' });
       expect(req.request.body.filters).toBeUndefined();
+
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
+
+    it('should not include filters key when no filters are provided', done => {
+      service.searchLogs({}).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toBeUndefined();
+      expect(req.request.body.timeRange).toBeDefined();
+
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+  });
+});
+
+describe('periodToMs', () => {
+  it('should parse minutes correctly', () => {
+    expect(periodToMs('-5m')).toBe(5 * 60_000);
+    expect(periodToMs('-30m')).toBe(30 * 60_000);
+  });
+
+  it('should parse hours correctly', () => {
+    expect(periodToMs('-1h')).toBe(3_600_000);
+    expect(periodToMs('-12h')).toBe(12 * 3_600_000);
+  });
+
+  it('should parse days correctly', () => {
+    expect(periodToMs('-1d')).toBe(86_400_000);
+    expect(periodToMs('-7d')).toBe(7 * 86_400_000);
+  });
+
+  it('should return null for "0" (no period)', () => {
+    expect(periodToMs('0')).toBeNull();
+  });
+
+  it('should return null for empty string', () => {
+    expect(periodToMs('')).toBeNull();
+  });
+
+  it('should return null for unrecognized formats', () => {
+    expect(periodToMs('-2w')).toBeNull();
+    expect(periodToMs('invalid')).toBeNull();
+    expect(periodToMs('5m')).toBeNull(); // missing leading dash
   });
 });

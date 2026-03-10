@@ -61,9 +61,14 @@ describe('EnvLogsFilterBarComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display all filter dropdowns', async () => {
+  it('should display the period dropdown and the two gio-select-search components', async () => {
     const selects = await loader.getAllHarnesses(MatSelectHarness);
-    expect(selects.length).toBe(3); // Period, API, Application
+    expect(selects.length).toBe(1); // Only Period
+
+    const apisSearch = fixture.nativeElement.querySelector('[data-testid="apis-select"]');
+    const appsSearch = fixture.nativeElement.querySelector('[data-testid="applications-select"]');
+    expect(apisSearch).toBeTruthy();
+    expect(appsSearch).toBeTruthy();
   });
 
   it('should display refresh button', async () => {
@@ -77,22 +82,24 @@ describe('EnvLogsFilterBarComponent', () => {
   });
 
   describe('filter selection', () => {
-    it('should display a chip when an API is selected', async () => {
-      const apisSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="apis-select"]' }));
-      await apisSelect.open();
-      const [apiOption] = await apisSelect.getOptions({ text: 'Weather API' });
-      await apiOption.click();
+    it('should display a chip when an API is selected via form control', async () => {
+      // Simulate selecting an API via the reactive form
+      component.form.patchValue({ apis: ['api-1'] });
+      // Cache the label for chip display
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       const chipSet = await loader.getHarness(MatChipSetHarness);
       const chips = await chipSet.getChips();
       expect(chips.length).toBe(1);
     });
 
-    it('should display a chip when an Application is selected', async () => {
-      const appsSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="applications-select"]' }));
-      await appsSelect.open();
-      const [appOption] = await appsSelect.getOptions({ text: 'Mobile App' });
-      await appOption.click();
+    it('should display a chip when an Application is selected via form control', async () => {
+      component.form.patchValue({ applications: ['app-1'] });
+      component.onAppOptionsLoaded([{ value: 'app-1', label: 'Mobile App' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       const chipSet = await loader.getHarness(MatChipSetHarness);
       const chips = await chipSet.getChips();
@@ -107,11 +114,11 @@ describe('EnvLogsFilterBarComponent', () => {
 
   describe('chip removal', () => {
     it('should remove a chip when the remove icon is clicked', async () => {
-      // Select an API first
-      const apisSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="apis-select"]' }));
-      await apisSelect.open();
-      const [apiOption] = await apisSelect.getOptions({ text: 'Weather API' });
-      await apiOption.click();
+      // Select an API via form control
+      component.form.patchValue({ apis: ['api-1'] });
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       // Verify chip exists
       const chipSet = await loader.getHarness(MatChipSetHarness);
@@ -130,11 +137,11 @@ describe('EnvLogsFilterBarComponent', () => {
 
   describe('resetAllFilters', () => {
     it('should clear all filters when reset is clicked', async () => {
-      // Select an API first
-      const apisSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="apis-select"]' }));
-      await apisSelect.open();
-      const [apiOption] = await apisSelect.getOptions({ text: 'Weather API' });
-      await apiOption.click();
+      // Select an API via form control
+      component.form.patchValue({ apis: ['api-1'] });
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       // Click reset
       const resetButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="reset-filters-button"]' }));
@@ -181,16 +188,20 @@ describe('EnvLogsFilterBarComponent', () => {
       expect(statuses.has(404)).toBe(true);
     });
 
-    it('should remove a scalar more-filter chip (e.g. mcpMethod) from the moreFiltersValues signal', () => {
+    it('should remove a scalar more-filter chip (e.g. transactionId) from the moreFiltersValues signal', () => {
       component.moreFiltersValues.set({
         ...component.moreFiltersValues(),
-        mcpMethod: 'tools/list',
+        transactionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       });
       fixture.detectChanges();
 
-      component.removeChip({ key: 'mcpMethod', value: 'tools/list', display: 'MCP Method: tools/list' });
+      component.removeChip({
+        key: 'transactionId',
+        value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        display: 'Transaction ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      });
 
-      expect(component.moreFiltersValues().mcpMethod).toBeNull();
+      expect(component.moreFiltersValues().transactionId).toBeNull();
     });
 
     it('should remove an array more-filter chip (e.g. entrypoints) from the moreFiltersValues signal', () => {
@@ -245,7 +256,7 @@ describe('EnvLogsFilterBarComponent', () => {
       });
       fixture.detectChanges();
 
-      component.removeChip({ key: 'responseTime', value: 500, display: 'Response time: >500ms' });
+      component.removeChip({ key: 'responseTime', value: 500, display: 'Response time: >=500ms' });
 
       expect(component.moreFiltersValues().responseTime).toBeNull();
     });
@@ -316,10 +327,11 @@ describe('EnvLogsFilterBarComponent', () => {
       const chips = component.filterChips();
       const rtChip = chips.find(c => c.key === 'responseTime');
       expect(rtChip).toBeTruthy();
-      expect(rtChip!.display).toBe('Response time: >250ms');
+      expect(rtChip!.display).toBe('Response time: >=250ms');
     });
 
     it('should display the API name (not id) in the chip', () => {
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
       component.form.patchValue({ apis: ['api-1'] });
       fixture.detectChanges();
 
@@ -350,13 +362,11 @@ describe('EnvLogsFilterBarComponent', () => {
       component.showMoreFilters.set(true);
       const newValues = {
         ...component.moreFiltersValues(),
-        mcpMethod: 'tools/list',
         statuses: new Set([200]),
       };
 
       component.applyMoreFilters(newValues);
 
-      expect(component.moreFiltersValues().mcpMethod).toBe('tools/list');
       expect(component.moreFiltersValues().statuses.has(200)).toBe(true);
       expect(component.showMoreFilters()).toBe(false);
     });
@@ -384,7 +394,6 @@ describe('EnvLogsFilterBarComponent', () => {
       component.moreFiltersValues.set({
         ...component.moreFiltersValues(),
         statuses: new Set([500]),
-        mcpMethod: 'tools/call',
         entrypoints: ['http-proxy'],
       });
       fixture.detectChanges();
@@ -393,7 +402,6 @@ describe('EnvLogsFilterBarComponent', () => {
 
       expect(component.form.value.apis).toBeNull();
       expect(component.moreFiltersValues().statuses.size).toBe(0);
-      expect(component.moreFiltersValues().mcpMethod).toBeNull();
       expect(component.moreFiltersValues().entrypoints).toBeNull();
     });
 
@@ -407,8 +415,8 @@ describe('EnvLogsFilterBarComponent', () => {
     });
   });
 
-  describe('filtersParam and filtersChanged', () => {
-    it('should emit filtersChanged with an errorKeys filter when errorKeys are set', () => {
+  describe('filtersChanged output — filter values', () => {
+    it('should emit errorKeys in more when errorKeys are set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -419,11 +427,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      const errorKeyFilter = last?.filters?.find((f: any) => f.name === 'ERROR_KEY');
-      expect(errorKeyFilter).toEqual({ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT', 'ASSIGN_CONTENT_ERROR'] });
+      expect(last?.more?.errorKeys).toEqual(['TIMEOUT', 'ASSIGN_CONTENT_ERROR']);
     });
 
-    it('should not include an ERROR_KEY filter when errorKeys is empty', () => {
+    it('should emit no errorKeys when errorKeys is empty', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -431,10 +438,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters?.find((f: any) => f.name === 'ERROR_KEY')).toBeUndefined();
+      expect(last?.more?.errorKeys).toEqual([]);
     });
 
-    it('should not include an ERROR_KEY filter when errorKeys is null', () => {
+    it('should emit null errorKeys when errorKeys is null', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -442,11 +449,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters?.find((f: any) => f.name === 'ERROR_KEY')).toBeUndefined();
+      expect(last?.more?.errorKeys).toBeNull();
     });
 
-    // NEW: covers the responseTime != null branch
-    it('should include a RESPONSE_TIME filter with GTE operator when responseTime is set', () => {
+    it('should emit responseTime in more when responseTime is set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -454,11 +460,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'RESPONSE_TIME', operator: 'GTE', value: 300 });
+      expect(last?.more?.responseTime).toBe(300);
     });
 
-    // NEW: covers the responseTime == null branch
-    it('should not include a RESPONSE_TIME filter when responseTime is null', () => {
+    it('should emit null responseTime when responseTime is null', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -466,10 +471,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters?.find((f: any) => f.name === 'RESPONSE_TIME')).toBeUndefined();
+      expect(last?.more?.responseTime).toBeNull();
     });
 
-    it('should use explicit from/to dates when both are set, ignoring the period', () => {
+    it('should emit from/to dates in more when both are set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -479,28 +484,22 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.timeRange?.from).toBe(from.toISOString());
-      expect(last?.timeRange?.to).toBe(to.toISOString());
+      expect(last?.more?.from?.toISOString()).toBe(from.toISOString());
+      expect(last?.more?.to?.toISOString()).toBe(to.toISOString());
     });
 
-    it('should compute timeRange from the selected period when no from/to is set', () => {
+    it('should emit the selected period value', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
-      const before = Date.now();
       component.form.patchValue({ period: { label: 'Last 1 Hour', value: '-1h' } });
       fixture.detectChanges();
-      const after = Date.now();
 
       const last: any = emitted[emitted.length - 1];
-      const fromMs = new Date(last?.timeRange?.from).getTime();
-      const toMs = new Date(last?.timeRange?.to).getTime();
-      expect(toMs).toBeGreaterThanOrEqual(before);
-      expect(toMs).toBeLessThanOrEqual(after + 10);
-      expect(toMs - fromMs).toBeCloseTo(60 * 60 * 1000, -3);
+      expect(last?.period).toBe('-1h');
     });
 
-    it('should emit no timeRange when period is "0" (None) and no explicit dates', () => {
+    it('should emit period "0" when None is selected', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -508,25 +507,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.timeRange).toBeUndefined();
+      expect(last?.period).toBe('0');
     });
 
-    it('should fall back to a 24h window for an unrecognised period value', () => {
-      const emitted: unknown[] = [];
-      component.filtersChanged.subscribe(v => emitted.push(v));
-
-      const before = Date.now();
-      component.form.patchValue({ period: { label: 'Unknown', value: '-99x' } as any });
-      fixture.detectChanges();
-
-      const last: any = emitted[emitted.length - 1];
-      const fromMs = new Date(last?.timeRange?.from).getTime();
-      const toMs = new Date(last?.timeRange?.to).getTime();
-      expect(toMs).toBeGreaterThanOrEqual(before);
-      expect(toMs - fromMs).toBeCloseTo(24 * 60 * 60 * 1000, -4);
-    });
-
-    it('should include an APPLICATION filter when applications are selected', () => {
+    it('should emit applicationIds when applications are selected', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -534,10 +518,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'APPLICATION', operator: 'IN', value: ['app-1', 'app-2'] });
+      expect(last?.applicationIds).toEqual(['app-1', 'app-2']);
     });
 
-    it('should include an ENTRYPOINT filter when entrypoints are set', () => {
+    it('should emit entrypoints in more when entrypoints are set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -545,10 +529,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'ENTRYPOINT', operator: 'IN', value: ['http-proxy', 'sse'] });
+      expect(last?.more?.entrypoints).toEqual(['http-proxy', 'sse']);
     });
 
-    it('should include an HTTP_METHOD filter when methods are set', () => {
+    it('should emit methods in more when methods are set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -556,10 +540,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] });
+      expect(last?.more?.methods).toEqual(['GET', 'POST']);
     });
 
-    it('should include a PLAN filter when plans are set', () => {
+    it('should emit plans in more when plans are set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -567,10 +551,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'PLAN', operator: 'IN', value: ['plan-gold'] });
+      expect(last?.more?.plans).toEqual(['plan-gold']);
     });
 
-    it('should include an HTTP_STATUS filter when statuses are set', () => {
+    it('should emit statuses in more when statuses are set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -578,23 +562,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      const statusFilter = last?.filters?.find((f: any) => f.name === 'HTTP_STATUS');
-      expect(statusFilter?.operator).toBe('IN');
-      expect((statusFilter?.value as number[]).sort()).toEqual([200, 500]);
+      expect(last?.more?.statuses).toEqual(new Set([200, 500]));
     });
 
-    it('should include a MCP_METHOD filter when mcpMethod is set', () => {
-      const emitted: unknown[] = [];
-      component.filtersChanged.subscribe(v => emitted.push(v));
-
-      component.moreFiltersValues.set({ ...DEFAULT_MORE_FILTERS, mcpMethod: 'tools/call' });
-      fixture.detectChanges();
-
-      const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'MCP_METHOD', operator: 'EQ', value: 'tools/call' });
-    });
-
-    it('should include a TRANSACTION_ID filter when transactionId is set', () => {
+    it('should emit transactionId in more when transactionId is set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -602,10 +573,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'TRANSACTION_ID', operator: 'EQ', value: 'tx-abc-123' });
+      expect(last?.more?.transactionId).toBe('tx-abc-123');
     });
 
-    it('should include a REQUEST_ID filter when requestId is set', () => {
+    it('should emit requestId in more when requestId is set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -613,10 +584,10 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'REQUEST_ID', operator: 'EQ', value: 'req-xyz-456' });
+      expect(last?.more?.requestId).toBe('req-xyz-456');
     });
 
-    it('should include a URI filter when uri is set', () => {
+    it('should emit uri in more when uri is set', () => {
       const emitted: unknown[] = [];
       component.filtersChanged.subscribe(v => emitted.push(v));
 
@@ -624,25 +595,116 @@ describe('EnvLogsFilterBarComponent', () => {
       fixture.detectChanges();
 
       const last: any = emitted[emitted.length - 1];
-      expect(last?.filters).toContainEqual({ name: 'URI', operator: 'EQ', value: '/api/v1/users' });
+      expect(last?.more?.uri).toBe('/api/v1/users');
+    });
+
+    it('should emit apiIds when APIs are selected', () => {
+      const emitted: unknown[] = [];
+      component.filtersChanged.subscribe(v => emitted.push(v));
+
+      component.form.patchValue({ apis: ['api-1'] });
+      fixture.detectChanges();
+
+      const last: any = emitted[emitted.length - 1];
+      expect(last?.apiIds).toEqual(['api-1']);
     });
   });
-  it('should compute filtersParam with API filter', () => {
-    component.form.patchValue({ apis: ['api-1'] });
 
-    const result = component.filtersParam();
+  describe('filtersChanged output', () => {
+    it('should emit filter values when form changes', async () => {
+      const spy = jest.fn();
+      component.filtersChanged.subscribe(spy);
 
-    expect(result.filters).toContainEqual({
-      name: 'API',
-      operator: 'IN',
-      value: ['api-1'],
+      component.form.patchValue({ apis: ['api-1'] });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(spy).toHaveBeenCalled();
+      const lastCall = spy.mock.calls[spy.mock.calls.length - 1][0];
+      expect(lastCall.apiIds).toEqual(['api-1']);
     });
   });
-  it('should resolve time range for -1h period', () => {
-    const more = component.moreFiltersValues();
 
-    const range = (component as any).resolveTimeRange('-1h', more);
+  describe('removeChip for period', () => {
+    it('should reset period to default when period chip is removed', () => {
+      const customPeriod = { label: 'Last 1 Hour', value: '-1h' };
+      component.form.controls.period.setValue(customPeriod);
+      fixture.detectChanges();
 
-    expect(range).toBeDefined();
+      component.removeChip({ key: 'period', value: '-1h', display: 'Last 1 Hour' });
+
+      expect(component.form.controls.period.value).toEqual(ENV_LOGS_DEFAULT_PERIOD);
+    });
+  });
+
+  describe('removeChip for quick-filter controls', () => {
+    it('should remove an API from the apis form control and set to null when last is removed', () => {
+      component.form.patchValue({ apis: ['api-1', 'api-2'] });
+      component.onApiOptionsLoaded([
+        { value: 'api-1', label: 'API One' },
+        { value: 'api-2', label: 'API Two' },
+      ]);
+      fixture.detectChanges();
+
+      component.removeChip({ key: 'apis', value: 'api-1', display: 'API One' });
+      expect(component.form.controls.apis.value).toEqual(['api-2']);
+
+      component.removeChip({ key: 'apis', value: 'api-2', display: 'API Two' });
+      expect(component.form.controls.apis.value).toBeNull();
+    });
+
+    it('should remove an Application from the applications form control', () => {
+      component.form.patchValue({ applications: ['app-1'] });
+      component.onAppOptionsLoaded([{ value: 'app-1', label: 'My App' }]);
+      fixture.detectChanges();
+
+      component.removeChip({ key: 'applications', value: 'app-1', display: 'My App' });
+      expect(component.form.controls.applications.value).toBeNull();
+    });
+  });
+
+  describe('filterChips computed signal — additional coverage', () => {
+    it('should include status chips when statuses are set', () => {
+      component.moreFiltersValues.set({
+        ...component.moreFiltersValues(),
+        statuses: new Set([200, 500]),
+      });
+      fixture.detectChanges();
+
+      const chips = component.filterChips();
+      const statusChips = chips.filter(c => c.key === 'statuses');
+      expect(statusChips.length).toBe(2);
+      expect(statusChips.map(c => c.value)).toEqual(expect.arrayContaining([200, 500]));
+    });
+
+    it('should include string filter chips (transactionId, requestId, uri)', () => {
+      component.moreFiltersValues.set({
+        ...component.moreFiltersValues(),
+        transactionId: 'tx-123',
+        requestId: 'req-456',
+        uri: '/api/v1/test',
+      });
+      fixture.detectChanges();
+
+      const chips = component.filterChips();
+      expect(chips.find(c => c.key === 'transactionId')?.display).toBe('Transaction ID: tx-123');
+      expect(chips.find(c => c.key === 'requestId')?.display).toBe('Request ID: req-456');
+      expect(chips.find(c => c.key === 'uri')?.display).toBe('URI: /api/v1/test');
+    });
+
+    it('should include array filter chips (entrypoints, methods, plans)', () => {
+      component.moreFiltersValues.set({
+        ...component.moreFiltersValues(),
+        entrypoints: ['http-proxy'],
+        methods: ['GET', 'POST'],
+        plans: ['plan-1'],
+      });
+      fixture.detectChanges();
+
+      const chips = component.filterChips();
+      expect(chips.filter(c => c.key === 'entrypoints').length).toBe(1);
+      expect(chips.filter(c => c.key === 'methods').length).toBe(2);
+      expect(chips.filter(c => c.key === 'plans').length).toBe(1);
+    });
   });
 });

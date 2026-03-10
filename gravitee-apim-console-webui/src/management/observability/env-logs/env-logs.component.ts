@@ -25,7 +25,7 @@ import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
 
 import type { EnvLog } from './models/env-log.model';
 
-import { EnvLogsFilterBarComponent } from './components/env-logs-filter-bar/env-logs-filter-bar.component';
+import { EnvLogsFilterBarComponent, EnvLogsFilterValues } from './components/env-logs-filter-bar/env-logs-filter-bar.component';
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 
 import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam } from '../../../services-ngx/environment-logs.service';
@@ -34,9 +34,7 @@ import { GioTableWrapperPagination } from '../../../shared/components/gio-table-
 import { Pagination } from '../../../entities/management-api-v2';
 import { GioHeaderComponent } from '../../../shared/components/gio-header/gio-header.component';
 
-/** Gravitee's built-in sentinel ID for unauthenticated / Keyless traffic. */
-const UNKNOWN_APPLICATION_ID = '1';
-const UNKNOWN_APPLICATION_LABEL = 'Default application';
+const EMPTY_FIELD = '—';
 
 @Component({
   selector: 'env-logs',
@@ -52,31 +50,18 @@ export class EnvLogsComponent {
   private readonly datePipe = inject(DatePipe);
 
   pagination = signal<Pagination>({ page: 1, perPage: 10, totalCount: 0 });
-  filters = signal<SearchLogsParam>({});
+  filters = signal<EnvLogsFilterValues | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
 
-  private readonly logsResult$ = toObservable(computed(() => ({ pagination: this.pagination(), filters: this.filters() }))).pipe(
+  private readonly searchParams = computed(() => ({
+    pagination: this.pagination(),
+    filters: this.filters(),
+  }));
+
+  private readonly logsResult$ = toObservable(this.searchParams).pipe(
     debounceTime(0),
-    tap(() => {
-      this.loading.set(true);
-      this.error.set(null);
-    }),
-    switchMap(({ pagination: { page, perPage }, filters }) =>
-      this.environmentLogsService.searchLogs({ page, perPage, ...filters }).pipe(
-        tap(() => this.loading.set(false)),
-        catchError(err => {
-          this.loading.set(false);
-          const message =
-            err instanceof HttpErrorResponse
-              ? `Request failed: ${err.status} ${err.statusText}`
-              : 'An unexpected error occurred while loading logs.';
-          this.error.set(message);
-          this.snackBarService.error(message);
-          return EMPTY;
-        }),
-      ),
-    ),
+    switchMap(params => this.fetchLogs(params)),
   );
 
   private readonly logsResult = toSignal(this.logsResult$);
@@ -86,7 +71,6 @@ export class EnvLogsComponent {
     return result?.data.map(log => this.mapToEnvLog(log)) ?? [];
   });
 
-  /** Merges backend totalCount into the pagination signal for the table wrapper. */
   paginationWithTotal = computed(() => ({
     ...this.pagination(),
     totalCount: this.logsResult()?.pagination.totalCount ?? 0,
@@ -96,32 +80,68 @@ export class EnvLogsComponent {
     this.pagination.update(prev => ({ ...prev, page: 1 }));
   }
 
-  onFiltersChanged(filters: SearchLogsParam) {
+  onFiltersChanged(filters: EnvLogsFilterValues) {
     this.filters.set(filters);
-    this.pagination.update(prev => ({ ...prev, page: 1 }));
+    this.pagination.update(prev => (prev.page === 1 ? prev : { ...prev, page: 1 }));
   }
 
   onPaginationUpdated(event: GioTableWrapperPagination) {
     this.pagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
   }
 
-  private mapToEnvLog(log: EnvironmentApiLog): EnvLog {
-    const appName = log.application?.id
-      ? log.application.id === UNKNOWN_APPLICATION_ID
-        ? UNKNOWN_APPLICATION_LABEL
-        : (log.application.name ?? log.application.id)
-      : undefined;
+  private fetchLogs(params: { pagination: Pagination; filters: EnvLogsFilterValues | null }) {
+    this.loading.set(true);
+    this.error.set(null);
 
+    return this.environmentLogsService.searchLogs(this.buildSearchParam(params)).pipe(
+      tap(() => this.loading.set(false)),
+      catchError(err => {
+        this.loading.set(false);
+        const message =
+          err instanceof HttpErrorResponse
+            ? `Request failed: ${err.status} ${err.statusText}`
+            : 'An unexpected error occurred while loading logs.';
+        this.error.set(message);
+        this.snackBarService.error(message);
+        return EMPTY;
+      }),
+    );
+  }
+
+  private buildSearchParam(params: { pagination: Pagination; filters: EnvLogsFilterValues | null }): SearchLogsParam {
+    const { page, perPage } = params.pagination;
+    const filters = params.filters;
+    return {
+      page,
+      perPage,
+      period: filters?.period,
+      from: filters?.more?.from?.toISOString(),
+      to: filters?.more?.to?.toISOString(),
+      apiIds: filters?.apiIds?.length ? filters.apiIds : undefined,
+      applicationIds: filters?.applicationIds?.length ? filters.applicationIds : undefined,
+      planIds: filters?.more?.plans?.length ? filters.more.plans : undefined,
+      methods: filters?.more?.methods?.length ? filters.more.methods : undefined,
+      statuses: filters?.more?.statuses?.size ? [...filters.more.statuses] : undefined,
+      entrypoints: filters?.more?.entrypoints?.length ? filters.more.entrypoints : undefined,
+      transactionId: filters?.more?.transactionId ?? undefined,
+      requestId: filters?.more?.requestId ?? undefined,
+      uri: filters?.more?.uri ?? undefined,
+      responseTime: filters?.more?.responseTime ?? undefined,
+      errorKeys: filters?.more?.errorKeys?.length ? filters.more.errorKeys : undefined,
+    };
+  }
+
+  private mapToEnvLog(log: EnvironmentApiLog): EnvLog {
     return {
       id: log.id,
       timestamp: this.datePipe.transform(log.timestamp, 'medium') ?? log.timestamp,
       api: log.apiName ?? log.apiId,
       apiId: log.apiId,
-      application: appName ?? '—',
-      method: log.method ?? '—',
-      path: log.uri ?? '—',
+      application: log.application?.name ?? log.application?.id ?? EMPTY_FIELD,
+      method: log.method ?? EMPTY_FIELD,
+      path: log.uri ?? EMPTY_FIELD,
       status: log.status,
-      responseTime: log.gatewayResponseTime != null ? `${log.gatewayResponseTime} ms` : '—',
+      responseTime: log.gatewayResponseTime == null ? EMPTY_FIELD : `${log.gatewayResponseTime} ms`,
       gateway: log.gateway ?? undefined,
       plan: log.plan?.name ? { name: log.plan.name } : undefined,
       requestEnded: log.requestEnded,

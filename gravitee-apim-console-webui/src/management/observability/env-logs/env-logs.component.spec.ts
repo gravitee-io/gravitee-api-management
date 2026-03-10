@@ -27,7 +27,7 @@ import { EnvLogsTableHarness } from './components/env-logs-table/env-logs-table.
 import { EnvLogsFilterBarHarness } from './components/env-logs-filter-bar/env-logs-filter-bar.harness';
 
 import { GioTestingModule, CONSTANTS_TESTING } from '../../../shared/testing/gio-testing.module';
-import { SearchLogsResponse } from '../../../services-ngx/environment-logs.service';
+import { EnvironmentApiLog, SearchLogsResponse } from '../../../services-ngx/environment-logs.service';
 
 describe('EnvLogsComponent', () => {
   let component: EnvLogsComponent;
@@ -175,7 +175,7 @@ describe('EnvLogsComponent', () => {
     expect(logs[0].gateway).toBeUndefined();
   }));
 
-  it('should display "Default application" for default application ID', fakeAsync(() => {
+  it('should display application ID when name is not provided', fakeAsync(() => {
     const responseWithDefaultApp: SearchLogsResponse = {
       data: [
         {
@@ -198,7 +198,7 @@ describe('EnvLogsComponent', () => {
     initComponent(responseWithDefaultApp);
 
     const logs = component.logs();
-    expect(logs[0].application).toBe('Default application');
+    expect(logs[0].application).toBe('1');
   }));
 
   it('should update pagination from response', fakeAsync(() => {
@@ -305,20 +305,80 @@ describe('EnvLogsComponent', () => {
     expect(logs[1].application).toBe('My App');
   }));
 
-  it('should re-fetch logs with filters when onFiltersChanged is called', fakeAsync(() => {
-    initComponent();
+  describe('mapToEnvLog edge cases', () => {
+    it('should display dashes when method, uri, and gatewayResponseTime are missing', fakeAsync(() => {
+      const response: SearchLogsResponse = {
+        data: [
+          {
+            apiId: 'api-1',
+            apiName: 'Test API',
+            timestamp: '2025-06-15T12:00:00Z',
+            id: 'log-missing',
+            requestId: 'req-m',
+            status: 200,
+            requestEnded: true,
+          } as EnvironmentApiLog,
+        ],
+        pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+      };
 
-    component.onFiltersChanged({
-      filters: [{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }],
-    });
-    fixture.detectChanges();
-    tick(1);
+      initComponent(response);
 
-    const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
-    expect(req.request.body.filters).toEqual([{ name: 'ERROR_KEY', operator: 'IN', value: ['TIMEOUT'] }]);
-    req.flush(EMPTY_RESPONSE);
-    fixture.detectChanges();
+      const log = component.logs()[0];
+      expect(log.method).toBe('—');
+      expect(log.path).toBe('—');
+      expect(log.responseTime).toBe('—');
+    }));
 
-    expect(component.pagination().page).toBe(1);
-  }));
+    it('should display dash when application object is missing entirely', fakeAsync(() => {
+      const response: SearchLogsResponse = {
+        data: [
+          {
+            apiId: 'api-1',
+            apiName: 'Test API',
+            timestamp: '2025-06-15T12:00:00Z',
+            id: 'log-no-app',
+            requestId: 'req-na',
+            method: 'GET',
+            status: 200,
+            requestEnded: true,
+            uri: '/test',
+          },
+        ],
+        pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+      };
+
+      initComponent(response);
+
+      expect(component.logs()[0].application).toBe('—');
+    }));
+
+    it('should map errorKey and warnings from response', fakeAsync(() => {
+      const response: SearchLogsResponse = {
+        data: [
+          {
+            apiId: 'api-1',
+            apiName: 'Test API',
+            timestamp: '2025-06-15T12:00:00Z',
+            id: 'log-errors',
+            requestId: 'req-e',
+            method: 'GET',
+            status: 502,
+            requestEnded: false,
+            uri: '/fail',
+            errorKey: 'CONNECTION_TIMEOUT',
+            warnings: [{ key: 'SLOW_RESPONSE' }, { key: 'DEPRECATED_HEADER' }],
+          },
+        ],
+        pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+      };
+
+      initComponent(response);
+
+      const log = component.logs()[0];
+      expect(log.errorKey).toBe('CONNECTION_TIMEOUT');
+      expect(log.requestEnded).toBe(false);
+      expect(log.warnings).toEqual([{ key: 'SLOW_RESPONSE' }, { key: 'DEPRECATED_HEADER' }]);
+    }));
+  });
 });

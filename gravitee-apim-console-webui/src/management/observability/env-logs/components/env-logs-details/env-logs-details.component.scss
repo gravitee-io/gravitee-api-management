@@ -24,6 +24,7 @@
   @include gio-layout.gio-full-width-content-container;
 
   .back-button {
+    align-self: flex-start;
     margin-bottom: 24px;
   }
 }

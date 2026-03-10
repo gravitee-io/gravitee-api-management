@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -24,7 +24,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
 import { EnvLogsMoreFiltersComponent } from './components/env-logs-more-filters/env-logs-more-filters.component';
@@ -35,7 +35,13 @@ import {
   ENV_LOGS_DEFAULT_PERIOD,
   EnvLogsMoreFiltersForm,
 } from '../../models/env-logs-more-filters.model';
-import { SearchLogFilter, SearchLogsParam } from '../../../../../services-ngx/environment-logs.service';
+import { ApiFilterService } from '../../../dashboards/ui/dashboard-viewer/filters/api-filter.service';
+import { ApplicationFilterService } from '../../../dashboards/ui/dashboard-viewer/filters/application-filter.service';
+import {
+  GioSelectSearchComponent,
+  ResultsLoaderInput,
+  SelectOption,
+} from '../../../../../shared/components/gio-select-search/gio-select-search.component';
 
 export const ENV_LOGS_PERIODS = [
   ENV_LOGS_DEFAULT_PERIOD,
@@ -50,19 +56,12 @@ export const ENV_LOGS_PERIODS = [
   { label: 'Last 7 Days', value: '-7d' },
 ];
 
-// TODO: Replace with data from API when backend integration is implemented
-export const MOCK_APIS = [
-  { id: 'api-1', name: 'Weather API' },
-  { id: 'api-2', name: 'Payment Gateway' },
-  { id: 'api-3', name: 'User Service' },
-];
-
-// TODO: Replace with data from API when backend integration is implemented
-export const MOCK_APPLICATIONS = [
-  { id: 'app-1', name: 'Mobile App' },
-  { id: 'app-2', name: 'Web Portal' },
-  { id: 'app-3', name: 'Partner Integration' },
-];
+export type EnvLogsFilterValues = {
+  period: string;
+  apiIds: string[];
+  applicationIds: string[];
+  more: EnvLogsMoreFiltersForm;
+};
 
 type EnvLogsQuickFiltersForm = {
   period: FormControl<{ label: string; value: string }>;
@@ -83,13 +82,46 @@ function isMoreFilterArrayKey(key: string): key is MoreFilterArrayKey {
   return (MORE_FILTER_ARRAY_KEYS as readonly string[]).includes(key);
 }
 
-type MoreFilterStringKey = 'mcpMethod' | 'transactionId' | 'requestId' | 'uri';
+type MoreFilterStringKey = 'transactionId' | 'requestId' | 'uri';
 const MORE_FILTER_STRING_KEYS: { key: MoreFilterStringKey; label: string }[] = [
-  { key: 'mcpMethod', label: 'MCP Method' },
   { key: 'transactionId', label: 'Transaction ID' },
   { key: 'requestId', label: 'Request ID' },
   { key: 'uri', label: 'URI' },
 ];
+
+function buildMoreFilterChips(more: EnvLogsMoreFiltersForm): FilterChip[] {
+  const chips: FilterChip[] = [];
+
+  for (const key of MORE_FILTER_ARRAY_KEYS) {
+    const values = more[key];
+    if (values?.length) {
+      values.forEach(v => chips.push({ key, value: v, display: v }));
+    }
+  }
+
+  if (more.from) {
+    chips.push({ key: 'from', value: 'from', display: more.from.format('YYYY-MM-DD HH:mm:ss') });
+  }
+  if (more.to) {
+    chips.push({ key: 'to', value: 'to', display: more.to.format('YYYY-MM-DD HH:mm:ss') });
+  }
+  if (more.statuses.size > 0) {
+    more.statuses.forEach((status: number) => chips.push({ key: 'statuses', value: status, display: `${status}` }));
+  }
+
+  for (const { key, label } of MORE_FILTER_STRING_KEYS) {
+    const value = more[key];
+    if (value) {
+      chips.push({ key, value, display: `${label}: ${value}` });
+    }
+  }
+
+  if (more.responseTime != null && more.responseTime > 0) {
+    chips.push({ key: 'responseTime', value: more.responseTime, display: `Response time: >=${more.responseTime}ms` });
+  }
+
+  return chips;
+}
 
 @Component({
   selector: 'env-logs-filter-bar',
@@ -105,24 +137,34 @@ const MORE_FILTER_STRING_KEYS: { key: MoreFilterStringKey; label: string }[] = [
     MatChipsModule,
     MatTooltipModule,
     GioIconsModule,
+    GioSelectSearchComponent,
     EnvLogsMoreFiltersComponent,
   ],
 })
 export class EnvLogsFilterBarComponent {
+  private readonly apiFilterService = inject(ApiFilterService);
+  private readonly applicationFilterService = inject(ApplicationFilterService);
+
   loading = input(false);
   refresh = output<void>();
-  filtersChanged = output<SearchLogsParam>();
+  filtersChanged = output<EnvLogsFilterValues>();
 
   showMoreFilters = signal(false);
   moreFiltersValues = signal<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
 
   readonly periods = ENV_LOGS_PERIODS;
-  readonly apis = MOCK_APIS;
-  readonly applications = MOCK_APPLICATIONS;
   readonly comparePeriod = (a: { value: string }, b: { value: string }): boolean => a?.value === b?.value;
 
-  private readonly apisMap = new Map(this.apis.map(a => [a.id, a.name]));
-  private readonly applicationsMap = new Map(this.applications.map(a => [a.id, a.name]));
+  private readonly selectedApiLabels = new Map<string, string>();
+  private readonly selectedAppLabels = new Map<string, string>();
+
+  private readonly cacheApiLabels = (options: SelectOption[]) => options.forEach(o => this.selectedApiLabels.set(o.value, o.label));
+  private readonly cacheAppLabels = (options: SelectOption[]) => options.forEach(o => this.selectedAppLabels.set(o.value, o.label));
+
+  readonly apiResultsLoader = (input: ResultsLoaderInput) =>
+    this.apiFilterService.resultsLoader(input).pipe(tap(result => this.cacheApiLabels(result.data)));
+  readonly applicationResultsLoader = (input: ResultsLoaderInput) =>
+    this.applicationFilterService.resultsLoader(input).pipe(tap(result => this.cacheAppLabels(result.data)));
 
   form = new FormGroup<EnvLogsQuickFiltersForm>({
     period: new FormControl(ENV_LOGS_DEFAULT_PERIOD, { nonNullable: true }),
@@ -130,65 +172,29 @@ export class EnvLogsFilterBarComponent {
     applications: new FormControl<string[] | null>(null),
   });
 
-  private currentFilters = toSignal(this.form.valueChanges.pipe(distinctUntilChanged(isEqual)), { initialValue: this.form.value });
+  private readonly currentFilters = toSignal(
+    this.form.valueChanges.pipe(
+      map(v => this.snapshotFormValue(v)),
+      distinctUntilChanged(isEqual),
+    ),
+    { initialValue: this.form.value },
+  );
 
-  private static readonly PERIOD_OFFSETS_MS: Record<string, number> = {
-    '-5m': 5 * 60_000,
-    '-30m': 30 * 60_000,
-    '-1h': 60 * 60_000,
-    '-3h': 3 * 60 * 60_000,
-    '-6h': 6 * 60 * 60_000,
-    '-12h': 12 * 60 * 60_000,
-    '-1d': 24 * 60 * 60_000,
-    '-3d': 3 * 24 * 60 * 60_000,
-    '-7d': 7 * 24 * 60 * 60_000,
-  };
-
-  private resolveTimeRange(period: string, more: EnvLogsMoreFiltersForm): Pick<SearchLogsParam, 'timeRange'>['timeRange'] {
-    if (more.from && more.to) {
-      return { from: more.from.toISOString(), to: more.to.toISOString() };
-    }
-    if (period === '0') return undefined;
-    const now = Date.now();
-    const offset = EnvLogsFilterBarComponent.PERIOD_OFFSETS_MS[period] ?? 24 * 60 * 60_000;
-    return { from: new Date(now - offset).toISOString(), to: new Date(now).toISOString() };
-  }
-
-  constructor() {
-    effect(() => {
-      this.filtersChanged.emit(this.filtersParam());
-    });
-  }
-
-  filtersParam = computed<SearchLogsParam>(() => {
-    const quick = this.currentFilters();
-    const more = this.moreFiltersValues();
-    const filters: SearchLogFilter[] = [];
-
-    if (quick.apis?.length) filters.push({ name: 'API', operator: 'IN', value: quick.apis });
-    if (quick.applications?.length) filters.push({ name: 'APPLICATION', operator: 'IN', value: quick.applications });
-    if (more.entrypoints?.length) filters.push({ name: 'ENTRYPOINT', operator: 'IN', value: more.entrypoints });
-    if (more.methods?.length) filters.push({ name: 'HTTP_METHOD', operator: 'IN', value: more.methods });
-    if (more.plans?.length) filters.push({ name: 'PLAN', operator: 'IN', value: more.plans });
-    if (more.statuses?.size > 0) filters.push({ name: 'HTTP_STATUS', operator: 'IN', value: Array.from(more.statuses) });
-    if (more.mcpMethod) filters.push({ name: 'MCP_METHOD', operator: 'EQ', value: more.mcpMethod });
-    if (more.transactionId) filters.push({ name: 'TRANSACTION_ID', operator: 'EQ', value: more.transactionId });
-    if (more.requestId) filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: more.requestId });
-    if (more.uri) filters.push({ name: 'URI', operator: 'EQ', value: more.uri });
-    if (more.errorKeys?.length) filters.push({ name: 'ERROR_KEY', operator: 'IN', value: more.errorKeys });
-    if (more.responseTime != null) filters.push({ name: 'RESPONSE_TIME', operator: 'GTE', value: more.responseTime });
-
-    return { filters, timeRange: this.resolveTimeRange(quick.period.value, more) };
-  });
+  selectedApiIds = computed<string[]>(() => this.currentFilters().apis ?? []);
 
   filterChips = computed<FilterChip[]>(() => {
     const filters = this.currentFilters();
     const more = this.moreFiltersValues();
     const chips: FilterChip[] = [];
 
+    const period = filters.period;
+    if (period && period.value !== '0') {
+      chips.push({ key: 'period', value: period.value, display: period.label });
+    }
+
     const quickFilterConfigs: { key: string; values: string[] | undefined | null; nameMap?: Map<string, string> }[] = [
-      { key: 'apis', values: filters.apis, nameMap: this.apisMap },
-      { key: 'applications', values: filters.applications, nameMap: this.applicationsMap },
+      { key: 'apis', values: filters.apis, nameMap: this.selectedApiLabels },
+      { key: 'applications', values: filters.applications, nameMap: this.selectedAppLabels },
     ];
 
     for (const { key, values, nameMap } of quickFilterConfigs) {
@@ -197,42 +203,41 @@ export class EnvLogsFilterBarComponent {
       }
     }
 
-    for (const key of MORE_FILTER_ARRAY_KEYS) {
-      const values = more[key];
-      if (values && values.length > 0) {
-        values.forEach(v => chips.push({ key, value: v, display: v }));
-      }
-    }
-
-    if (more.from) {
-      chips.push({ key: 'from', value: 'from', display: more.from.format('YYYY-MM-DD HH:mm:ss') });
-    }
-    if (more.to) {
-      chips.push({ key: 'to', value: 'to', display: more.to.format('YYYY-MM-DD HH:mm:ss') });
-    }
-    if (more.statuses.size > 0) {
-      more.statuses.forEach((status: number) => {
-        chips.push({ key: 'statuses', value: status, display: `${status}` });
-      });
-    }
-
-    for (const { key, label } of MORE_FILTER_STRING_KEYS) {
-      const value = more[key];
-      if (value) {
-        chips.push({ key, value, display: `${label}: ${value}` });
-      }
-    }
-
-    if (more.responseTime != null) {
-      chips.push({ key: 'responseTime', value: more.responseTime, display: `Response time: >${more.responseTime}ms` });
-    }
+    chips.push(...buildMoreFilterChips(more));
 
     return chips;
   });
 
   isFiltering = computed(() => this.filterChips().length > 0);
 
+  constructor() {
+    effect(() => this.emitCurrentFilters());
+  }
+
+  private emitCurrentFilters() {
+    const filters = this.currentFilters();
+    const more = this.moreFiltersValues();
+    this.filtersChanged.emit({
+      period: filters.period?.value ?? '0',
+      apiIds: filters.apis ?? [],
+      applicationIds: filters.applications ?? [],
+      more,
+    });
+  }
+
+  onApiOptionsLoaded(options: SelectOption[]) {
+    this.cacheApiLabels(options);
+  }
+  onAppOptionsLoaded(options: SelectOption[]) {
+    this.cacheAppLabels(options);
+  }
+
   removeChip(chip: FilterChip) {
+    if (chip.key === 'period') {
+      this.form.controls.period.setValue(ENV_LOGS_DEFAULT_PERIOD);
+      return;
+    }
+
     // eslint-disable-next-line angular/typecheck-number -- angular.isNumber is an AngularJS 1.x API; typeof provides proper TypeScript type narrowing
     if (chip.key === 'statuses' && typeof chip.value === 'number') {
       const current = this.moreFiltersValues();
@@ -279,5 +284,9 @@ export class EnvLogsFilterBarComponent {
       applications: null,
     });
     this.moreFiltersValues.set(createDefaultMoreFilters());
+  }
+
+  private snapshotFormValue(v: typeof this.form.value) {
+    return { ...v, apis: v.apis ? [...v.apis] : null, applications: v.applications ? [...v.applications] : null };
   }
 }

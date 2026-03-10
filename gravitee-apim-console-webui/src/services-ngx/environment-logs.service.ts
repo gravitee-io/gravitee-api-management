@@ -19,9 +19,6 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 
-/**
- * Matches the backend EnvironmentApiLog schema from openapi-logs.yaml.
- */
 export type EnvironmentApiLog = {
   apiId: string;
   apiName?: string;
@@ -62,24 +59,79 @@ export type TimeRange = {
   from: string;
   to: string;
 };
-
-export interface SearchLogFilter {
-  name: string;
-  operator: 'EQ' | 'NEQ' | 'LT' | 'LTE' | 'GT' | 'GTE' | 'IN';
-  value: string | number | boolean | string[] | number[];
-}
-
 export type SearchLogsParam = {
   page?: number;
   perPage?: number;
   timeRange?: TimeRange;
-  filters?: SearchLogFilter[];
-  /** Filter by a specific request ID (maps to backend FilterName.REQUEST_ID) */
+  period?: string;
+  from?: string;
+  to?: string;
   requestId?: string;
+  apiIds?: string[];
+  applicationIds?: string[];
+  planIds?: string[];
+  methods?: string[];
+  statuses?: number[];
+  entrypoints?: string[];
+  transactionId?: string;
+  uri?: string;
+  responseTime?: number;
+  errorKeys?: string[];
 };
 
-/** ~10 years in milliseconds – wide enough to find any log regardless of age. */
-const WIDE_SEARCH_WINDOW_MS = 10 * 365.25 * 24 * 60 * 60 * 1000;
+/** Parses a period string like '-1h', '-30m', '-3d' into milliseconds. Returns null for '0' (none) or unrecognized formats. */
+export function periodToMs(period: string): number | null {
+  if (!period || period === '0') return null;
+  const match = /^-(\d+)([mhd])$/.exec(period);
+  if (!match) {
+    return null;
+  }
+  const amount = Number.parseInt(match[1], 10);
+  const unit = match[2];
+  const multipliers: Record<string, number> = { m: 60_000, h: 3_600_000, d: 86_400_000 };
+  const multiplier = multipliers[unit];
+  return multiplier ? amount * multiplier : null;
+}
+
+type LogFilter = { name: string; operator: string; value: string | string[] | number };
+
+type SearchLogsRequestBody = {
+  timeRange: TimeRange;
+  filters?: LogFilter[];
+};
+
+function buildFilters(param?: SearchLogsParam): LogFilter[] {
+  if (!param) return [];
+
+  const arrayFilters: { name: string; values: string[] | undefined }[] = [
+    { name: 'API', values: param.apiIds },
+    { name: 'APPLICATION', values: param.applicationIds },
+    { name: 'PLAN', values: param.planIds },
+    { name: 'HTTP_METHOD', values: param.methods },
+    { name: 'HTTP_STATUS', values: param.statuses?.map(String) },
+    { name: 'ENTRYPOINT', values: param.entrypoints },
+    { name: 'ERROR_KEY', values: param.errorKeys },
+  ];
+
+  const scalarFilters: { name: string; value: string | undefined }[] = [
+    { name: 'REQUEST_ID', value: param.requestId },
+    { name: 'TRANSACTION_ID', value: param.transactionId },
+    { name: 'URI', value: param.uri },
+  ];
+
+  const filters: LogFilter[] = [
+    ...arrayFilters.filter(f => f.values?.length).map(f => ({ name: f.name, operator: 'IN' as const, value: f.values! })),
+    ...scalarFilters.filter(f => f.value).map(f => ({ name: f.name, operator: 'EQ' as const, value: f.value! })),
+  ];
+
+  if (param.responseTime != null && param.responseTime > 0) {
+    filters.push({ name: 'RESPONSE_TIME', operator: 'GTE', value: param.responseTime });
+  }
+
+  return filters;
+}
+
+const WIDE_SEARCH_WINDOW_MS = 315_576_000_000;
 
 @Injectable({
   providedIn: 'root',
@@ -95,20 +147,20 @@ export class EnvironmentLogsService {
     params = params.append('page', param?.page ?? 1);
     params = params.append('perPage', param?.perPage ?? 10);
 
-    const filters: SearchLogFilter[] = [...(param?.filters ?? [])];
-    if (param?.requestId) {
-      filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: param.requestId });
-    }
+    const filters = buildFilters(param);
+    const body: SearchLogsRequestBody = { timeRange: this.resolveTimeRange(param) };
 
-    const body = {
-      timeRange: this.resolveTimeRange(param),
-      filters: filters.length > 0 ? filters : undefined,
-    };
+    if (filters.length > 0) {
+      body.filters = filters;
+    }
 
     return this.http.post<SearchLogsResponse>(`${this.constants.env.v2BaseURL}/logs/search`, body, { params });
   }
 
-  /** Determines the time range for a search request based on the provided parameters. */
+  /**
+   * Resolves the time range for a search request.
+   * Precedence: explicit timeRange > from/to > period > requestId wide window > default (24h).
+   */
   private resolveTimeRange(param?: SearchLogsParam): TimeRange {
     if (param?.timeRange) {
       return param.timeRange;
@@ -116,15 +168,30 @@ export class EnvironmentLogsService {
 
     const now = new Date();
 
-    // When searching by requestId (detail page), use a wide window so the
-    // log is always found regardless of age. The backend requires timeRange.
+    // Explicit from/to dates take priority over period
+    if (param?.from && param?.to) {
+      return { from: param.from, to: param.to };
+    }
+    if (param?.from) {
+      return { from: param.from, to: now.toISOString() };
+    }
+
+    // Period shorthand (e.g. '-1h')
+    if (param?.period) {
+      const ms = periodToMs(param.period);
+      if (ms) {
+        return { from: new Date(now.getTime() - ms).toISOString(), to: now.toISOString() };
+      }
+    }
+
+    // Wide window for requestId detail page searches
     if (param?.requestId) {
       const wideWindowStart = new Date(now.getTime() - WIDE_SEARCH_WINDOW_MS);
       return { from: wideWindowStart.toISOString(), to: now.toISOString() };
     }
 
-    // Default: last 24 hours for table view
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    // Default: last 24 hours
+    const oneDayAgo = new Date(now.getTime() - 86_400_000);
     return { from: oneDayAgo.toISOString(), to: now.toISOString() };
   }
 }

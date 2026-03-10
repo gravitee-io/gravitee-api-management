@@ -25,7 +25,6 @@ export interface EnvLogsMoreFiltersForm {
   entrypoints?: string[] | null;
   methods?: string[] | null;
   plans?: string[] | null;
-  mcpMethod?: string | null;
   transactionId?: string | null;
   requestId?: string | null;
   uri?: string | null;
@@ -40,7 +39,6 @@ export const createDefaultMoreFilters = (): EnvLogsMoreFiltersForm => ({
   entrypoints: null,
   methods: null,
   plans: null,
-  mcpMethod: null,
   transactionId: null,
   requestId: null,
   uri: null,
