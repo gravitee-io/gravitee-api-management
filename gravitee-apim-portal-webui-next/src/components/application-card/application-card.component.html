@@ -15,7 +15,12 @@
     limitations under the License.
 
 -->
-<mat-card class="app-card" appearance="outlined" (click)="cardSelect.emit(applicationId())" (keydown.enter)="cardSelect.emit(applicationId())">
+<mat-card
+  class="app-card"
+  appearance="outlined"
+  (click)="cardSelect.emit(applicationId())"
+  (keydown.enter)="cardSelect.emit(applicationId())"
+>
   <mat-card-content class="app-card__content">
     <div class="app-card__header">
       <div class="app-card__header__content">

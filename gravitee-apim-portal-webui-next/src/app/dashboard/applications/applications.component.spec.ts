@@ -69,7 +69,7 @@ describe('ApplicationsComponent', () => {
     });
 
     it('should show Application list header', () => {
-      const titleElement = fixture.nativeElement.querySelector('.next-gen-h1');
+      const titleElement = fixture.nativeElement.querySelector('.next-gen-h3');
       expect(titleElement).toBeTruthy();
       expect(titleElement.textContent).toContain('Applications');
     });

@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/layout' as layout;
+@use '../../../scss/theme' as theme;
 
 :host {
-  @include layout.large-container-legacy();
+  display: flex;
+  flex-direction: column;
+  max-width: theme.$inner-content-width;
+  padding: 16px;
 }
 
 .content {
-  flex-flow: column;
+  display: flex;
+  flex-direction: column;
   gap: 32px;
+  padding-top: 24px;
 }
 
 .apps-list {
@@ -30,6 +35,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+
+    &__title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   }
 }
 
