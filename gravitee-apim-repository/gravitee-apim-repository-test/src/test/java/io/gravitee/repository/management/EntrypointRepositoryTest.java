@@ -39,6 +39,22 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(entrypoints);
         assertEquals(3, entrypoints.size());
         assertEquals("HTTP", entrypoints.iterator().next().getTarget());
+
+        // Verify environmentIds is loaded for the entrypoint that has it
+        Optional<Entrypoint> withEnvIds = entrypoints
+            .stream()
+            .filter(e -> "fa29c012-a0d2-4721-a9c0-12a0d26721db".equals(e.getId()))
+            .findFirst();
+        assertTrue("Entrypoint with environmentIds not found", withEnvIds.isPresent());
+        assertEquals("env1;env2", withEnvIds.get().getEnvironmentIds());
+
+        // Verify environmentIds is null for entrypoints that don't have it
+        Optional<Entrypoint> withoutEnvIds = entrypoints
+            .stream()
+            .filter(e -> "aaeddaec-0e94-4f49-adda-ec0e947f4965".equals(e.getId()))
+            .findFirst();
+        assertTrue("Entrypoint without environmentIds not found", withoutEnvIds.isPresent());
+        assertNull(withoutEnvIds.get().getEnvironmentIds());
     }
 
     @Test
@@ -50,6 +66,7 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint.setValue("Entrypoint value");
         entrypoint.setTags("internal;product");
+        entrypoint.setEnvironmentIds("env1;env3");
 
         int nbEntryPointsBeforeCreation = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
         entrypointRepository.create(entrypoint);
@@ -61,6 +78,24 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertTrue("Entrypoint saved not found", optional.isPresent());
         assertEquals("Invalid saved entrypoint.", entrypoint, optional.get());
         assertEquals("Invalid saved target.", "HTTP", optional.get().getTarget());
+        assertEquals("Invalid saved environmentIds.", "env1;env3", optional.get().getEnvironmentIds());
+    }
+
+    @Test
+    public void shouldCreateWithNullEnvironmentIds() throws Exception {
+        final Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setId("new-entrypoint-no-env");
+        entrypoint.setTarget("HTTP");
+        entrypoint.setReferenceId("DEFAULT");
+        entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
+        entrypoint.setValue("Entrypoint value no env");
+        entrypoint.setTags("internal");
+
+        entrypointRepository.create(entrypoint);
+
+        Optional<Entrypoint> optional = entrypointRepository.findById("new-entrypoint-no-env");
+        Assert.assertTrue("Entrypoint saved not found", optional.isPresent());
+        assertNull("environmentIds should be null", optional.get().getEnvironmentIds());
     }
 
     @Test
@@ -68,12 +103,14 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Entrypoint> optional = entrypointRepository.findById("fa29c012-a0d2-4721-a9c0-12a0d26721db");
         Assert.assertTrue("EntryPoint to update not found", optional.isPresent());
         Assert.assertEquals("Invalid saved entrypoint value.", "https://public-api.company.com", optional.get().getValue());
+        Assert.assertEquals("Invalid saved environmentIds.", "env1;env2", optional.get().getEnvironmentIds());
 
         final Entrypoint entrypoint = optional.get();
         entrypoint.setValue("New value");
         entrypoint.setReferenceId("DEFAULT");
         entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint.setTags("New tags");
+        entrypoint.setEnvironmentIds("env3");
 
         int nbEntryPointsBeforeUpdate = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
         entrypointRepository.update(entrypoint);
@@ -86,6 +123,7 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved entrypoint.", entrypoint, optionalUpdated.get());
         assertEquals("Invalid saved value.", "New value", optionalUpdated.get().getValue());
         assertEquals("Invalid saved tags.", "New tags", optionalUpdated.get().getTags());
+        assertEquals("Invalid saved environmentIds.", "env3", optionalUpdated.get().getEnvironmentIds());
     }
 
     @Test
