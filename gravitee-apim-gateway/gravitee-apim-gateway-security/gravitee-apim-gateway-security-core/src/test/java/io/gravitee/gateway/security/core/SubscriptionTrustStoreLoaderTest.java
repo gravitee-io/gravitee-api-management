@@ -18,12 +18,14 @@ package io.gravitee.gateway.security.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.security.CertificateUtils;
+import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -116,6 +118,39 @@ class SubscriptionTrustStoreLoaderTest {
                     assertThat(keyStore.getCertificate("cert")).isEqualTo(certificate);
                 });
             });
+    }
+
+    @Test
+    void should_return_empty_set_when_client_certificate_is_null() {
+        var subscription = Subscription.builder().id("subscriptionId").clientCertificate(null).build();
+        var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_set_when_client_certificate_is_blank() {
+        var subscription = Subscription.builder().id("subscriptionId").clientCertificate("   ").build();
+        var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_set_when_client_certificate_is_empty_string() {
+        var subscription = Subscription.builder().id("subscriptionId").clientCertificate("").build();
+        var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+        assertThat(result).isEmpty();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_return_certificates_from_valid_pkcs7_bundle() {
+        var pkcs7Bytes = PKCS7Utils.createBundle(List.of(CERTIFICATE));
+        var base64Bundle = Base64.getEncoder().encodeToString(pkcs7Bytes);
+
+        var subscription = Subscription.builder().id("subscriptionId").clientCertificate(base64Bundle).build();
+        var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+        assertThat(result).hasSize(1);
+        assertThat(result.iterator().next().certificate()).isEqualTo(certificate);
     }
 
     @SneakyThrows

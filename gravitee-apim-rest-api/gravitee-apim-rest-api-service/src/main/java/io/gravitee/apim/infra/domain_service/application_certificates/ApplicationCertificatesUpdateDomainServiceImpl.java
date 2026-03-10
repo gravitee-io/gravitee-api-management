@@ -97,8 +97,7 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
         );
 
         if (activeCertificates.isEmpty()) {
-            log.debug("No active certificates found for application: {}", applicationId);
-            return;
+            log.warn("No active certificates remain for application {}. mTLS subscriptions will be cleared.", applicationId);
         }
 
         String encodedCertificate = encodeCertificates(
@@ -108,13 +107,17 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
     }
 
     private String encodeCertificates(List<ClientCertificate> certificates) {
+        if (certificates.isEmpty()) {
+            return "";
+        }
+
         if (certificates.size() == 1) {
             String pem = certificates.getFirst().certificate();
             return Base64.getEncoder().encodeToString(pem.getBytes(StandardCharsets.UTF_8));
-        } else {
-            byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::certificate).toList());
-            return Base64.getEncoder().encodeToString(pkcs7Bundle);
         }
+
+        byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::certificate).toList());
+        return Base64.getEncoder().encodeToString(pkcs7Bundle);
     }
 
     private void updateSubscriptionsWithCertificate(List<SubscriptionEntity> subscriptions, String encodedCertificate) {

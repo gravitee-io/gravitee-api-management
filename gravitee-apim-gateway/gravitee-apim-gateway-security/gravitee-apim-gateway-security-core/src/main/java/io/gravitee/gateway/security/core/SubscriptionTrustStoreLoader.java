@@ -23,6 +23,7 @@ import io.gravitee.gateway.security.core.exception.MalformedCertificateException
 import io.gravitee.node.api.certificate.AbstractStoreLoaderOptions;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.certificates.AbstractKeyStoreLoader;
+import io.micrometer.common.util.StringUtils;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.Base64;
@@ -57,8 +58,13 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
     }
 
     public static Set<SubscriptionCertificate> readSubscriptionCertificate(Subscription subscription) throws MalformedCertificateException {
+        var clientCertificate = subscription.getClientCertificate();
+        if (StringUtils.isBlank(clientCertificate)) {
+            log.debug("Subscription {} has no client certificate, returning empty set", subscription.getId());
+            return Collections.emptySet();
+        }
         try {
-            final byte[] decodedData = Base64.getDecoder().decode(subscription.getClientCertificate());
+            final byte[] decodedData = Base64.getDecoder().decode(clientCertificate);
             var keystore = PKCS7Utils.pkcs7ToTruststore(decodedData, null, i -> "pkcs7-" + i, false).orElseGet(() ->
                 KeyStoreUtils.initFromPemCertificate(new String(decodedData), null, "solo")
             );

@@ -395,6 +395,70 @@ class SubscriptionTrustStoreLoaderManagerTest {
         assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
     }
 
+    @Test
+    void should_remove_all_loaders_when_subscription_updated_with_empty_certificate() {
+        // Register subscription with 2 valid certs
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .api("apiId")
+            .plan("planId")
+            .clientCertificate(getPKCS7())
+            .build();
+        cut.registerSubscription(subscription, Set.of());
+
+        assertAllServers(2);
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
+
+        // Re-register with empty string (all certs expired)
+        final Subscription updatedWithEmptyCert = Subscription.builder()
+            .id("subscriptionId")
+            .api("apiId")
+            .plan("planId")
+            .clientCertificate("")
+            .build();
+        cut.registerSubscription(updatedWithEmptyCert, Set.of());
+
+        // Both old loaders should be removed, no new loaders created
+        assertAllServers(0);
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
+    }
+
+    @Test
+    void should_not_affect_other_subscription_when_clearing_one_subscription_loaders() {
+        // Register subscription A with cert 1
+        final Subscription subscriptionA = Subscription.builder()
+            .id("subA")
+            .api("apiId")
+            .plan("planId")
+            .clientCertificate(BASE_64_CERTIFICATE_1)
+            .build();
+        cut.registerSubscription(subscriptionA, Set.of());
+
+        // Register subscription B with cert 2
+        final Subscription subscriptionB = Subscription.builder()
+            .id("subB")
+            .api("apiId")
+            .plan("planId")
+            .clientCertificate(BASE_64_CERTIFICATE_2)
+            .build();
+        cut.registerSubscription(subscriptionB, Set.of());
+
+        assertAllServers(2);
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).contains(subscriptionA);
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).contains(subscriptionB);
+
+        // Clear subscription A by re-registering with empty string
+        final Subscription updatedA = Subscription.builder().id("subA").api("apiId").plan("planId").clientCertificate("").build();
+        cut.registerSubscription(updatedA, Set.of());
+
+        // Subscription A's cert is gone, subscription B's cert is still there
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).contains(subscriptionB);
+        assertAllServers(1);
+    }
+
     private void assertAllServers(int expected) {
         assertThat(truststoreAliases(trustStoreLoaderManager1)).hasSize(expected);
         assertThat(truststoreAliases(trustStoreLoaderManager2)).hasSize(expected);
