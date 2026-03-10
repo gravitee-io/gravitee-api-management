@@ -35,7 +35,12 @@
 
 <div class="content">
   <div class="apps-list__header">
-    <div class="title next-gen-h1" i18n="@@applicationsTitle">Applications</div>
+    <div class="apps-list__header__title">
+      <div class="title next-gen-h3" i18n="@@applicationsTitle">Applications</div>
+      <p class="next-gen-body" i18n="@@applicationsDescription">
+        An application lets developers connect their projects to your APIs and manage access via subscriptions
+      </p>
+    </div>
 
     @if (canCreate()) {
       <button mat-stroked-button class="secondary-button create-button" [routerLink]="['/applications/create']">
