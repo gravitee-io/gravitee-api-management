@@ -63,7 +63,7 @@ class ListConsumerGroupsUseCaseTest {
         );
         clusterDomainService.givenConsumerGroups(allGroups);
 
-        var result = useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25));
+        var result = useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25, "groupId", "asc"));
 
         assertThat(result.consumerGroupsPage().data()).hasSize(2);
         assertThat(result.consumerGroupsPage().totalCount()).isEqualTo(2);
@@ -84,7 +84,7 @@ class ListConsumerGroupsUseCaseTest {
         );
         clusterDomainService.givenConsumerGroups(allGroups);
 
-        var result = useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", null, 0, 25));
+        var result = useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", null, 0, 25, "groupId", "asc"));
 
         assertThat(result.consumerGroupsPage().data()).hasSize(2);
         assertThat(result.consumerGroupsPage().data().get(0).groupId()).isEqualTo("my-group");
@@ -99,7 +99,9 @@ class ListConsumerGroupsUseCaseTest {
 
         clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
-        assertThatThrownBy(() -> useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25)))
+        assertThatThrownBy(() ->
+            useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25, "groupId", "asc"))
+        )
             .isInstanceOf(KafkaExplorerException.class)
             .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }

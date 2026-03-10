@@ -126,7 +126,9 @@ public class KafkaExplorerResource {
     public Response listTopics(
         ListTopicsRequest request,
         @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("10") int perPage
+        @QueryParam("perPage") @DefaultValue("10") int perPage,
+        @QueryParam("sortBy") @DefaultValue("name") String sortBy,
+        @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder
     ) {
         if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -154,7 +156,15 @@ public class KafkaExplorerResource {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             int page0Based = page - 1;
             var result = listTopicsUseCase.execute(
-                new ListTopicsUseCase.Input(request.getClusterId(), environmentId, request.getNameFilter(), page0Based, perPage)
+                new ListTopicsUseCase.Input(
+                    request.getClusterId(),
+                    environmentId,
+                    request.getNameFilter(),
+                    page0Based,
+                    perPage,
+                    sortBy,
+                    sortOrder
+                )
             );
             return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicsPage(), page, perPage)).build();
         } catch (KafkaExplorerException e) {
@@ -237,7 +247,9 @@ public class KafkaExplorerResource {
     public Response listConsumerGroups(
         ListConsumerGroupsRequest request,
         @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("25") int perPage
+        @QueryParam("perPage") @DefaultValue("25") int perPage,
+        @QueryParam("sortBy") @DefaultValue("groupId") String sortBy,
+        @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder
     ) {
         if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -271,7 +283,9 @@ public class KafkaExplorerResource {
                     request.getNameFilter(),
                     request.getTopicFilter(),
                     page0Based,
-                    perPage
+                    perPage,
+                    sortBy,
+                    sortOrder
                 )
             );
             return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupsPage(), page, perPage)).build();

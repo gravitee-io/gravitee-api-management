@@ -46,12 +46,23 @@ public class ListConsumerGroupsUseCase {
             input.nameFilter(),
             input.topicFilter(),
             input.page(),
-            input.perPage()
+            input.perPage(),
+            input.sortBy(),
+            input.sortOrder()
         );
         return new Output(consumerGroupsPage);
     }
 
-    public record Input(String clusterId, String environmentId, String nameFilter, String topicFilter, int page, int perPage) {}
+    public record Input(
+        String clusterId,
+        String environmentId,
+        String nameFilter,
+        String topicFilter,
+        int page,
+        int perPage,
+        String sortBy,
+        String sortOrder
+    ) {}
 
     public record Output(ConsumerGroupsPage consumerGroupsPage) {}
 }

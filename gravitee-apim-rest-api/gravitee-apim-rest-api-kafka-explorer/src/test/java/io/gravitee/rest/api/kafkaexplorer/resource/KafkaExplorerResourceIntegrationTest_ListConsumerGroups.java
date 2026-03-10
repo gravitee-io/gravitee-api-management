@@ -58,7 +58,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID);
 
-        var response = resource.listConsumerGroups(request, 1, 10);
+        var response = resource.listConsumerGroups(request, 1, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListConsumerGroupsResponse) response.getEntity();
@@ -76,7 +76,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).nameFilter(CONSUMER_GROUP_ID);
 
-        var response = resource.listConsumerGroups(request, 1, 10);
+        var response = resource.listConsumerGroups(request, 1, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListConsumerGroupsResponse) response.getEntity();
@@ -90,7 +90,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).topicFilter("__consumer_offsets");
 
-        var response = resource.listConsumerGroups(request, 1, 10);
+        var response = resource.listConsumerGroups(request, 1, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListConsumerGroupsResponse) response.getEntity();
@@ -104,7 +104,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).topicFilter("non-existent-topic-xyz");
 
-        var response = resource.listConsumerGroups(request, 1, 10);
+        var response = resource.listConsumerGroups(request, 1, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListConsumerGroupsResponse) response.getEntity();
@@ -113,7 +113,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_return_400_when_request_is_null() {
-        var response = resource.listConsumerGroups(null, 1, 10);
+        var response = resource.listConsumerGroups(null, 1, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(400);
         var error = (KafkaExplorerError) response.getEntity();
@@ -126,7 +126,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID);
 
-        var response = resource.listConsumerGroups(request, 0, 10);
+        var response = resource.listConsumerGroups(request, 0, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(400);
         var error = (KafkaExplorerError) response.getEntity();
@@ -139,7 +139,7 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID);
 
-        var response = resource.listConsumerGroups(request, 1, 10);
+        var response = resource.listConsumerGroups(request, 1, 10, "groupId", "asc");
 
         assertThat(response.getStatus()).isEqualTo(502);
         var error = (KafkaExplorerError) response.getEntity();

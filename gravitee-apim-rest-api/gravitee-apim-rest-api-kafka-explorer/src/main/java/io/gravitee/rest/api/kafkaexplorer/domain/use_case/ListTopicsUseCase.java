@@ -41,11 +41,26 @@ public class ListTopicsUseCase {
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
         var config = cluster.getKafkaClusterConfiguration(objectMapper);
-        var topicsPage = kafkaClusterDomainService.listTopics(config, input.nameFilter(), input.page(), input.perPage());
+        var topicsPage = kafkaClusterDomainService.listTopics(
+            config,
+            input.nameFilter(),
+            input.page(),
+            input.perPage(),
+            input.sortBy(),
+            input.sortOrder()
+        );
         return new Output(topicsPage);
     }
 
-    public record Input(String clusterId, String environmentId, String nameFilter, int page, int perPage) {}
+    public record Input(
+        String clusterId,
+        String environmentId,
+        String nameFilter,
+        int page,
+        int perPage,
+        String sortBy,
+        String sortOrder
+    ) {}
 
     public record Output(TopicsPage topicsPage) {}
 }

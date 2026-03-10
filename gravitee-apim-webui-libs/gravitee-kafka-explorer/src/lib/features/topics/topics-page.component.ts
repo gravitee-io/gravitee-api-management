@@ -42,6 +42,8 @@ export class TopicsPageComponent implements OnInit {
   private currentFilter = '';
   private currentPage = 0;
   private currentPageSize = 25;
+  private currentSortBy = '';
+  private currentSortOrder = '';
   private readonly filterSubject = new Subject<string>();
 
   ngOnInit() {
@@ -68,10 +70,25 @@ export class TopicsPageComponent implements OnInit {
     this.loadTopics(this.currentFilter, event.page, event.pageSize);
   }
 
+  onTopicsSortChange(event: { active: string; direction: string }) {
+    this.currentSortBy = event.active;
+    this.currentSortOrder = event.direction;
+    this.currentPage = 0;
+    this.loadTopics(this.currentFilter, 0, this.currentPageSize);
+  }
+
   private loadTopics(nameFilter: string, page: number, pageSize: number) {
     this.topicsLoading.set(true);
     this.service
-      .listTopics(this.store.baseURL(), this.store.clusterId(), nameFilter || undefined, page + 1, pageSize)
+      .listTopics(
+        this.store.baseURL(),
+        this.store.clusterId(),
+        nameFilter || undefined,
+        page + 1,
+        pageSize,
+        this.currentSortBy || undefined,
+        this.currentSortOrder || undefined,
+      )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: response => {

@@ -67,7 +67,7 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 
-        var response = resource.listTopics(request, 1, 10);
+        var response = resource.listTopics(request, 1, 10, "name", "asc");
 
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListTopicsResponse) response.getEntity();
@@ -88,7 +88,7 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID).nameFilter(TEST_TOPIC);
 
-        var response = resource.listTopics(request, 1, 10);
+        var response = resource.listTopics(request, 1, 10, "name", "asc");
 
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListTopicsResponse) response.getEntity();
@@ -105,7 +105,7 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
     @Test
     void should_return_400_when_request_is_null() {
-        var response = resource.listTopics(null, 1, 10);
+        var response = resource.listTopics(null, 1, 10, "name", "asc");
 
         assertThat(response.getStatus()).isEqualTo(400);
         var error = (KafkaExplorerError) response.getEntity();
@@ -118,7 +118,7 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 
-        var response = resource.listTopics(request, 0, 10);
+        var response = resource.listTopics(request, 0, 10, "name", "asc");
 
         assertThat(response.getStatus()).isEqualTo(400);
         var error = (KafkaExplorerError) response.getEntity();
@@ -131,7 +131,7 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 
-        var response = resource.listTopics(request, 1, 10);
+        var response = resource.listTopics(request, 1, 10, "name", "asc");
 
         assertThat(response.getStatus()).isEqualTo(502);
         var error = (KafkaExplorerError) response.getEntity();

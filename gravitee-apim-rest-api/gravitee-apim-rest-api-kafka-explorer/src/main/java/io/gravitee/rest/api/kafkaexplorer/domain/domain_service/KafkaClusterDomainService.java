@@ -26,10 +26,18 @@ import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 
 public interface KafkaClusterDomainService {
     KafkaClusterInfo describeCluster(KafkaClusterConfiguration config);
-    TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
+    TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage, String sortBy, String sortOrder);
     TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName);
     BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId);
-    ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, String topicFilter, int page, int perPage);
+    ConsumerGroupsPage listConsumerGroups(
+        KafkaClusterConfiguration config,
+        String nameFilter,
+        String topicFilter,
+        int page,
+        int perPage,
+        String sortBy,
+        String sortOrder
+    );
     ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId);
     BrowseMessagesResult browseMessages(
         KafkaClusterConfiguration config,

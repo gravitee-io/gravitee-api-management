@@ -33,43 +33,36 @@
       (filterChange)="filterChange.emit($event)"
       (pageChange)="pageChange.emit($event)"
     >
-      <table
-        mat-table
-        [dataSource]="sortedConsumerGroups()"
-        matSort
-        [matSortActive]="sortActive()"
-        [matSortDirection]="sortDirection()"
-        (matSortChange)="onSortChange($event)"
-      >
+      <table mat-table [dataSource]="consumerGroups()" matSort (matSortChange)="onSortChange($event)">
         <ng-container matColumnDef="groupId">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Sort current page only">Group ID</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Group ID</th>
           <td mat-cell *matCellDef="let group">{{ group.groupId }}</td>
         </ng-container>
 
         <ng-container matColumnDef="state">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Sort current page only">State</th>
+          <th mat-header-cell *matHeaderCellDef>State</th>
           <td mat-cell *matCellDef="let group">
             <gke-badge [color]="stateColor(group.state)">{{ group.state }}</gke-badge>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="membersCount">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Sort current page only">Members</th>
+          <th mat-header-cell *matHeaderCellDef>Members</th>
           <td mat-cell *matCellDef="let group">{{ group.membersCount }}</td>
         </ng-container>
 
         <ng-container matColumnDef="numTopics">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Sort current page only">Topics</th>
+          <th mat-header-cell *matHeaderCellDef>Topics</th>
           <td mat-cell *matCellDef="let group">{{ group.numTopics }}</td>
         </ng-container>
 
         <ng-container matColumnDef="coordinator">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Sort current page only">Coordinator</th>
+          <th mat-header-cell *matHeaderCellDef>Coordinator</th>
           <td mat-cell *matCellDef="let group">{{ group.coordinator?.id }}</td>
         </ng-container>
 
         <ng-container matColumnDef="totalLag">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Sort current page only">Total Lag</th>
+          <th mat-header-cell *matHeaderCellDef>Total Lag</th>
           <td mat-cell *matCellDef="let group">
             @if (group.totalLag > 0) {
               <gke-badge color="warning">{{ group.totalLag | number }}</gke-badge>
