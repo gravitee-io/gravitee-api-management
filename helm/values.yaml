@@ -484,6 +484,7 @@ api:
   enabled: true
   upgrader: false
   name: api
+  # @deprecated Use `logback` for logback.xml override and `node.logging` for MDC/pattern configuration
   logging:
     debug: false
     contextualLoggingEnabled: false
@@ -1183,6 +1184,7 @@ gateway:
 #        watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
 #      openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 
+  # @deprecated Use `logback` for logback.xml override and `node.logging` for MDC/pattern configuration
   logging:
     debug: false
     stdout:
