@@ -28,7 +28,7 @@
     class="gmd-textarea__field"
     [id]="name()"
     [name]="name()"
-    [placeholder]="placeholder()"
+    [attr.placeholder]="placeholder() ?? null"
     [attr.minlength]="minLengthVM()"
     [attr.maxlength]="maxLengthVM()"
     [rows]="rowsVM()"
