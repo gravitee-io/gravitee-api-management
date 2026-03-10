@@ -17,11 +17,7 @@ package io.gravitee.rest.api.service.v4.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionMetadataInvalidException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,22 +25,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionMetadataSanitizerTest {
-
-    @Mock
-    private HtmlSanitizer htmlSanitizer;
 
     private SubscriptionMetadataSanitizer cut;
 
     @BeforeEach
     void setUp() {
-        cut = new SubscriptionMetadataSanitizer(htmlSanitizer);
+        cut = new SubscriptionMetadataSanitizer();
     }
 
     @Test
@@ -87,7 +76,6 @@ class SubscriptionMetadataSanitizerTest {
 
     @Test
     void should_accept_metadata_at_maximum_count() {
-        when(htmlSanitizer.sanitize(anyString())).thenAnswer(inv -> inv.getArgument(0));
         Map<String, String> maxAllowed = new HashMap<>();
         for (int i = 0; i < 25; i++) {
             maxAllowed.put("key_" + i, "value");
@@ -99,10 +87,7 @@ class SubscriptionMetadataSanitizerTest {
     }
 
     @Test
-    void should_sanitize_values_and_omit_empty_values() {
-        when(htmlSanitizer.sanitize("<script>alert(1)</script>")).thenReturn("alert(1)");
-        when(htmlSanitizer.sanitize("   ")).thenReturn("   ");
-        when(htmlSanitizer.sanitize(isNull())).thenReturn(null);
+    void should_strip_html_tags_and_omit_empty_values() {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("field_a", "<script>alert(1)</script>");
         metadata.put("field_b", null);
@@ -111,5 +96,43 @@ class SubscriptionMetadataSanitizerTest {
         var result = cut.sanitizeAndValidate(metadata);
 
         assertThat(result).containsEntry("field_a", "alert(1)").doesNotContainKeys("field_b", "field_c");
+    }
+
+    @Test
+    void should_preserve_special_chars_like_at_sign_in_email() {
+        var result = cut.sanitizeAndValidate(Map.of("email", "my@company.com"));
+
+        assertThat(result).containsEntry("email", "my@company.com");
+    }
+
+    @Test
+    void should_preserve_plain_text_special_chars_without_encoding() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("field_a", "key=value+1");
+        metadata.put("field_b", "it's a \"test\"");
+        metadata.put("field_c", "code`snippet");
+
+        var result = cut.sanitizeAndValidate(metadata);
+
+        assertThat(result)
+            .containsEntry("field_a", "key=value+1")
+            .containsEntry("field_b", "it's a \"test\"")
+            .containsEntry("field_c", "code`snippet");
+    }
+
+    @Test
+    void should_accept_values_with_less_than_or_greater_than_after_strip() {
+        var result = cut.sanitizeAndValidate(Map.of("key", "x < 5"));
+        assertThat(result).containsEntry("key", "x < 5");
+
+        var result2 = cut.sanitizeAndValidate(Map.of("key", "y > 0"));
+        assertThat(result2).containsEntry("key", "y > 0");
+    }
+
+    @Test
+    void should_strip_html_tags_and_keep_text_content() {
+        var result = cut.sanitizeAndValidate(Map.of("content", "<b>bold</b>"));
+
+        assertThat(result).containsEntry("content", "bold");
     }
 }
