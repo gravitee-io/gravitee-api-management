@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.security.filter;
 
+import static java.util.function.Predicate.not;
+
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +24,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
@@ -31,12 +34,16 @@ import org.springframework.web.filter.GenericFilterBean;
 @RequiredArgsConstructor
 public class ContextualLoggingFilter extends GenericFilterBean {
 
-    private static final String ORG_ID_KEY = "orgId";
-    private static final String ENV_ID_KEY = "envId";
-    private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
-    private static final String CORRELATION_ID_KEY = "correlationId";
-    private static final String TRACE_PARENT_KEY = "traceParent";
-    private static final String TRACE_PARENT_HEADER = "traceparent";
+    static final String ORG_ID_KEY = "orgId";
+    static final String ENV_ID_KEY = "envId";
+    static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
+    static final String CORRELATION_ID_KEY = "correlationId";
+    static final String TRACE_PARENT_KEY = "traceParent";
+    static final String TRACE_PARENT_HEADER = "traceparent";
+    static final String APIS_SEGMENT = "apis";
+    static final String APPLICATIONS_SEGMENT = "applications";
+    static final String API_ID_KEY = "apiId";
+    static final String APP_ID_KEY = "appId";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
@@ -64,10 +71,31 @@ public class ContextualLoggingFilter extends GenericFilterBean {
             if (traceParent != null) {
                 MDC.put(TRACE_PARENT_KEY, traceParent);
             }
+
+            String[] segments = splitPath(httpServletRequest);
+            getSegmentValue(APIS_SEGMENT, segments).ifPresent(value -> MDC.put(API_ID_KEY, value));
+            getSegmentValue(APPLICATIONS_SEGMENT, segments).ifPresent(value -> MDC.put(APP_ID_KEY, value));
         }
 
         log.debug("Contextual logging is on for organization: [{}] and environment: [{}]", organization, environment);
 
         filterChain.doFilter(request, response);
+    }
+
+    private static String[] splitPath(final HttpServletRequest httpServletRequest) {
+        String pathInfo = httpServletRequest.getPathInfo();
+        if (pathInfo == null || pathInfo.isBlank()) {
+            return new String[0];
+        }
+        return pathInfo.split("/");
+    }
+
+    private static Optional<String> getSegmentValue(final String segmentName, final String[] segments) {
+        for (int i = 0; i < segments.length - 1; i++) {
+            if (segmentName.equals(segments[i])) {
+                return Optional.of(segments[i + 1]).filter(not(String::isEmpty));
+            }
+        }
+        return Optional.empty();
     }
 }
