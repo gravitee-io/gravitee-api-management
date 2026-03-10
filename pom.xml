@@ -61,11 +61,11 @@
         <gravitee-exchange.version>2.0.1</gravitee-exchange.version>
         <gravitee-expression-language.version>4.3.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>5.0.0-alpha.5</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>5.0.0-alpha.6</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.2.0</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.7.1</gravitee-kubernetes.version>
-        <gravitee-node.version>8.0.0-alpha.13</gravitee-node.version>
+        <gravitee-node.version>8.0.0-alpha.14</gravitee-node.version>
         <gravitee-notifier-api.version>2.0.0-alpha.1</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>5.0.0-alpha.3</gravitee-plugin.version>
