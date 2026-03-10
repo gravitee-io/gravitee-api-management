@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.8.0_05_add_environment_ids_to_entrypoints_table_1
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}entrypoints
+            columns:
+              - column:
+                  name: environment_ids
+                  type: nvarchar(4000)
+                  constraints:
+                    nullable: true

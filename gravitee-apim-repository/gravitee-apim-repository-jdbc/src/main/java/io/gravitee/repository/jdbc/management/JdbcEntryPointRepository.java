@@ -48,6 +48,7 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
             .addColumn("target", Types.NVARCHAR, String.class)
             .addColumn("value", Types.NVARCHAR, String.class)
             .addColumn("tags", Types.NVARCHAR, String.class)
+            .addColumn("environment_ids", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, EntrypointReferenceType.class)
             .build();
