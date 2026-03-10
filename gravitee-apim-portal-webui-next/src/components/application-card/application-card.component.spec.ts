@@ -49,7 +49,7 @@ describe('ApplicationCardComponent', () => {
   });
 
   it('should display the correct title', () => {
-    const titleElement = fixture.nativeElement.querySelector('.m3-title-medium');
+    const titleElement = fixture.nativeElement.querySelector('.next-gen-h5');
     expect(titleElement.textContent).toContain(mockData.title);
   });
 
