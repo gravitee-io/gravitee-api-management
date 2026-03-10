@@ -179,6 +179,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypoint.setTarget(entrypointEntity.getTarget().name());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
+        entrypoint.setEnvironmentIds(
+            entrypointEntity.getEnvironmentIds() != null ? String.join(SEPARATOR, entrypointEntity.getEnvironmentIds()) : null
+        );
         entrypoint.setReferenceId(executionContext.getOrganizationId());
         entrypoint.setReferenceType(repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION));
         return entrypoint;
@@ -190,6 +193,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypoint.setTarget(entrypointEntity.getTarget().name());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
+        entrypoint.setEnvironmentIds(
+            entrypointEntity.getEnvironmentIds() != null ? String.join(SEPARATOR, entrypointEntity.getEnvironmentIds()) : null
+        );
         return entrypoint;
     }
 
@@ -199,6 +205,11 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypointEntity.setTarget(EntrypointEntity.Target.valueOf(entrypoint.getTarget()));
         entrypointEntity.setValue(entrypoint.getValue());
         entrypointEntity.setTags(entrypoint.getTags().split(SEPARATOR));
+        entrypointEntity.setEnvironmentIds(
+            entrypoint.getEnvironmentIds() != null && !entrypoint.getEnvironmentIds().isEmpty()
+                ? entrypoint.getEnvironmentIds().split(SEPARATOR)
+                : null
+        );
         return entrypointEntity;
     }
 

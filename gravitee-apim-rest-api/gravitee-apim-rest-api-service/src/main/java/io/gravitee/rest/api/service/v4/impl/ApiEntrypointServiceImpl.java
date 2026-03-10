@@ -109,6 +109,13 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 if (!isEntrypointMatching) {
                     return;
                 }
+                // Filter by environment
+                String[] entrypointEnvironmentIds = entrypoint.getEnvironmentIds();
+                if (entrypointEnvironmentIds != null && entrypointEnvironmentIds.length > 0) {
+                    if (!Arrays.asList(entrypointEnvironmentIds).contains(executionContext.getEnvironmentId())) {
+                        return;
+                    }
+                }
                 if (!hasSupportedListeners(genericApiEntity)) {
                     return;
                 }
@@ -249,7 +256,9 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
         if (host == null || !isOverride) {
             List<AccessPoint> accessPoints = this.accessPointQueryService.getGatewayAccessPoints(environmentId);
-            if (accessPoints.isEmpty() || (tags != null && !tags.isEmpty())) {
+            if (accessPoints.isEmpty()) {
+                entrypoints.add(createHttpApiEntrypointEntity(defaultScheme, entrypointHost, path, tags, host));
+            } else if (tags != null && !tags.isEmpty()) {
                 entrypoints.add(createHttpApiEntrypointEntity(defaultScheme, entrypointHost, path, tags, host));
             } else {
                 for (AccessPoint accessPoint : accessPoints) {
@@ -304,7 +313,9 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         List<ApiEntrypointEntity> entrypoints = new ArrayList<>();
         List<AccessPoint> accessPoints = this.accessPointQueryService.getKafkaGatewayAccessPoints(environmentId);
 
-        if (accessPoints.isEmpty() || (tags != null && !tags.isEmpty())) {
+        if (accessPoints.isEmpty()) {
+            entrypoints.add(createKafkaNativeApiEntrypointEntity(host, domain, port, tags));
+        } else if (tags != null && !tags.isEmpty()) {
             entrypoints.add(createKafkaNativeApiEntrypointEntity(host, domain, port, tags));
         } else {
             for (AccessPoint accessPoint : accessPoints) {
