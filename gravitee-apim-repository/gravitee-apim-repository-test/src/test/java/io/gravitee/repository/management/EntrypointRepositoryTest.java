@@ -48,6 +48,10 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue("Entrypoint with environmentIds not found", withEnvIds.isPresent());
         assertEquals("env1;env2", withEnvIds.get().getEnvironmentIds());
 
+        // Verify referenceId and referenceType are correctly mapped from storage
+        assertEquals("DEFAULT", withEnvIds.get().getReferenceId());
+        assertEquals(EntrypointReferenceType.ORGANIZATION, withEnvIds.get().getReferenceType());
+
         // Verify environmentIds is null for entrypoints that don't have it
         Optional<Entrypoint> withoutEnvIds = entrypoints
             .stream()
