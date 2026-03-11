@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -57,6 +58,9 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Mock
     private DictionaryRepository dictionaryRepository;
+
+    @Mock
+    private EnvironmentService environmentService;
 
     @Mock
     private EventService eventService;
@@ -83,6 +87,7 @@ public class DictionaryServiceImpl_UpdateTest {
         updatedDictionary.setId(DICTIONARY_ID);
         updatedDictionary.setUpdatedAt(new Date());
         updatedDictionary.setState(LifecycleState.STARTED);
+        updatedDictionary.setEnvironmentId(ENVIRONMENT_ID);
         updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
         when(
             dictionaryRepository.update(
@@ -144,6 +149,7 @@ public class DictionaryServiceImpl_UpdateTest {
         updatedDictionary.setId(DICTIONARY_ID);
         updatedDictionary.setUpdatedAt(new Date());
         updatedDictionary.setState(LifecycleState.STARTED);
+        updatedDictionary.setEnvironmentId(ENVIRONMENT_ID);
         updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
         when(
             dictionaryRepository.update(
