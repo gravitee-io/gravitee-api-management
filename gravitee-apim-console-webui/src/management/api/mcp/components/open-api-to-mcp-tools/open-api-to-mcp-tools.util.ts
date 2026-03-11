@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import angular from 'angular';
+
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
 import * as yaml from 'js-yaml';
 import { dereference, validate } from '@scalar/openapi-parser';
@@ -32,6 +34,33 @@ type JsonSchema = {
   properties: Record<string, SchemaObject>;
   required: string[];
 };
+
+/**
+ * Removes circular references from a schema object by tracking ancestor objects
+ * in the current traversal path. Shared (non-circular) references are preserved.
+ */
+function removeCircularRefs(obj: unknown, ancestors = new Set<object>()): unknown {
+  if (!angular.isObject(obj)) {
+    return obj;
+  }
+
+  if (ancestors.has(obj as object)) {
+    return {};
+  }
+
+  const newAncestors = new Set(ancestors);
+  newAncestors.add(obj as object);
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => removeCircularRefs(item, newAncestors));
+  }
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = removeCircularRefs(value, newAncestors);
+  }
+  return result;
+}
 
 type ParameterSchema = {
   pathParams: Record<string, SchemaObject>;
@@ -218,7 +247,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const toolDefinition: MCPToolDefinition = {
         name: toolName,
         description,
-        inputSchema: mergedParameters,
+        inputSchema: removeCircularRefs(mergedParameters),
       };
 
       const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path, paramSchema);
