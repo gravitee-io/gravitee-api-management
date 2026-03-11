@@ -4,7 +4,7 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - sql:
-            sql: UPDATE ${gravitee_prefix}portal_navigation_items SET root_id = id WHERE root_id IS NULL
+            sql: UPDATE ${gravitee_prefix}portal_navigation_items SET root_id = '00000000-0000-0000-0000-000000000000' WHERE root_id IS NULL OR TRIM(root_id) = ''
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}portal_navigation_items
             columnName: root_id
