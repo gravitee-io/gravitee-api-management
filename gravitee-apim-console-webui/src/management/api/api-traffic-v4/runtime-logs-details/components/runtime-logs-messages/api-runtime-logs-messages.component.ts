@@ -62,7 +62,7 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   }
 
   public openLogsSettings() {
-    this.router.navigate(['../../runtime-logs-settings'], { relativeTo: this.activatedRoute });
+    this.router.navigate(['../../../reporter-settings'], { relativeTo: this.activatedRoute });
   }
 
   private loadConnectionLog(): Observable<ConnectionLogDetail> {
