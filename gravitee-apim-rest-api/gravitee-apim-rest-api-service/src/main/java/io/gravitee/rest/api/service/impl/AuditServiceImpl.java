@@ -286,6 +286,14 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Override
     @Async
+    public void createOrganizationAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.ORGANIZATION);
+        auditLogData.setReferenceId(executionContext.getOrganizationId());
+        createAuditLog(executionContext, auditLogData);
+    }
+
+    @Override
+    @Async
     public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
         if (auditLogData.getReferenceType() == null) {
             if (executionContext.hasEnvironmentId()) {
