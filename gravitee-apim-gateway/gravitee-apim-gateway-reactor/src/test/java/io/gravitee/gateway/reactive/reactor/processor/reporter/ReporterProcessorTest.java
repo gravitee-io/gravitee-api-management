@@ -219,9 +219,9 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             reporterProcessor.execute(ctx).test().assertResult();
 
             // Then
-            verify(reporterService).report(ctx.metrics());
+            verify(reporterService, never()).report(any(Metrics.class));
+            verify(reporterService).report(any(io.gravitee.reporter.api.http.Metrics.class));
             assertNull(ctx.metrics().getLog());
-            verify(reporterService, never()).report(ctx.metrics().getLog());
         }
 
         @Test

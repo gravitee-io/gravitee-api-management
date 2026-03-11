@@ -86,8 +86,9 @@ public class ReporterProcessor implements Processor {
                         reporterService.report(metrics);
                     }
                 } else {
-                    // No api found report only metrics
-                    reporterService.report(metrics);
+                    // No api found - report as V2 metrics so not-found requests appear in platform analytics
+                    io.gravitee.reporter.api.http.Metrics metricsV2 = metrics.toV2();
+                    reporterService.report(metricsV2);
                 }
             }
         })

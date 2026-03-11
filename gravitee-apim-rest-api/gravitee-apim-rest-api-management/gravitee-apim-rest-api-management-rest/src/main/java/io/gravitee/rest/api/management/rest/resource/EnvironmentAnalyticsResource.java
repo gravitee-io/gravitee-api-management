@@ -75,6 +75,12 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     public static final String STATE_FIELD = "state";
     public static final String LIFECYCLE_STATE_FIELD = "lifecycle_state";
 
+    /**
+     * Sentinel API ID assigned by the gateway to requests that don't match any deployed API.
+     * Must stay in sync with NotFoundProcessor.UNKNOWN_SERVICE in the gateway module.
+     */
+    private static final String UNKNOWN_SERVICE = "1";
+
     @Inject
     ApiService apiService;
 
@@ -262,6 +268,12 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                     .collect(Collectors.toSet());
             }
+        }
+        if (API_FIELD.equals(fieldName)) {
+            // Always include the not-found sentinel so that requests to non-existent APIs
+            // (stored with api="1" in gravitee-request-*) are counted in platform analytics.
+            ids = new HashSet<>(ids);
+            ids.add(UNKNOWN_SERVICE);
         }
         if (ids.isEmpty()) {
             throw new FieldFilterEmptyException();
