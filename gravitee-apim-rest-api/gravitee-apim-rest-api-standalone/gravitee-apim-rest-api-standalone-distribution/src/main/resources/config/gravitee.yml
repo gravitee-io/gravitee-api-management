@@ -327,6 +327,27 @@ analytics:
 #          username: user
 #          password: secret
 
+node:
+  logging:
+    # Configure how MDC values will be formatted and filtered
+    mdc:
+      format: "{key}: {value}"
+      separator: " "
+      nullValue: "-"
+      include:
+        - nodeId
+        - envId
+        - apiId
+        - appId
+
+    # Configure the patterns for the most common appenders
+    # Nothing prevents the user from modifying logback.xml
+    pattern:
+      overrideLogbackXml: false # when enabled, use the following patterns instead of those from logback.xml
+      # Use a custom keyword to use MDC formatting and filtering: %mdcList. This list is built from the previous 'mdc.include' list
+      console: "%d{HH:mm:ss} %-5level %logger{36} [%mdcList] - %msg%n" # Override default STDOUT appender pattern
+      file: "%d %-5p [%t] %c [%mdcList] : %m%n" # Override default FILE appender pattern
+
 ## Logging settings
 #logging:
 #  messageSampling:
