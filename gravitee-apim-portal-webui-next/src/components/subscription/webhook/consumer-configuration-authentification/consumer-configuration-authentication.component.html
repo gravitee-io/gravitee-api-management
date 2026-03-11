@@ -106,6 +106,190 @@
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationScopesHint">The list of required scopes.</mat-hint>
             </mat-form-field>
           }
+
+          @case ('jwtProfileOauth2') {
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationIssuer">Issuer</mat-label>
+              <input matInput formControlName="issuer" name="issuer" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationIssuerHint"
+                >Mandatory claim 'iss' identifies an entity that issued JWT at authorization server</mat-hint
+              >
+              @if (authForm.controls.issuer.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationIssuerRequired">Issuer is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationSubject">Subject</mat-label>
+              <input matInput formControlName="subject" name="subject" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationSubjectHint"
+                >Mandatory claim 'sub' identifies an entity accessing the resource via issuer</mat-hint
+              >
+              @if (authForm.controls.subject.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationSubjectRequired">Subject is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationAudience">Audience</mat-label>
+              <input matInput formControlName="audience" name="audience" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationAudienceHint"
+                >Mandatory claim 'aud' identifies an authorization server as intended audience</mat-hint
+              >
+              @if (authForm.controls.audience.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationAudienceRequired">Audience is required</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="form__row">
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationExpirationTime">Expiration Time</mat-label>
+                <input matInput type="number" formControlName="expirationTime" name="expirationTime" required />
+                <mat-hint i18n="@@subscriptionConfigurationAuthenticationExpirationTimeHint"
+                  >Mandatory claim 'exp' identifies time duration after which JWT no longer remains valid</mat-hint
+                >
+                @if (authForm.controls.expirationTime.hasError('required')) {
+                  <mat-error i18n="@@subscriptionConfigurationAuthenticationExpirationTimeRequired">Expiration Time is required</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationExpirationTimeUnit">Time Unit</mat-label>
+                <mat-select formControlName="expirationTimeUnit" name="expirationTimeUnit" required>
+                  <mat-option value="SECONDS">SECONDS</mat-option>
+                  <mat-option value="MINUTES">MINUTES</mat-option>
+                  <mat-option value="HOURS">HOURS</mat-option>
+                  <mat-option value="DAYS">DAYS</mat-option>
+                </mat-select>
+                @if (authForm.controls.expirationTimeUnit.hasError('required')) {
+                  <mat-error i18n="@@subscriptionConfigurationAuthenticationExpirationTimeUnitRequired">Time Unit is required</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationSignatureAlgorithm">Signature algorithm</mat-label>
+              <mat-select formControlName="signatureAlgorithm" name="signatureAlgorithm" required>
+                <mat-option value="RSA_RS256">RSA_RS256</mat-option>
+                <mat-option value="HMAC_HS256">HMAC_HS256</mat-option>
+                <mat-option value="HMAC_HS384">HMAC_HS384</mat-option>
+                <mat-option value="HMAC_HS512">HMAC_HS512</mat-option>
+              </mat-select>
+              @if (authForm.controls.signatureAlgorithm.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationSignatureAlgorithmRequired"
+                  >Signature algorithm is required</mat-error
+                >
+              }
+            </mat-form-field>
+
+            @if (['RSA_RS256'].includes(authForm.controls.signatureAlgorithm.value)) {
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationKeySource">Key source</mat-label>
+                <mat-select formControlName="keySource" name="keySource" required>
+                  <mat-option value="INLINE">INLINE</mat-option>
+                  <mat-option value="PEM">PEM</mat-option>
+                  <mat-option value="JKS">JKS</mat-option>
+                  <mat-option value="PKCS12">PKCS12</mat-option>
+                </mat-select>
+                @if (authForm.controls.keySource.hasError('required')) {
+                  <mat-error i18n="@@subscriptionConfigurationAuthenticationKeySourceRequired">Key source is required</mat-error>
+                }
+              </mat-form-field>
+            }
+
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationJwtId">JWT ID</mat-label>
+              <input matInput formControlName="jwtId" name="jwtId" />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationJwtIdHint"
+                >Optional claim 'jti' identifying a unique identifier for JWT</mat-hint
+              >
+            </mat-form-field>
+
+            @if (['HMAC_HS256', 'HMAC_HS384', 'HMAC_HS512'].includes(authForm.controls.signatureAlgorithm.value)) {
+              <div class="form__field">
+                <mat-checkbox formControlName="secretBase64Encoded" i18n="@@subscriptionConfigurationAuthenticationSecretBase64Encoded"
+                  >Key base64 encoded?</mat-checkbox
+                >
+              </div>
+            }
+
+            @if (
+              ['JKS', 'PKCS12'].includes(authForm.controls.keySource.value) && authForm.controls.signatureAlgorithm.value === 'RSA_RS256'
+            ) {
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationX509CertChain">X.509 certificate chain</mat-label>
+                <mat-select formControlName="x509CertChain" name="x509CertChain">
+                  <mat-option value="NONE">NONE</mat-option>
+                  <mat-option value="X5C">X5C</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationAlias">Private key alias</mat-label>
+                <input matInput formControlName="alias" name="alias" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationStorePassword">Keystore password</mat-label>
+                <input matInput formControlName="storePassword" name="storePassword" type="password" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form__field">
+                <mat-label i18n="@@subscriptionConfigurationAuthenticationKeyPassword">Key password</mat-label>
+                <input matInput formControlName="keyPassword" name="keyPassword" type="password" />
+              </mat-form-field>
+            }
+
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationKeyId">Key ID</mat-label>
+              <input matInput formControlName="keyId" name="keyId" />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationKeyIdHint"
+                >Optional header 'kid' identifies the specific public key used to sign the token</mat-hint
+              >
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationKeyContent">Private key as text or file path</mat-label>
+              <textarea matInput formControlName="keyContent" name="keyContent" required rows="5"></textarea>
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationKeyContentHint"
+                >Private key as text for INLINE source or absolute path to file storing private key for others</mat-hint
+              >
+              @if (authForm.controls.keyContent.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationKeyContentRequired">Key content is required</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationAdditionalClaims">Additional claims</mat-label>
+              <mat-chip-grid #claimsChipGrid aria-label="Claims">
+                @for (claim of customClaims(); track claim.name) {
+                  <mat-chip-row (removed)="removeCustomClaim(claim)">
+                    {{ claim.name }}: {{ claim.value }}
+                    <button matChipRemove aria-label="'remove claim"><mat-icon>cancel</mat-icon></button>
+                  </mat-chip-row>
+                }
+              </mat-chip-grid>
+              <div class="form__row claim-inputs">
+                <mat-form-field appearance="outline" class="form__field">
+                  <mat-label i18n="@@subscriptionConfigurationAuthenticationClaimName">Name</mat-label>
+                  <input matInput #claimName placeholder="Name" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="form__field">
+                  <mat-label i18n="@@subscriptionConfigurationAuthenticationClaimValue">Value</mat-label>
+                  <input matInput #claimValue placeholder="Value" />
+                </mat-form-field>
+                <button mat-icon-button type="button" (click)="addCustomClaim(claimName, claimValue)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              @if (customClaimError()) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationCustomClaimError">{{ customClaimError() }}</mat-error>
+              }
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationAdditionalClaimsHint"
+                >Add more claims required for successful client authentication</mat-hint
+              >
+            </div>
+          }
         }
       </div>
     }
