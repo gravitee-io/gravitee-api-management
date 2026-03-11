@@ -34,7 +34,9 @@ import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
+import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
+import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -148,9 +150,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApi() {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true))).thenReturn(
+        when(apiAuthorizationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), eq(true))).thenReturn(
             Collections.emptySet()
         );
+        when(analyticsService.execute(any(ExecutionContext.class), any(DateHistogramQuery.class))).thenReturn(new HistogramAnalytics());
 
         Response response = envTarget()
             .queryParam("type", "date_histo")
@@ -162,16 +165,20 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        HistogramAnalytics analytics = response.readEntity(HistogramAnalytics.class);
-        assertThat(analytics.getValues()).isNull();
-        assertThat(analytics.getTimestamp()).isNull();
+
+        // Even with no registered APIs the query must still fire with the not-found sentinel ("1")
+        // so that 404 requests to non-existent APIs are included in the histogram.
+        ArgumentCaptor<DateHistogramQuery> queryCaptor = ArgumentCaptor.forClass(DateHistogramQuery.class);
+        verify(analyticsService).execute(any(ExecutionContext.class), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().getTerms().get("api")).contains("1");
     }
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true))).thenReturn(
+        when(apiAuthorizationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), eq(true))).thenReturn(
             Collections.emptySet()
         );
+        when(analyticsService.execute(any(ExecutionContext.class), any(GroupByQuery.class))).thenReturn(new TopHitsAnalytics());
 
         Response response = envTarget()
             .queryParam("type", "group_by")
@@ -183,9 +190,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        TopHitsAnalytics analytics = response.readEntity(TopHitsAnalytics.class);
-        assertThat(analytics.getValues()).isNull();
-        assertThat(analytics.getMetadata()).isNull();
+
+        ArgumentCaptor<GroupByQuery> queryCaptor = ArgumentCaptor.forClass(GroupByQuery.class);
+        verify(analyticsService).execute(any(ExecutionContext.class), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().getTerms().get("api")).contains("1");
     }
 
     @Test
@@ -210,9 +218,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true))).thenReturn(
+        when(apiAuthorizationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), eq(true))).thenReturn(
             Collections.emptySet()
         );
+        when(analyticsService.execute(any(ExecutionContext.class), any(StatsQuery.class))).thenReturn(new StatsAnalytics());
 
         Response response = envTarget()
             .queryParam("type", "stats")
@@ -224,9 +233,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        StatsAnalytics analytics = response.readEntity(StatsAnalytics.class);
-        assertThat(analytics.getAvg()).isNull();
-        assertThat(analytics.getCount()).isNull();
+
+        ArgumentCaptor<StatsQuery> queryCaptor = ArgumentCaptor.forClass(StatsQuery.class);
+        verify(analyticsService).execute(any(ExecutionContext.class), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().getTerms().get("api")).contains("1");
     }
 
     @Test
@@ -350,7 +360,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 Objects.equals(query.getQuery(), "foo:bar") &&
                 query.getTerms().size() == 1 &&
                 query.getTerms().containsKey("api") &&
-                query.getTerms().get("api").equals(Set.of("api1")) &&
+                query.getTerms().get("api").containsAll(Set.of("api1", "1")) &&
                 query.getFrom() == 0 &&
                 query.getTo() == 1000
         );

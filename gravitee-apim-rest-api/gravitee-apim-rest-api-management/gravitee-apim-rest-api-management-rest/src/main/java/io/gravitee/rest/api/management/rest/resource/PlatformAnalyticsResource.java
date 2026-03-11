@@ -42,6 +42,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,12 @@ import org.jetbrains.annotations.NotNull;
  */
 @Tag(name = "Platform Analytics")
 public class PlatformAnalyticsResource extends AbstractResource {
+
+    /**
+     * Sentinel API ID used by the gateway for requests that don't match any deployed API.
+     * Must stay in sync with NotFoundProcessor.UNKNOWN_SERVICE in the gateway module.
+     */
+    private static final String UNKNOWN_SERVICE = "1";
 
     @Inject
     PermissionService permissionService;
@@ -124,14 +131,20 @@ public class PlatformAnalyticsResource extends AbstractResource {
     @NotNull
     private Set<String> findApiIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (isAdmin()) {
-            return apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
-        }
-        return apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
-            .collect(Collectors.toSet());
+
+        // Fetch and directly instantiate a mutable HashSet
+        Set<String> apiIds = isAdmin()
+            ? new HashSet<>(apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId()))
+            : apiAuthorizationService
+                .findIdsByUser(executionContext, getAuthenticatedUser(), true)
+                .stream()
+                .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
+                .collect(Collectors.toCollection(HashSet::new));
+
+        // Include not-found sentinel so requests to non-existent APIs appear in platform analytics
+        apiIds.add(UNKNOWN_SERVICE);
+
+        return apiIds;
     }
 
     @NotNull
