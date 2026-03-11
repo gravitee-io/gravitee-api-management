@@ -213,7 +213,10 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
-    children: [{ path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' }],
+    children: [
+      { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
+      { path: 'create', redirectTo: '/dashboard/applications/create', pathMatch: 'full' },
+    ],
   },
   {
     path: 'documentation',

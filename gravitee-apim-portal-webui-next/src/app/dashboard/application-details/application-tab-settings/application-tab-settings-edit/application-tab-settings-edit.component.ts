@@ -64,8 +64,8 @@ interface ApplicationGrantTypeVM {
   imports: [
     CopyCodeComponent,
     MatButtonModule,
-    MatDivider,
     MatCardModule,
+    MatDivider,
     MatChipsModule,
     MatFormFieldModule,
     MatIcon,

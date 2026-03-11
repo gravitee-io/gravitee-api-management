@@ -17,12 +17,9 @@
 @use '../../../../../scss/theme' as theme;
 
 .settings-view {
-  mat-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding-top: 8px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 
   &__header {
     display: flex;
@@ -37,9 +34,26 @@
   }
 
   &__details {
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+
+    &--stacked &__row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      align-items: start;
+
+      &__label {
+        width: auto;
+      }
+
+      > :nth-child(3) {
+        grid-column: 2;
+        justify-self: start;
+      }
+    }
 
     &__row {
       display: flex;
@@ -52,9 +66,20 @@
       }
 
       &__label {
-        width: 120px;
+        width: 140px;
         flex-shrink: 0;
         color: theme.$paragraph-color;
+      }
+
+      &__value-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        app-copy-code-icon,
+        button {
+          margin: -8px 0;
+        }
       }
 
       &__value--not-set {
@@ -65,6 +90,7 @@
   }
 
   &__description {
+    margin-top: 16px;
     background-color: theme.$background-color;
     border: theme.$border-width solid theme.$border-color;
     border-radius: theme.$container-shape;

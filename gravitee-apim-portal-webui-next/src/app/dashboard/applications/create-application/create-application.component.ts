@@ -20,7 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatError, MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
@@ -68,7 +68,6 @@ interface GrantTypeVM {
     MatFormField,
     MatIcon,
     MatInput,
-    MatLabel,
     MatRadioButton,
     MatRadioGroup,
     MatSelectModule,
@@ -84,6 +83,7 @@ export class CreateApplicationComponent {
   readonly router = inject(Router);
   readonly destroyRef = inject(DestroyRef);
   readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+  readonly isNarrow = inject(ObservabilityBreakpointService).isNarrow;
 
   readonly typeIdControl = new FormControl<string | null>(null, { nonNullable: false });
 
@@ -165,7 +165,7 @@ export class CreateApplicationComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: application => {
-          this.router.navigate(['/applications', application.id]);
+          this.router.navigate(['/dashboard/applications', application.id]);
         },
         error: err => {
           this.hasApplicationError = true;

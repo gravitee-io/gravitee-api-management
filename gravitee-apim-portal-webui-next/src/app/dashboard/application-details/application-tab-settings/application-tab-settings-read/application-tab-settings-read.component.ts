@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { switchMap } from 'rxjs';
 
-import { ApplicationType } from '../../../../../entities/application/application';
+import { CopyCodeIconComponent } from '../../../../../components/copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
+import { Application, ApplicationType } from '../../../../../entities/application/application';
 import { ApplicationService } from '../../../../../services/application.service';
+import { ObservabilityBreakpointService } from '../../../../../services/observability-breakpoint.service';
 
 @Component({
   selector: 'app-application-tab-settings-read',
-  imports: [DatePipe, MatButtonModule, MatCardModule, MatChipsModule],
+  imports: [DatePipe, MatButtonModule, MatCardModule, MatChipsModule, CopyCodeIconComponent],
   templateUrl: './application-tab-settings-read.component.html',
   styleUrl: './application-tab-settings-read.component.scss',
 })
@@ -36,52 +38,15 @@ export class ApplicationTabSettingsReadComponent {
   canUpdate = input<boolean>(false);
 
   editClicked = output<void>();
+  clientSecretVisible = signal(false);
+
+  protected readonly isNarrow = inject(ObservabilityBreakpointService).isNarrow;
 
   private applicationService = inject(ApplicationService);
 
   private application = toSignal(toObservable(this.applicationId).pipe(switchMap(id => this.applicationService.get(id))));
 
-  readOnlyValues = computed(() => {
-    const app = this.application();
-    const typeConfig = this.applicationTypeConfiguration();
-
-    if (!app) {
-      return {
-        name: '',
-        ownerDisplayName: undefined,
-        type: '',
-        securityType: '',
-        createdAt: undefined,
-        updatedAt: undefined,
-        domain: undefined,
-        description: undefined,
-        grantTypes: undefined,
-        clientId: undefined,
-        redirectUris: undefined,
-      };
-    }
-
-    const hasOAuth = !!app.settings.oauth;
-    const grantTypes = hasOAuth
-      ? (app.settings.oauth!.grant_types ?? [])
-          .map(type => typeConfig.allowed_grant_types?.find(g => g.type === type)?.name ?? type)
-          .join(', ') || undefined
-      : undefined;
-
-    return {
-      name: app.name,
-      ownerDisplayName: app.owner?.display_name,
-      type: typeConfig.name,
-      securityType: typeConfig.name,
-      createdAt: app.created_at,
-      updatedAt: app.updated_at,
-      domain: app.domain,
-      description: app.description,
-      grantTypes,
-      clientId: hasOAuth && !typeConfig.requires_redirect_uris ? app.settings.oauth!.client_id : undefined,
-      redirectUris: typeConfig.requires_redirect_uris ? app.settings.oauth?.redirect_uris?.join(', ') : undefined,
-    };
-  });
+  readOnlyValues = computed(() => buildReadOnlyValues(this.application(), this.applicationTypeConfiguration()));
 
   getRelativeTime(dateString: string | undefined): string {
     if (!dateString) return '';
@@ -95,4 +60,45 @@ export class ApplicationTabSettingsReadComponent {
     const days = Math.floor(hours / 24);
     return $localize`:@@daysAgoRelativeTime:${days}:days: days ago`;
   }
+}
+
+function buildReadOnlyValues(app: Application | undefined, typeConfig: ApplicationType) {
+  if (!app) {
+    return {
+      name: '',
+      ownerDisplayName: undefined,
+      type: '',
+      securityType: '',
+      createdAt: undefined,
+      updatedAt: undefined,
+      domain: undefined,
+      description: undefined,
+      grantTypes: undefined,
+      clientId: undefined,
+      clientSecret: undefined,
+      redirectUris: undefined,
+    };
+  }
+
+  const hasOAuth = !!app.settings.oauth;
+  const grantTypes = hasOAuth
+    ? (app.settings.oauth!.grant_types ?? [])
+        .map(type => typeConfig.allowed_grant_types?.find(g => g.type === type)?.name ?? type)
+        .join(', ') || undefined
+    : undefined;
+
+  return {
+    name: app.name,
+    ownerDisplayName: app.owner?.display_name,
+    type: typeConfig.name,
+    securityType: typeConfig.name,
+    createdAt: app.created_at,
+    updatedAt: app.updated_at,
+    domain: app.domain,
+    description: app.description,
+    grantTypes,
+    clientId: hasOAuth && !typeConfig.requires_redirect_uris ? app.settings.oauth!.client_id : undefined,
+    clientSecret: hasOAuth && !typeConfig.requires_redirect_uris ? app.settings.oauth!.client_secret : undefined,
+    redirectUris: typeConfig.requires_redirect_uris ? app.settings.oauth?.redirect_uris?.join(', ') : undefined,
+  };
 }

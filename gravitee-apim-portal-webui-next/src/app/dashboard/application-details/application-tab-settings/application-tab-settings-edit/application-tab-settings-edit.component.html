@@ -20,16 +20,16 @@
     <mat-card-content>
       <form [formGroup]="applicationSettingsForm" class="settings-edit__form">
         <div class="settings-edit__form__general">
-          <span class="m3-title-medium" i18n="@@applicationDetailsTitleApplicationSettings">Application details</span>
+          <span class="next-gen-h3" i18n="@@applicationDetailsTitleApplicationSettings">Application details</span>
           <div class="settings-edit__form__field">
-            <p class="m3-label-large" i18n="@@applicationNameApplicationSettings">Application name *</p>
+            <p class="next-gen-body" i18n="@@applicationNameApplicationSettings">Application name *</p>
             <mat-form-field appearance="outline">
               <input matInput formControlName="name" aria-label="Application name" data-testId="name" />
               <mat-error i18n="@@nameRequiredApplicationSettings">Application name is required</mat-error>
             </mat-form-field>
           </div>
           <div class="settings-edit__form__field">
-            <p class="m3-label-large" i18n="@@applicationDescriptionApplicationSettings">Description (optional)</p>
+            <p class="next-gen-body" i18n="@@applicationDescriptionApplicationSettings">Description (optional)</p>
             <mat-form-field appearance="outline">
               <textarea
                 matInput
@@ -41,8 +41,8 @@
             </mat-form-field>
           </div>
           <div class="settings-edit__form__field">
-            <p class="m3-label-large" i18n="@@applicationDomainApplicationSettings">Domain (optional)</p>
-            <p class="m3-body-small" i18n="@@hintDomainApplicationSettings">Enter the domain to be used by the application</p>
+            <p class="next-gen-body" i18n="@@applicationDomainApplicationSettings">Domain (optional)</p>
+            <p class="next-gen-body" i18n="@@hintDomainApplicationSettings">Enter the domain to be used by the application</p>
             <mat-form-field appearance="outline">
               <input matInput formControlName="domain" aria-label="Domain" data-testId="domain" />
             </mat-form-field>
@@ -52,17 +52,17 @@
         <mat-divider />
 
         <div class="settings-edit__form__security">
-          <span class="m3-title-medium" i18n="@@applicationSecurityTitleApplicationSettings">Application security</span>
+          <span class="next-gen-h5" i18n="@@applicationSecurityTitleApplicationSettings">Application security</span>
           @if (application.settings.app) {
             <div class="settings-edit__form__field">
-              <p class="m3-label-large" i18n="@@applicationTypeApplicationSettings">Application type</p>
+              <p class="next-gen-body" i18n="@@applicationTypeApplicationSettings">Application type</p>
               <mat-form-field appearance="outline">
                 <input matInput formControlName="appType" aria-label="Application type" data-testId="simple-type" />
                 <mat-hint i18n="@@hintApplicationTypeApplicationSettings">Type of the application (mobile, web, ...)</mat-hint>
               </mat-form-field>
             </div>
             <div class="settings-edit__form__field">
-              <p class="m3-label-large" i18n="@@applicationClientIdApplicationSettings">ClientID</p>
+              <p class="next-gen-body" i18n="@@applicationClientIdApplicationSettings">ClientID</p>
               <mat-form-field appearance="outline">
                 <input matInput formControlName="appClientId" aria-label="Client ID" data-testId="simple-clientId" />
                 <mat-hint i18n="@@hintClientIdApplicationSettings"
@@ -86,7 +86,7 @@
             </div>
             @if (applicationTypeConfiguration().requires_redirect_uris) {
               <div class="settings-edit__form__field">
-                <p class="m3-label-large" i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs *</p>
+                <p class="next-gen-body" i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs *</p>
                 <mat-form-field appearance="outline">
                   <mat-chip-grid
                     #redirectURIChipGrid
@@ -117,7 +117,7 @@
               </div>
             }
             <div class="settings-edit__form__field">
-              <p class="m3-label-large" i18n="@@applicationGrantTypesApplicationSettings">Grant types *</p>
+              <p class="next-gen-body" i18n="@@applicationGrantTypesApplicationSettings">Grant types *</p>
               <mat-form-field appearance="outline">
                 <mat-select formControlName="oauthGrantTypes" multiple aria-label="Grant types" data-testId="grantTypes">
                   @for (grantType of grantTypesList; track grantType) {

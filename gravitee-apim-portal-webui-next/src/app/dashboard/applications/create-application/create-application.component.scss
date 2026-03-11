@@ -87,40 +87,44 @@
   }
 }
 
-.radio-group-label {
-  display: block;
-  margin-bottom: 16px;
-}
-
-.type-select-mobile {
-  width: 100%;
-}
-
 .types-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 16px;
+
+  &--compact {
+    gap: 8px;
+
+    .type-radio {
+      padding: 8px;
+    }
+  }
 }
 
 .type-radio {
-  display: block;
   padding: 12px;
+  cursor: pointer;
   border: 1px solid theme.$border-color;
   border-radius: theme.$container-shape;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease;
 
-  &.mat-mdc-radio-checked {
+  &--checked {
     border-color: theme.$primary-main-color;
     background-color: color-mix(in srgb, theme.$primary-main-color 8%, transparent);
   }
-}
 
-.application-type-label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    span {
+      flex: 1;
+    }
+  }
 }
 
 .grant-types-container {

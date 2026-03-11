@@ -36,4 +36,11 @@ export class ObservabilityBreakpointService {
   );
 
   readonly isNarrow = toSignal(this.isNarrow$);
+
+  // XSmall + Small covers max-width: 959.98px — used for stacked layouts in detail views
+  readonly isSmallOrBelow$ = this.breakpointObserver.observe([Breakpoints.XSmall, Breakpoints.Small]).pipe(
+    map(state => state.matches),
+    shareReplay({ refCount: true, bufferSize: 1 }),
+  );
+  readonly isSmallOrBelow = toSignal(this.isSmallOrBelow$);
 }

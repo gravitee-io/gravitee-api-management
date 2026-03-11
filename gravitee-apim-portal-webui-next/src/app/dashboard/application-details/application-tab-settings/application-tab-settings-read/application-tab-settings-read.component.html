@@ -18,7 +18,7 @@
 <mat-card appearance="outlined" class="settings-view">
   <mat-card-content>
     <div class="settings-view__header">
-      <span class="m3-headline-small" data-testId="name">{{ readOnlyValues().name }}</span>
+      <span class="next-gen-h3" data-testId="name">{{ readOnlyValues().name }}</span>
       <div class="settings-view__header__actions">
         <ng-content select="[additionalActions]" />
         @if (canUpdate()) {
@@ -35,38 +35,38 @@
       </div>
     </div>
 
-    <div class="settings-view__details">
+    <div class="settings-view__details" [class.settings-view__details--stacked]="isNarrow()">
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">person</span>
-        <span class="settings-view__details__row__label m3-body-medium" i18n="@@ownerLabelApplicationSettings">Owner</span>
-        <span class="m3-body-medium" data-testId="owner">{{ readOnlyValues().ownerDisplayName }}</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@ownerLabelApplicationSettings">Owner</span>
+        <span class="next-gen-body" data-testId="owner">{{ readOnlyValues().ownerDisplayName }}</span>
       </div>
 
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">dns</span>
-        <span class="settings-view__details__row__label m3-body-medium" i18n="@@typeLabelApplicationSettings">Type</span>
-        <span class="m3-body-medium" data-testId="type">{{ readOnlyValues().type }}</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@typeLabelApplicationSettings">Type</span>
+        <span class="next-gen-body" data-testId="type">{{ readOnlyValues().type }}</span>
       </div>
 
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">calendar_today</span>
-        <span class="settings-view__details__row__label m3-body-medium" i18n="@@creationDateLabelApplicationSettings">Creation date</span>
-        <span class="m3-body-medium" data-testId="createdAt">{{ readOnlyValues().createdAt | date: 'yyyy-MM-dd' }}</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@creationDateLabelApplicationSettings">Creation date</span>
+        <span class="next-gen-body" data-testId="createdAt">{{ readOnlyValues().createdAt | date: 'yyyy-MM-dd' }}</span>
       </div>
 
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">schedule</span>
-        <span class="settings-view__details__row__label m3-body-medium" i18n="@@updatedLabelApplicationSettings">Updated</span>
-        <span class="m3-body-medium" data-testId="updatedAt">{{ getRelativeTime(readOnlyValues().updatedAt) }}</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@updatedLabelApplicationSettings">Updated</span>
+        <span class="next-gen-body" data-testId="updatedAt">{{ getRelativeTime(readOnlyValues().updatedAt) }}</span>
       </div>
 
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">link</span>
-        <span class="settings-view__details__row__label m3-body-medium" i18n="@@domainLabelApplicationSettings">Domain</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@domainLabelApplicationSettings">Domain</span>
         @if (readOnlyValues().domain) {
-          <span class="m3-body-medium" data-testId="domain">{{ readOnlyValues().domain }}</span>
+          <span class="next-gen-body" data-testId="domain">{{ readOnlyValues().domain }}</span>
         } @else {
-          <span class="m3-body-medium settings-view__details__row__value--not-set" data-testId="domain" i18n="@@notSetApplicationSettings"
+          <span class="next-gen-body settings-view__details__row__value--not-set" data-testId="domain" i18n="@@notSetApplicationSettings"
             >Not set</span
           >
         }
@@ -74,43 +74,70 @@
 
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">security</span>
-        <span class="settings-view__details__row__label m3-body-medium" i18n="@@securityLabelApplicationSettings">Security</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@securityLabelApplicationSettings">Security</span>
         <mat-chip data-testId="securityType">{{ readOnlyValues().securityType }}</mat-chip>
       </div>
 
       @if (readOnlyValues().grantTypes) {
         <div class="settings-view__details__row">
           <span class="material-icons icon-small settings-view__details__row__icon">lock</span>
-          <span class="settings-view__details__row__label m3-body-medium" i18n="@@rightsAuthorizedLabelApplicationSettings"
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@rightsAuthorizedLabelApplicationSettings"
             >Rights authorized</span
           >
-          <span class="m3-body-medium" data-testId="grantTypes">{{ readOnlyValues().grantTypes }}</span>
+          <span class="next-gen-body" data-testId="grantTypes">{{ readOnlyValues().grantTypes }}</span>
         </div>
       }
 
       @if (readOnlyValues().clientId) {
         <div class="settings-view__details__row">
           <span class="material-icons icon-small settings-view__details__row__icon">tag</span>
-          <span class="settings-view__details__row__label m3-body-medium" i18n="@@clientIdLabelApplicationSettings">Client ID</span>
-          <span class="m3-body-medium" data-testId="clientId">{{ readOnlyValues().clientId }}</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@clientIdLabelApplicationSettings">Client ID</span>
+          <div class="settings-view__details__row__value-group">
+            <span class="next-gen-body" data-testId="clientId">{{ readOnlyValues().clientId }}</span>
+            <app-copy-code-icon [contentToCopy]="readOnlyValues().clientId!" i18n-label label="Copy Client ID" />
+          </div>
+        </div>
+      }
+
+      @if (readOnlyValues().clientSecret) {
+        <div class="settings-view__details__row">
+          <span class="material-icons icon-small settings-view__details__row__icon">key</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@clientSecretLabelApplicationSettings">Client Secret</span>
+          <div class="settings-view__details__row__value-group">
+            <span class="next-gen-body" data-testId="clientSecret">
+              {{ clientSecretVisible() ? readOnlyValues().clientSecret : '••••••••••••••••' }}
+            </span>
+            <button
+              mat-icon-button
+              class="settings-view__details__row__secret-toggle"
+              (click)="clientSecretVisible.set(!clientSecretVisible())"
+              [attr.aria-label]="clientSecretVisible() ? 'Hide Client Secret' : 'Show Client Secret'"
+            >
+              <span class="material-icons icon-small">{{ clientSecretVisible() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+            <app-copy-code-icon [contentToCopy]="readOnlyValues().clientSecret!" i18n-label label="Copy Client Secret" />
+          </div>
         </div>
       }
 
       @if (readOnlyValues().redirectUris) {
         <div class="settings-view__details__row">
           <span class="material-icons icon-small settings-view__details__row__icon">open_in_new</span>
-          <span class="settings-view__details__row__label m3-body-medium" i18n="@@redirectUrisLabelApplicationSettings">Redirect URIs</span>
-          <span class="m3-body-medium" data-testId="redirectUris">{{ readOnlyValues().redirectUris }}</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@redirectUrisLabelApplicationSettings">Redirect URIs</span>
+          <div class="settings-view__details__row__value-group">
+            <span class="next-gen-body" data-testId="redirectUris">{{ readOnlyValues().redirectUris }}</span>
+            <app-copy-code-icon [contentToCopy]="readOnlyValues().redirectUris!" i18n-label label="Copy Redirect URIs" />
+          </div>
         </div>
       }
     </div>
 
     <div class="settings-view__description">
-      <span class="m3-title-small" i18n="@@descriptionLabelApplicationSettings">Application description</span>
+      <span class="next-gen-body" i18n="@@descriptionLabelApplicationSettings">Application description</span>
       @if (readOnlyValues().description) {
-        <span class="m3-body-medium" data-testId="description">{{ readOnlyValues().description }}</span>
+        <span class="next-gen-body" data-testId="description">{{ readOnlyValues().description }}</span>
       } @else {
-        <span class="m3-body-medium settings-view__description__empty" data-testId="description" i18n="@@noDescriptionApplicationSettings"
+        <span class="next-gen-body settings-view__description__empty" data-testId="description" i18n="@@noDescriptionApplicationSettings"
           >No description added.</span
         >
       }
