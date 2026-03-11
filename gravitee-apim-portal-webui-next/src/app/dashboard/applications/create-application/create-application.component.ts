@@ -32,10 +32,10 @@ import { startWith } from 'rxjs';
 import { FormKeyValuePairsComponent } from '../../../../components/form-key-value-pairs/form-key-value-pairs.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
+import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
 import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../../entities/application/application';
 import { ApplicationTypeTranslatePipe } from '../../../../pipe/application-type-translate.pipe';
 import { ApplicationService } from '../../../../services/application.service';
-import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 
 type BaseControls = {
   name: FormControl<string>;
@@ -73,6 +73,7 @@ interface GrantTypeVM {
     MatSelectModule,
     MatSlideToggleModule,
     MobileClassDirective,
+    NarrowClassDirective,
     ReactiveFormsModule,
   ],
   templateUrl: './create-application.component.html',
@@ -82,8 +83,6 @@ export class CreateApplicationComponent {
   readonly applicationService = inject(ApplicationService);
   readonly router = inject(Router);
   readonly destroyRef = inject(DestroyRef);
-  readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
-  readonly isNarrow = inject(ObservabilityBreakpointService).isNarrow;
 
   readonly typeIdControl = new FormControl<string | null>(null, { nonNullable: false });
 

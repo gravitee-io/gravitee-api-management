@@ -28,7 +28,7 @@
             <mat-radio-group
               aria-label="Application type"
               class="types-group"
-              [class.types-group--compact]="isNarrow()"
+              [appIsNarrow]="'types-group--compact'"
               [formControl]="typeIdControl"
             >
               @for (type of types; track $index) {

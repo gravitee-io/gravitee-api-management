@@ -26,7 +26,6 @@ import { CardsGridComponent } from '../../../components/cards-grid/cards-grid.co
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
 import { ApplicationService } from '../../../services/application.service';
 import { CurrentUserService } from '../../../services/current-user.service';
-import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
 
 export interface ApplicationPaginatorVM {
   data: {
@@ -52,7 +51,6 @@ export default class ApplicationsComponent {
   pageSizeOptions = [8, 20, 40, 80];
 
   canCreate = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') || false);
-  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly applicationService = inject(ApplicationService);
