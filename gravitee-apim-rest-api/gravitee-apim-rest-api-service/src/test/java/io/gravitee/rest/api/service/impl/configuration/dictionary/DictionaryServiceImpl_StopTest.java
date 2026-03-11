@@ -31,6 +31,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -55,6 +56,9 @@ public class DictionaryServiceImpl_StopTest {
     private DictionaryRepository dictionaryRepository;
 
     @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
     private EventService eventService;
 
     @Mock
@@ -67,12 +71,13 @@ public class DictionaryServiceImpl_StopTest {
         dictionaryInDb.setCreatedAt(new Date(1486771200000L));
         dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
         dictionaryInDb.setState(LifecycleState.STARTED);
-        dictionaryInDb.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
         when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
 
         Dictionary updatedDictionary = new Dictionary();
         updatedDictionary.setUpdatedAt(new Date());
         updatedDictionary.setState(LifecycleState.STOPPED);
+        updatedDictionary.setEnvironmentId(ENVIRONMENT_ID);
         updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
         when(
             dictionaryRepository.update(
