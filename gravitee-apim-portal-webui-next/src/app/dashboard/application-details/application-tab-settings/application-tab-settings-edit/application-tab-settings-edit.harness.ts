@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import { ContentContainerComponentHarness, parallel, TestKey } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatChipGridHarness } from '@angular/material/chips/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { CopyCodeHarness } from '../../../../../components/copy-code/copy-code.harness';
-import { PictureHarness } from '../../../../../components/picture/picture.harness';
 
 export class ApplicationTabSettingsEditHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-application-tab-settings-edit';
@@ -36,30 +34,6 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
   protected locateGrantTypes = this.getHarnessOrNull(MatSelectHarness.with({ selector: '[data-testId="grantTypes"]' }));
   protected locateSaveButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="save"]' }));
   protected locateDiscardButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="discard"]' }));
-  protected locateDeletePictureButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="deletePicture"]' }));
-
-  public async getDisplayedPictureSource(): Promise<string | null> {
-    const pictureComponent = await this.getHarness(PictureHarness);
-    return pictureComponent.getSource();
-  }
-
-  public async changePicture(fileContent: string) {
-    const inputFile = await this.locatorFor('#applicationPictureFile')();
-    const nativeElement = TestbedHarnessEnvironment.getNativeElement(inputFile);
-
-    const event = new Event('change', { bubbles: true });
-    Object.defineProperty(event, 'target', { value: { files: [new File([fileContent], 'New image', { type: 'image/png' })] } });
-    nativeElement.dispatchEvent(event);
-    await new Promise(resolve => setTimeout(resolve, 50));
-  }
-
-  public async isDeletePictureButtonDisabled(): Promise<boolean> {
-    return this.locateDeletePictureButton.then(button => button.isDisabled());
-  }
-  public async deletePicture(): Promise<void> {
-    return this.locateDeletePictureButton.then(button => button.click());
-  }
-
   public async getName(): Promise<string> {
     return this.locateAppName.then(input => input.getValue());
   }

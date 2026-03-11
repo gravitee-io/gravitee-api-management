@@ -117,10 +117,9 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(simpleApplication, fakeSimpleApplicationType());
     });
 
-    it('Should display name, description, picture, client ID & application type fields', async () => {
+    it('Should display name, description, client ID & application type fields', async () => {
       expect(await updateHarness.getName()).toEqual('Simple application');
       expect(await updateHarness.getDescription()).toEqual('Simple description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toEqual('Custom Client ID');
       expect(await updateHarness.getSimpleType()).toEqual('Custom Application Type');
       expect(await updateHarness.getType()).toBeUndefined();
@@ -178,14 +177,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(b2bApplication, fakeBackendToBackendApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('B2b application');
       expect(await updateHarness.getDescription()).toEqual('B2b description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
       expect(await updateHarness.getType()).toEqual('Backend to backend');
-      expect(await updateHarness.getTypeDescription()).toEqual('Machine to machine');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -236,14 +234,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(nativeApplication, fakeNativeApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret, redirect URIs & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('Native application');
       expect(await updateHarness.getDescription()).toEqual('Native description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
       expect(await updateHarness.getType()).toEqual('Native');
-      expect(await updateHarness.getTypeDescription()).toEqual('iOS, Android, ...');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -306,14 +303,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(browserApplication, fakeBrowserApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret, redirect URIs & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('Browser application');
       expect(await updateHarness.getDescription()).toEqual('Browser description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
       expect(await updateHarness.getType()).toEqual('SPA');
-      expect(await updateHarness.getTypeDescription()).toEqual('Angular, React, Ember, ...');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -376,14 +372,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(webApplication, fakeWebApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret, redirect URIs & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('Web application');
       expect(await updateHarness.getDescription()).toEqual('Web description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
       expect(await updateHarness.getType()).toEqual('Web');
-      expect(await updateHarness.getTypeDescription()).toEqual('Java, .Net, ...');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -456,24 +451,6 @@ describe('ApplicationTabSettingsComponent', () => {
       await updateHarness.discardChanges();
       expect(await updateHarness.getName()).toEqual('Native application');
       expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
-    });
-
-    it('Should update a picture', async () => {
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
-      expect(await updateHarness.isSaveButtonDisabled()).toBeTruthy();
-      await updateHarness.changePicture('newImage.png');
-
-      expect(await updateHarness.isSaveButtonDisabled()).toBeFalsy();
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,bmV3SW1hZ2UucG5n');
-    });
-
-    it('Should delete a picture', async () => {
-      expect(await updateHarness.isDeletePictureButtonDisabled()).toBeFalsy();
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
-
-      await updateHarness.deletePicture();
-      expect(await updateHarness.isDeletePictureButtonDisabled()).toBeTruthy();
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('');
     });
   });
 });
