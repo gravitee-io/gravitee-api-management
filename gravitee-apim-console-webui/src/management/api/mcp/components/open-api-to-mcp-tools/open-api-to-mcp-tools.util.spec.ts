@@ -1216,6 +1216,93 @@ paths:
       expect(mockDereference).not.toHaveBeenCalled();
     });
 
+    it('handles circular $ref schemas without error', async () => {
+      // Simulate what @scalar/openapi-parser dereference returns for circular schemas
+      const tagSpec: Record<string, unknown> = {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          tagChildren: {
+            type: 'array',
+            items: null as unknown, // will be set to tagSpec itself (circular)
+          },
+        },
+      };
+      // Create circular reference: tagChildren.items -> tagSpec
+      (tagSpec.properties as Record<string, Record<string, unknown>>).tagChildren.items = tagSpec;
+
+      const dereferencedSpec = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/tags': {
+            post: {
+              operationId: 'addTags',
+              summary: 'Add Tags',
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: tagSpec,
+                  },
+                },
+              },
+              responses: {
+                '200': { description: 'ok' },
+              },
+            },
+          },
+        },
+      };
+
+      // Override dereference mock to return the circular structure
+      mockDereference.mockResolvedValueOnce({ schema: dereferencedSpec });
+
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/tags': {
+            post: {
+              operationId: 'addTags',
+              summary: 'Add Tags',
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/TagSpec' },
+                  },
+                },
+              },
+              responses: { '200': { description: 'ok' } },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            TagSpec: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                tagChildren: { type: 'array', items: { $ref: '#/components/schemas/TagSpec' } },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.name).toBe('addTags');
+
+      // Verify the inputSchema is JSON-serializable (no circular references)
+      expect(() => JSON.stringify(result[0].toolDefinition.inputSchema)).not.toThrow();
+
+      // Verify the body schema is present with correct structure
+      const bodySchema = (result[0].toolDefinition.inputSchema as Record<string, unknown>)['properties'] as Record<string, unknown>;
+      expect(bodySchema).toHaveProperty('bodySchema');
+    });
+
     it('handles duplicated tool name gracefully', async () => {
       const invalidSpec = JSON.stringify({
         openapi: '3.0.0',
