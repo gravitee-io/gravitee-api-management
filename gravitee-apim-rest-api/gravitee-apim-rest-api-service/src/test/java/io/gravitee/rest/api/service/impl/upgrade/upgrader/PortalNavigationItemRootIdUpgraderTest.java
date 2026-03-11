@@ -44,6 +44,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemRootIdUpgraderTest {
 
+    private static final String ZERO_ROOT_ID = "00000000-0000-0000-0000-000000000000";
+
     private static final Environment ANOTHER_ENVIRONMENT = Environment.builder()
         .id("ANOTHER_ENVIRONMENT")
         .hrids(List.of("another environment"))
@@ -103,8 +105,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_set_root_id_to_self_for_root_items() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        PortalNavigationItem rootFolder = navItem("folder-1", null, null);
-        PortalNavigationItem rootPage = navItem("page-1", null, null);
+        PortalNavigationItem rootFolder = navItem("folder-1", null, ZERO_ROOT_ID);
+        PortalNavigationItem rootPage = navItem("page-1", null, ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
             List.of(rootFolder, rootPage)
@@ -125,8 +127,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_resolve_root_id_for_nested_items() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        PortalNavigationItem root = navItem("root", null, null);
-        PortalNavigationItem child = navItem("child", "root", null);
+        PortalNavigationItem root = navItem("root", null, ZERO_ROOT_ID);
+        PortalNavigationItem child = navItem("child", "root", ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(root, child));
 
@@ -149,10 +151,10 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_resolve_root_id_for_deeply_nested_hierarchy() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        PortalNavigationItem root = navItem("root", null, null);
-        PortalNavigationItem level1 = navItem("level1", "root", null);
-        PortalNavigationItem level2 = navItem("level2", "level1", null);
-        PortalNavigationItem level3 = navItem("level3", "level2", null);
+        PortalNavigationItem root = navItem("root", null, ZERO_ROOT_ID);
+        PortalNavigationItem level1 = navItem("level1", "root", ZERO_ROOT_ID);
+        PortalNavigationItem level2 = navItem("level2", "level1", ZERO_ROOT_ID);
+        PortalNavigationItem level3 = navItem("level3", "level2", ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
             List.of(root, level1, level2, level3)
@@ -174,7 +176,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
         PortalNavigationItem alreadyMigrated = navItem("item-1", null, "item-1");
-        PortalNavigationItem needsMigration = navItem("item-2", null, null);
+        PortalNavigationItem needsMigration = navItem("item-2", null, ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
             List.of(alreadyMigrated, needsMigration)
@@ -193,8 +195,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_migrate_items_with_zero_root_id_sentinel() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        String zeroRootId = "00000000-0000-0000-0000-000000000000";
-        PortalNavigationItem itemWithZeroRoot = navItem("item-zero", null, zeroRootId);
+        PortalNavigationItem itemWithZeroRoot = navItem("item-zero", null, ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
             List.of(itemWithZeroRoot)
@@ -214,8 +215,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_process_multiple_environments() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
 
-        PortalNavigationItem itemEnv1 = navItem("item-env1", null, null);
-        PortalNavigationItem itemEnv2 = navItem("item-env2", null, null);
+        PortalNavigationItem itemEnv1 = navItem("item-env1", null, ZERO_ROOT_ID);
+        PortalNavigationItem itemEnv2 = navItem("item-env2", null, ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(itemEnv1));
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("ANOTHER_ORG", "ANOTHER_ENVIRONMENT")).thenReturn(
@@ -232,7 +233,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_throw_when_orphaned_items_cannot_be_resolved() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        PortalNavigationItem orphan = navItem("orphan", "missing-parent", null);
+        PortalNavigationItem orphan = navItem("orphan", "missing-parent", ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(orphan));
 
@@ -248,8 +249,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_throw_when_cycle_prevents_root_resolution() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        PortalNavigationItem nodeA = navItem("A", "B", null);
-        PortalNavigationItem nodeB = navItem("B", "A", null);
+        PortalNavigationItem nodeA = navItem("A", "B", ZERO_ROOT_ID);
+        PortalNavigationItem nodeB = navItem("B", "A", ZERO_ROOT_ID);
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
             List.of(nodeA, nodeB)
