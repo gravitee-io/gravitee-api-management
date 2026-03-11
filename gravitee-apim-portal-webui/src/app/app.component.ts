@@ -31,6 +31,7 @@ import {
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
+import { ViewportScroller } from '@angular/common';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -107,6 +108,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private ref: ChangeDetectorRef,
     private googleAnalyticsService: GoogleAnalyticsService,
     private previewService: PreviewService,
+    private viewportScroller: ViewportScroller,
   ) {
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
@@ -339,6 +341,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private _onNavigationEnd(event: NavigationEnd) {
     this.isHomepage = this.isHomepageUrl(event.url);
+    if (this.isHomepage) {
+      this.viewportScroller.scrollToPosition([0, 0]);
+      this.isSticky = false;
+      this.isStickyHomepage = false;
+    }
     this.portalService.getPortalLinks().subscribe(portalLinks => {
       if (portalLinks.slots) {
         // deepcode ignore reDOS: <please specify a reason of ignoring this>
