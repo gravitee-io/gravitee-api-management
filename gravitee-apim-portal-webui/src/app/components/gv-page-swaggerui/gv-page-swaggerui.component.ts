@@ -54,6 +54,11 @@ export class GvPageSwaggerUIComponent implements OnInit, OnDestroy {
 
     // Clean up global side effects leakage from SwaggerUI / React
     document.getElementById('preact-border-shadow-host')?.remove();
+
+    // Restore body overflow - Swagger UI sets overflow:hidden when opening schema modals,
+    // which can persist and break the layout when navigating back to homepage
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
   }
 
   private refresh(page: Page) {
