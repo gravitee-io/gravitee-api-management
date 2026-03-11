@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEnti
 import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -69,6 +71,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Autowired
     private EventService eventService;
@@ -318,7 +323,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity updateProperties(ExecutionContext executionContext, final String id, final Map<String, String> properties) {
+    public DictionaryEntity updateProperties(final String id, final Map<String, String> properties) {
         try {
             LOGGER.debug("Update dictionary properties {}", id);
 
@@ -331,6 +336,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
+
+            EnvironmentEntity environment = environmentService.findById(dictionary.getEnvironmentId());
+            ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
 
             // Create publish event
             eventService.createDictionaryEvent(
