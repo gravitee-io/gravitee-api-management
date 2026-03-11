@@ -587,14 +587,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 if (subscription.getRequest() != null) {
                     paramSubscription.setRequest(Jsoup.clean(subscription.getRequest(), Safelist.none()));
                 }
-                final Map<String, Object> params = new NotificationParamsBuilder()
+                final NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                     .api(api)
                     .plan(genericPlanEntity)
                     .application(applicationEntity)
                     .owner(apiOwner)
                     .subscription(paramSubscription)
-                    .subscriptionsUrl(subscriptionsUrl)
-                    .build();
+                    .subscriptionsUrl(subscriptionsUrl);
+                addSubscribedByUserIfPresent(executionContext, paramsBuilder, paramSubscription.getSubscribedBy());
+                final Map<String, Object> params = paramsBuilder.build();
 
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_NEW, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_NEW, application, params);
@@ -613,6 +614,24 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
 
         return Optional.ofNullable(Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().getBytes()));
+    }
+
+    private void addSubscribedByUserIfPresent(
+        ExecutionContext executionContext,
+        NotificationParamsBuilder paramsBuilder,
+        String subscribedBy
+    ) {
+        if (subscribedBy == null || subscribedBy.isEmpty()) {
+            return;
+        }
+        try {
+            UserEntity subscribedByUser = userService.findById(executionContext, subscribedBy);
+            if (subscribedByUser != null) {
+                paramsBuilder.user(subscribedByUser);
+            }
+        } catch (Exception e) {
+            logger.debug("Could not resolve subscribed-by user {} for subscription notification params", subscribedBy, e);
+        }
     }
 
     private long countSubscriptionMatchingPredicate(
@@ -903,13 +922,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             String apiId = genericPlanEntity.getApiId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            final Map<String, Object> params = new NotificationParamsBuilder()
+            final NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                 .owner(owner)
                 .api(genericApiModel)
                 .plan(genericPlanEntity)
                 .application(application)
-                .subscription(result)
-                .build();
+                .subscription(result);
+            addSubscribedByUserIfPresent(executionContext, paramsBuilder, result.getSubscribedBy());
+            final Map<String, Object> params = paramsBuilder.build();
             notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, apiId, params);
             notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
 
@@ -943,13 +963,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             String apiId = genericPlanEntity.getApiId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            final Map<String, Object> params = new NotificationParamsBuilder()
+            final NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                 .owner(owner)
                 .api(genericApiModel)
                 .plan(genericPlanEntity)
                 .application(application)
-                .subscription(result)
-                .build();
+                .subscription(result);
+            addSubscribedByUserIfPresent(executionContext, paramsBuilder, result.getSubscribedBy());
+            final Map<String, Object> params = paramsBuilder.build();
             notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, apiId, params);
             notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
 
@@ -1045,12 +1066,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 String apiId = genericPlanEntity.getApiId();
                 final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                final Map<String, Object> params = new NotificationParamsBuilder()
+                final NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                     .owner(owner)
                     .api(genericApiModel)
                     .plan(genericPlanEntity)
-                    .application(application)
-                    .build();
+                    .application(application);
+                addSubscribedByUserIfPresent(executionContext, paramsBuilder, subscription.getSubscribedBy());
+                final Map<String, Object> params = paramsBuilder.build();
 
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_PAUSED, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_PAUSED, application.getId(), params);
@@ -1222,12 +1244,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 String apiId = genericPlanEntity.getApiId();
                 final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                final Map<String, Object> params = new NotificationParamsBuilder()
+                final NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                     .owner(owner)
                     .api(genericApiModel)
                     .plan(genericPlanEntity)
-                    .application(application)
-                    .build();
+                    .application(application);
+                addSubscribedByUserIfPresent(executionContext, paramsBuilder, subscription.getSubscribedBy());
+                final Map<String, Object> params = paramsBuilder.build();
 
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_RESUMED, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_RESUMED, application.getId(), params);
@@ -1568,13 +1591,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             SubscriptionEntity subscriptionEntity = convert(subscription);
 
-            final Map<String, Object> params = new NotificationParamsBuilder()
+            final NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                 .owner(owner)
                 .application(application)
                 .api(genericApiModel)
                 .plan(subscriptionGenericPlanEntity)
-                .subscription(subscriptionEntity)
-                .build();
+                .subscription(subscriptionEntity);
+            addSubscribedByUserIfPresent(executionContext, paramsBuilder, subscriptionEntity.getSubscribedBy());
+            final Map<String, Object> params = paramsBuilder.build();
             notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_TRANSFERRED, apiId, params);
             notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_TRANSFERRED, application.getId(), params);
             return subscriptionEntity;
