@@ -158,8 +158,8 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                         .properties(Collections.emptyMap())
                         .event(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED)
                         .createdAt(new Date())
-                        .oldValue(previousFlows)
-                        .newValue(newFlows)
+                        .oldValue(Collections.singletonMap("flows", previousFlows))
+                        .newValue(Collections.singletonMap("flows", newFlows))
                         .build()
                 );
                 Organization organization = convert(organizationEntity);

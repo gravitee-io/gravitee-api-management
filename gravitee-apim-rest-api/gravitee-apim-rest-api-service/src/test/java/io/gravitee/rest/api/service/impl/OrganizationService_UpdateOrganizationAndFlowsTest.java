@@ -117,8 +117,8 @@ public class OrganizationService_UpdateOrganizationAndFlowsTest {
             eq(GraviteeContext.getExecutionContext()),
             argThat(auditLogData -> {
                 assertEquals(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED, auditLogData.getEvent());
-                assertEquals(previousFlows, auditLogData.getOldValue());
-                assertEquals(newFlows, auditLogData.getNewValue());
+                assertEquals(Collections.singletonMap("flows", previousFlows), auditLogData.getOldValue());
+                assertEquals(Collections.singletonMap("flows", newFlows), auditLogData.getNewValue());
                 return true;
             })
         );
