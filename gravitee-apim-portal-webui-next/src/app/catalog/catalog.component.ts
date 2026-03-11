@@ -89,7 +89,7 @@ export class CatalogComponent {
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
   protected readonly tableColumns = computed(() => (this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'version', 'mcp']));
-  protected apiPaginator: Signal<ApiPaginatorVM>;
+  protected apiPaginator: Signal<ApiPaginatorVM> = toSignal(this.loadApis$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
 
   constructor() {
     effect(() => {
@@ -97,7 +97,6 @@ export class CatalogComponent {
         this.page$.next(1);
       }
     });
-    this.apiPaginator = toSignal(this.loadApis$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
   }
 
   onPageChange(page: number) {

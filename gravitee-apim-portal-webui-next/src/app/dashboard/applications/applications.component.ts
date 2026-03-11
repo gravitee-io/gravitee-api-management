@@ -54,14 +54,13 @@ export default class ApplicationsComponent {
   canCreate = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') || false);
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
-  protected readonly applicationPaginator: Signal<ApplicationPaginatorVM>;
   private readonly applicationService = inject(ApplicationService);
   private readonly router = inject(Router);
   private readonly page$ = new BehaviorSubject<number>(1);
 
-  constructor() {
-    this.applicationPaginator = toSignal(this.loadApplications$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
-  }
+  protected readonly applicationPaginator: Signal<ApplicationPaginatorVM> = toSignal(this.loadApplications$(), {
+    initialValue: { data: [], page: 1, totalResults: 0 },
+  });
 
   onPageChange(page: number) {
     this.page$.next(page);

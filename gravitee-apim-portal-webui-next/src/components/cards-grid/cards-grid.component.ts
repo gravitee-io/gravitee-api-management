@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Component, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, TemplateRef, contentChild, input } from '@angular/core';
 
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { NarrowClassDirective } from '../../directives/narrow-class.directive';
@@ -25,9 +26,10 @@ import { LoaderComponent } from '../loader/loader.component';
   templateUrl: './cards-grid.component.html',
   styleUrls: ['./cards-grid.component.scss'],
   standalone: true,
-  imports: [LoaderComponent, MobileClassDirective, NarrowClassDirective],
+  imports: [LoaderComponent, MobileClassDirective, NarrowClassDirective, NgTemplateOutlet],
 })
-export class CardsGridComponent {
-  readonly cards = input<unknown[]>();
+export class CardsGridComponent<T> {
+  readonly cards = input<T[]>();
   readonly loading = input<boolean>(false);
+  readonly cardTemplate = contentChild<TemplateRef<{ $implicit: T }>>('cardTemplate');
 }

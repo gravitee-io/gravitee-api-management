@@ -34,21 +34,19 @@
   </div>
 
   <app-cards-grid [cards]="applicationPaginator().data">
-    <ng-container slot="cards">
-      @for (app of applicationPaginator().data; track app.id) {
-        <app-application-card
-          [applicationId]="app.id"
-          [title]="app.name"
-          [description]="app.description"
-          (cardSelect)="navigateToApplication($event)"
-        />
-      }
-    </ng-container>
+    <ng-template #cardTemplate let-app>
+      <app-application-card
+        [applicationId]="app.id"
+        [title]="app.name"
+        [description]="app.description"
+        (cardSelect)="navigateToApplication($event)"
+      />
+    </ng-template>
 
     <ng-container slot="empty-state">
-      <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
-      <h2 class="m3-title-large" i18n="@@noAppsAvailable">No applications available yet</h2>
-      <p i18n="@@noAppsDescription">You haven't created any applications yet.</p>
+      <span class="material-icons icon-with-background" aria-hidden="true">search</span>
+      <h2 class="next-gen-h5" i18n="@@noAppsAvailable">No applications available yet</h2>
+      <p class="next-gen-body" i18n="@@noAppsDescription">You haven't created any applications yet.</p>
     </ng-container>
   </app-cards-grid>
 

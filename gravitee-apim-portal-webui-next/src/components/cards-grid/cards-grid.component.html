@@ -21,7 +21,9 @@
   </div>
 } @else if (cards() && cards()!.length > 0) {
   <div class="cards-grid" [appIsNarrow]="'cards-grid--narrow'" [appIsMobile]="'cards-grid--mobile'">
-    <ng-content select="[slot=cards]" />
+    @for (item of cards()!; track $index) {
+      <ng-container *ngTemplateOutlet="cardTemplate() || null; context: { $implicit: item }" />
+    }
   </div>
 } @else {
   <div class="cards-grid__empty-state">
