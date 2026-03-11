@@ -33,7 +33,7 @@
 
 -->
 <div class="content">
-  <div class="api-list__header" [class.api-list__header--mobile]="isMobile()">
+  <div class="api-list__header" [appIsMobile]="'api-list__header--mobile'">
     <div class="next-gen-h1" i18n="@@catalogTitle">Catalog</div>
     <div class="api-list__header__controls">
       <app-button-toggle-group [(value)]="viewMode">

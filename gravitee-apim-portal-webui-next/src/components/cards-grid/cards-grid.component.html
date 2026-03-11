@@ -20,7 +20,7 @@
     <app-loader />
   </div>
 } @else if (cards() && cards()!.length > 0) {
-  <div class="cards-grid" [class.cards-grid--narrow]="isNarrow() && !isMobile()" [class.cards-grid--mobile]="isMobile()">
+  <div class="cards-grid" [appIsNarrow]="'cards-grid--narrow'" [appIsMobile]="'cards-grid--mobile'">
     <ng-content select="[slot=cards]" />
   </div>
 } @else {

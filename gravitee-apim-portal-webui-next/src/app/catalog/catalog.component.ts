@@ -32,6 +32,7 @@ import { CardsGridComponent } from '../../components/cards-grid/cards-grid.compo
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
+import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { ApisResponse } from '../../entities/api/apis-response';
 import { ApiService } from '../../services/api.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
@@ -62,6 +63,7 @@ interface ApiPaginatorVM {
     ButtonToggleOptionComponent,
     CardsGridComponent,
     LoaderComponent,
+    MobileClassDirective,
     PaginationComponent,
     SearchBarComponent,
     MatChipsModule,
@@ -83,7 +85,6 @@ export class CatalogComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
-  protected readonly isNarrow = this.breakpointService.isNarrow;
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
