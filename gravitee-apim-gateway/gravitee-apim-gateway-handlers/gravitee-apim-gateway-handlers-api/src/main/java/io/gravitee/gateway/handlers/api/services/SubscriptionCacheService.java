@@ -96,13 +96,27 @@ public class SubscriptionCacheService implements SubscriptionService {
         // take all fields (including "updatedAt" in metadata) into account
         if (ACCEPTED.name().equals(subscription.getStatus())) {
             if (subscription.getClientCertificate() != null) {
+                log.debug("Registering subscription [{}] for API [{}] by client certificate", subscription.getId(), subscription.getApi());
                 registerFromClientCertificate(subscription);
             } else if (subscription.getClientId() != null) {
+                log.debug(
+                    "Registering subscription [{}] for API [{}] by clientId [{}]",
+                    subscription.getId(),
+                    subscription.getApi(),
+                    subscription.getClientId()
+                );
                 registerFromClientId(subscription);
             } else {
+                log.debug("Registering subscription [{}] for API [{}] by ID", subscription.getId(), subscription.getApi());
                 registerFromId(subscription);
             }
         } else {
+            log.debug(
+                "Unregistering subscription [{}] for API [{}] with status [{}]",
+                subscription.getId(),
+                subscription.getApi(),
+                subscription.getStatus()
+            );
             unregister(subscription);
         }
     }
@@ -138,6 +152,7 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public void unregisterByApiId(final String apiId) {
+        log.debug("Unregistering all subscriptions for API [{}]", apiId);
         cacheKeysByApiId.computeIfPresent(apiId, (k, subscriptionsByApi) -> {
             subscriptionsByApi.forEach(cacheKey -> {
                 Set<Subscription> all = cacheBySubscriptionIdAll.get(cacheKey);
