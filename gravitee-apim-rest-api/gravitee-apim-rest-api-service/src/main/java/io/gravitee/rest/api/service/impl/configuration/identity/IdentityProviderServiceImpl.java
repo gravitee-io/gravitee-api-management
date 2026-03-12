@@ -24,6 +24,7 @@ import static io.gravitee.rest.api.model.configuration.identity.IdentityProvider
 import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.el.spel.SpelExpressionParser;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.expression.ParseException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -151,8 +153,9 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 .orElseThrow(() -> new IdentityProviderNotFoundException(updateIdentityProvider.getName()));
 
             validatePersistedClaimsWhitelist(updateIdentityProvider.getPersistedClaimsWhitelist());
+            validateGroupMappingExpressions(updateIdentityProvider.getGroupMappings());
 
-            //TODO: Find a way to validate mapping expression
+            //TODO: Find a way to validate group mapping conditions and role mapping expressions
             IdentityProvider identityProvider = convert(executionContext, updateIdentityProvider);
 
             identityProvider.setId(id);
@@ -309,6 +312,34 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         for (String claimName : whitelist) {
             if (claimName == null || claimName.trim().isEmpty()) {
                 throw new InvalidDataException("Persisted claims whitelist must not contain empty claim names");
+            }
+        }
+    }
+
+    /**
+     * Rejects a group mapping expression that does not parse, which would otherwise only fail at login, silently.
+     */
+    private void validateGroupMappingExpressions(List<GroupMappingEntity> groupMappings) {
+        if (groupMappings == null) {
+            return;
+        }
+        SpelExpressionParser parser = new SpelExpressionParser();
+        for (GroupMappingEntity groupMapping : groupMappings) {
+            if (groupMapping.getGroups() == null) {
+                continue;
+            }
+            for (String group : groupMapping.getGroups()) {
+                if (GroupMappingEntity.isExpression(group)) {
+                    // The Console and Gamma edit one expression per line: a line break would split it on the next save
+                    if (group.lines().count() > 1) {
+                        throw new InvalidDataException("Group mapping expression must fit on a single line: " + group);
+                    }
+                    try {
+                        parser.parseExpression(group);
+                    } catch (ParseException e) {
+                        throw new InvalidDataException("Invalid group mapping expression: " + group, e);
+                    }
+                }
             }
         }
     }

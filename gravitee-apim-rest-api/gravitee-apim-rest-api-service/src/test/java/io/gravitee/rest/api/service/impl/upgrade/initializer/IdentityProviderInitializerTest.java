@@ -20,7 +20,9 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
@@ -142,6 +144,42 @@ public class IdentityProviderInitializerTest {
             eq(GOOGLE_NAME),
             eq(expectedActivationTargets())
         );
+    }
+
+    @Test
+    public void shouldKeepGroupMappingExpressionsAsWritten() {
+        MockEnvironment environment = new MockEnvironment()
+            .withProperty("security.providers[0].type", "google")
+            .withProperty("security.providers[0].groupMapping[0].condition", "{#true}")
+            .withProperty("security.providers[0].groupMapping[0].groups[0]", "developers")
+            .withProperty("security.providers[0].groupMapping[0].groups[1]", "{#jsonPath(#profile, '$.groups')}");
+        initializer = new IdentityProviderInitializer(
+            environment,
+            groupService,
+            organizationService,
+            environmentService,
+            identityProviderService,
+            identityProviderActivationService
+        );
+        GroupEntity developers = new GroupEntity();
+        developers.setId("developers-id");
+        when(groupService.findByName(any(), eq("developers"))).thenReturn(List.of(developers));
+        when(identityProviderService.findById(GOOGLE_ID)).thenReturn(googleIDP());
+
+        initializer.initialize();
+
+        verify(identityProviderService).update(
+            any(ExecutionContext.class),
+            eq(GOOGLE_ID),
+            argThat(idp -> {
+                List<GroupMappingEntity> mappings = idp.getGroupMappings();
+                return (
+                    mappings.size() == 1 &&
+                    mappings.get(0).getGroups().equals(List.of("developers-id", "{#jsonPath(#profile, '$.groups')}"))
+                );
+            })
+        );
+        verify(groupService, never()).findByName(any(), eq("{#jsonPath(#profile, '$.groups')}"));
     }
 
     private static ActivationTarget[] expectedActivationTargets() {
