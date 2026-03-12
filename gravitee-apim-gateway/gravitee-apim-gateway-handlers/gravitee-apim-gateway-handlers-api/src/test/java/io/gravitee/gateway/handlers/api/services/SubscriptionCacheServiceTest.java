@@ -266,8 +266,7 @@ class SubscriptionCacheServiceTest {
             // getById returns the updated subscription
             assertThat(subscriptionService.getById(SUB_ID)).isPresent().get().isEqualTo(updated);
 
-            // Old cert still present in cache (stale entry, but harmless — real lookup uses trust store)
-            assertThat(subscriptionService.getByClientCertificate(subscription)).isPresent();
+            assertThat(subscriptionService.getByClientCertificate(subscription)).isEmpty();
         }
 
         @Test
