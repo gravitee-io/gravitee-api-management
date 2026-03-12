@@ -79,6 +79,14 @@ public class FederatedPlan implements Serializable {
     }
 
     @JsonIgnore
+    public final boolean isBasicAuth() {
+        return (
+            this.getSecurity() != null &&
+            ("BASIC_AUTH".equalsIgnoreCase(this.getSecurity().getType()) || "basic-auth".equalsIgnoreCase(this.getSecurity().getType()))
+        );
+    }
+
+    @JsonIgnore
     public final boolean isOAuth() {
         return (this.getSecurity() != null && "oauth2".equalsIgnoreCase(this.getSecurity().getType()));
     }

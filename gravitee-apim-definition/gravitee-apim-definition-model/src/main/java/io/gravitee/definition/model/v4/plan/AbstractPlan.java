@@ -92,5 +92,13 @@ public abstract class AbstractPlan implements Serializable {
         );
     }
 
+    @JsonIgnore
+    public final boolean isBasicAuth() {
+        return (
+            this.getSecurity() != null &&
+            ("BASIC_AUTH".equalsIgnoreCase(this.getSecurity().getType()) || "basic-auth".equalsIgnoreCase(this.getSecurity().getType()))
+        );
+    }
+
     public abstract List<Plugin> getPlugins();
 }

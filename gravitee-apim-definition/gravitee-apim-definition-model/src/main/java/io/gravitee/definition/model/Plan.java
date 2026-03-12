@@ -105,6 +105,14 @@ public class Plan implements Serializable {
         );
     }
 
+    @JsonIgnore
+    public final boolean isBasicAuth() {
+        return (
+            this.getSecurity() != null &&
+            ("BASIC_AUTH".equalsIgnoreCase(this.getSecurity()) || "basic-auth".equalsIgnoreCase(this.getSecurity()))
+        );
+    }
+
     public Plan flows(List<Flow> flows) {
         this.flows = flows;
         return this;
