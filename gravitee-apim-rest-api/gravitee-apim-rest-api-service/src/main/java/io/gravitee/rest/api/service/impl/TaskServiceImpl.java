@@ -212,7 +212,6 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
             return tasks;
         } catch (TechnicalException e) {
-            log.error("Error retrieving user tasks {}", e.getMessage());
             throw new TechnicalManagementException("Error retreiving user tasks", e);
         }
     }
@@ -363,7 +362,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                         .getContent()
                 );
             } catch (TechnicalException e) {
-                log.error("Error retrieving API Product IDs for environment admin tasks: {}", e.getMessage());
+                log.error("Error retrieving API Product IDs for environment admin tasks", e);
             }
         }
 
@@ -402,7 +401,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     metadata.put(workflow.getReferenceId(), "environmentId", api.getEnvironmentId());
                 });
             } catch (TechnicalException e) {
-                log.error("Error retrieving api task metadata {}", e.getMessage());
+                log.error("Error retrieving api task metadata for workflow [{}]", workflow.getReferenceId(), e);
             }
         }
     }
@@ -416,7 +415,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 metadata.put(subscription.getApplication(), "environmentId", value.getEnvironmentId());
             });
         } catch (TechnicalException e) {
-            log.error("Error retrieving application task metadata {}", e.getMessage());
+            log.error("Error retrieving application task metadata for application [{}]", subscription.getApplication(), e);
         }
     }
 
@@ -441,7 +440,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 }
             }
         } catch (TechnicalException e) {
-            log.error("Error retrieving plan task metadata {}", e.getMessage());
+            log.error("Error retrieving plan task metadata for plan [{}]", subscription.getPlan(), e);
         }
     }
 
@@ -452,7 +451,6 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             taskEntity.setCreatedAt(user.getCreatedAt());
             taskEntity.setData(user);
         } catch (Exception e) {
-            log.error("Error converting user {} to a Task", user.getId());
             throw new TechnicalManagementException("Error converting user " + user.getId() + " to a Task", e);
         }
         return taskEntity;
@@ -465,7 +463,6 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             taskEntity.setCreatedAt(subscription.getCreatedAt());
             taskEntity.setData(subscription);
         } catch (Exception e) {
-            log.error("Error converting subscription {} to a Task", subscription.getId());
             throw new TechnicalManagementException("Error converting subscription " + subscription.getId() + " to a Task", e);
         }
         return taskEntity;
@@ -478,9 +475,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             taskEntity.setCreatedAt(workflow.getCreatedAt());
             taskEntity.setData(workflow);
         } catch (Exception e) {
-            final String error = "Error converting workflow " + workflow.getId() + " to a Task";
-            log.error(error);
-            throw new TechnicalManagementException(error, e);
+            throw new TechnicalManagementException("Error converting workflow " + workflow.getId() + " to a Task", e);
         }
         return taskEntity;
     }
