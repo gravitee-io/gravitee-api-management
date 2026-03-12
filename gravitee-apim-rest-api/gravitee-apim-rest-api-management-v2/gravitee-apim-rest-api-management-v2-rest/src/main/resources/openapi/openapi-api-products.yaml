@@ -996,6 +996,67 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/_export:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product Subscriptions
+      summary: Export API Product subscriptions as CSV
+      description: |-
+        Export API Product subscriptions to a CSV file.
+
+        User must have the API_PRODUCT_SUBSCRIPTION[READ] permission.
+      operationId: exportApiProductSubscriptions
+      parameters:
+        - name: applicationIds
+          in: query
+          description: List of application ids to filter on.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: planIds
+          in: query
+          description: List of plan ids to filter on.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: statuses
+          in: query
+          description: List of status filters.
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionStatus"
+          explode: false
+        - name: apiKey
+          in: query
+          description: API Key associated to the subscription to filter on.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        "200":
+          description: API Product subscriptions successfully exported.
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: attachment;filename="subscriptions-{apiProductId}-{timestamp}.csv"
+          content:
+            text/csv: {}
+        default:
+          $ref: '#/components/responses/Error'
+
   /environments/{envId}/api-products/{apiProductId}/subscriptions/_canCreate:
     parameters:
       - $ref: "#/components/parameters/envIdParam"

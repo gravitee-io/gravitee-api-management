@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
+import static java.lang.String.format;
+
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
@@ -25,6 +27,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -32,14 +35,17 @@ import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.validator.CustomApiKey;
@@ -57,8 +63,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -97,6 +106,9 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     @Inject
     private ParameterService parameterService;
 
+    @Inject
+    private SubscriptionService subscriptionService;
+
     @PathParam("apiProductId")
     private String apiProductId;
 
@@ -113,21 +125,13 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     ) {
         log.debug("Getting subscriptions for API Product {}", apiProductId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
-        Page<SubscriptionEntity> subscriptionPage = searchSubscriptionsUseCase
-            .execute(
-                new SearchSubscriptionsUseCase.Input(
-                    executionContext,
-                    apiProductId,
-                    SubscriptionReferenceType.API_PRODUCT,
-                    applicationIds,
-                    planIds,
-                    subscriptionMapper.mapToStatusSet(statuses),
-                    apiKey,
-                    paginationParam.toPageable()
-                )
-            )
-            .page();
+        Page<SubscriptionEntity> subscriptionPage = searchApiProductSubscriptions(
+            applicationIds,
+            planIds,
+            statuses,
+            apiKey,
+            paginationParam.toPageable()
+        );
 
         List<Subscription> subscriptions = subscriptionMapper.mapToList(subscriptionPage.getContent());
         subscriptions.forEach(sub -> {
@@ -146,6 +150,73 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
                 .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
                 .links(computePaginationLinks((int) totalCount, paginationParam))
         ).build();
+    }
+
+    @GET
+    @Path("_export")
+    @Produces("text/csv")
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    public Response exportApiProductSubscriptions(
+        @QueryParam("applicationIds") Set<String> applicationIds,
+        @QueryParam("planIds") Set<String> planIds,
+        @QueryParam("statuses") @DefaultValue("ACCEPTED") Set<SubscriptionStatus> statuses,
+        @QueryParam("apiKey") String apiKey,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Page<SubscriptionEntity> subscriptionPage = searchApiProductSubscriptions(
+            applicationIds,
+            planIds,
+            statuses,
+            apiKey,
+            paginationParam.toPageable()
+        );
+
+        final Map<String, Map<String, Object>> metadata;
+        if (subscriptionPage.getPageElements() > 0) {
+            final SubscriptionMetadataQuery subscriptionMetadataQuery = new SubscriptionMetadataQuery(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                subscriptionPage.getContent()
+            )
+                .withApiProducts(true)
+                .withApplications(true)
+                .withPlans(true);
+            metadata = subscriptionService.getMetadata(executionContext, subscriptionMetadataQuery).toMap();
+        } else {
+            metadata = new HashMap<>();
+        }
+
+        return Response.ok(subscriptionService.exportAsCsv(subscriptionPage.getContent(), metadata))
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                format("attachment;filename=subscriptions-%s-%s.csv", apiProductId, System.currentTimeMillis())
+            )
+            .build();
+    }
+
+    private Page<SubscriptionEntity> searchApiProductSubscriptions(
+        Set<String> applicationIds,
+        Set<String> planIds,
+        Set<SubscriptionStatus> statuses,
+        String apiKey,
+        Pageable pageable
+    ) {
+        Page<SubscriptionEntity> page = searchSubscriptionsUseCase
+            .execute(
+                new SearchSubscriptionsUseCase.Input(
+                    GraviteeContext.getExecutionContext(),
+                    apiProductId,
+                    SubscriptionReferenceType.API_PRODUCT,
+                    applicationIds,
+                    planIds,
+                    subscriptionMapper.mapToStatusSet(statuses),
+                    apiKey,
+                    pageable
+                )
+            )
+            .page();
+        return page != null ? page : new Page<>(List.of(), 0, 0, 0);
     }
 
     @GET

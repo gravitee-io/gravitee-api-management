@@ -26,7 +26,7 @@
         *gioPermission="{ anyOf: ['api_product-subscription-r'] }"
         mat-raised-button
         type="button"
-        [disabled]="true"
+        [disabled]="totalSubscriptions() === 0"
         aria-label="Export as CSV"
         (click)="exportAsCSV()"
       >
