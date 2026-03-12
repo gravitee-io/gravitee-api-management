@@ -17,11 +17,13 @@ package io.gravitee.gateway.reactive.core.v4.endpoint.loadbalancer;
 
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class AbstractLoadBalancerStrategy implements LoadBalancerStrategy {
 
     protected final List<ManagedEndpoint> endpoints;
@@ -44,9 +46,11 @@ public abstract class AbstractLoadBalancerStrategy implements LoadBalancerStrate
         } catch (IndexOutOfBoundsException exception) {
             // This has been implemented to avoid putting the method in synchronized and avoid TooManyException
             if (attempt < 2) {
+                log.debug("Load balancer encountered IndexOutOfBoundsException (attempt {}/3), retrying", attempt + 1);
                 attempt++;
                 return next(attempt);
             }
+            log.debug("Load balancer failed to select endpoint after 3 attempts, endpoints size: {}", endpoints.size());
             return null;
         }
     }
