@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -65,6 +66,9 @@ public class SubscriptionResource extends AbstractResource {
     private ApiKeyService apiKeyService;
 
     @Inject
+    private BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
+
+    @Inject
     private KeyMapper keyMapper;
 
     @Inject
@@ -100,6 +104,12 @@ public class SubscriptionResource extends AbstractResource {
             if (include.contains(INCLUDE_CONSUMER_CONFIGURATION)) {
                 subscription.setConsumerConfiguration(SubscriptionMapper.INSTANCE.map(subscriptionEntity.getConfiguration()));
             }
+
+            basicAuthCredentialsCrudService
+                .findBySubscriptionId(subscriptionId)
+                .ifPresent(creds -> {
+                    subscription.setBasicAuthUsername(creds.getUsername());
+                });
 
             return Response.ok(subscription).build();
         }

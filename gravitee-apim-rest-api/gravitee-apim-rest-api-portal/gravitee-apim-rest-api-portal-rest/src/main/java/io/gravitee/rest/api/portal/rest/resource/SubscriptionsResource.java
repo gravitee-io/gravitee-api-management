@@ -18,6 +18,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
+import io.gravitee.apim.core.basic_auth.model.BasicAuthPlainCredentialsHolder;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -98,6 +100,9 @@ public class SubscriptionsResource extends AbstractResource {
     private ApiKeyService apiKeyService;
 
     @Inject
+    private BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
+
+    @Inject
     private ApiMapper apiMapper;
 
     @Inject
@@ -133,6 +138,8 @@ public class SubscriptionsResource extends AbstractResource {
                     .build()
             );
 
+            var plainCredentials = BasicAuthPlainCredentialsHolder.getAndClear();
+
             // Fetch legacy subscription entity for response mapping
             SubscriptionEntity createdSubscription = subscriptionService.findById(output.subscription().getId());
 
@@ -146,6 +153,11 @@ public class SubscriptionsResource extends AbstractResource {
 
             final Subscription subscription = SubscriptionMapper.INSTANCE.map(createdSubscription);
             subscription.setKeys(keys);
+
+            if (plainCredentials != null) {
+                subscription.setBasicAuthUsername(plainCredentials.getUsername());
+                subscription.setBasicAuthPassword(plainCredentials.getPassword());
+            }
 
             return Response.ok(subscription).build();
         }

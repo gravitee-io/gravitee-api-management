@@ -4512,6 +4512,7 @@ components:
                         - JWT
                         - OAUTH2
                         - MTLS
+                        - BASIC_AUTH
                 description:
                     description: Description of the plan.
                     type: string
@@ -5038,6 +5039,16 @@ components:
                         $ref: "#/components/schemas/Key"
                 consumerConfiguration:
                     $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
+                basic_auth_username:
+                    description: |
+                        Only returned for subscriptions to BASIC_AUTH plans.
+                        The generated username for Basic Auth.
+                    type: string
+                basic_auth_password:
+                    description: |
+                        Only returned for subscriptions to BASIC_AUTH plans.
+                        The generated password for Basic Auth. Only available at subscription creation time.
+                    type: string
 
         Ticket:
             properties:
