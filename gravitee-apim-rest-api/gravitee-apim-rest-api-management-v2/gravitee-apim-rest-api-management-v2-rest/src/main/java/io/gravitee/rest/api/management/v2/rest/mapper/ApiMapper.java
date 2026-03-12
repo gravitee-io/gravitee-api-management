@@ -254,7 +254,6 @@ public interface ApiMapper {
     ApiV4 mapFromNativeApiEntity(NativeApiEntity apiEntity);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
-    @Mapping(target = "metadata", ignore = true)
     ApiEntity map(ApiV4 api);
 
     @Mapping(target = "flows", expression = "java(mapApiV4Flows(api))")
