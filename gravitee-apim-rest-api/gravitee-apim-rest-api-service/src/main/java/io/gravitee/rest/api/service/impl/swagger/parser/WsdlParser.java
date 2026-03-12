@@ -36,7 +36,7 @@ public class WsdlParser extends AbstractDescriptorParser<OpenAPI> {
                 return new WSDLToOpenAPIConverter().toOpenAPI(content);
             }
         } catch (Exception e) {
-            log.info("Wsdl parsing failed : {}", e.getMessage());
+            log.warn("Wsdl parsing failed : {}", e.getMessage());
             return null;
         }
     }
