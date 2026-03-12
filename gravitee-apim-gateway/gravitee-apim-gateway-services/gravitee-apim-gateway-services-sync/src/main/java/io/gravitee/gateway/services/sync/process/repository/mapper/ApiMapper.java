@@ -100,7 +100,7 @@ public class ApiMapper {
                 return reactableApi;
             } catch (Exception e) {
                 // Log the error and ignore this event.
-                log.error("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
+                log.warn("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
                 return null;
             }
         });

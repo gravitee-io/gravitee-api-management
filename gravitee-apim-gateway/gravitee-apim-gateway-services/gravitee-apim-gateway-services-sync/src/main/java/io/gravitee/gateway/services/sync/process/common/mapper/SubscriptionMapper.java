@@ -44,7 +44,7 @@ public class SubscriptionMapper {
             // Regular API subscription - return as single-item list
             return List.of(toSubscription(subscriptionModel));
         } catch (Exception e) {
-            log.error("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
+            log.warn("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
             return List.of(); // Return empty list on error
         }
     }
@@ -113,7 +113,7 @@ public class SubscriptionMapper {
                     objectMapper.readValue(subscriptionModel.getConfiguration(), SubscriptionConfiguration.class)
                 );
             } catch (Exception e) {
-                log.error("Unable to parse subscription configuration for [{}]", subscriptionModel.getId(), e);
+                log.warn("Unable to parse subscription configuration for [{}]", subscriptionModel.getId(), e);
             }
         }
         Map<String, String> metadata = subscriptionModel.getMetadata() != null
