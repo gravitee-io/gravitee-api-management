@@ -124,6 +124,20 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-policy-basicauth</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.inference.service</groupId>
             <artifactId>gravitee-inference-service</artifactId>
             <version>${gravitee-inference-service.version}</version>

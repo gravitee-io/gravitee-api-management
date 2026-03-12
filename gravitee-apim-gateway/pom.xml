@@ -45,6 +45,7 @@
         <module>gravitee-apim-gateway-opentelemetry</module>
         <module>gravitee-apim-gateway-platform</module>
         <module>gravitee-apim-gateway-policy</module>
+        <module>gravitee-apim-gateway-policy-basicauth</module>
         <module>gravitee-apim-gateway-reactor</module>
         <module>gravitee-apim-gateway-reporting</module>
         <module>gravitee-apim-gateway-repository</module>
