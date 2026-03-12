@@ -76,7 +76,12 @@ class SubscriptionCacheServiceTest {
 
     @BeforeEach
     void setup() {
-        subscriptionService = new SubscriptionCacheService(apiKeyService, basicAuthCacheService, subscriptionTrustStoreLoaderManager, apiManager);
+        subscriptionService = new SubscriptionCacheService(
+            apiKeyService,
+            basicAuthCacheService,
+            subscriptionTrustStoreLoaderManager,
+            apiManager
+        );
     }
 
     @Nested

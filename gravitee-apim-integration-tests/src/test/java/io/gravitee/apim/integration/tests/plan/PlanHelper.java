@@ -54,6 +54,7 @@ public class PlanHelper {
 
     public static final String PLAN_KEYLESS_ID = "plan-keyless-id";
     public static final String PLAN_APIKEY_ID = "plan-apikey-id";
+    public static final String PLAN_BASIC_AUTH_ID = "plan-basic-auth";
     public static final String PLAN_JWT_ID = "plan-jwt-id";
     public static final String PLAN_OAUTH2_ID = "plan-oauth2-id";
     public static final String PLAN_MTLS_ID = "plan-mtls-id";
@@ -137,6 +138,15 @@ public class PlanHelper {
             plans.add(apiKeyPlan);
         }
 
+        if (planIds.contains("BASIC_AUTH")) {
+            io.gravitee.definition.model.Plan basicAuthPlan = new io.gravitee.definition.model.Plan();
+            basicAuthPlan.setId(PLAN_BASIC_AUTH_ID);
+            basicAuthPlan.setApi(api.getId());
+            basicAuthPlan.setSecurity("basic-auth");
+            basicAuthPlan.setStatus("PUBLISHED");
+            plans.add(basicAuthPlan);
+        }
+
         if (planIds.contains("JWT")) {
             io.gravitee.definition.model.Plan jwtPlan = new Plan();
             jwtPlan.setId(PLAN_JWT_ID);
@@ -204,6 +214,17 @@ public class PlanHelper {
                 .mode(PlanMode.STANDARD)
                 .build();
             plans.add(apiKeyPlan);
+        }
+
+        if (planIds.contains("basic-auth")) {
+            io.gravitee.definition.model.v4.plan.Plan basicAuthPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
+                .id(PLAN_BASIC_AUTH_ID)
+                .name("plan-basic-auth-name")
+                .security(PlanSecurity.builder().type("basic-auth").build())
+                .status(PlanStatus.PUBLISHED)
+                .mode(PlanMode.STANDARD)
+                .build();
+            plans.add(basicAuthPlan);
         }
 
         if (planIds.contains("jwt")) {
