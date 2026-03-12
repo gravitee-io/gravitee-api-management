@@ -279,6 +279,10 @@ public class IdentityProviderInitializer implements Initializer {
                 if (!groupNames.isEmpty()) {
                     List<String> groups = new ArrayList<>();
                     groupNames.forEach(groupName -> {
+                        if (GroupMappingEntity.isExpression(groupName)) {
+                            groups.add(groupName);
+                            return;
+                        }
                         List<GroupEntity> groupsFound = groupService.findByName(executionContext.getEnvironmentId(), groupName);
 
                         if (groupsFound != null && groupsFound.size() == 1) {

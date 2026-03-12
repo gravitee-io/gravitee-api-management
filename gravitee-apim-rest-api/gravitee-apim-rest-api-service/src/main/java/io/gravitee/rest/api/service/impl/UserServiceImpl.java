@@ -60,6 +60,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.RegistrationOrigin;
 import io.gravitee.repository.management.model.User;
@@ -2331,7 +2332,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     /**
-     * Calculate the list of groups to associate to a user according to its OIDC profile (ie. UserInfo)
+     * Calculate the list of groups to associate to a user according to its OIDC profile (ie. UserInfo).
+     * <p>
+     * A mapping value is either a group id or an expression such as {@code {#jsonPath(#idToken, '$.groups')}}. An expression
+     * resolves to group names (a list or a single value), each one is matched exactly against the names of the
+     * groups of the login's environment, or of every environment of the organization when the login has no environment;
+     * names matching no group are ignored.
      *
      * @param userId
      * @param mappings
@@ -2351,31 +2357,82 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             return Collections.emptySet();
         }
 
-        Set<GroupEntity> groups = new HashSet<>();
+        TemplateEngine templateEngine = TemplateEngine.templateEngine();
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
+
+        Set<String> groupIds = new LinkedHashSet<>();
+        Map<String, List<String>> groupIdsByName = null;
 
         for (GroupMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
-
             boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
 
             trace(userId, match, mapping.getCondition());
 
-            // Get groups
-            if (match) {
-                for (String groupName : mapping.getGroups()) {
-                    try {
-                        groups.add(groupService.findById(executionContext, groupName));
-                    } catch (GroupNotFoundException gnfe) {
-                        log.warn("Unable to map user groups, missing group in repository: {}", groupName);
+            if (!match) {
+                continue;
+            }
+
+            for (String group : mapping.getGroups()) {
+                if (!GroupMappingEntity.isExpression(group)) {
+                    groupIds.add(group);
+                    continue;
+                }
+
+                if (groupIdsByName == null) {
+                    groupIdsByName = findGroupIdsByName(executionContext);
+                }
+
+                for (String groupName : evalGroupNames(userId, group, templateEngine)) {
+                    List<String> matchingGroupIds = groupIdsByName.get(groupName);
+                    if (matchingGroupIds == null) {
+                        log.debug("Unable to map user {} to group {}, no group with this name", userId, groupName);
+                    } else {
+                        groupIds.addAll(matchingGroupIds);
                     }
                 }
             }
         }
 
+        Set<GroupEntity> groups = new HashSet<>();
+        for (String groupId : groupIds) {
+            try {
+                groups.add(groupService.findById(executionContext, groupId));
+            } catch (GroupNotFoundException gnfe) {
+                log.warn("Unable to map user groups, missing group in repository: {}", groupId);
+            }
+        }
+
         return groups;
+    }
+
+    private Map<String, List<String>> findGroupIdsByName(ExecutionContext executionContext) {
+        Stream<String> environmentIds = executionContext.hasEnvironmentId()
+            ? Stream.of(executionContext.getEnvironmentId())
+            : environmentService.findByOrganization(executionContext.getOrganizationId()).stream().map(EnvironmentEntity::getId);
+
+        return environmentIds
+            .flatMap(environmentId -> groupService.findAllByEnvironment(environmentId).stream())
+            .filter(group -> group.getName() != null)
+            .collect(Collectors.groupingBy(Group::getName, Collectors.mapping(Group::getId, toList())));
+    }
+
+    private Collection<String> evalGroupNames(String userId, String expression, TemplateEngine templateEngine) {
+        Object value;
+        try {
+            value = templateEngine.eval(expression.strip(), Object.class).blockingGet();
+        } catch (Exception e) {
+            // A missing optional claim fails here on every login of the users without it: keep the stack trace out of warn
+            log.warn("Failed to evaluate group mapping for user: {}. Expression: {}. Error: {}", userId, expression, e.getMessage());
+            log.debug("Failed to evaluate group mapping for user: {}. Expression: {}", userId, expression, e);
+            return emptyList();
+        }
+
+        if (value instanceof Collection<?> values) {
+            return values.stream().filter(Objects::nonNull).map(String::valueOf).toList();
+        }
+        return value == null ? emptyList() : List.of(String.valueOf(value));
     }
 
     private List<MembershipService.Membership> refreshUserGroups(

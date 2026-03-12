@@ -18,12 +18,20 @@ package io.gravitee.rest.api.model.configuration.identity;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GroupMappingEntity {
+
+    /**
+     * A template the expression language engine evaluates, anywhere in the value: {@code {#...}}, {@code { #...}},
+     * {@code {T(...)}} or {@code {(...)}}. Text around it makes a composite template resolving to a single name, e.g.
+     * {@code team-{#profile['department']}}.
+     */
+    private static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\{ *(?:#|T\\(|\\()");
 
     private String condition;
 
@@ -44,5 +52,12 @@ public class GroupMappingEntity {
 
     public void setGroups(List<String> groups) {
         this.groups = groups;
+    }
+
+    /**
+     * A group of a mapping is either a group id or an expression resolving to group names.
+     */
+    public static boolean isExpression(String group) {
+        return group != null && EXPRESSION_PATTERN.matcher(group).find();
     }
 }
