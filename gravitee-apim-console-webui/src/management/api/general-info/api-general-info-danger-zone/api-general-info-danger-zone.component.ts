@@ -331,12 +331,11 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        tap(() => this.reloadDetails.emit()),
         map(() => this.snackBarService.success(`The API has been detached from its automation source.`)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => {
-        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
-      });
+      .subscribe();
   }
 
   private canChangeApiLifecycle(api: Api): boolean {
