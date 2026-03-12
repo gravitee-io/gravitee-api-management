@@ -285,9 +285,9 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     await confirmDialog.confirm();
 
     httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_detach` }).flush({});
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], expect.anything());
+    expect(routerNavigateSpy).not.toHaveBeenCalled();
 
-    expect(component.reloadDetails.emit).not.toHaveBeenCalled();
+    expect(component.reloadDetails.emit).toHaveBeenCalled();
   });
 
   it('should show detach action', async () => {
