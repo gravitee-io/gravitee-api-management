@@ -178,8 +178,12 @@ public class SubscriptionCacheService implements SubscriptionService {
             Objects.equals(subscription.getApi(), cached.getApi()) &&
             !Objects.equals(subscription.getClientCertificate(), cached.getClientCertificate())
         ) {
-            evictKeyForApi(cached.getApi(), identityCacheKey(cached));
-            evictKeyForApi(cached.getApi(), identityCacheKeyWithoutPlan(cached));
+            String cacheKey = identityCacheKey(cached);
+            String cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(cached);
+            evictKeyForApi(cached.getApi(), cacheKey);
+            evictKeyForApi(cached.getApi(), cacheKeyWithoutPlan);
+            cacheByClientCertificate.remove(cacheKey);
+            cacheByClientCertificate.remove(cacheKeyWithoutPlan);
         }
     }
 
@@ -203,11 +207,13 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     private void updateIdentityCache(Subscription subscription, Map<String, Subscription> cache) {
         updateCacheKeyByApiId(subscription.getApi(), subscription.getId());
-        updateCacheKeyByApiId(subscription.getApi(), identityCacheKey(subscription));
-        cache.put(identityCacheKey(subscription), subscription);
+        String cacheKey = identityCacheKey(subscription);
+        updateCacheKeyByApiId(subscription.getApi(), cacheKey);
+        cache.put(cacheKey, subscription);
         // Index the subscription without plan id to allow search without plan criteria.
-        cache.put(identityCacheKeyWithoutPlan(subscription), subscription);
-        updateCacheKeyByApiId(subscription.getApi(), identityCacheKeyWithoutPlan(subscription));
+        String cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(subscription);
+        cache.put(cacheKeyWithoutPlan, subscription);
+        updateCacheKeyByApiId(subscription.getApi(), cacheKeyWithoutPlan);
     }
 
     private void updateCacheKeyByApiId(final String apiId, final String cacheKey) {
