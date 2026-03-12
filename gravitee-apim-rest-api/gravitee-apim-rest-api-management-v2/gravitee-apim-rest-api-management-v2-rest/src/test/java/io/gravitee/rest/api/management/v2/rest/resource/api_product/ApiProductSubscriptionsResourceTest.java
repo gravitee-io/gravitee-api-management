@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -46,6 +48,9 @@ import io.gravitee.rest.api.management.v2.rest.model.VerifySubscriptionResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -58,6 +63,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -520,6 +526,196 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
                         json(new io.gravitee.rest.api.management.v2.rest.model.CreateSubscription().planId("plan-1").applicationId("app-1"))
                     )
             );
+        }
+    }
+
+    @Nested
+    class ExportTest {
+
+        private static final String CSV_HEADERS = "Plan;Application;Creation date;Process date;Start date;End date date;Status";
+        private static final String CSV_CONTENT =
+            "Plan value;Application value;Creation date value;Process date value;Start date value;End date date value;Status value";
+        private static final String CSV = CSV_HEADERS + "\n" + CSV_CONTENT;
+
+        @Test
+        void should_return_empty_export_if_no_subscriptions() {
+            when(
+                subscriptionService.search(
+                    eq(GraviteeContext.getExecutionContext()),
+                    argThat(
+                        q ->
+                            API_PRODUCT_ID.equals(q.getReferenceId()) && q.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT
+                    ),
+                    any(),
+                    eq(false),
+                    eq(false)
+                )
+            ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+            when(subscriptionService.exportAsCsv(any(), any())).thenReturn(CSV_HEADERS);
+
+            final Response response = rootTarget().path("_export").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.getHeaderString("content-disposition")).matches(
+                "attachment;filename=subscriptions-" + API_PRODUCT_ID + "-\\d+.csv"
+            );
+
+            var csv = response.readEntity(String.class);
+            assertThat(csv).isEqualTo(CSV_HEADERS);
+
+            verify(subscriptionService).exportAsCsv(List.of(), Map.of());
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_PRODUCT_SUBSCRIPTION),
+                    eq(API_PRODUCT_ID),
+                    eq(RolePermissionAction.READ)
+                )
+            ).thenReturn(false);
+
+            final Response response = rootTarget().path("_export").request().get();
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+
+            var error = response.readEntity(Error.class);
+            assertThat(error.getHttpStatus()).isEqualTo(FORBIDDEN_403);
+            assertThat(error.getMessage()).isEqualTo("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_export_subscriptions_as_csv() {
+            final List<SubscriptionEntity> subscriptionEntities = List.of(
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id("subscription-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType("API_PRODUCT")
+                    .build(),
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id("subscription-2")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType("API_PRODUCT")
+                    .build()
+            );
+            when(
+                subscriptionService.search(
+                    eq(GraviteeContext.getExecutionContext()),
+                    argThat(
+                        q ->
+                            API_PRODUCT_ID.equals(q.getReferenceId()) && q.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT
+                    ),
+                    any(),
+                    eq(false),
+                    eq(false)
+                )
+            ).thenReturn(new Page<>(subscriptionEntities, 1, 10, 2));
+
+            final Metadata metadata = new Metadata();
+            metadata.put(API_PRODUCT_ID, "name", "my-api-product-name");
+            metadata.put("plan-1", "name", "my-plan-name");
+            metadata.put("app-1", "name", "my-application-name");
+            when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(metadata);
+            when(subscriptionService.exportAsCsv(any(), any())).thenReturn(CSV);
+
+            final Response response = rootTarget().path("_export").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.getHeaderString("content-disposition")).matches(
+                "attachment;filename=subscriptions-" + API_PRODUCT_ID + "-\\d+.csv"
+            );
+
+            var csv = response.readEntity(String.class);
+            assertThat(csv).isEqualTo(CSV);
+
+            verify(subscriptionService).getMetadata(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(metadataQuery -> {
+                    assertThat(metadataQuery.getSubscriptions()).isEqualTo(subscriptionEntities);
+                    assertThat(metadataQuery.getOrganization()).isEqualTo(ORGANIZATION);
+                    assertThat(metadataQuery.getEnvironment()).isEqualTo(ENV_ID);
+                    assertThat(metadataQuery.ifApiProducts().orElse(false)).isTrue();
+                    assertThat(metadataQuery.ifApplications().orElse(false)).isTrue();
+                    assertThat(metadataQuery.ifPlans().orElse(false)).isTrue();
+                    return true;
+                })
+            );
+            verify(subscriptionService).exportAsCsv(subscriptionEntities, metadata.toMap());
+        }
+
+        @Test
+        void should_export_with_multi_criteria() {
+            final List<SubscriptionEntity> subscriptionEntities = List.of(
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id("subscription-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType("API_PRODUCT")
+                    .build()
+            );
+            when(
+                subscriptionService.search(
+                    eq(GraviteeContext.getExecutionContext()),
+                    argThat(
+                        (SubscriptionQuery q) ->
+                            API_PRODUCT_ID.equals(q.getReferenceId()) && q.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT
+                    ),
+                    any(),
+                    eq(false),
+                    eq(false)
+                )
+            ).thenReturn(new Page<>(subscriptionEntities, 1, 10, 1));
+
+            final Metadata metadata = new Metadata();
+            when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(metadata);
+            when(subscriptionService.exportAsCsv(any(), any())).thenReturn(CSV);
+
+            final Response response = rootTarget()
+                .path("_export")
+                .queryParam("applicationIds", "application-1", "application-2")
+                .queryParam("planIds", "plan-1", "plan-2")
+                .queryParam("statuses", "ACCEPTED", "CLOSED")
+                .queryParam("apiKey", "apiKey")
+                .queryParam("page", 2)
+                .queryParam("perPage", 20)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.getHeaderString("content-disposition")).matches(
+                "attachment;filename=subscriptions-" + API_PRODUCT_ID + "-\\d+.csv"
+            );
+
+            var csv = response.readEntity(String.class);
+            assertThat(csv).isEqualTo(CSV);
+
+            verify(subscriptionService).search(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(
+                    (SubscriptionQuery q) ->
+                        API_PRODUCT_ID.equals(q.getReferenceId()) && q.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT
+                ),
+                any(),
+                eq(false),
+                eq(false)
+            );
+            verify(subscriptionService).getMetadata(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(metadataQuery -> {
+                    assertThat(metadataQuery.getSubscriptions()).isEqualTo(subscriptionEntities);
+                    assertThat(metadataQuery.getOrganization()).isEqualTo(ORGANIZATION);
+                    assertThat(metadataQuery.getEnvironment()).isEqualTo(ENV_ID);
+                    assertThat(metadataQuery.ifApiProducts().orElse(false)).isTrue();
+                    assertThat(metadataQuery.ifApplications().orElse(false)).isTrue();
+                    assertThat(metadataQuery.ifPlans().orElse(false)).isTrue();
+                    return true;
+                })
+            );
+            verify(subscriptionService).exportAsCsv(subscriptionEntities, metadata.toMap());
         }
     }
 }
