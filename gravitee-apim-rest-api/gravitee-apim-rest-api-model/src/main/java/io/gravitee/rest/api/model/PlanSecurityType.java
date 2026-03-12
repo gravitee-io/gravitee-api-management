@@ -46,4 +46,10 @@ public enum PlanSecurityType {
      * Plan which is using a mTLS security authentication type for incoming HTTP requests.
      */
     MTLS,
+
+    /**
+     * Plan which is using a Basic Auth security authentication type for incoming HTTP requests.
+     * Credentials (username/password) are generated server-side at subscription time.
+     */
+    BASIC_AUTH,
 }

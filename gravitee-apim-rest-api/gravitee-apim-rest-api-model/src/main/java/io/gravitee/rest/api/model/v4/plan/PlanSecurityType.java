@@ -52,7 +52,13 @@ public enum PlanSecurityType {
     /**
      * Plan which is using a mTLS security authentication type for incoming HTTP requests.
      */
-    MTLS("mtls");
+    MTLS("mtls"),
+
+    /**
+     * Plan which is using a Basic Auth security authentication type for incoming HTTP requests.
+     * Credentials (username/password) are generated server-side at subscription time.
+     */
+    BASIC_AUTH("basic-auth");
 
     private static final Map<String, PlanSecurityType> maps = Map.of(
         KEY_LESS.label,
@@ -64,7 +70,9 @@ public enum PlanSecurityType {
         JWT.label,
         JWT,
         MTLS.label,
-        MTLS
+        MTLS,
+        BASIC_AUTH.label,
+        BASIC_AUTH
     );
 
     private final String label;

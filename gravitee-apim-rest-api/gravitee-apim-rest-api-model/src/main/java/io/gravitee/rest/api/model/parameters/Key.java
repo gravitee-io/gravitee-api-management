@@ -187,6 +187,11 @@ public enum Key {
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
     PLAN_SECURITY_PUSH_ENABLED("plan.security.push.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PLAN_SECURITY_BASIC_AUTH_ENABLED(
+        "plan.security.basicauth.enabled",
+        "true",
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
 
     OPEN_API_DOC_TYPE_SWAGGER_ENABLED(
         "open.api.doc.type.swagger.enabled",

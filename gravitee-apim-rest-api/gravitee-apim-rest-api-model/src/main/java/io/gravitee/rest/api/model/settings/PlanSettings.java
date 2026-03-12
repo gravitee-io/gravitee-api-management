@@ -66,6 +66,9 @@ public class PlanSettings {
         @ParameterKey(Key.PLAN_SECURITY_MTLS_ENABLED)
         private Enabled mtls;
 
+        @ParameterKey(Key.PLAN_SECURITY_BASIC_AUTH_ENABLED)
+        private Enabled basicAuth;
+
         public Enabled getApikey() {
             return apikey;
         }
@@ -128,6 +131,14 @@ public class PlanSettings {
 
         public void setPush(Enabled push) {
             this.push = push;
+        }
+
+        public Enabled getBasicAuth() {
+            return basicAuth;
+        }
+
+        public void setBasicAuth(Enabled basicAuth) {
+            this.basicAuth = basicAuth;
         }
     }
 }
