@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
-import { camelCase } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { DefinitionVersion, ListenerType, PlanSecurityType } from '../entities/management-api-v2';
@@ -43,6 +42,11 @@ export const AVAILABLE_PLANS_FOR_MENU: PlanMenuItemVM[] = [
     policy: 'jwt',
   },
   {
+    planFormType: 'BASIC_AUTH',
+    name: 'Basic Auth',
+    policy: 'basic-auth',
+  },
+  {
     planFormType: 'API_KEY',
     name: 'API Key',
     policy: 'api-key',
@@ -67,11 +71,10 @@ export class ConstantsService {
     const planSecuritySettings: [string, { enabled: boolean }][] = Object.entries(this.constants.env?.settings?.plan?.security ?? {});
 
     return AVAILABLE_PLANS_FOR_MENU.filter(planMenuItem => {
-      const cleanSecurityType = camelCase(planMenuItem.planFormType.replace('_', ''));
+      const normalizedType = planMenuItem.planFormType.replace(/_/g, '').toLowerCase();
 
-      // One of the portal settings security types matches the security type from PLAN_SECURITY_TYPES
       const matchedSecurityType = planSecuritySettings
-        .filter(([portalSettingsSecurityType, _]) => cleanSecurityType === camelCase(portalSettingsSecurityType))
+        .filter(([portalSettingsSecurityType, _]) => normalizedType === portalSettingsSecurityType.toLowerCase())
         .map(([_, value]) => value);
 
       return matchedSecurityType.length > 0 && matchedSecurityType[0].enabled;

@@ -287,6 +287,32 @@
     </ng-container>
   </mat-card>
 
+  <mat-card
+    *ngIf="subscription?.status !== 'REJECTED' && subscription?.plan.securityType === 'BASIC_AUTH' && basicAuthCredentials"
+  >
+    <mat-card-header>
+      <mat-card-title>Basic Auth Credentials</mat-card-title>
+    </mat-card-header>
+    <div class="subscription__basic-auth">
+      <dl class="gio-description-list">
+        <dt>Username</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="basicAuthCredentials.username">
+          {{ basicAuthCredentials.username }}
+        </dd>
+        <ng-container *ngIf="basicAuthCredentials.password">
+          <dt>Password</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="basicAuthCredentials.password">
+            {{ basicAuthCredentials.password }}
+          </dd>
+        </ng-container>
+      </dl>
+      <div *ngIf="!basicAuthCredentials.password" class="subscription__basic-auth__password-notice">
+        <mat-icon svgIcon="gio:info"></mat-icon>
+        <span>Password was shown only at subscription acceptance time.</span>
+      </div>
+    </div>
+  </mat-card>
+
   @if (subscription?.plan?.mode === 'PUSH' && !!subscription?.consumerConfiguration) {
     <subscription-edit-push-config
       [updatePermission]="'api-subscription-u'"

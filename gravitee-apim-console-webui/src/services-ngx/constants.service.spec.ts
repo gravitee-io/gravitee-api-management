@@ -67,6 +67,9 @@ describe('ConstantsService', () => {
         mtls: {
           enabled: true,
         },
+        basicAuth: {
+          enabled: true,
+        },
       });
       const expectedPlanSecurityTypes = AVAILABLE_PLANS_FOR_MENU;
 
@@ -133,6 +136,9 @@ describe('ConstantsService', () => {
         mtls: {
           enabled: true,
         },
+        basicAuth: {
+          enabled: true,
+        },
       };
 
       beforeEach(async () => {
@@ -156,6 +162,11 @@ describe('ConstantsService', () => {
             planFormType: 'JWT',
             name: 'JWT',
             policy: 'jwt',
+          },
+          {
+            planFormType: 'BASIC_AUTH',
+            name: 'Basic Auth',
+            policy: 'basic-auth',
           },
           {
             planFormType: 'API_KEY',
@@ -182,6 +193,11 @@ describe('ConstantsService', () => {
             planFormType: 'JWT',
             name: 'JWT',
             policy: 'jwt',
+          },
+          {
+            planFormType: 'BASIC_AUTH',
+            name: 'Basic Auth',
+            policy: 'basic-auth',
           },
           {
             planFormType: 'API_KEY',
@@ -213,6 +229,11 @@ describe('ConstantsService', () => {
             planFormType: 'JWT',
             name: 'JWT',
             policy: 'jwt',
+          },
+          {
+            planFormType: 'BASIC_AUTH',
+            name: 'Basic Auth',
+            policy: 'basic-auth',
           },
           {
             planFormType: 'API_KEY',

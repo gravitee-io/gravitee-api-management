@@ -58,6 +58,9 @@ interface PortalForm {
     mtls: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
+    basicAuth: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
   }>;
   api: FormGroup<{
     labelsDictionary: FormControl<string[]>;
@@ -280,6 +283,12 @@ export class PortalSettingsComponent implements OnInit {
           enabled: new FormControl({
             value: this.settings.plan.security.mtls.enabled,
             disabled: this.isReadonly('plan.security.mtls.enabled'),
+          }),
+        }),
+        basicAuth: new FormGroup({
+          enabled: new FormControl({
+            value: this.settings.plan.security.basicAuth.enabled,
+            disabled: this.isReadonly('plan.security.basicauth.enabled'),
           }),
         }),
       }),

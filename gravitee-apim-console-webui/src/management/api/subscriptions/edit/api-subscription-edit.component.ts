@@ -119,6 +119,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   displayedColumns: string[];
   hasSharedApiKeyMode: boolean;
   isFederatedApi: boolean;
+  basicAuthCredentials: { username: string; password: string } | null = null;
   private apiId: string;
   private canUseCustomApiKey: boolean;
 
@@ -195,6 +196,14 @@ export class ApiSubscriptionEditComponent implements OnInit {
             if (this.subscription.plan.securityType === 'API_KEY' && this.subscription.status !== 'REJECTED') {
               this.hasSharedApiKeyMode = subscription.application.apiKeyMode === 'SHARED';
             }
+
+            if (this.subscription.plan.securityType === 'BASIC_AUTH' && subscription.basicAuthUsername) {
+              this.basicAuthCredentials = {
+                username: subscription.basicAuthUsername,
+                password: subscription.basicAuthPassword ?? '',
+              };
+            }
+
             return this.getApiKeysList(1, 10);
           }
           return EMPTY;

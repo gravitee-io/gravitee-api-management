@@ -91,4 +91,6 @@ export interface Subscription {
   consumerPausedAt?: Date;
 
   origin: 'KUBERNETES' | 'MANAGEMENT';
+  basicAuthUsername?: string;
+  basicAuthPassword?: string;
 }

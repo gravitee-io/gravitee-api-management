@@ -130,6 +130,19 @@
             aria-label="mTLS plans ( only available for API V4 )"
           ></mat-slide-toggle>
         </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          formGroupName="basicAuth"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.basicauth.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Basic Auth plans</gio-form-label>
+          <mat-slide-toggle
+            formControlName="enabled"
+            gioFormSlideToggle
+            aria-label="Basic Auth plans"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </mat-card-content>
 
       <mat-card-content formGroupName="api">

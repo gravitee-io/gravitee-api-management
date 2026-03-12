@@ -20,6 +20,7 @@ export enum PlanSecurityType {
   API_KEY = 'API_KEY',
   OAUTH2 = 'OAUTH2',
   JWT = 'JWT',
+  BASIC_AUTH = 'BASIC_AUTH',
 }
 
 export enum PlanValidation {

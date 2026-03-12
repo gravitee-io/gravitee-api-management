@@ -201,6 +201,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         mtls: {
           enabled: true,
         },
+        basicAuth: {
+          enabled: true,
+        },
       },
     },
     scheduler: {

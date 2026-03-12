@@ -371,6 +371,7 @@ ${ifSubscriptionContent}`;
       API_KEY: 'API Key',
       OAUTH2: 'OAuth2',
       JWT: 'JWT',
+      BASIC_AUTH: 'Basic Auth',
     };
     return labels[type] || type;
   }

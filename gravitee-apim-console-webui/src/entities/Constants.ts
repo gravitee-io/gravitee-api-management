@@ -153,6 +153,9 @@ export interface EnvSettings {
       mtls: {
         enabled: boolean;
       };
+      basicAuth: {
+        enabled: boolean;
+      };
     };
   };
   portal: {

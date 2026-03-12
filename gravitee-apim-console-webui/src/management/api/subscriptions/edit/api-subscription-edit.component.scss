@@ -37,6 +37,18 @@
     max-width: 100%;
   }
 
+  &__basic-auth {
+    &__password-notice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      margin-top: 8px;
+      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker40);
+      font-style: italic;
+    }
+  }
+
   &__api-keys {
     &__subtitle {
       padding-bottom: 24px;

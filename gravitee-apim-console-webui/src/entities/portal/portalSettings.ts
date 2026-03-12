@@ -179,6 +179,9 @@ export interface PortalSettingsPlan {
     mtls: {
       enabled: boolean;
     };
+    basicAuth: {
+      enabled: boolean;
+    };
   };
 }
 
