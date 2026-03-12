@@ -301,6 +301,12 @@ public class Plan {
          * Plan which is using a MTLS security authentication type for incoming HTTP requests.
          */
         MTLS,
+
+        /**
+         * Plan which is using a Basic Auth security authentication type for incoming HTTP requests.
+         * Credentials (username/password) are generated server-side at subscription time.
+         */
+        BASIC_AUTH,
     }
 
     public enum PlanValidationType {

@@ -55,6 +55,13 @@ public interface GraviteeMapper {
 
     List<ApiKey> mapApiKeys(Collection<ApiKeyMongo> toMap);
 
+    // BasicAuthCredentials mapping
+    BasicAuthCredentials map(BasicAuthCredentialsMongo toMap);
+
+    BasicAuthCredentialsMongo map(BasicAuthCredentials toMap);
+
+    List<BasicAuthCredentials> mapBasicAuthCredentials(Collection<BasicAuthCredentialsMongo> toMap);
+
     // ApiQualityRule mapping
     @Mapping(target = "api", source = "id.api")
     @Mapping(target = "qualityRule", source = "id.qualityRule")
