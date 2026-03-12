@@ -17,7 +17,6 @@
 
 :host {
   display: flex;
-  height: 138px;
   flex-flow: column;
   width: 100%;
   min-width: 0;
@@ -46,6 +45,12 @@
       flex-flow: column;
       gap: 2px;
       overflow: hidden;
+
+      .next-gen-h5 {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
     }
   }
 

@@ -17,7 +17,6 @@
 
 :host {
   display: flex;
-  height: 138px;
   flex-flow: column;
   width: 100%;
   min-width: 0;
@@ -47,12 +46,10 @@
       gap: 2px;
       overflow: hidden;
 
-      .m3-title-medium {
-        display: -webkit-box;
+      .next-gen-h5 {
         overflow: hidden;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
     }
   }

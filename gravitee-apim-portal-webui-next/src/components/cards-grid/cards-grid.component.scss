@@ -23,6 +23,7 @@
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(4, 316px);
+  grid-auto-rows: 138px;
 
   &--narrow {
     grid-template-columns: repeat(2, 1fr);
