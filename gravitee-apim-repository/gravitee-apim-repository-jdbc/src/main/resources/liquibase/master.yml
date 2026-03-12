@@ -320,3 +320,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_0/10_make_root_id_not_null_portal_navigation_items.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
