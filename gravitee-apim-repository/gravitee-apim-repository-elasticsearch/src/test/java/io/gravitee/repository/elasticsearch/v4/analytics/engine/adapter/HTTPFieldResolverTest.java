@@ -93,7 +93,7 @@ class HTTPFieldResolverTest {
     @Test
     void should_throw_unsupported_operation_exception_for_unknown_filter() {
         assertThrows(UnsupportedOperationException.class, () ->
-            fieldResolver.fromFilter(new Filter(Filter.Name.KAFKA_TOPIC, Filter.Operator.EQ, "value"))
+            fieldResolver.fromFilter(new Filter(Filter.Name.MESSAGE_CONNECTOR_TYPE, Filter.Operator.EQ, "value"))
         );
     }
 
@@ -150,6 +150,6 @@ class HTTPFieldResolverTest {
 
     @Test
     void should_throw_unsupported_operation_exception_for_unknown_facet() {
-        assertThrows(UnsupportedOperationException.class, () -> fieldResolver.fromFacet(Facet.KAFKA_TOPIC));
+        assertThrows(UnsupportedOperationException.class, () -> fieldResolver.fromFacet(Facet.MESSAGE_CONNECTOR_TYPE));
     }
 }

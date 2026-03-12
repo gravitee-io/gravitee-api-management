@@ -39,9 +39,7 @@ export type MessageFilterName =
   | 'MESSAGE_COUNT'
   | 'MESSAGE_ERROR_COUNT';
 
-export type KafkaFilterName = 'KAFKA_TOPIC';
-
-export type ApiFilterName = 'API_STATE' | 'API_LIFECYCLE_STATE' | 'API_VISIBILITY' | 'API_TYPE';
+export type ApiFilterName = 'API_TYPE';
 
 export type LlmFilterName = 'LLM_PROXY_MODEL' | 'LLM_PROXY_PROVIDER';
 
@@ -52,7 +50,6 @@ export type FilterName =
   | HttpFilterName
   | GeoIpFilterName
   | MessageFilterName
-  | KafkaFilterName
   | ApiFilterName
   | LlmFilterName
   | McpFilterName;
