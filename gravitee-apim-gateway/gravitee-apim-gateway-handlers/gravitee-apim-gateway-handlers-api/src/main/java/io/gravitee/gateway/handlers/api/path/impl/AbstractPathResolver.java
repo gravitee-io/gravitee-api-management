@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A simple path resolver based on context paths definition.
@@ -33,6 +34,7 @@ import java.util.regex.Pattern;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class AbstractPathResolver implements PathResolver {
 
     private static final String URL_PATH_SEPARATOR = "/";
@@ -63,7 +65,9 @@ public abstract class AbstractPathResolver implements PathResolver {
 
         try {
             path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
-        } catch (IllegalArgumentException iae) {}
+        } catch (IllegalArgumentException iae) {
+            log.warn("Unable to decode request path [{}], using raw path for resolution", request.pathInfo(), iae);
+        }
 
         int pieces = -1;
         Path bestPath = null;

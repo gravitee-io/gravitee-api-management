@@ -230,7 +230,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                                 );
                         });
                 }
-                postProcessCompletable.onErrorComplete().subscribe();
+                postProcessCompletable
+                    .doOnError(error -> log.warn("Unexpected error while executing post-processor chain", error))
+                    .onErrorComplete()
+                    .subscribe();
             });
         }
         // V3 execution mode.
