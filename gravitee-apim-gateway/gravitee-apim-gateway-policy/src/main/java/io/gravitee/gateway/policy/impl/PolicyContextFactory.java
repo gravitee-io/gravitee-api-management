@@ -31,12 +31,7 @@ public class PolicyContextFactory {
             return null;
         }
 
-        try {
-            log.debug("Creating a new instance of policy context of type {}", policyContextClass.getName());
-            return policyContextClass.getDeclaredConstructor().newInstance();
-        } catch (Exception ex) {
-            log.error("Unable to create a policy context", ex);
-            throw ex;
-        }
+        log.debug("Creating a new instance of policy context of type {}", policyContextClass.getName());
+        return policyContextClass.getDeclaredConstructor().newInstance();
     }
 }
