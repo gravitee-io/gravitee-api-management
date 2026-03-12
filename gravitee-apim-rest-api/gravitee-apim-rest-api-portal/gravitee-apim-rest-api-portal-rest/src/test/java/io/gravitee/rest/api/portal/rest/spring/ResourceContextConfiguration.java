@@ -56,6 +56,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.SearchApisForPortalUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
@@ -1121,6 +1122,11 @@ public class ResourceContextConfiguration {
     @Bean
     public LogNamesPostProcessor logNamesPostProcessor() {
         return new LogNamesPostProcessorImpl();
+    }
+
+    @Bean
+    public SearchApisForPortalUseCase searchApisForPortalUseCase() {
+        return mock(SearchApisForPortalUseCase.class);
     }
 
     @Bean

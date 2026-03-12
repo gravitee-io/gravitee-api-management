@@ -22,6 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiAuthorizationDomainServiceInMemory;
@@ -30,8 +32,10 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.use_case.SearchApisForPortalUseCase;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -480,6 +484,58 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
         assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    public void shouldSearchApisWithDocumentationViewUseCase() throws TechnicalException {
+        ApiEntity publishedApi1 = new ApiEntity();
+        publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);
+        publishedApi1.setName("1");
+        publishedApi1.setId("1");
+
+        ApiEntity publishedApi3 = new ApiEntity();
+        publishedApi3.setLifecycleState(ApiLifecycleState.PUBLISHED);
+        publishedApi3.setName("3");
+        publishedApi3.setId("3");
+
+        ApiQuery pageQuery = new ApiQuery();
+        pageQuery.setIds(Arrays.asList("1", "3"));
+        doReturn(List.of(publishedApi1, publishedApi3))
+            .when(apiSearchService)
+            .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+
+        Api api1 = Api.builder().id("1").name("1").apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        Api api3 = Api.builder().id("3").name("3").apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        Page<Api> page = new Page<>(List.of(api1, api3), 1, 2, 10);
+        when(searchApisForPortalUseCase.execute(any())).thenReturn(new SearchApisForPortalUseCase.Output(page));
+
+        final Response response = target("/_search")
+            .queryParam("q", "test")
+            .queryParam("view", "documentation")
+            .queryParam("page", 1)
+            .queryParam("size", 2)
+            .request()
+            .post(Entity.json(null));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(2, apiResponse.getData().size());
+        Map<String, Object> paginateMeta = apiResponse.getMetadata().get("paginateMetaData");
+        assertNotNull(paginateMeta);
+        assertEquals(10, ((Number) paginateMeta.get("totalElements")).intValue());
+        verify(filteringService, never()).searchApis(any(), any(), any());
+    }
+
+    @Test
+    public void shouldSearchApisWithoutViewUsesFilteringService() throws TechnicalException {
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+
+        final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(searchApisForPortalUseCase, never()).execute(any());
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
     }
 
     @Test
