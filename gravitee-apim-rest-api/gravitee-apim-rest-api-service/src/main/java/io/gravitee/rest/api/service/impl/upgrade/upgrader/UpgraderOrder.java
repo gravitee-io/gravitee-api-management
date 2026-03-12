@@ -63,6 +63,7 @@ public class UpgraderOrder {
     public static final int ENVIRONMENTS_DEFAULT_SUBSCRIPTION_FORM_UPGRADER = 714;
     public static final int PORTAL_NAVIGATION_ITEM_ROOT_ID_UPGRADER = 715;
     public static final int TAG_KEY_UPGRADER = 716;
+    public static final int TENANT_KEY_UPGRADER = 717;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
     public static final int API_PRODUCT_ROLES_UPGRADER = 950;
