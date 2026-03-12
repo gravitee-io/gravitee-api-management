@@ -126,6 +126,7 @@ public class EnvironmentService {
             try {
                 return organizationRepository.findById(orgId).orElse(null);
             } catch (Exception e) {
+                log.warn("An error occurred fetching the organization '{}'.", orgId, e);
                 return null;
             }
         });
