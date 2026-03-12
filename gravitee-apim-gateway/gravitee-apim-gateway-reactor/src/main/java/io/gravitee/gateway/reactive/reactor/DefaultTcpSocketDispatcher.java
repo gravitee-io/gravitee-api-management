@@ -57,6 +57,7 @@ public class DefaultTcpSocketDispatcher implements TcpSocketDispatcher {
                 return Completable.error(new IllegalStateException("No TCP acceptor found for SNI: %s".formatted(sni)));
             }
 
+            log.debug("TCP request matched acceptor for SNI [{}] on serverId [{}]", sni, serverId);
             if (acceptor.reactor() instanceof ApiReactor<?> tcpReactor) {
                 // pause the socket as soon as possible
                 proxySocket.pause();
