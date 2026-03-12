@@ -20,6 +20,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface SubscriptionQueryService {
     List<SubscriptionEntity> findExpiredSubscriptions();
@@ -29,6 +30,8 @@ public interface SubscriptionQueryService {
     List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId);
 
     List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId);
+
+    List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds);
 
     List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
         String applicationId,

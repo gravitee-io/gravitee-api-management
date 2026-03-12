@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -74,33 +75,77 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
 
     @Override
     public List<String> findClustersIdsThatUserBelongsTo(String memberId) {
-        try {
-            return membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceType(memberId, MembershipMemberType.USER, MembershipReferenceType.CLUSTER)
-                .stream()
-                .map(io.gravitee.repository.management.model.Membership::getReferenceId)
-                .toList();
-        } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
-                String.format("An error occured while trying to find clusters ids of member %s", memberId),
-                e
-            );
-        }
+        return fetch(
+            () ->
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                    memberId,
+                    MembershipMemberType.USER,
+                    MembershipReferenceType.CLUSTER
+                ),
+            String.format("An error occured while trying to find clusters ids of member %s", memberId)
+        )
+            .stream()
+            .map(Membership::getReferenceId)
+            .toList();
+    }
+
+    @Override
+    public Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        Membership.Type memberType,
+        Membership.ReferenceType referenceType
+    ) {
+        return fetch(
+            () ->
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                    memberId,
+                    MembershipMemberType.valueOf(memberType.name()),
+                    MembershipReferenceType.valueOf(referenceType.name())
+                ),
+            String.format("An error occurs while trying to find memberships of type %s for member %s", referenceType, memberId)
+        );
+    }
+
+    @Override
+    public Collection<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
+        Collection<String> memberIds,
+        Membership.Type memberType,
+        Membership.ReferenceType referenceType
+    ) {
+        return fetch(
+            () ->
+                membershipRepository.findByMemberIdsAndMemberTypeAndReferenceType(
+                    List.copyOf(memberIds),
+                    MembershipMemberType.valueOf(memberType.name()),
+                    MembershipReferenceType.valueOf(referenceType.name())
+                ),
+            String.format("An error occurs while trying to find memberships of type %s for members", referenceType)
+        );
     }
 
     @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String memberId) {
+        return fetch(
+            () ->
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                    memberId,
+                    MembershipMemberType.USER,
+                    MembershipReferenceType.GROUP
+                ),
+            String.format("An error occurs while trying to find Group memberships of member %s", memberId)
+        );
+    }
+
+    @FunctionalInterface
+    private interface MembershipSupplier {
+        Set<io.gravitee.repository.management.model.Membership> get() throws TechnicalException;
+    }
+
+    private Collection<Membership> fetch(MembershipSupplier supplier, String errorMessage) {
         try {
-            return membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceType(memberId, MembershipMemberType.USER, MembershipReferenceType.GROUP)
-                .stream()
-                .map(MembershipAdapter.INSTANCE::toEntity)
-                .toList();
+            return supplier.get().stream().map(MembershipAdapter.INSTANCE::toEntity).toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
-                String.format("An error occurs while trying to find Group memberships of member %s", memberId),
-                e
-            );
+            throw new TechnicalDomainException(errorMessage, e);
         }
     }
 }
