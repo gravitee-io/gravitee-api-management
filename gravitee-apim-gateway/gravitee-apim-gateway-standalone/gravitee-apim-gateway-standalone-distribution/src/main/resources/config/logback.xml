@@ -18,14 +18,10 @@
 
 <configuration>
 
-<!--   Declare the 'mdcList' conversion word used by filtering mechanism in gravitee.yml node.logging options -->
-    <conversionRule conversionWord="mdcList"
-                    converterClass="io.gravitee.node.container.logback.MdcListConverter" />
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- Classical STDOUT logger -->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
 
 <!--       Uncomment to enable Json Encoder -->
@@ -56,7 +52,7 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
