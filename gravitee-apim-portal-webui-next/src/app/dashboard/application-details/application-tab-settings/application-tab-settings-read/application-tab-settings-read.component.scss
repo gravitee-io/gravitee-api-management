@@ -14,34 +14,93 @@
  * limitations under the License.
  */
 
-.settings__readonly {
+@use '../../../../../scss/theme' as theme;
+
+.settings-view {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 
-  &__content {
+  &__header {
     display: flex;
-    flex-direction: row;
-    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
 
-    &__card {
-      flex: 1 1 auto;
+    &__actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
 
-      &__header {
-        padding: 8px 0 24px;
+  &__details {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &--stacked &__row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      align-items: start;
+
+      &__label {
+        width: auto;
       }
 
-      &__content {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+      > :nth-child(3) {
+        grid-column: 2;
+        justify-self: start;
+      }
+    }
 
-        &__information {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+    &__row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      &__icon {
+        color: theme.$paragraph-color;
+        flex-shrink: 0;
+      }
+
+      &__label {
+        width: 140px;
+        flex-shrink: 0;
+        color: theme.$paragraph-color;
+      }
+
+      &__value-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        app-copy-code-icon,
+        button {
+          margin: -8px 0;
         }
       }
+
+      &__value--not-set {
+        font-style: italic;
+        color: theme.$paragraph-color;
+      }
+    }
+  }
+
+  &__description {
+    margin-top: 16px;
+    background-color: theme.$background-color;
+    border: theme.$border-width solid theme.$border-color;
+    border-radius: theme.$container-shape;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &__empty {
+      color: theme.$paragraph-color;
     }
   }
 }

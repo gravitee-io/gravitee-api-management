@@ -13,47 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
+import { Component, input } from '@angular/core';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { BreadcrumbService } from 'xng-breadcrumb';
 
-import { BannerComponent } from '../../../components/banner/banner.component';
-import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
-import { PictureComponent } from '../../../components/picture/picture.component';
 import { Application } from '../../../entities/application/application';
-import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-application',
-  imports: [
-    BreadcrumbNavigationComponent,
-    RouterOutlet,
-    BannerComponent,
-    MatCard,
-    MatCardContent,
-    MatIcon,
-    MatTabLink,
-    MatTabNav,
-    MatTabNavPanel,
-    PictureComponent,
-    RouterLinkActive,
-    RouterLink,
-  ],
+  imports: [RouterOutlet, MatTabLink, MatTabNav, MatTabNavPanel, RouterLinkActive, RouterLink],
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss',
 })
-export default class ApplicationComponent implements OnChanges {
-  @Input() application!: Application;
-  isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
-
-  constructor(private breadcrumbService: BreadcrumbService) {}
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['application']) {
-      this.breadcrumbService.set('@appName', this.application.name);
-    }
-  }
+export default class ApplicationComponent {
+  application = input.required<Application>();
 }

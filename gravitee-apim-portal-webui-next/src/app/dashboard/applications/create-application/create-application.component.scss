@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/theme';
-
-@use '../../../scss/layout' as layout;
+@use '../../../../scss/theme';
+@use '@angular/material' as mat;
 
 :host {
-  @include layout.large-container-legacy();
+  display: flex;
+  flex-direction: column;
+  max-width: theme.$inner-content-width;
+  padding: 16px;
 }
 
 .content {
+  display: flex;
   flex-flow: column;
   gap: 32px;
+  padding-top: 24px;
 }
 
 .cards-container {
@@ -39,50 +43,98 @@
   }
 }
 
+.page-header {
+  margin-bottom: 24px;
+
+  p {
+    margin-top: 4px;
+    margin-bottom: 0;
+  }
+}
+
 .section-title {
-  margin: 16px 0;
+  display: block;
+  margin: 16px 0 24px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
+  gap: 8px;
 
-.radio-group-label {
-  display: block;
-  margin-bottom: 16px;
-}
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
-.type-select-mobile {
-  width: 100%;
+    p {
+      margin: 0;
+    }
+
+    mat-form-field {
+      width: 100%;
+
+      @include mat.form-field-overrides(
+        (
+          container-height: 40px,
+          container-vertical-padding: 8px,
+          subscript-text-line-height: 0,
+          subscript-text-size: 0,
+          outlined-outline-color: theme.$border-color,
+          outlined-hover-outline-color: theme.$border-color,
+        )
+      );
+    }
+
+    &--certificate mat-form-field {
+      @include mat.form-field-overrides(
+        (
+          container-height: auto,
+          container-vertical-padding: 12px,
+        )
+      );
+    }
+  }
 }
 
 .types-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 16px;
+
+  &--compact {
+    gap: 8px;
+
+    .type-radio {
+      padding: 8px;
+    }
+  }
 }
 
 .type-radio {
-  display: block;
   padding: 12px;
+  cursor: pointer;
   border: 1px solid theme.$border-color;
   border-radius: theme.$container-shape;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease;
 
-  &.mat-mdc-radio-checked {
+  &--checked {
     border-color: theme.$primary-main-color;
     background-color: color-mix(in srgb, theme.$primary-main-color 8%, transparent);
   }
-}
 
-.application-type-label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    span {
+      flex: 1;
+    }
+  }
 }
 
 .grant-types-container {

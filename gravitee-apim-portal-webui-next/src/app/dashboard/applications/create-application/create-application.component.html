@@ -1,0 +1,204 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="content">
+  <div>
+    <div class="page-header">
+      <span class="next-gen-h3" i18n="@@applicationsCreateTitle">Create new application</span>
+      <p class="next-gen-body" i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
+    </div>
+
+    @if (enabledApplicationTypes(); as types) {
+      <div class="cards-container" [appIsMobile]="'cards-container--mobile'">
+        <mat-card appearance="outlined">
+          <mat-card-content>
+            <span class="section-title next-gen-h5" i18n="@@createApplicationSecuritySetupTitle">Application Type</span>
+            <mat-radio-group
+              aria-label="Application type"
+              class="types-group"
+              [appIsNarrow]="'types-group--compact'"
+              [formControl]="typeIdControl"
+            >
+              @for (type of types; track $index) {
+                <div
+                  class="type-radio"
+                  [class.type-radio--checked]="typeIdControl.value === (type.id ?? type.name)"
+                  (click)="typeIdControl.setValue(type.id ?? type.name)"
+                  (keydown.enter)="typeIdControl.setValue(type.id ?? type.name)"
+                  tabindex="0"
+                  role="radio"
+                  [attr.aria-checked]="typeIdControl.value === (type.id ?? type.name)"
+                >
+                  <div class="type-radio__header">
+                    <span class="next-gen-h5">{{ type | applicationTypeTranslate: 'name' }}</span>
+                    <mat-radio-button [value]="type.id ?? type.name" />
+                  </div>
+                  <div class="next-gen-body">{{ type | applicationTypeTranslate: 'description' }}</div>
+                </div>
+              }
+            </mat-radio-group>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card appearance="outlined">
+          <mat-card-content>
+            <span class="section-title next-gen-h5" i18n="@@createApplicationDetailsTitle">Application details</span>
+            @if (selectedType()) {
+              <form class="form" [formGroup]="form">
+                <div class="form__field">
+                  <p class="next-gen-body" i18n="@@createApplicationName">Application name *</p>
+                  <mat-form-field appearance="outline">
+                    <input matInput formControlName="name" aria-label="Application name" />
+                    <mat-error i18n="@@createApplicationNameRequired">Application name is required</mat-error>
+                  </mat-form-field>
+                </div>
+
+                <div class="form__field">
+                  <p class="next-gen-body" i18n="@@createApplicationDescription">Description (optional)</p>
+                  <mat-form-field appearance="outline">
+                    <textarea matInput formControlName="description" rows="2" aria-label="Description"></textarea>
+                  </mat-form-field>
+                </div>
+
+                <mat-divider />
+                <h3 class="section-title" i18n="@@createApplicationSecurityTitle">Security</h3>
+
+                @if (isSimpleType()) {
+                  <div class="form__field">
+                    <p class="next-gen-body" i18n="@@createApplicationType">Type</p>
+                    <p class="next-gen-small" i18n="@@createApplicationTypeHint">Type of the application (mobile, web, ...)</p>
+                    <mat-form-field appearance="outline">
+                      <input matInput formControlName="appType" aria-label="Application type" />
+                    </mat-form-field>
+                  </div>
+
+                  <div class="form__field">
+                    <p class="next-gen-body" i18n="@@createApplicationClientId">Client ID</p>
+                    <p class="next-gen-small" i18n="@@createApplicationClientIdHint">
+                      The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)
+                    </p>
+                    <mat-form-field appearance="outline">
+                      <input matInput formControlName="appClientId" aria-label="Client ID" />
+                    </mat-form-field>
+                  </div>
+                }
+
+                @if (grantTypesList().length > 0) {
+                  <div class="grant-types-container">
+                    <div>
+                      <div class="next-gen-body">
+                        <span i18n="@@createApplicationGrantTypes">Select the grant types your application will use</span>
+                      </div>
+                      <div class="next-gen-small" i18n="@@createApplicationGrantTypesHint">
+                        For security, enable only the ones you need.
+                      </div>
+                    </div>
+                    @for (grantType of grantTypesList(); track grantType.type) {
+                      <div class="grant-type-toggle">
+                        <mat-slide-toggle
+                          [checked]="isGrantTypeSelected(grantType.type)"
+                          [disabled]="grantType.isDisabled"
+                          (change)="toggleGrantType(grantType.type, $event.checked)"
+                        >
+                          <span class="grant-type-label">{{ grantType.name }}</span>
+                        </mat-slide-toggle>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (requiresRedirectUris() && redirectUrisControl; as redirectUrisCtrl) {
+                  <div class="form__field">
+                    <p class="next-gen-body" i18n="@@applicationRedirectUris">Redirect URIs *</p>
+                    <p class="next-gen-small" i18n="@@applicationRedirectUrisHint">
+                      The URI where the authorization server sends OAuth responses.
+                    </p>
+                    <mat-form-field appearance="outline">
+                      <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" [formControl]="redirectUrisCtrl">
+                        @for (uri of redirectUrisCtrl.value; track uri) {
+                          <mat-chip-row (removed)="removeRedirectUri(uri)">
+                            {{ uri }}
+                            <button matChipRemove [attr.aria-label]="'remove redirect URI ' + uri">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        }
+
+                        <input
+                          [matChipInputFor]="redirectURIChipGrid"
+                          [matChipInputAddOnBlur]="true"
+                          (matChipInputTokenEnd)="addRedirectUri($event)"
+                        />
+                      </mat-chip-grid>
+                      <mat-error i18n="@@createApplicationRedirectUrisRequired">At least one redirect URI is required</mat-error>
+                    </mat-form-field>
+                  </div>
+                }
+
+                <div class="form__field">
+                  <p class="next-gen-body" i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</p>
+                  <p class="next-gen-small" i18n="@@createApplicationClientCertificateHint">
+                    The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
+                  </p>
+                  <mat-form-field appearance="outline" class="form__field--certificate">
+                    <textarea matInput formControlName="clientCertificate" rows="6" aria-label="Client Certificate"></textarea>
+                  </mat-form-field>
+                </div>
+
+                @if (!isSimpleType()) {
+                  <div class="metadata-container">
+                    <div>
+                      <div class="m3-title-medium">
+                        <span i18n="@@createApplicationAdditionalMetadataTitle">Additional Client Metadata (optional)</span>
+                      </div>
+                    </div>
+                    <app-form-key-value-pairs formControlName="metadata" />
+                  </div>
+                }
+              </form>
+            } @else {
+              <p i18n="@@selectApplicationTypeFirst">Please select an application type first</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    } @else {
+      <app-loader />
+    }
+
+    @if (hasApplicationError) {
+      <div class="m3-title-medium error-message" i18n="@@createApplicationGeneralErrorMessage">
+        There was an error creating your application and it could not be processed. Try again, and if the issue persists, contact your
+        portal administrator.
+      </div>
+    }
+
+    <div class="actions">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="form.invalid || !selectedType()"
+        (click)="onCreate()"
+        i18n="@@createApplicationCreateButton"
+      >
+        Create
+      </button>
+      <button mat-stroked-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>
+    </div>
+  </div>
+</div>

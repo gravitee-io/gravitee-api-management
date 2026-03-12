@@ -13,55 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ContentContainerComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness } from '@angular/cdk/testing';
 
-import { CopyCodeHarness } from '../../../../../components/copy-code/copy-code.harness';
-
-export class ApplicationTabSettingsReadHarness extends ContentContainerComponentHarness {
+export class ApplicationTabSettingsReadHarness extends ComponentHarness {
   public static hostSelector = 'app-application-tab-settings-read';
-  protected locateCardTitle = this.locatorFor('[data-testId="infoCardTitle"]');
-  protected locateAppType = this.locatorFor('[data-testId="type"]');
-  protected locateAppTypeDescription = this.locatorFor('[data-testId="typeDescription"]');
-  protected locateRedirectUris = this.locatorForOptional('[data-testId="redirectUris"]');
+
+  protected locateName = this.locatorFor('[data-testId="name"]');
+  protected locateOwner = this.locatorForOptional('[data-testId="owner"]');
+  protected locateType = this.locatorFor('[data-testId="type"]');
+  protected locateSecurityType = this.locatorFor('[data-testId="securityType"]');
+  protected locateDescription = this.locatorFor('[data-testId="description"]');
+  protected locateDomain = this.locatorFor('[data-testId="domain"]');
   protected locateGrantTypes = this.locatorForOptional('[data-testId="grantTypes"]');
+  protected locateClientId = this.locatorForOptional('[data-testId="clientId"]');
+  protected locateRedirectUris = this.locatorForOptional('[data-testId="redirectUris"]');
+  protected locateEditButton = this.locatorForOptional('[data-testId="edit"]');
 
-  public async getInfoCardTitle(): Promise<string> {
-    return await this.locateCardTitle().then(cardTitle => cardTitle.text());
+  public async getName(): Promise<string> {
+    return this.locateName().then(el => el.text());
   }
 
-  public async getInfoCardApplicationType(): Promise<string> {
-    return await this.locateAppType()
-      .then(title => title.text())
-      .then(text => text.replace(':', ''));
+  public async getOwner(): Promise<string | undefined> {
+    return this.locateOwner().then(el => el?.text());
   }
 
-  public async getInfoCardApplicationTypeDescription(): Promise<string> {
-    return await this.locateAppTypeDescription().then(description => description.text());
+  public async getType(): Promise<string> {
+    return this.locateType().then(el => el.text());
   }
 
-  public async getInfoCardRedirectUris(): Promise<string | undefined> {
-    return await this.locateRedirectUris().then(uris => uris?.text());
+  public async getSecurityType(): Promise<string> {
+    return this.locateSecurityType().then(el => el.text());
   }
 
-  public async getInfoCardGrantTypes(): Promise<string | undefined> {
-    return await this.locateGrantTypes().then(types => types?.text());
+  public async getDescription(): Promise<string> {
+    return this.locateDescription().then(el => el.text());
+  }
+
+  public async getDomain(): Promise<string> {
+    return this.locateDomain().then(el => el.text());
+  }
+
+  public async getGrantTypes(): Promise<string | undefined> {
+    return this.locateGrantTypes().then(el => el?.text());
   }
 
   public async getClientId(): Promise<string | undefined> {
-    return await this.getCopyCodeHarnessOrNull('clientId').then(cardCodeHarness => cardCodeHarness?.getText());
+    return this.locateClientId().then(el => el?.text());
   }
 
-  public async getHiddenClientSecret(): Promise<string | undefined> {
-    return await this.getCopyCodeHarnessOrNull('clientSecret').then(cardCodeHarness => cardCodeHarness?.getText());
+  public async getRedirectUris(): Promise<string | undefined> {
+    return this.locateRedirectUris().then(el => el?.text());
   }
 
-  public async getClearClientSecret(): Promise<string | undefined> {
-    const copyCodeHarnessOrNull = this.getCopyCodeHarnessOrNull('clientSecret');
-    await copyCodeHarnessOrNull.then(cardCodeHarness => cardCodeHarness?.changePasswordVisibility());
-    return copyCodeHarnessOrNull?.then(harness => harness?.getText());
-  }
-
-  private async getCopyCodeHarnessOrNull(title: string): Promise<CopyCodeHarness | null> {
-    return await this.getHarnessOrNull(CopyCodeHarness.with({ selector: `[data-testId="${title}"]` }));
+  public async canEdit(): Promise<boolean> {
+    return this.locateEditButton().then(btn => btn !== null);
   }
 }

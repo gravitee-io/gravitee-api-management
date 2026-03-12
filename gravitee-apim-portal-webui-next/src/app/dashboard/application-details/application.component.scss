@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/layout' as layout;
+@use '@angular/material' as mat;
+@use '../../../scss/theme' as theme;
 
 :host {
-  @include layout.large-container-legacy();
+  display: flex;
+  flex-direction: column;
+  max-width: theme.$inner-content-width;
+  padding: 16px;
 }
 
 .content {
+  display: flex;
   flex-flow: column;
   gap: 34px;
 }

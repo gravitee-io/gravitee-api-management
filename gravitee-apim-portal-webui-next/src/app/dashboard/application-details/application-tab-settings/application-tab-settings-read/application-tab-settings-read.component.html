@@ -15,93 +15,132 @@
     limitations under the License.
 
 -->
-<div class="settings__readonly">
-  <div class="settings__readonly__content">
-    @if (readOnlyValues.isSimple) {
-      <mat-card appearance="outlined" class="settings__readonly__content__card">
-        <mat-card-header>
-          <div
-            i18n="@@integrationOauthTitleApplicationSettings"
-            class="settings__readonly__content__card__header m3-title-medium"
-            data-testId="infoCardTitle"
+<mat-card appearance="outlined" class="settings-view">
+  <mat-card-content>
+    <div class="settings-view__header">
+      <span class="next-gen-h3" data-testId="name">{{ readOnlyValues().name }}</span>
+      <div class="settings-view__header__actions">
+        <ng-content select="[additionalActions]" />
+        @if (canUpdate()) {
+          <button
+            mat-stroked-button
+            (click)="editClicked.emit()"
+            i18n="@@editApplicationSettings"
+            aria-label="Edit application"
+            data-testId="edit"
           >
-            OAuth2 Integration
-          </div>
-        </mat-card-header>
-        <mat-card-content class="settings__readonly__content__card__content">
-          <div class="settings__readonly__content__card__content__information">
-            <div class="settings__readonly__content__card__content__information__content">
-              <span class="m3-title-small" i18n="@@applicationTypeApplicationSettings" data-testId="type">Application type: </span
-              ><span class="m3-body-medium" data-testId="typeDescription">{{ readOnlyValues.typeDescription }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-      <mat-card appearance="outlined" class="settings__readonly__content__card">
-        <mat-card-header>
-          <div i18n="@@crdentialsApplicationSettings" class="settings__readonly__content__card__header m3-title-medium">Credentials</div>
-        </mat-card-header>
-        <mat-card-content class="settings__readonly__content__card__content">
-          <app-copy-code id="app-readonly-client-id" title="Client ID" [text]="readOnlyValues.clientId ?? ''" data-testId="clientId" />
-        </mat-card-content>
-      </mat-card>
-    } @else {
-      <mat-card appearance="outlined" class="settings__readonly__content__card">
-        <mat-card-header>
-          <div
-            i18n="@@integrationOIDCTitleApplicationSettings"
-            class="settings__readonly__content__card__header m3-title-medium"
-            data-testId="infoCardTitle"
-          >
-            OpenID Connect Integration
-          </div>
-        </mat-card-header>
-        <mat-card-content class="settings__readonly__content__card__content">
-          <div class="settings__readonly__content__card__content__information">
-            <div class="settings__readonly__content__card__content__information__content">
-              <span class="m3-title-small" data-testId="type">{{ readOnlyValues.type }}: </span>
-              <span class="m3-body-medium" data-testId="typeDescription">{{ readOnlyValues.typeDescription }}</span>
-            </div>
-          </div>
+            Edit
+          </button>
+        }
+      </div>
+    </div>
 
-          @if (readOnlyValues.isRedirectUriRequired) {
-            <div class="settings__readonly__content__card__content__information">
-              <div class="settings__readonly__content__card__content__information__content">
-                <span class="m3-title-small" i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs: </span>
-                <span class="m3-body-medium" data-testId="redirectUris">{{ readOnlyValues.redirectUris }}</span>
-              </div>
-              <div class="m3-body-small" i18n="@@hintReadOnlyRedirectUrisApplicationSettings">
-                URIs where the authorization server will send OAuth2 responses
-              </div>
-            </div>
-          }
-          <div class="settings__readonly__content__card__content__information">
-            <div class="settings__readonly__content__card__content__information__content">
-              <span class="m3-title-small" i18n="@@applicationGrantTypesApplicationSettings">Grant types: </span
-              ><span class="m3-body-medium" data-testId="grantTypes">{{ readOnlyValues.grantTypes }}</span>
-            </div>
-            <div class="m3-body-small" i18n="@@hintReadOnlyGrantTypesApplicationSettings">Grant types allowed for the client</div>
+    <div class="settings-view__details" [appIsNarrow]="'settings-view__details--stacked'">
+      <div class="settings-view__details__row">
+        <span class="material-icons icon-small settings-view__details__row__icon">person</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@ownerLabelApplicationSettings">Owner</span>
+        <span class="next-gen-body" data-testId="owner">{{ readOnlyValues().ownerDisplayName }}</span>
+      </div>
+
+      <div class="settings-view__details__row">
+        <span class="material-icons icon-small settings-view__details__row__icon">dns</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@typeLabelApplicationSettings">Type</span>
+        <span class="next-gen-body" data-testId="type">{{ readOnlyValues().type }}</span>
+      </div>
+
+      <div class="settings-view__details__row">
+        <span class="material-icons icon-small settings-view__details__row__icon">calendar_today</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@creationDateLabelApplicationSettings">Creation date</span>
+        <span class="next-gen-body" data-testId="createdAt">{{ readOnlyValues().createdAt | date: 'yyyy-MM-dd' }}</span>
+      </div>
+
+      <div class="settings-view__details__row">
+        <span class="material-icons icon-small settings-view__details__row__icon">schedule</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@updatedLabelApplicationSettings">Updated</span>
+        <span class="next-gen-body" data-testId="updatedAt">{{ getRelativeTime(readOnlyValues().updatedAt) }}</span>
+      </div>
+
+      <div class="settings-view__details__row">
+        <span class="material-icons icon-small settings-view__details__row__icon">link</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@domainLabelApplicationSettings">Domain</span>
+        @if (readOnlyValues().domain) {
+          <span class="next-gen-body" data-testId="domain">{{ readOnlyValues().domain }}</span>
+        } @else {
+          <span class="next-gen-body settings-view__details__row__value--not-set" data-testId="domain" i18n="@@notSetApplicationSettings"
+            >Not set</span
+          >
+        }
+      </div>
+
+      <div class="settings-view__details__row">
+        <span class="material-icons icon-small settings-view__details__row__icon">security</span>
+        <span class="settings-view__details__row__label next-gen-body" i18n="@@securityLabelApplicationSettings">Security</span>
+        <mat-chip data-testId="securityType">{{ readOnlyValues().securityType }}</mat-chip>
+      </div>
+
+      @if (readOnlyValues().grantTypes) {
+        <div class="settings-view__details__row">
+          <span class="material-icons icon-small settings-view__details__row__icon">lock</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@rightsAuthorizedLabelApplicationSettings"
+            >Rights authorized</span
+          >
+          <span class="next-gen-body" data-testId="grantTypes">{{ readOnlyValues().grantTypes }}</span>
+        </div>
+      }
+
+      @if (readOnlyValues().clientId) {
+        <div class="settings-view__details__row">
+          <span class="material-icons icon-small settings-view__details__row__icon">tag</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@clientIdLabelApplicationSettings">Client ID</span>
+          <div class="settings-view__details__row__value-group">
+            <span class="next-gen-body" data-testId="clientId">{{ readOnlyValues().clientId }}</span>
+            <app-copy-code-icon [contentToCopy]="readOnlyValues().clientId!" i18n-label label="Copy Client ID" />
           </div>
-        </mat-card-content>
-      </mat-card>
-      <mat-card appearance="outlined" class="settings__readonly__content__card">
-        <mat-card-header>
-          <div i18n="@@credentialsApplicationSettings" class="settings__readonly__content__card__header m3-title-medium">Credentials</div>
-        </mat-card-header>
-        <mat-card-content class="settings__readonly__content__card__content">
-          <app-copy-code id="oauth-readonly-client-id" title="Client ID" [text]="readOnlyValues.clientId ?? ''" data-testId="clientId" />
-          <app-copy-code
-            id="oauth-readonly-client-secret"
-            title="Client Secret"
-            [text]="readOnlyValues.clientSecret ?? ''"
-            [mode]="'PASSWORD'"
-            data-testId="clientSecret"
-          />
-        </mat-card-content>
-      </mat-card>
-    }
-  </div>
-  <div class="settings__readonly__actions">
-    <ng-content select="[additionalActions]" />
-  </div>
-</div>
+        </div>
+      }
+
+      @if (readOnlyValues().clientSecret) {
+        <div class="settings-view__details__row">
+          <span class="material-icons icon-small settings-view__details__row__icon">key</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@clientSecretLabelApplicationSettings">Client Secret</span>
+          <div class="settings-view__details__row__value-group">
+            <span class="next-gen-body" data-testId="clientSecret">
+              {{ clientSecretVisible() ? readOnlyValues().clientSecret : '••••••••••••••••' }}
+            </span>
+            <button
+              mat-icon-button
+              class="settings-view__details__row__secret-toggle"
+              (click)="clientSecretVisible.set(!clientSecretVisible())"
+              [attr.aria-label]="clientSecretVisible() ? 'Hide Client Secret' : 'Show Client Secret'"
+            >
+              <span class="material-icons icon-small">{{ clientSecretVisible() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+            <app-copy-code-icon [contentToCopy]="readOnlyValues().clientSecret!" i18n-label label="Copy Client Secret" />
+          </div>
+        </div>
+      }
+
+      @if (readOnlyValues().redirectUris) {
+        <div class="settings-view__details__row">
+          <span class="material-icons icon-small settings-view__details__row__icon">open_in_new</span>
+          <span class="settings-view__details__row__label next-gen-body" i18n="@@redirectUrisLabelApplicationSettings">Redirect URIs</span>
+          <div class="settings-view__details__row__value-group">
+            <span class="next-gen-body" data-testId="redirectUris">{{ readOnlyValues().redirectUris }}</span>
+            <app-copy-code-icon [contentToCopy]="readOnlyValues().redirectUris!" i18n-label label="Copy Redirect URIs" />
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="settings-view__description">
+      <span class="next-gen-body" i18n="@@descriptionLabelApplicationSettings">Application description</span>
+      @if (readOnlyValues().description) {
+        <span class="next-gen-body" data-testId="description">{{ readOnlyValues().description }}</span>
+      } @else {
+        <span class="next-gen-body settings-view__description__empty" data-testId="description" i18n="@@noDescriptionApplicationSettings"
+          >No description added.</span
+        >
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

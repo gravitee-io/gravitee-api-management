@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { map, Observable, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
-import { PictureComponent } from '../../../../../components/picture/picture.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
 import { ApplicationService } from '../../../../../services/application.service';
 
 interface ApplicationSettingsVM {
   name: string;
   description: string | undefined;
-  picture: string | undefined;
+  domain: string | undefined;
   appType: string | undefined;
   appClientId: string | undefined;
   oauthRedirectUris: string[] | undefined;
@@ -46,7 +46,7 @@ interface ApplicationSettingsVM {
 interface ApplicationSettingsForm {
   name: FormControl<string>;
   description: FormControl<string | undefined>;
-  picture: FormControl<string | undefined>;
+  domain: FormControl<string | undefined>;
   appType: FormControl<string | undefined>;
   appClientId: FormControl<string | undefined>;
   oauthRedirectUris: FormControl<string[] | undefined>;
@@ -65,13 +65,12 @@ interface ApplicationGrantTypeVM {
     CopyCodeComponent,
     MatButtonModule,
     MatCardModule,
+    MatDivider,
     MatChipsModule,
     MatFormFieldModule,
     MatIcon,
     MatInput,
-    MatLabel,
     MatSelectModule,
-    PictureComponent,
     ReactiveFormsModule,
     AsyncPipe,
   ],
@@ -79,18 +78,15 @@ interface ApplicationGrantTypeVM {
   styleUrl: './application-tab-settings-edit.component.scss',
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
-  @Input()
-  applicationId!: string;
-
-  @Input()
-  applicationTypeConfiguration!: ApplicationType;
+  applicationId = input.required<string>();
+  applicationTypeConfiguration = input.required<ApplicationType>();
 
   application$!: Observable<Application>;
 
   initialValues: ApplicationSettingsVM = {
     name: '',
     description: undefined,
-    picture: undefined,
+    domain: undefined,
     appType: undefined,
     appClientId: undefined,
     oauthRedirectUris: undefined,
@@ -100,7 +96,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   applicationSettingsForm: FormGroup<ApplicationSettingsForm> = new FormGroup<ApplicationSettingsForm>({
     name: new FormControl<string>('', { nonNullable: true }),
     description: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-    picture: new FormControl<string | undefined>(undefined, { nonNullable: true }),
+    domain: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     appType: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     appClientId: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     oauthRedirectUris: new FormControl<string[] | undefined>(undefined, { nonNullable: true }),
@@ -117,12 +113,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   constructor(
     private readonly applicationService: ApplicationService,
     private router: Router,
-    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.buildGrantTypeList();
-    this.application$ = this.applicationService.get(this.applicationId);
+    this.application$ = this.applicationService.get(this.applicationId());
 
     this.application$.pipe(take(1)).subscribe(application => {
       this.application = application;
@@ -136,18 +131,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
         map(value => isEqual(this.initialValues, value)),
       );
     });
-  }
-
-  deletePicture(): void {
-    this.applicationSettingsForm.controls.picture.setValue(undefined);
-  }
-
-  async onPictureChange($event: Event) {
-    const target = $event.target as HTMLInputElement;
-    const files = target.files; // Here we use only the first file (single file)
-    if (files && files.length > 0) {
-      this.applicationSettingsForm.controls.picture.setValue(await toBase64(files[0]));
-    }
   }
 
   addRedirectUri(event: MatChipInputEvent) {
@@ -201,7 +184,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     return {
       name: application.name,
       description: application.description,
-      picture: application.picture,
+      domain: application.domain,
       appType: application.settings.app?.type,
       appClientId: application.settings.app?.client_id,
       oauthGrantTypes: application.settings.oauth?.grant_types,
@@ -210,11 +193,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   }
 
   private isGrantTypeMandatory(t: ApplicationGrantType): boolean {
-    return this.applicationTypeConfiguration.mandatory_grant_types?.some(grantType => grantType.type === t.type) ?? false;
+    return this.applicationTypeConfiguration().mandatory_grant_types?.some(grantType => grantType.type === t.type) ?? false;
   }
 
   private buildGrantTypeList() {
-    this.grantTypesList = this.applicationTypeConfiguration.allowed_grant_types?.map(t => {
+    this.grantTypesList = this.applicationTypeConfiguration().allowed_grant_types?.map(t => {
       return <ApplicationGrantTypeVM>{
         type: t.type,
         name: this.isGrantTypeMandatory(t) ? `${t.name} - (Mandatory)` : t.name,
@@ -227,7 +210,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     this.applicationSettingsForm.controls.name.setValidators(Validators.required);
     if (this.application.settings.oauth) {
       this.applicationSettingsForm.controls.oauthGrantTypes.setValidators([Validators.required, Validators.minLength(1)]);
-      if (this.applicationTypeConfiguration.requires_redirect_uris) {
+      if (this.applicationTypeConfiguration().requires_redirect_uris) {
         this.applicationSettingsForm.controls.oauthRedirectUris.setValidators([Validators.required, Validators.minLength(1)]);
       }
     }
@@ -238,7 +221,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       ...this.application,
       name: appVM.name,
       description: appVM.description,
-      picture: appVM.picture,
+      domain: appVM.domain,
     };
     if (appToUpdate.settings.app) {
       appToUpdate.settings.app.type = appVM.appType;
@@ -248,10 +231,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
         appToUpdate.settings.oauth.grant_types = appVM.oauthGrantTypes;
 
         // Responses types depend on the selected grant types. They have to be taken from the type configuration
-        if (!this.applicationTypeConfiguration.allowed_grant_types) {
+        const allowedGrantTypes = this.applicationTypeConfiguration().allowed_grant_types;
+        if (!allowedGrantTypes) {
           appToUpdate.settings.oauth.response_types = [];
         } else {
-          appToUpdate.settings.oauth.response_types = this.applicationTypeConfiguration.allowed_grant_types
+          appToUpdate.settings.oauth.response_types = allowedGrantTypes
             .filter(grantType => appVM.oauthGrantTypes?.some(type => type === grantType.type))
             .flatMap(grantType => grantType.response_types ?? []);
         }
@@ -263,14 +247,3 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     return appToUpdate;
   }
 }
-
-const toBase64 = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      // because we use `readAsDataURL`, reader.result is guaranteed to be a string
-      resolve(<string>reader.result);
-    };
-    reader.onerror = error => reject(error);
-  });

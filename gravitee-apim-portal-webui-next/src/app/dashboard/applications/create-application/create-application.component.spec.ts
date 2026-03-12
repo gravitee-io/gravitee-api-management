@@ -26,16 +26,16 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { Router } from '@angular/router';
 
 import { CreateApplicationComponent } from './create-application.component';
-import { FormKeyValuePairsHarness } from '../../../components/form-key-value-pairs/form-key-value-pairs.harness';
+import { FormKeyValuePairsHarness } from '../../../../components/form-key-value-pairs/form-key-value-pairs.harness';
 import {
   fakeApplication,
   fakeSimpleApplicationType,
   fakeNativeApplicationType,
   fakeBackendToBackendApplicationType,
   fakeBrowserApplicationType,
-} from '../../../entities/application/application.fixture';
-import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
+} from '../../../../entities/application/application.fixture';
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('CreateApplicationComponent', () => {
   let fixture: ComponentFixture<CreateApplicationComponent>;
@@ -58,6 +58,7 @@ describe('CreateApplicationComponent', () => {
 
     const mockObservabilityBreakpointService = {
       isMobile: isMobileSignal.asReadonly(),
+      isNarrow: signal(false).asReadonly(),
     };
 
     await TestBed.configureTestingModule({
@@ -510,7 +511,7 @@ describe('CreateApplicationComponent', () => {
       const createdApplication = fakeApplication({ id: 'new-app-id', name: 'Test Simple App' });
       req.flush(createdApplication);
 
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['/applications', 'new-app-id']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/dashboard/applications', 'new-app-id']);
     });
 
     it('should send correct data to API for OAuth type', async () => {
@@ -540,7 +541,7 @@ describe('CreateApplicationComponent', () => {
       const createdApplication = fakeApplication({ id: 'new-oauth-app-id', name: 'Test OAuth App' });
       req.flush(createdApplication);
 
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['/applications', 'new-oauth-app-id']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/dashboard/applications', 'new-oauth-app-id']);
     });
 
     it('should send correct data to API for backend to backend type', async () => {
@@ -565,7 +566,7 @@ describe('CreateApplicationComponent', () => {
       const createdApplication = fakeApplication({ id: 'new-oauth-app-id', name: 'Test OAuth App' });
       req.flush(createdApplication);
 
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['/applications', 'new-oauth-app-id']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/dashboard/applications', 'new-oauth-app-id']);
     });
 
     it('should include TLS settings when client certificate is provided', async () => {
@@ -652,17 +653,6 @@ describe('CreateApplicationComponent', () => {
       httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
       await fixture.whenStable();
       fixture.detectChanges();
-    });
-
-    it('should display dropdown on mobile', () => {
-      isMobileSignal.set(true);
-      fixture.detectChanges();
-
-      const select = fixture.nativeElement.querySelector('mat-select');
-      const radioGroup = fixture.nativeElement.querySelector('mat-radio-group');
-
-      expect(select).toBeTruthy();
-      expect(radioGroup).toBeFalsy();
     });
 
     it('should display radio buttons on desktop', () => {

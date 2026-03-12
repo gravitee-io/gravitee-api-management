@@ -20,7 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatError, MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
@@ -29,14 +29,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Router } from '@angular/router';
 import { startWith } from 'rxjs';
 
-import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
-import { FormKeyValuePairsComponent } from '../../../components/form-key-value-pairs/form-key-value-pairs.component';
-import { LoaderComponent } from '../../../components/loader/loader.component';
-import { MobileClassDirective } from '../../../directives/mobile-class.directive';
-import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../entities/application/application';
-import { ApplicationTypeTranslatePipe } from '../../../pipe/application-type-translate.pipe';
-import { ApplicationService } from '../../../services/application.service';
-import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
+import { FormKeyValuePairsComponent } from '../../../../components/form-key-value-pairs/form-key-value-pairs.component';
+import { LoaderComponent } from '../../../../components/loader/loader.component';
+import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
+import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
+import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../../entities/application/application';
+import { ApplicationTypeTranslatePipe } from '../../../../pipe/application-type-translate.pipe';
+import { ApplicationService } from '../../../../services/application.service';
 
 type BaseControls = {
   name: FormControl<string>;
@@ -58,7 +57,6 @@ interface GrantTypeVM {
   selector: 'app-create-application',
   imports: [
     ApplicationTypeTranslatePipe,
-    BreadcrumbNavigationComponent,
     FormKeyValuePairsComponent,
     LoaderComponent,
     MatButtonModule,
@@ -68,15 +66,14 @@ interface GrantTypeVM {
     MatDividerModule,
     MatError,
     MatFormField,
-    MatHint,
     MatIcon,
     MatInput,
-    MatLabel,
     MatRadioButton,
     MatRadioGroup,
     MatSelectModule,
     MatSlideToggleModule,
     MobileClassDirective,
+    NarrowClassDirective,
     ReactiveFormsModule,
   ],
   templateUrl: './create-application.component.html',
@@ -86,7 +83,6 @@ export class CreateApplicationComponent {
   readonly applicationService = inject(ApplicationService);
   readonly router = inject(Router);
   readonly destroyRef = inject(DestroyRef);
-  readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   readonly typeIdControl = new FormControl<string | null>(null, { nonNullable: false });
 
@@ -168,7 +164,7 @@ export class CreateApplicationComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: application => {
-          this.router.navigate(['/applications', application.id]);
+          this.router.navigate(['/dashboard/applications', application.id]);
         },
         error: err => {
           this.hasApplicationError = true;

@@ -36,7 +36,6 @@ import { ConfigService } from '../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('ApplicationTabSettingsComponent', () => {
-  let component: ApplicationTabSettingsComponent;
   let fixture: ComponentFixture<ApplicationTabSettingsComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -62,38 +61,38 @@ describe('ApplicationTabSettingsComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
-    component = fixture.componentInstance;
-    component.applicationId = applicationId;
-    component.userApplicationPermissions = fakeUserApplicationPermissions({
-      DEFINITION: ['U'],
-    });
+    fixture.componentRef.setInput('applicationId', applicationId);
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  async function initRestCalls(application: Application, applicationType: ApplicationType) {
-    component.applicationTypeConfiguration = applicationType;
-    fixture.detectChanges();
-
+  function flushGetRequests(application: Application) {
     const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
-
-    const applicationRequest = httpTestingController.expectOne(applicationUrl);
-    expect(applicationRequest.request.method).toBe('GET');
-    applicationRequest.flush(application);
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const applicationRequests = httpTestingController.match(applicationUrl);
-
-    applicationRequests.forEach(req => {
+    httpTestingController.match(applicationUrl).forEach(req => {
       expect(req.request.method).toBe('GET');
       req.flush(application);
       fixture.detectChanges();
     });
+  }
 
+  async function initRestCalls(application: Application, applicationType: ApplicationType) {
+    fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
+    fixture.detectChanges();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+    flushGetRequests(application);
+    await fixture.whenStable();
+
+    // Enter edit mode, then flush the edit component's own GET request
+    fixture.componentRef.instance.isEditing.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    flushGetRequests(application);
     await fixture.whenStable();
 
     updateHarness = await loader.getHarness(ApplicationTabSettingsEditHarness);
@@ -118,11 +117,9 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(simpleApplication, fakeSimpleApplicationType());
     });
 
-    it('Should display name, description, picture, client ID & application type fields', async () => {
+    it('Should display name, description, client ID & application type fields', async () => {
       expect(await updateHarness.getName()).toEqual('Simple application');
       expect(await updateHarness.getDescription()).toEqual('Simple description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OAuth2 Integration');
       expect(await updateHarness.getSimpleClientId()).toEqual('Custom Client ID');
       expect(await updateHarness.getSimpleType()).toEqual('Custom Application Type');
       expect(await updateHarness.getType()).toBeUndefined();
@@ -155,6 +152,7 @@ describe('ApplicationTabSettingsComponent', () => {
       req.flush(updatedApplication);
     });
   });
+
   describe('Display Backend to backend application', () => {
     const b2bApplication = fakeApplication({
       id: applicationId,
@@ -179,15 +177,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(b2bApplication, fakeBackendToBackendApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('B2b application');
       expect(await updateHarness.getDescription()).toEqual('B2b description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('Backend to backend');
-      expect(await updateHarness.getTypeDescription()).toEqual('Machine to machine');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -238,15 +234,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(nativeApplication, fakeNativeApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret, redirect URIs & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('Native application');
       expect(await updateHarness.getDescription()).toEqual('Native description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('Native');
-      expect(await updateHarness.getTypeDescription()).toEqual('iOS, Android, ...');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -309,15 +303,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(browserApplication, fakeBrowserApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret, redirect URIs & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('Browser application');
       expect(await updateHarness.getDescription()).toEqual('Browser description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('SPA');
-      expect(await updateHarness.getTypeDescription()).toEqual('Angular, React, Ember, ...');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -380,15 +372,13 @@ describe('ApplicationTabSettingsComponent', () => {
       await initRestCalls(webApplication, fakeWebApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
+    it('Should display name, description, client ID, client secret, redirect URIs & grant types fields', async () => {
       expect(await updateHarness.getName()).toEqual('Web application');
       expect(await updateHarness.getDescription()).toEqual('Web description');
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('Web');
-      expect(await updateHarness.getTypeDescription()).toEqual('Java, .Net, ...');
+      expect(await updateHarness.getTypeDescription()).toBeUndefined();
       expect(await updateHarness.getClientId()).toEqual('my client id');
       expect(await updateHarness.getHiddenClientSecret()).toEqual('****************');
       expect(await updateHarness.getClearClientSecret()).toEqual('my client secret');
@@ -461,24 +451,6 @@ describe('ApplicationTabSettingsComponent', () => {
       await updateHarness.discardChanges();
       expect(await updateHarness.getName()).toEqual('Native application');
       expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
-    });
-
-    it('Should update a picture', async () => {
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
-      expect(await updateHarness.isSaveButtonDisabled()).toBeTruthy();
-      await updateHarness.changePicture('newImage.png');
-
-      expect(await updateHarness.isSaveButtonDisabled()).toBeFalsy();
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,bmV3SW1hZ2UucG5n');
-    });
-
-    it('Should delete a picture', async () => {
-      expect(await updateHarness.isDeletePictureButtonDisabled()).toBeFalsy();
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
-
-      await updateHarness.deletePicture();
-      expect(await updateHarness.isDeletePictureButtonDisabled()).toBeTruthy();
-      expect(await updateHarness.getDisplayedPictureSource()).toEqual('');
     });
   });
 });

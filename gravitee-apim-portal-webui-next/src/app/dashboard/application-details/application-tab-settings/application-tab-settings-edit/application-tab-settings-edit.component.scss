@@ -13,52 +13,75 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../../../scss/theme';
+@use '@angular/material' as mat;
 
-.settings__form {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-
-  &__content {
+.settings-edit {
+  mat-card-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    padding-top: 8px;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 
     &__general,
-    &__integration {
+    &__security {
       display: flex;
       flex-direction: column;
-      margin-bottom: 8px;
       gap: 8px;
     }
 
-    &__general {
-      &__picture {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        margin: 10px 0;
-        gap: 8px;
+    &__field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      p {
+        margin: 0;
+      }
+
+      mat-form-field {
+        width: 100%;
+
+        @include mat.form-field-overrides(
+          (
+            container-height: 40px,
+            container-vertical-padding: 8px,
+            subscript-text-line-height: 0,
+            subscript-text-size: 0,
+            outlined-outline-color: theme.$border-color,
+            outlined-hover-outline-color: theme.$border-color,
+          )
+        );
       }
     }
 
-    &__integration {
+    &__security {
+      &__subtitle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       &__copy-code {
         display: flex;
         flex-direction: row;
-        margin: 8px 0 20px;
         gap: 8px;
-      }
 
-      &__copy-code > * {
-        width: 100%;
+        > * {
+          width: 100%;
+        }
       }
     }
-  }
 
-  &__actions {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+    }
   }
 }

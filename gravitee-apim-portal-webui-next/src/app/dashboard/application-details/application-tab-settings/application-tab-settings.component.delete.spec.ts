@@ -32,20 +32,18 @@ import { ConfigService } from '../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('ApplicationTabSettingsComponent - Test application deletion', () => {
-  let component: ApplicationTabSettingsComponent;
   let fixture: ComponentFixture<ApplicationTabSettingsComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   const applicationId = fakeApplication().id;
 
-  async function flushGetApplicationRequest() {
+  function flushGetApplicationRequests() {
     httpTestingController.match(`${TESTING_BASE_URL}/applications/${applicationId}`).forEach(req => {
       expect(req.request.method).toBe('GET');
       req.flush(fakeApplication());
       fixture.detectChanges();
     });
-    await fixture.whenStable();
   }
 
   beforeEach(async () => {
@@ -69,7 +67,7 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isFocusable: () => true,
         },
       })
       .compileComponents();
@@ -80,24 +78,16 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    component = fixture.componentInstance;
-    component.applicationId = applicationId;
+    fixture.componentRef.setInput('applicationId', applicationId);
   });
 
   async function initRestCalls() {
-    component.applicationTypeConfiguration = fakeSimpleApplicationType();
-    const application = fakeApplication();
+    fixture.componentRef.setInput('applicationTypeConfiguration', fakeSimpleApplicationType());
     fixture.detectChanges();
-
-    const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
-
-    const applicationRequest = httpTestingController.expectOne(applicationUrl);
-    expect(applicationRequest.request.method).toBe('GET');
-    applicationRequest.flush(application);
-    fixture.detectChanges();
+    flushGetApplicationRequests();
     await fixture.whenStable();
-
-    await flushGetApplicationRequest();
+    flushGetApplicationRequests();
+    await fixture.whenStable();
   }
 
   afterEach(() => {
@@ -105,16 +95,13 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
   });
 
   it('Should be able to delete application', async () => {
-    component.userApplicationPermissions = fakeUserApplicationPermissions({
-      DEFINITION: ['D'],
-    });
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['D'] }));
     await initRestCalls();
 
     fixture.detectChanges();
     await fixture.whenStable();
 
     const router: Router = TestBed.inject(Router);
-
     jest.spyOn(router, 'navigate');
 
     const deleteButton = await getDeleteButton();
@@ -123,7 +110,7 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    await flushGetApplicationRequest();
+    flushGetApplicationRequests();
 
     let confirmDialog = await deleteConfirmDialog();
     expect(confirmDialog).not.toBeNull();
@@ -136,8 +123,9 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
       method: 'DELETE',
     });
     expect(router.navigate).not.toHaveBeenCalled();
+
     await deleteButton!.click();
-    await flushGetApplicationRequest();
+    flushGetApplicationRequests();
     confirmDialog = await deleteConfirmDialog();
     expect(confirmDialog).not.toBeNull();
     await confirmDialog!.confirm();
@@ -154,10 +142,8 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
   });
 
   it('Should not be able to delete application', async () => {
-    component.userApplicationPermissions = fakeUserApplicationPermissions({
-      DEFINITION: ['R'],
-    });
-    initRestCalls();
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['R'] }));
+    await initRestCalls();
 
     fixture.detectChanges();
 
@@ -166,10 +152,10 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
   });
 
   async function getDeleteButton(): Promise<MatButtonHarness | null> {
-    return await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testId="delete"]' }));
+    return loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testId="delete"]' }));
   }
 
   async function deleteConfirmDialog(): Promise<ConfirmDialogHarness | null> {
-    return await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+    return rootLoader.getHarnessOrNull(ConfirmDialogHarness);
   }
 });

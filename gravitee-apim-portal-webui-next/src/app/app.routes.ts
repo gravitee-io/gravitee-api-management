@@ -37,7 +37,6 @@ import { ApplicationLogComponent } from './dashboard/application-details/applica
 import { ApplicationLogTableComponent } from './dashboard/application-details/application-tab-logs/application-log-table/application-log-table.component';
 import { ApplicationTabLogsComponent } from './dashboard/application-details/application-tab-logs/application-tab-logs.component';
 import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
-import ApplicationComponent from './dashboard/application-details/application.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
@@ -46,7 +45,6 @@ import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
-import { CreateApplicationComponent } from './applications/create-application/create-application.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
@@ -178,56 +176,43 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/applications/applications.component'),
       },
       {
+        path: 'applications/create',
+        loadComponent: () =>
+          import('./dashboard/applications/create-application/create-application.component').then(m => m.CreateApplicationComponent),
+      },
+      {
         path: 'applications/:applicationId',
         loadComponent: () => import('./dashboard/application-details/application.component'),
-      },
-    ],
-  },
-  {
-    path: 'applications',
-    canActivateChild: [redirectGuard, authGuard],
-    children: [
-      { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
-      {
-        path: 'create',
-        component: CreateApplicationComponent,
-        data: { breadcrumb: 'Create Application' },
-      },
-      {
-        path: ':applicationId',
-        component: ApplicationComponent,
         runGuardsAndResolvers: 'always',
         resolve: {
           application: applicationResolver,
           userApplicationPermissions: applicationPermissionResolver,
         },
-        data: { breadcrumb: { alias: 'appName' } },
         children: [
-          {
-            path: '',
-            redirectTo: 'logs',
-            pathMatch: 'full',
-          },
+          { path: '', redirectTo: 'settings', pathMatch: 'full' },
           {
             path: 'logs',
             component: ApplicationTabLogsComponent,
-            data: { breadcrumb: { skip: true } },
             children: [
-              {
-                path: '',
-                component: ApplicationLogTableComponent,
-              },
-              { path: ':logId', component: ApplicationLogComponent, data: { breadcrumb: { skip: true } } },
+              { path: '', component: ApplicationLogTableComponent },
+              { path: ':logId', component: ApplicationLogComponent },
             ],
           },
           {
             path: 'settings',
             component: ApplicationTabSettingsComponent,
             resolve: { applicationTypeConfiguration: applicationTypeResolver },
-            data: { breadcrumb: { skip: true } },
           },
         ],
       },
+    ],
+  },
+  {
+    path: 'applications',
+    children: [
+      { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
+      { path: 'create', redirectTo: '/dashboard/applications/create', pathMatch: 'full' },
+      { path: ':applicationId', redirectTo: '/dashboard/applications/:applicationId' },
     ],
   },
   {
