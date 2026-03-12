@@ -156,13 +156,13 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                 // Try to end the response and complete normally in case of error.
                 return response
                     .rxEnd()
-                    .doOnError(throwable -> log.error("Failed to properly end response after error", throwable))
+                    .doOnError(throwable -> log.warn("Failed to properly end response after error", throwable))
                     .onErrorComplete();
             }
 
             return Completable.complete();
         } catch (Throwable throwable) {
-            log.error("Failed to properly end response after error", throwable);
+            log.warn("Failed to properly end response after error", throwable);
             return Completable.complete();
         }
     }
