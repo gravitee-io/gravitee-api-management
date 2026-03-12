@@ -127,6 +127,9 @@ public abstract class AbstractReactableApi<T> implements ReactableApi<T>, Serial
     @JsonIgnore
     public abstract Set<String> getApiKeyPlans();
 
+    @JsonIgnore
+    public abstract Set<String> getBasicAuthPlans();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -30,6 +30,7 @@ public interface ReactableApi<T> extends Reactable {
     Set<String> getTags();
     Set<String> getSubscribablePlans();
     Set<String> getApiKeyPlans();
+    Set<String> getBasicAuthPlans();
 
     String getEnvironmentId();
     String getEnvironmentHrid();

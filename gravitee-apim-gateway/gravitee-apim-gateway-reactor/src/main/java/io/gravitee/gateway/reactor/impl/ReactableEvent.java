@@ -80,6 +80,11 @@ public class ReactableEvent<T> extends AbstractReactableApi<T> {
     }
 
     @Override
+    public Set<String> getBasicAuthPlans() {
+        return Set.of();
+    }
+
+    @Override
     public <D> Set<D> dependencies(final Class<D> type) {
         return Set.of();
     }

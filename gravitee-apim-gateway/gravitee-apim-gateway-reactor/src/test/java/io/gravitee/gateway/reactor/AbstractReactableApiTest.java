@@ -77,6 +77,11 @@ class AbstractReactableApiTest {
             public Set<String> getApiKeyPlans() {
                 return Set.of();
             }
+
+            @Override
+            public Set<String> getBasicAuthPlans() {
+                return Set.of();
+            }
         };
     }
 
@@ -120,6 +125,11 @@ class AbstractReactableApiTest {
 
             @Override
             public Set<String> getApiKeyPlans() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getBasicAuthPlans() {
                 return Set.of();
             }
         };
