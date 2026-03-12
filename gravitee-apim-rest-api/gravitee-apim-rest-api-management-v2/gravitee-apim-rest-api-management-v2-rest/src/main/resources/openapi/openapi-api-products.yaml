@@ -2121,6 +2121,7 @@ components:
         - OAUTH2
         - JWT
         - MTLS
+        - BASIC_AUTH
 
     PlanStatus:
       type: string

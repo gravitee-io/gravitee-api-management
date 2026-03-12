@@ -1747,6 +1747,7 @@ components:
         - OAUTH2
         - JWT
         - MTLS
+        - BASIC_AUTH
     PlanStatus:
       type: string
       description: Plan status, only `PUBLISHED` makes the plan available at runtime.

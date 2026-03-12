@@ -20,6 +20,8 @@ import static java.lang.String.format;
 import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
+import io.gravitee.apim.core.basic_auth.model.BasicAuthPlainCredentialsHolder;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
@@ -148,6 +150,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Inject
     private DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase;
 
+    @Inject
+    private BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
+
     @PathParam("apiId")
     private String apiId;
 
@@ -272,6 +277,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             newSubscriptionEntity,
             createSubscription.getCustomApiKey()
         );
+        var plainCredentials = BasicAuthPlainCredentialsHolder.getAndClear();
         var subscription = subscriptionMapper.map(created);
 
         if (created.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
@@ -285,6 +291,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .build()
             );
             subscription = subscriptionMapper.map(result.subscription());
+            if (result.basicAuthCredentials() != null) {
+                plainCredentials = result.basicAuthCredentials();
+            }
+        }
+
+        if (plainCredentials != null) {
+            subscription.setBasicAuthUsername(plainCredentials.getUsername());
+            subscription.setBasicAuthPassword(plainCredentials.getPassword());
         }
 
         return Response.created(this.getLocationHeader(created.getId())).entity(subscription).build();
@@ -338,6 +352,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         final Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         expandData(subscription, expands);
+
+        basicAuthCredentialsCrudService
+            .findBySubscriptionId(subscriptionId)
+            .ifPresent(creds -> {
+                subscription.setBasicAuthUsername(creds.getUsername());
+            });
 
         return Response.ok(subscription).build();
     }
@@ -401,7 +421,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .auditInfo(getAuditInfo())
             .build();
 
-        return Response.ok().entity(subscriptionMapper.map(acceptSubscriptionUsecase.execute(input).subscription())).build();
+        var result = acceptSubscriptionUsecase.execute(input);
+        var subscription = subscriptionMapper.map(result.subscription());
+        if (result.basicAuthCredentials() != null) {
+            subscription.setBasicAuthUsername(result.basicAuthCredentials().getUsername());
+            subscription.setBasicAuthPassword(result.basicAuthCredentials().getPassword());
+        }
+        return Response.ok().entity(subscription).build();
     }
 
     @POST

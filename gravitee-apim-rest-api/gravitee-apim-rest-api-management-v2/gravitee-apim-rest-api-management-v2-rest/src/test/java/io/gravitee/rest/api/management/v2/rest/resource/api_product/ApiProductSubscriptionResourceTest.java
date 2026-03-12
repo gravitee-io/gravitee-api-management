@@ -286,7 +286,7 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_accept_subscription() {
             SubscriptionEntity accepted = aSubscription();
-            doReturn(new AcceptSubscriptionUseCase.Output(accepted)).when(acceptSubscriptionUseCase).execute(any());
+            doReturn(new AcceptSubscriptionUseCase.Output(accepted, null)).when(acceptSubscriptionUseCase).execute(any());
 
             var acceptPayload = new io.gravitee.rest.api.management.v2.rest.model.AcceptSubscription();
 

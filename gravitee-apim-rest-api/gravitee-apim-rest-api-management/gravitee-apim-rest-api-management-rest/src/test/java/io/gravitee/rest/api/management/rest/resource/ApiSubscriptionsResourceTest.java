@@ -146,7 +146,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         );
         doReturn(
             new AcceptSubscriptionUseCase.Output(
-                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build()
+                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build(),
+                null
             )
         )
             .when(acceptSubscriptionUseCase)
@@ -230,7 +231,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         );
         doReturn(
             new AcceptSubscriptionUseCase.Output(
-                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build()
+                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build(),
+                null
             )
         )
             .when(acceptSubscriptionUseCase)
@@ -272,7 +274,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         ).thenReturn(fakeSubscriptionEntity);
         doReturn(
             new AcceptSubscriptionUseCase.Output(
-                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build()
+                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build(),
+                null
             )
         )
             .when(acceptSubscriptionUseCase)

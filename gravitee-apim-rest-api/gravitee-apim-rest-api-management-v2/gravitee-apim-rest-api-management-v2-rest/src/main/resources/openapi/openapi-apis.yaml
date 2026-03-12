@@ -5053,6 +5053,7 @@ components:
                 - OAUTH2
                 - JWT
                 - MTLS
+                - BASIC_AUTH
         PlanStatus:
             type: string
             description: Plan status.
@@ -5496,6 +5497,12 @@ components:
                           enum:
                               - KUBERNETES
                               - MANAGEMENT
+                      basicAuthUsername:
+                          type: string
+                          description: The generated username for Basic Auth subscriptions.
+                      basicAuthPassword:
+                          type: string
+                          description: The generated password for Basic Auth subscriptions.
         SubscriptionStatus:
             type: string
             description: The status of the subscription manageable by the api publisher.

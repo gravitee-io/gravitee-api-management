@@ -262,7 +262,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .planId(PLAN)
                         .applicationId(APPLICATION)
                         .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                        .build()
+                        .build(),
+                    null
                 )
             );
 
@@ -313,7 +314,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .planId(PLAN)
                         .applicationId(APPLICATION)
                         .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                        .build()
+                        .build(),
+                    null
                 )
             )
                 .when(acceptSubscriptionUseCase)
@@ -378,7 +380,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .planId(PLAN)
                         .applicationId(APPLICATION)
                         .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                        .build()
+                        .build(),
+                    null
                 )
             )
                 .when(acceptSubscriptionUseCase)
@@ -428,7 +431,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
                         .applicationId(APPLICATION)
-                        .build()
+                        .build(),
+                    null
                 )
             )
                 .when(acceptSubscriptionUseCase)
@@ -477,7 +481,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
                         .applicationId(APPLICATION)
-                        .build()
+                        .build(),
+                    null
                 )
             )
                 .when(acceptSubscriptionUseCase)
