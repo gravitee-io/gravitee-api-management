@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, Signal, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,9 +28,11 @@ import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
+import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
+import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { ApisResponse } from '../../entities/api/apis-response';
 import { ApiService } from '../../services/api.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
@@ -56,14 +57,15 @@ interface ApiPaginatorVM {
   selector: 'app-catalog',
   standalone: true,
   imports: [
-    AsyncPipe,
     ApiCardComponent,
     BadgeComponent,
     ButtonToggleGroupComponent,
     ButtonToggleOptionComponent,
+    CardsGridComponent,
     LoaderComponent,
-    SearchBarComponent,
+    MobileClassDirective,
     PaginationComponent,
+    SearchBarComponent,
     MatChipsModule,
     MatIconModule,
     MatTableModule,
@@ -73,7 +75,6 @@ interface ApiPaginatorVM {
   styleUrl: './catalog.component.scss',
 })
 export class CatalogComponent {
-  apiPaginator$: Observable<ApiPaginatorVM> = of();
   loadingPage: boolean = true;
   pageSize = 20;
   pageSizeOptions = [8, 20, 40, 80];
@@ -84,11 +85,11 @@ export class CatalogComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
-  protected readonly isNarrow = this.breakpointService.isNarrow;
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
   protected readonly tableColumns = computed(() => (this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'version', 'mcp']));
+  protected apiPaginator: Signal<ApiPaginatorVM> = toSignal(this.loadApis$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
 
   constructor() {
     effect(() => {
@@ -96,7 +97,6 @@ export class CatalogComponent {
         this.page$.next(1);
       }
     });
-    this.apiPaginator$ = this.loadApis$();
   }
 
   onPageChange(page: number) {

@@ -15,24 +15,24 @@
     limitations under the License.
 
 -->
-<mat-card class="app-card" appearance="outlined">
+<mat-card
+  class="app-card"
+  appearance="outlined"
+  (click)="cardSelect.emit(applicationId())"
+  (keydown.enter)="cardSelect.emit(applicationId())"
+>
   <mat-card-content class="app-card__content">
     <div class="app-card__header">
-      <app-picture [picture]="application.picture" [hashValue]="application.name" [size]="40" />
       <div class="app-card__header__content">
-        <div #appName class="title m3-title-medium" [matTooltip]="isOverflowing ? application.name : ''">{{ application.name }}</div>
-        <div class="m3-body-medium"><span i18n="@@owner">Owner: </span>{{ application.owner?.display_name }}</div>
+        <div class="app-card__title next-gen-h5" [matTooltip]="title()">{{ title() }}</div>
       </div>
     </div>
-    <div class="app-card__description m3-body-medium">
-      @if (application.description) {
-        {{ application.description }}
+    <div class="app-card__description next-gen-body">
+      @if (description()) {
+        {{ description() }}
       } @else {
-        <span i18n="@@descriptionMissing">Description for this application is missing.</span>
+        <span i18n="@@appDescriptionMissing">Description for this application is missing.</span>
       }
     </div>
   </mat-card-content>
-  <mat-card-actions class="app-card__actions">
-    <button i18n="@@appCardButton" mat-stroked-button color="primary" [routerLink]="['.', application.id]">Open</button>
-  </mat-card-actions>
 </mat-card>

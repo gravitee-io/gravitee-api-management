@@ -15,22 +15,22 @@
     limitations under the License.
 
 -->
-<gmd-card class="api-card" (click)="cardSelect.emit(apiId)" (keydown.enter)="cardSelect.emit(apiId)">
-  <div class="api-card__content">
+<mat-card class="api-card" appearance="outlined" (click)="cardSelect.emit(apiId)" (keydown.enter)="cardSelect.emit(apiId)">
+  <mat-card-content class="api-card__content">
     <div class="api-card__header">
       <div class="api-card__header__content">
-        <div class="m3-title-medium">{{ title }}</div>
+        <div class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title">{{ title }}</div>
       </div>
       @if (isEnabledMcpServer) {
         <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
       }
     </div>
-    <div class="api-card__description m3-body-medium">
+    <div class="api-card__description next-gen-body">
       @if (content) {
         {{ content }}
       } @else {
         <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
       }
     </div>
-  </div>
-</gmd-card>
+  </mat-card-content>
+</mat-card>

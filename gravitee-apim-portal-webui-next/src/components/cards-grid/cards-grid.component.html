@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2024 The Gravitee team (http://gravitee.io)
-
+    
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-
+    
             http://www.apache.org/licenses/LICENSE-2.0
-
+    
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,11 +15,18 @@
     limitations under the License.
 
 -->
-<button mat-stroked-button color="primary" class="user-avatar m3-title-medium" [matMenuTriggerFor]="user">
-  {{ initials }}
-</button>
-<mat-menu #user="matMenu">
-  <button i18n="@@applications" mat-menu-item [routerLink]="['dashboard', 'applications']">Applications</button>
-  <button i18n="@@subscriptions" mat-menu-item [routerLink]="['dashboard', 'subscriptions']">Subscriptions</button>
-  <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['log-out']">Log out</button>
-</mat-menu>
+@if (loading()) {
+  <div class="cards-grid__loader">
+    <app-loader />
+  </div>
+} @else if (cards() && cards()!.length > 0) {
+  <div class="cards-grid" [appIsNarrow]="'cards-grid--narrow'" [appIsMobile]="'cards-grid--mobile'">
+    @for (item of cards()!; track $index) {
+      <ng-container *ngTemplateOutlet="cardTemplate() || null; context: { $implicit: item }" />
+    }
+  </div>
+} @else {
+  <div class="cards-grid__empty-state">
+    <ng-content select="[slot=empty-state]" />
+  </div>
+}

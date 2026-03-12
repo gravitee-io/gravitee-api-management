@@ -13,44 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/layout' as layout;
+@use '../../../scss/theme' as theme;
 
 :host {
-  @include layout.large-container-legacy();
-}
-
-mat-card {
-  width: 100%;
-}
-
-.tile {
   display: flex;
-  flex-flow: column;
-  gap: 16px;
+  flex-direction: column;
+  max-width: theme.$inner-content-width;
+  padding: 16px;
 }
 
-.app-list-header {
+.content {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-
-  &__title {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.app-list__container {
-  display: grid;
+  flex-direction: column;
   gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 24px;
+}
 
-  &--mobile {
-    grid-template-columns: 1fr !important;
-  }
+.apps-list {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
 
-  > * {
-    height: 256px;
+    &__title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   }
+}
+
+.list-page__pagination {
+  margin-top: 16px;
 }

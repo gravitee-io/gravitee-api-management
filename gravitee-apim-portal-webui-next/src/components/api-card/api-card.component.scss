@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 @use '../../scss/theme' as theme;
-@use '@gravitee/gravitee-markdown' as gmd;
 
 :host {
-  @include gmd.card-overrides(
-    (
-      outline-color: theme.$card-border-color,
-      outline-width: 1px,
-      container-shape: theme.$container-shape,
-    )
-  );
   display: flex;
-  min-height: 138px;
   flex-flow: column;
   width: 100%;
+  min-width: 0;
 }
 
 .api-card {
+  height: 100%;
   cursor: pointer;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
@@ -41,7 +34,7 @@
 
   &__header {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
@@ -51,7 +44,14 @@
       flex: 1;
       flex-flow: column;
       gap: 2px;
+      overflow: hidden;
     }
+  }
+
+  &__title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   &__content {
@@ -59,12 +59,12 @@
     flex: 1 1 auto;
     flex-direction: column;
     gap: 12px;
+    overflow: hidden;
   }
 
   &__description {
     display: -webkit-box;
     overflow: hidden;
-    max-height: 54px;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;

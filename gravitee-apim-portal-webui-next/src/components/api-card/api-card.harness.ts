@@ -17,7 +17,7 @@ import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate 
 
 export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
-  protected locateTitle = this.locatorFor('.m3-title-medium');
+  protected locateTitle = this.locatorFor('.next-gen-h5');
   protected locateDescription = this.locatorFor('.api-card__description');
   protected locateMcpBadge = this.locatorForOptional('app-badge');
 
