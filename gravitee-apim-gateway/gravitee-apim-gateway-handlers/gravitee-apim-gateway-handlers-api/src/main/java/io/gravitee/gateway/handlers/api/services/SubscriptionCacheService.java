@@ -119,13 +119,7 @@ public class SubscriptionCacheService implements SubscriptionService {
             unregisterFromClientCertificate(cachedSubscription);
         }
 
-        log.debug(
-            "Load accepted subscription with client Id  [id: {}] [api: {}] [plan: {}] [application: {}]",
-            subscription.getId(),
-            subscription.getApi(),
-            subscription.getPlan(),
-            subscription.getApi()
-        );
+        log.debug("Registering subscription [{}] for API [{}] by client certificate", subscription.getId(), subscription.getApi());
         final Set<String> servers = extractApiServersId(subscription);
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, servers);
         // Update subscription
@@ -165,11 +159,10 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
 
         log.debug(
-            "Load accepted subscription with client Id  [id: {}] [api: {}] [plan: {}] [application: {}]",
+            "Registering subscription [{}] for API [{}] by clientId [{}]",
             subscription.getId(),
             subscription.getApi(),
-            subscription.getPlan(),
-            subscription.getApi()
+            subscription.getClientId()
         );
         // Update subscription
         cacheBySubscriptionId.put(idKey, subscription);
@@ -183,13 +176,7 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     private void registerFromId(final Subscription subscription) {
         String cacheKey = subscription.getId();
-        log.debug(
-            "Load accepted subscription [id: {}] [api: {}] [plan: {}] [application: {}]",
-            subscription.getId(),
-            subscription.getApi(),
-            subscription.getPlan(),
-            subscription.getApi()
-        );
+        log.debug("Registering subscription [{}] for API [{}] by ID", subscription.getId(), subscription.getApi());
         cacheBySubscriptionId.put(cacheKey, subscription);
         addKeyForApi(subscription.getApi(), cacheKey);
     }
@@ -217,11 +204,10 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void unregister(final Subscription subscription) {
         log.debug(
-            "Unload subscription [id: {}] [api: {}] [plan: {}] [application: {}]",
+            "Unregistering subscription [{}] for API [{}] with status [{}]",
             subscription.getId(),
             subscription.getApi(),
-            subscription.getPlan(),
-            subscription.getApi()
+            subscription.getStatus()
         );
         final String idKey = subscription.getId();
         Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
@@ -268,7 +254,7 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public void unregisterByApiId(final String apiId) {
-        log.debug("Unload all subscriptions by api [api_id: {}]", apiId);
+        log.debug("Unregistering all subscriptions for API [{}]", apiId);
         Set<String> subscriptionsByApi = cacheByApiId.remove(apiId);
         if (subscriptionsByApi != null) {
             subscriptionsByApi.forEach(cacheKey -> {
