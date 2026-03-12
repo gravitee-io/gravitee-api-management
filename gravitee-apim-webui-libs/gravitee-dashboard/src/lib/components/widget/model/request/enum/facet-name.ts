@@ -28,20 +28,8 @@ export type GeoIpFacetName = 'GEO_IP_COUNTRY' | 'GEO_IP_REGION' | 'GEO_IP_CITY' 
 
 export type MessageFacetName = 'MESSAGE_CONNECTOR_TYPE' | 'MESSAGE_CONNECTOR_ID' | 'MESSAGE_OPERATION_TYPE';
 
-export type KafkaFacetName = 'KAFKA_TOPIC';
-
-export type ApiFacetName = 'API_STATE' | 'API_LIFECYCLE_STATE' | 'API_VISIBILITY';
-
 export type LlmFacetName = 'LLM_PROXY_MODEL' | 'LLM_PROXY_PROVIDER';
 
 export type McpFacetName = 'MCP_PROXY_METHOD' | 'MCP_PROXY_TOOL' | 'MCP_PROXY_RESOURCE' | 'MCP_PROXY_PROMPT';
 
-export type FacetName =
-  | GlobalFacetName
-  | HttpFacetName
-  | GeoIpFacetName
-  | MessageFacetName
-  | KafkaFacetName
-  | ApiFacetName
-  | LlmFacetName
-  | McpFacetName;
+export type FacetName = GlobalFacetName | HttpFacetName | GeoIpFacetName | MessageFacetName | LlmFacetName | McpFacetName;
