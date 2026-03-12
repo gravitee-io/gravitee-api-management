@@ -81,6 +81,7 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
      */
     @Override
     public Completable execute(BaseExecutionContext ctx) {
+        ctx.withLogger(log).debug("Executing policy chain [{}] with {} policy(ies) for phase [{}]", id, originalPolicies.size(), phase);
         return policies.concatMapCompletable(policy -> {
             ComponentScope.push(ctx, ComponentType.POLICY, policy.id());
             return executePolicy(ctx, policy).doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
