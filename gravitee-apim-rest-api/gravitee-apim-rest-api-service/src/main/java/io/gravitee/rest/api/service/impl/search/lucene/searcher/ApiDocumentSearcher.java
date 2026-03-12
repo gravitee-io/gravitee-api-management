@@ -211,7 +211,6 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
             buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
         } catch (ParseException pe) {
-            log.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
         }
 

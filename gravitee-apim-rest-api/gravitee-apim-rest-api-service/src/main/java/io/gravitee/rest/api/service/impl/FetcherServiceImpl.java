@@ -63,7 +63,6 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, 
                 .map(fetcherDefinition -> convert(fetcherDefinition, false))
                 .collect(Collectors.toSet());
         } catch (Exception ex) {
-            log.error("An error occurs while trying to list all fetchers", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all fetchers", ex);
         }
     }

@@ -155,7 +155,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
 
             return customResourceDefinitionMapper.toCustomResourceDefinition(apiDefinitionResource);
         } catch (final Exception e) {
-            log.error(String.format("An error occurs while trying to convert API %s to CRD", apiId), e);
             throw new TechnicalManagementException(e);
         }
     }

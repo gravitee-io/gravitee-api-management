@@ -66,7 +66,6 @@ public class JsonPatchServiceImpl extends AbstractService implements JsonPatchSe
             Object apiDefinitionToUpdate = transform(jsonPatches, apiDefinitionParsed.json());
             return objectMapper.writeValueAsString(apiDefinitionToUpdate);
         } catch (JsonProcessingException | InvalidPathException ex) {
-            log.error("An error occurs while trying to execute json patches", ex);
             throw new TechnicalManagementException("An error occurs while trying to execute json patches", ex);
         }
     }

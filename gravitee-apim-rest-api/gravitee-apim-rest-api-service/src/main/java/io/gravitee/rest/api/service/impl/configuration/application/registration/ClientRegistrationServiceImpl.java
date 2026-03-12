@@ -94,7 +94,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to retrieve client registration providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve client registration providers", ex);
         }
     }
@@ -162,7 +161,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             return convert(createdClientRegistrationProvider);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create client registration provider {}", newClientRegistrationProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newClientRegistrationProvider, ex);
         }
     }
@@ -230,7 +228,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             return convert(updatedClientRegistrationProvider);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update client registration provider {}", updateClientRegistrationProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateClientRegistrationProvider, ex);
         }
     }
@@ -267,7 +264,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             throw new ClientRegistrationProviderNotFoundException(id);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find a client registration provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete a client registration provider using its ID " + id,
                 ex
@@ -301,7 +297,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                     .build()
             );
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a client registration provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete a client registration provider using its ID " + id,
                 ex

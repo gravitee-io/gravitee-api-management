@@ -73,7 +73,6 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
         try {
             categories = categoryRepository.findAll();
         } catch (TechnicalException e) {
-            log.error("An error occurred when finding all categories", e);
             throw new TechnicalException(e);
         }
 

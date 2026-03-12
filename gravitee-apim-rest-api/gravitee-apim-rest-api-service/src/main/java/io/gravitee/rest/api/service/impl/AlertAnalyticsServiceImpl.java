@@ -121,7 +121,6 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurs while trying to list alerts analytics by reference " + referenceType + '/' + referenceId;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }

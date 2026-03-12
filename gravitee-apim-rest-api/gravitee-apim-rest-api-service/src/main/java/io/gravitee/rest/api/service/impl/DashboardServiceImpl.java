@@ -91,9 +91,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 .sorted(comparing(DashboardEntity::getType))
                 .toList();
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to find all dashboards";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all dashboards", ex);
         }
     }
 
@@ -109,9 +107,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 .sorted(comparing(DashboardEntity::getType))
                 .toList();
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to find all dashboards";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all dashboards", ex);
         }
     }
 
@@ -138,9 +134,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                     .toList();
             }
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to find all dashboards by reference type";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all dashboards by reference type", ex);
         }
     }
 
@@ -153,9 +147,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 .map(this::convert)
                 .orElseThrow(() -> new DashboardNotFoundException(dashboardId));
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to find dashboard by ID";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find dashboard by ID", ex);
         }
     }
 
@@ -180,9 +172,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             );
             return convert(dashboard);
         } catch (TechnicalException ex) {
-            final String error = "An error occurred while trying to create dashboard " + dashboardEntity;
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurred while trying to create dashboard " + dashboardEntity, ex);
         }
     }
 
@@ -257,9 +247,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             );
             return savedDashboard;
         } catch (TechnicalException ex) {
-            final String error = "An error occurred while trying to update dashboard " + dashboardEntity;
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurred while trying to update dashboard " + dashboardEntity, ex);
         }
     }
 
@@ -275,9 +263,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             JsonNode jsonNode = objectMapper.readValue(json, JsonNode.class);
             return jsonNode.toString();
         } catch (IOException ex) {
-            final String error = "Error while trying to load a dashboard from the definition path: " + path;
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("Error while trying to load a dashboard from the definition path: " + path, ex);
         }
     }
 
@@ -321,9 +307,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             }
             return convert(dashboardRepository.update(dashboardToReorder));
         } catch (final TechnicalException ex) {
-            final String error = "An error occurs while trying to update dashboard " + dashboardToReorder.getId();
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update dashboard " + dashboardToReorder.getId(), ex);
         }
     }
 
@@ -355,9 +339,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 );
             }
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to delete dashboard " + dashboardId;
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete dashboard " + dashboardId, ex);
         }
     }
 

@@ -150,7 +150,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             notification.setConfiguration(mapper.writeValueAsString(configuration));
             return singletonList(notification);
         } catch (JsonProcessingException e) {
-            log.error("An error occurs while trying to create the Alert notification", e);
             throw new TechnicalManagementException("An error occurs while trying to create the Alert notification");
         }
     }
@@ -224,7 +223,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                         configuration.put("body", emailNode.path("body").asText());
                         notification.setConfiguration(mapper.writeValueAsString(configuration));
                     } catch (JsonProcessingException e) {
-                        log.error("An error occurs while trying to add a recipient to the Alert notification", e);
                         throw new TechnicalManagementException("An error occurs while trying to add a recipient to the Alert notification");
                     }
                 } else {
@@ -280,7 +278,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                         }
                         alertService.update(executionContext, convert(trigger));
                     } catch (JsonProcessingException e) {
-                        log.error("An error occurs while trying to add a recipient to the Alert notification", e);
                         throw new TechnicalManagementException("An error occurs while trying to add a recipient to the Alert notification");
                     }
                 }
@@ -462,7 +459,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
                     alertService.update(executionContext, convert(trigger));
                 } catch (JsonProcessingException e) {
-                    log.error("An error occurs while trying to update Alert notification", e);
                     throw new TechnicalManagementException("An error occurs while trying to update Alert notification");
                 }
             });

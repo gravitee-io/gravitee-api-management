@@ -78,7 +78,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             log.debug("Find all categories");
             return categoryRepository.findAllByEnvironment(environmentId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all categories", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all categories", ex);
         }
     }
@@ -92,7 +91,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to find categories by ids", e);
             throw new TechnicalManagementException("An error occurs while trying to find categories by ids", e);
         }
     }
@@ -103,7 +101,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             log.debug("Find all categories by page");
             return categoryRepository.findByPage(page).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all categories by page", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all categories by page", ex);
         }
     }
@@ -122,7 +119,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             throw new CategoryNotFoundException(id);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a category using its id: " + id;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -174,7 +170,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return createdCategory;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create category {}", newCategory.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to create category " + newCategory.getName(), ex);
         }
     }
@@ -216,7 +211,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return updatedCategory;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
         }
     }
@@ -258,7 +252,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     );
                 }
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
             }
         });
@@ -289,7 +282,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 apiCategoryService.deleteCategoryFromAPIs(executionContext, categoryId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete category {}", categoryId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete category " + categoryId, ex);
         }
     }

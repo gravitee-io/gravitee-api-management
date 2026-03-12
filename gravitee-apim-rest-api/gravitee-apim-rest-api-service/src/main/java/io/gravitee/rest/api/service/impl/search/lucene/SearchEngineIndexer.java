@@ -49,7 +49,6 @@ public class SearchEngineIndexer {
             }
             return seq;
         } catch (IOException ioe) {
-            log.error("Fail to index document with ID: {}", id, ioe);
             throw new TechnicalException("Fail to index document with ID: " + id, ioe);
         }
     }
@@ -67,7 +66,6 @@ public class SearchEngineIndexer {
         try {
             writer.deleteDocuments(bq.build());
         } catch (IOException ioe) {
-            log.error("Fail to index document with ID: {}", id, ioe);
             throw new TechnicalException("Fail to index document with ID: " + id, ioe);
         }
     }
@@ -76,7 +74,6 @@ public class SearchEngineIndexer {
         try {
             writer.commit();
         } catch (IOException ioe) {
-            log.error("Unexpected IO errors while committing Lucene index", ioe);
             throw new TechnicalException("Unexpected IO errors while committing Lucene index", ioe);
         }
     }

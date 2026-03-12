@@ -153,7 +153,6 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
                 mainQuery.add(buildApiProductQuery(executionContext, baseFilterQuery).build(), BooleanClause.Occur.MUST);
             }
         } catch (ParseException pe) {
-            log.error("Invalid query to search for API Product documents", pe);
             throw new TechnicalException("Invalid query to search for API Product documents", pe);
         }
 

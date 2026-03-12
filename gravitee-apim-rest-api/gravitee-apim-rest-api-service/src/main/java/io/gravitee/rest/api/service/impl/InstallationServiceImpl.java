@@ -57,7 +57,6 @@ public class InstallationServiceImpl implements InstallationService {
                 return convert(optInstallation.get());
             }
         } catch (final Exception ex) {
-            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
         throw new InstallationNotFoundException("");
@@ -72,7 +71,6 @@ public class InstallationServiceImpl implements InstallationService {
             }
             return createInstallation();
         } catch (final Exception ex) {
-            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
@@ -88,7 +86,6 @@ public class InstallationServiceImpl implements InstallationService {
                 return convert(this.installationRepository.update(installation));
             }
         } catch (final Exception ex) {
-            log.error("Error while updating installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while updating installation", ex);
         }
         throw new InstallationNotFoundException("");
@@ -116,7 +113,6 @@ public class InstallationServiceImpl implements InstallationService {
         try {
             return convert(this.installationRepository.create(installation));
         } catch (final Exception ex) {
-            log.error("Error while creating installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while creating installation", ex);
         }
     }

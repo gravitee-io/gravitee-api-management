@@ -205,13 +205,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             );
             return convert(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getReferenceId(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getReferenceId()),
                 ex
             );
         } catch (JsonProcessingException jse) {
-            log.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getReferenceId()),
                 jse
@@ -338,13 +336,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return convert(newPlan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update plan %s", updatePlan.getName()),
                 ex
             );
         } catch (JsonProcessingException jse) {
-            log.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update a plan %s", updatePlan.getName()),
                 jse
@@ -437,7 +433,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return convert(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to close plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);
         }
     }
@@ -483,7 +478,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to delete plan: %s", planId), ex);
         }
     }
@@ -551,7 +545,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return convert(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
         }
     }
@@ -598,7 +591,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return convert(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to deprecate plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to deprecate plan: %s", planId), ex);
         }
     }
@@ -639,7 +631,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // update the modified plan
             return planRepository.update(planToReorder);
         } catch (final TechnicalException ex) {
-            log.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update plan " + planToReorder.getId(), ex);
         }
     }
@@ -656,7 +647,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                         planRepository.updateOrder(plan.getId(), plan.getOrder() - 1);
                     }
                 } catch (final TechnicalException ex) {
-                    log.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
                     throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                 }
             });

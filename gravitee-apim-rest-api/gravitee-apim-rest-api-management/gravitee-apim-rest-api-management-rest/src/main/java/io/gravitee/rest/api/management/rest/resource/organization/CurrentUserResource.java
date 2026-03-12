@@ -303,7 +303,6 @@ public class CurrentUserResource extends AbstractResource {
                 user.setPicture(userEntity.getPicture());
             }
         } catch (InvalidImageException e) {
-            log.warn("Invalid image format", e);
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 

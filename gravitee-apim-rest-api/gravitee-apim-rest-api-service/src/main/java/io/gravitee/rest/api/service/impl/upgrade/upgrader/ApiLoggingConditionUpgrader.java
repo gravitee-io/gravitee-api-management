@@ -125,7 +125,6 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("Unable to fix logging condition for API {}", api.getId(), e);
                     throw new RuntimeException(e);
                 }
             });

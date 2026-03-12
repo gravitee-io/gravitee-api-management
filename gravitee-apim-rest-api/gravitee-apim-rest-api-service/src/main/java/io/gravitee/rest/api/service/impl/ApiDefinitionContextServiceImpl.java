@@ -50,7 +50,6 @@ public class ApiDefinitionContextServiceImpl implements ApiDefinitionContextServ
             api.setSyncFrom(definitionContext.getSyncFrom());
             apiRepository.update(api);
         } catch (TechnicalException e) {
-            log.error("An error has occurred while trying to set definition context on API " + apiId, e);
             throw new TechnicalManagementException(e);
         }
     }

@@ -115,9 +115,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
 
                 return jsonSchema.toPrettyString();
             } catch (JsonProcessingException ex) {
-                final String error = "An error occurs while append tags to platform flow schema form";
-                log.error(error, ex);
-                throw new TechnicalManagementException(error, ex);
+                throw new TechnicalManagementException("An error occurs while append tags to platform flow schema form", ex);
             }
         }
 
@@ -135,9 +133,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .map(flowConverter::toDefinition)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while find flows by reference";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while find flows by reference", ex);
         }
     }
 
@@ -188,9 +184,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .map(flowConverter::toDefinition)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while save flows";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while save flows", ex);
         }
     }
 }

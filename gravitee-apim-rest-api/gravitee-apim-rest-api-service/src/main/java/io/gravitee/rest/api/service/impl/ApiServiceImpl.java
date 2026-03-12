@@ -764,10 +764,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
         } catch (InvalidPathsException ex) {
-            log.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new InvalidPathException("API paths are invalid", ex);
         } catch (TechnicalException | IllegalStateException ex) {
-            log.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
         }
     }
@@ -971,7 +969,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Set<String> apiIds = apiAuthorizationService.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly);
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
         }
     }
@@ -988,7 +985,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
     }
@@ -1446,10 +1442,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return apiEntity;
         } catch (InvalidPathsException ex) {
-            log.error("An error occurs while trying to update API {}", apiId, ex);
             throw new InvalidPathException("API paths are invalid", ex);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
         }
     }
@@ -1507,7 +1501,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return objectMapper.writeValueAsString(updateApiDefinition);
         } catch (JsonProcessingException jse) {
-            log.error("Unexpected error while generating API definition", jse);
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
         }
     }
@@ -1638,7 +1631,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         Pattern.compile(path);
                     } catch (java.util.regex.PatternSyntaxException pse) {
-                        log.error("An error occurs while trying to parse the path {}", path, pse);
                         throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
                     }
                 });
@@ -1652,7 +1644,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         Pattern.compile(pathMapping);
                     } catch (java.util.regex.PatternSyntaxException pse) {
-                        log.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
                         throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
                     }
                 });
@@ -1786,7 +1777,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             apiMetadataService.deleteAllByApi(executionContext, apiId);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
     }
@@ -1805,7 +1795,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             return apiEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to start API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
         }
     }
@@ -1824,7 +1813,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             return apiEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
         }
     }
@@ -1932,7 +1920,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return deployCurrentAPI(executionContext, apiId, userId, eventType, apiDeploymentEntity);
         } catch (Exception ex) {
-            log.error("An error occurs while trying to deploy API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
         }
     }
@@ -1961,7 +1948,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 objectMapper.writeValueAsString(rollbackApiEntity)
             );
         } catch (Exception ex) {
-            log.error("An error occurs while trying to rollback API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);
         }
     }
@@ -2105,7 +2091,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return this.deploy(executionContext, apiId, userId, EventType.PUBLISH_API, new ApiDeploymentEntity());
             }
         } catch (Exception e) {
-            log.error("An error occurs while trying to deploy last published API {}", apiId, e);
             throw new TechnicalException("An error occurs while trying to deploy last published API " + apiId, e);
         }
     }
@@ -2232,7 +2217,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for paginated APIs: " + query;
-            log.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
         }
     }
@@ -2293,7 +2277,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search paged apis", ex);
             throw new TechnicalManagementException("An error occurs while trying to search paged apis", ex);
         }
     }
@@ -2729,7 +2712,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiUpdated.getId()
             );
         } catch (Exception ex) {
-            log.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(),
                 ex

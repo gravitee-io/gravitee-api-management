@@ -71,7 +71,6 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             return tokenRepository.findByReference(TokenReferenceType.USER.name(), userId).stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all tokens";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -101,7 +100,6 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             return convert(tokenRepository.create(token), decodedToken);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create a token " + newToken;
-            log.error(error, e);
             throw new TechnicalManagementException(error, e);
         }
     }
@@ -131,7 +129,6 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to delete token " + tokenId;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -175,7 +172,6 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
                 .isPresent();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to check if token exists";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }

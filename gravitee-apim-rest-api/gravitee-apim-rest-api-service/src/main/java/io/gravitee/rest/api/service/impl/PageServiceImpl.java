@@ -619,7 +619,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             try {
                 descriptor = swaggerService.parse(pageEntity.getContent());
             } catch (SwaggerDescriptorException sde) {
-                log.error("Parsing error for API id[{}]: {}", genericApiEntity.getId(), sde.getMessage());
                 throw sde;
             }
 

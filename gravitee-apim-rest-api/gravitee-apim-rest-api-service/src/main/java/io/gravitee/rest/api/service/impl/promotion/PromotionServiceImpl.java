@@ -242,7 +242,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             return convert(createdOrUpdatedPromotion);
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to create or update a promotion using its id {}", promotionEntity.getId(), e);
             throw new TechnicalManagementException(
                 "An error occurs while trying to create or update a promotion using its id {}" + promotionEntity.getId(),
                 e
@@ -265,7 +264,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             return promotions;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search promotions", ex);
             throw new TechnicalManagementException("An error occurs while trying to search promotions", ex);
         }
     }
@@ -323,7 +321,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             return convert(updated);
         } catch (TechnicalException | IOException ex) {
-            log.error("An error occurs while trying to process promotion", ex);
             throw new TechnicalManagementException("An error occurs while trying to process promotion", ex);
         }
     }

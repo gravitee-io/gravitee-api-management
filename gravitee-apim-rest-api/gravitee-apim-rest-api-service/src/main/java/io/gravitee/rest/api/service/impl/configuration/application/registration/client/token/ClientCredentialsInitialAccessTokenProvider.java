@@ -109,18 +109,15 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
                             JsonNode node = mapper.readTree(responsePayload);
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
-                            log.error("Unexpected response from OIDC Token endpoint: error[{}] description[{}]", error, description);
                             throw new DynamicClientRegistrationException(
                                 "Unexpected response from OIDC Token endpoint: error[" + error + "] description[" + description + "]"
                             );
                         } catch (JsonProcessingException ex) {
-                            log.error("Unexpected response from OIDC Token endpoint: status[{}] message[{}]", status, responsePayload);
                             throw new DynamicClientRegistrationException(
                                 "Unexpected response from OIDC Token endpoint: status[" + status + "] message[" + responsePayload + "]"
                             );
                         }
                     } else {
-                        log.error("Unexpected response from OIDC Token endpoint: status[{}]", status);
                         throw new DynamicClientRegistrationException(
                             "Unexpected response from OIDC Token endpoint: status[" + status + "]"
                         );
@@ -128,7 +125,6 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
                 }
             });
         } catch (Exception ex) {
-            log.error("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
         } finally {
             try {

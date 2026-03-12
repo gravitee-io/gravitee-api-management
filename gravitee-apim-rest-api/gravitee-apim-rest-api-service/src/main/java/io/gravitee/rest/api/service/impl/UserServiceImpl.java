@@ -380,7 +380,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to connect {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to connect " + userId, ex);
         }
     }
@@ -408,7 +407,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 //should never happen
                 throw new UserNotFoundException(k);
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to find user using its ID {}", k, ex);
                 throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + k, ex);
             }
         });
@@ -424,7 +422,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .map(user -> convert(user, false))
                 .toList();
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find user using its email", ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
         }
     }
@@ -439,7 +436,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .map(user -> convertWithFlags(executionContext, user))
                 .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find user using its ID {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
         }
     }
@@ -454,7 +450,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .map(user -> convert(user, loadRoles, emptyList(), false))
                 .orElseThrow(() -> new UserNotFoundException(sourceId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using source " + source + ':' + sourceId, ex);
         }
     }
@@ -486,7 +481,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
         } catch (TechnicalException ex) {
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
-            log.error("An error occurs while trying to find users using their ID {}", idsAsString, ex);
             throw new TechnicalManagementException("An error occurs while trying to find users using their ID " + idsAsString, ex);
         }
     }
@@ -624,7 +618,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } catch (AbstractManagementException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
             throw new TechnicalManagementException(ex.getMessage(), ex);
         }
     }
@@ -678,11 +671,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } catch (AbstractManagementException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error(
-                "An error occurs while trying to change password of an internal user with the token {}",
-                registerUserEntity.getToken(),
-                ex
-            );
             throw new TechnicalManagementException(ex.getMessage(), ex);
         }
     }
@@ -818,7 +806,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
         }
     }
@@ -975,19 +962,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 );
             }
         } catch (final TechnicalException e) {
-            log.error(
-                "An error occurs while trying to create user {} / {}",
-                newExternalUserEntity.getSource(),
-                newExternalUserEntity.getSourceId(),
-                e
-            );
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
         final UserEntity userEntity = create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled);
 
         if (userEntity == null) {
-            log.error("An error occurs while trying to create user");
             throw new TechnicalManagementException("An error occurs while trying to create user");
         }
 
@@ -1077,7 +1057,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
             throw new UserNotFoundException(userId);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to validate user registration {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to create an external user" + userId, ex);
         }
     }
@@ -1265,7 +1244,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return convert(updatedUser, true, updatedMetadata, true);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update {}", updateUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
         }
     }
@@ -1356,7 +1334,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return new Page<>(entities, users.getPageNumber() + 1, (int) users.getPageElements(), users.getTotalElements());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search users", ex);
             throw new TechnicalManagementException("An error occurs while trying to search users", ex);
         }
     }
@@ -1431,7 +1408,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             final UserEntity userEntity = convert(user, false);
             searchEngineService.delete(executionContext, userEntity);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete user", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete user", ex);
         }
     }
@@ -1511,7 +1487,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         .filter(evt -> user.getId().equals(evt.getProperties().get(USER.name())))
                         .findFirst();
                     if (optReset.isPresent()) {
-                        log.warn("Multiple reset password received for user '{}' in less than 1 hour", user.getId());
                         throw new PasswordAlreadyResetException();
                     }
                 }
@@ -1547,7 +1522,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             );
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to reset password for user " + id;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -2176,7 +2150,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 );
             } catch (TechnicalException e) {
                 final String msg = "An error occurs while finding memberships for user " + userId;
-                log.error(msg, e);
                 throw new TechnicalManagementException(msg, e);
             }
         }

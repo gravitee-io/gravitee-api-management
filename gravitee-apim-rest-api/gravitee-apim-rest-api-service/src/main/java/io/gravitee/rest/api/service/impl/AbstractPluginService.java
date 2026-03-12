@@ -57,7 +57,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
 
             return new HashSet<>(plugins);
         } catch (Exception ex) {
-            log.error("An error occurs while trying to list all policies", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all policies", ex);
         }
     }
@@ -79,7 +78,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin schema by ID: {}", pluginId);
             return pluginManager.getSchema(pluginId, true);
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get plugin schema for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get plugin schema for plugin " + pluginId, ioex);
         }
     }
@@ -90,7 +88,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin icon by ID: {}", pluginId);
             return pluginManager.getIcon(pluginId, true);
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get plugin icon for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get plugin icon for plugin " + pluginId, ioex);
         }
     }
@@ -101,7 +98,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin documentation by ID: {}", pluginId);
             return pluginManager.getDocumentation(pluginId, true);
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get plugin documentation for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get plugin documentation for plugin " + pluginId, ioex);
         }
     }
@@ -134,7 +130,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin more information by ID: {}", pluginId);
             return pluginManager.getMoreInformation(pluginId, true);
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get plugin more information for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get plugin more information for plugin " + pluginId,
                 ioex

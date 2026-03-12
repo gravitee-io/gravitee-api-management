@@ -48,7 +48,6 @@ public class IntegrationControllerInitializer implements Initializer {
                 integrationExchangeController.start();
                 log.info("Integrations started.");
             } catch (Exception e) {
-                log.error("Fail to start Integration Controller", e);
                 throw new RuntimeException(e);
             }
         }

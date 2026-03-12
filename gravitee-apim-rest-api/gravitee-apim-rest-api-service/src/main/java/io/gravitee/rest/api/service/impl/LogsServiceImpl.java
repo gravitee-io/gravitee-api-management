@@ -186,7 +186,6 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -217,10 +216,8 @@ public class LogsServiceImpl implements LogsService {
             }
             return toApiRequest(executionContext, log);
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
         } catch (ApiNotFoundException anfe) {
-            log.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
             throw new LogNotFoundException(id);
         }
     }
@@ -277,7 +274,6 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -335,7 +331,6 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -349,13 +344,11 @@ public class LogsServiceImpl implements LogsService {
             }
 
             if (!applicationId.equalsIgnoreCase(log.getApplication())) {
-                this.log.warn("Requested log [" + id + "] is not attached to application [" + applicationId + "]");
                 throw new LogNotFoundException(id);
             }
 
             return toApplicationRequest(executionContext, log);
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve log: " + id, ae);
             if (ae.getMessage().equals("Request [" + id + "] does not exist")) {
                 throw new LogNotFoundException(id);
             }

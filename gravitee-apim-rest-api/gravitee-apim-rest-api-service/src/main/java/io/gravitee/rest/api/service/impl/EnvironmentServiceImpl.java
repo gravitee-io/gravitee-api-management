@@ -92,7 +92,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             return convert(optEnvironment.get());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find environment by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find environment by ID", ex);
         }
     }
@@ -115,7 +114,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             }
             return envStream.map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
         }
     }
@@ -142,7 +140,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             return convert(byOrgAndIdOrHrid.iterator().next());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
         }
     }
@@ -190,7 +187,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 return createdEnvironment;
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update environment {}", environmentEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update environment " + environmentEntity.getName(), ex);
         }
     }
@@ -205,7 +201,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 throw new EnvironmentNotFoundException(environmentId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete environment {}", environmentId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete environment " + environmentId, ex);
         }
     }
@@ -222,7 +217,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             environmentRepository.create(defaultEnvironment);
             return convert(defaultEnvironment);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create default environment", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default environment", ex);
         }
     }
@@ -236,7 +230,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 .map(this::convert)
                 .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find environment by cockpit id {}", cockpitId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find environment by cockpit id " + cockpitId, ex);
         }
     }
@@ -247,7 +240,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             log.debug("Find all environments by organization");
             return environmentRepository.findByOrganization(organizationId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all environments by organization {}", organizationId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to find all environments by organization " + organizationId,
                 ex
@@ -260,7 +252,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         try {
             return environmentRepository.findById(GraviteeContext.getDefaultEnvironment()).map(this::convert).orElseGet(this::initialize);
         } catch (final Exception ex) {
-            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
@@ -274,7 +265,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             }
             return environments;
         } catch (final Exception ex) {
-            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }

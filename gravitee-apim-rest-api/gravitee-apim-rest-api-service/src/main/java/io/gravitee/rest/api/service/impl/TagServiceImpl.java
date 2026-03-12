@@ -83,7 +83,6 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 .map(this::convert)
                 .collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all tags", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tags", ex);
         }
     }
@@ -100,7 +99,6 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
             return convert(optTag.get());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find tag by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find tag by ID", ex);
         }
     }
@@ -165,7 +163,6 @@ public class TagServiceImpl extends AbstractService implements TagService {
                         .build()
                 );
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
             }
         });
@@ -205,7 +202,6 @@ public class TagServiceImpl extends AbstractService implements TagService {
                     );
                 }
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
             }
         });
@@ -232,7 +228,6 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 );
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete tag {}", tagId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete tag " + tagId, ex);
         }
     }

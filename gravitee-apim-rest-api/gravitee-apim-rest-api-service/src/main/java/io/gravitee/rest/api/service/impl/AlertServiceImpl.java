@@ -196,7 +196,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return create(executionContext, alertTrigger);
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create an alert " + newAlertTrigger;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -260,7 +259,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return alertTriggerEntity;
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to update an alert " + updateAlertTrigger;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -273,7 +271,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .map(alertTriggerConverter::toAlertTriggerEntity)
                 .orElseThrow(() -> new AlertNotFoundException(alertId));
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to find alert by id {}", alertId, e);
             throw new TechnicalManagementException("An error occurs while trying to find alert with id", e);
         }
     }
@@ -284,7 +281,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return alertTriggerConverter.toAlertTriggerEntities(new ArrayList<>(alertTriggerRepository.findAll()));
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list all alerts";
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -297,7 +293,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             );
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by reference " + referenceType + '/' + referenceId;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -310,7 +305,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             );
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by references " + referenceType + '/' + referenceIds;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -359,7 +353,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by reference " + referenceType + '/' + referenceId;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -381,7 +374,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             disableTrigger(alert);
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to delete the alert " + alertId;
-            log.error(msg, te);
             throw new TechnicalManagementException(msg, te);
         }
     }
@@ -425,7 +417,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             log.debug("findByEvent : {} - DONE", set);
             return set;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find alert triggers by event", ex);
             throw new TechnicalManagementException("An error occurs while trying to find alert triggers by event", ex);
         }
     }
@@ -508,7 +499,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             }
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to apply template alert " + alertId;
-            log.error(msg, te);
             throw new TechnicalManagementException(msg, te);
         }
     }
@@ -699,7 +689,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             alertEventRepository.create(alertEvent);
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create an alert event from command {}" + command;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }

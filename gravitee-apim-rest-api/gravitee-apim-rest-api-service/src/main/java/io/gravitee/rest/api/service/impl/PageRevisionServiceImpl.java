@@ -56,7 +56,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         try {
             return pageRevisionRepository.findAll(pageable).map(this::convert);
         } catch (TechnicalException e) {
-            log.warn("An error occurs while trying to get the page revisions {}", pageable, e);
             throw new TechnicalManagementException("An error occurs while trying to get all page revisions", e);
         }
     }
@@ -67,7 +66,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         try {
             return pageRevisionRepository.findById(pageId, revision).map(this::convert);
         } catch (TechnicalException e) {
-            log.warn("An error occurs while trying to get the page revision {}-{}", pageId, revision, e);
             throw new TechnicalManagementException("An error occurs while trying to get a page revision", e);
         }
     }
@@ -78,7 +76,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         try {
             return pageRevisionRepository.findLastByPageId(pageId).map(this::convert);
         } catch (TechnicalException e) {
-            log.warn("An error occurs while trying to get the last revision for page {}", pageId, e);
             throw new TechnicalManagementException("An error occurs while trying to get the last page revision", e);
         }
     }
@@ -89,7 +86,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         try {
             return pageRevisionRepository.findAllByPageId(pageId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException e) {
-            log.warn("An error occurs while trying to get all the revisions for page {}", pageId, e);
             throw new TechnicalManagementException("An error occurs while trying to get all revisions", e);
         }
     }
@@ -108,7 +104,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
 
             return convert(revision);
         } catch (TechnicalException e) {
-            log.warn("An error occurs while trying to create a revision for page {}", page.getId(), e);
             throw new TechnicalManagementException("An error occurs while trying to create a page revision", e);
         }
     }

@@ -246,7 +246,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             throw new ApplicationNotFoundException(applicationId);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
         }
     }
@@ -288,7 +287,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return this.convertToList(executionContext, applications.getContent());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find applications by ids {}", applicationIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications by ids {}" + applicationIds, ex);
         }
     }
@@ -391,7 +389,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 ? convertToList(executionContext, applications)
                 : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
         }
     }
@@ -552,13 +549,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return convert(executionContext, createdApplication, userEntity);
         } catch (TechnicalException ex) {
-            log.error(
-                "An error occurs while trying to create {} for user {} in environment {}",
-                application,
-                userId,
-                executionContext.getEnvironmentId(),
-                ex
-            );
             throw new TechnicalManagementException(
                 "An error occurs while trying create " +
                     application +
@@ -836,7 +826,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .filter(app -> clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)))
                 .findAny();
             if (byClientId.map(app -> !app.getId().equals(applicationToUpdate.getId())).orElse(false)) {
-                log.error("An application already exists with the same client_id");
                 throw new ClientIdAlreadyExistsException(clientId);
             }
         }
@@ -944,7 +933,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 applicationId,
                 apiKeyMode
             );
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -1047,7 +1035,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             throw new ApplicationRenewClientSecretException(applicationToUpdate.getName());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to renew client secret {}", applicationId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to renew client secret %s", applicationId),
                 ex
@@ -1113,7 +1100,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             return convert(executionContext, restoredApplication, userEntity);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to restore {}", applicationId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to restore %s", applicationId), ex);
         }
     }
@@ -1193,7 +1179,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             createAuditLog(executionContext, APPLICATION_ARCHIVED, application.getUpdatedAt(), previousApplication, application);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete application {}", applicationId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to delete application %s", applicationId),
                 ex
@@ -1519,7 +1504,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             return applicationRepository.searchIds(searchCriteria, convert(sortable));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
         }
     }
@@ -1546,7 +1530,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return this.convertToSimpleList(applications);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
         }
     }

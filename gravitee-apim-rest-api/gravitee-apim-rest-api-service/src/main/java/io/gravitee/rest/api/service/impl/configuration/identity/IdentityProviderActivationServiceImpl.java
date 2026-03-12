@@ -78,7 +78,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             }
             return createdActivations;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to Activate identity provider {} on targets {}", identityProviderId, targetsToAdd, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to Activate identity provider " +
                     identityProviderId +
@@ -109,7 +108,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             }
             return createdActivations;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to add identity providers {} on target {}", identityProviderIdsToAdd, target, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to add identity providers " +
                     Arrays.toString(identityProviderIdsToAdd) +
@@ -131,7 +129,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all activations for identity provider {}", identityProviderId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to find all activations for identity provider " + identityProviderId,
                 ex
@@ -150,7 +147,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all activations for target {}", target, ex);
             throw new TechnicalManagementException("An error occurs while trying to find all activations for target " + target, ex);
         }
     }
@@ -164,12 +160,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
                 deleteIdentityProviderActivation(executionContext, identityProviderId, target);
             }
         } catch (TechnicalException ex) {
-            log.error(
-                "An error occurs while trying to deactivate identity provider {} on targets {}",
-                identityProviderId,
-                targetsToRemove,
-                ex
-            );
             throw new TechnicalManagementException(
                 "An error occurs while trying to deactivate identity provider " +
                     identityProviderId +
@@ -189,12 +179,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
                 deleteIdentityProviderActivation(executionContext, identityProviderId, target);
             }
         } catch (TechnicalException ex) {
-            log.error(
-                "An error occurs while trying to remove identity providers {} from target {}",
-                identityProviderIdsToRemove,
-                target,
-                ex
-            );
             throw new TechnicalManagementException(
                 "An error occurs while trying to remove identity providers " +
                     Arrays.toString(identityProviderIdsToRemove) +
@@ -231,7 +215,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
                 );
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to deactivate identity provider {} on all targets", identityProviderId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to deactivate identity provider " + identityProviderId + " on all targets",
                 ex
@@ -269,7 +252,6 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
                 );
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to remove all identity providers from target {}", target, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to remove all identity providers from target " + target,
                 ex

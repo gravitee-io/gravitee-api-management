@@ -331,9 +331,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             return splitValue(this.getDefaultParameterValue(key), mapper, filter);
         } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to find parameter values with key: " + key;
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find parameter values with key: " + key, ex);
         }
     }
 
@@ -395,9 +393,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             return result;
         } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to find parameter values with keys: " + keys;
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find parameter values with keys: " + keys, ex);
         }
     }
 
@@ -517,9 +513,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 return savedParameter;
             }
         } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to create parameter for key/value: " + key + '/' + value;
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to create parameter for key/value: " + key + '/' + value,
+                ex
+            );
         }
     }
 

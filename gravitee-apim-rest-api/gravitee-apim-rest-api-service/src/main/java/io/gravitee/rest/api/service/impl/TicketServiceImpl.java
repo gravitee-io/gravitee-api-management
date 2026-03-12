@@ -202,7 +202,6 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
 
             return convert(createdTicket);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create a ticket {}", ticketEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create a ticket " + ticketEntity, ex);
         }
     }
@@ -232,7 +231,6 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 tickets.getTotalElements()
             );
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search tickets", ex);
             throw new TechnicalManagementException("An error occurs while trying to search tickets", ex);
         }
     }
@@ -247,7 +245,6 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 .map(this::convert)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search ticket {}", ticketId, ex);
             throw new TechnicalManagementException("An error occurs while trying to search ticket " + ticketId, ex);
         }
     }

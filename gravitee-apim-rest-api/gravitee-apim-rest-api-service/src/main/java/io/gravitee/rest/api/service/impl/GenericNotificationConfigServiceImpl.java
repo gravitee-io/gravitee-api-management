@@ -60,7 +60,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             notificationConfig.setUpdatedAt(notificationConfig.getCreatedAt());
             return convert(genericNotificationConfigRepository.create(notificationConfig));
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to save the generic notification settings {}", entity, te);
             throw new TechnicalManagementException("An error occurs while trying to save the generic notification settings " + entity, te);
         }
     }
@@ -85,7 +84,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             notificationConfig.setUpdatedAt(new Date());
             return convert(genericNotificationConfigRepository.update(notificationConfig));
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to save the generic notification settings {}", entity, te);
             throw new TechnicalManagementException("An error occurs while trying to save the generic notification settings " + entity, te);
         }
     }
@@ -95,7 +93,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         try {
             genericNotificationConfigRepository.delete(id);
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to delete the generic notification {}", id, te);
             throw new TechnicalManagementException("An error occurs while trying to delete the generic notification " + id, te);
         }
     }
@@ -105,7 +102,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         try {
             genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to delete the generic notifications {} / {}", referenceType, referenceId, e);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId,
                 e
@@ -122,7 +118,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             }
             throw new NotificationConfigNotFoundException();
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to get the notification config {}", id, te);
             throw new TechnicalManagementException("An error occurs while trying to get the notification config " + id, te);
         }
     }
@@ -136,7 +131,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to get the notification config {}/{}", referenceType, referenceId);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get the notification config " + referenceType + "/" + referenceId,
                 e
@@ -152,7 +146,6 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
                 genericNotificationConfigRepository.deleteByConfig(user.getEmail());
             }
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to delete the notification config for user {}", user.getId(), e);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete the notification config for user " + user.getId(),
                 e

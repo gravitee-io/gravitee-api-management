@@ -77,14 +77,12 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
                     log.warn("Failed to duplicate metadata {} to {}", metadata, environment, e);
                     return metadataToCreate;
                 } catch (TechnicalException e) {
-                    log.error("Failed to duplicate metadata {} to {}", metadata, environment, e);
                     throw new TechnicalManagementException(e);
                 }
             });
         try {
             metadataRepository.delete(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType());
         } catch (TechnicalException e) {
-            log.error("Failed to delete metadata {}", metadata, e);
             throw new TechnicalManagementException(e);
         }
         return metadataStream;

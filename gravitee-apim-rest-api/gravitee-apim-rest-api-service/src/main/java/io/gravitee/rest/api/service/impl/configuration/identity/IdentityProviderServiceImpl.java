@@ -128,7 +128,6 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             return convert(createdIdentityProvider);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create identity provider {}", newIdentityProviderEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newIdentityProviderEntity, ex);
         }
     }
@@ -171,7 +170,6 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             return convert(updatedIdentityProvider);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update identity provider {}", updateIdentityProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateIdentityProvider, ex);
         }
     }
@@ -189,7 +187,6 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             throw new IdentityProviderNotFoundException(id);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }
@@ -219,7 +216,6 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             identityProviderActivationService.deactivateIdpOnAllTargets(executionContext, id);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }
@@ -248,7 +244,6 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to retrieve identity providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }

@@ -93,7 +93,6 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
                 }
             }
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to save the notification settings {}", notificationEntity, te);
             throw new TechnicalManagementException(
                 "An error occurs while trying to save the notification settings " + notificationEntity,
                 te
@@ -121,7 +120,6 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             notif.setGroupHooks(findGroupHooks(GraviteeContext.getExecutionContext(), user, referenceType, referenceId));
             return notif;
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to get the notification settings {}/{}/{}", user, referenceType, referenceId, te);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get the notification settings " + user + "/" + referenceType + "/" + referenceId,
                 te
@@ -134,7 +132,6 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         try {
             portalNotificationConfigRepository.deleteByUser(user);
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to delete notification settings for user {}", user, te);
             throw new TechnicalManagementException("An error occurs while trying to delete notification settings for user " + user, te);
         }
     }
@@ -144,7 +141,6 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         try {
             portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
         } catch (TechnicalException te) {
-            log.error("An error occurs while trying to delete notification settings for reference {} / {}", referenceType, referenceId, te);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete notification settings for reference " + referenceType + " / " + referenceId,
                 te

@@ -74,7 +74,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             }
             return convert(optionalEntryPoint.get());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all entrypoints", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all entrypoints", ex);
         }
     }
@@ -89,7 +88,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all entrypoints", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all entrypoints", ex);
         }
     }
@@ -111,7 +109,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             );
             return savedEntryPoint;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create entrypoint {}", entrypointEntity.getValue(), ex);
             throw new TechnicalManagementException("An error occurs while trying to create entrypoint " + entrypointEntity.getValue(), ex);
         }
     }
@@ -145,7 +142,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 throw new EntrypointNotFoundException(entrypointEntity.getId());
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update entrypoint {}", entrypointEntity.getValue(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update entrypoint " + entrypointEntity.getValue(), ex);
         }
     }
@@ -174,7 +170,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 throw new EntrypointNotFoundException(entrypointId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete entrypoint {}", entrypointId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete entrypoint " + entrypointId, ex);
         }
     }

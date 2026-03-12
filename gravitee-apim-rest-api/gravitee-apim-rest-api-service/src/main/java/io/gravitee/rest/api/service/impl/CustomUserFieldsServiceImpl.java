@@ -101,7 +101,6 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                 return map(recorded);
             }
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to create CustomUserField", e);
             throw new TechnicalManagementException("An error occurs while trying to create CustomUserField", e);
         }
     }
@@ -134,7 +133,6 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                 throw new CustomUserFieldNotFoundException(updateFieldEntity.getKey());
             }
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to update CustomUserField", e);
             throw new TechnicalManagementException("An error occurs while trying to update CustomUserField", e);
         }
     }
@@ -158,7 +156,6 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                 );
             }
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to create CustomUserField", e);
             throw new TechnicalManagementException("An error occurs while trying to create CustomUserField", e);
         }
     }
@@ -172,7 +169,6 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             List<CustomUserField> records = this.customUserFieldsRepository.findByReferenceIdAndReferenceType(refId, refType);
             return records.stream().map(this::map).collect(Collectors.toList());
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to list all CustomUserField", e);
             throw new TechnicalManagementException("An error occurs while trying to list all CustomUserField", e);
         }
     }

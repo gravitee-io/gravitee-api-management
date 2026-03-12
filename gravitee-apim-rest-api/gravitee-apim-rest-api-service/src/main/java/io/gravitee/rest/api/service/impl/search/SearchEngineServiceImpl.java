@@ -284,7 +284,6 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             Assert.isAssignable(Indexable.class, clazz);
             return (Indexable) clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            log.error("Unable to instantiate class: {}", className, ex);
             throw ex;
         }
     }

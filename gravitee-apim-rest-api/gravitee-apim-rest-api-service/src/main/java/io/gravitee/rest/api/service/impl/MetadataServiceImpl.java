@@ -84,7 +84,6 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to find metadata by reference", ex);
             throw new TechnicalManagementException("An error occurred while trying to find metadata by reference", ex);
         }
     }
@@ -170,14 +169,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             );
             return convert(metadata);
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to update metadata {}", metadataEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update metadata " + metadataEntity.getName(), ex);
         }
     }
 
     private void checkMetadataValue(String value) {
         if (value == null || isBlank(value)) {
-            log.error("Error occurred while trying to validate null or empty value");
             throw new TechnicalManagementException("Metadata value is required");
         }
     }
@@ -224,7 +221,6 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 }
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete metadata {}", key, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete metadata " + key, ex);
         }
     }
@@ -240,7 +236,6 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             final Optional<Metadata> optMetadata = metadataRepository.findById(key, referenceId, referenceType);
             return optMetadata.map(this::convert).orElse(null);
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to find default metadata by key", ex);
             throw new TechnicalManagementException("An error occurred while trying to find default metadata by key", ex);
         }
     }
@@ -320,7 +315,6 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     break;
             }
         } catch (final Exception e) {
-            log.error("Error occurred while trying to validate format '{}' of value '{}'", format, value, e);
             throw new TechnicalManagementException("Error occurred while trying to validate format " + format + " of value " + value, e);
         }
     }

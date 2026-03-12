@@ -132,7 +132,6 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
                 pageNumber++;
             } while (pageOfUser.getPageElements() > 0);
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to all metadata with key {}", key, ex);
             throw new TechnicalManagementException("An error occurred while trying to all metadata with key " + key, ex);
         }
     }

@@ -101,7 +101,6 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
 
             return allMetadata;
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to find all metadata by REFERENCE", ex);
             throw new TechnicalManagementException("An error occurred while trying to find all metadata by REFERENCE", ex);
         }
     }
@@ -157,9 +156,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
                 }
             }
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to delete metadata " + metadataId;
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete metadata " + metadataId, ex);
         }
     }
 
@@ -199,10 +196,10 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {
-            final String message =
-                "An error occurred while trying to create metadata " + metadataEntity.getName() + " on reference " + referenceId;
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                "An error occurred while trying to create metadata " + metadataEntity.getName() + " on reference " + referenceId,
+                ex
+            );
         }
     }
 
@@ -298,7 +295,6 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to update metadata {} on REFERENCE {}", metadataEntity.getName(), referenceId, ex);
             throw new TechnicalManagementException(
                 "An error occurred while trying to update metadata " + metadataEntity.getName() + " on REFERENCE " + referenceId,
                 ex

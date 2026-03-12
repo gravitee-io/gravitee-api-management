@@ -53,7 +53,6 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
             // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
             return searchReference(pageQuery.build());
         } catch (ParseException pe) {
-            log.error("Invalid query to search for page documents", pe);
             throw new TechnicalException("Invalid query to search for page documents", pe);
         }
     }
@@ -66,7 +65,6 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
             // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
             return search(pageQuery.build());
         } catch (ParseException pe) {
-            log.error("Invalid query to search for page documents", pe);
             throw new TechnicalException("Invalid query to search for page documents", pe);
         }
     }
