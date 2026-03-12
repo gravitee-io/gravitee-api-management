@@ -270,7 +270,14 @@ public class EndpointGroupLifecycleManager
                 endpointNode.putPOJO("headers", group.getHeaders());
                 return endpointNode.toString();
             }
-        } catch (IOException ioe) {}
+        } catch (IOException ioe) {
+            log.warn(
+                "Unable to parse endpoint configuration for endpoint [{}] in group [{}], falling back to raw configuration",
+                endpoint.getName(),
+                group.getName(),
+                ioe
+            );
+        }
 
         return endpoint.getConfiguration();
     }
