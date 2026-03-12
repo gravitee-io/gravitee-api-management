@@ -23,6 +23,7 @@ nav[mat-tab-nav-bar] {
     (
       active-label-text-color: #{theme.$nav-bar-link-active-color},
       active-focus-label-text-color: #{theme.$nav-bar-link-active-color},
+      active-indicator-height: #{theme.$nav-bar-tab-indicator-height},
     )
   );
 }

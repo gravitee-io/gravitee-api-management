@@ -179,7 +179,6 @@ export const routes: Routes = [
         path: 'applications/create',
         loadComponent: () =>
           import('./dashboard/applications/create-application/create-application.component').then(m => m.CreateApplicationComponent),
-        data: { breadcrumb: 'Create Application' },
       },
       {
         path: 'applications/:applicationId',
@@ -189,23 +188,20 @@ export const routes: Routes = [
           application: applicationResolver,
           userApplicationPermissions: applicationPermissionResolver,
         },
-        data: { breadcrumb: { alias: 'appName' } },
         children: [
           { path: '', redirectTo: 'settings', pathMatch: 'full' },
           {
             path: 'logs',
             component: ApplicationTabLogsComponent,
-            data: { breadcrumb: { skip: true } },
             children: [
               { path: '', component: ApplicationLogTableComponent },
-              { path: ':logId', component: ApplicationLogComponent, data: { breadcrumb: { skip: true } } },
+              { path: ':logId', component: ApplicationLogComponent },
             ],
           },
           {
             path: 'settings',
             component: ApplicationTabSettingsComponent,
             resolve: { applicationTypeConfiguration: applicationTypeResolver },
-            data: { breadcrumb: { skip: true } },
           },
         ],
       },
@@ -216,6 +212,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
       { path: 'create', redirectTo: '/dashboard/applications/create', pathMatch: 'full' },
+      { path: ':applicationId', redirectTo: '/dashboard/applications/:applicationId' },
     ],
   },
   {

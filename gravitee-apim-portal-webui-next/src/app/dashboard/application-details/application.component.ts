@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, inject, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { Application } from '../../../entities/application/application';
-import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-application',
@@ -29,11 +27,4 @@ import { CurrentUserService } from '../../../services/current-user.service';
 })
 export default class ApplicationComponent {
   application = input.required<Application>();
-  isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
-
-  constructor(private breadcrumbService: BreadcrumbService) {
-    effect(() => {
-      this.breadcrumbService.set('@appName', this.application().name);
-    });
-  }
 }

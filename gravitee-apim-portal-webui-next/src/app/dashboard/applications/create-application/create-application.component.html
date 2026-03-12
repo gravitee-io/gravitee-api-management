@@ -17,8 +17,10 @@
 -->
 <div class="content">
   <div>
-    <span class="next-gen-h3" i18n="@@applicationsCreateTitle">Create new application</span>
-    <p class="next-gen-body" i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
+    <div class="page-header">
+      <span class="next-gen-h3" i18n="@@applicationsCreateTitle">Create new application</span>
+      <p class="next-gen-body" i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
+    </div>
 
     @if (enabledApplicationTypes(); as types) {
       <div class="cards-container" [appIsMobile]="'cards-container--mobile'">
@@ -196,7 +198,7 @@
       >
         Create
       </button>
-      <button mat-flat-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>
+      <button mat-stroked-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>
     </div>
   </div>
 </div>

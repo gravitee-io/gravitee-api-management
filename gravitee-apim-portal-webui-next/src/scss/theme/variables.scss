@@ -56,7 +56,7 @@ $border-width: var(--gio-app-outline-width, 1px);
 $card-container-shape: var(--gio-app-card-container-shape, $container-shape);
 $card-border-width: var(--gio-app-card-outline-width);
 $card-border-color: var(--gio-app-card-outline-color, $border-color);
-$card-background-color: var(--gio-app-card-background-color, #ffffff);
+$card-background-color: var(--gio-app-card-background-color);
 $card-text-color: var(--gio-app-card-text-color);
 $card-elevation: var(--gio-app-card-elevation);
 
@@ -71,6 +71,7 @@ $nav-bar-link-active-background-color: var(
 );
 $nav-bar-border-color: var(--gio-app-nav-bar-outline-color, $border-color);
 $nav-bar-elevation: var(--gio-app-nav-bar-elevation);
+$nav-bar-tab-indicator-height: var(--gio-app-nav-bar-tab-indicator-height, 3px);
 $nav-bar-mobile-menu-icon-color: var(--gio-app-nav-bar-mobile-menu-icon-color, #000);
 $nav-bar-mobile-menu-box-elevation-shadow: var(--gio-app-nav-bar-mobile-menu-elevation-shadow, 0 11px 15px 0 rgb(0 0 0 / 20%));
 $nav-bar-link-external-icon-color: var(--gio-app-nav-bar-link-external-icon-color, $link-icon-color);
