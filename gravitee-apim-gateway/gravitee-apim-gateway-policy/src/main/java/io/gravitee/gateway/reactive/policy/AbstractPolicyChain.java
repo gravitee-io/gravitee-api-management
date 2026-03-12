@@ -40,6 +40,7 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
     protected final String id;
     protected final ExecutionPhase phase;
     protected final Flowable<T> policies;
+    private final List<T> originalPolicies;
 
     /**
      * Creates a policy chain with the given list of policies.
@@ -51,6 +52,7 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
     public AbstractPolicyChain(@Nonnull String id, @Nonnull List<T> policies, @Nonnull ExecutionPhase phase) {
         this.id = id;
         this.phase = phase;
+        this.originalPolicies = policies;
         this.policies = Flowable.fromIterable(policies);
     }
 
@@ -69,6 +71,7 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
      */
     @Override
     public Completable execute(BaseExecutionContext ctx) {
+        log.debug("Executing policy chain [{}] with {} policy(ies) for phase [{}]", id, originalPolicies.size(), phase);
         return policies.concatMapCompletable(policy -> {
             ComponentScope.push(ctx, ComponentType.POLICY, policy.id());
             return executePolicy(ctx, policy).doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
