@@ -220,7 +220,12 @@ public class ConfigMapEventFetcher {
             }
         } catch (Exception ex) {
             // Log the error and ignore this event.
-            log.error("Unable to extract api definition from config map.", ex);
+            log.error(
+                "Unable to extract api definition from config map [{}/{}].",
+                configMap.getMetadata().getNamespace(),
+                configMap.getMetadata().getName(),
+                ex
+            );
         }
         return Maybe.empty();
     }
