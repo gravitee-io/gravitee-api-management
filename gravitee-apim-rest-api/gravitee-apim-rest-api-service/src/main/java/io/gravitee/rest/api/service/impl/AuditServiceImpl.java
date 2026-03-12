@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Map.entry;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -284,6 +285,18 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
     }
 
+    private ObjectNode toObjectNode(Object value) {
+        if (value == null) {
+            return mapper.createObjectNode();
+        }
+        try {
+            return (ObjectNode) mapper.readTree(mapper.writeValueAsString(value));
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize value for audit log diff, using empty node", e);
+            return mapper.createObjectNode();
+        }
+    }
+
     @Override
     @Async
     public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
@@ -328,12 +341,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         audit.setReferenceId(auditLogData.getReferenceId());
         audit.setEvent(auditLogData.getEvent().name());
 
-        ObjectNode oldNode = auditLogData.getOldValue() == null
-            ? mapper.createObjectNode()
-            : mapper.convertValue(auditLogData.getOldValue(), ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
-        ObjectNode newNode = auditLogData.getNewValue() == null
-            ? mapper.createObjectNode()
-            : mapper.convertValue(auditLogData.getNewValue(), ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
+        ObjectNode oldNode = toObjectNode(auditLogData.getOldValue()).remove(Arrays.asList("updatedAt", "createdAt"));
+        ObjectNode newNode = toObjectNode(auditLogData.getNewValue()).remove(Arrays.asList("updatedAt", "createdAt"));
 
         JsonNode diff = JsonDiff.asJson(oldNode, newNode);
 
