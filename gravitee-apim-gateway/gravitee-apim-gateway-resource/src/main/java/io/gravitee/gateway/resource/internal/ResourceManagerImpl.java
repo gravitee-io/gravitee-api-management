@@ -75,6 +75,13 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
 
                     if (resourceInstance != null) {
                         resources.put(resource.getName(), resourceInstance);
+                    } else {
+                        log.debug(
+                            "Resource [{}] of type [{}] could not be loaded for {}",
+                            resource.getName(),
+                            resource.getType(),
+                            reactable
+                        );
                     }
                 });
         }
