@@ -389,6 +389,7 @@ public class ApiResource extends AbstractResource {
                 .lastModified(apiEntity.getUpdatedAt())
                 .build();
         } catch (Exception e) {
+            log.error("Error deploying API [{}]", api, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
         }
     }
@@ -459,6 +460,7 @@ public class ApiResource extends AbstractResource {
                 .lastModified(rollbackedApi.getUpdatedAt())
                 .build();
         } catch (Exception e) {
+            log.error("Error rolling back API [{}]", api, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
     }
