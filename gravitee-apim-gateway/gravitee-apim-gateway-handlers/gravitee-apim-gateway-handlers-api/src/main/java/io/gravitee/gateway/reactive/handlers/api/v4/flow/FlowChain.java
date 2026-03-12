@@ -126,6 +126,7 @@ public class FlowChain implements Hookable<ChainHook> {
                         flowsMatch = previousChainFlowsMatch;
                     }
                     if (interruptIfNoMatch && !flowsMatch) {
+                        log.debug("No flow matched for chain [{}], interrupting with 404", id);
                         return ctx
                             .interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE))
                             .toFlowable();
