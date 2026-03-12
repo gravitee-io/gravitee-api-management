@@ -31,6 +31,8 @@ export interface Subscription {
   subscribed_by?: string;
   keys?: SubscriptionDataKeys[];
   consumerConfiguration?: SubscriptionConsumerConfiguration;
+  basic_auth_username?: string;
+  basic_auth_password?: string;
 }
 
 export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';

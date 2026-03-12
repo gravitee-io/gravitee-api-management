@@ -36,6 +36,27 @@
     }
   }
 
+  &__password-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: #fff3e0;
+    border-radius: 8px;
+
+    &__icon {
+      color: #e65100;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__password-notice {
+    color: #6b6b6b;
+    font-style: italic;
+    font-size: 13px;
+  }
+
   &__copy-code-content {
     display: flex;
     flex-flow: column;

@@ -275,8 +275,17 @@ export class SubscribeToApiComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ({ id }) => {
-          this.router.navigate(['/dashboard', 'subscriptions', id], { relativeTo: this.activatedRoute });
+        next: subscription => {
+          const extras: { relativeTo: ActivatedRoute; state?: Record<string, string> } = {
+            relativeTo: this.activatedRoute,
+          };
+          if (subscription.basic_auth_username && subscription.basic_auth_password) {
+            extras.state = {
+              basicAuthUsername: subscription.basic_auth_username,
+              basicAuthPassword: subscription.basic_auth_password,
+            };
+          }
+          this.router.navigate(['/dashboard', 'subscriptions', subscription.id], extras);
         },
         error: err => {
           this.hasSubscriptionError = true;

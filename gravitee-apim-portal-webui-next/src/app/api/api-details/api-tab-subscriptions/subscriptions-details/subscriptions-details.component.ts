@@ -67,6 +67,8 @@ interface SubscriptionDetailsData {
   entrypointUrls?: string[];
   clientId?: string;
   clientSecret?: string;
+  basicAuthUsername?: string;
+  basicAuthPassword?: string;
   api?: Api;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
@@ -96,6 +98,9 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
   @Input()
   subscriptionId!: string;
+
+  @Input()
+  basicAuthPasswordFlash: string = '';
 
   _subscriptionDetails = new BehaviorSubject<boolean>(true);
 
@@ -200,6 +205,14 @@ export class SubscriptionsDetailsComponent implements OnInit {
                 ...subscriptionDetails,
                 apiKey,
                 apiKeyConfigUsername,
+              },
+            };
+          } else if (plan.securityType === 'BASIC_AUTH' && subscription.api) {
+            return {
+              result: {
+                ...subscriptionDetails,
+                basicAuthUsername: subscription.basic_auth_username ?? '',
+                basicAuthPassword: this.basicAuthPasswordFlash || undefined,
               },
             };
           } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {

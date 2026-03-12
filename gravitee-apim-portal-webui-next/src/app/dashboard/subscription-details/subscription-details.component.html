@@ -16,5 +16,5 @@
 
 -->
 @if (apiId.value(); as _apiId) {
-  <app-subscriptions-details [apiId]="_apiId" [subscriptionId]="subscriptionId()" />
+  <app-subscriptions-details [apiId]="_apiId" [subscriptionId]="subscriptionId()" [basicAuthPasswordFlash]="basicAuthPassword" />
 }

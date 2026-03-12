@@ -66,6 +66,12 @@ export class ApiAccessComponent {
   @Input()
   clientSecret?: string;
 
+  @Input()
+  basicAuthUsername?: string;
+
+  @Input()
+  basicAuthPassword?: string;
+
   selectedEntrypointUrl = model<string>('');
 
   curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrl(), this.planSecurity, this.apiKey));
@@ -90,6 +96,9 @@ export class ApiAccessComponent {
         if (this.configService.configuration.portal?.apikeyHeader) {
           curlHeader = `--header "${this.configService.configuration.portal.apikeyHeader}: ${apiKey ?? '{{ API_KEY }}'}" `;
         }
+        break;
+      case 'BASIC_AUTH':
+        curlHeader = `-u "${this.basicAuthUsername ?? '{{ USERNAME }}'}:${this.basicAuthPassword ?? '{{ PASSWORD }}'}" `;
         break;
     }
 

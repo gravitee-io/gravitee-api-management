@@ -28,6 +28,22 @@
           <app-copy-code id="client-secret" title="Client Secret" [text]="clientSecret" mode="PASSWORD" />
         }
       }
+      @if (planSecurity === 'BASIC_AUTH') {
+        <app-copy-code id="basic-auth-username" title="Username" [text]="basicAuthUsername ?? ''" />
+        @if (basicAuthPassword) {
+          <div class="api-access__password-warning">
+            <span class="material-icons api-access__password-warning__icon">warning</span>
+            <span class="next-gen-body" i18n="@@subscriptionDetailsBasicAuthPasswordWarning"
+              >Make sure to copy your password now. You won't be able to see it again.</span
+            >
+          </div>
+          <app-copy-code id="basic-auth-password" title="Password" [text]="basicAuthPassword" mode="PASSWORD" />
+        } @else {
+          <div class="api-access__password-notice" i18n="@@subscriptionDetailsBasicAuthPasswordNotice">
+            Password was shown only at subscription creation time.
+          </div>
+        }
+      }
       @if (apiType === 'NATIVE') {
         <app-native-kafka-api-access
           [entrypointUrls]="entrypointUrls ?? []"

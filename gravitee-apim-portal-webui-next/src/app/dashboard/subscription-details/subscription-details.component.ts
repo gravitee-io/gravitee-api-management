@@ -33,4 +33,5 @@ export default class SubscriptionDetailsComponent {
     params: this.subscriptionId,
     stream: ({ params }) => this.subscriptionService.get(params).pipe(map(subscription => subscription.api)),
   });
+  basicAuthPassword: string = (history.state as Record<string, string>)?.['basicAuthPassword'] ?? '';
 }
