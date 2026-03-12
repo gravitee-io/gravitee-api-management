@@ -45,13 +45,13 @@
       flex-flow: column;
       gap: 2px;
       overflow: hidden;
-
-      .next-gen-h5 {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
     }
+  }
+
+  &__title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   &__content {
