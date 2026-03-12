@@ -142,6 +142,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
+            log.debug(
+                "No acceptor found for host {} and path {}, handling as not found",
+                httpServerRequest.host(),
+                httpServerRequest.path()
+            );
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
@@ -179,6 +184,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 return handleNotFoundCompletable;
             }
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
+            log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.request().contextPath(httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
@@ -237,6 +243,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             });
         }
         // V3 execution mode.
+        log.debug("Request routed to V3 handler on path [{}]", httpAcceptor.path());
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);
     }
 
