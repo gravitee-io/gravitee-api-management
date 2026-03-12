@@ -3135,12 +3135,7 @@ components:
                           type: boolean
                           description: Disable membership notifications.
                           default: false
-                      metadata:
-                          type: object
-                          description: API metadata as key-value pairs. Only included when requested via expands parameter.
-                          example:
-                              key1: value1
-                              key2: value2
+                      # metadata ==> dedicated resource
                       groups:
                           type: array
                           description: API's groups. Used to add team in your API.
@@ -8616,7 +8611,6 @@ components:
                     enum:
                         - deploymentState
                         - primaryOwner
-                        - metadata
         apiManageOnlyParam:
             name: manageOnly
             in: query
