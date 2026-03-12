@@ -16,14 +16,17 @@
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
+import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
@@ -31,10 +34,12 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -292,5 +297,69 @@ public class IdentityProviderServiceImplTest {
         idp.setType(IdentityProviderType.OIDC);
         idp.setConfiguration(new HashMap<>(Map.of("clientId", "client-id", "clientSecret", STORED_SECRET)));
         return idp;
+    }
+
+    @Nested
+    class GroupMappingExpressions {
+
+        @Test
+        void should_store_group_mapping_expressions_as_written() throws Exception {
+            when(identityProviderRepository.findById("idp-1")).thenReturn(Optional.of(existingIdp(null)));
+            when(identityProviderRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            identityProviderService.update(
+                GraviteeContext.getExecutionContext(),
+                "idp-1",
+                updateWithGroupMapping("group-id", "{#jsonPath(#profile, '$.groups')}", "{ #jsonPath(#profile, '$.teams')}")
+            );
+
+            assertThat(captureUpdated().getGroupMappings().get("true")).containsExactly(
+                "group-id",
+                "{#jsonPath(#profile, '$.groups')}",
+                "{ #jsonPath(#profile, '$.teams')}"
+            );
+        }
+
+        @Test
+        void should_reject_a_group_mapping_expression_that_does_not_parse() throws Exception {
+            when(identityProviderRepository.findById("idp-1")).thenReturn(Optional.of(existingIdp(null)));
+
+            assertThatThrownBy(() ->
+                identityProviderService.update(
+                    GraviteeContext.getExecutionContext(),
+                    "idp-1",
+                    updateWithGroupMapping("{#jsonPath(#profile, '$.groups'}")
+                )
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("{#jsonPath(#profile, '$.groups'}");
+            verify(identityProviderRepository, never()).update(any());
+        }
+
+        @Test
+        void should_reject_a_group_mapping_expression_written_on_several_lines() throws Exception {
+            when(identityProviderRepository.findById("idp-1")).thenReturn(Optional.of(existingIdp(null)));
+
+            assertThatThrownBy(() ->
+                identityProviderService.update(
+                    GraviteeContext.getExecutionContext(),
+                    "idp-1",
+                    updateWithGroupMapping("{#jsonPath(#profile,\n'$.groups')}")
+                )
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("single line");
+            verify(identityProviderRepository, never()).update(any());
+        }
+
+        private UpdateIdentityProviderEntity updateWithGroupMapping(String... groups) {
+            GroupMappingEntity groupMapping = new GroupMappingEntity();
+            groupMapping.setCondition("true");
+            groupMapping.setGroups(List.of(groups));
+            UpdateIdentityProviderEntity update = new UpdateIdentityProviderEntity();
+            update.setName("My IdP");
+            update.setGroupMappings(List.of(groupMapping));
+            return update;
+        }
     }
 }

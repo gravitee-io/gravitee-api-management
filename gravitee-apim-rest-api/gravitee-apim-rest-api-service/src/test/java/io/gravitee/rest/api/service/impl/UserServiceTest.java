@@ -67,6 +67,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.Base64;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -4008,6 +4009,244 @@ public class UserServiceTest {
             role.setScope(RoleScope.ORGANIZATION);
             role.setPermissions(permissions);
             return role;
+        }
+    }
+
+    @Nested
+    class GroupMappingExpressions {
+
+        private static final String PROFILE_GROUPS = "{#jsonPath(#profile, '$.groups')}";
+        private static final String OTHER_ENVIRONMENT = "other-environment";
+        private static final ExecutionContext ORGANIZATION_CONTEXT = new ExecutionContext(ORGANIZATION);
+
+        @BeforeEach
+        void setUp() throws TechnicalException {
+            reset(identityProvider, userRepository, groupService, roleService, membershipService);
+            mockDefaultEnvironment();
+            when(identityProvider.getId()).thenReturn("oauth2");
+            when(userRepository.findBySource(any(), any(), eq(ORGANIZATION))).thenReturn(Optional.empty());
+            when(userRepository.create(any())).thenReturn(mockUser());
+            when(roleService.findDefaultRoleByScopes(eq(ORGANIZATION), any())).thenReturn(Collections.emptyList());
+        }
+
+        @Test
+        void should_map_user_to_the_existing_groups_named_by_the_expression() throws Exception {
+            givenGroups(
+                ENVIRONMENT,
+                group("group-admin", "platform-admin"),
+                group("group-reviewer", "api-reviewer"),
+                group("group-other", "other")
+            );
+
+            Set<String> mappedGroupIds = login(mapping("true", PROFILE_GROUPS));
+
+            assertEquals(Set.of("group-admin", "group-reviewer"), mappedGroupIds);
+        }
+
+        @Test
+        void should_ignore_names_matching_no_existing_group() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"));
+
+            Set<String> mappedGroupIds = login(mapping("true", PROFILE_GROUPS));
+
+            assertEquals(Set.of("group-admin"), mappedGroupIds);
+        }
+
+        @Test
+        void should_skip_groups_without_a_name() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"), group("group-nameless", null));
+
+            Set<String> mappedGroupIds = login(mapping("true", PROFILE_GROUPS));
+
+            assertEquals(Set.of("group-admin"), mappedGroupIds);
+        }
+
+        @Test
+        void should_map_an_expression_surrounded_by_spaces() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"), group("group-reviewer", "api-reviewer"));
+
+            Set<String> mappedGroupIds = login(mapping("true", " " + PROFILE_GROUPS + " "));
+
+            assertEquals(Set.of("group-admin", "group-reviewer"), mappedGroupIds);
+        }
+
+        @Test
+        void should_map_a_single_valued_claim() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-friendly", "API_FRIENDLY_USER"));
+
+            Set<String> mappedGroupIds = login(mapping("true", "{#jsonPath(#profile, '$.job_id')}"));
+
+            assertEquals(Set.of("group-friendly"), mappedGroupIds);
+        }
+
+        @Test
+        void should_map_an_expression_written_with_a_space_after_the_brace() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-friendly", "API_FRIENDLY_USER"));
+
+            Set<String> mappedGroupIds = login(mapping("true", "{ #jsonPath(#profile, '$.job_id')}"));
+
+            assertEquals(Set.of("group-friendly"), mappedGroupIds);
+        }
+
+        @Test
+        void should_map_a_claim_of_the_id_token() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "id-token-admin"));
+            String idToken = JWT.create()
+                .withSubject("janedoe@example.com")
+                .withClaim("groups", List.of("id-token-admin"))
+                .sign(Algorithm.HMAC256(JWT_SECRET));
+
+            Set<String> mappedGroupIds = login(EXECUTION_CONTEXT, idToken, mapping("true", "{#jsonPath(#idToken, '$.groups')}"));
+
+            assertEquals(Set.of("group-admin"), mappedGroupIds);
+        }
+
+        @Test
+        void should_keep_static_group_ids_next_to_expressions() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"));
+            when(groupService.findById(EXECUTION_CONTEXT, "static-group")).thenReturn(groupEntity("static-group"));
+
+            Set<String> mappedGroupIds = login(mapping("true", "static-group", PROFILE_GROUPS));
+
+            assertEquals(Set.of("static-group", "group-admin"), mappedGroupIds);
+        }
+
+        @Test
+        void should_map_the_union_of_several_expressions_of_one_mapping() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"), group("group-friendly", "API_FRIENDLY_USER"));
+
+            Set<String> mappedGroupIds = login(mapping("true", "{#jsonPath(#profile, '$.job_id')}", PROFILE_GROUPS));
+
+            assertEquals(Set.of("group-admin", "group-friendly"), mappedGroupIds);
+        }
+
+        @Test
+        void should_load_groups_once_for_all_expressions() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"), group("group-friendly", "API_FRIENDLY_USER"));
+
+            Set<String> mappedGroupIds = login(mapping("true", PROFILE_GROUPS), mapping("true", "{#jsonPath(#profile, '$.job_id')}"));
+
+            assertEquals(Set.of("group-admin", "group-friendly"), mappedGroupIds);
+            verify(groupService, times(1)).findAllByEnvironment(ENVIRONMENT);
+        }
+
+        @Test
+        void should_not_load_groups_without_expression() throws Exception {
+            when(groupService.findById(EXECUTION_CONTEXT, "static-group")).thenReturn(groupEntity("static-group"));
+
+            Set<String> mappedGroupIds = login(mapping("true", "static-group"));
+
+            assertEquals(Set.of("static-group"), mappedGroupIds);
+            verify(groupService, never()).findAllByEnvironment(any());
+        }
+
+        @Test
+        void should_not_evaluate_the_expression_when_the_condition_does_not_match() throws Exception {
+            Set<String> mappedGroupIds = login(mapping("false", PROFILE_GROUPS));
+
+            assertEquals(Set.of(), mappedGroupIds);
+            verify(groupService, never()).findAllByEnvironment(any());
+        }
+
+        @Test
+        void should_still_log_the_user_in_when_the_claim_is_missing() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"));
+            when(groupService.findById(EXECUTION_CONTEXT, "static-group")).thenReturn(groupEntity("static-group"));
+
+            Set<String> mappedGroupIds = login(
+                mapping("true", "{#jsonPath(#profile, '$.realm_access.roles')}"),
+                mapping("true", "static-group")
+            );
+
+            assertEquals(Set.of("static-group"), mappedGroupIds);
+            verify(groupService, never()).findById(any(), contains("{#"));
+        }
+
+        @Test
+        void should_still_log_the_user_in_when_the_expression_is_invalid() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"));
+
+            Set<String> mappedGroupIds = login(mapping("true", "{#jsonPath(#profile, '$.groups'}"));
+
+            assertEquals(Set.of(), mappedGroupIds);
+            verify(groupService, never()).findById(any(), contains("{#"));
+        }
+
+        @Test
+        void should_only_match_groups_of_the_login_environment() throws Exception {
+            givenGroups(ENVIRONMENT, group("group-admin", "platform-admin"));
+            givenGroups(OTHER_ENVIRONMENT, group("other-environment-admin", "platform-admin"));
+
+            Set<String> mappedGroupIds = login(mapping("true", PROFILE_GROUPS));
+
+            assertEquals(Set.of("group-admin"), mappedGroupIds);
+            verify(groupService, never()).findAllByEnvironment(OTHER_ENVIRONMENT);
+        }
+
+        @Test
+        void should_match_groups_of_every_environment_when_the_login_has_no_environment() throws Exception {
+            EnvironmentEntity otherEnvironment = new EnvironmentEntity();
+            otherEnvironment.setId(OTHER_ENVIRONMENT);
+            EnvironmentEntity defaultEnvironment = new EnvironmentEntity();
+            defaultEnvironment.setId(ENVIRONMENT);
+            when(environmentService.findByOrganization(ORGANIZATION)).thenReturn(List.of(defaultEnvironment, otherEnvironment));
+            givenGroups(ORGANIZATION_CONTEXT, ENVIRONMENT, group("group-admin", "platform-admin"));
+            givenGroups(ORGANIZATION_CONTEXT, OTHER_ENVIRONMENT, group("other-environment-admin", "platform-admin"));
+
+            Set<String> mappedGroupIds = login(ORGANIZATION_CONTEXT, null, mapping("true", PROFILE_GROUPS));
+
+            assertEquals(Set.of("group-admin", "other-environment-admin"), mappedGroupIds);
+        }
+
+        private void givenGroups(String environmentId, Group... groups) {
+            givenGroups(EXECUTION_CONTEXT, environmentId, groups);
+        }
+
+        private void givenGroups(ExecutionContext executionContext, String environmentId, Group... groups) {
+            when(groupService.findAllByEnvironment(environmentId)).thenReturn(Set.of(groups));
+            for (Group group : groups) {
+                when(groupService.findById(executionContext, group.getId())).thenReturn(groupEntity(group.getId()));
+            }
+        }
+
+        private Group group(String id, String name) {
+            return Group.builder().id(id).name(name).build();
+        }
+
+        private GroupEntity groupEntity(String id) {
+            GroupEntity group = new GroupEntity();
+            group.setId(id);
+            group.setRoles(Map.of(RoleScope.API, "USER"));
+            return group;
+        }
+
+        private GroupMappingEntity mapping(String condition, String... groups) {
+            GroupMappingEntity mapping = new GroupMappingEntity();
+            mapping.setCondition(condition);
+            mapping.setGroups(List.of(groups));
+            return mapping;
+        }
+
+        private Set<String> login(GroupMappingEntity... mappings) throws IOException {
+            return login(EXECUTION_CONTEXT, null, mappings);
+        }
+
+        private Set<String> login(ExecutionContext executionContext, String idToken, GroupMappingEntity... mappings) throws IOException {
+            when(identityProvider.getGroupMappings()).thenReturn(List.of(mappings));
+
+            String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+            userService.createOrUpdateUserFromSocialIdentityProvider(executionContext, identityProvider, userInfo, null, idToken);
+
+            ArgumentCaptor<MembershipService.MembershipReference> references = ArgumentCaptor.forClass(
+                MembershipService.MembershipReference.class
+            );
+            verify(membershipService, atLeast(0)).updateRolesToMemberOnReferenceBySource(any(), references.capture(), any(), any(), any());
+            return references
+                .getAllValues()
+                .stream()
+                .filter(reference -> reference.getType() == MembershipReferenceType.GROUP)
+                .map(MembershipService.MembershipReference::getId)
+                .collect(Collectors.toSet());
         }
     }
 }
