@@ -26,12 +26,7 @@
         [active]="settingsActive.isActive"
         ><span class="next-gen-small-bold" i18n="@@appSettings">Settings & Security</span></a
       >
-      <a
-        mat-tab-link
-        [routerLink]="['.', 'logs']"
-        routerLinkActive
-        #logsActive="routerLinkActive"
-        [active]="logsActive.isActive"
+      <a mat-tab-link [routerLink]="['.', 'logs']" routerLinkActive #logsActive="routerLinkActive" [active]="logsActive.isActive"
         ><span class="next-gen-small-bold" i18n="@@appAnalyticsAndLogs">Logs</span></a
       >
     </nav>

@@ -44,6 +44,8 @@
 }
 
 .page-header {
+  margin-bottom: 24px;
+
   p {
     margin-top: 4px;
     margin-bottom: 0;
@@ -51,7 +53,8 @@
 }
 
 .section-title {
-  margin: 16px 0;
+  display: block;
+  margin: 16px 0 24px;
 }
 
 .form {
