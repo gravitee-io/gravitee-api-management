@@ -261,6 +261,11 @@ class ApiTemplateVariableProviderTest {
                 }
 
                 @Override
+                public Set<String> getBasicAuthPlans() {
+                    return Set.of();
+                }
+
+                @Override
                 public <D> Set<D> dependencies(Class<D> type) {
                     return Set.of();
                 }

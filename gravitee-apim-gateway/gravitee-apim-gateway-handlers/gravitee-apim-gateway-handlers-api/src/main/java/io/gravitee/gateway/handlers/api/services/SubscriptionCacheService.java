@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.services.basicauth.BasicAuthCacheService;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -46,7 +47,10 @@ import lombok.SneakyThrows;
 @RequiredArgsConstructor
 public class SubscriptionCacheService implements SubscriptionService {
 
+    public static final String BASIC_AUTH_TOKEN_TYPE = "BASIC_AUTH";
+
     private final ApiKeyService apiKeyService;
+    private final BasicAuthCacheService basicAuthCacheService;
     private final SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
     private final ApiManager apiManager;
 
@@ -59,6 +63,12 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
+        if (BASIC_AUTH_TOKEN_TYPE.equals(securityToken.getTokenType())) {
+            return basicAuthCacheService
+                .getByApiAndUsername(api, securityToken.getTokenValue())
+                .flatMap(credential -> getByApiAndId(api, credential.getSubscription()));
+        }
+
         return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
             case API_KEY -> apiKeyService
                 .getByApiAndKey(api, securityToken.getTokenValue())

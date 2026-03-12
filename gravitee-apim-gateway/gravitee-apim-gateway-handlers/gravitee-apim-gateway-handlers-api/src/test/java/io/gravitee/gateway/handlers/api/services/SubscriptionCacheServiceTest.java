@@ -25,6 +25,7 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.services.basicauth.BasicAuthCacheService;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -63,6 +64,9 @@ class SubscriptionCacheServiceTest {
     private ApiKeyService apiKeyService;
 
     @Mock
+    private BasicAuthCacheService basicAuthCacheService;
+
+    @Mock
     private SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
 
     @Mock
@@ -72,7 +76,7 @@ class SubscriptionCacheServiceTest {
 
     @BeforeEach
     void setup() {
-        subscriptionService = new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
+        subscriptionService = new SubscriptionCacheService(apiKeyService, basicAuthCacheService, subscriptionTrustStoreLoaderManager, apiManager);
     }
 
     @Nested

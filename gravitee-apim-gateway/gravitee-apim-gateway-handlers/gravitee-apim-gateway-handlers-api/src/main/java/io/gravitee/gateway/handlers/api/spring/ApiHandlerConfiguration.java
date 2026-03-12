@@ -36,6 +36,7 @@ import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
+import io.gravitee.gateway.handlers.api.services.basicauth.BasicAuthCacheService;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -225,6 +226,11 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
+    public BasicAuthCacheService basicAuthCacheService() {
+        return new BasicAuthCacheService();
+    }
+
+    @Bean
     public SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager(ServerManager serverManager) {
         return new SubscriptionTrustStoreLoaderManager(serverManager);
     }
@@ -232,10 +238,11 @@ public class ApiHandlerConfiguration {
     @Bean
     public SubscriptionCacheService subscriptionService(
         ApiKeyCacheService apiKeyService,
+        BasicAuthCacheService basicAuthCacheService,
         SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager,
         ApiManager apiManager
     ) {
-        return new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
+        return new SubscriptionCacheService(apiKeyService, basicAuthCacheService, subscriptionTrustStoreLoaderManager, apiManager);
     }
 
     @Bean

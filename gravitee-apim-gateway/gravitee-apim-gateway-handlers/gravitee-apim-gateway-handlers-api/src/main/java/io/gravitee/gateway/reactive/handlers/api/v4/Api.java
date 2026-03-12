@@ -83,6 +83,13 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Ap
     }
 
     @Override
+    public Set<String> getBasicAuthPlans() {
+        return definition.getPlans() != null
+            ? definition.getPlans().stream().filter(Plan::isBasicAuth).map(Plan::getId).collect(Collectors.toSet())
+            : Set.of();
+    }
+
+    @Override
     public <D> Set<D> dependencies(Class<D> type) {
         if (Policy.class.equals(type)) {
             return (Set<D>) policies();

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.definition;
 
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.BASIC_AUTH;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
 
@@ -183,6 +184,16 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.Api> 
             .getPlans()
             .stream()
             .filter(plan -> API_KEY.name().equalsIgnoreCase(plan.getSecurity()))
+            .map(Plan::getId)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<String> getBasicAuthPlans() {
+        return definition
+            .getPlans()
+            .stream()
+            .filter(plan -> BASIC_AUTH.name().equalsIgnoreCase(plan.getSecurity()))
             .map(Plan::getId)
             .collect(Collectors.toSet());
     }
