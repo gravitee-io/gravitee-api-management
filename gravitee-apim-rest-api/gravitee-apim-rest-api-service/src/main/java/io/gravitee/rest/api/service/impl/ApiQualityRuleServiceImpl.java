@@ -63,7 +63,6 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             return apiQualityRuleRepository.findByApi(api).stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find quality rules by API";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -92,7 +91,6 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             return convert(apiQualityRuleRepository.create(apiQualityRule));
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create an API quality rule " + newEntity;
-            log.error(error, e);
             throw new TechnicalManagementException(error, e);
         }
     }
@@ -121,7 +119,6 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             return convert(apiQualityRule);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to update API quality rule " + updateEntity;
-            log.error(error, e);
             throw new TechnicalManagementException(error, e);
         }
     }

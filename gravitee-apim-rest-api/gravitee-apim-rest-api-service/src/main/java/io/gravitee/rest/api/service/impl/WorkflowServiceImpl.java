@@ -66,7 +66,6 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
             return workflowRepository.create(workflow);
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create workflow of type " + workflow.getType();
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -82,7 +81,6 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurs while trying to find workflow by ref " + referenceType + "/" + referenceId + " and type " + type;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -101,7 +99,6 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurs while trying to find workflows by refs " + referenceType + "/" + referenceIds + " and type " + type;
-            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }

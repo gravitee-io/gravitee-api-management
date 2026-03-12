@@ -78,7 +78,6 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 .orElseThrow(() -> new QualityRuleNotFoundException(id));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a quality rule using its ID: " + id;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -89,7 +88,6 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             log.debug("Find all quality rules");
             return qualityRuleRepository.findAll().stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all quality rules", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all quality rules", ex);
         }
     }
@@ -104,7 +102,6 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 .map(this::convert)
                 .toList();
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find quality rules for {} [{}]", referenceType, referenceId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to find quality rules for reference" + referenceType + " " + referenceId,
                 ex
@@ -134,7 +131,6 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             );
             return convert(createdQualityRule);
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to create a quality rule {}", newEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to create a quality rule " + newEntity, e);
         }
     }
@@ -163,7 +159,6 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             );
             return convert(updatedQualityRule);
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to update quality rule {}", updateEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to update quality rule " + updateEntity, e);
         }
     }
@@ -194,7 +189,6 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 );
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete quality rule {}", qualityRule, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete quality rule " + qualityRule, ex);
         }
     }

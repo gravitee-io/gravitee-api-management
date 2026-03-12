@@ -73,7 +73,6 @@ public class SharedPolicyGroupHRIDUpgrader implements Upgrader {
                     sharedPolicyGroup.setHrid(sharedPolicyGroup.getCrossId());
                     sharedPolicyGroupRepository.update(sharedPolicyGroup);
                 } catch (TechnicalException e) {
-                    log.error("Unable to set HRID for Shared Policy Group {}", sharedPolicyGroup.getId(), e);
                     throw new RuntimeException(e);
                 }
             });

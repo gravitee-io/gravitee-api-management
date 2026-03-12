@@ -67,7 +67,6 @@ public class MediaValidationServiceImpl implements MediaValidationService {
         }
 
         if (mediaEntity.getType() == null || mediaEntity.getSubType() == null) {
-            log.warn("Validation failed for file '{}': missing media type", mediaEntity.getFileName());
             throw new UploadUnauthorized("The file should have media type.");
         }
 
@@ -77,7 +76,6 @@ public class MediaValidationServiceImpl implements MediaValidationService {
         try {
             detectedMediaType = TIKA.detect(mediaEntity.getData(), mediaEntity.getFileName());
         } catch (IllegalStateException e) {
-            log.error("Unable to determine file type for '{}'", mediaEntity.getFileName(), e);
             throw new UploadUnauthorized("Unable to determine file type.");
         }
 
@@ -87,7 +85,6 @@ public class MediaValidationServiceImpl implements MediaValidationService {
 
         (mediaType.equals(detectedMediaType) ? Set.of(mediaType) : Set.of(mediaType, detectedMediaType)).forEach(type -> {
             if (isForbidden(type)) {
-                log.warn("Forbidden file type '{}' detected for file '{}'", type, mediaEntity.getFileName());
                 throw new UploadUnauthorized("Unsupported file type: " + type + ". Uploading this type of file is not allowed.");
             }
         });

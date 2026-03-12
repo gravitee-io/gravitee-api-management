@@ -150,7 +150,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                     .map(this::convert)
                     .orElseThrow(() -> new RoleNotFoundException(k));
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to find a role : {}", k, ex);
                 throw new TechnicalManagementException("An error occurs while trying to find a role : " + k, ex);
             }
         });
@@ -177,7 +176,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             try {
                 roleRepository.findAllByIdIn(missingRoleIds).forEach(role -> cache.put(role.getId(), convert(role)));
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to find roles by ids: {}", missingRoleIds, ex);
                 throw new TechnicalManagementException("An error occurs while trying to find roles by ids", ex);
             }
         }
@@ -193,7 +191,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 .findByIdAndReferenceIdAndReferenceType(roleId, organizationId, RoleReferenceType.ORGANIZATION)
                 .map(this::convert);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find roles by id and organizationId", ex);
             throw new TechnicalManagementException("An error occurs while trying to find roles by id and organizationId", ex);
         }
     }
@@ -208,7 +205,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 .map(this::convert)
                 .collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all roles", ex);
         }
     }
@@ -251,7 +247,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             }
             return entity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create role {}", roleEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to create role " + roleEntity.getName(), ex);
         }
     }
@@ -295,7 +290,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             }
             return entity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update role {}", roleEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update role " + roleEntity.getName(), ex);
         }
     }
@@ -328,7 +322,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                     .build()
             );
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete role {}", roleId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete role " + roleId, ex);
         }
     }
@@ -344,7 +337,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 .sorted(comparing(RoleEntity::getName))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find roles by scope", ex);
             throw new TechnicalManagementException("An error occurs while trying to find roles by scope", ex);
         }
     }
@@ -358,7 +350,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 .findByScopeAndNameAndReferenceIdAndReferenceType(convert(scope), name, organizationId, RoleReferenceType.ORGANIZATION)
                 .map(this::convert);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find roles by scope", ex);
             throw new TechnicalManagementException("An error occurs while trying to find roles by scope", ex);
         }
     }
@@ -380,7 +371,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             }
             return roles;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find default roles by scope", ex);
             throw new TechnicalManagementException("An error occurs while trying to find default roles by scope", ex);
         }
     }
@@ -616,7 +606,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 organizationId
             );
         } catch (TechnicalManagementException ex) {
-            log.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);
         }
     }
@@ -687,7 +676,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 );
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create {} {} roles", roleName.name(), roleScope.name(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to create " + roleName.name() + " " + roleScope.name() + " roles ",
                 ex

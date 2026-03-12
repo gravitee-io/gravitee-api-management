@@ -115,7 +115,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
                 return hashString;
             }
         } catch (TechnicalException | NoSuchAlgorithmException ex) {
-            log.error("An error has occurred while trying to create media " + mediaEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying create media", ex);
         }
     }
@@ -135,7 +134,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
                 .map(MediaServiceImpl::convert)
                 .orElse(null);
         } catch (TechnicalException e) {
-            log.error("An error has occurred trying to find media with hash " + hash, e);
             throw new TechnicalManagementException("An error has occurred trying to find media", e);
         }
     }
@@ -148,7 +146,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
                 .map(MediaServiceImpl::convert)
                 .orElse(null);
         } catch (TechnicalException e) {
-            log.error("An error as occurred trying to find media for API " + apiId + " with hash " + hash, e);
             throw new TechnicalManagementException("An error as occurred trying to find media", e);
         }
     }
@@ -168,7 +165,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
                 .map(MediaServiceImpl::convert)
                 .orElse(null);
         } catch (TechnicalException e) {
-            log.error("An error as occurred trying to find media with hash " + hash, e);
             throw new TechnicalManagementException("An error has occurred trying to find media", e);
         }
     }
@@ -181,7 +177,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
                 .map(MediaServiceImpl::convert)
                 .orElse(null);
         } catch (TechnicalException e) {
-            log.error("An error as occurred trying to find media for API " + api + " with hash " + hash, e);
             throw new TechnicalManagementException("An error as occurred trying to find media", e);
         }
     }
@@ -215,7 +210,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             }
             return result;
         } catch (TechnicalException e) {
-            log.error("An error as occurred trying to find medias with criteria " + mediaCriteria, e);
             throw new TechnicalManagementException("An error as occurred trying to find medias", e);
         }
     }
@@ -230,7 +224,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
         try {
             return mediaRepository.findAllByApi(apiId).stream().map(MediaServiceImpl::convert).toList();
         } catch (TechnicalException e) {
-            log.error("An error as occurred trying to find medias for API " + apiId, e);
             throw new TechnicalManagementException("An error as occurred trying to find medias", e);
         }
     }
@@ -241,7 +234,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             final MediaEntity media = convertToEntity(mediaDefinition);
             return saveApiMedia(executionContext, api, media);
         } catch (JsonProcessingException e) {
-            log.error("An error as occurred while trying to JSON deserialize the media " + mediaDefinition, e);
             throw new TechnicalManagementException("An error has occurred while trying to create media", e);
         }
     }
@@ -251,7 +243,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
         try {
             mediaRepository.deleteAllByApi(apiId);
         } catch (TechnicalException e) {
-            log.error("An error has occurred while trying delete medias for API " + apiId, e);
             throw new TechnicalManagementException("An error occurred trying to delete medias", e);
         }
     }
@@ -263,7 +254,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             Media media = mediaRepository.findByHash(hash, mediaCriteria).orElseThrow(() -> new ApiMediaNotFoundException(hash, apiId));
             mediaRepository.deleteByHashAndApi(media.getHash(), apiId);
         } catch (TechnicalException e) {
-            log.error("An error has occurred trying to delete media for API " + apiId + " with hash " + hash, e);
             throw new TechnicalManagementException("An error has occurred trying to delete media", e);
         }
     }
@@ -280,7 +270,6 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
 
             mediaRepository.deleteByHashAndEnvironment(media.getHash(), executionContext.getEnvironmentId());
         } catch (TechnicalException e) {
-            log.error("An error has occurred trying to delete media with hash " + hash, e);
             throw new TechnicalManagementException("An error has occurred trying to delete media", e);
         }
     }

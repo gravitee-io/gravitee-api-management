@@ -343,7 +343,6 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
             return notifiers;
         } catch (Exception ex) {
-            log.error("An error occurs while trying to list all notifiers", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all notifiers", ex);
         }
     }
@@ -386,7 +385,6 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 return notifierManager.getSchema(notifier);
             }
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get notifier schema for notifier {}", notifier, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get notifier schema for notifier " + notifier, ioex);
         }
     }

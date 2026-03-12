@@ -86,7 +86,6 @@ public class ExecutionModeUpgrader implements Upgrader {
                     }
                 }
             } catch (JsonProcessingException | TechnicalException e) {
-                log.error("Error processing API {}: {}", api.getId(), e.getMessage());
                 throw new UpgraderException(e);
             }
         }

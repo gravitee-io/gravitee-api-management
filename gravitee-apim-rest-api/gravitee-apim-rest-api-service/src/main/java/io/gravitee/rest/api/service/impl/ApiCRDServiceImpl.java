@@ -143,7 +143,6 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
                 plansByCrossId
             );
         } catch (JsonProcessingException e) {
-            log.error("An error occurs while trying to JSON deserialize the API {}", api, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }

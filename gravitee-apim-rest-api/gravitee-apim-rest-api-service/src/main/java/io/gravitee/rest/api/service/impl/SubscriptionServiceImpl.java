@@ -261,7 +261,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .map(this::convert)
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find a subscription using its ID: {}", subscriptionId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to find a subscription using its ID: %s", subscriptionId),
                 ex
@@ -274,7 +273,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             return subscriptionRepository.findByIdIn(subscriptionIds).stream().map(this::convert).collect(toSet());
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to find subscriptions using IDs [{}]", subscriptionIds, e);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to find subscriptions using IDs [%s]", subscriptionIds),
                 e
@@ -819,7 +817,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 return convert(subscription);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to subscribe to the plan %s", plan), ex);
         }
     }
@@ -1094,11 +1091,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             return convert(subscription);
         } catch (TechnicalException ex) {
-            log.error(
-                "An error occurs while trying to update subscription {} configuration",
-                subscriptionConfigEntity.getSubscriptionId(),
-                ex
-            );
             throw new TechnicalManagementException(
                 String.format(
                     "An error occurs while trying to update subscription %s configuration",
@@ -1129,7 +1121,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     try {
                         return subscriptionRepository.update(subscription);
                     } catch (TechnicalException ex) {
-                        log.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
                         throw new TechnicalManagementException(
                             String.format("An error occurs while trying to update subscription %s", subscriptionId),
                             ex
@@ -1139,7 +1130,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .map(this::convert)
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update subscription %s", subscriptionId),
                 ex
@@ -1212,7 +1202,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             throw new SubscriptionNotUpdatableException(updateSubscription.getId());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update subscription {}", updateSubscription.getId(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update subscription %s", updateSubscription.getId()),
                 ex
@@ -1726,7 +1715,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             throw new SubscriptionNotPausedException(subscription);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to resume subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to resume subscription %s", subscriptionId),
                 ex
@@ -1777,7 +1765,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             throw new SubscriptionNotClosedException(subscriptionId);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to restore subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to restore subscription %s", subscriptionId),
                 ex
@@ -1810,7 +1797,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 null
             );
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete subscription: {}", subscriptionId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to delete subscription: %s", subscriptionId),
                 ex
@@ -1855,7 +1841,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             return subscriptionsStream.collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search for subscriptions: {}", query, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to search for subscriptions: %s", query),
                 ex
@@ -1922,7 +1907,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 );
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search for pageable subscriptions: {}", query, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to search for pageable subscriptions: %s", query),
                 ex
@@ -2101,7 +2085,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
             return subscriptionEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to transfer subscription {} by {}", transferSubscription.getId(), userId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to transfer subscription %s by %s", transferSubscription.getId(), userId),
                 ex
@@ -2172,7 +2155,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             return subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(toSubscriptionCriteriaBuilder(query).build(), order);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to findReferenceIdsOrderByNumberOfSubscriptions for subscriptions: {}", query, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to findReferenceIdsOrderByNumberOfSubscriptions for subscriptions: %s", query),
                 ex

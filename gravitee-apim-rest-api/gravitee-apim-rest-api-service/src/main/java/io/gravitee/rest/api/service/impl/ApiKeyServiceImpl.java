@@ -173,7 +173,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to renew an API Key for {}", subscription.getId(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to renew an API Key for %s", subscription.getId()),
                 ex
@@ -214,7 +213,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to renew an API Key for application {}", application.getId(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to renew an API Key for application %s", application.getId()),
                 ex
@@ -263,7 +261,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 apiKeyRepository.addSubscription(apiKeyEntity.getId(), subscription.getId()).orElseThrow(ApiKeyNotFoundException::new)
             );
         } catch (TechnicalException e) {
-            log.error("An error occurred while trying to add subscription to API Key", e);
             throw new TechnicalManagementException("An error occurred while trying to a add subscription to API Key");
         }
     }
@@ -283,7 +280,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return apiKeyEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to generate an API Key for {}", subscription, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to generate an API Key for %s", subscription),
                 ex
@@ -380,7 +376,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return updatedEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to reactivate an api key", ex);
             throw new TechnicalManagementException("An error occurs while trying to reactivate an API Key", ex);
         }
     }
@@ -400,7 +395,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException e) {
             String message = String.format("An error occurs while trying to find a key with id %s", keyId);
-            log.error(message, e);
             throw new TechnicalManagementException(message, e);
         }
     }
@@ -415,7 +409,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey1 -> convert(executionContext, apiKey1))
                 .collect(toList());
         } catch (TechnicalException e) {
-            log.error("An error occurs while finding API Keys", e);
             throw new TechnicalManagementException("An error occurs while finding API Keys", e);
         }
     }
@@ -430,7 +423,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey1 -> convert(executionContext, apiKey1))
                 .collect(toList());
         } catch (TechnicalException e) {
-            log.error("An error occurs while finding API Keys", e);
             throw new TechnicalManagementException("An error occurs while finding API Keys", e);
         }
     }
@@ -448,7 +440,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while finding API Keys for subscription {}", subscription, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while finding API Keys for subscription %s", subscription),
                 ex
@@ -463,7 +454,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = apiKeyRepository.findByKeyAndApi(apiKey, apiId).orElseThrow(ApiKeyNotFoundException::new);
             return convert(executionContext, key);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an API Key for API {}", apiId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to find an API Key for API %s", apiId), ex);
         }
     }
@@ -477,7 +467,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey -> convert(executionContext, apiKey))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find API Keys for application {}", applicationId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to find API Keys for application %s", applicationId),
                 ex
@@ -500,7 +489,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return convert(executionContext, key);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while updating an API Key with id {}", apiKeyEntity.getId(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while updating an API Key with id %s", apiKeyEntity.getId()),
                 ex
@@ -522,7 +510,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     try {
                         return apiKeyRepository.update(dbApiKey);
                     } catch (TechnicalException ex) {
-                        log.error("An error occurs while trying to update ApiKey with id {}", dbApiKey.getId(), ex);
                         throw new TechnicalManagementException(
                             String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
                             ex
@@ -532,7 +519,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey -> convert(executionContext, apiKey))
                 .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update apiKey", ex);
             throw new TechnicalManagementException("An error occurs while trying to update apiKey", ex);
         }
     }
@@ -593,7 +579,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey -> convert(executionContext, apiKey))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to search API Keys: {}", query, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to search API Keys: {}", query), ex);
         }
     }

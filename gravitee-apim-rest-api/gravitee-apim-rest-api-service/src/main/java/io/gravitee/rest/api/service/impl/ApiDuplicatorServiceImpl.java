@@ -212,7 +212,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
             return createdApiEntity;
         } catch (IOException e) {
-            log.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }
@@ -251,7 +250,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
-            log.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }
@@ -809,7 +807,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
         } catch (Exception ex) {
-            log.error("An error occurs while creating API metadata", ex);
             throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
         }
     }

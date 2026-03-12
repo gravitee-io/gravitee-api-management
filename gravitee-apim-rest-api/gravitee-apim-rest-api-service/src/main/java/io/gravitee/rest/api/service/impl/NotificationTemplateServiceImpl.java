@@ -290,7 +290,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to retrieve notificationTemplates", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve notificationTemplates", ex);
         }
     }
@@ -406,7 +405,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to retrieve notificationTemplates by type", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve notificationTemplates by type", ex);
         }
     }
@@ -451,7 +449,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
             return createdNotificationTemplateEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create or update notificationTemplate {}", newNotificationTemplate, ex);
             throw new TechnicalManagementException("An error occurs while trying to create or update " + newNotificationTemplate, ex);
         }
     }
@@ -494,7 +491,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
             return updatedNotificationTemplateEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create or update notificationTemplate {}", updatingNotificationTemplate, ex);
             throw new TechnicalManagementException("An error occurs while trying to create or update " + updatingNotificationTemplate, ex);
         }
     }
@@ -582,7 +578,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             }
             throw new NotificationTemplateNotFoundException(id);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find a notificationTemplate using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to find a notificationTemplate using its ID " + id, ex);
         }
     }

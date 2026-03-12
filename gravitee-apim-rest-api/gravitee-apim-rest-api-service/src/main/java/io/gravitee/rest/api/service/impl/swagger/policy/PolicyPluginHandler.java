@@ -71,7 +71,6 @@ public class PolicyPluginHandler extends io.gravitee.plugin.policy.internal.Poli
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            log.error("Unable to instantiate class: {}", clazz, ex);
             throw ex;
         }
     }

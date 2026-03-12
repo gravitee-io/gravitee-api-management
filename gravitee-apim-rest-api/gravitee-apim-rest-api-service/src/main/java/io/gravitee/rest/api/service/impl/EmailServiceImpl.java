@@ -184,7 +184,6 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 mailSender.send(mailMessage.getMimeMessage());
             } catch (final Exception ex) {
-                log.error("Error while sending email notification", ex);
                 throw new TechnicalManagementException("Error while sending email notification", ex);
             }
         }

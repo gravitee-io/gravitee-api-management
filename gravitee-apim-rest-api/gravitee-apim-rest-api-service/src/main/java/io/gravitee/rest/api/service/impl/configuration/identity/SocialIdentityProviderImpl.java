@@ -88,7 +88,6 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (Exception ex) {
-            log.error("An error occurs while trying to retrieve identity providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
@@ -118,7 +117,6 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         } catch (IdentityProviderNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }

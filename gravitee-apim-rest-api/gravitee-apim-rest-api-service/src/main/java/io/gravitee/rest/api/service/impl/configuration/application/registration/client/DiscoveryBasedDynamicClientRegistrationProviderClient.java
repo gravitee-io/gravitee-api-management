@@ -66,11 +66,6 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
                         throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
                     }
                 } else {
-                    log.error(
-                        "Unexpected response status from OIDC Discovery endpoint: status[{}] message[{}]",
-                        status,
-                        EntityUtils.toString(response.getEntity())
-                    );
                     throw new DynamicClientRegistrationException("Unexpected response status from OIDC Discovery endpoint");
                 }
             });
@@ -80,7 +75,6 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
             metadata.put("registration_endpoint", discovery.getRegistrationEndpoint());
             metadata.put("token_endpoint", discovery.getTokenEndpoint());
         } catch (Exception ex) {
-            log.error("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException(
                 "Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(),
                 ex

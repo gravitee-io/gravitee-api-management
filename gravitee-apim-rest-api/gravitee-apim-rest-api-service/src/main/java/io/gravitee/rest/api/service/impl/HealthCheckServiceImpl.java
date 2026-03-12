@@ -105,7 +105,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             );
             return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
-            log.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }

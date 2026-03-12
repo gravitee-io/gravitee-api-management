@@ -85,7 +85,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
             return convert(optOrganization.get());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find organization by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find organization by ID", ex);
         }
     }
@@ -104,7 +103,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 throw new OrganizationNotFoundException(organizationId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to update organization " + organizationEntity.getName(),
                 ex
@@ -132,7 +130,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 return createdOrganization;
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to update organization " + organizationEntity.getName(),
                 ex
@@ -155,7 +152,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 throw new OrganizationNotFoundException(organizationId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to update organization " + organizationEntity.getName(),
                 ex
@@ -184,7 +180,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         try {
             return organizationRepository.count();
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to count organizations", ex);
             throw new TechnicalManagementException("An error occurs while trying to count organizations ", ex);
         }
     }
@@ -197,7 +192,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 organizationRepository.delete(organizationId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete organization {}", organizationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete organization " + organizationId, ex);
         }
     }
@@ -238,7 +232,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             organizationRepository.create(defaultOrganization);
             return convert(defaultOrganization);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create default organization", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default organization", ex);
         }
     }
@@ -248,7 +241,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         try {
             return organizationRepository.findAll().stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to list all organizations", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);
         }
     }
@@ -258,7 +250,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         try {
             return organizationRepository.findById(GraviteeContext.getDefaultOrganization()).map(this::convert).orElseGet(this::initialize);
         } catch (final Exception ex) {
-            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
@@ -272,7 +263,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 .map(this::convert)
                 .orElseThrow(() -> new OrganizationNotFoundException(cockpitId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find organization by cockpit id {}", cockpitId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find organization by cockpit id " + cockpitId, ex);
         }
     }
@@ -282,7 +272,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         try {
             return organizationRepository.findByHrids(hrids).stream().map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to list all organizations", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);
         }
     }

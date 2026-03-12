@@ -68,7 +68,6 @@ public class ApplicationHRIDUpgrader implements Upgrader {
                 try {
                     applicationRepository.update(application);
                 } catch (TechnicalException e) {
-                    log.error("Unable to set HRID for Application {}", application.getId(), e);
                     throw new RuntimeException(e);
                 }
             });

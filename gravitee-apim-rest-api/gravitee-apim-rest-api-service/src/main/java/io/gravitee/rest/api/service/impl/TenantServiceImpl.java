@@ -76,7 +76,6 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
 
             return convert(optTenant.get());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find tenant by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find tenant by ID", ex);
         }
     }
@@ -91,7 +90,6 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all tenants", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tenants", ex);
         }
     }
@@ -131,7 +129,6 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                         .build()
                 );
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
             }
         });
@@ -171,7 +168,6 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                     );
                 }
             } catch (TechnicalException ex) {
-                log.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
             }
         });
@@ -201,7 +197,6 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 tenantRepository.delete(tenantId);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete tenant {}", tenantId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete tenant " + tenantId, ex);
         }
     }

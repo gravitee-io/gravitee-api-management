@@ -189,7 +189,6 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             );
             return msgSize;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to get create a message", ex);
             throw new TechnicalManagementException("An error occurs while trying to create a message", ex);
         }
     }
@@ -366,7 +365,6 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             }
             return recipientIds;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to get recipients", ex);
             throw new TechnicalManagementException("An error occurs while trying to get recipients", ex);
         }
     }

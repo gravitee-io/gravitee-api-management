@@ -85,7 +85,6 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             return convert(apiHeaderRepository.create(apiHeader));
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to create a header {}", newEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to create a header " + newEntity, e);
         }
     }
@@ -123,7 +122,6 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 currentOrder++;
             }
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to delete a header {}", apiHeaderId, e);
             throw new TechnicalManagementException("An error occurs while trying to delete a header " + apiHeaderId, e);
         }
     }
@@ -161,7 +159,6 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 return convert(header);
             }
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to update header {}", updateEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to update header " + updateEntity, e);
         }
     }
@@ -176,7 +173,6 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 .map(this::convert)
                 .collect(toList());
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to find all header", e);
             throw new TechnicalManagementException("An error occurs while trying to find all header", e);
         }
     }

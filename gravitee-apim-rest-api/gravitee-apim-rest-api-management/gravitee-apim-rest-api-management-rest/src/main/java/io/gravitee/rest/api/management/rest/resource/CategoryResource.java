@@ -190,7 +190,6 @@ public class CategoryResource extends AbstractCategoryResource {
             ImageUtils.verify(category.getPicture());
             ImageUtils.verify(category.getBackground());
         } catch (InvalidImageException e) {
-            log.warn("Invalid image format", e);
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 

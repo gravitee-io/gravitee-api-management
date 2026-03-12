@@ -147,9 +147,10 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                 return convert(createdInvitation);
             }
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to create invitation for email " + invitation.getEmail();
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to create invitation for email " + invitation.getEmail(),
+                ex
+            );
         }
     }
 
@@ -171,9 +172,10 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                 throw new InvitationNotFoundException(invitation.getId());
             }
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to update invitation with email " + invitation.getEmail();
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update invitation with email " + invitation.getEmail(),
+                ex
+            );
         }
     }
 
@@ -239,9 +241,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             final Set<Invitation> invitations = invitationRepository.findAll();
             return invitations.stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to list all invitations";
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException("An error occurs while trying to list all invitations", ex);
         }
     }
 
@@ -254,9 +254,10 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             );
             return invitations.stream().map(this::convert).sorted(comparing(InvitationEntity::getEmail)).collect(toList());
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to list invitations by reference " + referenceType + '/' + referenceId;
-            log.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to list invitations by reference " + referenceType + '/' + referenceId,
+                ex
+            );
         }
     }
 
@@ -269,9 +270,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             }
             invitationRepository.delete(invitationId);
         } catch (TechnicalException te) {
-            final String msg = "An error occurs while trying to delete the invitation " + invitationId;
-            log.error(msg, te);
-            throw new TechnicalManagementException(msg, te);
+            throw new TechnicalManagementException("An error occurs while trying to delete the invitation " + invitationId, te);
         }
     }
 

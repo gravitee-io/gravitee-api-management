@@ -130,7 +130,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             throw new EventNotFoundException(id);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an event using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an event using its ID " + id, ex);
         }
     }
@@ -280,10 +279,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             return convert(executionContext, createdEvent);
         } catch (UnknownHostException e) {
-            log.error("An error occurs while getting the server IP address", e);
             throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create {} for server {}", newEventEntity, hostAddress, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying create " + newEventEntity + " for server " + hostAddress,
                 ex
@@ -298,7 +295,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             long deleteApiEvents = eventRepository.deleteApiEvents(apiId);
             log.debug("{} events deleted for API {}", deleteApiEvents, apiId);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete Events for API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete Events for API " + apiId, ex);
         }
 

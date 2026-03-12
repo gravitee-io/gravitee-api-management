@@ -83,7 +83,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to retrieve dictionaries", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve dictionaries", ex);
         }
     }
@@ -114,7 +113,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to deploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
         }
     }
@@ -145,7 +143,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
     }
@@ -186,7 +183,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
     }
@@ -227,7 +223,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
     }
@@ -262,7 +257,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_CREATED, dictionary.getCreatedAt(), null, dictionary);
             return convert(createdDictionary);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create dictionary {}", newDictionaryEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newDictionaryEntity, ex);
         }
     }
@@ -310,7 +304,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to update dictionary {}", updateDictionaryEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateDictionaryEntity, ex);
         }
     }
@@ -364,7 +357,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             }
             return byId.map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
@@ -394,7 +386,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 dictionary
             );
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }

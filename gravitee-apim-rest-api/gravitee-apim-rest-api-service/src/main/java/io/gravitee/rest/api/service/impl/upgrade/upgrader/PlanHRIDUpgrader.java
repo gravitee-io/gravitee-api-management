@@ -56,7 +56,6 @@ public class PlanHRIDUpgrader implements Upgrader {
                     try {
                         planRepository.update(plan);
                     } catch (TechnicalException e) {
-                        log.error("Unable to set HRID for Plan {}", plan.getId(), e);
                         throw new RuntimeException(e);
                     }
                 });

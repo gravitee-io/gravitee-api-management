@@ -67,7 +67,6 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         try {
             commandRepository.create(command);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create {}", command, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + command, ex);
         }
     }
@@ -120,9 +119,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         try {
             commandRepository.delete(commandId);
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to delete command " + commandId;
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete command " + commandId, ex);
         }
     }
 

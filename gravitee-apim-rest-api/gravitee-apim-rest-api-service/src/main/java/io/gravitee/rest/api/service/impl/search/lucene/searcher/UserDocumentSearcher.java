@@ -120,7 +120,6 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             return search(userQuery.build(), query.getSort(), query.getPage());
         } catch (ParseException pe) {
-            log.error("Invalid query to search for user documents", pe);
             throw new TechnicalException("Invalid query to search for user documents", pe);
         }
     }
@@ -163,7 +162,6 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             return new SearchResult(results, topDocs.totalHits.value());
         } catch (IOException ioe) {
-            log.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);
         }
     }

@@ -73,7 +73,6 @@ public class ApiHRIDUpgrader implements Upgrader {
                 try {
                     apiRepository.update(api);
                 } catch (TechnicalException e) {
-                    log.error("Unable to set HRID for API {}", api.getId(), e);
                     throw new RuntimeException(e);
                 }
             });

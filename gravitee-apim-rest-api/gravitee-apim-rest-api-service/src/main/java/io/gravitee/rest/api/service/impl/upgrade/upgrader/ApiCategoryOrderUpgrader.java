@@ -75,7 +75,6 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
                                 .build()
                         );
                     } catch (TechnicalException e) {
-                        log.error("Unable to create api category order for API [{}] and Category [{}]", api.getId(), category.getId(), e);
                         throw new RuntimeException(e);
                     }
                 }

@@ -103,7 +103,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all themes", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all themes", ex);
         }
     }
@@ -124,14 +123,10 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
             Theme theme = optTheme.get();
             if (!theme.getReferenceId().equals(executionContext.getEnvironmentId())) {
-                log.warn(
-                    "Theme is not in current environment " + executionContext.getEnvironmentId() + " actual:" + theme.getReferenceId()
-                );
                 throw new ThemeNotFoundException(themeId);
             }
             return theme;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find theme by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find theme by ID", ex);
         }
     }
@@ -167,7 +162,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             return convertToPortalThemeEntity(theme);
         } catch (TechnicalException ex) {
             final String error = "An error occurred while trying to create theme " + themeEntity;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -194,9 +188,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 final Theme theme = new Theme(themeOptional.get());
 
                 if (!theme.getReferenceId().equals(executionContext.getEnvironmentId())) {
-                    log.warn(
-                        "Theme is not in current environment " + executionContext.getEnvironmentId() + " actual:" + theme.getReferenceId()
-                    );
                     throw new ThemeNotFoundException(theme.getId());
                 }
 
@@ -261,7 +252,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             }
         } catch (TechnicalException | JsonProcessingException ex) {
             final String error = "An error occurred while trying to update theme " + updateThemeEntity;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -291,7 +281,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to delete theme " + themeId;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -302,7 +291,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             return findEnvironmentPortalThemes(executionContext).filter(ThemeEntity::isEnabled).orElseGet(this::buildDefaultPortalTheme);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find enabled theme";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -313,7 +301,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             return findEnvironmentPortalThemes(executionContext).orElseGet(() -> createDefaultPortalTheme(executionContext));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find theme or create default";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -426,7 +413,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             return jsonNode.toString();
         } catch (IOException ex) {
             final String error = "Error while trying to load a theme from the definition path: " + path;
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -486,7 +472,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             return null;
         } catch (Exception ex) {
             final String error = "Error while trying to reset a default theme";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
