@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
+import static io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,7 +37,6 @@ import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Properties;
@@ -48,6 +48,7 @@ import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -63,44 +64,43 @@ class KafkaClusterDomainServiceImplTest {
 
     @Test
     void should_throw_connection_failed_when_admin_client_creation_fails() {
-        var service = serviceWithAdminClient(() -> {
-            throw new RuntimeException("Cannot create admin client");
-        });
+        var service = serviceWithAdminClient(
+            () -> {
+                throw new RuntimeException("Cannot create admin client");
+            },
+            5
+        );
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .isInstanceOf(KafkaExplorerException.class)
             .hasMessageContaining("Failed to connect to Kafka cluster")
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+            .is(kafkaException(CONNECTION_FAILED));
     }
 
     @Test
     void should_throw_timeout_when_cluster_response_times_out() throws Exception {
-        var service = serviceWithFailingFuture(new TimeoutException("Request timed out"));
+        var service = serviceWithFailingFuture(new TimeoutException("Request timed out"), 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .isInstanceOf(KafkaExplorerException.class)
             .hasMessageContaining("timed out")
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.TIMEOUT));
+            .is(kafkaException(TIMEOUT));
     }
 
     @Test
     void should_throw_authentication_failed_when_auth_error() throws Exception {
-        var service = serviceWithFailingFuture(new ExecutionException(new AuthenticationException("Bad credentials")));
+        var service = serviceWithFailingFuture(new ExecutionException(new AuthenticationException("Bad credentials")), 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .isInstanceOf(KafkaExplorerException.class)
             .hasMessageContaining("Authentication failed")
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.AUTHENTICATION_FAILED));
+            .is(kafkaException(AUTHENTICATION_FAILED));
     }
 
     @Test
     void should_throw_interrupted_when_thread_is_interrupted() throws Exception {
-        var service = serviceWithFailingFuture(new InterruptedException("Thread interrupted"));
+        var service = serviceWithFailingFuture(new InterruptedException("Thread interrupted"), 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .isInstanceOf(KafkaExplorerException.class)
             .hasMessageContaining("interrupted")
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.INTERRUPTED));
+            .is(kafkaException(INTERRUPTED));
 
         // Reset interrupted flag
         Thread.interrupted();
@@ -108,12 +108,11 @@ class KafkaClusterDomainServiceImplTest {
 
     @Test
     void should_throw_connection_failed_when_execution_fails_with_unknown_cause() throws Exception {
-        var service = serviceWithFailingFuture(new ExecutionException(new RuntimeException("Something went wrong")));
+        var service = serviceWithFailingFuture(new ExecutionException(new RuntimeException("Something went wrong")), 30);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .isInstanceOf(KafkaExplorerException.class)
             .hasMessageContaining("Failed to connect to Kafka cluster")
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+            .is(kafkaException(CONNECTION_FAILED));
     }
 
     @Nested
@@ -204,7 +203,7 @@ class KafkaClusterDomainServiceImplTest {
         }
 
         @Test
-        void should_configure_pem_truststore_with_path() throws IOException {
+        void should_configure_pem_truststore_with_path() {
             var certPath = Path.of("src/test/resources/ssl/test-cert.pem").toAbsolutePath().toString();
             var trustStore = PEMTrustStore.builder().path(certPath).build();
             var ssl = SslOptions.builder().trustStore(trustStore).build();
@@ -279,13 +278,9 @@ class KafkaClusterDomainServiceImplTest {
             var properties = captureProperties(config);
 
             assertThat(properties.get("security.protocol")).isEqualTo("PLAINTEXT");
-            assertThat(
-                properties
-                    .keySet()
-                    .stream()
-                    .map(Object::toString)
-                    .filter(k -> k.startsWith("ssl."))
-            ).isEmpty();
+            assertThat(properties.keySet())
+                .map(Object::toString)
+                .noneMatch(k -> k.startsWith("ssl."));
         }
 
         @Test
@@ -297,7 +292,7 @@ class KafkaClusterDomainServiceImplTest {
 
             // Capture the temp file path, then verify it's cleaned up
             var tempFilePath = new AtomicReference<String>();
-            var service = new KafkaClusterDomainServiceImpl() {
+            var service = new KafkaClusterDomainServiceImpl(5, 2) {
                 @Override
                 protected AdminClient createAdminClient(Properties properties) {
                     tempFilePath.set((String) properties.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG));
@@ -318,7 +313,7 @@ class KafkaClusterDomainServiceImplTest {
 
         private Properties captureProperties(KafkaClusterConfiguration config) {
             var captured = new AtomicReference<Properties>();
-            var service = new KafkaClusterDomainServiceImpl() {
+            var service = new KafkaClusterDomainServiceImpl(5, 2) {
                 @Override
                 protected AdminClient createAdminClient(Properties properties) {
                     captured.set(new Properties());
@@ -334,7 +329,7 @@ class KafkaClusterDomainServiceImplTest {
     }
 
     @SuppressWarnings("unchecked")
-    private KafkaClusterDomainServiceImpl serviceWithFailingFuture(Exception exception) throws Exception {
+    private KafkaClusterDomainServiceImpl serviceWithFailingFuture(Exception exception, long timeout) throws Exception {
         KafkaFuture<String> failingFuture = mock(KafkaFuture.class);
         when(failingFuture.get(anyLong(), any())).thenThrow(exception);
 
@@ -344,11 +339,11 @@ class KafkaClusterDomainServiceImplTest {
         AdminClient adminClient = mock(AdminClient.class);
         when(adminClient.describeCluster()).thenReturn(describeResult);
 
-        return serviceWithAdminClient(() -> adminClient);
+        return serviceWithAdminClient(() -> adminClient, timeout);
     }
 
-    private KafkaClusterDomainServiceImpl serviceWithAdminClient(AdminClientFactory factory) {
-        return new KafkaClusterDomainServiceImpl() {
+    private KafkaClusterDomainServiceImpl serviceWithAdminClient(AdminClientFactory factory, long timeout) {
+        return new KafkaClusterDomainServiceImpl(timeout, 2) {
             @Override
             protected AdminClient createAdminClient(Properties properties) {
                 return factory.create();
@@ -359,5 +354,13 @@ class KafkaClusterDomainServiceImplTest {
     @FunctionalInterface
     private interface AdminClientFactory {
         AdminClient create();
+    }
+
+    private Condition<Throwable> kafkaException(TechnicalCode technicalCode) {
+        return new Condition<>(
+            e -> e instanceof KafkaExplorerException kafkaEx && kafkaEx.getTechnicalCode() == technicalCode,
+            "KafkaExplorerException with code %s",
+            technicalCode
+        );
     }
 }
