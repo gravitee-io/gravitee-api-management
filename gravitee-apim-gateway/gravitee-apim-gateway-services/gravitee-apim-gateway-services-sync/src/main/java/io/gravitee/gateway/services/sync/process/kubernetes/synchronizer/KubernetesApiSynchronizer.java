@@ -22,6 +22,7 @@ import io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEve
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AbstractApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.BasicAuthAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.reactivex.rxjava3.core.Completable;
@@ -45,6 +46,7 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
         final PlanAppender planAppender,
         final SubscriptionAppender subscriptionAppender,
         final ApiKeyAppender apiKeyAppender,
+        final BasicAuthAppender basicAuthAppender,
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncKubernetesExecutor,
         final ThreadPoolExecutor syncDeployerExecutor
@@ -55,6 +57,7 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
             planAppender,
             subscriptionAppender,
             apiKeyAppender,
+            basicAuthAppender,
             deployerFactory,
             syncKubernetesExecutor,
             syncDeployerExecutor

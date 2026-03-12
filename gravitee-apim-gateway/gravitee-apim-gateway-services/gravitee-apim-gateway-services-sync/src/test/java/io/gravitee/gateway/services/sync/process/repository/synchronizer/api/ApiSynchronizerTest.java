@@ -36,14 +36,17 @@ import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.BasicAuthCredentialDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.BasicAuthCredentialsMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.BasicAuthCredentialsRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -102,6 +105,9 @@ class ApiSynchronizerTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
+    private BasicAuthCredentialsRepository basicAuthCredentialsRepository;
+
+    @Mock
     private DeployerFactory deployerFactory;
 
     @Mock
@@ -112,6 +118,9 @@ class ApiSynchronizerTest {
 
     @Mock
     private ApiKeyDeployer apiKeyDeployer;
+
+    @Mock
+    private BasicAuthCredentialDeployer basicAuthCredentialDeployer;
 
     @Mock
     private LatestEventFetcher eventsFetcher;
@@ -134,6 +143,7 @@ class ApiSynchronizerTest {
                 org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
             ),
             new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
+            new BasicAuthAppender(basicAuthCredentialsRepository, new BasicAuthCredentialsMapper()),
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
@@ -150,6 +160,12 @@ class ApiSynchronizerTest {
         lenient().when(apiKeyDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(apiKeyDeployer.undeploy(any())).thenReturn(Completable.complete());
         lenient().when(apiKeyDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
+
+        lenient().when(deployerFactory.createBasicAuthCredentialDeployer()).thenReturn(basicAuthCredentialDeployer);
+        lenient().when(basicAuthCredentialDeployer.deploy(any())).thenReturn(Completable.complete());
+        lenient().when(basicAuthCredentialDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(basicAuthCredentialDeployer.undeploy(any())).thenReturn(Completable.complete());
+        lenient().when(basicAuthCredentialDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
 
         lenient().when(deployerFactory.createSubscriptionDeployer()).thenReturn(subscriptionDeployer);
         lenient().when(subscriptionDeployer.deploy(any())).thenReturn(Completable.complete());

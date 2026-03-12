@@ -28,6 +28,7 @@ import io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEve
 import io.gravitee.gateway.services.sync.process.kubernetes.synchronizer.KubernetesApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.BasicAuthAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.kubernetes.client.KubernetesClient;
@@ -87,6 +88,7 @@ public class KubernetesSyncConfiguration {
         PlanAppender planAppender,
         SubscriptionAppender subscriptionAppender,
         ApiKeyAppender apiKeyAppender,
+        BasicAuthAppender basicAuthAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncKubernetesExecutor") ThreadPoolExecutor syncKubernetesExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
@@ -98,6 +100,7 @@ public class KubernetesSyncConfiguration {
             planAppender,
             subscriptionAppender,
             apiKeyAppender,
+            basicAuthAppender,
             deployerFactory,
             syncKubernetesExecutor,
             syncDeployerExecutor

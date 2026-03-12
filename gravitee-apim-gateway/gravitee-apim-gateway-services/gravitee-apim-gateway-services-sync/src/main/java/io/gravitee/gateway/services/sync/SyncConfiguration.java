@@ -26,6 +26,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.services.basicauth.BasicAuthCacheService;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -39,15 +40,18 @@ import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistrib
 import io.gravitee.gateway.services.sync.process.distributed.spring.DistributedSyncDisabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.BasicAuthCredentialsMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.BasicAuthAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.BasicAuthCredentialsRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -142,6 +146,11 @@ public class SyncConfiguration {
     }
 
     @Bean
+    public BasicAuthCredentialsMapper basicAuthCredentialsMapper() {
+        return new BasicAuthCredentialsMapper();
+    }
+
+    @Bean
     public PlanService planService() {
         return new PlanService();
     }
@@ -179,6 +188,14 @@ public class SyncConfiguration {
     }
 
     @Bean
+    public BasicAuthAppender basicAuthAppender(
+        BasicAuthCredentialsRepository basicAuthCredentialsRepository,
+        BasicAuthCredentialsMapper basicAuthCredentialsMapper
+    ) {
+        return new BasicAuthAppender(basicAuthCredentialsRepository, basicAuthCredentialsMapper);
+    }
+
+    @Bean
     @Conditional(DistributedSyncDisabledCondition.class)
     public DistributedSyncService distributedSyncService() {
         return new NoopDistributedSyncService();
@@ -187,6 +204,7 @@ public class SyncConfiguration {
     @Bean
     public DeployerFactory deployerFactory(
         ApiKeyService apiKeyService,
+        BasicAuthCacheService basicAuthCacheService,
         SubscriptionService subscriptionService,
         PlanService planCache,
         @Lazy SubscriptionDispatcher subscriptionDispatcher,
@@ -210,6 +228,7 @@ public class SyncConfiguration {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
             apiKeyService,
+            basicAuthCacheService,
             subscriptionService,
             planCache,
             subscriptionDispatcherSupplier,

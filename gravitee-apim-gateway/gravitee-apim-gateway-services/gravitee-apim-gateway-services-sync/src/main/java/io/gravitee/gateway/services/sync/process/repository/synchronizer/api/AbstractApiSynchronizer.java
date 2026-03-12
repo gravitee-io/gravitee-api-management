@@ -19,6 +19,7 @@ import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.BasicAuthCredentialDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -47,6 +48,7 @@ public abstract class AbstractApiSynchronizer {
     protected final PlanAppender planAppender;
     protected final SubscriptionAppender subscriptionAppender;
     protected final ApiKeyAppender apiKeyAppender;
+    protected final BasicAuthAppender basicAuthAppender;
     protected final DeployerFactory deployerFactory;
     protected final ThreadPoolExecutor syncFetcherExecutor;
     protected final ThreadPoolExecutor syncDeployerExecutor;
@@ -79,15 +81,16 @@ public abstract class AbstractApiSynchronizer {
             .compose(upstream -> {
                 SubscriptionDeployer subscriptionDeployer = deployerFactory.createSubscriptionDeployer();
                 ApiKeyDeployer apiKeyDeployer = deployerFactory.createApiKeyDeployer();
+                BasicAuthCredentialDeployer basicAuthCredentialDeployer = deployerFactory.createBasicAuthCredentialDeployer();
                 ApiDeployer apiDeployer = deployerFactory.createApiDeployer();
                 return upstream
                     .parallel(syncDeployerExecutor.getMaximumPoolSize())
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployApi(subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                            return deployApi(subscriptionDeployer, apiKeyDeployer, basicAuthCredentialDeployer, apiDeployer, deployable);
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployApi(subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                            return undeployApi(subscriptionDeployer, apiKeyDeployer, basicAuthCredentialDeployer, apiDeployer, deployable);
                         } else {
                             return Flowable.just(deployable);
                         }
@@ -118,6 +121,7 @@ public abstract class AbstractApiSynchronizer {
                         .map(deployables -> planAppender.appends(deployables, environments))
                         .map(deployables -> subscriptionAppender.appends(initialSync, deployables, environments))
                         .map(deployables -> apiKeyAppender.appends(initialSync, deployables, environments))
+                        .map(deployables -> basicAuthAppender.appends(initialSync, deployables, environments))
                         .flatMapIterable(d -> d);
                 } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
                     return reactableByAction.map(reactableApi ->
@@ -138,15 +142,18 @@ public abstract class AbstractApiSynchronizer {
     private Flowable<ApiReactorDeployable> deployApi(
         final SubscriptionDeployer subscriptionDeployer,
         final ApiKeyDeployer apiKeyDeployer,
+        final BasicAuthCredentialDeployer basicAuthCredentialDeployer,
         final ApiDeployer apiDeployer,
         final ApiReactorDeployable deployable
     ) {
         return subscriptionDeployer
             .deploy(deployable)
             .andThen(apiKeyDeployer.deploy(deployable))
+            .andThen(basicAuthCredentialDeployer.deploy(deployable))
             .andThen(apiDeployer.deploy(deployable))
             .andThen(subscriptionDeployer.doAfterDeployment(deployable))
             .andThen(apiKeyDeployer.doAfterDeployment(deployable))
+            .andThen(basicAuthCredentialDeployer.doAfterDeployment(deployable))
             .andThen(apiDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
@@ -158,6 +165,7 @@ public abstract class AbstractApiSynchronizer {
     private Flowable<ApiReactorDeployable> undeployApi(
         final SubscriptionDeployer subscriptionDeployer,
         final ApiKeyDeployer apiKeyDeployer,
+        final BasicAuthCredentialDeployer basicAuthCredentialDeployer,
         final ApiDeployer apiDeployer,
         final ApiReactorDeployable deployable
     ) {
@@ -165,8 +173,10 @@ public abstract class AbstractApiSynchronizer {
             .undeploy(deployable)
             .andThen(subscriptionDeployer.undeploy(deployable))
             .andThen(apiKeyDeployer.undeploy(deployable))
+            .andThen(basicAuthCredentialDeployer.undeploy(deployable))
             .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
             .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
+            .andThen(basicAuthCredentialDeployer.doAfterUndeployment(deployable))
             .andThen(apiDeployer.doAfterUndeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {

@@ -24,6 +24,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
+import io.gravitee.gateway.handlers.api.services.basicauth.BasicAuthCacheService;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -46,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 public class DeployerFactory {
 
     private final ApiKeyService apiKeyService;
+    private final BasicAuthCacheService basicAuthCacheService;
     private final SubscriptionService subscriptionService;
     private final PlanService planCache;
     private final Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier;
@@ -88,6 +90,14 @@ public class DeployerFactory {
 
     public ApiKeyDeployer createApiKeyDeployer() {
         return new ApiKeyDeployer(apiKeyService, distributedSyncService);
+    }
+
+    public BasicAuthDeployer createBasicAuthDeployer() {
+        return new BasicAuthDeployer(basicAuthCacheService);
+    }
+
+    public BasicAuthCredentialDeployer createBasicAuthCredentialDeployer() {
+        return new BasicAuthCredentialDeployer(basicAuthCacheService);
     }
 
     public ApiDeployer createApiDeployer() {

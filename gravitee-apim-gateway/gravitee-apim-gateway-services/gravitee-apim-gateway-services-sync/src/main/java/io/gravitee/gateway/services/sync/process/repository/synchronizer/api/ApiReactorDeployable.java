@@ -17,8 +17,10 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.api.services.basicauth.BasicAuthCredential;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.ApiKeyDeployable;
+import io.gravitee.gateway.services.sync.process.common.model.BasicAuthCredentialDeployable;
 import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import java.util.HashSet;
@@ -42,7 +44,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
-public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeployable {
+public class ApiReactorDeployable implements ApiKeyDeployable, BasicAuthCredentialDeployable, SubscriptionDeployable {
 
     private String apiId;
 
@@ -56,6 +58,9 @@ public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeplo
     @Builder.Default
     private List<ApiKey> apiKeys = List.of();
 
+    @Builder.Default
+    private List<BasicAuthCredential> basicAuthCredentials = List.of();
+
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Set<String> subscribablePlans;
@@ -63,6 +68,10 @@ public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeplo
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Set<String> apiKeyPlans;
+
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    private Set<String> basicAuthPlans;
 
     @Override
     public String id() {
@@ -104,5 +113,20 @@ public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeplo
             return Set.of();
         }
         return apiKeyPlans;
+    }
+
+    public Set<String> basicAuthPlans() {
+        if (basicAuthPlans == null) {
+            if (reactableApi != null) {
+                Set<String> reactableApiBasicAuthPlans = reactableApi.getBasicAuthPlans();
+                if (reactableApiBasicAuthPlans != null) {
+                    basicAuthPlans = new HashSet<>();
+                    basicAuthPlans.addAll(reactableApiBasicAuthPlans);
+                    return basicAuthPlans;
+                }
+            }
+            return Set.of();
+        }
+        return basicAuthPlans;
     }
 }

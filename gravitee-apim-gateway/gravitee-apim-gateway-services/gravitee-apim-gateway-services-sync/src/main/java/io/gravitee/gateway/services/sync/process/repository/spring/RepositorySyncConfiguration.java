@@ -32,6 +32,7 @@ import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.BasicAuthCredentialsFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.InstallationIdFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
@@ -42,6 +43,7 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMa
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiProductMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.BasicAuthCredentialsMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
@@ -51,11 +53,13 @@ import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.BasicAuthAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductPlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.basicauth.BasicAuthSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
@@ -67,6 +71,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscri
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.BasicAuthCredentialsRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
@@ -143,6 +148,11 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
+    public BasicAuthCredentialsFetcher basicAuthCredentialsFetcher(BasicAuthCredentialsRepository basicAuthCredentialsRepository) {
+        return new BasicAuthCredentialsFetcher(basicAuthCredentialsRepository);
+    }
+
+    @Bean
     public DebugEventFetcher debugEventFetcher(EventRepository eventRepository, Node node) {
         return new DebugEventFetcher(eventRepository, node);
     }
@@ -186,6 +196,7 @@ public class RepositorySyncConfiguration {
         PlanAppender planAppender,
         SubscriptionAppender subscriptionAppender,
         ApiKeyAppender apiKeyAppender,
+        BasicAuthAppender basicAuthAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
@@ -197,6 +208,7 @@ public class RepositorySyncConfiguration {
             planAppender,
             subscriptionAppender,
             apiKeyAppender,
+            basicAuthAppender,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor
@@ -235,6 +247,25 @@ public class RepositorySyncConfiguration {
             apiKeyFetcher,
             subscriptionService,
             apiKeyMapper,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    public BasicAuthSynchronizer basicAuthSynchronizer(
+        final BasicAuthCredentialsFetcher basicAuthFetcher,
+        final SubscriptionCacheService subscriptionService,
+        final BasicAuthCredentialsMapper basicAuthMapper,
+        final DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new BasicAuthSynchronizer(
+            basicAuthFetcher,
+            subscriptionService,
+            basicAuthMapper,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor

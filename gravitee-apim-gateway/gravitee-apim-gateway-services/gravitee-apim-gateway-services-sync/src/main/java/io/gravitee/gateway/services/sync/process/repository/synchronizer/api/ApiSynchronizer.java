@@ -55,6 +55,7 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         final PlanAppender planAppender,
         final SubscriptionAppender subscriptionAppender,
         final ApiKeyAppender apiKeyAppender,
+        final BasicAuthAppender basicAuthAppender,
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncFetcherExecutor,
         final ThreadPoolExecutor syncDeployerExecutor
@@ -65,6 +66,7 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
             planAppender,
             subscriptionAppender,
             apiKeyAppender,
+            basicAuthAppender,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor
