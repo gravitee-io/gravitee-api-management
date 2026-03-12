@@ -253,6 +253,14 @@ public class Plan implements GenericPlanEntity {
         };
     }
 
+    public boolean isBasicAuth() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().isBasicAuth();
+            case FEDERATED -> federatedPlanDefinition.isBasicAuth();
+            default -> planDefinitionV2.isBasicAuth();
+        };
+    }
+
     @Override
     public boolean isClosed() {
         return getPlanStatus() == PlanStatus.CLOSED;

@@ -1159,7 +1159,13 @@ public class SubscriptionServiceTest {
         );
 
         when(acceptSubscriptionDomainService.autoAccept(any(String.class), any(), any(), any(), any(), any())).thenReturn(
-            io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder().id(SUBSCRIPTION_ID).applicationId(APPLICATION_ID).build()
+            new AcceptSubscriptionDomainService.AcceptResult(
+                io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
+                    .id(SUBSCRIPTION_ID)
+                    .applicationId(APPLICATION_ID)
+                    .build(),
+                null
+            )
         );
 
         // Run
@@ -1566,11 +1572,14 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(acceptSubscriptionDomainService.autoAccept(any(String.class), any(), any(), any(), any(), any())).thenReturn(
-            io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
-                .id(SUBSCRIPTION_ID)
-                .processedBy(USER_ID)
-                .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                .build()
+            new AcceptSubscriptionDomainService.AcceptResult(
+                io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
+                    .id(SUBSCRIPTION_ID)
+                    .processedBy(USER_ID)
+                    .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                    .build(),
+                null
+            )
         );
 
         // Run

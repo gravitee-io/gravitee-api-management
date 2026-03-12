@@ -17,6 +17,7 @@ package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.basic_auth.model.BasicAuthCredentialsEntity;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
@@ -55,17 +56,16 @@ public class AcceptSubscriptionUseCase {
         checkSubscriptionStatus(subscription);
         var plan = checkPlanStatus(subscription);
 
-        return new Output(
-            acceptSubscriptionDomainService.accept(
-                subscription,
-                plan,
-                input.startingAt,
-                input.endingAt,
-                input.reasonMessage,
-                input.customKey,
-                input.auditInfo
-            )
+        var acceptResult = acceptSubscriptionDomainService.accept(
+            subscription,
+            plan,
+            input.startingAt,
+            input.endingAt,
+            input.reasonMessage,
+            input.customKey,
+            input.auditInfo
         );
+        return new Output(acceptResult.subscription(), acceptResult.basicAuthCredentials());
     }
 
     private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
@@ -100,5 +100,5 @@ public class AcceptSubscriptionUseCase {
         AuditInfo auditInfo
     ) {}
 
-    public record Output(SubscriptionEntity subscription) {}
+    public record Output(SubscriptionEntity subscription, BasicAuthCredentialsEntity basicAuthCredentials) {}
 }

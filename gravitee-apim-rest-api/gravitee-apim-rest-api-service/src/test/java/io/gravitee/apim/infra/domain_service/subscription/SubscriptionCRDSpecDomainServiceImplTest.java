@@ -19,6 +19,7 @@ import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUs
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +31,7 @@ import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.basic_auth.domain_service.GenerateBasicAuthCredentialsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
@@ -240,6 +242,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             notificationService,
             rejectSubscriptionDomainService(),
             revokeApiKeyDomainService(),
+            new BasicAuthCredentialsCrudServiceInMemory(),
             apiCrudService,
             integrationAgent
         );
@@ -273,6 +276,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             applicationCrudService,
             planCrudService,
             generateApiKeyDomainService(),
+            mock(GenerateBasicAuthCredentialsDomainService.class),
             integrationAgent,
             notificationService,
             userCrudService,

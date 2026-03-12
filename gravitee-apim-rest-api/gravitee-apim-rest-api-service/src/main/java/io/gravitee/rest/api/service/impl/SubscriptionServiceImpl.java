@@ -1239,18 +1239,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         io.gravitee.apim.core.subscription.model.SubscriptionEntity result;
 
         if (processSubscription.isAccepted()) {
-            result = acceptSubscriptionDomainService.autoAccept(
-                processSubscription.getId(),
-                processSubscription.getStartingAt() != null
-                    ? processSubscription.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
-                    : null,
-                processSubscription.getEndingAt() != null
-                    ? processSubscription.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
-                    : null,
-                processSubscription.getReason(),
-                processSubscription.getCustomApiKey(),
-                auditInfo
-            );
+            result = acceptSubscriptionDomainService
+                .autoAccept(
+                    processSubscription.getId(),
+                    processSubscription.getStartingAt() != null
+                        ? processSubscription.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
+                        : null,
+                    processSubscription.getEndingAt() != null
+                        ? processSubscription.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
+                        : null,
+                    processSubscription.getReason(),
+                    processSubscription.getCustomApiKey(),
+                    auditInfo
+                )
+                .subscription();
         } else {
             result = rejectSubscriptionDomainService.reject(processSubscription.getId(), processSubscription.getReason(), auditInfo);
         }

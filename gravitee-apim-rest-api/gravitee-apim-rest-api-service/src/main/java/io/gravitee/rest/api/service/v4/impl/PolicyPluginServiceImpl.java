@@ -62,7 +62,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         MESSAGE_RESPONSE,
     }
 
-    public static final Set<String> INTERNAL_POLICIES_ID = Set.of("shared-policy-group-policy");
+    public static final Set<String> INTERNAL_POLICIES_ID = Set.of("shared-policy-group-policy", "basic-auth");
 
     protected PolicyPluginServiceImpl(
         final JsonSchemaService jsonSchemaService,

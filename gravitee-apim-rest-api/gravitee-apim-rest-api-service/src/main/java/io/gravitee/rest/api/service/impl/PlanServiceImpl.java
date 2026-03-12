@@ -109,6 +109,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
         new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
         new PlanSecurityEntity("api_key", "API Key", "api-key"),
+        new PlanSecurityEntity("basic_auth", "Basic Auth", "basic-auth"),
         new PlanSecurityEntity("key_less", "Keyless (public)", "")
     );
 
@@ -671,6 +672,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 break;
             case KEY_LESS:
                 securityKey = Key.PLAN_SECURITY_KEYLESS_ENABLED;
+                break;
+            case BASIC_AUTH:
+                securityKey = Key.PLAN_SECURITY_BASIC_AUTH_ENABLED;
                 break;
             default:
                 return;

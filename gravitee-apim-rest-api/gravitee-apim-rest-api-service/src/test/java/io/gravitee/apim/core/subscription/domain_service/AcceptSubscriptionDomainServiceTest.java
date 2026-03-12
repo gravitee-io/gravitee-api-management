@@ -18,6 +18,7 @@ package io.gravitee.apim.core.subscription.domain_service;
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
@@ -32,6 +33,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.basic_auth.domain_service.GenerateBasicAuthCredentialsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
@@ -145,6 +147,7 @@ class AcceptSubscriptionDomainServiceTest {
             applicationCrudService,
             planCrudService,
             generateApiKeyDomainService,
+            mock(GenerateBasicAuthCredentialsDomainService.class),
             integrationAgent,
             triggerNotificationDomainService,
             userCrudService,
@@ -454,6 +457,6 @@ class AcceptSubscriptionDomainServiceTest {
     }
 
     private SubscriptionEntity accept(SubscriptionEntity subscription, Plan plan) {
-        return cut.accept(subscription, plan, STARTING_AT, ENDING_AT, REASON, "", AUDIT_INFO);
+        return cut.accept(subscription, plan, STARTING_AT, ENDING_AT, REASON, "", AUDIT_INFO).subscription();
     }
 }

@@ -128,6 +128,7 @@ public class PlanValidatorDomainService {
             case JWT -> Key.PLAN_SECURITY_JWT_ENABLED;
             case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
             case MTLS -> Key.PLAN_SECURITY_MTLS_ENABLED;
+            case BASIC_AUTH -> Key.PLAN_SECURITY_BASIC_AUTH_ENABLED;
         };
         if (
             !parametersQueryService.findAsBoolean(

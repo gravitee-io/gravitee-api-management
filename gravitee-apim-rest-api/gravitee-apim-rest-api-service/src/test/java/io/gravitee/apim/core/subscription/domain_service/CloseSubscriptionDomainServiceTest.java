@@ -29,6 +29,7 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
@@ -84,6 +85,9 @@ class CloseSubscriptionDomainServiceTest {
     RevokeApiKeyDomainService revokeApiKeyDomainService;
 
     @Mock
+    BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
+
+    @Mock
     ApiCrudService apiCrudService;
 
     @Mock
@@ -100,6 +104,7 @@ class CloseSubscriptionDomainServiceTest {
             triggerNotificationDomainService,
             rejectSubscriptionDomainService,
             revokeApiKeyDomainService,
+            basicAuthCredentialsCrudService,
             apiCrudService,
             integrationAgent
         );

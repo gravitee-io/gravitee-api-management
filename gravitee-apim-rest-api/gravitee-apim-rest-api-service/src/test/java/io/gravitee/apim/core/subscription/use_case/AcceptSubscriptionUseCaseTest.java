@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import fixtures.ApplicationModelFixtures;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.basic_auth.domain_service.GenerateBasicAuthCredentialsDomainService;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
@@ -137,6 +139,7 @@ class AcceptSubscriptionUseCaseTest {
             applicationCrudService,
             planCrudService,
             generateApiKeyDomainService,
+            mock(GenerateBasicAuthCredentialsDomainService.class),
             integrationAgent,
             triggerNotificationDomainService,
             userCrudService,

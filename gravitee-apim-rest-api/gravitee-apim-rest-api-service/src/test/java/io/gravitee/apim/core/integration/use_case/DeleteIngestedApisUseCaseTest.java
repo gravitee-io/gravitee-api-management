@@ -34,6 +34,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.BasicAuthCredentialsCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
@@ -160,6 +161,7 @@ class DeleteIngestedApisUseCaseTest {
             triggerNotificationDomainServiceInMemory,
             rejectSubscriptionDomainService,
             revokeApiKeyDomainService,
+            new BasicAuthCredentialsCrudServiceInMemory(),
             apiCrudServiceInMemory,
             new IntegrationAgentInMemory()
         );

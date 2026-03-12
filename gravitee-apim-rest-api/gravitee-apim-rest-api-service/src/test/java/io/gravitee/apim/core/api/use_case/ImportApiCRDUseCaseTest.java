@@ -51,6 +51,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.BasicAuthCredentialsCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
@@ -340,6 +341,7 @@ class ImportApiCRDUseCaseTest {
                 auditDomainService,
                 triggerNotificationDomainService
             ),
+            new BasicAuthCredentialsCrudServiceInMemory(),
             apiCrudService,
             new IntegrationAgentInMemory()
         );

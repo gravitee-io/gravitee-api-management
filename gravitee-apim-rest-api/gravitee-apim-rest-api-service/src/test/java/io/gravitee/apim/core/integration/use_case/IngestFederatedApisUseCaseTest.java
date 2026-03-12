@@ -40,6 +40,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.BasicAuthCredentialsCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -366,6 +367,7 @@ class IngestFederatedApisUseCaseTest {
                 auditDomainService,
                 triggerNotificationDomainService
             ),
+            new BasicAuthCredentialsCrudServiceInMemory(),
             apiCrudService,
             new IntegrationAgentInMemory()
         );

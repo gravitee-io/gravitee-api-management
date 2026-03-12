@@ -27,6 +27,7 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
@@ -50,6 +51,7 @@ public class CloseSubscriptionDomainService {
     private final AuditDomainService auditDomainService;
     private final ApplicationCrudService applicationCrudService;
     private final RevokeApiKeyDomainService revokeApiKeyDomainService;
+    private final BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
     private final ApiCrudService apiCrudService;
     private final IntegrationAgent integrationAgent;
 
@@ -60,6 +62,7 @@ public class CloseSubscriptionDomainService {
         TriggerNotificationDomainService triggerNotificationDomainService,
         RejectSubscriptionDomainService rejectSubscriptionDomainService,
         RevokeApiKeyDomainService revokeApiKeyDomainService,
+        BasicAuthCredentialsCrudService basicAuthCredentialsCrudService,
         ApiCrudService apiCrudService,
         IntegrationAgent integrationAgent
     ) {
@@ -69,6 +72,7 @@ public class CloseSubscriptionDomainService {
         this.auditDomainService = auditDomainService;
         this.applicationCrudService = applicationCrudService;
         this.revokeApiKeyDomainService = revokeApiKeyDomainService;
+        this.basicAuthCredentialsCrudService = basicAuthCredentialsCrudService;
         this.apiCrudService = apiCrudService;
         this.integrationAgent = integrationAgent;
     }
@@ -127,6 +131,7 @@ public class CloseSubscriptionDomainService {
         createAudit(subscriptionEntity, closedSubscriptionEntity, auditInfo, SubscriptionAuditEvent.SUBSCRIPTION_CLOSED);
 
         revokeApiKeys(subscriptionEntity, auditInfo);
+        revokeBasicAuthCredentials(subscriptionEntity);
 
         return closedSubscriptionEntity;
     }
@@ -238,5 +243,12 @@ public class CloseSubscriptionDomainService {
         if (!application.hasApiKeySharedMode()) {
             revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(subscriptionEntity, auditInfo);
         }
+    }
+
+    private void revokeBasicAuthCredentials(SubscriptionEntity subscriptionEntity) {
+        basicAuthCredentialsCrudService
+            .findBySubscriptionId(subscriptionEntity.getId())
+            .filter(creds -> creds.canBeRevoked())
+            .ifPresent(creds -> basicAuthCredentialsCrudService.update(creds.revoke()));
     }
 }

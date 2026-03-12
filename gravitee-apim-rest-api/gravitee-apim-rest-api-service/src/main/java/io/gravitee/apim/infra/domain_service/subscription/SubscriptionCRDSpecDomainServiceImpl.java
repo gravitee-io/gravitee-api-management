@@ -84,7 +84,9 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
         }
 
         log.debug("Auto accepting subscription [{}]", spec.getId());
-        return acceptService.autoAccept(subscription.getId(), ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON, "", auditInfo);
+        return acceptService
+            .autoAccept(subscription.getId(), ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON, "", auditInfo)
+            .subscription();
     }
 
     private SubscriptionEntity update(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {

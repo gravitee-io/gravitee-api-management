@@ -30,6 +30,7 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.BasicAuthCredentialsCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
@@ -138,6 +139,7 @@ class CloseSubscriptionUseCaseTest {
                 triggerNotificationService,
                 rejectSubscriptionDomainService,
                 revokeApiKeyDomainService,
+                new BasicAuthCredentialsCrudServiceInMemory(),
                 apiCrudService,
                 integrationAgent
             )

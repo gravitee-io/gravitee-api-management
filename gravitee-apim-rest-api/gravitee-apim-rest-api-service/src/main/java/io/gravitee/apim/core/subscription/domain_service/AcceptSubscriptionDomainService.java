@@ -26,6 +26,7 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.basic_auth.domain_service.GenerateBasicAuthCredentialsDomainService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
@@ -72,6 +73,7 @@ public class AcceptSubscriptionDomainService {
     private final ApplicationCrudService applicationCrudService;
     private final PlanCrudService planCrudService;
     private final GenerateApiKeyDomainService generateApiKeyDomainService;
+    private final GenerateBasicAuthCredentialsDomainService generateBasicAuthCredentialsDomainService;
     private final IntegrationAgent integrationAgent;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final UserCrudService userCrudService;
@@ -88,9 +90,9 @@ public class AcceptSubscriptionDomainService {
      * @param reason         The optional reason of accepting the subscription.
      * @param customKey      The optional custom key to use for API Key subscription.
      * @param auditInfo      Audit information about whom accepting the subscription.
-     * @return The accepted subscription.
+     * @return The accept result containing the subscription and optional basic auth credentials.
      */
-    public SubscriptionEntity autoAccept(
+    public AcceptResult autoAccept(
         String subscriptionId,
         ZonedDateTime startingAt,
         ZonedDateTime endingAt,
@@ -115,9 +117,9 @@ public class AcceptSubscriptionDomainService {
      * @param reason       The optional reason of accepting the subscription.
      * @param customKey    The optional custom key to use for API Key subscription.
      * @param auditInfo    Audit information about whom accepting the subscription.
-     * @return The accepted subscription.
+     * @return The accept result containing the subscription and optional basic auth credentials.
      */
-    public SubscriptionEntity accept(
+    public AcceptResult accept(
         SubscriptionEntity subscription,
         Plan plan,
         ZonedDateTime startingAt,
@@ -173,14 +175,27 @@ public class AcceptSubscriptionDomainService {
                 generateApiKeyDomainService.generate(acceptedSubscription, auditInfo, customKey);
             }
         }
+
+        io.gravitee.apim.core.basic_auth.model.BasicAuthCredentialsEntity basicAuthCredentials = null;
+        if (plan.isBasicAuth()) {
+            synchronized (this) {
+                basicAuthCredentials = generateBasicAuthCredentialsDomainService.generate(acceptedSubscription, auditInfo);
+            }
+        }
+
         subscriptionCrudService.update(acceptedSubscription);
 
         createAudit(subscription, acceptedSubscription, auditInfo);
 
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), acceptedSubscription);
 
-        return acceptedSubscription;
+        return new AcceptResult(acceptedSubscription, basicAuthCredentials);
     }
+
+    public record AcceptResult(
+        SubscriptionEntity subscription,
+        io.gravitee.apim.core.basic_auth.model.BasicAuthCredentialsEntity basicAuthCredentials
+    ) {}
 
     private Map<String, String> getProviderRelatedMetadata(Collection<Metadata> metadata, String provider) {
         return metadata
@@ -196,11 +211,7 @@ public class AcceptSubscriptionDomainService {
      * @param integrationSubscription The subscription coming from Integration.
      * @param auditInfo               Audit information about whom accepting the subscription.
      */
-    private SubscriptionEntity acceptByIntegration(
-        String subscriptionId,
-        IntegrationSubscription integrationSubscription,
-        AuditInfo auditInfo
-    ) {
+    private AcceptResult acceptByIntegration(String subscriptionId, IntegrationSubscription integrationSubscription, AuditInfo auditInfo) {
         log.debug("Integration accepted subscription {}", subscriptionId);
 
         var subscription = subscriptionCrudService.get(subscriptionId);
@@ -222,7 +233,7 @@ public class AcceptSubscriptionDomainService {
 
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), acceptedSubscription);
 
-        return acceptedSubscription;
+        return new AcceptResult(acceptedSubscription, null);
     }
 
     /**
@@ -231,7 +242,7 @@ public class AcceptSubscriptionDomainService {
      * @param subscriptionId The subscription to reject.
      * @param auditInfo      Audit information about whom accepting the subscription.
      */
-    private SubscriptionEntity rejectByIntegration(String integrationId, String subscriptionId, AuditInfo auditInfo, String errorMessage) {
+    private AcceptResult rejectByIntegration(String integrationId, String subscriptionId, AuditInfo auditInfo, String errorMessage) {
         log.warn(
             "Subscription fail to be processed by Integration [integrationId={}] [subscriptionId={}]: {}",
             integrationId,
@@ -249,7 +260,7 @@ public class AcceptSubscriptionDomainService {
 
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
 
-        return rejected;
+        return new AcceptResult(rejected, null);
     }
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity acceptedSubscriptionEntity, AuditInfo auditInfo) {
