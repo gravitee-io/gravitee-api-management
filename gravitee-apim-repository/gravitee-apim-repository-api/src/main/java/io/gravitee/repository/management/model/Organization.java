@@ -34,6 +34,10 @@ public class Organization {
 
     public static final Organization DEFAULT = Organization.builder().id("DEFAULT").hrids(List.of("default")).name("Default").build();
 
+    public enum AuditEvent implements Audit.AuditEvent {
+        ORGANIZATION_FLOWS_UPDATED,
+    }
+
     private String id;
     private String cockpitId;
     private List<String> hrids;

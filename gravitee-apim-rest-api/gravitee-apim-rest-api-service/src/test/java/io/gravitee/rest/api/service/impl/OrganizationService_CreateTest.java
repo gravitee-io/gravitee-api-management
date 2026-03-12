@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.RoleService;
@@ -69,6 +70,9 @@ public class OrganizationService_CreateTest {
 
     @Mock
     private EnvironmentService environmentService;
+
+    @Mock
+    private AuditService auditService;
 
     @Mock
     private ObjectMapper mapper;

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Organization.AuditEvent.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
@@ -26,6 +28,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -37,6 +40,7 @@ import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -69,6 +73,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
     @Autowired
     private EnvironmentService environmentService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -142,7 +149,19 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         try {
             Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {
-                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
+                List<Flow> previousFlows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organizationId);
+                List<Flow> newFlows = organizationEntity.getFlows() != null ? organizationEntity.getFlows() : Collections.emptyList();
+                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, newFlows);
+                auditService.createOrganizationAuditLog(
+                    GraviteeContext.getExecutionContext(),
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.emptyMap())
+                        .event(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED)
+                        .createdAt(new Date())
+                        .oldValue(Collections.singletonMap("flows", previousFlows))
+                        .newValue(Collections.singletonMap("flows", newFlows))
+                        .build()
+                );
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
                 OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
