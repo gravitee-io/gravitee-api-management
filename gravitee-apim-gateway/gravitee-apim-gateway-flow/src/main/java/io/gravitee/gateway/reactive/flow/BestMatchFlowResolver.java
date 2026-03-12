@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This flow resolver resolves only the {@link Flow} which best matches according to the incoming request.
@@ -31,6 +32,7 @@ import io.reactivex.rxjava3.core.Maybe;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionContext> {
 
     private final FlowResolver flowResolver;
@@ -45,7 +47,11 @@ public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionCont
     public Flowable<Flow> resolve(final HttpBaseExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
-            .flatMapMaybe(flows -> Maybe.fromCallable(() -> bestMatchFlowResolver.forPath(flows, ctx.request().pathInfo())))
+            .flatMapMaybe(flows -> {
+                log.debug("Resolving best match flow for path [{}] among {} candidate flow(s)", ctx.request().pathInfo(), flows.size());
+                return Maybe.fromCallable(() -> bestMatchFlowResolver.forPath(flows, ctx.request().pathInfo()));
+            })
+            .doOnSuccess(flow -> log.debug("Best match flow resolved: [{}]", flow.getName()))
             .toFlowable();
     }
 
