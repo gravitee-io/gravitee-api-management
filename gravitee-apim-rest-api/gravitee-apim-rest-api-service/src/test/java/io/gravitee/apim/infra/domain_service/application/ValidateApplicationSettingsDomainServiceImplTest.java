@@ -219,7 +219,7 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         }
 
         @Test
-        void should_accept_valid_certificate_list() {
+        void should_reject_duplicated_certificate() {
             var tls = TlsSettings.builder()
                 .clientCertificates(
                     List.of(
@@ -231,8 +231,11 @@ class ValidateApplicationSettingsDomainServiceImplTest {
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
-            assertThat(result.severe()).isEmpty();
-            assertThat(result.warning()).isEmpty();
+            assertThat(result.severe()).isPresent();
+            assertThat(result.severe())
+                .get()
+                .asInstanceOf(LIST)
+                .anyMatch(e -> ((Validator.Error) e).getMessage().contains("client certificate content must be unique"));
         }
 
         @Test
@@ -319,26 +322,6 @@ class ValidateApplicationSettingsDomainServiceImplTest {
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-        }
-
-        @Test
-        void should_reject_duplicated_certificate() {
-            var tls = TlsSettings.builder()
-                .clientCertificates(
-                    List.of(
-                        new CreateClientCertificate("cert1", null, null, VALID_PEM),
-                        new CreateClientCertificate("cert2", null, null, VALID_PEM)
-                    )
-                )
-                .build();
-
-            var result = cut.validateAndSanitize(inputWithTls(tls));
-
-            assertThat(result.severe()).isPresent();
-            assertThat(result.severe())
-                .get()
-                .asInstanceOf(LIST)
-                .anyMatch(e -> ((Validator.Error) e).getMessage().contains("client certificate content must be unique"));
         }
     }
 }

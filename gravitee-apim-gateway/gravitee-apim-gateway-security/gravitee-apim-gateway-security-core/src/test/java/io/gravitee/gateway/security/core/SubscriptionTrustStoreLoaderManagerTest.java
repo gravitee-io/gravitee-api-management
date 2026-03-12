@@ -113,9 +113,9 @@ class SubscriptionTrustStoreLoaderManagerTest {
     private static final String BASE_64_CERTIFICATE_2 = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_2.getBytes());
 
     private static final String CERTIFICATE_1_DIGEST = "u21dNKud2YsKNJn3HQTTon1_qSoZi8IrBTsLiZCFQLg";
-    private static final String CERTIFICATE_1_DIGEST_HEX = "bb6d5d34ab9dd98b0a3499f71d04d3a27d6a4a8662f08ac14ec2e26421502e";
+    private static final String CERTIFICATE_1_DIGEST_HEX = "bb6d5d34ab9dd98b0a3499f71d04d3a27d7fa92a198bc22b053b0b89908540b8";
     private static final String CERTIFICATE_2_DIGEST = "wS8z98uyY4COjon55dsZ4xl1NDh4Hf_mkr3p0mRLv6E";
-    private static final String CERTIFICATE_2_DIGEST_HEX = "c12f33f7cbb263808e8e89f9e5db19e319753438781df9a4af7a749912efe8";
+    private static final String CERTIFICATE_2_DIGEST_HEX = "c12f33f7cbb263808e8e89f9e5db19e319753438781dffe692bde9d2644bbfa1";
 
     TrustStoreLoaderManager trustStoreLoaderManager1 = new TrustStoreLoaderManager("server1", new NoOpKeyStoreLoader(new NoOpOptions()));
     TrustStoreLoaderManager trustStoreLoaderManager2 = new TrustStoreLoaderManager("server2", new NoOpKeyStoreLoader(new NoOpOptions()));
