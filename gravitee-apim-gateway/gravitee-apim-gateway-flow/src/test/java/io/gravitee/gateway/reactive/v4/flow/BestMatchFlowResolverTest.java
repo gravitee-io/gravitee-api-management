@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.v4.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.Api;
@@ -31,10 +32,12 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.Optional;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
+import org.slf4j.helpers.NOPLogger;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -53,6 +56,11 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     public ReactableApi reactableApi;
 
     public AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector = new BestMatchFlowSelector();
+
+    @Before
+    public void prepareLogger() {
+        when(executionContext.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+    }
 
     @Test
     public void should_resolve_bestMatchFlow_with_api_sync() {
