@@ -311,6 +311,12 @@
         <span>Password was shown only at subscription acceptance time.</span>
       </div>
     </div>
+    <mat-card-actions *ngIf="subscription?.status === 'ACCEPTED'">
+      <button mat-raised-button color="primary" (click)="renewBasicAuthCredentials()">
+        <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+        Renew Credentials
+      </button>
+    </mat-card-actions>
   </mat-card>
 
   @if (subscription?.plan?.mode === 'PUSH' && !!subscription?.consumerConfiguration) {

@@ -515,6 +515,36 @@ export class ApiSubscriptionEditComponent implements OnInit {
       );
   }
 
+  renewBasicAuthCredentials() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Renew Basic Auth Credentials`,
+          content: `This will revoke the current credentials and generate new ones. Do you want to continue?`,
+          confirmButton: 'Renew',
+        },
+        role: 'alertdialog',
+        id: 'renewBasicAuthDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap(confirm =>
+          confirm ? this.apiSubscriptionService.renewBasicAuthCredentials(this.apiId, this.subscription.id) : EMPTY,
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        result => {
+          this.basicAuthCredentials = {
+            username: result.basicAuthUsername,
+            password: result.basicAuthPassword,
+          };
+          this.snackBarService.success(`Basic Auth credentials renewed`);
+        },
+        err => this.snackBarService.error(err.message),
+      );
+  }
+
   revokeApiKey(apiKey: ApiKeyVM) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {

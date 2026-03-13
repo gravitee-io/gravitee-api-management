@@ -149,6 +149,13 @@ export class ApiSubscriptionV2Service {
     });
   }
 
+  renewBasicAuthCredentials(apiId: string, subscriptionId: string): Observable<Subscription> {
+    return this.http.post<Subscription>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/basic-auth/_renew`,
+      {},
+    );
+  }
+
   revokeApiKey(apiId: string, subscriptionId: string, apiKeyId: string): Observable<ApiKey> {
     return this.http.post<ApiKey>(
       `${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/api-keys/${apiKeyId}/_revoke`,
