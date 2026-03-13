@@ -38,13 +38,15 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("org-1", "env-1");
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(6);
+        assertThat(items).hasSize(8);
         assertThat(items).anyMatch(i -> "2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f".equals(i.getId()));
         assertThat(items).anyMatch(i -> "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a".equals(i.getId()));
         assertThat(items).anyMatch(i -> "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c".equals(i.getId()));
         assertThat(items).anyMatch(i -> "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d".equals(i.getId()));
         assertThat(items).anyMatch(i -> "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e".equals(i.getId()));
         assertThat(items).anyMatch(i -> "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "9e4f5a6b-7b8c-9d0e-1f2a-3b4c5d6e7f8a".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "af5a6b7c-8c9d-0e1f-2a3b-4c5d6e7f8a9b".equals(i.getId()));
     }
 
     @Test
@@ -55,7 +57,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         );
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(5);
+        assertThat(items).hasSize(7);
         assertThat(items).anyMatch(i -> "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a".equals(i.getId()));
     }
 
@@ -219,7 +221,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(6);
+        assertThat(items).hasSize(8);
         assertThat(items).extracting("environmentId").containsOnly("env-1");
     }
 
@@ -254,13 +256,15 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(3);
+        assertThat(items).hasSize(5);
         assertThat(items)
             .extracting("id")
             .containsExactlyInAnyOrder(
                 "2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
                 "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a",
-                "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c"
+                "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
+                "9e4f5a6b-7b8c-9d0e-1f2a-3b4c5d6e7f8a",
+                "af5a6b7c-8c9d-0e1f-2a3b-4c5d6e7f8a9b"
             );
     }
 
@@ -274,7 +278,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(5);
+        assertThat(items).hasSize(7);
         assertThat(items).extracting("area").containsOnly(PortalNavigationItem.Area.TOP_NAVBAR);
     }
 
@@ -285,7 +289,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(6);
+        assertThat(items).hasSize(8);
         assertThat(items).extracting("published").containsOnly(true);
     }
 
@@ -371,7 +375,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
 
             assertThat(items).isNotNull();
-            assertThat(items).hasSize(7); // 6 original + 1 unpublished
+            assertThat(items).hasSize(9); // 8 original + 1 unpublished
             assertThat(items).extracting("id").contains("unpublished-item-2");
         } finally {
             portalNavigationItemRepository.delete("unpublished-item-2");
@@ -528,5 +532,73 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         } finally {
             portalNavigationItemRepository.delete("public-item");
         }
+    }
+
+    //////////////////////////////////////
+    ////   SEARCH BY TYPE / API IDS
+    //////////////////////////////////////
+
+    @Test
+    public void should_search_by_type() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").type("API").build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(2);
+        assertThat(items).extracting("type").containsOnly(PortalNavigationItem.Type.API);
+        assertThat(items).extracting("apiId").containsExactlyInAnyOrder("api-public-1", "api-private-1");
+    }
+
+    @Test
+    public void should_search_by_api_ids() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .apiIds(Set.of("api-public-1"))
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getApiId()).isEqualTo("api-public-1");
+    }
+
+    @Test
+    public void should_search_by_api_ids_multiple() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .apiIds(Set.of("api-public-1", "api-private-1"))
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(2);
+        assertThat(items).extracting("apiId").containsExactlyInAnyOrder("api-public-1", "api-private-1");
+    }
+
+    @Test
+    public void should_search_by_type_and_api_ids() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .type("API")
+            .apiIds(Set.of("api-public-1"))
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getType()).isEqualTo(PortalNavigationItem.Type.API);
+        assertThat(items.getFirst().getApiId()).isEqualTo("api-public-1");
+    }
+
+    @Test
+    public void should_return_empty_when_api_ids_do_not_match() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .apiIds(Set.of("non-existent-api"))
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isEmpty();
     }
 }
