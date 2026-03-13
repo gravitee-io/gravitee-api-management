@@ -21,8 +21,18 @@ export interface MetricsResponse<D extends Metric> {
   metrics?: D[]; //remove ? after remove mock
 }
 
+export type UnitName = 'NUMBER' | 'MILLISECONDS' | 'BYTES' | 'PERCENT';
+
+export const UnitLabel: Record<UnitName, string> = {
+  MILLISECONDS: 'ms',
+  PERCENT: '%',
+  BYTES: 'bytes',
+  NUMBER: '',
+};
+
 export interface Metric {
   name: MetricName;
+  unit?: UnitName;
 }
 
 export interface Bucket {

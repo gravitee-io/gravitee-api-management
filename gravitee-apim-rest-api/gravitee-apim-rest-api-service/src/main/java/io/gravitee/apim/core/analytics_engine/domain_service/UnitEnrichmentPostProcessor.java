@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.apim.core.analytics_engine.domain_service;
 
-import java.util.List;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricMeasuresResponse(MetricSpec.Name name, MetricSpec.Unit unit, List<Measure> measures) {}
+public interface UnitEnrichmentPostProcessor {
+    MeasuresResponse enrichUnits(MeasuresResponse response);
+
+    FacetsResponse enrichUnits(FacetsResponse response);
+
+    TimeSeriesResponse enrichUnits(TimeSeriesResponse response);
+}
