@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

@@ -22,6 +22,13 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -38,11 +45,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -51,10 +60,23 @@ import org.mockito.stubbing.Answer;
 public class ApiResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
+    private static final String ENV_ID = "DEFAULT";
+
+    @Autowired
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
+
+    @Autowired
+    private MembershipQueryServiceInMemory membershipQueryService;
 
     @Override
     protected String contextPath() {
         return "apis/";
+    }
+
+    @AfterEach
+    public void tearDown() {
+        portalNavigationItemsQueryService.reset();
+        membershipQueryService.reset();
     }
 
     @BeforeEach
@@ -324,5 +346,95 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("MARKDOWN", folderCatMarkdown.getName());
         assertEquals("MARKDOWN_FOLDER_SYS_FOLDER", folderCatMarkdown.getResourceRef());
         assertEquals(ResourceTypeEnum.PAGE, folderCatMarkdown.getResourceType());
+    }
+
+    @Test
+    public void should_get_api_with_documentation_view() {
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build()
+            )
+        );
+
+        final Response response = target(API).queryParam("view", "documentation").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        final Api responseApi = response.readEntity(Api.class);
+        assertNotNull(responseApi);
+    }
+
+    @Test
+    public void should_return_not_found_with_documentation_view_when_not_visible() {
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        final Response response = target(API).queryParam("view", "documentation").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        assertEquals("errors.api.notFound", errors.get(0).getCode());
+    }
+
+    @Test
+    public void should_get_api_with_documentation_view_when_private_and_member() {
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("membership-" + USER_NAME + "-" + API)
+                    .memberId(USER_NAME)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId(API)
+                    .build()
+            )
+        );
+
+        final Response response = target(API).queryParam("view", "documentation").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        final Api responseApi = response.readEntity(Api.class);
+        assertNotNull(responseApi);
     }
 }
