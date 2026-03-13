@@ -16,20 +16,21 @@
 import { Injectable } from '@angular/core';
 
 import { Converter } from '../../../converter';
-import { MeasureUnit } from '../../../widget/model/request/enum/measure-name';
 import { MeasuresResponse } from '../../../widget/model/response/measures-response';
+import { UnitLabel } from '../../../widget/model/response/response';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StatsConverterService implements Converter {
   convert(data: MeasuresResponse) {
-    return (
-      data?.metrics?.[0]?.measures?.map(({ name, value }) => {
-        const unit = MeasureUnit[name];
-        const formattedValue = Math.round(value).toLocaleString();
-        return unit ? `${formattedValue} ${unit}` : formattedValue;
-      }) ?? []
-    );
+    const metric = data?.metrics?.[0];
+    if (!metric?.measures) return [];
+
+    const unitLabel = metric.unit ? UnitLabel[metric.unit] : '';
+    return metric.measures.map(({ value }) => {
+      const formattedValue = Math.round(value).toLocaleString();
+      return unitLabel ? `${formattedValue} ${unitLabel}` : formattedValue;
+    });
   }
 }

@@ -21,4 +21,4 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record TimeSeriesMetricResponse(MetricSpec.Name name, List<TimeSeriesBucketResponse> buckets) {}
+public record TimeSeriesMetricResponse(MetricSpec.Name name, MetricSpec.Unit unit, List<TimeSeriesBucketResponse> buckets) {}

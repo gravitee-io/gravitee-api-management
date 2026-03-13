@@ -21,4 +21,4 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricFacetsResponse(MetricSpec.Name metric, List<FacetBucketResponse> buckets) {}
+public record MetricFacetsResponse(MetricSpec.Name metric, MetricSpec.Unit unit, List<FacetBucketResponse> buckets) {}

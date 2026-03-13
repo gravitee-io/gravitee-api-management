@@ -2367,12 +2367,15 @@ components:
                         properties:
                             name:
                                 $ref: "#/components/schemas/MetricName"
+                            unit:
+                                $ref: "#/components/schemas/UnitName"
                             measures:
                                 $ref: "#/components/schemas/Measures"
                     description: List of measure metric responses
             example:
                 metrics:
                     - name: "HTTP_REQUESTS"
+                      unit: "NUMBER"
                       measures:
                           - name: "COUNT"
                             value: 2984
@@ -2393,11 +2396,14 @@ components:
                         properties:
                             name:
                                 $ref: "#/components/schemas/MetricName"
+                            unit:
+                                $ref: "#/components/schemas/UnitName"
                             buckets:
                                 $ref: "#/components/schemas/BucketList"
             example:
                 metrics:
                     - name: "HTTP_REQUESTS"
+                      unit: "NUMBER"
                       buckets:
                           - key: "49ddd7db-35d6-497e-b497-2dc16af0cdcc"
                             name: "api-1"
@@ -2437,12 +2443,15 @@ components:
                         properties:
                             name:
                                 $ref: "#/components/schemas/MetricName"
+                            unit:
+                                $ref: "#/components/schemas/UnitName"
                             buckets:
                                 $ref: "#/components/schemas/TimeSeriesBucketList"
                     description: List of time series metric responses. Root level buckets are TimeSeriesBucketList, nested buckets inside are regular BucketList.
             example:
                 metrics:
                     - name: "HTTP_REQUESTS"
+                      unit: "NUMBER"
                       buckets:
                           - key: "2025-01-01T00:00:00Z"
                             timestamp: 1735689600000

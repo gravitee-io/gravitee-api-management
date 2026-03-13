@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
@@ -143,5 +144,9 @@ public interface AnalyticsMeasuresMapper {
 
     default Long map(CustomInterval interval) {
         return interval.toMillis();
+    }
+
+    default UnitName map(MetricSpec.Unit unit) {
+        return unit == null ? null : UnitName.fromValue(unit.name());
     }
 }
