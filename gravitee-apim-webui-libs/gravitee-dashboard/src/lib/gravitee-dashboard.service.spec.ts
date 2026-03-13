@@ -87,6 +87,7 @@ describe('GraviteeDashboardService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [{ name: 'COUNT', value: 100 }],
           },
         ],
@@ -124,6 +125,7 @@ describe('GraviteeDashboardService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             buckets: [
               {
                 key: '2xx',

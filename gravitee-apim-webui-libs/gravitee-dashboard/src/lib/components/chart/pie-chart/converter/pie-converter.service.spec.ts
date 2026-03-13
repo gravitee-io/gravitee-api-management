@@ -36,6 +36,7 @@ describe('PieConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             buckets: [
               {
                 key: 'bucket-1',
@@ -74,6 +75,7 @@ describe('PieConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             buckets: [
               {
                 key: 'bucket-1',
