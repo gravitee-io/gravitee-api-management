@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, EventEmitter, Input, model, Output } from '@angular/core';
+import { Component, computed, effect, EventEmitter, input, Input, model, Output } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -68,18 +68,18 @@ export class ApiAccessComponent {
   @Input()
   clientSecret?: string;
 
-  @Input()
-  basicAuthUsername?: string;
+  basicAuthUsername = input<string>();
 
-  @Input()
-  basicAuthPassword?: string;
+  basicAuthPassword = input<string>();
 
   @Output()
   renewBasicAuth = new EventEmitter<void>();
 
   selectedEntrypointUrl = model<string>('');
 
-  curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrl(), this.planSecurity, this.apiKey));
+  curlCmd = computed(() =>
+    this.formatCurlCommandLine(this.selectedEntrypointUrl(), this.planSecurity, this.apiKey, this.basicAuthUsername(), this.basicAuthPassword()),
+  );
 
   constructor(private configService: ConfigService) {
     effect(() => {
@@ -87,7 +87,13 @@ export class ApiAccessComponent {
     });
   }
 
-  private formatCurlCommandLine(entrypointUrl: string, planSecurity: PlanSecurityEnum, apiKey?: string): string {
+  private formatCurlCommandLine(
+    entrypointUrl: string,
+    planSecurity: PlanSecurityEnum,
+    apiKey?: string,
+    basicAuthUsername?: string,
+    basicAuthPassword?: string,
+  ): string {
     if (!entrypointUrl) {
       return '';
     }
@@ -103,7 +109,7 @@ export class ApiAccessComponent {
         }
         break;
       case 'BASIC_AUTH':
-        curlHeader = `-u "${this.basicAuthUsername ?? '{{ USERNAME }}'}:${this.basicAuthPassword ?? '{{ PASSWORD }}'}" `;
+        curlHeader = `-u "${basicAuthUsername ?? '{{ USERNAME }}'}:${basicAuthPassword ?? '{{ PASSWORD }}'}" `;
         break;
     }
 
