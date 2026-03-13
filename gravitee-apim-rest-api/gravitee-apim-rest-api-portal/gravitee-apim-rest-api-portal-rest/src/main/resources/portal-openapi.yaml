@@ -234,6 +234,7 @@ paths:
                 - Api
             parameters:
                 - $ref: "#/components/parameters/apiIncludeParam"
+                - $ref: "#/components/parameters/apiViewParam"
             summary: Get the API definition
             description: |
                 Get the detail of an API.
@@ -3611,6 +3612,13 @@ components:
                     enum:
                         - pages
                         - plans
+        apiViewParam:
+            name: view
+            in: query
+            required: false
+            description: Controls API visibility scope. When set to documentation, visibility is determined by NG Portal visibility rules.
+            schema:
+                $ref: "#/components/schemas/ApiView"
         ratingOrderQueryParam:
             name: order
             in: query
@@ -3895,6 +3903,13 @@ components:
                         - icon
                         - subscriptionSchema
     schemas:
+        #####################
+        # Enums             #
+        #####################
+        ApiView:
+            type: string
+            enum:
+                - documentation
         #####################
         # Responses Objects #
         #####################
