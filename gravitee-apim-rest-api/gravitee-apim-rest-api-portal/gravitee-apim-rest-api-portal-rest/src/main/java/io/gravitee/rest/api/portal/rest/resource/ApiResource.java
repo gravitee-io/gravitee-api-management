@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.api.use_case.GetApiForPortalUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -60,6 +61,7 @@ public class ApiResource extends AbstractResource {
 
     private static final String INCLUDE_PAGES = "pages";
     private static final String INCLUDE_PLANS = "plans";
+    private static final String VIEW_DOCUMENTATION = "documentation";
 
     @Context
     private ResourceContext resourceContext;
@@ -88,65 +90,75 @@ public class ApiResource extends AbstractResource {
     @Inject
     private ApiAuthorizationService apiAuthorizationService;
 
+    @Inject
+    private GetApiForPortalUseCase getApiForPortalUseCase;
+
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     @RequirePortalAuth
-    public Response getApiByApiId(@PathParam("apiId") String apiId, @QueryParam("include") List<String> include) {
+    public Response getApiByApiId(
+        @PathParam("apiId") String apiId,
+        @QueryParam("include") List<String> include,
+        @QueryParam("view") String view
+    ) {
         String username = getAuthenticatedUserOrNull();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
-        if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
-            Api api = apiMapper.convert(executionContext, genericApiEntity);
 
-            if (include.contains(INCLUDE_PAGES)) {
-                List<Page> pages = pageService
-                    .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiId).published(true).build())
-                    .stream()
-                    .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, page))
-                    .map(pageMapper::convert)
-                    .collect(Collectors.toList());
-                api.setPages(pages);
-            }
-            if (include.contains(INCLUDE_PLANS)) {
-                List<Plan> plans = planSearchService
-                    .findByApi(executionContext, genericApiEntity, true)
-                    .stream()
-                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
-                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
-                    .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
-                    .map(p -> planMapper.convert(p, genericApiEntity))
-                    .collect(Collectors.toList());
-                api.setPlans(plans);
-            }
-
-            api.links(
-                apiMapper.computeApiLinks(
-                    PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()),
-                    genericApiEntity.getUpdatedAt()
-                )
+        if (VIEW_DOCUMENTATION.equalsIgnoreCase(view)) {
+            var output = getApiForPortalUseCase.execute(
+                new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, username)
             );
-            if (
-                !parameterService.findAsBoolean(
-                    executionContext,
-                    Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ) {
-                api.setLabels(new ArrayList<>());
+            if (!output.visible()) {
+                throw new ApiNotFoundException(apiId);
             }
-            if (
-                !parameterService.findAsBoolean(
-                    executionContext,
-                    Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ) {
-                api.setCategories(new ArrayList<>());
-            }
-            return Response.ok(api).build();
+        } else if (!accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
+            throw new ApiNotFoundException(apiId);
         }
-        throw new ApiNotFoundException(apiId);
+
+        Api api = apiMapper.convert(executionContext, genericApiEntity);
+
+        if (include.contains(INCLUDE_PAGES)) {
+            List<Page> pages = pageService
+                .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiId).published(true).build())
+                .stream()
+                .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, page))
+                .map(pageMapper::convert)
+                .collect(Collectors.toList());
+            api.setPages(pages);
+        }
+        if (include.contains(INCLUDE_PLANS)) {
+            List<Plan> plans = planSearchService
+                .findByApi(executionContext, genericApiEntity, true)
+                .stream()
+                .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
+                .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
+                .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
+                .map(p -> planMapper.convert(p, genericApiEntity))
+                .collect(Collectors.toList());
+            api.setPlans(plans);
+        }
+
+        api.links(
+            apiMapper.computeApiLinks(
+                PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()),
+                genericApiEntity.getUpdatedAt()
+            )
+        );
+        if (!parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
+            api.setLabels(new ArrayList<>());
+        }
+        if (
+            !parameterService.findAsBoolean(
+                executionContext,
+                Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ) {
+            api.setCategories(new ArrayList<>());
+        }
+        return Response.ok(api).build();
     }
 
     @GET

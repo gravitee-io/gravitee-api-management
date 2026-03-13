@@ -440,7 +440,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         PortalNavigationItem apiItem = PortalNavigationItem.builder()
             .id("type-api-item")
             .organizationId("org-1")
-            .environmentId("env-1")
+            .environmentId("env-type-api-test")
             .title("My API")
             .type(PortalNavigationItem.Type.API)
             .apiId("some-api-id")
@@ -456,7 +456,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
         try {
             PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
-                .environmentId("env-1")
+                .environmentId("env-type-api-test")
                 .type(PortalNavigationItem.Type.API.name())
                 .build();
 
@@ -474,7 +474,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_search_by_type_returns_empty_when_no_match() throws Exception {
         PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
-            .environmentId("env-1")
+            .environmentId("env-no-api-items")
             .type(PortalNavigationItem.Type.API.name())
             .build();
 
