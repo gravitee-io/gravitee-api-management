@@ -52,6 +52,21 @@ describe('StatsConverterService', () => {
       expect(result).toEqual(['46', '10 ms', '1,200 ms', '1,234', '76']);
     });
 
+    it('should format PERCENTAGE measure with % suffix', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_ERROR_RATE',
+            measures: [{ name: 'PERCENTAGE', value: 75.8 }],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['76 %']);
+    });
+
     it('should truncate decimal values using Math.trunc', () => {
       const data: MeasuresResponse = {
         metrics: [
