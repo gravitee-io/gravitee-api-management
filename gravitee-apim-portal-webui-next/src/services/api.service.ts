@@ -42,6 +42,6 @@ export class ApiService {
   }
 
   details(apiId: string): Observable<Api> {
-    return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}`);
+    return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}?view=documentation`);
   }
 }
