@@ -51,14 +51,38 @@ public class GenerateBasicAuthCredentialsDomainService {
         BasicAuthCredentialsEntity hashedCredentials = credentials.toBuilder().password(PASSWORD_ENCODER.encode(plainPassword)).build();
         basicAuthCredentialsCrudService.create(hashedCredentials);
 
-        createAuditLog(hashedCredentials, subscription, auditInfo);
+        createAuditLog(hashedCredentials, subscription, auditInfo, BasicAuthCredentialsAuditEvent.BASIC_AUTH_CREDENTIALS_CREATED);
 
         BasicAuthPlainCredentialsHolder.set(credentials);
 
         return credentials;
     }
 
-    private void createAuditLog(BasicAuthCredentialsEntity credentials, SubscriptionEntity subscription, AuditInfo auditInfo) {
+    public BasicAuthCredentialsEntity renew(SubscriptionEntity subscription, AuditInfo auditInfo) {
+        log.debug("Renew Basic Auth credentials for subscription {}", subscription.getId());
+
+        basicAuthCredentialsCrudService
+            .findBySubscriptionId(subscription.getId())
+            .filter(BasicAuthCredentialsEntity::canBeRevoked)
+            .ifPresent(existing -> basicAuthCredentialsCrudService.update(existing.revoke()));
+
+        BasicAuthCredentialsEntity credentials = BasicAuthCredentialsEntity.generateForSubscription(subscription);
+        String plainPassword = credentials.getPassword();
+
+        BasicAuthCredentialsEntity hashedCredentials = credentials.toBuilder().password(PASSWORD_ENCODER.encode(plainPassword)).build();
+        basicAuthCredentialsCrudService.create(hashedCredentials);
+
+        createAuditLog(hashedCredentials, subscription, auditInfo, BasicAuthCredentialsAuditEvent.BASIC_AUTH_CREDENTIALS_RENEWED);
+
+        return credentials;
+    }
+
+    private void createAuditLog(
+        BasicAuthCredentialsEntity credentials,
+        SubscriptionEntity subscription,
+        AuditInfo auditInfo,
+        BasicAuthCredentialsAuditEvent event
+    ) {
         String apiId = subscription.getApiId();
 
         Map<AuditProperties, String> properties = new HashMap<>();
@@ -72,7 +96,7 @@ public class GenerateBasicAuthCredentialsDomainService {
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(apiId)
-                .event(BasicAuthCredentialsAuditEvent.BASIC_AUTH_CREDENTIALS_CREATED)
+                .event(event)
                 .actor(auditInfo.actor())
                 .oldValue(null)
                 .newValue(credentials)

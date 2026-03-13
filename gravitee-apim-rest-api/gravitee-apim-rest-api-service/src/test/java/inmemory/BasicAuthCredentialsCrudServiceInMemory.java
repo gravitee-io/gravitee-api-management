@@ -48,7 +48,7 @@ public class BasicAuthCredentialsCrudServiceInMemory
     public Optional<BasicAuthCredentialsEntity> findBySubscriptionId(String subscriptionId) {
         return storage
             .stream()
-            .filter(c -> c.getSubscriptions().contains(subscriptionId))
+            .filter(c -> c.getSubscriptions().contains(subscriptionId) && !c.isRevoked())
             .findFirst();
     }
 

@@ -72,7 +72,12 @@ public class BasicAuthCredentialsCrudServiceImpl implements BasicAuthCredentials
     @Override
     public Optional<BasicAuthCredentialsEntity> findBySubscriptionId(String subscriptionId) {
         try {
-            return basicAuthCredentialsRepository.findBySubscription(subscriptionId).stream().findFirst().map(this::toEntity);
+            return basicAuthCredentialsRepository
+                .findBySubscription(subscriptionId)
+                .stream()
+                .filter(c -> !c.isRevoked())
+                .findFirst()
+                .map(this::toEntity);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find basic auth credentials by subscription [id={}]", subscriptionId, ex);
             throw new TechnicalManagementException(
