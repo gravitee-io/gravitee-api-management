@@ -70,7 +70,7 @@ export class GraviteeDashboardService {
           metrics: [
             {
               name: 'HTTP_ERROR_RATE',
-              measures: ['VALUE'],
+              measures: ['PERCENTAGE'],
             },
           ],
         },

@@ -218,26 +218,4 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var p50Agg = aggs.at("/MESSAGE_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
         assertThat(p50Agg).isEqualTo(50.0);
     }
-
-    @Test
-    void should_build_query_with_rps_metric() throws JsonProcessingException {
-        var timeRange = buildTimeRange();
-        var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.MESSAGE_RPS, Set.of(Measure.VALUE)));
-        var requestIDs = Set.of("request-id-1");
-
-        var query = new MeasuresQuery(timeRange, filters, metrics);
-        var queryString = adapter.adapt(query, requestIDs);
-        var jsonQuery = JSON.readTree(queryString);
-
-        var aggs = jsonQuery.at("/aggs");
-        assertThat(aggs).isNotEmpty();
-
-        var rpsDateHistogram = aggs.at("/_MESSAGE_RPS#VALUE/date_histogram");
-        assertThat(rpsDateHistogram).isNotNull();
-
-        var rpsBucketScript = aggs.at("/_MESSAGE_RPS#VALUE/aggs/MESSAGE_RPS#VALUE/bucket_script");
-        assertThat(rpsBucketScript).isNotNull();
-        assertThat(rpsBucketScript.has("script")).isTrue();
-    }
 }

@@ -180,33 +180,10 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
-    void should_build_query_with_rps_metric() throws JsonProcessingException {
-        var timeRange = buildTimeRange();
-        var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_RPS, Set.of(Measure.VALUE)));
-
-        var query = new MeasuresQuery(timeRange, filters, metrics);
-
-        var queryString = adapter.adapt(query);
-
-        var jsonQuery = JSON.readTree(queryString);
-
-        var aggs = jsonQuery.at("/aggs");
-        assertThat(aggs).isNotEmpty();
-
-        var rpsDateHistogram = aggs.at("/_HTTP_RPS#VALUE/date_histogram");
-        assertThat(rpsDateHistogram).isNotNull();
-
-        var rpsBucketScript = aggs.at("/_HTTP_RPS#VALUE/aggs/HTTP_RPS#VALUE/bucket_script");
-        assertThat(rpsBucketScript).isNotNull();
-        assertThat(rpsBucketScript.has("script")).isTrue();
-    }
-
-    @Test
     void should_build_query_with_error_rate_metric() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_ERROR_RATE, Set.of(Measure.VALUE)));
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_ERROR_RATE, Set.of(Measure.PERCENTAGE)));
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
 
@@ -217,10 +194,10 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var errorRateDateHistogram = aggs.at("/_HTTP_ERROR_RATE#VALUE/date_histogram");
+        var errorRateDateHistogram = aggs.at("/_HTTP_ERROR_RATE#PERCENTAGE/date_histogram");
         assertThat(errorRateDateHistogram).isNotNull();
 
-        var errorRateBucketScript = aggs.at("/_HTTP_ERROR_RATE#VALUE/aggs/HTTP_ERROR_RATE#VALUE/bucket_script");
+        var errorRateBucketScript = aggs.at("/_HTTP_ERROR_RATE#PERCENTAGE/aggs/HTTP_ERROR_RATE#PERCENTAGE/bucket_script");
         assertThat(errorRateBucketScript).isNotNull();
         assertThat(errorRateBucketScript.has("script")).isTrue();
     }

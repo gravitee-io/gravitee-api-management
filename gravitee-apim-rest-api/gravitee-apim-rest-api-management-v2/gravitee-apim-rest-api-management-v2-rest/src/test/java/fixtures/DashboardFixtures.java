@@ -130,7 +130,9 @@ public class DashboardFixtures {
                         new WidgetRequest()
                             .type(WidgetRequest.TypeEnum.MEASURES)
                             .timeRange(defaultTimeRange())
-                            .metrics(List.of(new MetricRequest().name(MetricName.HTTP_ERROR_RATE).measures(List.of(MeasureName.VALUE))))
+                            .metrics(
+                                List.of(new MetricRequest().name(MetricName.HTTP_ERROR_RATE).measures(List.of(MeasureName.PERCENTAGE)))
+                            )
                     ),
                 new Widget()
                     .id("11")
