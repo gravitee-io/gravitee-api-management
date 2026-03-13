@@ -440,7 +440,8 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
                         .planId("plan-1")
                         .applicationId("app-1")
                         .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                        .build()
+                        .build(),
+                    null
                 )
             )
                 .when(acceptSubscriptionUseCase)

@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
 import io.gravitee.apim.core.basic_auth.model.BasicAuthPlainCredentialsHolder;
+import io.gravitee.apim.core.basic_auth.use_case.RenewBasicAuthCredentialsUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
@@ -152,6 +153,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
+
+    @Inject
+    private RenewBasicAuthCredentialsUseCase renewBasicAuthCredentialsUseCase;
 
     @PathParam("apiId")
     private String apiId;
@@ -427,6 +431,21 @@ public class ApiSubscriptionsResource extends AbstractResource {
             subscription.setBasicAuthUsername(result.basicAuthCredentials().getUsername());
             subscription.setBasicAuthPassword(result.basicAuthCredentials().getPassword());
         }
+        return Response.ok().entity(subscription).build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/basic-auth/_renew")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    public Response renewBasicAuthCredentials(@PathParam("subscriptionId") String subscriptionId) {
+        var result = renewBasicAuthCredentialsUseCase.execute(
+            new RenewBasicAuthCredentialsUseCase.Input(apiId, subscriptionId, getAuditInfo())
+        );
+
+        var subscription = subscriptionMapper.map(subscriptionService.findById(subscriptionId));
+        subscription.setBasicAuthUsername(result.credentials().getUsername());
+        subscription.setBasicAuthPassword(result.credentials().getPassword());
         return Response.ok().entity(subscription).build();
     }
 

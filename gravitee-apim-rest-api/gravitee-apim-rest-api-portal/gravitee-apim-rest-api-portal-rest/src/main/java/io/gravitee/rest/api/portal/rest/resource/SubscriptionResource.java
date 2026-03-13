@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.basic_auth.crud_service.BasicAuthCredentialsCrudService;
+import io.gravitee.apim.core.basic_auth.use_case.RenewBasicAuthCredentialsUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -67,6 +68,9 @@ public class SubscriptionResource extends AbstractResource {
 
     @Inject
     private BasicAuthCredentialsCrudService basicAuthCredentialsCrudService;
+
+    @Inject
+    private RenewBasicAuthCredentialsUseCase renewBasicAuthCredentialsUseCase;
 
     @Inject
     private KeyMapper keyMapper;
@@ -217,6 +221,26 @@ public class SubscriptionResource extends AbstractResource {
 
         SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeFailed(executionContext, subscriptionId);
         return Response.ok(updatedSubscriptionEntity).build();
+    }
+
+    @POST
+    @Path("basic-auth/_renew")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response renewBasicAuthCredentials(@PathParam("subscriptionId") String subscriptionId) {
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (!hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), UPDATE)) {
+            throw new ForbiddenAccessException();
+        }
+
+        var result = renewBasicAuthCredentialsUseCase.execute(
+            new RenewBasicAuthCredentialsUseCase.Input(subscriptionEntity.getApi(), subscriptionId, getAuditInfo())
+        );
+
+        Subscription subscription = SubscriptionMapper.INSTANCE.map(subscriptionEntity);
+        subscription.setBasicAuthUsername(result.credentials().getUsername());
+        subscription.setBasicAuthPassword(result.credentials().getPassword());
+        return Response.ok(subscription).build();
     }
 
     @Path("keys")

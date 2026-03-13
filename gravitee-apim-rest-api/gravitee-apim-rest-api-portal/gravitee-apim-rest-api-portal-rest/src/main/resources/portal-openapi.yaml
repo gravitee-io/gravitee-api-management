@@ -2235,6 +2235,36 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /subscriptions/{subscriptionId}/basic-auth/_renew:
+        parameters:
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - Subscription
+            summary: Renew the Basic Auth credentials of a subscription.
+            description: |
+                Revoke the existing Basic Auth credentials and generate new ones for the subscription.
+                The newly created credentials (username and plain-text password) are returned in the response.
+
+                User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
+            operationId: renewBasicAuthSubscription
+            responses:
+                200:
+                    description: Renewed Basic Auth credentials.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Subscription not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /subscriptions/{subscriptionId}/keys/_renew:
         parameters:
             - $ref: "#/components/parameters/subscriptionIdParam"

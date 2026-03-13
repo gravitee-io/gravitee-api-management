@@ -1985,6 +1985,30 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/basic-auth/_renew:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Renew the subscription's Basic Auth credentials.
+            description: |-
+                Revoke the existing Basic Auth credentials and generate new ones for the subscription.
+                The newly created credentials (username and plain-text password) are returned in the response.
+
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: renewApiSubscriptionBasicAuth
+            responses:
+                "200":
+                    description: Basic Auth credentials successfully renewed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
