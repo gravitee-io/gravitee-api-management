@@ -83,6 +83,7 @@
     "ng2-charts": "8.0.0",
     "ngx-dynamic-hooks": "3.1.2",
     "ngx-infinite-scroll": "19.0.0",
+    "redoc": "2.4.0",
     "rxjs": "7.8.2",
     "swagger-ui": "5.20.1",
     "tslib": "2.3.1",
