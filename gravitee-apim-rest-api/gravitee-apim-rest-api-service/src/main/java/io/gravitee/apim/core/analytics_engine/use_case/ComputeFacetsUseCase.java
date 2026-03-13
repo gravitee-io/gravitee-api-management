@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryConte
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
@@ -48,6 +49,8 @@ public class ComputeFacetsUseCase {
 
     private final BucketNamesPostProcessor bucketNamesPostprocessor;
 
+    private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
+
     private final AnalyticsQueryContextLoader contextLoader;
 
     public ComputeFacetsUseCase(
@@ -55,12 +58,14 @@ public class ComputeFacetsUseCase {
         AnalyticsQueryValidator validator,
         List<QueryFilterTransformer> filterTransformers,
         BucketNamesPostProcessor bucketNamesPostprocessor,
+        UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
         AnalyticsQueryContextLoader contextLoader
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
         this.filterTransformers = filterTransformers;
         this.bucketNamesPostprocessor = bucketNamesPostprocessor;
+        this.unitEnrichmentPostProcessor = unitEnrichmentPostProcessor;
         this.contextLoader = contextLoader;
     }
 
@@ -81,7 +86,9 @@ public class ComputeFacetsUseCase {
 
         var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
 
-        return new ComputeFacetsUseCase.Output(mappedResponse);
+        var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse);
+
+        return new ComputeFacetsUseCase.Output(enriched);
     }
 
     private List<FacetsResponse> executeQueries(

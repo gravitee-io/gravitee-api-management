@@ -43,6 +43,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryConte
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -189,6 +190,7 @@ import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
@@ -1188,6 +1190,11 @@ public class ResourceContextConfiguration {
     @Bean
     public BucketNamesPostProcessor bucketNamesPostProcessor() {
         return mock(BucketNamesPostProcessor.class);
+    }
+
+    @Bean
+    public UnitEnrichmentPostProcessor unitEnrichmentPostProcessor(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+        return new UnitEnrichmentPostProcessorImpl(analyticsDefinitionQueryService);
     }
 
     @Bean

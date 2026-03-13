@@ -25,6 +25,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryConte
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
@@ -73,6 +74,9 @@ class ComputeFacetsUseCaseTest {
     private BucketNamesPostProcessor bucketNamesPostProcessor;
 
     @Mock
+    private UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
+
+    @Mock
     private QueryFilterTransformer transformer1;
 
     @Mock
@@ -88,6 +92,7 @@ class ComputeFacetsUseCaseTest {
         closeable = MockitoAnnotations.openMocks(this);
         when(contextLoader.load(any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
+        when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @AfterEach
@@ -97,7 +102,14 @@ class ComputeFacetsUseCaseTest {
 
     @Test
     void should_load_context_from_audit_info() {
-        var useCase = new ComputeFacetsUseCase(queryContextProvider, validator, List.of(), bucketNamesPostProcessor, contextLoader);
+        var useCase = new ComputeFacetsUseCase(
+            queryContextProvider,
+            validator,
+            List.of(),
+            bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of());
@@ -117,6 +129,7 @@ class ComputeFacetsUseCaseTest {
             validator,
             List.of(transformer1),
             bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
             contextLoader
         );
         var request = aFacetsRequest();
@@ -145,6 +158,7 @@ class ComputeFacetsUseCaseTest {
             validator,
             List.of(transformer1, transformer2),
             bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
             contextLoader
         );
         var request = aFacetsRequest();
@@ -162,7 +176,14 @@ class ComputeFacetsUseCaseTest {
 
     @Test
     void should_call_post_processor_with_analytics_context() {
-        var useCase = new ComputeFacetsUseCase(queryContextProvider, validator, List.of(), bucketNamesPostProcessor, contextLoader);
+        var useCase = new ComputeFacetsUseCase(
+            queryContextProvider,
+            validator,
+            List.of(),
+            bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -176,14 +197,23 @@ class ComputeFacetsUseCaseTest {
     @Test
     void should_return_post_processed_response() {
         var rawBucket = new FacetBucketResponse("api-1", "api-1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var rawResponse = new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(rawBucket))));
+        var rawResponse = new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(rawBucket))));
 
         var mappedBucket = new FacetBucketResponse("api-1", "My API 1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var mappedResponse = new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(mappedBucket))));
+        var mappedResponse = new FacetsResponse(
+            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(mappedBucket)))
+        );
 
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenReturn(mappedResponse);
 
-        var useCase = new ComputeFacetsUseCase(queryContextProvider, validator, List.of(), bucketNamesPostProcessor, contextLoader);
+        var useCase = new ComputeFacetsUseCase(
+            queryContextProvider,
+            validator,
+            List.of(),
+            bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -203,6 +233,7 @@ class ComputeFacetsUseCaseTest {
             validator,
             List.of(transformer1),
             bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
             contextLoader
         );
         var request = aFacetsRequest();

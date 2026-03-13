@@ -58,6 +58,12 @@ public class AnalyticsEngineFixtures {
             .metrics(List.of(metric));
     }
 
+    public static MeasuresRequest aResponseTimeMeasureRequest() {
+        return new MeasuresRequest()
+            .timeRange(timeRange())
+            .metrics(List.of(new MetricRequest().name(MetricName.HTTP_GATEWAY_RESPONSE_TIME).measures(List.of(MeasureName.AVG))));
+    }
+
     public static MetricRequest httpRequestCount() {
         var metricName = MetricName.HTTP_REQUESTS;
         var measures = List.of(MeasureName.COUNT);

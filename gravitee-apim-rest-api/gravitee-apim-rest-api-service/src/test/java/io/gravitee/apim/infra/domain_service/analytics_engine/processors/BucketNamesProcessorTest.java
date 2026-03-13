@@ -260,8 +260,8 @@ class BucketNamesProcessorTest {
 
             var response = new FacetsResponse(
                 List.of(
-                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(bucket1)),
-                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(bucket2, bucket3))
+                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(bucket1)),
+                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(bucket2, bucket3))
                 )
             );
 
@@ -269,9 +269,10 @@ class BucketNamesProcessorTest {
 
             var expectedResponse = new FacetsResponse(
                 List.of(
-                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(getNamedApiBucketResponse(bucket1))),
+                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(getNamedApiBucketResponse(bucket1))),
                     new MetricFacetsResponse(
                         MetricSpec.Name.HTTP_REQUESTS,
+                        null,
                         List.of(getNamedApiBucketResponse(bucket2), getNamedApiBucketResponse(bucket3))
                     )
                 )
@@ -281,7 +282,7 @@ class BucketNamesProcessorTest {
         }
 
         FacetsResponse facetsResponse(FacetBucketResponse... buckets) {
-            return new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, Arrays.asList(buckets))));
+            return new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, Arrays.asList(buckets))));
         }
     }
 
@@ -504,6 +505,7 @@ class BucketNamesProcessorTest {
                 List.of(
                     new TimeSeriesMetricResponse(
                         MetricSpec.Name.HTTP_REQUESTS,
+                        null,
                         List.of(timeSeriesBucketResponse1, timeSeriesBucketResponse2)
                     )
                 )
@@ -526,7 +528,9 @@ class BucketNamesProcessorTest {
                 null
             );
             var expectedResponse = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(namedBucketResponse1, namedBucketResponse2)))
+                List.of(
+                    new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(namedBucketResponse1, namedBucketResponse2))
+                )
             );
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
@@ -546,7 +550,7 @@ class BucketNamesProcessorTest {
                 measures
             );
             return new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(timeSeriesBucketResponse)))
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse)))
             );
         }
     }
@@ -558,7 +562,7 @@ class BucketNamesProcessorTest {
         void should_use_pre_loaded_api_names_and_skip_db_for_facets() {
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
             var response = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(facetBucketResponse)))
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse)))
             );
 
             processor.mapBucketNames(context, List.of(API), response);
@@ -579,7 +583,7 @@ class BucketNamesProcessorTest {
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
             var response = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(facetBucketResponse)))
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse)))
             );
 
             var mappedResponse = processor.mapBucketNames(emptyApiNamesContext, List.of(API), response);
@@ -587,7 +591,9 @@ class BucketNamesProcessorTest {
             verify(apiRepository).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
 
             var expectedResponse = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(getNamedApiBucketResponse(facetBucketResponse))))
+                List.of(
+                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(getNamedApiBucketResponse(facetBucketResponse)))
+                )
             );
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -598,7 +604,7 @@ class BucketNamesProcessorTest {
 
             var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1);
             var response = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(facetBucketResponse)))
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse)))
             );
 
             processor.mapBucketNames(contextWithApps, List.of(APPLICATION), response);
@@ -626,7 +632,7 @@ class BucketNamesProcessorTest {
                 null
             );
             var response = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(timeSeriesBucketResponse)))
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse)))
             );
 
             var mappedResponse = processor.mapBucketNames(emptyApiNamesContext, List.of(API), response);
@@ -641,7 +647,7 @@ class BucketNamesProcessorTest {
                 null
             );
             var expectedResponse = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(expectedTimeBucket)))
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(expectedTimeBucket)))
             );
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -657,7 +663,7 @@ class BucketNamesProcessorTest {
                 null
             );
             var response = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(timeSeriesBucketResponse)))
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse)))
             );
 
             processor.mapBucketNames(context, List.of(API), response);

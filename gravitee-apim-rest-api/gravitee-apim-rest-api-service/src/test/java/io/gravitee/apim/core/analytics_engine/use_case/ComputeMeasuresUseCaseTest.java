@@ -24,6 +24,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
@@ -69,6 +70,9 @@ class ComputeMeasuresUseCaseTest {
     private AnalyticsQueryContextLoader contextLoader;
 
     @Mock
+    private UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
+
+    @Mock
     private QueryFilterTransformer transformer1;
 
     @Mock
@@ -83,6 +87,7 @@ class ComputeMeasuresUseCaseTest {
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
         when(contextLoader.load(any())).thenReturn(ANALYTICS_CONTEXT);
+        when(unitEnrichmentPostProcessor.enrichUnits(any(MeasuresResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @AfterEach
@@ -92,7 +97,7 @@ class ComputeMeasuresUseCaseTest {
 
     @Test
     void should_load_context_from_audit_info() {
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), contextLoader);
+        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of());
@@ -107,7 +112,13 @@ class ComputeMeasuresUseCaseTest {
         var apiFilter = new Filter(FilterSpec.Name.API, FilterOperator.IN, Set.of("api-1"));
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(apiFilter));
 
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(transformer1), contextLoader);
+        var useCase = new ComputeMeasuresUseCase(
+            queryContextProvider,
+            validator,
+            List.of(transformer1),
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -129,7 +140,13 @@ class ComputeMeasuresUseCaseTest {
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1));
         when(transformer2.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1, filter2));
 
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(transformer1, transformer2), contextLoader);
+        var useCase = new ComputeMeasuresUseCase(
+            queryContextProvider,
+            validator,
+            List.of(transformer1, transformer2),
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -147,7 +164,13 @@ class ComputeMeasuresUseCaseTest {
     void should_pass_request_filters_to_transformer() {
         when(transformer1.transform(any(), any())).thenAnswer(inv -> inv.getArgument(1));
 
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(transformer1), contextLoader);
+        var useCase = new ComputeMeasuresUseCase(
+            queryContextProvider,
+            validator,
+            List.of(transformer1),
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -167,13 +190,13 @@ class ComputeMeasuresUseCaseTest {
         var service1 = mock(AnalyticsEngineQueryService.class);
         var service2 = mock(AnalyticsEngineQueryService.class);
 
-        var measure1 = new MetricMeasuresResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var measure2 = new MetricMeasuresResponse(MetricSpec.Name.MESSAGES, List.of(new Measure(MetricSpec.Measure.COUNT, 10)));
+        var measure1 = new MetricMeasuresResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
+        var measure2 = new MetricMeasuresResponse(MetricSpec.Name.MESSAGES, null, List.of(new Measure(MetricSpec.Measure.COUNT, 10)));
 
         when(service1.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of(measure1)));
         when(service2.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of(measure2)));
 
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), contextLoader);
+        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
         var request1 = new MeasuresRequest(request.timeRange(), request.filters(), List.of(request.metrics().getFirst()));
