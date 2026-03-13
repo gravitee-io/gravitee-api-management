@@ -82,5 +82,35 @@
     "published": true,
     "configuration": "{ \"portalPageContentId\": \"880e8400-e29b-41d4-a716-446655440003\" }",
     "visibility": "PUBLIC"
+  },
+  {
+    "id": "9e4f5a6b-7b8c-9d0e-1f2a-3b4c5d6e7f8a",
+    "organizationId": "org-1",
+    "environmentId": "env-1",
+    "title": "My Public API",
+    "type": "API",
+    "apiId": "api-public-1",
+    "area": "TOP_NAVBAR",
+    "parentId": null,
+    "rootId": "9e4f5a6b-7b8c-9d0e-1f2a-3b4c5d6e7f8a",
+    "order": 4,
+    "published": true,
+    "configuration": "{}",
+    "visibility": "PUBLIC"
+  },
+  {
+    "id": "af5a6b7c-8c9d-0e1f-2a3b-4c5d6e7f8a9b",
+    "organizationId": "org-1",
+    "environmentId": "env-1",
+    "title": "My Private API",
+    "type": "API",
+    "apiId": "api-private-1",
+    "area": "TOP_NAVBAR",
+    "parentId": null,
+    "rootId": "af5a6b7c-8c9d-0e1f-2a3b-4c5d6e7f8a9b",
+    "order": 5,
+    "published": true,
+    "configuration": "{}",
+    "visibility": "PRIVATE"
   }
 ]
