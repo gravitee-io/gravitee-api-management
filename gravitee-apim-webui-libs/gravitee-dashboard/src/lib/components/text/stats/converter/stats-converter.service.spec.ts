@@ -108,24 +108,6 @@ describe('StatsConverterService', () => {
       expect(result).toEqual(['2,048 bytes', '10,240 bytes']);
     });
 
-    it('should fall back to no suffix when unit is missing', () => {
-      const data: MeasuresResponse = {
-        metrics: [
-          {
-            name: 'HTTP_REQUESTS',
-            measures: [
-              { name: 'AVG', value: 45.6 },
-              { name: 'COUNT', value: 1234 },
-            ],
-          },
-        ],
-      };
-
-      const result = service.convert(data);
-
-      expect(result).toEqual(['46', '1,234']);
-    });
-
     it('should round decimal values', () => {
       const data: MeasuresResponse = {
         metrics: [

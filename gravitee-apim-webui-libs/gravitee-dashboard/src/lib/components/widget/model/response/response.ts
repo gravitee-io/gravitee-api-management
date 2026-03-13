@@ -32,7 +32,7 @@ export const UnitLabel: Record<UnitName, string> = {
 
 export interface Metric {
   name: MetricName;
-  unit?: UnitName;
+  unit: UnitName;
 }
 
 export interface Bucket {

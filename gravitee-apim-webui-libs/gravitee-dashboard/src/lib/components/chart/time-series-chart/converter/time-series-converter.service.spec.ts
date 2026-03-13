@@ -71,6 +71,7 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [makeMeasureBucket('2025-10-07T06:00:00Z', 100), makeMeasureBucket('2025-10-08T06:00:00Z', 200)],
         },
       ]);
@@ -99,6 +100,7 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             makeNestedBucket('2025-10-07T06:00:00Z', {
               '100-199': 50,
@@ -126,6 +128,7 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             makeMeasureBucket('2025-10-07T06:00:00Z', 100),
             makeBaseBucket('2025-10-08T06:00:00Z', { measures: [] }),
@@ -144,6 +147,7 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             makeBaseBucket('2025-10-07T06:00:00Z', {
               timestamp: new Date(1728288000000),
@@ -168,10 +172,12 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [makeMeasureBucket('2025-10-07T06:00:00Z', 100)],
         },
         {
           name: 'HTTP_ERRORS',
+          unit: 'NUMBER',
           buckets: [makeMeasureBucket('2025-10-07T06:00:00Z', 5)],
         },
       ]);
@@ -190,6 +196,7 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             makeBaseBucket('2025-10-07T06:00:00Z', {
               buckets: [
@@ -221,6 +228,7 @@ describe('TimeSeriesConverterService', () => {
       const data: TimeSeriesResponse = makeResponse([
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             makeBaseBucket('2025-10-07T06:00:00Z', { buckets: [] }),
             makeBaseBucket('2025-10-08T06:00:00Z', { buckets: [] }),
@@ -253,7 +261,7 @@ describe('TimeSeriesConverterService', () => {
       globalBuckets.forEach(b => (b.timestamp = undefined));
 
       const data: TimeSeriesResponse = {
-        metrics: [{ name: 'HTTP_REQUESTS', buckets: metricBuckets }],
+        metrics: [{ name: 'HTTP_REQUESTS', unit: 'NUMBER', buckets: metricBuckets }],
         buckets: globalBuckets,
       };
 
