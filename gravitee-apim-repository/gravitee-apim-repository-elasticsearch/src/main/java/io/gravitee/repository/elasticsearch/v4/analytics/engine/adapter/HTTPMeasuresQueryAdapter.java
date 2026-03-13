@@ -22,7 +22,6 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HTTPRPSBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalCostBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalTokenBuilder;
@@ -55,7 +54,6 @@ public class HTTPMeasuresQueryAdapter {
     private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
-    private final HTTPRPSBuilder rpsBuilder = new HTTPRPSBuilder();
     private final LLMTotalTokenBuilder llmTotalTokenBuilder = new LLMTotalTokenBuilder();
     private final LLMTotalCostBuilder llmTotalCostBuilder = new LLMTotalCostBuilder();
 
@@ -104,7 +102,7 @@ public class HTTPMeasuresQueryAdapter {
 
     private boolean isComputedMetric(Metric metric) {
         return switch (metric) {
-            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE, HTTP_RPS -> true;
+            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE -> true;
             default -> false;
         };
     }
@@ -114,7 +112,6 @@ public class HTTPMeasuresQueryAdapter {
             case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
             case LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotalCost(aggName, measure);
             case HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure);
-            case HTTP_RPS -> aggregateHTTPRPS(aggName, measure);
             default -> aggregateByMeasure(aggName, field, metric, measure);
         };
     }
@@ -137,14 +134,7 @@ public class HTTPMeasuresQueryAdapter {
 
     private Optional<Map<String, JsonObject>> aggregateHTTPErrorRate(String aggName, Measure measure) {
         return switch (measure) {
-            case VALUE -> errorRate().map(errorRate -> errorRate.build(aggName, null));
-            default -> Optional.empty();
-        };
-    }
-
-    private Optional<Map<String, JsonObject>> aggregateHTTPRPS(String aggName, Measure measure) {
-        return switch (measure) {
-            case VALUE -> rps().map(rps -> rps.build(aggName, null));
+            case PERCENTAGE -> errorRate().map(errorRate -> errorRate.build(aggName, null));
             default -> Optional.empty();
         };
     }
@@ -200,10 +190,6 @@ public class HTTPMeasuresQueryAdapter {
 
     private Optional<SimpleP50Builder> p50() {
         return Optional.of(p50Builder);
-    }
-
-    private Optional<HTTPRPSBuilder> rps() {
-        return Optional.of(rpsBuilder);
     }
 
     private Optional<HttpErrorRateBuilder> errorRate() {

@@ -49,8 +49,7 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
             MetricSpec.Name.MESSAGE_PAYLOAD_SIZE,
             MetricSpec.Name.MESSAGE_ERRORS,
             MetricSpec.Name.MESSAGES,
-            MetricSpec.Name.MESSAGE_GATEWAY_LATENCY,
-            MetricSpec.Name.MESSAGE_RPS
+            MetricSpec.Name.MESSAGE_GATEWAY_LATENCY
         );
     }
 
