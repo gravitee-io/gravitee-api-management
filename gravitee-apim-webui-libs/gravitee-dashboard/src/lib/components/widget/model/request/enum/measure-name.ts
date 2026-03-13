@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type MeasureName = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' | 'COUNT' | 'VALUE';
+export type MeasureName = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' | 'COUNT' | 'VALUE' | 'PERCENTAGE';
 
-type UnitValue = 'ms' | '';
+type UnitValue = 'ms' | '%' | '';
 
 export const MeasureUnit: Record<MeasureName, UnitValue> = {
   MIN: 'ms',
@@ -28,4 +28,5 @@ export const MeasureUnit: Record<MeasureName, UnitValue> = {
   COUNT: '',
   AVG: '',
   VALUE: '',
+  PERCENTAGE: '%',
 };
