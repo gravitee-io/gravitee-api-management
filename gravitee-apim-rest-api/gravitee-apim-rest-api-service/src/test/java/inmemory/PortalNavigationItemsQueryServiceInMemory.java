@@ -80,7 +80,10 @@ public class PortalNavigationItemsQueryServiceInMemory
                     (PARENT_ID_FILTER.test(item)) &&
                     (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished())) &&
                     (criteria.getVisibility() == null || criteria.getVisibility().equals(item.getVisibility())) &&
-                    (criteria.getType() == null || matchesType(item, criteria.getType()))
+                    (criteria.getType() == null || matchesType(item, criteria.getType())) &&
+                    (criteria.getApiIds() == null ||
+                        criteria.getApiIds().isEmpty() ||
+                        (item instanceof PortalNavigationApi api && criteria.getApiIds().contains(api.getApiId())))
             )
             .toList();
     }
