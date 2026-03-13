@@ -34,6 +34,7 @@ describe('PieChartComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             {
               key: 'test-key-1',
@@ -64,6 +65,7 @@ describe('PieChartComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             {
               key: 'bucket-1',

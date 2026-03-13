@@ -29,6 +29,7 @@ describe('CategoryChartComponent', () => {
     metrics: [
       {
         name: 'HTTP_REQUESTS',
+        unit: 'NUMBER',
         buckets: [
           { key: 'tools/call', name: 'tools/call', measures: [{ name: 'COUNT', value: 17 }] },
           { key: 'tools/list', name: 'tools/list', measures: [{ name: 'COUNT', value: 14 }] },

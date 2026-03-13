@@ -51,6 +51,7 @@ describe('TimeSeriesChartComponent', () => {
     metrics: [
       {
         name: 'HTTP_REQUESTS',
+        unit: 'NUMBER',
         buckets: metricBuckets,
       },
     ],
@@ -122,8 +123,8 @@ describe('TimeSeriesChartComponent', () => {
     it('should assign shared colors to datasets', () => {
       const data: TimeSeriesResponse = {
         metrics: [
-          { name: 'HTTP_REQUESTS', buckets: [createMeasureBucket('2025-10-07T06:00:00Z', 100)] },
-          { name: 'HTTP_ERRORS', buckets: [createMeasureBucket('2025-10-07T06:00:00Z', 200)] },
+          { name: 'HTTP_REQUESTS', unit: 'NUMBER', buckets: [createMeasureBucket('2025-10-07T06:00:00Z', 100)] },
+          { name: 'HTTP_ERRORS', unit: 'NUMBER', buckets: [createMeasureBucket('2025-10-07T06:00:00Z', 200)] },
         ],
         buckets: [createBaseBucket('2025-10-07T06:00:00Z')],
       };

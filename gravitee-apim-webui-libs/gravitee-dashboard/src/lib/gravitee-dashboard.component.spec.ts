@@ -101,6 +101,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [{ name: 'COUNT', value: 100 }],
         },
       ],
@@ -144,6 +145,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [{ name: 'AVG', value: 150 }],
         },
       ],
@@ -185,6 +187,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             { key: '2xx', name: '2xx', measures: [{ name: 'COUNT', value: 100 }] },
             { key: '4xx', name: '4xx', measures: [{ name: 'COUNT', value: 10 }] },
@@ -231,6 +234,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [{ name: 'COUNT', value: 100 }],
         },
       ],
@@ -240,6 +244,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [{ key: '2xx', name: '2xx', measures: [{ name: 'COUNT', value: 100 }] }],
         },
       ],
@@ -338,6 +343,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [{ name: 'COUNT', value: 100 }],
         },
       ],
@@ -526,6 +532,7 @@ describe('GraviteeDashboardComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [{ name: 'COUNT', value: 100 }],
         },
       ],
@@ -690,7 +697,7 @@ describe('GraviteeDashboardComponent', () => {
     expect(widgetConfigs[0].request!.filters).toEqual([widgetLevelFilter]);
 
     req.flush({
-      metrics: [{ name: 'HTTP_REQUESTS', measures: [{ name: 'COUNT', value: 50 }] }],
+      metrics: [{ name: 'HTTP_REQUESTS', unit: 'NUMBER', measures: [{ name: 'COUNT', value: 50 }] }],
     });
     tick();
   }));
