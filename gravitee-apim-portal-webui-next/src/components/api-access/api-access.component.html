@@ -43,6 +43,9 @@
             Password was shown only at subscription creation time.
           </div>
         }
+        <button mat-stroked-button class="api-access__renew-btn" (click)="renewBasicAuth.emit()" i18n="@@subscriptionDetailsRenewBasicAuth">
+          Regenerate credentials
+        </button>
       }
       @if (apiType === 'NATIVE') {
         <app-native-kafka-api-access

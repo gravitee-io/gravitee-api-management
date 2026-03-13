@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, Input, model } from '@angular/core';
+import { Component, computed, effect, EventEmitter, Input, model, Output } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
@@ -37,6 +38,7 @@ import { CopyCodeComponent } from '../copy-code/copy-code.component';
     MatFormFieldModule,
     MatSelectModule,
     CopyCodeIconComponent,
+    MatButtonModule,
   ],
   templateUrl: './api-access.component.html',
   styleUrl: './api-access.component.scss',
@@ -71,6 +73,9 @@ export class ApiAccessComponent {
 
   @Input()
   basicAuthPassword?: string;
+
+  @Output()
+  renewBasicAuth = new EventEmitter<void>();
 
   selectedEntrypointUrl = model<string>('');
 

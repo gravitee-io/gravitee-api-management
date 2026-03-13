@@ -163,6 +163,34 @@ export class SubscriptionsDetailsComponent implements OnInit {
       });
   }
 
+  onRenewBasicAuth() {
+    const dialogData: ConfirmDialogData = {
+      title: $localize`:@@titleRenewBasicAuthDialog:Regenerate credentials?`,
+      content: $localize`:@@contentRenewBasicAuthDialog:Current credentials will be revoked and new ones will be generated.`,
+      confirmLabel: $localize`:@@confirmRenewBasicAuthDialog:Yes, regenerate`,
+      cancelLabel: $localize`:@@cancelRenewBasicAuthDialog:Cancel`,
+    };
+    this.dialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        id: 'renewBasicAuthDialog',
+        data: dialogData,
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => !!confirmed),
+        switchMap(() => this.subscriptionService.renewBasicAuthCredentials(this.subscriptionId)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: renewed => {
+          this.basicAuthPasswordFlash = renewed.basic_auth_password ?? '';
+          this._subscriptionDetails.next(true);
+        },
+        error: err => console.error(err),
+      });
+  }
+
   private loadDetails() {
     return this._subscriptionDetails.pipe(
       switchMap(() =>

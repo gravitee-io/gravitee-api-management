@@ -49,6 +49,7 @@
         [basicAuthPassword]="detailsVM.result.basicAuthPassword"
         [apiType]="detailsVM.result.api?.type"
         [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
+        (renewBasicAuth)="onRenewBasicAuth()"
       />
     </div>
   }

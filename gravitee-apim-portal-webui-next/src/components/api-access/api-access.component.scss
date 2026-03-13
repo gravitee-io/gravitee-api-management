@@ -57,6 +57,10 @@
     font-size: 13px;
   }
 
+  &__renew-btn {
+    align-self: flex-start;
+  }
+
   &__copy-code-content {
     display: flex;
     flex-flow: column;
