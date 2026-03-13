@@ -34,6 +34,7 @@ describe('StatsComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [
             { name: 'COUNT', value: 10 },
             { name: 'AVG', value: 25 },
@@ -66,6 +67,7 @@ describe('StatsComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [{ name: 'COUNT', value: 42 }],
         },
       ],
@@ -82,6 +84,7 @@ describe('StatsComponent', () => {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: [
             { name: 'COUNT', value: 15 },
             { name: 'AVG', value: 30 },

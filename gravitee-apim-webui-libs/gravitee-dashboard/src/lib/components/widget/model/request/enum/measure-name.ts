@@ -14,19 +14,3 @@
  * limitations under the License.
  */
 export type MeasureName = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' | 'COUNT' | 'VALUE' | 'PERCENTAGE';
-
-type UnitValue = 'ms' | '%' | '';
-
-export const MeasureUnit: Record<MeasureName, UnitValue> = {
-  MIN: 'ms',
-  MAX: 'ms',
-  P50: 'ms',
-  P90: 'ms',
-  P95: 'ms',
-  P99: 'ms',
-
-  COUNT: '',
-  AVG: '',
-  VALUE: '',
-  PERCENTAGE: '%',
-};
