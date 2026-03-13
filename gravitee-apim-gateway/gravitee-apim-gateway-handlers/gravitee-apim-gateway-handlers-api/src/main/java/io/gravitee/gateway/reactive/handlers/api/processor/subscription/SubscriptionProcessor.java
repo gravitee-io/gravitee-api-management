@@ -34,6 +34,7 @@ import io.reactivex.rxjava3.core.Completable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
+import lombok.CustomLog;
 import org.bouncycastle.util.encoders.Hex;
 
 /**
@@ -41,6 +42,7 @@ import org.bouncycastle.util.encoders.Hex;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class SubscriptionProcessor implements Processor {
 
     public static final String ID = "processor-subscription";
@@ -125,6 +127,13 @@ public class SubscriptionProcessor implements Processor {
 
             Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
             if (subscription == null) {
+                ctx
+                    .withLogger(log)
+                    .debug(
+                        "No subscription resolved for request, creating anonymous subscription for API [{}] with plan [{}]",
+                        ctx.getAttribute(ATTR_API),
+                        planId
+                    );
                 subscription = new Subscription();
                 subscription.setId(subscriptionId);
                 subscription.setApi(ctx.getAttribute(ATTR_API));

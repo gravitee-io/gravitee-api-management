@@ -24,6 +24,22 @@ export type AuthFormValue = {
   clientId?: string;
   clientSecret?: string;
   scopes?: string[];
+  issuer?: string;
+  subject?: string;
+  audience?: string;
+  expirationTime?: number;
+  expirationTimeUnit?: string;
+  signatureAlgorithm?: string;
+  keySource?: string;
+  jwtId?: string;
+  secretBase64Encoded?: boolean;
+  x509CertChain?: string;
+  alias?: string;
+  storePassword?: string;
+  keyPassword?: string;
+  keyId?: string;
+  keyContent?: string;
+  customClaims?: { name: string; value: string }[];
 };
 
 export const AUTHENTICATION_TYPES: { label: string; value: WebhookSubscriptionConfigurationAuthType }[] = [
@@ -42,5 +58,9 @@ export const AUTHENTICATION_TYPES: { label: string; value: WebhookSubscriptionCo
   {
     label: 'Oauth2 security',
     value: 'oauth2',
+  },
+  {
+    label: 'JWT Profile for OAuth2',
+    value: 'jwtProfileOauth2',
   },
 ];

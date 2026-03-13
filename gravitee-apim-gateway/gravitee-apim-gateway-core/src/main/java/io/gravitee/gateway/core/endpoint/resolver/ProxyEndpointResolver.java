@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import java.util.Collection;
 import java.util.regex.Pattern;
+import lombok.CustomLog;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ProxyEndpointResolver implements EndpointResolver {
 
     private static final String URI_PATH_SEPARATOR = "/";
@@ -51,7 +53,13 @@ public class ProxyEndpointResolver implements EndpointResolver {
 
     @Override
     public ProxyEndpoint resolve(String reference) {
-        return (reference != null) ? selectUserDefinedEndpoint(reference) : selectLoadBalancedEndpoint();
+        ProxyEndpoint result = (reference != null) ? selectUserDefinedEndpoint(reference) : selectLoadBalancedEndpoint();
+        if (result == null) {
+            log.debug("No endpoint resolved for reference [{}]", reference);
+        } else {
+            log.debug("Endpoint resolved: [{}] for reference [{}]", result.name(), reference);
+        }
+        return result;
     }
 
     /**

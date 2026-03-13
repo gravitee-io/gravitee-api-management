@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.Flowable;
+import lombok.CustomLog;
 
 /**
  * The {@link ConnectionHandlerAdapter} allows to manage the response chunks coming from the upstream.
@@ -37,6 +38,7 @@ import io.reactivex.rxjava3.core.Flowable;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
 
     private final HttpPlainExecutionContext ctx;
@@ -143,6 +145,8 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
     private void tryCancel(ProxyResponse proxyResponse) {
         try {
             proxyResponse.cancel();
-        } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            ctx.withLogger(log).warn("Unable to cancel proxy response", t);
+        }
     }
 }

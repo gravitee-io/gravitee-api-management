@@ -34,13 +34,14 @@ export interface Header {
   value: string;
 }
 
-export type WebhookSubscriptionConfigurationAuthType = 'none' | 'basic' | 'token' | 'oauth2';
+export type WebhookSubscriptionConfigurationAuthType = 'none' | 'basic' | 'token' | 'oauth2' | 'jwtProfileOauth2';
 
 export interface WebhookSubscriptionConfigurationAuth {
   type: WebhookSubscriptionConfigurationAuthType;
   basic?: BasicAuthConfiguration;
   token?: TokenAuthConfiguration;
   oauth2?: Oauth2AuthConfiguration;
+  jwtProfileOauth2?: JwtProfileOauth2AuthConfiguration;
 }
 
 export interface BasicAuthConfiguration {
@@ -57,6 +58,34 @@ export interface Oauth2AuthConfiguration {
   clientId: string;
   clientSecret: string;
   scopes?: string[];
+}
+
+export interface JwtProfileOauth2AuthConfiguration {
+  issuer: string;
+  subject: string;
+  audience: string;
+  expirationTime: number;
+  expirationTimeUnit: string;
+  signatureAlgorithm: string;
+  keySource: string;
+  jwtId?: string;
+  secretBase64Encoded?: boolean;
+  x509CertChain?: string;
+  keystoreOptions?: JwtProfileOauth2KeystoreOptions;
+  keyId?: string;
+  keyContent: string;
+  customClaims?: JwtProfileOauth2CustomClaim[];
+}
+
+export interface JwtProfileOauth2KeystoreOptions {
+  alias?: string;
+  storePassword?: string;
+  keyPassword?: string;
+}
+
+export interface JwtProfileOauth2CustomClaim {
+  name: string;
+  value: string;
 }
 
 export interface SslOptions {
