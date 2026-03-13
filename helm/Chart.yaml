@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.11.0
-appVersion: 4.11.0
+version: 4.12.0
+appVersion: 4.12.0
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,8 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: 'Allow configuration of ECS logging'
-    - kind: added
-      description: 'Add parameter to enable or disable Alert Engine default filters (enabled by default) through the APIM Rest API.'
+  artifacthub.io/changes:

@@ -94,13 +94,13 @@ pull_request_rules:
             ----
             {{ cherry_pick_error }}
           title: "[4.7.x] {{ title }}"
-    - name: Apply commits on `4.6.x`
+    - name: Apply commits on `4.11.x`
       conditions:
-          - label=apply-on-4-6-x
+          - label=apply-on-4.11.x
       actions:
           backport:
               branches:
-                  - 4.6.x
+                  - 4.11.x
               assignees:
                   - "{{ author }}"
               body: |
@@ -112,4 +112,4 @@ pull_request_rules:
 
                   ----
                   {{ cherry_pick_error }}
-              title: "[4.6.x] {{ title }}"
+              title: "[4.11.x] {{ title }}"
