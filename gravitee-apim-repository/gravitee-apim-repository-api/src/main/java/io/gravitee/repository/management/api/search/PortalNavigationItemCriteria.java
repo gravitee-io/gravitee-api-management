@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -32,5 +33,6 @@ public class PortalNavigationItemCriteria {
     private Boolean published;
     private Boolean root;
     private String visibility;
+    private Set<String> apiIds;
     private String type;
 }

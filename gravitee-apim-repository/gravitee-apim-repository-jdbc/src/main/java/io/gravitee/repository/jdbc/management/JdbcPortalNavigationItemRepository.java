@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
@@ -179,7 +180,10 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("visibility = ?");
                 params.add(criteria.getVisibility());
             }
-
+            if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
+                clauses.add("api_id IN (" + String.join(",", Collections.nCopies(criteria.getApiIds().size(), "?")) + ")");
+                params.addAll(criteria.getApiIds());
+            }
             if (hasText(criteria.getType())) {
                 try {
                     PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());

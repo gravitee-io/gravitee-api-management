@@ -125,7 +125,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (criteria.getVisibility() != null) {
                 query.addCriteria(where("visibility").is(criteria.getVisibility()));
             }
-
+            if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
+                query.addCriteria(where("apiId").in(criteria.getApiIds()));
+            }
             if (hasText(criteria.getType())) {
                 try {
                     PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());
