@@ -401,7 +401,7 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   function expectGetApi(api: Api = fakeApi()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${api.id}`).flush(api);
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${api.id}?view=documentation`).flush(api);
   }
 
   function expectGetApiPermissions(permissions = fakeUserApiPermissions({ PLAN: ['R'] })) {
