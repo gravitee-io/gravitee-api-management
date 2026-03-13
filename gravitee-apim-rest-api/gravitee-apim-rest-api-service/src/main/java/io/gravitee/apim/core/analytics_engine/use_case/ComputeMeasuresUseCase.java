@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
@@ -45,17 +46,21 @@ public class ComputeMeasuresUseCase {
 
     private final List<QueryFilterTransformer> filterTransformers;
 
+    private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
+
     private final AnalyticsQueryContextLoader contextLoader;
 
     public ComputeMeasuresUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
         List<QueryFilterTransformer> filterTransformers,
+        UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
         AnalyticsQueryContextLoader contextLoader
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
         this.filterTransformers = filterTransformers;
+        this.unitEnrichmentPostProcessor = unitEnrichmentPostProcessor;
         this.contextLoader = contextLoader;
     }
 
@@ -72,7 +77,9 @@ public class ComputeMeasuresUseCase {
 
         var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContext);
 
-        return new Output(MeasuresResponse.merge(responses));
+        var response = MeasuresResponse.merge(responses);
+        var enriched = unitEnrichmentPostProcessor.enrichUnits(response);
+        return new Output(enriched);
     }
 
     private List<MeasuresResponse> executeQueries(

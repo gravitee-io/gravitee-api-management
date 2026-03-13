@@ -56,6 +56,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeries
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketLeaf;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.UnitName;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.ws.rs.client.Entity;
@@ -175,10 +176,46 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     assertThat(measuresResponse.getMetrics()).containsExactlyInAnyOrder(
                         new MeasuresResponseMetricsInner()
                             .name(MetricName.HTTP_REQUESTS)
+                            .unit(UnitName.NUMBER)
                             .measures(List.of(new Measure().name(MeasureName.COUNT).value(42))),
                         new MeasuresResponseMetricsInner()
                             .name(MetricName.MESSAGES)
+                            .unit(UnitName.NUMBER)
                             .measures(List.of(new Measure().name(MeasureName.COUNT).value(42)))
+                    );
+                });
+        }
+
+        @Test
+        void should_return_response_time_with_milliseconds_unit() {
+            var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
+            when(
+                analyticsRepository.searchHTTPMeasures(
+                    eq(queryContext),
+                    argThat(query -> query.metrics().getFirst().metric() == Metric.HTTP_GATEWAY_RESPONSE_TIME)
+                )
+            ).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.HTTP_GATEWAY_RESPONSE_TIME,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.AVG, 150)
+                        )
+                    )
+                )
+            );
+
+            var response = rootTarget().path("measures").request().post(Entity.json(aResponseTimeMeasureRequest()));
+
+            assertThat(response)
+                .hasStatus(200)
+                .asEntity(MeasuresResponse.class)
+                .satisfies(measuresResponse -> {
+                    assertThat(measuresResponse.getMetrics()).containsExactly(
+                        new MeasuresResponseMetricsInner()
+                            .name(MetricName.HTTP_GATEWAY_RESPONSE_TIME)
+                            .unit(UnitName.MILLISECONDS)
+                            .measures(List.of(new Measure().name(MeasureName.AVG).value(150)))
                     );
                 });
         }
@@ -287,6 +324,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                         List.of(
                             new FacetsResponseMetricsInner()
                                 .name(MetricName.HTTP_REQUESTS)
+                                .unit(UnitName.NUMBER)
                                 .buckets(List.of(expectLeafBucket("100-199", 100), expectLeafBucket("200-299", 200)))
                         )
                     )
@@ -405,6 +443,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                         List.of(
                             new TimeSeriesResponseMetricsInner()
                                 .name(MetricName.HTTP_REQUESTS)
+                                .unit(UnitName.NUMBER)
                                 .buckets(
                                     List.of(
                                         expectLeafBucket("2025-11-07T00:00:00Z", 1762473600000L, 100),

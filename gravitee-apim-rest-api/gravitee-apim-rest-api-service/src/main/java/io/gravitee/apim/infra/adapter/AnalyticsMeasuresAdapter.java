@@ -81,7 +81,8 @@ public interface AnalyticsMeasuresAdapter {
     }
 
     default MetricMeasuresResponse fromResult(MetricMeasuresResult result) {
-        return new MetricMeasuresResponse(fromResult(result.metric()), fromResult(result.measures()));
+        // The unit is set to null here, because it is populated later by a post processor according to the definition model.
+        return new MetricMeasuresResponse(fromResult(result.metric()), null, fromResult(result.measures()));
     }
 
     default List<Measure> fromResult(Map<io.gravitee.repository.analytics.engine.api.metric.Measure, Number> result) {

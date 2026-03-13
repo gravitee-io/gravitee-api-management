@@ -31,11 +31,12 @@ describe('StatsConverterService', () => {
   });
 
   describe('convert', () => {
-    it('should convert measures with different unit types', () => {
+    it('should apply NUMBER unit to all measures', () => {
       const data: MeasuresResponse = {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [
               { name: 'AVG', value: 45.6 },
               { name: 'MIN', value: 10 },
@@ -49,14 +50,35 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['46', '10 ms', '1,200 ms', '1,234', '76']);
+      expect(result).toEqual(['46', '10', '1,200', '1,234', '76']);
     });
 
-    it('should format PERCENTAGE measure with % suffix', () => {
+    it('should apply MILLISECONDS unit to all measures', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_GATEWAY_RESPONSE_TIME',
+            unit: 'MILLISECONDS',
+            measures: [
+              { name: 'AVG', value: 45.6 },
+              { name: 'MIN', value: 10 },
+              { name: 'MAX', value: 1200 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['46 ms', '10 ms', '1,200 ms']);
+    });
+
+    it('should apply PERCENT unit to all measures', () => {
       const data: MeasuresResponse = {
         metrics: [
           {
             name: 'HTTP_ERROR_RATE',
+            unit: 'PERCENT',
             measures: [{ name: 'PERCENTAGE', value: 75.8 }],
           },
         ],
@@ -67,11 +89,49 @@ describe('StatsConverterService', () => {
       expect(result).toEqual(['76 %']);
     });
 
-    it('should truncate decimal values using Math.trunc', () => {
+    it('should apply BYTES unit to all measures', () => {
       const data: MeasuresResponse = {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'BYTES',
+            measures: [
+              { name: 'AVG', value: 2048 },
+              { name: 'MAX', value: 10240 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['2,048 bytes', '10,240 bytes']);
+    });
+
+    it('should fall back to no suffix when unit is missing', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'AVG', value: 45.6 },
+              { name: 'COUNT', value: 1234 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['46', '1,234']);
+    });
+
+    it('should round decimal values', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_GATEWAY_RESPONSE_TIME',
+            unit: 'MILLISECONDS',
             measures: [
               { name: 'AVG', value: 45.999 },
               { name: 'MIN', value: 10.123 },
@@ -83,7 +143,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['46', '10 ms', '1,201 ms']);
+      expect(result).toEqual(['46 ms', '10 ms', '1,201 ms']);
     });
 
     it('should handle zero values', () => {
@@ -91,6 +151,7 @@ describe('StatsConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [
               { name: 'AVG', value: 0 },
               { name: 'COUNT', value: 0 },
@@ -109,7 +170,8 @@ describe('StatsConverterService', () => {
       const data: MeasuresResponse = {
         metrics: [
           {
-            name: 'HTTP_REQUESTS',
+            name: 'HTTP_GATEWAY_RESPONSE_TIME',
+            unit: 'MILLISECONDS',
             measures: [
               { name: 'AVG', value: -45.6 },
               { name: 'MIN', value: -10 },
@@ -120,7 +182,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['-46', '-10 ms']);
+      expect(result).toEqual(['-46 ms', '-10 ms']);
     });
 
     it('should handle large values with proper formatting', () => {
@@ -128,6 +190,7 @@ describe('StatsConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [
               { name: 'COUNT', value: 1234567 },
               { name: 'AVG', value: 999999.99 },
@@ -141,11 +204,12 @@ describe('StatsConverterService', () => {
       expect(result).toEqual(['1,234,567', '1,000,000']);
     });
 
-    it('should handle percentile measures (P50, P90, P95, P99)', () => {
+    it('should handle percentile measures with MILLISECONDS unit', () => {
       const data: MeasuresResponse = {
         metrics: [
           {
-            name: 'HTTP_REQUESTS',
+            name: 'HTTP_GATEWAY_RESPONSE_TIME',
+            unit: 'MILLISECONDS',
             measures: [
               { name: 'P50', value: 50.4 },
               { name: 'P90', value: 90.2 },
@@ -186,6 +250,7 @@ describe('StatsConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [],
           },
         ],
@@ -201,6 +266,7 @@ describe('StatsConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [
               { name: 'AVG', value: 45 },
               { name: 'COUNT', value: 100 },
@@ -208,6 +274,7 @@ describe('StatsConverterService', () => {
           },
           {
             name: 'HTTP_ERRORS',
+            unit: 'NUMBER',
             measures: [
               { name: 'AVG', value: 999 },
               { name: 'COUNT', value: 200 },
@@ -226,6 +293,7 @@ describe('StatsConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [{ name: 'AVG', value: 42 }],
           },
         ],
@@ -241,6 +309,7 @@ describe('StatsConverterService', () => {
         metrics: [
           {
             name: 'HTTP_REQUESTS',
+            unit: 'NUMBER',
             measures: [{ name: 'COUNT', value: 1234567 }],
           },
         ],
@@ -248,7 +317,6 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      // toLocaleString() should format with thousand separators
       expect(result[0]).toContain(',');
       expect(result[0]).toBe('1,234,567');
     });
