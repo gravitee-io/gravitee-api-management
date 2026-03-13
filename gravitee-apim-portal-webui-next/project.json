@@ -40,6 +40,11 @@
             "glob": "**/*",
             "input": "gravitee-apim-webui-libs/gravitee-markdown/src/lib/assets/homepage",
             "output": "assets/homepage"
+          },
+          {
+            "glob": "redoc.standalone.js",
+            "input": "node_modules/redoc/bundles",
+            "output": "assets/redoc"
           }
         ],
         "scripts": [
