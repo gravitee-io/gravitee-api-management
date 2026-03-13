@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -172,6 +173,9 @@ public class ApisResource extends AbstractResource<Api, String> {
         try {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             if ("documentation".equals(view)) {
+                if (category != null && !category.isEmpty()) {
+                    throw new BadRequestException("Parameters 'view' and 'category' are mutually exclusive.");
+                }
                 var pageable = new PageableImpl(paginationParam.getPage(), paginationParam.getSize());
                 var output = searchApisForPortalUseCase.execute(
                     new SearchApisForPortalUseCase.Input(
@@ -184,10 +188,10 @@ public class ApisResource extends AbstractResource<Api, String> {
                     )
                 );
                 List<String> ids = output.apis().getContent().stream().map(io.gravitee.apim.core.api.model.Api::getId).toList();
-                Map<String, Object> totalOnly = new HashMap<>();
-                totalOnly.put("totalElements", output.apis().getTotalElements());
+                // paginateMetaData.totalElements tells createListResponse the true total across all pages.
+                // paginateResultList then builds full pagination metadata (total_pages, first, last, size).
                 Map<String, Map<String, Object>> metadata = new HashMap<>();
-                metadata.put("paginateMetaData", totalOnly);
+                metadata.put("paginateMetaData", Map.of("totalElements", (Object) output.apis().getTotalElements()));
                 return createListResponse(executionContext, ids, paginationParam, metadata);
             }
             Collection<String> apisList;

@@ -190,10 +190,15 @@ paths:
                       type: string
                       enum:
                           - documentation
+                - $ref: "#/components/parameters/apiCategoryQueryParam"
             summary: Search APIs with a query
             description: |
                 Same as `/apis` but with a search query as a parameter. Search for API using the search engine.
                 Supports pagination.
+
+                The `view` and `category` parameters are mutually exclusive. Providing both returns a 400 error.
+                When `view=documentation`, APIs are filtered by portal navigation visibility rules and the
+                `category` parameter is not applicable.
             operationId: searchApis
             security:
                 - {}
@@ -206,6 +211,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApisResponse"
+                400:
+                    description: Bad Request if both 'view' and 'category' parameters are provided.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /apis/categories:

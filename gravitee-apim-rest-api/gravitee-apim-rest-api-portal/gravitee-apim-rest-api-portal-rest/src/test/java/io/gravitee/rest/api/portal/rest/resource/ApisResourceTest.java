@@ -527,6 +527,19 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldReturn400WhenViewAndCategoryAreBothProvided() throws TechnicalException {
+        final Response response = target("/_search")
+            .queryParam("q", "test")
+            .queryParam("view", "documentation")
+            .queryParam("category", "my-category")
+            .request()
+            .post(Entity.json(null));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        verify(searchApisForPortalUseCase, never()).execute(any());
+        verify(filteringService, never()).searchApis(any(), any(), any());
+    }
+
+    @Test
     public void shouldSearchApisWithoutViewUsesFilteringService() throws TechnicalException {
         doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
