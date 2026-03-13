@@ -31,6 +31,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -231,6 +232,50 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     void private_item_is_not_visible_to_non_member_non_subscriber() {
         var item = publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE);
         assertThat(domainService.isVisibleToUser(item, USER_ID)).isFalse();
+    }
+
+    @Nested
+    class IsApiVisibleToUser {
+
+        @Test
+        void public_api_is_visible_to_anonymous_user_by_id() {
+            navQueryService.initWith(List.of(publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PUBLIC_API_ID, null)).isTrue();
+        }
+
+        @Test
+        void private_api_is_not_visible_to_anonymous_user_by_id() {
+            navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, null)).isFalse();
+        }
+
+        @Test
+        void private_api_is_visible_to_member_by_id() {
+            navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, USER_ID)).isTrue();
+        }
+
+        @Test
+        void private_api_is_visible_to_subscriber_by_id() {
+            var appId = "app-1";
+            navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+            membershipQueryService.initWith(List.of(applicationMembership(USER_ID, appId)));
+            subscriptionQueryService.initWith(List.of(aSubscription(appId, PRIVATE_API_ID, SubscriptionEntity.Status.ACCEPTED)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, USER_ID)).isTrue();
+        }
+
+        @Test
+        void private_api_is_not_visible_to_non_member_non_subscriber_by_id() {
+            navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, USER_ID)).isFalse();
+        }
+
+        @Test
+        void unknown_api_is_not_visible_by_id() {
+            navQueryService.initWith(List.of(publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, "non-existent-api", USER_ID)).isFalse();
+        }
     }
 
     // --- helpers ---

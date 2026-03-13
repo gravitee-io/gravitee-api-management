@@ -87,6 +87,28 @@ public class PortalNavigationApiVisibilityDomainService {
     }
 
     /**
+     * Checks if an API is visible in portal navigation for the given user, looking it up by API ID.
+     */
+    public boolean isApiVisibleToUser(String environmentId, String apiId, @Nullable String userId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.API)
+                    .apiIds(Set.of(apiId))
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .findFirst()
+            .map(item -> isVisibleToUser(item, userId))
+            .orElse(false);
+    }
+
+    /**
      * Checks visibility of a single PortalNavigationApi for the given user.
      */
     public boolean isVisibleToUser(PortalNavigationApi item, String userId) {
