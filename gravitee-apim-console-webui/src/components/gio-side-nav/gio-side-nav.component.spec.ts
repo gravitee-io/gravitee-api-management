@@ -46,7 +46,12 @@ describe('GioSideNavComponent', () => {
   const expirationDateInOneYear = new Date();
   expirationDateInOneYear.setFullYear(expirationDateInOneYear.getFullYear() + 1);
 
-  const init = async (licenseNotificationEnabled = true, hasLicenseMgmtPermission = true, scoringEnabled = true) => {
+  const init = async (
+    licenseNotificationEnabled = true,
+    hasLicenseMgmtPermission = true,
+    scoringEnabled = true,
+    hasApiProductPermission = true,
+  ) => {
     await TestBed.configureTestingModule({
       declarations: [GioSideNavComponent],
       imports: [NoopAnimationsModule, GioTestingModule, GioSideNavModule, MatIconTestingModule],
@@ -58,6 +63,10 @@ describe('GioSideNavComponent', () => {
               const isMatchingLicenseNotificationPermission =
                 permissions.length === 1 && permissions[0] === 'organization-license_management-r';
               if (isMatchingLicenseNotificationPermission && !hasLicenseMgmtPermission) {
+                return false;
+              }
+              const isMatchingApiProductPermission = permissions.length === 1 && permissions[0] === 'environment-api_product-r';
+              if (isMatchingApiProductPermission && !hasApiProductPermission) {
                 return false;
               }
               // Return default true for all the rest of 'hasMatching' permission checks
@@ -226,6 +235,22 @@ describe('GioSideNavComponent', () => {
         context: 'environment',
       });
       expect(apiProductsItem?.iconRight$).toBeDefined();
+    });
+
+    it('should hide API Products menu item when user lacks environment-api_product-r permission', async () => {
+      await init(true, true, true, false);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      const apiProductsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'API Products');
+      expect(apiProductsItem).toBeUndefined();
+    });
+
+    it('should show API Products menu item when user has environment-api_product-r permission', async () => {
+      await init(true, true, true, true);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      const apiProductsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'API Products');
+      expect(apiProductsItem).toBeDefined();
     });
   });
 

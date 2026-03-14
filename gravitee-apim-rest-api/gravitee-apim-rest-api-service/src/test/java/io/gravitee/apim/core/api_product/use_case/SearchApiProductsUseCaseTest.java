@@ -18,7 +18,10 @@ package io.gravitee.apim.core.api_product.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiProductSearchQueryServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import java.util.List;
@@ -30,21 +33,27 @@ class SearchApiProductsUseCaseTest {
 
     private static final String ENV_ID = "env-id";
     private static final String ORG_ID = "org-id";
+    private static final String USER_ID = "user-id";
+    private static final String ROLE_ID = "role-id";
 
     private ApiProductSearchQueryServiceInMemory apiProductSearchQueryService;
+    private MembershipCrudServiceInMemory membershipCrudService;
+    private MembershipQueryServiceInMemory membershipQueryService;
     private SearchApiProductsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         apiProductSearchQueryService = new ApiProductSearchQueryServiceInMemory();
-        useCase = new SearchApiProductsUseCase(apiProductSearchQueryService);
+        membershipCrudService = new MembershipCrudServiceInMemory();
+        membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+        useCase = new SearchApiProductsUseCase(apiProductSearchQueryService, membershipQueryService);
     }
 
     @Test
-    void should_delegate_to_query_service_with_correct_arguments() {
+    void should_delegate_to_query_service_with_correct_arguments_for_admin() {
         var pageable = new PageableImpl(1, 10);
         var sortable = new SortableImpl("name", true);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "my query", Set.of("id-1"), pageable, sortable);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "my query", Set.of("id-1"), pageable, sortable, USER_ID, true);
 
         var output = useCase.execute(input);
 
@@ -57,7 +66,7 @@ class SearchApiProductsUseCaseTest {
     @Test
     void should_trim_query_so_whitespace_only_becomes_null() {
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "   \t  ", null, pageable, null);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "   \t  ", null, pageable, null, USER_ID, true);
 
         var output = useCase.execute(input);
 
@@ -68,7 +77,7 @@ class SearchApiProductsUseCaseTest {
     @Test
     void should_pass_environment_id_and_organization_id_in_correct_order() {
         var pageable = new PageableImpl(2, 5);
-        var input = SearchApiProductsUseCase.Input.of("env-1", "org-1", null, null, pageable, null);
+        var input = SearchApiProductsUseCase.Input.of("env-1", "org-1", null, null, pageable, null, USER_ID, true);
 
         useCase.execute(input);
 
@@ -77,9 +86,9 @@ class SearchApiProductsUseCaseTest {
     }
 
     @Test
-    void should_return_empty_page_when_no_criteria() {
+    void should_return_empty_page_when_no_criteria_for_admin() {
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, true);
 
         var output = useCase.execute(input);
 
@@ -88,12 +97,12 @@ class SearchApiProductsUseCaseTest {
     }
 
     @Test
-    void should_return_product_matching_query_when_stored_in_memory() {
+    void should_return_product_matching_query_for_admin() {
         var product = ApiProduct.builder().id("product-1").name("My API Product").environmentId(ENV_ID).build();
         apiProductSearchQueryService.initWith(List.of(product));
 
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "My API", null, pageable, null);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "My API", null, pageable, null, USER_ID, true);
 
         var output = useCase.execute(input);
 
@@ -104,19 +113,124 @@ class SearchApiProductsUseCaseTest {
     }
 
     @Test
-    void should_return_products_filtered_by_ids_when_stored_in_memory() {
+    void should_return_products_filtered_by_ids_for_admin() {
         var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
         var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
         var product3 = ApiProduct.builder().id("id-3").name("Product Three").environmentId(ENV_ID).build();
         apiProductSearchQueryService.initWith(List.of(product1, product2, product3));
 
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-3"), pageable, null);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-3"), pageable, null, USER_ID, true);
 
         var output = useCase.execute(input);
 
         assertThat(output.page().getContent()).hasSize(2);
         assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id-1", "id-3");
         assertThat(output.page().getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void should_return_only_owned_products_for_non_admin_user() {
+        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
+        var product3 = ApiProduct.builder().id("id-3").name("Product Three").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1, product2, product3));
+
+        membershipCrudService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("m-1")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("id-1")
+                    .roleId(ROLE_ID)
+                    .build(),
+                Membership.builder()
+                    .id("m-2")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("id-3")
+                    .roleId(ROLE_ID)
+                    .build()
+            )
+        );
+
+        var pageable = new PageableImpl(1, 10);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id-1", "id-3");
+    }
+
+    @Test
+    void should_intersect_requested_ids_with_owned_ids_for_non_admin() {
+        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1, product2));
+
+        membershipCrudService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("m-1")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("id-1")
+                    .roleId(ROLE_ID)
+                    .build()
+            )
+        );
+
+        var pageable = new PageableImpl(1, 10);
+        // User requests id-1 and id-2 but only owns id-1
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactly("id-1");
+    }
+
+    @Test
+    void should_return_empty_page_for_non_admin_with_no_memberships() {
+        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1));
+
+        var pageable = new PageableImpl(1, 10);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).isEmpty();
+        assertThat(output.page().getTotalElements()).isZero();
+    }
+
+    @Test
+    void should_return_empty_page_when_non_admin_requests_ids_they_do_not_own() {
+        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1));
+
+        membershipCrudService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("m-2")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("id-2")
+                    .roleId(ROLE_ID)
+                    .build()
+            )
+        );
+
+        var pageable = new PageableImpl(1, 10);
+        // User owns id-2 but requests id-1 (which they don't own)
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1"), pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).isEmpty();
     }
 }
