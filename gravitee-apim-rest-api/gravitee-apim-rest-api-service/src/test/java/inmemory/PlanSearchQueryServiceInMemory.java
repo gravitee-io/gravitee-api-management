@@ -15,4 +15,4 @@
  */
 package inmemory;
 
-public class ApiProductPlanSearchQueryServiceInMemory {}
+public class PlanSearchQueryServiceInMemory {}

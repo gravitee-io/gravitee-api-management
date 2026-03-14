@@ -382,7 +382,7 @@ public class ImportApiCRDUseCase {
             deletePlanDomainService.delete(plan, auditInfo);
         });
 
-        reorderPlanDomainService.refreshOrderAfterDelete(api.getId());
+        reorderPlanDomainService.refreshOrderAfterDelete(api.getId(), GenericPlanEntity.ReferenceType.API);
     }
 
     private Plan initPlanFromCRD(String hrid, PlanCRD planCRD, Api api) {

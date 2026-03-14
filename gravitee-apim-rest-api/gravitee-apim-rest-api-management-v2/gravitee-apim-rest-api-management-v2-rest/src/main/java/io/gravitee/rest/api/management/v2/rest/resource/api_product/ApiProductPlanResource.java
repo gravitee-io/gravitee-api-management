@@ -17,9 +17,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.plan.use_case.api_product.ApiProductPlanOperationsUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.UpdateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductPlanMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -52,13 +52,13 @@ public class ApiProductPlanResource extends AbstractResource {
     private final ApiProductPlanMapper planMapper = ApiProductPlanMapper.INSTANCE;
 
     @Inject
-    private UpdateApiProductPlanUseCase updateApiProductPlanUseCase;
+    private UpdateApiProductPlanUseCase updatePlanUseCase;
 
     @Inject
-    private GetApiProductPlansUseCase getApiProductPlansUseCase;
+    private GetPlansUseCase getPlansUseCase;
 
     @Inject
-    private ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase;
+    private PlanOperationsUseCase planOperationsUseCase;
 
     @PathParam("apiProductId")
     private String apiProductId;
@@ -73,8 +73,8 @@ public class ApiProductPlanResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.READ }) })
     public Response getApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Getting Plan {} for API Product {}", planId, apiProductId);
-        var output = getApiProductPlansUseCase.execute(new GetApiProductPlansUseCase.Input(apiProductId, null, false, null, planId, null));
-        var planOpt = output.apiProductPlan();
+        var output = getPlansUseCase.execute(GetPlansUseCase.Input.of(apiProductId, planId, GenericPlanEntity.ReferenceType.API_PRODUCT));
+        var planOpt = output.plan();
         var planEntity = planOpt.orElse(null);
         if (
             planEntity != null &&
@@ -102,7 +102,7 @@ public class ApiProductPlanResource extends AbstractResource {
         updatePlanEntity.setReferenceId(apiProductId);
         updatePlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
 
-        var output = updateApiProductPlanUseCase.execute(
+        var output = updatePlanUseCase.execute(
             new UpdateApiProductPlanUseCase.Input(
                 updatePlanEntity,
                 apiProductId,
@@ -131,10 +131,11 @@ public class ApiProductPlanResource extends AbstractResource {
         log.debug("Deleting Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        apiProductPlanOperationsUseCase.execute(
-            new ApiProductPlanOperationsUseCase.Input(
+        planOperationsUseCase.execute(
+            new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT,
                 DELETE,
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
@@ -161,10 +162,11 @@ public class ApiProductPlanResource extends AbstractResource {
         log.debug("Closing Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var output = apiProductPlanOperationsUseCase.execute(
-            new ApiProductPlanOperationsUseCase.Input(
+        var output = planOperationsUseCase.execute(
+            new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT,
                 CLOSE,
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
@@ -191,10 +193,11 @@ public class ApiProductPlanResource extends AbstractResource {
         log.debug("Publishing Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var output = apiProductPlanOperationsUseCase.execute(
-            new ApiProductPlanOperationsUseCase.Input(
+        var output = planOperationsUseCase.execute(
+            new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT,
                 PUBLISH,
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
@@ -221,10 +224,11 @@ public class ApiProductPlanResource extends AbstractResource {
         log.debug("Deprecating Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var output = apiProductPlanOperationsUseCase.execute(
-            new ApiProductPlanOperationsUseCase.Input(
+        var output = planOperationsUseCase.execute(
+            new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT,
                 DEPRECATE,
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())

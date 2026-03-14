@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -46,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
-class ApiProductPlanOperationsUseCaseTest {
+class PlanOperationsUseCaseTest {
 
     private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
     private static final String PLAN_ID = "plan-id";
@@ -54,7 +51,7 @@ class ApiProductPlanOperationsUseCaseTest {
     private static final String ENV_ID = "env-id";
 
     @Mock
-    private ApiProductPlanSearchQueryService apiProductPlanSearchQueryService;
+    private PlanSearchQueryService planSearchQueryService;
 
     @Mock
     private PlanCrudService planCrudService;
@@ -71,12 +68,12 @@ class ApiProductPlanOperationsUseCaseTest {
     @Mock
     private AuditInfo auditInfo;
 
-    private ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase;
+    private PlanOperationsUseCase planOperationsUseCase;
 
     @BeforeEach
     void setUp() {
-        apiProductPlanOperationsUseCase = new ApiProductPlanOperationsUseCase(
-            apiProductPlanSearchQueryService,
+        planOperationsUseCase = new PlanOperationsUseCase(
+            planSearchQueryService,
             planCrudService,
             publishPlanDomainService,
             closePlanDomainService,
@@ -105,15 +102,22 @@ class ApiProductPlanOperationsUseCaseTest {
         @Test
         void should_delete_plan_and_return_plan() {
             Plan plan = planForApiProduct();
-            when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(plan);
+            when(
+                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                    eq(PLAN_ID),
+                    eq(API_PRODUCT_ID),
+                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                )
+            ).thenReturn(plan);
 
-            var input = ApiProductPlanOperationsUseCase.Input.builder()
+            var input = PlanOperationsUseCase.Input.builder()
                 .planId(PLAN_ID)
-                .apiProductId(API_PRODUCT_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .operation("DELETE")
                 .build();
 
-            var output = apiProductPlanOperationsUseCase.execute(input);
+            var output = planOperationsUseCase.execute(input);
 
             assertThat(output).isNotNull();
             assertThat(output.plan()).isEqualTo(plan);
@@ -131,18 +135,25 @@ class ApiProductPlanOperationsUseCaseTest {
             Plan plan = planForApiProduct();
             Plan closedPlan = planForApiProduct();
 
-            when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(plan);
+            when(
+                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                    eq(PLAN_ID),
+                    eq(API_PRODUCT_ID),
+                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                )
+            ).thenReturn(plan);
             doNothing().when(closePlanDomainService).close(eq(PLAN_ID), eq(auditInfo));
             when(planCrudService.getById(PLAN_ID)).thenReturn(closedPlan);
 
-            var input = ApiProductPlanOperationsUseCase.Input.builder()
+            var input = PlanOperationsUseCase.Input.builder()
                 .planId(PLAN_ID)
-                .apiProductId(API_PRODUCT_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .operation("CLOSE")
                 .auditInfo(auditInfo)
                 .build();
 
-            var output = apiProductPlanOperationsUseCase.execute(input);
+            var output = planOperationsUseCase.execute(input);
 
             assertThat(output).isNotNull();
             assertThat(output.plan()).isEqualTo(closedPlan);
@@ -159,16 +170,23 @@ class ApiProductPlanOperationsUseCaseTest {
             Plan plan = planForApiProduct();
             Plan publishedPlan = planForApiProduct();
 
-            when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(plan);
+            when(
+                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                    eq(PLAN_ID),
+                    eq(API_PRODUCT_ID),
+                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                )
+            ).thenReturn(plan);
             when(publishPlanDomainService.publish(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(publishedPlan);
 
-            var input = ApiProductPlanOperationsUseCase.Input.builder()
+            var input = PlanOperationsUseCase.Input.builder()
                 .planId(PLAN_ID)
-                .apiProductId(API_PRODUCT_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .operation("PUBLISH")
                 .build();
 
-            var output = apiProductPlanOperationsUseCase.execute(input);
+            var output = planOperationsUseCase.execute(input);
 
             assertThat(output).isNotNull();
             assertThat(output.plan()).isEqualTo(publishedPlan);
@@ -185,51 +203,30 @@ class ApiProductPlanOperationsUseCaseTest {
             Plan plan = planForApiProduct();
             Plan deprecatedPlan = planForApiProduct();
 
-            when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(plan);
+            when(
+                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                    eq(PLAN_ID),
+                    eq(API_PRODUCT_ID),
+                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                )
+            ).thenReturn(plan);
             doNothing().when(deprecatePlanDomainService).deprecate(eq(PLAN_ID), eq(auditInfo), eq(false));
             when(planCrudService.getById(PLAN_ID)).thenReturn(deprecatedPlan);
 
-            var input = ApiProductPlanOperationsUseCase.Input.builder()
+            var input = PlanOperationsUseCase.Input.builder()
                 .planId(PLAN_ID)
-                .apiProductId(API_PRODUCT_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .operation("DEPRECATE")
                 .auditInfo(auditInfo)
                 .build();
 
-            var output = apiProductPlanOperationsUseCase.execute(input);
+            var output = planOperationsUseCase.execute(input);
 
             assertThat(output).isNotNull();
             assertThat(output.plan()).isEqualTo(deprecatedPlan);
 
             verify(deprecatePlanDomainService).deprecate(eq(PLAN_ID), eq(auditInfo), eq(false));
-        }
-    }
-
-    @Nested
-    class PlanNotFound {
-
-        @Test
-        void should_throw_PlanNotFoundException_when_plan_belongs_to_another_api_product() {
-            Plan planFromOtherProduct = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId("other-api-product-id")
-                .build();
-
-            when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(
-                planFromOtherProduct
-            );
-
-            var input = ApiProductPlanOperationsUseCase.Input.builder()
-                .planId(PLAN_ID)
-                .apiProductId(API_PRODUCT_ID)
-                .operation("CLOSE")
-                .build();
-
-            assertThatThrownBy(() -> apiProductPlanOperationsUseCase.execute(input))
-                .isInstanceOf(PlanNotFoundException.class)
-                .hasMessageContaining(PLAN_ID);
         }
     }
 }

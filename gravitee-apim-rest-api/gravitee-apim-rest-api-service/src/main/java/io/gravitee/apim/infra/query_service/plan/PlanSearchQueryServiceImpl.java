@@ -16,19 +16,17 @@
 package io.gravitee.apim.infra.query_service.plan;
 
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.ApiProduct;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -38,22 +36,23 @@ import org.springframework.util.CollectionUtils;
 
 @Service
 @CustomLog
-public class ApiProductPlanSearchQueryServiceImpl implements ApiProductPlanSearchQueryService {
+public class PlanSearchQueryServiceImpl implements PlanSearchQueryService {
 
-    private final ApiProductsRepository apiProductsRepository;
     private final PlanRepository planRepository;
 
-    public ApiProductPlanSearchQueryServiceImpl(
-        @Lazy final ApiProductsRepository apiProductRepository,
-        @Lazy final PlanRepository planRepository
-    ) {
-        this.apiProductsRepository = apiProductRepository;
+    public PlanSearchQueryServiceImpl(@Lazy final PlanRepository planRepository) {
         this.planRepository = planRepository;
     }
 
     @Override
-    public List<Plan> searchForApiProductPlans(String apiProductId, PlanQuery query, String authenticatedUser, boolean isAdmin) {
-        return findByApiProduct(query.getReferenceId())
+    public List<Plan> searchPlans(
+        String referenceId,
+        GenericPlanEntity.ReferenceType referenceType,
+        PlanQuery query,
+        String authenticatedUser,
+        boolean isAdmin
+    ) {
+        return findByReferenceIdAndReferenceType(query.getReferenceId(), referenceType)
             .stream()
             .filter(p -> {
                 boolean filtered = true;
@@ -80,14 +79,18 @@ public class ApiProductPlanSearchQueryServiceImpl implements ApiProductPlanSearc
     }
 
     @Override
-    public Plan findByPlanIdIdForApiProduct(String planId, String apiProductId) {
+    public Plan findByPlanIdAndReferenceIdAndReferenceType(
+        String planId,
+        String referenceId,
+        GenericPlanEntity.ReferenceType referenceType
+    ) {
         try {
-            log.debug("Find plan by id : {}", planId);
+            log.debug("Find plan {} by reference {} ({})", planId, referenceId, referenceType);
             return planRepository
                 .findByIdAndReferenceIdAndReferenceType(
                     planId,
-                    apiProductId,
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT
+                    referenceId,
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name())
                 )
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .orElseThrow(() -> new PlanNotFoundException(planId));
@@ -96,25 +99,20 @@ public class ApiProductPlanSearchQueryServiceImpl implements ApiProductPlanSearc
         }
     }
 
-    private Set<Plan> findByApiProduct(final String apiProductId) {
+    private Set<Plan> findByReferenceIdAndReferenceType(final String referenceId, final GenericPlanEntity.ReferenceType referenceType) {
         try {
-            log.debug("Find plan by api product : {}", apiProductId);
-            Optional<ApiProduct> apiOptional = apiProductsRepository.findById(apiProductId);
-            if (apiOptional.isPresent()) {
-                return planRepository
-                    .findByReferenceIdAndReferenceType(
-                        apiProductId,
-                        io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT
-                    )
-                    .stream()
-                    .map(PlanAdapter.INSTANCE::fromRepository)
-                    .collect(Collectors.toSet());
-            } else {
-                return Set.of();
-            }
+            log.debug("Find plans by reference {} ({})", referenceId, referenceType);
+            return planRepository
+                .findByReferenceIdAndReferenceType(
+                    referenceId,
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name())
+                )
+                .stream()
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to find a plan by api product: %s", apiProductId),
+                String.format("An error occurs while trying to find plans by reference: %s", referenceId),
                 ex
             );
         }

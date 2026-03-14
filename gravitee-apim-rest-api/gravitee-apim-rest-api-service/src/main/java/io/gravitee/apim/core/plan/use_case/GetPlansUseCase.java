@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import static java.util.Comparator.comparingInt;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.List;
@@ -34,23 +35,23 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 @RequiredArgsConstructor
 @CustomLog
-public class GetApiProductPlansUseCase {
+public class GetPlansUseCase {
 
-    private final ApiProductPlanSearchQueryService apiProductPlanSearchQueryService;
+    private final PlanSearchQueryService planSearchQueryService;
     private final SubscriptionQueryService subscriptionQueryService;
 
     public Output execute(Input input) {
-        log.debug("Getting API Product plans for API Product {} (planId={})", input.apiProductId, input.planId);
+        log.debug("Getting plans for reference {} (planId={})", input.referenceId, input.planId);
         if (input.planId == null) {
             log.debug(
-                "Searching API Product plans for API Product {} (user={}, isAdmin={}, query={})",
-                input.apiProductId,
+                "Searching plans for reference {} (user={}, isAdmin={}, query={})",
+                input.referenceId,
                 input.authenticatedUser,
                 input.isAdmin,
                 input.query
             );
-            Stream<Plan> plansStream = apiProductPlanSearchQueryService
-                .searchForApiProductPlans(input.apiProductId, input.query, input.authenticatedUser, input.isAdmin)
+            Stream<Plan> plansStream = planSearchQueryService
+                .searchPlans(input.referenceId, input.referenceType, input.query, input.authenticatedUser, input.isAdmin)
                 .stream()
                 .sorted(comparingInt(Plan::getOrder));
             //TODO ask if need API_GATEWAY_DEFINITION and API_PRODUCT_PLAN filtersensitiveData is needed like api plans
@@ -58,8 +59,8 @@ public class GetApiProductPlansUseCase {
             if (input.subscribableBy != null) {
                 var subscriptions = subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
                     input.subscribableBy,
-                    input.apiProductId,
-                    SubscriptionReferenceType.API_PRODUCT
+                    input.referenceId,
+                    SubscriptionReferenceType.valueOf(input.referenceType.name())
                 );
                 var subscribedPlans = subscriptions.stream().map(SubscriptionEntity::getPlanId).toList();
 
@@ -74,51 +75,64 @@ public class GetApiProductPlansUseCase {
             }
 
             List<Plan> plans = plansStream.toList();
-            log.debug("Found {} API Product plans for API Product {}", plans.size(), input.apiProductId);
+            log.debug("Found {} plans for reference {}", plans.size(), input.referenceId);
             return Output.multiple(plans);
         } else {
-            log.debug("Getting API Product plan {} for API Product {}", input.planId, input.apiProductId);
-            final Plan plan = apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(input.planId, input.apiProductId);
+            log.debug("Getting plan {} for reference {}", input.planId, input.referenceId);
+            final Plan plan = planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                input.planId,
+                input.referenceId,
+                input.referenceType
+            );
 
             return Output.single(Optional.of(plan));
         }
     }
 
     public record Input(
-        String apiProductId,
+        String referenceId,
         String authenticatedUser,
         boolean isAdmin,
         PlanQuery query,
         String planId,
-        String subscribableBy
+        String subscribableBy,
+        GenericPlanEntity.ReferenceType referenceType
     ) {
-        public static Input of(String apiProductId, String authenticatedUser, boolean isAdmin, PlanQuery query, String subscribableBy) {
+        public static Input of(
+            String referenceId,
+            GenericPlanEntity.ReferenceType referenceType,
+            String authenticatedUser,
+            boolean isAdmin,
+            PlanQuery query,
+            String subscribableBy
+        ) {
             log.debug(
-                "Building GetApiProductPlansUseCase.Input (apiProductId={}, user={}, isAdmin={}, query={}, subscribableBy={})",
-                apiProductId,
+                "Building GetPlansUseCase.Input (referenceId={}, referenceType={}, user={}, isAdmin={}, query={}, subscribableBy={})",
+                referenceId,
+                referenceType,
                 authenticatedUser,
                 isAdmin,
                 query,
                 subscribableBy
             );
-            return new Input(apiProductId, authenticatedUser, isAdmin, query, null, subscribableBy);
+            return new Input(referenceId, authenticatedUser, isAdmin, query, null, subscribableBy, referenceType);
         }
 
-        public static Input of(String apiProductId, String planId) {
-            log.debug("Building GetApiProductPlansUseCase.Input (apiProductId={}, planId={})", apiProductId, planId);
-            return new Input(apiProductId, null, false, null, planId, null);
+        public static Input of(String referenceId, String planId, GenericPlanEntity.ReferenceType referenceType) {
+            log.debug("Building GetPlansUseCase.Input (referenceId={}, planId={}, referenceType={})", referenceId, planId, referenceType);
+            return new Input(referenceId, null, false, null, planId, null, referenceType);
         }
     }
 
-    public record Output(List<Plan> apiProductPlans, Optional<Plan> apiProductPlan) {
-        public static GetApiProductPlansUseCase.Output multiple(List<Plan> apiProductPlans) {
-            log.debug("Building GetApiProductPlansUseCase.Output (multiple)", apiProductPlans);
-            return new GetApiProductPlansUseCase.Output(apiProductPlans, Optional.empty());
+    public record Output(List<Plan> plans, Optional<Plan> plan) {
+        public static GetPlansUseCase.Output multiple(List<Plan> plans) {
+            log.debug("Building GetPlansUseCase.Output (multiple)");
+            return new GetPlansUseCase.Output(plans, Optional.empty());
         }
 
-        public static GetApiProductPlansUseCase.Output single(Optional<Plan> apiProductPlan) {
-            log.debug("Building GetApiProductPlansUseCase.Output (single)", apiProductPlan);
-            return new GetApiProductPlansUseCase.Output(null, apiProductPlan);
+        public static GetPlansUseCase.Output single(Optional<Plan> plan) {
+            log.debug("Building GetPlansUseCase.Output (single)");
+            return new GetPlansUseCase.Output(null, plan);
         }
     }
 }

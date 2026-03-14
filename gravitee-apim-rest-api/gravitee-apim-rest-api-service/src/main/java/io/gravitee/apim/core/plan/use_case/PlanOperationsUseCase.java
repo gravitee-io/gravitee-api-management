@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -22,10 +22,9 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import lombok.Builder;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -33,53 +32,53 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 @RequiredArgsConstructor
 @CustomLog
-public class ApiProductPlanOperationsUseCase {
+public class PlanOperationsUseCase {
 
-    private final ApiProductPlanSearchQueryService apiProductPlanSearchQueryService;
+    private final PlanSearchQueryService planSearchQueryService;
     private final PlanCrudService planCrudService;
     private final PublishPlanDomainService publishPlanDomainService;
     private final ClosePlanDomainService closePlanDomainService;
     private final DeprecatePlanDomainService deprecatePlanDomainService;
 
     public Output execute(Input input) {
-        log.debug(
-            "Executing API Product plan operation {} for plan {} on API Product {}",
-            input.operation,
+        log.debug("Executing plan operation {} for plan {} on reference {}", input.operation, input.planId, input.referenceId);
+        final Plan plan = planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
             input.planId,
-            input.apiProductId
+            input.referenceId,
+            input.referenceType
         );
-        final Plan plan = apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(input.planId, input.apiProductId);
-        if (
-            plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT) && !plan.getReferenceId().equals(input.apiProductId)
-        ) {
-            throw new PlanNotFoundException(input.planId);
-        }
         if (input.operation.equals(Operation.DELETE.name())) {
             planCrudService.delete(input.planId);
-            log.debug("Plan {} deleted for API Product {}", input.planId, input.apiProductId);
+            log.debug("Plan {} deleted for reference {}", input.planId, input.referenceId);
             return new Output(plan);
         } else if (input.operation.equals(Operation.CLOSE.name())) {
-            log.debug("Plan {} closed for API Product {}", input.planId, input.apiProductId);
+            log.debug("Plan {} closing for reference {}", input.planId, input.referenceId);
             closePlanDomainService.close(input.planId, input.auditInfo);
             // Reload the plan to return the updated status (CLOSED)
             Plan closedPlan = planCrudService.getById(input.planId);
             return new Output(closedPlan);
         } else if (input.operation.equals(Operation.PUBLISH.name())) {
-            log.debug("Plan {} published for API Product {}", input.planId, input.apiProductId);
+            log.debug("Plan {} publishing for reference {}", input.planId, input.referenceId);
             return new Output(publishPlanDomainService.publish(GraviteeContext.getExecutionContext(), input.planId));
         } else if (input.operation.equals(Operation.DEPRECATE.name())) {
-            log.debug("Plan {} deprecated for API Product {}", input.planId, input.apiProductId);
+            log.debug("Plan {} deprecating for reference {}", input.planId, input.referenceId);
             deprecatePlanDomainService.deprecate(input.planId, input.auditInfo, false);
             Plan deprecatedPlan = planCrudService.getById(input.planId);
             return new Output(deprecatedPlan);
         } else {
-            log.debug("Unsupported operation {} for plan {} on API Product {}", input.operation, input.planId, input.apiProductId);
+            log.debug("Unsupported operation {} for plan {} on reference {}", input.operation, input.planId, input.referenceId);
             return null;
         }
     }
 
     @Builder
-    public record Input(String planId, String apiProductId, String operation, AuditInfo auditInfo) {}
+    public record Input(
+        String planId,
+        String referenceId,
+        GenericPlanEntity.ReferenceType referenceType,
+        String operation,
+        AuditInfo auditInfo
+    ) {}
 
     public record Output(Plan plan) {}
 

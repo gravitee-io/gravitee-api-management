@@ -30,9 +30,9 @@ import static org.mockito.Mockito.when;
 import assertions.MAPIAssertions;
 import fixtures.PlanFixtures;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.use_case.api_product.ApiProductPlanOperationsUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.UpdateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -63,13 +63,13 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
     private static final String PLAN_ID = "plan-id";
 
     @Inject
-    private GetApiProductPlansUseCase getApiProductPlansUseCase;
+    private GetPlansUseCase getPlansUseCase;
 
     @Inject
-    private UpdateApiProductPlanUseCase updateApiProductPlanUseCase;
+    private UpdateApiProductPlanUseCase updatePlanUseCase;
 
     @Inject
-    private ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase;
+    private PlanOperationsUseCase planOperationsUseCase;
 
     @Override
     protected String contextPath() {
@@ -95,7 +95,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getApiProductPlansUseCase, updateApiProductPlanUseCase, apiProductPlanOperationsUseCase);
+        reset(getPlansUseCase, updatePlanUseCase, planOperationsUseCase);
     }
 
     @Nested
@@ -120,7 +120,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(getApiProductPlansUseCase.execute(any())).thenReturn(GetApiProductPlansUseCase.Output.single(Optional.of(plan)));
+            when(getPlansUseCase.execute(any())).thenReturn(GetPlansUseCase.Output.single(Optional.of(plan)));
 
             final Response response = rootTarget().request().get();
 
@@ -150,7 +150,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(getApiProductPlansUseCase.execute(any())).thenReturn(GetApiProductPlansUseCase.Output.single(Optional.of(plan)));
+            when(getPlansUseCase.execute(any())).thenReturn(GetPlansUseCase.Output.single(Optional.of(plan)));
 
             final Response response = rootTarget().request().get();
 
@@ -190,7 +190,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(updateApiProductPlanUseCase.execute(any())).thenReturn(new UpdateApiProductPlanUseCase.Output(updatedPlan));
+            when(updatePlanUseCase.execute(any())).thenReturn(new UpdateApiProductPlanUseCase.Output(updatedPlan));
 
             var updatePayload = new UpdateGenericApiProductPlan();
             updatePayload.setName("Updated Plan");
@@ -209,10 +209,10 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
             );
 
             var captor = ArgumentCaptor.forClass(UpdateApiProductPlanUseCase.Input.class);
-            verify(updateApiProductPlanUseCase).execute(captor.capture());
+            verify(updatePlanUseCase).execute(captor.capture());
             SoftAssertions.assertSoftly(soft -> {
                 var input = captor.getValue();
-                soft.assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(input.referenceId()).isEqualTo(API_PRODUCT_ID);
                 soft.assertThat(input.planToUpdate().getId()).isEqualTo(PLAN_ID);
                 soft.assertThat(input.planToUpdate().getReferenceId()).isEqualTo(API_PRODUCT_ID);
                 soft.assertThat(input.auditInfo()).isNotNull();
@@ -221,7 +221,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_if_execute_fails_with_invalid_data_exception() {
-            when(updateApiProductPlanUseCase.execute(any())).thenThrow(new InvalidDataException("Name is required."));
+            when(updatePlanUseCase.execute(any())).thenThrow(new InvalidDataException("Name is required."));
 
             var updatePayload = new UpdateGenericApiProductPlan();
 
@@ -247,12 +247,13 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
             MAPIAssertions.assertThat(response).hasStatus(NO_CONTENT_204);
 
-            var captor = ArgumentCaptor.forClass(ApiProductPlanOperationsUseCase.Input.class);
-            verify(apiProductPlanOperationsUseCase).execute(captor.capture());
+            var captor = ArgumentCaptor.forClass(PlanOperationsUseCase.Input.class);
+            verify(planOperationsUseCase).execute(captor.capture());
             SoftAssertions.assertSoftly(soft -> {
                 var input = captor.getValue();
                 soft.assertThat(input.planId()).isEqualTo(PLAN_ID);
-                soft.assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(input.referenceId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(input.referenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API_PRODUCT);
             });
         }
 
@@ -286,7 +287,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(apiProductPlanOperationsUseCase.execute(any())).thenReturn(new ApiProductPlanOperationsUseCase.Output(plan));
+            when(planOperationsUseCase.execute(any())).thenReturn(new PlanOperationsUseCase.Output(plan));
 
             final Response response = rootTarget().path("_close").request().post(null);
 
@@ -295,10 +296,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
             var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.BasePlan.class);
             assertThat(result.getId()).isEqualTo(PLAN_ID);
 
-            var captor = ArgumentCaptor.forClass(ApiProductPlanOperationsUseCase.Input.class);
-            verify(apiProductPlanOperationsUseCase).execute(captor.capture());
+            var captor = ArgumentCaptor.forClass(PlanOperationsUseCase.Input.class);
+            verify(planOperationsUseCase).execute(captor.capture());
             assertThat(captor.getValue().planId()).isEqualTo(PLAN_ID);
-            assertThat(captor.getValue().apiProductId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(captor.getValue().referenceId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(captor.getValue().referenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API_PRODUCT);
         }
 
         @Test
@@ -331,7 +333,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(apiProductPlanOperationsUseCase.execute(any())).thenReturn(new ApiProductPlanOperationsUseCase.Output(plan));
+            when(planOperationsUseCase.execute(any())).thenReturn(new PlanOperationsUseCase.Output(plan));
 
             final Response response = rootTarget().path("_publish").request().post(null);
 
@@ -340,9 +342,10 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
             var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.BasePlan.class);
             assertThat(result.getId()).isEqualTo(PLAN_ID);
 
-            var captor = ArgumentCaptor.forClass(ApiProductPlanOperationsUseCase.Input.class);
-            verify(apiProductPlanOperationsUseCase).execute(captor.capture());
+            var captor = ArgumentCaptor.forClass(PlanOperationsUseCase.Input.class);
+            verify(planOperationsUseCase).execute(captor.capture());
             assertThat(captor.getValue().planId()).isEqualTo(PLAN_ID);
+            assertThat(captor.getValue().referenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API_PRODUCT);
         }
 
         @Test
@@ -375,7 +378,7 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(apiProductPlanOperationsUseCase.execute(any())).thenReturn(new ApiProductPlanOperationsUseCase.Output(plan));
+            when(planOperationsUseCase.execute(any())).thenReturn(new PlanOperationsUseCase.Output(plan));
 
             final Response response = rootTarget().path("_deprecate").request().post(null);
 
@@ -384,9 +387,10 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
             var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.BasePlan.class);
             assertThat(result.getId()).isEqualTo(PLAN_ID);
 
-            var captor = ArgumentCaptor.forClass(ApiProductPlanOperationsUseCase.Input.class);
-            verify(apiProductPlanOperationsUseCase).execute(captor.capture());
+            var captor = ArgumentCaptor.forClass(PlanOperationsUseCase.Input.class);
+            verify(planOperationsUseCase).execute(captor.capture());
             assertThat(captor.getValue().planId()).isEqualTo(PLAN_ID);
+            assertThat(captor.getValue().referenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API_PRODUCT);
         }
 
         @Test

@@ -16,10 +16,18 @@
 package io.gravitee.apim.core.plan.query_service;
 
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import java.util.List;
 
-public interface ApiProductPlanSearchQueryService {
-    public List<Plan> searchForApiProductPlans(String apiProductId, PlanQuery query, String authenticatedUser, boolean isAdmin);
-    public Plan findByPlanIdIdForApiProduct(String planId, String apiProductId);
+public interface PlanSearchQueryService {
+    List<Plan> searchPlans(
+        String referenceId,
+        GenericPlanEntity.ReferenceType referenceType,
+        PlanQuery query,
+        String authenticatedUser,
+        boolean isAdmin
+    );
+
+    Plan findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, GenericPlanEntity.ReferenceType referenceType);
 }
