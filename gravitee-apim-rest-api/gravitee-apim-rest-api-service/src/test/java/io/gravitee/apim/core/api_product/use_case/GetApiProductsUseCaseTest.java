@@ -100,7 +100,8 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             apiProductPrimaryOwnerDomainService,
             eventLatestQueryService,
             planQueryService,
-            objectMapper
+            objectMapper,
+            membershipQueryService
         );
     }
 
@@ -172,13 +173,58 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             )
         );
 
-        var input = GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID);
+        var input = GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false);
         var output = getApiProductsUseCase.execute(input);
         Set<ApiProduct> products = output.apiProducts();
         assertThat(products).hasSize(2);
         assertThat(products).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id1", "id2");
         assertThat(products).allMatch(product -> product.getPrimaryOwner() != null);
         assertThat(products).allMatch(product -> product.getPrimaryOwner().id().equals(USER_ID));
+    }
+
+    @Test
+    void should_return_only_owned_api_products_for_non_admin_user() {
+        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        ApiProduct product2 = ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
+        ApiProduct product3 = ApiProduct.builder().id("id3").name("P3").environmentId(ENV_ID).build();
+        apiProductQueryService.initWith(List.of(product1, product2, product3));
+
+        membershipCrudService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("membership-1")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("id1")
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                    .source("system")
+                    .build()
+            )
+        );
+
+        var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
+        assertThat(output.apiProducts()).hasSize(1);
+        assertThat(output.apiProducts()).extracting(ApiProduct::getId).containsExactly("id1");
+    }
+
+    @Test
+    void should_return_all_api_products_for_admin_user() {
+        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        ApiProduct product2 = ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
+        apiProductQueryService.initWith(List.of(product1, product2));
+
+        var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
+        assertThat(output.apiProducts()).hasSize(2);
+    }
+
+    @Test
+    void should_return_empty_list_when_non_admin_user_has_no_api_product_memberships() {
+        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        apiProductQueryService.initWith(List.of(product1));
+
+        var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
+        assertThat(output.apiProducts()).isEmpty();
     }
 
     @Test
@@ -288,7 +334,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
 
-            var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID));
+            var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
 
             assertThat(output.apiProducts())
                 .extracting(ApiProduct::getDeploymentState)
@@ -307,7 +353,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, AFTER_DEPLOY)));
 
-            var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID));
+            var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
 
             assertThat(output.apiProducts())
                 .extracting(ApiProduct::getDeploymentState)

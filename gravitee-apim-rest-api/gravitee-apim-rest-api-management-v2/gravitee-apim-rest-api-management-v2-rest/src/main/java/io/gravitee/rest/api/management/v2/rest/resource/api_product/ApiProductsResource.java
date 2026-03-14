@@ -155,7 +155,9 @@ public class ApiProductsResource extends AbstractResource {
             searchQuery.getQuery(),
             ids.isEmpty() ? null : ids,
             paginationParam.toPageable(),
-            apiProductSortByParam.toSortable()
+            apiProductSortByParam.toSortable(),
+            getAuthenticatedUser(),
+            isAdmin()
         );
         var output = searchApiProductsUseCase.execute(input);
         var page = output.page();
@@ -188,7 +190,12 @@ public class ApiProductsResource extends AbstractResource {
     public Response getApiProducts(@BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
         var output = getApiProductsUseCase.execute(
-            GetApiProductsUseCase.Input.of(executionContext.getEnvironmentId(), executionContext.getOrganizationId())
+            GetApiProductsUseCase.Input.of(
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                getAuthenticatedUser(),
+                isAdmin()
+            )
         );
         Set<ApiProduct> allApiProducts = output.apiProducts();
         List<ApiProduct> paginationApiProducts = computePaginationData(allApiProducts, paginationParam);
