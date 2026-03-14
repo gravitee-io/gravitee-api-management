@@ -152,6 +152,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         routerLink: './api-products',
         displayName: 'API Products',
         category: 'API Products',
+        permissions: ['environment-api_product-r'],
         licenseOptions: apiProductsLicenseOptions,
         iconRight$: apiProductsIconRight$,
       },

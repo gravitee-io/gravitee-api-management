@@ -18,10 +18,15 @@ package io.gravitee.apim.core.api_product.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -29,29 +34,73 @@ import lombok.RequiredArgsConstructor;
 public class SearchApiProductsUseCase {
 
     private final ApiProductSearchQueryService apiProductSearchQueryService;
+    private final MembershipQueryService membershipQueryService;
 
     public Output execute(Input input) {
-        Page<ApiProduct> page = apiProductSearchQueryService.search(
-            input.environmentId(),
-            input.organizationId(),
-            input.query(),
-            input.ids(),
-            input.pageable(),
-            input.sortable()
-        );
-        return new Output(page);
+        if (input.isAdmin()) {
+            return search(input, input.ids());
+        }
+        Optional<Set<String>> resolved = findAccessibleApiProductIds(input);
+        if (resolved.isEmpty()) {
+            return emptyPage(input);
+        }
+        return search(input, resolved.get());
     }
 
-    public record Input(String environmentId, String organizationId, String query, Set<String> ids, Pageable pageable, Sortable sortable) {
+    private Optional<Set<String>> findAccessibleApiProductIds(Input input) {
+        Set<String> allowedIds = membershipQueryService
+            .findByMemberIdAndMemberTypeAndReferenceType(input.userId(), Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
+            .stream()
+            .map(Membership::getReferenceId)
+            .collect(Collectors.toSet());
+        if (allowedIds.isEmpty()) {
+            return Optional.empty();
+        }
+        if (input.ids() != null && !input.ids().isEmpty()) {
+            Set<String> filtered = input.ids().stream().filter(allowedIds::contains).collect(Collectors.toSet());
+            return filtered.isEmpty() ? Optional.empty() : Optional.of(filtered);
+        }
+        return Optional.of(allowedIds);
+    }
+
+    private Output emptyPage(Input input) {
+        return new Output(new Page<>(List.of(), input.pageable() != null ? input.pageable().getPageNumber() : 1, 0, 0));
+    }
+
+    private Output search(Input input, Set<String> ids) {
+        return new Output(
+            apiProductSearchQueryService.search(
+                input.environmentId(),
+                input.organizationId(),
+                input.query(),
+                ids,
+                input.pageable(),
+                input.sortable()
+            )
+        );
+    }
+
+    public record Input(
+        String environmentId,
+        String organizationId,
+        String query,
+        Set<String> ids,
+        Pageable pageable,
+        Sortable sortable,
+        String userId,
+        boolean isAdmin
+    ) {
         public static Input of(
             String environmentId,
             String organizationId,
             String query,
             Set<String> ids,
             Pageable pageable,
-            Sortable sortable
+            Sortable sortable,
+            String userId,
+            boolean isAdmin
         ) {
-            return new Input(environmentId, organizationId, query != null ? query.trim() : null, ids, pageable, sortable);
+            return new Input(environmentId, organizationId, query != null ? query.trim() : null, ids, pageable, sortable, userId, isAdmin);
         }
     }
 

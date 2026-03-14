@@ -24,10 +24,13 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
@@ -45,6 +48,7 @@ public class GetApiProductsUseCase {
     private final EventLatestQueryService eventLatestQueryService;
     private final PlanQueryService planQueryService;
     private final ObjectMapper objectMapper;
+    private final MembershipQueryService membershipQueryService;
 
     public Output execute(Input input) {
         if (input.apiProductId() != null) {
@@ -53,17 +57,33 @@ public class GetApiProductsUseCase {
                 .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
                 .map(this::computeDeploymentState);
             return Output.single(apiProduct);
-        } else if (input.environmentId() != null) {
-            Set<ApiProduct> apiProducts = apiProductQueryService
-                .findByEnvironmentId(input.environmentId())
-                .stream()
-                .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
-                .map(this::computeDeploymentState)
-                .collect(Collectors.toSet());
-            return Output.multiple(apiProducts);
-        } else {
+        }
+
+        if (input.environmentId() == null) {
             throw new IllegalArgumentException("environmentId must be provided for listing API Products");
         }
+
+        Set<ApiProduct> apiProducts = findAccessibleApiProducts(input)
+            .stream()
+            .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
+            .map(this::computeDeploymentState)
+            .collect(Collectors.toSet());
+        return Output.multiple(apiProducts);
+    }
+
+    private Set<ApiProduct> findAccessibleApiProducts(Input input) {
+        if (input.isAdmin()) {
+            return apiProductQueryService.findByEnvironmentId(input.environmentId());
+        }
+        Set<String> allowedIds = membershipQueryService
+            .findByMemberIdAndMemberTypeAndReferenceType(input.userId(), Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
+            .stream()
+            .map(Membership::getReferenceId)
+            .collect(Collectors.toSet());
+        if (allowedIds.isEmpty()) {
+            return Set.of();
+        }
+        return apiProductQueryService.findByEnvironmentIdAndIdIn(input.environmentId(), allowedIds);
     }
 
     private ApiProduct addPrimaryOwnerToApiProduct(ApiProduct apiProduct, String organizationId) {
@@ -148,13 +168,13 @@ public class GetApiProductsUseCase {
         return current.size() == deployed.size() && current.containsAll(deployed);
     }
 
-    public record Input(String environmentId, String apiProductId, String organizationId) {
-        public static Input of(String environmentId, String organizationId) {
-            return new Input(environmentId, null, organizationId);
+    public record Input(String environmentId, String apiProductId, String organizationId, String userId, boolean isAdmin) {
+        public static Input of(String environmentId, String organizationId, String userId, boolean isAdmin) {
+            return new Input(environmentId, null, organizationId, userId, isAdmin);
         }
 
         public static Input of(String environmentId, String apiProductId, String organizationId) {
-            return new Input(environmentId, apiProductId, organizationId);
+            return new Input(environmentId, apiProductId, organizationId, null, false);
         }
     }
 
