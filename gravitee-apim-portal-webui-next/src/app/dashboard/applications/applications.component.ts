@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Signal, computed, inject } from '@angular/core';
+import { Component, Signal, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -23,6 +23,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { ApplicationCardComponent } from '../../../components/application-card/application-card.component';
 import { CardsGridComponent } from '../../../components/cards-grid/cards-grid.component';
+import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
 import { ApplicationService } from '../../../services/application.service';
 import { CurrentUserService } from '../../../services/current-user.service';
@@ -39,14 +40,14 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [ApplicationCardComponent, CardsGridComponent, MatButton, MatIcon, PaginationComponent, RouterLink],
+  imports: [ApplicationCardComponent, CardsGridComponent, MatButton, MatIcon, PaginationComponent, RouterLink, LoaderComponent],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
 export default class ApplicationsComponent {
   currentUser = inject(CurrentUserService).user;
 
-  loadingPage: boolean = true;
+  loadingPage = signal(true);
   pageSize = 20;
   pageSizeOptions = [8, 20, 40, 80];
 
@@ -78,7 +79,7 @@ export default class ApplicationsComponent {
     return this.page$.pipe(
       map(currentPage => ({ currentPage, pageSize: this.pageSize })),
       distinctUntilChanged((prev, curr) => prev.currentPage === curr.currentPage && prev.pageSize === curr.pageSize),
-      tap(_ => (this.loadingPage = true)),
+      tap(_ => this.loadingPage.set(true)),
       switchMap(({ currentPage, pageSize }) => this.applicationService.list(currentPage, pageSize)),
       map(resp => {
         const data = resp.data
@@ -93,7 +94,7 @@ export default class ApplicationsComponent {
         return { data, page, totalResults };
       }),
       catchError(_ => of({ data: [], page: 1, totalResults: 0 })),
-      tap(_ => (this.loadingPage = false)),
+      tap(_ => this.loadingPage.set(false)),
     );
   }
 }
