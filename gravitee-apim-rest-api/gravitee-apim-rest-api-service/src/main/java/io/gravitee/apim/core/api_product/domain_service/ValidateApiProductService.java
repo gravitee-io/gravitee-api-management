@@ -28,7 +28,6 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
@@ -102,6 +101,40 @@ public class ValidateApiProductService {
         throw new ValidationDomainException(String.join(". ", messages), parameters);
     }
 
+    public void validateForDeploy(ApiProduct apiProduct) {
+        Set<String> apiIds = apiProduct.getApiIds();
+        if (apiIds == null || apiIds.isEmpty()) {
+            return;
+        }
+
+        boolean productHasValidPlan = planQueryService
+            .findAllForApiProduct(apiProduct.getId())
+            .stream()
+            .anyMatch(plan -> plan.isPublished() || plan.isDeprecated());
+
+        if (productHasValidPlan) {
+            return;
+        }
+
+        // No valid product plan — every API must have its own published or deprecated plan
+        Set<String> envIds = Set.of(apiProduct.getEnvironmentId());
+        Set<String> apiIdsWithValidPlan = planQueryService
+            .findAllByApiIds(apiIds, envIds)
+            .stream()
+            .filter(plan -> plan.isPublished() || plan.isDeprecated())
+            .map(Plan::getReferenceId)
+            .collect(Collectors.toSet());
+
+        boolean allApisHaveOwnPlan = apiIds.stream().allMatch(apiIdsWithValidPlan::contains);
+
+        if (!allApisHaveOwnPlan) {
+            throw new ValidationDomainException(
+                "Cannot deploy API Product: some APIs have no published plan. " +
+                    "Add a published plan to each API, or publish an API Product plan."
+            );
+        }
+    }
+
     public List<Api> getApisToUndeployOnRemoval(Set<String> apiIds, String currentApiProductId) {
         if (apiIds == null || apiIds.isEmpty() || StringUtils.isEmpty(currentApiProductId)) {
             return List.of();
@@ -128,7 +161,7 @@ public class ValidateApiProductService {
         List<Plan> plans = planQueryService.findAllByApiIds(apiIds, envIds);
         return plans
             .stream()
-            .filter(p -> p.getPlanStatus() == PlanStatus.PUBLISHED || p.getPlanStatus() == PlanStatus.DEPRECATED)
+            .filter(plan -> plan.isPublished() || plan.isDeprecated())
             .map(Plan::getReferenceId)
             .collect(Collectors.toSet());
     }
@@ -149,8 +182,7 @@ public class ValidateApiProductService {
         List<Plan> plans = planQueryService.findAllForApiProducts(productIds, envIds);
         return plans
             .stream()
-            .filter(p -> p.getPlanStatus() == PlanStatus.PUBLISHED || p.getPlanStatus() == PlanStatus.DEPRECATED)
-            .filter(p -> p.getReferenceId() != null && p.getEnvironmentId() != null)
+            .filter(plan -> (plan.isPublished() || plan.isDeprecated()) && plan.getReferenceId() != null && plan.getEnvironmentId() != null)
             .collect(Collectors.groupingBy(Plan::getReferenceId, Collectors.mapping(Plan::getEnvironmentId, Collectors.toSet())));
     }
 

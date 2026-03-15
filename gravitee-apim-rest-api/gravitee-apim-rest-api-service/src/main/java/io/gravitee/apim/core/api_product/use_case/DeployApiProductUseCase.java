@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_product.use_case;
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -45,6 +46,7 @@ public class DeployApiProductUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
+    private final ValidateApiProductService validateApiProductService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -55,6 +57,7 @@ public class DeployApiProductUseCase {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
         ApiProduct apiProduct = apiProductOpt.get();
+        validateApiProductService.validateForDeploy(apiProduct);
         publishDeployEvent(input.auditInfo(), apiProduct);
         return new Output(apiProduct);
     }
