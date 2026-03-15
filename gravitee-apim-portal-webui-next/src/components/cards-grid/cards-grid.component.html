@@ -15,17 +15,13 @@
     limitations under the License.
 
 -->
-@if (loading()) {
-  <div class="cards-grid__loader">
-    <app-loader />
-  </div>
-} @else if (cards() && cards()!.length > 0) {
+@if (cards() && cards()!.length > 0) {
   <div class="cards-grid" [appIsNarrow]="'cards-grid--narrow'" [appIsMobile]="'cards-grid--mobile'">
     @for (item of cards()!; track $index) {
       <ng-container *ngTemplateOutlet="cardTemplate() || null; context: { $implicit: item }" />
     }
   </div>
-} @else {
+} @else if (showEmptyState()) {
   <div class="cards-grid__empty-state">
     <ng-content select="[slot=empty-state]" />
   </div>

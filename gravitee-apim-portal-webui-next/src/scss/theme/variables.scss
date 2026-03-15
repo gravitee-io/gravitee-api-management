@@ -121,6 +121,7 @@ $table-border-radius: var(--gio-app-table-container-shape, $container-shape);
 $table-header-background-color: var(--gio-app-table-header-container-color, var(--mat-sys-surface-container-low));
 $table-body-background-color: var(--gio-app-table-body-container-color, $card-background-color);
 $table-header-headline-color: var(--gio-app-table-header-headline-color, $default-text-color);
+$background-overlay-color: color-mix(in srgb, $background-color 50%, transparent);
 
 // -- Other Components --
 

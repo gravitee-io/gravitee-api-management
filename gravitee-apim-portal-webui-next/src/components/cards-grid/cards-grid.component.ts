@@ -19,17 +19,16 @@ import { Component, TemplateRef, contentChild, input } from '@angular/core';
 
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { NarrowClassDirective } from '../../directives/narrow-class.directive';
-import { LoaderComponent } from '../loader/loader.component';
 
 @Component({
   selector: 'app-cards-grid',
   templateUrl: './cards-grid.component.html',
   styleUrls: ['./cards-grid.component.scss'],
   standalone: true,
-  imports: [LoaderComponent, MobileClassDirective, NarrowClassDirective, NgTemplateOutlet],
+  imports: [MobileClassDirective, NarrowClassDirective, NgTemplateOutlet],
 })
 export class CardsGridComponent<T> {
   readonly cards = input<T[]>();
-  readonly loading = input<boolean>(false);
+  readonly showEmptyState = input<boolean>(false);
   readonly cardTemplate = contentChild<TemplateRef<{ $implicit: T }>>('cardTemplate');
 }
