@@ -22,7 +22,6 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -54,9 +53,15 @@ public class ClosePlanDomainService {
     }
 
     public void close(String planId, AuditInfo auditInfo) {
-        if (!subscriptionQueryService.findActiveSubscriptionsByPlan(planId).isEmpty()) {
-            throw new ValidationDomainException("Impossible to close a plan with active subscriptions");
-        }
+        subscriptionQueryService
+            .findActiveSubscriptionsByPlan(planId)
+            .forEach(subscription -> {
+                try {
+                    closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
+                } catch (Exception e) {
+                    log.warn("Could not close subscription {} while closing plan {}", subscription.getId(), planId, e);
+                }
+            });
 
         var planToClose = planCrudService.getById(planId);
         final Plan closedPlan = planToClose.close();
