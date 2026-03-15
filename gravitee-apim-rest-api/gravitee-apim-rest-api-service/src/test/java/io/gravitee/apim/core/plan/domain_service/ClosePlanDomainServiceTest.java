@@ -16,6 +16,10 @@
 package io.gravitee.apim.core.plan.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
@@ -158,23 +162,23 @@ class ClosePlanDomainServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = { "CLOSED", "REJECTED" })
-    void should_throw_when_closing_plan_with_active_subscriptions(SubscriptionEntity.Status status) {
+    void should_close_active_subscriptions_before_closing_plan(SubscriptionEntity.Status status) {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
-        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
+        var subscription = SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build();
+        givenExistingSubscriptions(subscription);
 
         // When
-        var throwable = org.assertj.core.api.Assertions.catchThrowable(() -> service.close(plan.getId(), AUDIT_INFO));
+        service.close(plan.getId(), AUDIT_INFO);
 
         // Then
-        assertThat(throwable)
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Impossible to close a plan with active subscriptions");
+        verify(closeSubscriptionDomainService).closeSubscription(eq(subscription.getId()), eq(AUDIT_INFO));
+        assertThat(planCrudService.storage().get(0).getPlanStatus()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
     }
 
     @ParameterizedTest
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.INCLUDE, names = { "CLOSED", "REJECTED" })
-    void should_close_plan_if_existing_subscriptions_are_inactive(SubscriptionEntity.Status status) {
+    void should_close_plan_without_touching_inactive_subscriptions(SubscriptionEntity.Status status) {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
         givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
@@ -183,6 +187,28 @@ class ClosePlanDomainServiceTest {
         service.close(plan.getId(), AUDIT_INFO);
 
         // Then
+        verifyNoInteractions(closeSubscriptionDomainService);
+        assertThat(planCrudService.storage().get(0).getPlanStatus()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
+    }
+
+    @Test
+    void should_still_close_plan_when_subscription_close_fails() {
+        // Given
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
+        var subscription = SubscriptionFixtures.aSubscription()
+            .toBuilder()
+            .planId(plan.getId())
+            .status(SubscriptionEntity.Status.ACCEPTED)
+            .build();
+        givenExistingSubscriptions(subscription);
+        doThrow(new RuntimeException("downstream failure"))
+            .when(closeSubscriptionDomainService)
+            .closeSubscription(eq(subscription.getId()), eq(AUDIT_INFO));
+
+        // When — should not propagate the exception
+        service.close(plan.getId(), AUDIT_INFO);
+
+        // Then — plan is still closed despite the subscription failure
         assertThat(planCrudService.storage().get(0).getPlanStatus()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
     }
 
