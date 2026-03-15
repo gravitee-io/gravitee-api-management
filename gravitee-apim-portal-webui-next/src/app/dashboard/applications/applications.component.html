@@ -33,7 +33,7 @@
     }
   </div>
 
-  <app-cards-grid [cards]="applicationPaginator().data">
+  <app-cards-grid [cards]="applicationPaginator().data" [showEmptyState]="true">
     <ng-template #cardTemplate let-app>
       <app-application-card
         [applicationId]="app.id"
