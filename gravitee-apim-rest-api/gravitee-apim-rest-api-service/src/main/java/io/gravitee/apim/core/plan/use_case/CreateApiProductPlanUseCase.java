@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import static io.gravitee.definition.model.DefinitionVersion.V4;
 
@@ -38,8 +38,8 @@ public class CreateApiProductPlanUseCase {
     private final ApiProductCrudService apiProductCrudService;
 
     public Output execute(Input input) {
-        log.debug("Creating plan for API Product {}", input.apiProductId());
-        var apiProduct = apiProductCrudService.get(input.apiProductId());
+        log.debug("Creating plan for reference {}", input.referenceId());
+        var apiProduct = apiProductCrudService.get(input.referenceId());
 
         var plan = input.toPlan.apply(apiProduct);
 
@@ -47,7 +47,7 @@ public class CreateApiProductPlanUseCase {
         //setting this to not null because jdbc looks for a not null value in this column
 
         plan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
-        plan.setReferenceId(input.apiProductId);
+        plan.setReferenceId(input.referenceId);
         plan.setPlanStatus(PlanStatus.STAGING);
         plan.setDefinitionVersion(V4);
         if (plan.getPlanMode() == null) {
@@ -56,11 +56,11 @@ public class CreateApiProductPlanUseCase {
 
         Plan createdPlan = createPlanDomainService.createApiProductPlan(plan, apiProduct, input.auditInfo);
 
-        log.debug("Plan {} created for API Product {}", createdPlan.getId(), input.apiProductId());
+        log.debug("Plan {} created for reference {}", createdPlan.getId(), input.referenceId());
         return new Output(createdPlan.getId(), createdPlan);
     }
 
-    public record Input(String apiProductId, Function<ApiProduct, Plan> toPlan, AuditInfo auditInfo) {}
+    public record Input(String referenceId, Function<ApiProduct, Plan> toPlan, AuditInfo auditInfo) {}
 
     public record Output(String id, Plan plan) {}
 }
