@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.9.5_01_change_dictionary_property_value_datatype
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}dictionary_property
+            columnName: v
+            newDataType: nclob
