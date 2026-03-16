@@ -22,14 +22,23 @@ import {
   GIO_DIALOG_WIDTH,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
   Header,
 } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import {
+  AddCertificateDialogComponent,
+  AddCertificateDialogData,
+  AddCertificateDialogResult,
+} from './add-certificate-dialog/add-certificate-dialog.component';
+
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { Application, ApplicationType } from '../../../../entities/application/Application';
+import { ClientCertificate, ClientCertificateStatus } from '../../../../entities/application/ClientCertificate';
 import { toDictionary, toGioFormHeader, uniqueKeysValidator } from '../../../../util/gio-form-header.util';
 
 @Component({
@@ -44,7 +53,9 @@ export class ApplicationGeneralComponent implements OnInit {
   public applicationForm: UntypedFormGroup;
   public isLoadingData = true;
   public isReadOnly = false;
-  public certificateCount = 0;
+  public certificates: ClientCertificate[] = [];
+  public certificatesDisplayedColumns = ['name', 'createdAt', 'endsAt', 'status', 'actions'];
+  public isLoadingCertificates = false;
   public initialApplicationGeneralFormsValue: unknown;
   private destroyRef = inject(DestroyRef);
 
@@ -72,7 +83,6 @@ export class ApplicationGeneralComponent implements OnInit {
       .subscribe(() => {
         this.isLoadingData = false;
         this.isReadOnly = this.initialApplication.status === 'ARCHIVED' || this.initialApplication.origin === 'KUBERNETES';
-        this.certificateCount = this.initialApplication.settings?.tls?.certificate_count ?? 0;
 
         this.applicationForm = new UntypedFormGroup({
           details: new UntypedFormGroup({
@@ -144,19 +154,8 @@ export class ApplicationGeneralComponent implements OnInit {
           );
         }
 
-        this.applicationForm.addControl(
-          'TlsForm',
-          new UntypedFormGroup({
-            client_certificate: new UntypedFormControl({
-              value: this.initialApplication.settings?.tls?.client_certificate
-                ? this.initialApplication.settings.tls.client_certificate
-                : undefined,
-              disabled: this.isReadOnly,
-            }),
-          }),
-        );
-
         this.initialApplicationGeneralFormsValue = this.applicationForm.getRawValue();
+        this.loadCertificates();
       });
   }
 
@@ -176,9 +175,6 @@ export class ApplicationGeneralComponent implements OnInit {
               app: {
                 ...this.applicationForm.getRawValue().OAuth2Form,
               },
-              tls: {
-                ...this.applicationForm.getRawValue().TlsForm,
-              },
             }
           : {
               oauth: {
@@ -186,9 +182,6 @@ export class ApplicationGeneralComponent implements OnInit {
                 ...this.applicationForm.getRawValue().OpenIDForm,
                 additional_client_metadata: toDictionary(this.applicationForm.getRawValue().OpenIDForm.additional_client_metadata),
                 application_type: this.applicationType.id,
-              },
-              tls: {
-                ...this.applicationForm.getRawValue().TlsForm,
               },
             },
       picture: pictureUrl,
@@ -202,6 +195,105 @@ export class ApplicationGeneralComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  loadCertificates(): void {
+    this.isLoadingCertificates = true;
+    this.applicationService
+      .listCertificates(this.activatedRoute.snapshot.params.applicationId, 1, 100)
+      .pipe(
+        tap(result => {
+          this.certificates = result.data ?? [];
+          this.isLoadingCertificates = false;
+        }),
+        catchError(() => {
+          this.certificates = [];
+          this.isLoadingCertificates = false;
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  openAddCertificateDialog(): void {
+    const sortedByNewest = [...this.certificates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const activeCert =
+      sortedByNewest.find(c => c.status === ClientCertificateStatus.ACTIVE) ??
+      sortedByNewest.find(c => c.status === ClientCertificateStatus.ACTIVE_WITH_END);
+
+    this.matDialog
+      .open<AddCertificateDialogComponent, AddCertificateDialogData, AddCertificateDialogResult>(AddCertificateDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          hasActiveCertificates: !!activeCert,
+          activeCertificateId: activeCert?.id,
+        },
+        role: 'dialog',
+        id: 'addCertificateDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(result => !!result),
+        switchMap(result => {
+          const create$ = this.applicationService.createCertificate(this.activatedRoute.snapshot.params.applicationId, {
+            name: result.name,
+            certificate: result.certificate,
+            endsAt: result.endsAt,
+          });
+
+          if (result.gracePeriodEnd && result.activeCertificateId) {
+            return create$.pipe(
+              switchMap(() =>
+                this.applicationService.updateCertificate(this.activatedRoute.snapshot.params.applicationId, result.activeCertificateId, {
+                  name: activeCert.name,
+                  endsAt: result.gracePeriodEnd,
+                }),
+              ),
+            );
+          }
+          return create$;
+        }),
+        tap(() => {
+          this.snackBarService.success('Certificate added successfully.');
+          this.loadCertificates();
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Failed to add certificate.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  deleteCertificate(cert: ClientCertificate): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          title: 'Delete Certificate',
+          content: `Are you sure you want to delete the certificate "<b>${cert.name}</b>"?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'confirmCertificateDeleteDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirm => confirm === true),
+        switchMap(() => this.applicationService.deleteCertificate(this.activatedRoute.snapshot.params.applicationId, cert.id)),
+        tap(() => {
+          this.snackBarService.success(`Certificate "${cert.name}" has been deleted.`);
+          this.loadCertificates();
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Failed to delete certificate.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   deleteApplication() {

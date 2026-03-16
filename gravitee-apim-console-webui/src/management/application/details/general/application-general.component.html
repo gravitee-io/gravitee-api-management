@@ -211,31 +211,93 @@
     </mat-card>
   </ng-container>
 
-  <ng-container>
-    <mat-card class="details-card" formGroupName="TlsForm">
-      <mat-card-content>
-        <div class="details-card__header">
-          <h3>Tls Configuration</h3>
+  <mat-card class="tls-card">
+    <mat-card-content>
+      <div class="tls-card__header">
+        <div class="tls-card__header__text">
+          <h3>Certificates</h3>
+          <p class="tls-card__header__subtitle">Manage mTLS certificates for this application</p>
         </div>
-        <div class="details-card__header__info-inputs">
-          <div class="details-card__header__info-inputs__client_id-row">
-            @if (certificateCount > 1) {
-              <gio-banner-warning>
-                This application has {{ certificateCount }} active certificates. The one displayed is the most recently created.
-              </gio-banner-warning>
-            }
-            <mat-form-field>
-              <mat-label>Client Certificate</mat-label>
-              <textarea formControlName="client_certificate" matInput type="text" rows="6" gioClipboardCopyWrapper></textarea>
-              <mat-hint align="start"
-                >The <code>client_certificate</code> of the application. This field is required to subscribe to mTLS plans.
-              </mat-hint>
-            </mat-form-field>
+        @if (!isReadOnly) {
+          <button
+            *gioPermission="{ anyOf: ['application-definition-u'] }"
+            mat-stroked-button
+            (click)="openAddCertificateDialog()"
+            data-testid="add-certificate-button"
+          >
+            <mat-icon svgIcon="gio:plus"></mat-icon>
+            Add certificate
+          </button>
+        }
+      </div>
+
+      @if (certificates.length > 0) {
+        <table mat-table [dataSource]="certificates" class="tls-card__table" aria-label="Client certificates table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let cert">{{ cert.name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Uploaded</th>
+            <td mat-cell *matCellDef="let cert">{{ cert.createdAt | date: 'mediumDate' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="endsAt">
+            <th mat-header-cell *matHeaderCellDef>Expiry date</th>
+            <td mat-cell *matCellDef="let cert">
+              {{ cert.endsAt ? (cert.endsAt | date: 'mediumDate') : '—' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let cert">
+              <span class="tls-card__status tls-card__status--{{ cert.status | lowercase }}">{{ cert.status }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let cert">
+              @if (!isReadOnly) {
+                <button
+                  mat-icon-button
+                  aria-label="Delete certificate"
+                  matTooltip="Delete certificate"
+                  (click)="deleteCertificate(cert)"
+                  data-testid="delete-certificate-button"
+                >
+                  <mat-icon svgIcon="gio:trash"></mat-icon>
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="certificatesDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: certificatesDisplayedColumns"></tr>
+        </table>
+      }
+
+      @if (certificates.length === 0 && !isLoadingCertificates) {
+        <div class="tls-card__empty" data-testid="no-certificates-message">
+          <div class="tls-card__empty__icon">
+            <mat-icon svgIcon="gio:folder-plus"></mat-icon>
+          </div>
+          <div class="tls-card__empty__text">
+            <h3 class="tls-card__empty__title">No mTLS certificates added</h3>
+            <p class="tls-card__empty__description">Add your first certificate to secure this application</p>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </ng-container>
+      }
+
+      @if (isLoadingCertificates) {
+        <div class="tls-card__loader">
+          <gio-loader></gio-loader>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
 
   <mat-card class="danger-card" *ngIf="!isReadOnly">
     <mat-card-content>
