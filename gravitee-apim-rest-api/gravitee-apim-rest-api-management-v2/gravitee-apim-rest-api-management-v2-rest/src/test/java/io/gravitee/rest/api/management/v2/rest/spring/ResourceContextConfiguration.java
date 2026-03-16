@@ -131,10 +131,13 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
-import io.gravitee.apim.core.plan.use_case.api_product.ApiProductPlanOperationsUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.UpdateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -977,14 +980,28 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    @Primary
+    public CreatePlanUseCase createPlanUseCase() {
+        return mock(CreatePlanUseCase.class);
+    }
+
+    @Bean
     public CreateApiProductPlanUseCase createApiProductPlanUseCase() {
         return mock(CreateApiProductPlanUseCase.class);
     }
 
     @Bean
-    public GetApiProductPlansUseCase getApiProductPlansUseCase() {
-        return mock(GetApiProductPlansUseCase.class);
+    public GetPlansUseCase getPlansUseCase() {
+        return mock(GetPlansUseCase.class);
+    }
+
+    @Bean
+    public UpdatePlanUseCase updatePlanUseCase() {
+        return mock(UpdatePlanUseCase.class);
+    }
+
+    @Bean
+    public UpdateFederatedPlanUseCase updateFederatedPlanUseCase() {
+        return mock(UpdateFederatedPlanUseCase.class);
     }
 
     @Bean
@@ -993,8 +1010,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase() {
-        return mock(ApiProductPlanOperationsUseCase.class);
+    public PlanOperationsUseCase planOperationsUseCase() {
+        return mock(PlanOperationsUseCase.class);
     }
 
     @Bean

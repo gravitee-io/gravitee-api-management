@@ -38,9 +38,9 @@ import fixtures.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
-import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
-import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
@@ -106,13 +106,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     private ApiCrudServiceInMemory apiCrudServiceInMemory;
 
     @Autowired
-    private CreatePlanDomainService createPlanDomainService;
+    private CreatePlanUseCase createPlanUseCase;
 
     @Autowired
     private SubscriptionQueryServiceInMemory subscriptionQueryService;
 
     @Autowired
-    private UpdatePlanDomainService updatePlanDomainService;
+    private UpdatePlanUseCase updatePlanUseCase;
 
     @Autowired
     private PlanCrudServiceInMemory planCrudServiceInMemory;
@@ -143,7 +143,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService, updatePlanDomainService);
+        Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService, updatePlanUseCase, createPlanUseCase);
     }
 
     @Nested
@@ -543,7 +543,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @AfterEach
         void tearDown() {
             apiCrudServiceInMemory.reset();
-            reset(createPlanDomainService);
+            reset(createPlanUseCase);
         }
 
         @Test
@@ -564,11 +564,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_create_v4_plan() {
             var planId = "new-id";
-            when(createPlanDomainService.create(any(), any(), any(), any())).thenAnswer(invocation -> {
-                io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
-                plan.setType(null);
-                return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
-            });
+            stubCreatePlanUseCase(aProxyApiV4().toBuilder().id(API).build(), planId);
 
             final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4();
             final Response response = target.request().post(Entity.json(createPlanV4));
@@ -602,11 +598,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_create_native_v4_plan() {
             var planId = "new-id";
-            when(createPlanDomainService.create(any(), any(), any(), any())).thenAnswer(invocation -> {
-                io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
-                plan.setType(null);
-                return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
-            });
+            stubCreatePlanUseCase(aNativeApi().toBuilder().id(API).build(), planId);
 
             apiCrudServiceInMemory.initWith(List.of(aNativeApi().toBuilder().id(API).build()));
 
@@ -642,11 +634,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_create_v4_plan_accepting_null_as_flow_list() {
             var planId = "new-id";
-            when(createPlanDomainService.create(any(), any(), any(), any())).thenAnswer(invocation -> {
-                io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
-                plan.setType(null);
-                return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
-            });
+            stubCreatePlanUseCase(aProxyApiV4().toBuilder().id(API).build(), planId);
 
             final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4().flows(null);
             final Response response = target.request().post(Entity.json(createPlanV4));
@@ -710,6 +698,24 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .order(0)
                         .commentRequired(false)
                 );
+        }
+
+        /**
+         * Stubs createPlanUseCase to apply the mapper lambdas from the input against the given api,
+         * simulating what the real use case would produce. This glues the input-mapping and
+         * output-mapping chains together at the mock boundary so tests can assert the full
+         * round-trip without depending on the real CreatePlanDomainService.
+         */
+        private void stubCreatePlanUseCase(io.gravitee.apim.core.api.model.Api api, String planId) {
+            when(createPlanUseCase.execute(any())).thenAnswer(invocation -> {
+                CreatePlanUseCase.Input input = invocation.getArgument(0);
+                var plan = input.toPlan().apply(api);
+                var flows = input.flowProvider().apply(api);
+                plan.setType(null);
+                plan.setPlanId(planId);
+                plan.setPlanStatus(io.gravitee.definition.model.v4.plan.PlanStatus.STAGING);
+                return new CreatePlanUseCase.Output(planId, new PlanWithFlows(plan, flows));
+            });
         }
     }
 
@@ -904,11 +910,15 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                     .build()
             );
             when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
-            when(updatePlanDomainService.update(any(), any(), any(), any(), any())).thenAnswer(invocation -> {
-                io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
+            when(updatePlanUseCase.execute(any())).thenAnswer(invocation -> {
+                UpdatePlanUseCase.Input input = invocation.getArgument(0);
+                var existingPlan = planCrudServiceInMemory.storage().get(0);
+                var api = fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build();
+                var updated = input.planToUpdate().applyTo(existingPlan);
                 updated.setUpdatedAt(null);
                 updated.setCreatedAt(null);
-                return updated;
+                var flows = input.flowProvider().apply(api);
+                return new UpdatePlanUseCase.Output(new PlanWithFlows(updated, flows));
             });
 
             final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
@@ -960,11 +970,15 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build()
             );
-            when(updatePlanDomainService.update(any(), any(), any(), any(), any())).thenAnswer(invocation -> {
-                io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
+            when(updatePlanUseCase.execute(any())).thenAnswer(invocation -> {
+                UpdatePlanUseCase.Input input = invocation.getArgument(0);
+                var existingPlan = planCrudServiceInMemory.storage().get(0);
+                var api = fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build();
+                var updated = input.planToUpdate().applyTo(existingPlan);
                 updated.setUpdatedAt(null);
                 updated.setCreatedAt(null);
-                return updated;
+                var flows = input.flowProvider().apply(api);
+                return new UpdatePlanUseCase.Output(new PlanWithFlows(updated, flows));
             });
 
             final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanNativeV4();
@@ -1110,6 +1124,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             );
             apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
             when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
+            // Group validation happens before the use case — this stub guards against silent wrong-failure
+            // if execution order ever changes
+            when(updatePlanUseCase.execute(any())).thenThrow(new IllegalStateException("should not reach updatePlanUseCase"));
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 PlanFixtures.aPlanEntityV4()
                     .toBuilder()
@@ -1118,13 +1135,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                     .referenceType(GenericPlanEntity.ReferenceType.API)
                     .build()
             );
-            when(updatePlanDomainService.update(any(), any(), any(), any(), any())).thenAnswer(invocation -> {
-                io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
-                updated.setUpdatedAt(null);
-                updated.setCreatedAt(null);
-                return updated;
-            });
-
             final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
             updatePlanV4.setExcludedGroups(List.of(nonExistentGroupId));
             final Response response = target.request().put(Entity.json(updatePlanV4));

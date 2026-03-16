@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,7 +36,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase.Input;
+import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
