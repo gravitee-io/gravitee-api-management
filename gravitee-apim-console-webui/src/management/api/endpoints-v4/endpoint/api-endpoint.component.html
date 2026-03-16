@@ -99,6 +99,7 @@
               <gio-form-json-schema
                 formControlName="sharedConfigurationOverride"
                 [jsonSchema]="endpointSchema?.sharedConfig"
+                (ready)="onSharedConfigSchemaReady($event)"
               ></gio-form-json-schema>
             </div>
           </mat-tab>
