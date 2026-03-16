@@ -24,12 +24,12 @@ import java.util.Map;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DuplicateTagNameException extends AbstractManagementException {
+public class DuplicateTagKeyException extends AbstractManagementException {
 
-    private final String tagName;
+    private final String tagKey;
 
-    public DuplicateTagNameException(String tagName) {
-        this.tagName = tagName;
+    public DuplicateTagKeyException(String tagKey) {
+        this.tagKey = tagKey;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class DuplicateTagNameException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "The tag '" + tagName + "' already exists.";
+        return "The tag '" + tagKey + "' already exists.";
     }
 
     @Override
@@ -49,6 +49,6 @@ public class DuplicateTagNameException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("tag", tagName);
+        return singletonMap("tag", tagKey);
     }
 }

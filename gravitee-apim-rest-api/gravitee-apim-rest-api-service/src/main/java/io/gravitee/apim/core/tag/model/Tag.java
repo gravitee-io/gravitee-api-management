@@ -26,6 +26,7 @@ import lombok.With;
 public class Tag {
 
     private String id;
+    private String key;
     private String name;
     private String description;
     private List<String> restrictedGroups;

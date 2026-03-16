@@ -29,4 +29,6 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes:
+  artifacthub.io/changes: |
+    - kind: added
+      description: 'Deprecate old logging configuration parameters in favor of logback override and node logging configuration.'

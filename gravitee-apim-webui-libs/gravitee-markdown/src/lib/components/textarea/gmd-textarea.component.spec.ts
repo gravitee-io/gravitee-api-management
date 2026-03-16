@@ -112,6 +112,14 @@ describe('GmdTextareaComponent', () => {
     expect(placeholder).toBe('Enter text here');
   });
 
+  it('should not render placeholder attribute when placeholder is undefined', async () => {
+    fixture.componentRef.setInput('placeholder', undefined);
+    fixture.detectChanges();
+
+    const placeholder = await harness.getPlaceholder();
+    expect(placeholder).toBeNull();
+  });
+
   it('should show required indicator when required is true', async () => {
     fixture.componentRef.setInput('label', 'Test Textarea');
     fixture.componentRef.setInput('required', true);

@@ -27,10 +27,31 @@
       <mat-form-field>
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" required />
-        <mat-hint align="end">{{ tagForm.get('name').value?.length ?? 0 }}/64</mat-hint>
-        <mat-error *ngIf="tagForm.get('name').hasError('maxlength')">Name has to be less than 64 characters long.</mat-error>
-        <mat-error *ngIf="tagForm.get('name').hasError('minlength')">Name has to be more than 2 characters long.</mat-error>
-        <mat-error *ngIf="tagForm.get('name').hasError('required')">Name is required.</mat-error>
+        <mat-hint align="end">{{ tagForm.controls.name.value?.length ?? 0 }}/64</mat-hint>
+        @if (tagForm.controls.name.hasError('maxlength')) {
+          <mat-error>Name has to be less than 64 characters long.</mat-error>
+        }
+        @if (tagForm.controls.name.hasError('minlength')) {
+          <mat-error>Name has to be more than 2 characters long.</mat-error>
+        }
+        @if (tagForm.controls.name.hasError('required')) {
+          <mat-error>Name is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Key</mat-label>
+        <input matInput formControlName="key" required (blur)="onKeyBlur()" />
+        <mat-hint align="end">{{ tagForm.controls.key.value?.length ?? 0 }}/64</mat-hint>
+        @if (tagForm.controls.key.hasError('maxlength')) {
+          <mat-error>Key has to be less than 64 characters long.</mat-error>
+        }
+        @if (tagForm.controls.key.hasError('minlength')) {
+          <mat-error>Key has to be more than 1 characters long.</mat-error>
+        }
+        @if (tagForm.controls.key.hasError('required')) {
+          <mat-error>Key is required.</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field>
@@ -41,7 +62,9 @@
       <mat-form-field>
         <mat-label>Restricted groups</mat-label>
         <mat-select formControlName="restrictedGroups" aria-label="Restricted groups selection" multiple>
-          <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
+          @for (group of groups$ | async; track group.id) {
+            <mat-option [value]="group.id">{{ group.name }}</mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>

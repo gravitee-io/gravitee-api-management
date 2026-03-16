@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
-import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionMetadataInvalidException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +23,9 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates and sanitizes subscription form metadata (keys, value length, HTML).
+ * Validates and sanitizes subscription form metadata (keys, value length).
+ * Values are plain text; HTML tags are stripped to prevent XSS when metadata is rendered.
+ * No HTML encoding is applied, so characters like {@code @}, {@code +}, {@code =} are stored as-is.
  *
  * @author GraviteeSource Team
  */
@@ -32,17 +33,13 @@ import org.springframework.stereotype.Component;
 public class SubscriptionMetadataSanitizer {
 
     private static final Pattern KEY_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,100}$");
+    private static final Pattern HTML_TAG = Pattern.compile("<[^>]*>");
     private static final int MAX_VALUE_LENGTH = 1024;
     private static final int MAX_METADATA_COUNT = 25;
 
-    private final HtmlSanitizer htmlSanitizer;
-
-    public SubscriptionMetadataSanitizer(HtmlSanitizer htmlSanitizer) {
-        this.htmlSanitizer = htmlSanitizer;
-    }
-
     /**
-     * Validates metadata keys and value lengths, then sanitizes each value with HTML sanitizer.
+     * Validates metadata keys and value lengths, then strips HTML tags from each value.
+     * Any remaining characters (including {@code <}, {@code >}, non-Latin, etc.) are stored as-is.
      *
      * @param metadata raw metadata from the client
      * @return sanitized metadata, or empty map if input is null
@@ -78,7 +75,7 @@ public class SubscriptionMetadataSanitizer {
                 );
             }
 
-            String sanitizedValue = htmlSanitizer.sanitize(value);
+            String sanitizedValue = stripHtmlTags(value);
             if (sanitizedValue == null || sanitizedValue.isBlank()) {
                 continue;
             }
@@ -86,5 +83,16 @@ public class SubscriptionMetadataSanitizer {
         }
 
         return sanitizedMetadata;
+    }
+
+    /**
+     * Removes HTML tags from plain-text metadata. Used instead of OWASP HTML Sanitizer so that
+     * special characters (e.g. {@code @}, {@code +}, {@code =}) are not encoded.
+     */
+    private static String stripHtmlTags(String content) {
+        if (content == null) {
+            return null;
+        }
+        return HTML_TAG.matcher(content).replaceAll("").trim();
     }
 }

@@ -251,7 +251,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       expect(headerCells).toEqual([
         {
           description: 'Description',
-          id: 'ID',
+          key: 'Key',
           name: 'Name',
           restrictedGroupsName: 'Restricted groups',
           actions: '',
@@ -260,7 +260,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       expect(rowCells).toEqual([
         {
           description: 'A tag for all external stuff',
-          id: expect.stringContaining('external'),
+          key: expect.stringContaining('external'),
           name: 'External',
           restrictedGroupsName: 'Group A',
           actions: 'editdelete',
@@ -302,7 +302,10 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should delete a tag', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
+      expectTagsListRequest([
+        fakeTag({ id: 'tag-1-id', key: 'tag-1', restricted_groups: ['group-a'] }),
+        fakeTag({ id: 'tag-2-id', key: 'tag-2' }),
+      ]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] }), fakeEntrypoint({ id: 'epIdB', tags: ['tag-1'] })]);
@@ -339,7 +342,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should delete a tag without entrypoint mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1' })]);
+      expectTagsListRequest([fakeTag({ id: 'tag-1-id', key: 'tag-1' })]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([]);
@@ -394,7 +397,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should update a tag', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+      expectTagsListRequest([fakeTag({ id: 'tag-1-id', key: 'tag-1', restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
@@ -423,7 +426,6 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1` });
       expect(req.request.body).toStrictEqual({
-        id: 'tag-1',
         name: 'New tag name',
         description: 'New tag description',
         restricted_groups: ['group-a', 'group-b'],
@@ -439,7 +441,8 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should create a new HTTP mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      const tag1 = fakeTag({ id: 'tag-1-id', key: 'tag-1', name: 'Tag 1' });
+      expectTagsListRequest([tag1]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
@@ -447,7 +450,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const addButtonMenu = await loader.getHarness(MatMenuHarness.with({ triggerText: /Add a mapping/ }));
       await addButtonMenu.clickItem({ text: 'HTTP' });
 
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectTagsListRequest([tag1]);
       expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
@@ -471,7 +474,8 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should create a new KAFKA mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      const tag1 = fakeTag({ id: 'tag-1-id', key: 'tag-1', name: 'Tag 1' });
+      expectTagsListRequest([tag1]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
@@ -479,7 +483,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const addButtonMenu = await loader.getHarness(MatMenuHarness.with({ triggerText: /Add a mapping/ }));
       await addButtonMenu.clickItem({ text: 'Kafka' });
 
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectTagsListRequest([tag1]);
       expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
 
       const addMappingDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#addMappingDialog' }));
@@ -509,7 +513,9 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should update a HTTP mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      const tag1 = fakeTag({ id: 'tag-1-id', key: 'tag-1', name: 'Tag 1' });
+      const tag2 = fakeTag({ id: 'tag-2-id', key: 'tag-2', name: 'Tag 2' });
+      expectTagsListRequest([tag1, tag2]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypointIdA', tags: ['tag-1'] })]);
@@ -523,7 +529,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       );
       await editButton.click();
 
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectTagsListRequest([tag1, tag2]);
       expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
@@ -570,6 +576,9 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
       await nameInput.setValue('Tag name');
 
+      const keyInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+      await keyInput.setValue('tag-key');
+
       const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
       await descriptionInput.setValue('Tag description');
 
@@ -581,6 +590,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags` });
       expect(req.request.body).toStrictEqual({
         name: 'Tag name',
+        key: 'tag-key',
         description: 'Tag description',
         restricted_groups: ['group-a'],
       });

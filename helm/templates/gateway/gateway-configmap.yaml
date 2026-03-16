@@ -1,4 +1,4 @@
-{{- if and (.Values.gateway.enabled) (or (not (include "gateway.externalConfig" .)) (.Values.gateway.logging.debug)) -}}
+{{- if and (.Values.gateway.enabled) (or (not (include "gateway.externalConfig" .)) (.Values.gateway.logging.debug) (.Values.gateway.logback.override)) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -613,6 +613,43 @@ data:
 {{ toYaml .Values.gateway.system | indent 6 }}
     {{- end }}
 
+    {{- if .Values.gateway.node }}
+    node:
+      {{- if .Values.gateway.node.logging }}
+      logging:
+        {{- if .Values.gateway.node.logging.mdc }}
+        mdc:
+          {{- if .Values.gateway.node.logging.mdc.format }}
+          format: {{ .Values.gateway.node.logging.mdc.format | quote }}
+          {{- end }}
+          {{- if .Values.gateway.node.logging.mdc.separator }}
+          separator: {{ .Values.gateway.node.logging.mdc.separator | quote }}
+          {{- end }}
+          {{- if .Values.gateway.node.logging.mdc.nullValue }}
+          nullValue: {{ .Values.gateway.node.logging.mdc.nullValue | quote }}
+          {{- end }}
+          {{- if .Values.gateway.node.logging.mdc.include }}
+          include:
+            {{- range .Values.gateway.node.logging.mdc.include }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.gateway.node.logging.pattern }}
+        pattern:
+          {{- if hasKey .Values.gateway.node.logging.pattern "overrideLogbackXml" }}
+          overrideLogbackXml: {{ .Values.gateway.node.logging.pattern.overrideLogbackXml }}
+          {{- end }}
+          {{- if .Values.gateway.node.logging.pattern.console }}
+          console: {{ .Values.gateway.node.logging.pattern.console | quote }}
+          {{- end }}
+          {{- if .Values.gateway.node.logging.pattern.file }}
+          file: {{ .Values.gateway.node.logging.pattern.file | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
     # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
     # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
     reporters:
@@ -852,7 +889,10 @@ data:
     {{- end}}
 
   {{- end }}
-    {{- if .Values.gateway.logging.debug }}
+    {{- if .Values.gateway.logback.override }}
+  logback.xml: |
+{{ .Values.gateway.logback.content | indent 4 }}
+    {{- else if .Values.gateway.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
 

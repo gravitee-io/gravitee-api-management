@@ -16,6 +16,13 @@
 export interface Tag {
   id: string;
   name: string;
+  key: string;
+  description: string;
+  restricted_groups?: string[];
+}
+
+export interface UpdateTagEntity {
+  name: string;
   description: string;
   restricted_groups?: string[];
 }

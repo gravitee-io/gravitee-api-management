@@ -190,7 +190,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
                             .getTags()
                             .stream()
                             .flatMap(group -> tagsQueryService.findByName(organizationId, group).stream())
-                            .map(Tag::getId)
+                            .map(Tag::getKey)
                             .collect(Collectors.toSet())
                     )
                     .build()

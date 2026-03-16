@@ -15,97 +15,115 @@
     limitations under the License.
 
 -->
-<ng-container *ngIf="generalForm" [formGroup]="generalForm">
-  <mat-form-field class="name-field">
-    <mat-label>Name</mat-label>
-    <input matInput formControlName="name" data-testid="api_plans_name_field" required />
-    <mat-error *ngIf="generalForm.get('name').hasError('required')">Name is required.</mat-error>
-    <mat-error *ngIf="generalForm.get('name').hasError('maxlength')">The name has to be less than 50 characters long.</mat-error>
-    <mat-hint align="end">{{ generalForm.get('name').value?.length || 0 }}/50</mat-hint>
-  </mat-form-field>
-
-  <mat-form-field class="description-field">
-    <mat-label>Description</mat-label>
-    <textarea matInput formControlName="description" data-testid="api_plans_description_field"></textarea>
-  </mat-form-field>
-
-  <mat-form-field class="characteristics-field">
-    <mat-label>Characteristics</mat-label>
-    <gio-form-tags-input formControlName="characteristics" [addOnBlur]="true"></gio-form-tags-input>
-  </mat-form-field>
-
-  <ng-container *ngIf="api$ | async">
-    <h2>Conditions</h2>
-
-    <gio-banner-info *ngIf="mode === 'edit' && planStatus !== 'STAGING' && generalForm.get('generalConditions').enabled">
-      This plan is {{ planStatus | lowercase }}, if you change the general conditions please remember to notify your API subscribers.
-    </gio-banner-info>
-
-    <mat-form-field class="generalConditions-field">
-      <mat-label>Page of General Conditions</mat-label>
-      <mat-select formControlName="generalConditions">
-        <ng-container *ngIf="conditionPages$ | async; let conditionPages">
-          <mat-option *ngIf="conditionPages?.length === 0" disabled>No page available</mat-option>
-          <mat-option *ngIf="conditionPages?.length !== 0"></mat-option>
-          <mat-option *ngFor="let page of conditionPages" [value]="page.id">{{ page.name }}</mat-option>
-        </ng-container>
-      </mat-select>
+@if (generalForm) {
+  <ng-container [formGroup]="generalForm">
+    <mat-form-field class="name-field">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" data-testid="api_plans_name_field" required />
+      @if (generalForm.get('name').hasError('required')) {
+        <mat-error>Name is required.</mat-error>
+      }
+      @if (generalForm.get('name').hasError('maxlength')) {
+        <mat-error>The name has to be less than 50 characters long.</mat-error>
+      }
+      <mat-hint align="end">{{ generalForm.get('name').value?.length || 0 }}/50</mat-hint>
     </mat-form-field>
-  </ng-container>
 
-  <ng-container *ngIf="displaySubscriptionsSection">
-    <h2>Subscriptions</h2>
-
-    <gio-form-slide-toggle class="validation-field">
-      Auto validate subscription
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="autoValidation"
-        aria-label="Auto validate subscription toggle"
-        name="validation"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-
-    <gio-form-slide-toggle class="commentRequired-field">
-      Consumer must provide a comment when subscribing to the plan (Classic Portal only)
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="commentRequired"
-        aria-label="Comment when subscribing to the plan toggle"
-        name="commentRequired"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-
-    <mat-form-field class="commentMessage-field">
-      <mat-label>Custom message to display to consumer</mat-label>
-      <input matInput formControlName="commentMessage" />
-      <mat-error *ngIf="generalForm.get('commentMessage').hasError('maxlength')"
-        >The comment message has to be less than 64 characters long.</mat-error
-      >
+    <mat-form-field class="description-field">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" data-testid="api_plans_description_field"></textarea>
     </mat-form-field>
-  </ng-container>
 
-  <ng-container *ngIf="!isFederated && (api$ | async)">
-    <h2>Deployment</h2>
-
-    <mat-form-field>
-      <mat-label>Sharding tags</mat-label>
-      <mat-select formControlName="shardingTags" aria-label="Sharding tags selection" multiple>
-        <mat-option *ngFor="let tag of shardingTags$ | async" [value]="tag.id" [disabled]="tag.disabled"
-          >{{ tag.name }}{{ tag.description ? ' - ' + tag.description : '' }}</mat-option
-        >
-      </mat-select>
+    <mat-form-field class="characteristics-field">
+      <mat-label>Characteristics</mat-label>
+      <gio-form-tags-input formControlName="characteristics" [addOnBlur]="true"></gio-form-tags-input>
     </mat-form-field>
-  </ng-container>
 
-  <ng-container *ngIf="!hideAccessControl">
-    <h2>Access-Control</h2>
+    @if (api$ | async) {
+      <h2>Conditions</h2>
 
-    <mat-form-field>
-      <mat-label>Groups excluded</mat-label>
-      <mat-select formControlName="excludedGroups" aria-label="Groups excluded selection" multiple>
-        <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+      @if (mode === 'edit' && planStatus !== 'STAGING' && generalForm.get('generalConditions').enabled) {
+        <gio-banner-info>
+          This plan is {{ planStatus | lowercase }}, if you change the general conditions please remember to notify your API subscribers.
+        </gio-banner-info>
+      }
+
+      <mat-form-field class="generalConditions-field">
+        <mat-label>Page of General Conditions</mat-label>
+        <mat-select formControlName="generalConditions">
+          @if (conditionPages$ | async; as conditionPages) {
+            @if (conditionPages?.length === 0) {
+              <mat-option disabled>No page available</mat-option>
+            }
+            @if (conditionPages?.length !== 0) {
+              <mat-option></mat-option>
+            }
+            @for (page of conditionPages; track page.id) {
+              <mat-option [value]="page.id">{{ page.name }}</mat-option>
+            }
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (displaySubscriptionsSection) {
+      <h2>Subscriptions</h2>
+
+      <gio-form-slide-toggle class="validation-field">
+        Auto validate subscription
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="autoValidation"
+          aria-label="Auto validate subscription toggle"
+          name="validation"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <gio-form-slide-toggle class="commentRequired-field">
+        Consumer must provide a comment when subscribing to the plan (Classic Portal only)
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="commentRequired"
+          aria-label="Comment when subscribing to the plan toggle"
+          name="commentRequired"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <mat-form-field class="commentMessage-field">
+        <mat-label>Custom message to display to consumer</mat-label>
+        <input matInput formControlName="commentMessage" />
+        @if (generalForm.get('commentMessage').hasError('maxlength')) {
+          <mat-error>The comment message has to be less than 64 characters long.</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (!isFederated && (api$ | async)) {
+      <h2>Deployment</h2>
+
+      <mat-form-field>
+        <mat-label>Sharding tags</mat-label>
+        <mat-select formControlName="shardingTags" aria-label="Sharding tags selection" multiple>
+          @for (tag of shardingTags$ | async; track tag.id) {
+            <mat-option [value]="tag.key" [disabled]="tag.disabled"
+              >{{ tag.name }}{{ tag.description ? ' - ' + tag.description : '' }}</mat-option
+            >
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (!hideAccessControl) {
+      <h2>Access-Control</h2>
+
+      <mat-form-field>
+        <mat-label>Groups excluded</mat-label>
+        <mat-select formControlName="excludedGroups" aria-label="Groups excluded selection" multiple>
+          @for (group of groups$ | async; track group.id) {
+            <mat-option [value]="group.id">{{ group.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
   </ng-container>
-</ng-container>
+}

@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_00_add_tags_key_columns
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}tags
+            columns:
+              - column:
+                  name: key
+                  type: nvarchar(64)

@@ -39,6 +39,7 @@ import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -82,7 +83,13 @@ class OAIToImportApiUseCaseTest {
         var tagQueryService = new TagQueryServiceInMemory();
         tagQueryService.initWith(
             List.of(
-                Tag.builder().id("1").name("tag1").referenceId(ORGANIZATION_ID).referenceType(Tag.TagReferenceType.ORGANIZATION).build()
+                Tag.builder()
+                    .id(UUID.random().toString())
+                    .key("tag1")
+                    .name("tag1")
+                    .referenceId(ORGANIZATION_ID)
+                    .referenceType(Tag.TagReferenceType.ORGANIZATION)
+                    .build()
             )
         );
 
@@ -144,7 +151,7 @@ class OAIToImportApiUseCaseTest {
 
     @Test
     @SneakyThrows
-    void should_map_tags_names_to_ids() {
+    void should_map_tags_names_to_keys() {
         // Given
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
@@ -158,7 +165,7 @@ class OAIToImportApiUseCaseTest {
 
         var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getTags()).containsExactly("1");
+        assertThat(importDefinition.getTags()).containsExactly("tag1");
     }
 
     @Test

@@ -20,6 +20,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import java.util.Optional;
@@ -42,7 +43,7 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(3, tags.size());
         final Tag tagProduct = tags
             .stream()
-            .filter(tag -> "products".equals(tag.getId()))
+            .filter(tag -> "1d114170-466d-4952-9141-70466de95213".equals(tag.getId()))
             .findAny()
             .get();
         assertEquals("Products", tagProduct.getName());
@@ -53,7 +54,8 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldCreate() throws Exception {
         final Tag tag = new Tag();
-        tag.setId("new-tag");
+        tag.setId(UUID.random().toString());
+        tag.setKey("new-tag");
         tag.setName("Tag name");
         tag.setDescription("Description for the new tag");
         tag.setRestrictedGroups(asList("g1", "groupNew"));
@@ -66,18 +68,19 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         Assert.assertEquals(nbTagsBeforeCreation + 1, nbTagsAfterCreation);
 
-        Optional<Tag> optional = tagRepository.findById("new-tag");
+        Optional<Tag> optional = tagRepository.findById(tag.getId());
         Assert.assertTrue("Tag saved not found", optional.isPresent());
 
         final Tag tagSaved = optional.get();
         Assert.assertEquals("Invalid saved tag name.", tag.getName(), tagSaved.getName());
+        Assert.assertEquals("Invalid saved tag key.", tag.getKey(), tagSaved.getKey());
         Assert.assertEquals("Invalid tag description.", tag.getDescription(), tagSaved.getDescription());
         Assert.assertEquals("Invalid tag groups.", tag.getRestrictedGroups(), tagSaved.getRestrictedGroups());
     }
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Tag> optional = tagRepository.findById("products");
+        Optional<Tag> optional = tagRepository.findById("1d114170-466d-4952-9141-70466de95213");
         Assert.assertTrue("Tag to update not found", optional.isPresent());
         Assert.assertEquals("Invalid saved tag name.", "Products", optional.get().getName());
 
@@ -92,7 +95,7 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         Assert.assertEquals(nbTagsBeforeUpdate, nbTagsAfterUpdate);
 
-        Optional<Tag> optionalUpdated = tagRepository.findById("products");
+        Optional<Tag> optionalUpdated = tagRepository.findById("1d114170-466d-4952-9141-70466de95213");
         Assert.assertTrue("Tag to update not found", optionalUpdated.isPresent());
 
         final Tag tagUpdated = optionalUpdated.get();
@@ -104,7 +107,7 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldDelete() throws Exception {
         int nbTagsBeforeDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
-        tagRepository.delete("international");
+        tagRepository.delete("70237305-6f68-450e-a373-056f68750e50");
         int nbTagsAfterDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTagsBeforeDeletion - 1, nbTagsAfterDeletion);
@@ -125,17 +128,18 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByIdAndReference() throws Exception {
-        final Optional<Tag> tag = tagRepository.findByIdAndReference("other", "OTHER", TagReferenceType.ORGANIZATION);
+    public void shouldFindByKeyAndReference() throws Exception {
+        final Optional<Tag> tag = tagRepository.findByKeyAndReference("other", "OTHER", TagReferenceType.ORGANIZATION);
 
         assertTrue(tag.isPresent());
         assertEquals("Other", tag.get().getName());
+        assertEquals("other", tag.get().getKey());
         assertEquals("Description for other tag", tag.get().getDescription());
     }
 
     @Test
-    public void should_find_by_ids_and_reference_id_and_reference_type() throws Exception {
-        final Set<Tag> tags = tagRepository.findByIdsAndReference(
+    public void should_find_by_keys_and_reference_id_and_reference_type() throws Exception {
+        final Set<Tag> tags = tagRepository.findByKeysAndReference(
             Set.of("international", "stores", "not-to-be-found"),
             "DEFAULT",
             TagReferenceType.ORGANIZATION
@@ -143,7 +147,12 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(tags)
             .hasSize(2)
-            .anyMatch(tag -> tag.getId().equals("international") && tag.getName().equals("International"));
+            .anyMatch(
+                tag ->
+                    tag.getId().equals("70237305-6f68-450e-a373-056f68750e50") &&
+                    tag.getName().equals("International") &&
+                    tag.getKey().equals("international")
+            );
     }
 
     @Test

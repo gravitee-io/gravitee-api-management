@@ -75,7 +75,7 @@ interface ApiPaginatorVM {
   styleUrl: './catalog.component.scss',
 })
 export class CatalogComponent {
-  loadingPage: boolean = true;
+  readonly loadingPage = signal<boolean>(true);
   pageSize = 20;
   pageSizeOptions = [8, 20, 40, 80];
   viewMode = signal<'grid' | 'list'>('grid');
@@ -129,7 +129,7 @@ export class CatalogComponent {
     return this.page$.pipe(
       map(currentPage => ({ currentPage, pageSize: this.pageSize, query: this.query() })),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
-      tap(_ => (this.loadingPage = true)),
+      tap(_ => this.loadingPage.set(true)),
       switchMap(({ currentPage, pageSize, query }) => this.searchApis$(currentPage, pageSize, query)),
       map(resp => {
         const data = resp.data
@@ -152,7 +152,7 @@ export class CatalogComponent {
           totalResults,
         };
       }),
-      tap(_ => (this.loadingPage = false)),
+      tap(_ => this.loadingPage.set(false)),
     );
   }
 

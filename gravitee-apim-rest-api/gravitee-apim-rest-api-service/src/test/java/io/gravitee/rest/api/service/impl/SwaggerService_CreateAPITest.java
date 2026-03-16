@@ -104,10 +104,12 @@ public class SwaggerService_CreateAPITest {
         when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group2")).thenReturn(Arrays.asList(grp2));
 
         TagEntity tag1 = new TagEntity();
-        tag1.setId("tagId1");
+        tag1.setId(UUID.randomUUID().toString());
+        tag1.setKey("tagId1");
         tag1.setName("tag1");
         TagEntity tag2 = new TagEntity();
-        tag2.setId("tagId2");
+        tag2.setId(UUID.randomUUID().toString());
+        tag2.setKey("tagId2");
         tag2.setName("tag2");
         when(tagService.findByReference(any(), any())).thenReturn(Arrays.asList(tag1, tag2));
     }
