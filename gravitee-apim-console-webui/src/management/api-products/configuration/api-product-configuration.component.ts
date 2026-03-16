@@ -122,6 +122,12 @@ export class ApiProductConfigurationComponent {
       description: p.description ?? '',
     });
     this.initialFormValue.set(this.form.getRawValue());
+
+    if (this.isReadOnly) {
+      this.form.disable();
+    } else {
+      this.form.enable();
+    }
   });
 
   onReloadDetails(): void {

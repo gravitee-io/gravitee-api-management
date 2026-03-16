@@ -43,6 +43,7 @@ import {
 
 import { Api } from '../../../entities/management-api-v2';
 import { getApiContextPath } from '../../../shared/utils/api-access.util';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
@@ -85,6 +86,7 @@ const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
     MatTooltipModule,
     GioAvatarModule,
     GioIconsModule,
+    GioPermissionModule,
     GioTableWrapperModule,
   ],
   standalone: true,

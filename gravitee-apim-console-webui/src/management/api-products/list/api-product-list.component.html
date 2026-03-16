@@ -30,6 +30,7 @@
         class="create-api-product-button"
         aria-label="create-api-product"
         data-testid="api_product_list_create_button"
+        *gioPermission="{ anyOf: ['environment-api_product-c'] }"
       >
         Create API Product
       </button>
@@ -115,7 +116,7 @@
         </ng-container>
 
         <!-- Actions Column -->
-        <ng-container matColumnDef="actions">
+        <ng-container matColumnDef="actions"  *gioPermission="{ anyOf: ['environment-api_product-u'] }">
           <th mat-header-cell *matHeaderCellDef id="actions"></th>
           <td mat-cell *matCellDef="let element">
             <div class="actions__edit">

@@ -33,6 +33,7 @@ import { isEqual } from 'lodash';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { filtersToQueryParams, toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -101,6 +102,7 @@ const INITIAL_API_PRODUCTS_STATE: ApiProductsState = {
     GioIconsModule,
     GioAvatarModule,
     GioTableWrapperModule,
+    GioPermissionModule,
     RouterModule,
   ],
 })
