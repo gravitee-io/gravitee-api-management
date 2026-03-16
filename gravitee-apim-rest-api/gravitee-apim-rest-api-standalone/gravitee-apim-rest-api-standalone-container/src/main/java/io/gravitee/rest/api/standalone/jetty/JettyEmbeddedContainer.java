@@ -18,6 +18,7 @@ package io.gravitee.rest.api.standalone.jetty;
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.gamma.rest.GammaModuleApplication;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
 import io.gravitee.rest.api.management.v2.rest.GraviteeManagementV2Application;
@@ -61,6 +62,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Value("${http.api.management.enabled:true}")
     private boolean startManagementAPI;
+
+    @Value("${http.gamma.enabled:true}")
+    private boolean startGamma;
 
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
     private String managementEntrypoint;
@@ -131,6 +135,11 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityManagementV2Configuration.class
             );
             contexts.add(managementV2ContextHandler);
+        }
+
+        if (startGamma) {
+            // Configuration for Gamma modules. For now, inherit security from Management API V2, but it could be different in the future if needed.
+            contexts.add(configureAPI("/gamma", GammaModuleApplication.class.getName(), SecurityManagementV2Configuration.class));
         }
 
         if (contexts.isEmpty()) {
