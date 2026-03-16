@@ -143,7 +143,7 @@ public class GetApiProductsUseCase {
             }
             Instant lastDeployedAt = event.getUpdatedAt().toInstant();
             boolean anyPlanModifiedAfterDeploy = planQueryService
-                .findAllForApiProduct(product.getId())
+                .findAllByReferenceIdAndReferenceType(product.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .stream()
                 .filter(plan -> plan.getPlanStatus() != PlanStatus.STAGING)
                 .anyMatch(plan -> plan.getNeedRedeployAt() != null && plan.getNeedRedeployAt().toInstant().isAfter(lastDeployedAt));
