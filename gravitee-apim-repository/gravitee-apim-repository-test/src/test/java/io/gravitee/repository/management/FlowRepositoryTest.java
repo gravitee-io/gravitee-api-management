@@ -28,7 +28,9 @@ import io.gravitee.repository.management.model.flow.FlowConsumer;
 import io.gravitee.repository.management.model.flow.FlowConsumerType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
+import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.repository.management.model.flow.selector.FlowSelectorType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -265,6 +267,34 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
                 tuple("flow-to-update-1", "flow-to-update-1-updated"),
                 tuple("flow-to-update-2", "flow-to-update-2-updated")
             );
+    }
+
+    @Test
+    public void shouldCreateFlowWithHttpSelectorAndNullMethods() throws TechnicalException {
+        FlowHttpSelector httpSelector = new FlowHttpSelector();
+        httpSelector.setPath("/test");
+        httpSelector.setPathOperator(FlowOperator.STARTS_WITH);
+        // methods is intentionally left null to reproduce the NPE fix
+
+        Flow flow = Flow.builder()
+            .id("flow-null-http-methods")
+            .name("flow-null-http-methods")
+            .createdAt(new Date(1470157767000L))
+            .referenceId("my-api-id")
+            .referenceType(FlowReferenceType.API)
+            .order(1)
+            .selectors(List.of(httpSelector))
+            .build();
+
+        Flow created = flowRepository.create(flow);
+
+        assertThat(created.getId()).isEqualTo("flow-null-http-methods");
+        assertThat(created.getSelectors()).hasSize(1);
+        assertThat(created.getSelectors().get(0).getType()).isEqualTo(FlowSelectorType.HTTP);
+
+        FlowHttpSelector createdSelector = (FlowHttpSelector) created.getSelectors().get(0);
+        assertThat(createdSelector.getPath()).isEqualTo("/test");
+        assertThat(createdSelector.getPathOperator()).isEqualTo(FlowOperator.STARTS_WITH);
     }
 
     private Flow aFlow() {
