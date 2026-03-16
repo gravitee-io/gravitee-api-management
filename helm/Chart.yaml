@@ -34,3 +34,5 @@ annotations:
       description: 'Allow configuration of ECS logging'
     - kind: added
       description: 'Add parameter to enable or disable Alert Engine default filters (enabled by default) through the APIM Rest API.'
+    - kind: added
+      description: 'Deprecate old logging configuration parameters in favor of logback override and node logging configuration.'
