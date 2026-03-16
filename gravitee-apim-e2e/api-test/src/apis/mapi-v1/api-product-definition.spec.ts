@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { faker } from '@faker-js/faker';
@@ -27,7 +28,7 @@ interface ApiProduct {
   version: string;
 }
 
-describe('API Product definition (management v2)', () => {
+describeIfClientGatewaySupportingApiProduct('API Product definition (management v2)', () => {
   let apiProduct: ApiProduct;
   const apiProductName = `e2e-product-${faker.string.uuid()}`;
 

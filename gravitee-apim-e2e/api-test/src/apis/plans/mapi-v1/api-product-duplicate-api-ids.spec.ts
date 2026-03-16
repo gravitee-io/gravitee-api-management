@@ -20,7 +20,7 @@ import { APIsApi, ApiType, ApiV4 } from '@gravitee/management-v2-webclient-sdk/s
 import { envId, managementV2BaseUrl, adminAuthHeader } from '@gravitee/utils/api-products';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { faker } from '@faker-js/faker';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
@@ -37,7 +37,7 @@ const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
  * - The stored membership is read back again and asserted to still contain
  *   only unique IDs, confirming no duplicate routing side-effects.
  */
-describe('API Product - duplicate API IDs in request are deduplicated', () => {
+describeIfClientGatewaySupportingApiProduct('API Product - duplicate API IDs in request are deduplicated', () => {
   let api1: ApiV4;
   let api2: ApiV4;
   let productId: string;
