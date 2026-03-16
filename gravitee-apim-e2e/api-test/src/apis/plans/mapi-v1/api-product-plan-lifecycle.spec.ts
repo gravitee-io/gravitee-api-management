@@ -23,7 +23,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/apim-http';
 import { faker } from '@faker-js/faker';
 
@@ -84,7 +84,7 @@ const makeProxyApi = async (slot: string): Promise<ApiV4> => {
 // D1 — Plan created but not published (STAGING)
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('D1 - Plan in STAGING state blocks subscription creation', () => {
+describeIfClientGatewaySupportingApiProduct('D1 - Plan in STAGING state blocks subscription creation', () => {
   let api: ApiV4;
   let productId: string;
   let planId: string;
@@ -190,114 +190,94 @@ describe('D1 - Plan in STAGING state blocks subscription creation', () => {
 // D2 — Plan deprecated then closed: access retained during deprecation, revoked on close
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('D2 - Deprecate then close plan: existing key survives deprecation but is revoked on close', () => {
-  let api: ApiV4;
-  let contextPath: string;
-  let productId: string;
-  let planId: string;
-  let subscriptionId: string;
-  let apiKey: string;
+describeIfClientGatewaySupportingApiProduct(
+  'D2 - Deprecate then close plan: existing key survives deprecation but is revoked on close',
+  () => {
+    let api: ApiV4;
+    let contextPath: string;
+    let productId: string;
+    let planId: string;
+    let subscriptionId: string;
+    let apiKey: string;
 
-  beforeAll(async () => {
-    api = await makeProxyApi('d2');
-    contextPath = (api.listeners[0] as HttpListener).paths[0].path;
-
-    const productResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: `e2e-product-d2-${Date.now()}`,
-        description: 'D2: deprecate then close plan test',
-        version: '1.0.0',
-        apiIds: [api.id],
-      }),
-    });
-    expect(productResponse.status).toEqual(201);
-    const productBody = await productResponse.json();
-    productId = productBody.id;
-
-    const planResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        MAPIV2PlansFaker.newPlanV4({
-          name: `e2e-d2-plan-${Date.now()}`,
-          mode: PlanMode.STANDARD,
-          security: { type: PlanSecurityType.API_KEY },
-        }),
-      ),
-    });
-    expect(planResponse.status).toEqual(201);
-    const planBody = await planResponse.json();
-    planId = planBody.id;
-
-    await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}/_publish`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader },
-    });
-
-    const createdApp = await applicationsResourceAsAdmin.createApplication({
-      orgId,
-      envId,
-      newApplicationEntity: ApplicationsFaker.newApplication({
-        name: `e2e-d2-app-${Date.now()}`,
-        description: 'D2 app',
-      }),
-    });
-
-    const subscriptionResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ applicationId: createdApp.id, planId }),
-    });
-    expect(subscriptionResponse.status).toEqual(201);
-    const subscriptionBody = await subscriptionResponse.json();
-    subscriptionId = subscriptionBody.id;
-
-    const apiKeysResponse = await fetch(
-      `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions/${subscriptionId}/api-keys`,
-      { method: 'GET', headers: { Authorization: adminAuthHeader } },
-    );
-    expect(apiKeysResponse.status).toEqual(200);
-    const apiKeysBody = await apiKeysResponse.json();
-    apiKey = apiKeysBody.data[0].key;
-    expect(apiKey).toBeDefined();
-
-    await succeed(v2ApisResourceAsApiPublisher.startApiRaw({ envId, apiId: api.id }), 204);
-    await succeed(v2ApisResourceAsApiPublisher.createApiDeploymentRaw({ envId, apiId: api.id }), 202);
-
-    const deployResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/deployments`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-    expect([200, 202]).toContain(deployResponse.status);
-    await new Promise((r) => setTimeout(r, 6000));
-  });
-
-  test('baseline: key should return 200 with an active published plan', async () => {
-    await fetchGatewaySuccess({
-      contextPath,
-      headers: { 'X-Gravitee-Api-Key': apiKey },
-      maxRetries: 10,
-      timeBetweenRetries: 2000,
-    });
-  });
-
-  // ─── Phase: after deprecation ───────────────────────────────────────────────
-
-  describe('after deprecating the plan', () => {
     beforeAll(async () => {
-      const deprecateResponse = await fetch(
-        `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}/_deprecate`,
-        { method: 'POST', headers: { Authorization: adminAuthHeader } },
+      api = await makeProxyApi('d2');
+      contextPath = (api.listeners[0] as HttpListener).paths[0].path;
+
+      const productResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `e2e-product-d2-${Date.now()}`,
+          description: 'D2: deprecate then close plan test',
+          version: '1.0.0',
+          apiIds: [api.id],
+        }),
+      });
+      expect(productResponse.status).toEqual(201);
+      const productBody = await productResponse.json();
+      productId = productBody.id;
+
+      const planResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          MAPIV2PlansFaker.newPlanV4({
+            name: `e2e-d2-plan-${Date.now()}`,
+            mode: PlanMode.STANDARD,
+            security: { type: PlanSecurityType.API_KEY },
+          }),
+        ),
+      });
+      expect(planResponse.status).toEqual(201);
+      const planBody = await planResponse.json();
+      planId = planBody.id;
+
+      await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}/_publish`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader },
+      });
+
+      const createdApp = await applicationsResourceAsAdmin.createApplication({
+        orgId,
+        envId,
+        newApplicationEntity: ApplicationsFaker.newApplication({
+          name: `e2e-d2-app-${Date.now()}`,
+          description: 'D2 app',
+        }),
+      });
+
+      const subscriptionResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationId: createdApp.id, planId }),
+      });
+      expect(subscriptionResponse.status).toEqual(201);
+      const subscriptionBody = await subscriptionResponse.json();
+      subscriptionId = subscriptionBody.id;
+
+      const apiKeysResponse = await fetch(
+        `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions/${subscriptionId}/api-keys`,
+        { method: 'GET', headers: { Authorization: adminAuthHeader } },
       );
-      expect(deprecateResponse.status).toEqual(200);
-      const deprecatedPlan = await deprecateResponse.json();
-      expect(deprecatedPlan.status).toEqual('DEPRECATED');
+      expect(apiKeysResponse.status).toEqual(200);
+      const apiKeysBody = await apiKeysResponse.json();
+      apiKey = apiKeysBody.data[0].key;
+      expect(apiKey).toBeDefined();
+
+      await succeed(v2ApisResourceAsApiPublisher.startApiRaw({ envId, apiId: api.id }), 204);
+      await succeed(v2ApisResourceAsApiPublisher.createApiDeploymentRaw({ envId, apiId: api.id }), 202);
+
+      const deployResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/deployments`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      expect([200, 202]).toContain(deployResponse.status);
+      await new Promise((r) => setTimeout(r, 6000));
     });
 
-    test('existing key should still return 200 after plan deprecation (deprecation does not revoke active subscriptions)', async () => {
+    test('baseline: key should return 200 with an active published plan', async () => {
       await fetchGatewaySuccess({
         contextPath,
         headers: { 'X-Gravitee-Api-Key': apiKey },
@@ -306,75 +286,101 @@ describe('D2 - Deprecate then close plan: existing key survives deprecation but 
       });
     });
 
-    test('new subscription creation against a DEPRECATED plan should be rejected', async () => {
-      const newApp = await applicationsResourceAsAdmin.createApplication({
-        orgId,
-        envId,
-        newApplicationEntity: ApplicationsFaker.newApplication({
-          name: `e2e-d2-new-app-${Date.now()}`,
-          description: 'D2 new app post-deprecation',
-        }),
+    // ─── Phase: after deprecation ───────────────────────────────────────────────
+
+    describe('after deprecating the plan', () => {
+      beforeAll(async () => {
+        const deprecateResponse = await fetch(
+          `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}/_deprecate`,
+          { method: 'POST', headers: { Authorization: adminAuthHeader } },
+        );
+        expect(deprecateResponse.status).toEqual(200);
+        const deprecatedPlan = await deprecateResponse.json();
+        expect(deprecatedPlan.status).toEqual('DEPRECATED');
       });
-      const newSubscriptionResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions`, {
-        method: 'POST',
-        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ applicationId: newApp.id, planId }),
+
+      test('existing key should still return 200 after plan deprecation (deprecation does not revoke active subscriptions)', async () => {
+        await fetchGatewaySuccess({
+          contextPath,
+          headers: { 'X-Gravitee-Api-Key': apiKey },
+          maxRetries: 10,
+          timeBetweenRetries: 2000,
+        });
       });
-      // Deprecated plan must not accept new subscriptions.
-      expect(newSubscriptionResponse.status).not.toEqual(201);
+
+      test('new subscription creation against a DEPRECATED plan should be rejected', async () => {
+        const newApp = await applicationsResourceAsAdmin.createApplication({
+          orgId,
+          envId,
+          newApplicationEntity: ApplicationsFaker.newApplication({
+            name: `e2e-d2-new-app-${Date.now()}`,
+            description: 'D2 new app post-deprecation',
+          }),
+        });
+        const newSubscriptionResponse = await fetch(
+          `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions`,
+          {
+            method: 'POST',
+            headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ applicationId: newApp.id, planId }),
+          },
+        );
+        // Deprecated plan must not accept new subscriptions.
+        expect(newSubscriptionResponse.status).not.toEqual(201);
+      });
     });
-  });
 
-  // ─── Phase: after close ─────────────────────────────────────────────────────
+    // ─── Phase: after close ─────────────────────────────────────────────────────
 
-  describe('after closing the deprecated plan', () => {
-    beforeAll(async () => {
-      // The platform requires all active subscriptions to be closed before a plan can be closed.
-      // Close the subscription first so that _close on the plan succeeds.
-      const closeSubResponse = await fetch(
-        `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions/${subscriptionId}/_close`,
-        { method: 'POST', headers: { Authorization: adminAuthHeader } },
-      );
-      expect(closeSubResponse.status).toEqual(200);
+    describe('after closing the deprecated plan', () => {
+      beforeAll(async () => {
+        // The platform requires all active subscriptions to be closed before a plan can be closed.
+        // Close the subscription first so that _close on the plan succeeds.
+        const closeSubResponse = await fetch(
+          `${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/subscriptions/${subscriptionId}/_close`,
+          { method: 'POST', headers: { Authorization: adminAuthHeader } },
+        );
+        expect(closeSubResponse.status).toEqual(200);
 
-      const closeResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}/_close`, {
-        method: 'POST',
-        headers: { Authorization: adminAuthHeader },
+        const closeResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}/_close`, {
+          method: 'POST',
+          headers: { Authorization: adminAuthHeader },
+        });
+        expect(closeResponse.status).toEqual(200);
+        const closedPlan = await closeResponse.json();
+        expect(closedPlan.status).toEqual('CLOSED');
+
+        // Allow the gateway time to process the subscription revocation.
+        await new Promise((resolve) => setTimeout(resolve, 6000));
       });
-      expect(closeResponse.status).toEqual(200);
-      const closedPlan = await closeResponse.json();
-      expect(closedPlan.status).toEqual('CLOSED');
 
-      // Allow the gateway time to process the subscription revocation.
-      await new Promise((resolve) => setTimeout(resolve, 6000));
+      test('key should return 401/403/404 after the plan is closed (all subscriptions revoked)', async () => {
+        const response = await fetch(`${process.env.GATEWAY_BASE_URL}${contextPath}`, {
+          method: 'GET',
+          headers: { 'X-Gravitee-Api-Key': apiKey },
+        } as any);
+        expect([401, 403, 404]).toContain(response.status);
+      });
     });
 
-    test('key should return 401/403/404 after the plan is closed (all subscriptions revoked)', async () => {
-      const response = await fetch(`${process.env.GATEWAY_BASE_URL}${contextPath}`, {
-        method: 'GET',
-        headers: { 'X-Gravitee-Api-Key': apiKey },
-      } as any);
-      expect([401, 403, 404]).toContain(response.status);
+    afterAll(async () => {
+      if (productId) {
+        await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}`, {
+          method: 'DELETE',
+          headers: { Authorization: adminAuthHeader },
+        });
+      }
+      if (api?.id) {
+        try {
+          await succeed(v2ApisResourceAsApiPublisher.stopApiRaw({ envId, apiId: api.id }), 204);
+        } catch {}
+        try {
+          await noContent(v2ApisResourceAsApiPublisher.deleteApiRaw({ envId, apiId: api.id, closePlans: true }));
+        } catch {}
+      }
     });
-  });
-
-  afterAll(async () => {
-    if (productId) {
-      await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}`, {
-        method: 'DELETE',
-        headers: { Authorization: adminAuthHeader },
-      });
-    }
-    if (api?.id) {
-      try {
-        await succeed(v2ApisResourceAsApiPublisher.stopApiRaw({ envId, apiId: api.id }), 204);
-      } catch {}
-      try {
-        await noContent(v2ApisResourceAsApiPublisher.deleteApiRaw({ envId, apiId: api.id, closePlans: true }));
-      } catch {}
-    }
-  });
-});
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // D3 — Security type coverage (API_KEY, JWT, mTLS) in API Product context
@@ -391,7 +397,7 @@ describe('D2 - Deprecate then close plan: existing key survives deprecation but 
 
 // ─── D3.1 — API_KEY ──────────────────────────────────────────────────────────
 
-describe('D3.1 - API_KEY security type in API Product context', () => {
+describeIfClientGatewaySupportingApiProduct('D3.1 - API_KEY security type in API Product context', () => {
   let api: ApiV4;
   let productId: string;
   let apiKey: string;
@@ -505,7 +511,7 @@ describe('D3.1 - API_KEY security type in API Product context', () => {
 
 // ─── D3.2 — JWT ──────────────────────────────────────────────────────────────
 
-describe('D3.2 - JWT security type in API Product context', () => {
+describeIfClientGatewaySupportingApiProduct('D3.2 - JWT security type in API Product context', () => {
   let api: ApiV4;
   let productId: string;
   let CLIENT_ID: string;
@@ -622,87 +628,90 @@ describe('D3.2 - JWT security type in API Product context', () => {
  * only that an mTLS plan can be created on an API Product via the management
  * API and is returned with the correct security type.
  */
-describe('D3.3 - mTLS security type in API Product context (plan creation — management API only)', () => {
-  let api: ApiV4;
-  let productId: string;
-  let planId: string;
+describeIfClientGatewaySupportingApiProduct(
+  'D3.3 - mTLS security type in API Product context (plan creation — management API only)',
+  () => {
+    let api: ApiV4;
+    let productId: string;
+    let planId: string;
 
-  beforeAll(async () => {
-    api = await makeProxyApi('d3-3');
+    beforeAll(async () => {
+      api = await makeProxyApi('d3-3');
 
-    const productResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: `e2e-product-d3-mtls-${Date.now()}`,
-        description: 'D3.3: mTLS security type coverage',
-        version: '1.0.0',
-        apiIds: [api.id],
-      }),
-    });
-    expect(productResponse.status).toEqual(201);
-    const productBody = await productResponse.json();
-    productId = productBody.id;
-
-    const planResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans`, {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        MAPIV2PlansFaker.newPlanV4({
-          name: `e2e-d3-mtls-plan-${Date.now()}`,
-          mode: PlanMode.STANDARD,
-          security: { type: PlanSecurityType.MTLS },
+      const productResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `e2e-product-d3-mtls-${Date.now()}`,
+          description: 'D3.3: mTLS security type coverage',
+          version: '1.0.0',
+          apiIds: [api.id],
         }),
-      ),
-    });
-    expect(planResponse.status).toEqual(201);
-    const planBody = await planResponse.json();
-    planId = planBody.id;
-  });
+      });
+      expect(productResponse.status).toEqual(201);
+      const productBody = await productResponse.json();
+      productId = productBody.id;
 
-  test('mTLS plan should be created successfully on an API Product', async () => {
-    const planResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}`, {
-      method: 'GET',
-      headers: { Authorization: adminAuthHeader },
+      const planResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans`, {
+        method: 'POST',
+        headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          MAPIV2PlansFaker.newPlanV4({
+            name: `e2e-d3-mtls-plan-${Date.now()}`,
+            mode: PlanMode.STANDARD,
+            security: { type: PlanSecurityType.MTLS },
+          }),
+        ),
+      });
+      expect(planResponse.status).toEqual(201);
+      const planBody = await planResponse.json();
+      planId = planBody.id;
     });
-    expect(planResponse.status).toEqual(200);
-    const plan = await planResponse.json();
-    expect(plan.id).toEqual(planId);
-    expect(plan.security.type).toEqual('MTLS');
-  });
 
-  test('mTLS plan should be listed under product plans with STAGING status', async () => {
-    const listResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans?statuses=STAGING`, {
-      method: 'GET',
-      headers: { Authorization: adminAuthHeader },
-    });
-    expect(listResponse.status).toEqual(200);
-    const listBody = await listResponse.json();
-    const mtlsPlan = (listBody.data as Array<{ id: string; security: { type: string } }>).find((p) => p.id === planId);
-    expect(mtlsPlan).toBeDefined();
-    expect(mtlsPlan!.security.type).toEqual('MTLS');
-  });
-
-  afterAll(async () => {
-    if (productId) {
-      await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}`, {
-        method: 'DELETE',
+    test('mTLS plan should be created successfully on an API Product', async () => {
+      const planResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans/${planId}`, {
+        method: 'GET',
         headers: { Authorization: adminAuthHeader },
       });
-    }
-    if (api?.id) {
-      try {
-        await noContent(v2ApisResourceAsApiPublisher.deleteApiRaw({ envId, apiId: api.id, closePlans: true }));
-      } catch {}
-    }
-  });
-});
+      expect(planResponse.status).toEqual(200);
+      const plan = await planResponse.json();
+      expect(plan.id).toEqual(planId);
+      expect(plan.security.type).toEqual('MTLS');
+    });
+
+    test('mTLS plan should be listed under product plans with STAGING status', async () => {
+      const listResponse = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}/plans?statuses=STAGING`, {
+        method: 'GET',
+        headers: { Authorization: adminAuthHeader },
+      });
+      expect(listResponse.status).toEqual(200);
+      const listBody = await listResponse.json();
+      const mtlsPlan = (listBody.data as Array<{ id: string; security: { type: string } }>).find((p) => p.id === planId);
+      expect(mtlsPlan).toBeDefined();
+      expect(mtlsPlan!.security.type).toEqual('MTLS');
+    });
+
+    afterAll(async () => {
+      if (productId) {
+        await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${productId}`, {
+          method: 'DELETE',
+          headers: { Authorization: adminAuthHeader },
+        });
+      }
+      if (api?.id) {
+        try {
+          await noContent(v2ApisResourceAsApiPublisher.deleteApiRaw({ envId, apiId: api.id, closePlans: true }));
+        } catch {}
+      }
+    });
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // D4 — Close plan directly with active subscriptions: keys are revoked
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('D4 - Close plan with active subscriptions: existing keys are revoked immediately', () => {
+describeIfClientGatewaySupportingApiProduct('D4 - Close plan with active subscriptions: existing keys are revoked immediately', () => {
   let api: ApiV4;
   let contextPath: string;
   let productId: string;

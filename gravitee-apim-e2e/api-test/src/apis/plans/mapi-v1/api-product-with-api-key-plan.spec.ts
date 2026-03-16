@@ -22,7 +22,7 @@ import { forManagementV2AsApiUser, forPortalAsAdminUser } from '@gravitee/utils/
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import { faker } from '@faker-js/faker';
@@ -30,7 +30,7 @@ import { faker } from '@faker-js/faker';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const portalSubscriptionApi = new SubscriptionApi(forPortalAsAdminUser());
 
-describe('API Product with API_KEY plan - subscription and revoke flow', () => {
+describeIfClientGatewaySupportingApiProduct('API Product with API_KEY plan - subscription and revoke flow', () => {
   let api: ApiV4;
   let contextPath: string;
   let productId: string;
