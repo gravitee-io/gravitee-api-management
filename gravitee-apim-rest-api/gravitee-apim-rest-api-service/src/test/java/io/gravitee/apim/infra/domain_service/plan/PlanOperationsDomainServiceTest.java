@@ -84,9 +84,6 @@ class PlanOperationsDomainServiceTest {
     AuditDomainService auditDomainService;
 
     @Mock
-    ExecutionContext executionContext;
-
-    @Mock
     CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     @Mock
@@ -146,7 +143,7 @@ class PlanOperationsDomainServiceTest {
             .build();
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
 
-        assertThatThrownBy(() -> publicationsService.publish(executionContext, PLAN_ID)).isInstanceOf(PlanAlreadyPublishedException.class);
+        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(PlanAlreadyPublishedException.class);
     }
 
     @Test
@@ -175,9 +172,7 @@ class PlanOperationsDomainServiceTest {
             )
         ).thenReturn(Set.of(existingKeyless));
 
-        assertThatThrownBy(() -> publicationsService.publish(executionContext, PLAN_ID)).isInstanceOf(
-            KeylessPlanAlreadyPublishedException.class
-        );
+        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(KeylessPlanAlreadyPublishedException.class);
     }
 
     @Test
@@ -201,11 +196,15 @@ class PlanOperationsDomainServiceTest {
         ).thenReturn(Set.of());
         when(planRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        var result = publicationsService.publish(executionContext, PLAN_ID);
+        var result = publicationsService.publish(auditInfo, PLAN_ID);
 
         assertThat(result.getId()).isEqualTo(PLAN_ID);
         assertThat(result.getOrder()).isEqualTo(1);
-        verify(auditService).createApiProductAuditLog(eq(executionContext), any(AuditService.AuditLogData.class), eq(API_PRODUCT_ID));
+        verify(auditService).createApiProductAuditLog(
+            any(ExecutionContext.class),
+            any(AuditService.AuditLogData.class),
+            eq(API_PRODUCT_ID)
+        );
     }
 
     @Test
@@ -238,11 +237,11 @@ class PlanOperationsDomainServiceTest {
         ).thenReturn(Set.of(alreadyPublished));
         when(planRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        var result = publicationsService.publish(executionContext, PLAN_ID);
+        var result = publicationsService.publish(auditInfo, PLAN_ID);
 
         assertThat(result.getId()).isEqualTo(PLAN_ID);
         assertThat(result.getOrder()).isEqualTo(4);
-        verify(auditService).createApiAuditLog(eq(executionContext), any(AuditService.AuditLogData.class), eq(API_ID));
+        verify(auditService).createApiAuditLog(any(ExecutionContext.class), any(AuditService.AuditLogData.class), eq(API_ID));
     }
 
     @Test

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,7 +31,6 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
@@ -65,19 +64,11 @@ class UpdateApiProductPlanUseCaseTest {
     @Mock
     private ApiProductCrudService apiProductCrudService;
 
-    @Mock
-    private ApiProductPlanSearchQueryService apiProductPlanSearchQueryService;
-
-    private UpdateApiProductPlanUseCase updateApiProductPlanUseCase;
+    private UpdateApiProductPlanUseCase updatePlanUseCase;
 
     @BeforeEach
     void setUp() {
-        updateApiProductPlanUseCase = new UpdateApiProductPlanUseCase(
-            updatePlanDomainService,
-            apiProductPlanSearchQueryService,
-            planCrudService,
-            apiProductCrudService
-        );
+        updatePlanUseCase = new UpdateApiProductPlanUseCase(updatePlanDomainService, planCrudService, apiProductCrudService);
         GraviteeContext.fromExecutionContext(new io.gravitee.rest.api.service.common.ExecutionContext(ORG_ID, ENV_ID));
     }
 
@@ -120,7 +111,7 @@ class UpdateApiProductPlanUseCaseTest {
             AuditInfo auditInfo = new AuditInfo("user-id", "user-name", AuditActor.builder().build());
             var input = new UpdateApiProductPlanUseCase.Input(planUpdates, API_PRODUCT_ID, auditInfo);
 
-            var output = updateApiProductPlanUseCase.execute(input);
+            var output = updatePlanUseCase.execute(input);
 
             assertThat(output).isNotNull();
             assertThat(output.updated()).isEqualTo(updatedPlan);
@@ -173,7 +164,7 @@ class UpdateApiProductPlanUseCaseTest {
                 new AuditInfo("user-id", "user-name", AuditActor.builder().build())
             );
 
-            updateApiProductPlanUseCase.execute(input);
+            updatePlanUseCase.execute(input);
 
             ArgumentCaptor<Plan> planCaptor = ArgumentCaptor.forClass(Plan.class);
             verify(updatePlanDomainService).updatePlanForApiProduct(planCaptor.capture(), any(), any(), any());
@@ -185,37 +176,7 @@ class UpdateApiProductPlanUseCaseTest {
     class PlanNotFound {
 
         @Test
-        void should_throw_PlanNotFoundException_when_plan_belongs_to_another_api_product_in_search() {
-            Plan existingPlan = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId("another-api-product-id")
-                .validation(null)
-                .build();
-
-            PlanUpdates planUpdates = PlanUpdates.builder().id(PLAN_ID).referenceId(API_PRODUCT_ID).build();
-            var input = new UpdateApiProductPlanUseCase.Input(
-                planUpdates,
-                API_PRODUCT_ID,
-                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
-            );
-
-            assertThatThrownBy(() -> updateApiProductPlanUseCase.execute(input))
-                .isInstanceOf(PlanNotFoundException.class)
-                .hasMessageContaining(PLAN_ID);
-        }
-
-        @Test
-        void should_throw_PlanNotFoundException_when_plan_not_found_in_crud_service() {
-            Plan existingPlan = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId(API_PRODUCT_ID)
-                .validation(null)
-                .build();
-
+        void should_throw_PlanNotFoundException_when_plan_not_found() {
             when(
                 planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
                     PLAN_ID,
@@ -231,43 +192,7 @@ class UpdateApiProductPlanUseCaseTest {
                 new AuditInfo("user-id", "user-name", AuditActor.builder().build())
             );
 
-            assertThatThrownBy(() -> updateApiProductPlanUseCase.execute(input))
-                .isInstanceOf(PlanNotFoundException.class)
-                .hasMessageContaining(PLAN_ID);
-        }
-
-        @Test
-        void should_throw_PlanNotFoundException_when_plan_entity_from_crud_has_different_reference_id() {
-            Plan existingPlan = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId(API_PRODUCT_ID)
-                .validation(null)
-                .build();
-            Plan planFromCrud = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceId("other-api-product-id")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .build();
-
-            when(
-                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
-                    PLAN_ID,
-                    API_PRODUCT_ID,
-                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
-                )
-            ).thenReturn(Optional.of(planFromCrud));
-
-            PlanUpdates planUpdates = PlanUpdates.builder().id(PLAN_ID).referenceId(API_PRODUCT_ID).build();
-            var input = new UpdateApiProductPlanUseCase.Input(
-                planUpdates,
-                API_PRODUCT_ID,
-                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
-            );
-
-            assertThatThrownBy(() -> updateApiProductPlanUseCase.execute(input))
+            assertThatThrownBy(() -> updatePlanUseCase.execute(input))
                 .isInstanceOf(PlanNotFoundException.class)
                 .hasMessageContaining(PLAN_ID);
         }

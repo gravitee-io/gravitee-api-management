@@ -106,7 +106,7 @@ import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -505,8 +505,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ApiProductPlanSearchQueryService apiProductPlanSearchQueryService() {
-        return mock(ApiProductPlanSearchQueryService.class);
+    public PlanSearchQueryService planSearchQueryService() {
+        return mock(PlanSearchQueryService.class);
     }
 
     @Bean
