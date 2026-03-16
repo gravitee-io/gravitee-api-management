@@ -287,3 +287,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_0/08_add_general_conditions_hrid_to_plan_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_5/00_add_truststore_keystore_columns.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_5/01_change_dictionary_property_value_datatype.yml
