@@ -16,8 +16,8 @@
 package io.gravitee.apim.infra.domain_service.plan;
 
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
-import static java.util.Map.entry;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -58,7 +57,8 @@ public class PublishPlanDomainServiceImpl implements PublishPlanDomainService {
     }
 
     @Override
-    public Plan publish(final ExecutionContext executionContext, String planId) {
+    public Plan publish(final AuditInfo auditInfo, String planId) {
+        final ExecutionContext executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         try {
             log.debug("Publish plan {}", planId);
 
