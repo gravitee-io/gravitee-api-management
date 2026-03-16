@@ -22,12 +22,12 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { faker } from '@faker-js/faker';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API Product gateway behavior (API Key)', () => {
+describeIfClientGatewaySupportingApiProduct('API Product gateway behavior (API Key)', () => {
   let api: ApiV4;
   let contextPath: string;
   let productId: string;

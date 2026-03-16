@@ -22,7 +22,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { faker } from '@faker-js/faker';
 
@@ -38,7 +38,7 @@ const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
  *   B3 (Replace): [apiA, apiC] → [apiD]             — apiA/apiC return 401; apiD returns 200
  *   B4 (Metadata): [apiD] → [apiD] (name/desc only) — apiD still returns 200
  */
-describe('API Product - update scenarios (B1–B4)', () => {
+describeIfClientGatewaySupportingApiProduct('API Product - update scenarios (B1–B4)', () => {
   // Four independent V4 APIs used across the scenarios
   let apiA: ApiV4;
   let apiB: ApiV4;
