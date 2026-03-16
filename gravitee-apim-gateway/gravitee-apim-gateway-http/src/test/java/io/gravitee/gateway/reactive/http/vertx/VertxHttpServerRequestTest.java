@@ -121,10 +121,7 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_return_original_host() {
-            when(httpServerRequest.authority()).thenReturn(
-                HostAndPort.create("original.host", 8080),
-                HostAndPort.create("changed.host", 8080)
-            );
+            when(httpServerRequest.authority()).thenReturn(HostAndPort.authority("original.host"), HostAndPort.authority("changed.host"));
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
             assertEquals("original.host", cut.originalHost());
