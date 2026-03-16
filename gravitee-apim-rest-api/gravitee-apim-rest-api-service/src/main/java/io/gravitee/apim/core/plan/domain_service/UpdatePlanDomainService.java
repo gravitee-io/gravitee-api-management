@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.plan.domain_service;
 
-import static java.util.Map.entry;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.DomainService;
@@ -37,6 +36,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -128,8 +128,7 @@ public class UpdatePlanDomainService {
     }
 
     private Map<String, PlanStatus> getPlanStatusMap(Api api) {
-        List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
-        return existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+        return getPlanStatusMap(api.getId(), GenericPlanEntity.ReferenceType.API);
     }
 
     /**
@@ -258,23 +257,8 @@ public class UpdatePlanDomainService {
         }
     }
 
-    private Plan orderAwareUpdateForApiProduct(Plan existingPlan, Plan planToUpdate) {
-        if (planToUpdate.getOrder() != existingPlan.getOrder()) {
-            return reorderPlanDomainService.reorderAfterUpdateForApiProduct(planToUpdate);
-        } else {
-            return planCrudService.update(planToUpdate);
-        }
-    }
-
     private void updatePreFlightChecks(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
-        if (
-            existingPlanStatuses.containsKey(planToUpdate.getId()) &&
-            existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
-        ) {
-            throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
-        }
-
+        assertNotClosedStatus(planToUpdate, existingPlanStatuses);
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
@@ -298,7 +282,7 @@ public class UpdatePlanDomainService {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
-        Plan updated = orderAwareUpdateForApiProduct(existingPlan, updatePlan);
+        Plan updated = orderAwareUpdate(existingPlan, updatePlan);
 
         createApiProductAuditLog(existingPlan, updated, auditInfo);
 
@@ -306,6 +290,12 @@ public class UpdatePlanDomainService {
     }
 
     private void updatePreFlightChecksForApiProduct(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, AuditInfo auditInfo) {
+        assertNotClosedStatus(planToUpdate, existingPlanStatuses);
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
+    }
+
+    private void assertNotClosedStatus(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses) {
         if (
             existingPlanStatuses.containsKey(planToUpdate.getId()) &&
             existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
@@ -313,14 +303,17 @@ public class UpdatePlanDomainService {
         ) {
             throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
         }
-
-        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
-        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 
     private Map<String, PlanStatus> getPlanStatusMapForApiProduct(ApiProduct apiProduct) {
-        List<Plan> existingPlans = planQueryService.findAllForApiProduct(apiProduct.getId());
-        return existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+        return getPlanStatusMap(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT);
+    }
+
+    private Map<String, PlanStatus> getPlanStatusMap(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
+        return planQueryService
+            .findAllByReferenceIdAndReferenceType(referenceId, referenceType)
+            .stream()
+            .collect(toMap(Plan::getId, Plan::getPlanStatus));
     }
 
     private void createAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {

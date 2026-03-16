@@ -371,8 +371,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             addDataToPlans(plans);
             return new HashSet<>(plans);
         } catch (final Exception ex) {
-            log.error("Failed to find plans by api:", ex);
-            throw new TechnicalException("Failed to find plans by api", ex);
+            throw new TechnicalException("Failed to find plans by reference", ex);
         }
     }
 
