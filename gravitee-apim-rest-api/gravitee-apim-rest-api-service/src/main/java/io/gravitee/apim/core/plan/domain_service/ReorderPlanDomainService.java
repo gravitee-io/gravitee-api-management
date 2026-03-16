@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -42,36 +43,12 @@ public class ReorderPlanDomainService {
      */
     public Plan reorderAfterUpdate(Plan toUpdate) {
         var toReorder = planQueryService
-            .findAllByApiId(toUpdate.getReferenceId())
+            .findAllByReferenceIdAndReferenceType(toUpdate.getReferenceId(), toUpdate.getReferenceType())
             .stream()
             .filter(p -> p.isPublished() && !Objects.equals(p.getId(), toUpdate.getId()))
             .sorted(Comparator.comparingInt(Plan::getOrder))
             .toList();
 
-        if (toUpdate.getOrder() < 1) {
-            toUpdate.setOrder(1);
-        } else if (toUpdate.getOrder() > toReorder.size() + 1) {
-            toUpdate.setOrder(toReorder.size() + 1);
-        }
-
-        for (int i = 0; i < toReorder.size(); i++) {
-            int newOrder = (i + 1) < toUpdate.getOrder() ? (i + 1) : (i + 2);
-            var planToReorder = toReorder.get(i);
-            if (planToReorder.getOrder() != newOrder) {
-                planCrudService.update(planToReorder.toBuilder().order(newOrder).build());
-            }
-        }
-
-        return planCrudService.update(toUpdate);
-    }
-
-    public Plan reorderAfterUpdateForApiProduct(Plan toUpdate) {
-        var toReorder = planQueryService
-            .findAllForApiProduct(toUpdate.getReferenceId())
-            .stream()
-            .filter(p -> p.isPublished() && !Objects.equals(p.getId(), toUpdate.getId()))
-            .sorted(Comparator.comparingInt(Plan::getOrder))
-            .toList();
         if (toUpdate.getOrder() < 1) {
             toUpdate.setOrder(1);
         } else if (toUpdate.getOrder() > toReorder.size() + 1) {
@@ -92,11 +69,12 @@ public class ReorderPlanDomainService {
     /**
      * Refresh the order of existing plans when plans have been deleted.
      *
-     * @param apiId The API ID
+     * @param referenceId   The reference ID (API ID or API Product ID)
+     * @param referenceType The reference type (API or API_PRODUCT)
      */
-    public void refreshOrderAfterDelete(String apiId) {
+    public void refreshOrderAfterDelete(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
         var toReorder = planQueryService
-            .findAllByApiId(apiId)
+            .findAllByReferenceIdAndReferenceType(referenceId, referenceType)
             .stream()
             .filter(Plan::isPublished)
             .sorted(Comparator.comparingInt(Plan::getOrder))

@@ -28,6 +28,8 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
@@ -108,7 +110,7 @@ public class ValidateApiProductService {
         }
 
         boolean productHasValidPlan = planQueryService
-            .findAllForApiProduct(apiProduct.getId())
+            .findAllByReferenceIdAndReferenceType(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
             .stream()
             .anyMatch(plan -> plan.isPublished() || plan.isDeprecated());
 
@@ -179,7 +181,11 @@ public class ValidateApiProductService {
         if (productIds.isEmpty() || envIds.isEmpty()) {
             return Map.of();
         }
-        List<Plan> plans = planQueryService.findAllForApiProducts(productIds, envIds);
+        List<Plan> plans = planQueryService.findAllByReferenceIdsAndEnvironments(
+            productIds,
+            envIds,
+            GenericPlanEntity.ReferenceType.API_PRODUCT
+        );
         return plans
             .stream()
             .filter(plan -> (plan.isPublished() || plan.isDeprecated()) && plan.getReferenceId() != null && plan.getEnvironmentId() != null)

@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +47,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId) {
         try {
             return planRepository
-                .findByApi(apiId)
+                .findByReferenceIdAndReferenceType(apiId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
                 .stream()
                 .filter(
                     plan ->
@@ -64,64 +65,54 @@ public class PlanQueryServiceImpl implements PlanQueryService {
 
     @Override
     public List<Plan> findAllByApiId(String apiId) {
-        try {
-            return planRepository.findByApi(apiId).stream().map(PlanAdapter.INSTANCE::fromRepository).collect(Collectors.toList());
-        } catch (TechnicalException e) {
-            log.error("An error occurred while finding plans by API ID {}", apiId, e);
-            throw new TechnicalDomainException("An error occurred while trying to find plans by API ID: " + apiId, e);
-        }
+        return findAllByReferenceIdAndReferenceType(apiId, GenericPlanEntity.ReferenceType.API);
     }
 
     @Override
     public List<Plan> findAllByApiIds(Set<String> apiIds, Set<String> environmentIds) {
-        if (CollectionUtils.isEmpty(apiIds) || CollectionUtils.isEmpty(environmentIds)) {
+        return findAllByReferenceIdsAndEnvironments(apiIds, environmentIds, GenericPlanEntity.ReferenceType.API);
+    }
+
+    @Override
+    public List<Plan> findAllByReferenceIdAndReferenceType(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
+        try {
+            return planRepository
+                .findByReferenceIdAndReferenceType(
+                    referenceId,
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name())
+                )
+                .stream()
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while trying to find plans by reference ID: " + referenceId, e);
+        }
+    }
+
+    @Override
+    public List<Plan> findAllByReferenceIdsAndEnvironments(
+        Set<String> referenceIds,
+        Set<String> environmentIds,
+        GenericPlanEntity.ReferenceType referenceType
+    ) {
+        if (CollectionUtils.isEmpty(referenceIds) || CollectionUtils.isEmpty(environmentIds)) {
             return List.of();
         }
         try {
             return planRepository
                 .findByReferenceIdsAndReferenceTypeAndEnvironment(
-                    new ArrayList<>(apiIds),
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.API,
+                    new ArrayList<>(referenceIds),
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name()),
                     environmentIds
                 )
                 .stream()
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .collect(Collectors.toList());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while finding plans for API IDs: " + apiIds, e);
-        }
-    }
-
-    @Override
-    public List<Plan> findAllForApiProduct(String referenceId) {
-        try {
-            return planRepository
-                .findByReferenceIdAndReferenceType(referenceId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-                .stream()
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .collect(Collectors.toList());
-        } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to find plans by API Product ID: " + referenceId, e);
-        }
-    }
-
-    @Override
-    public List<Plan> findAllForApiProducts(Set<String> apiProductIds, Set<String> environmentIds) {
-        if (CollectionUtils.isEmpty(apiProductIds) || CollectionUtils.isEmpty(environmentIds)) {
-            return List.of();
-        }
-        try {
-            return planRepository
-                .findByReferenceIdsAndReferenceTypeAndEnvironment(
-                    new ArrayList<>(apiProductIds),
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT,
-                    environmentIds
-                )
-                .stream()
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .collect(Collectors.toList());
-        } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while finding plans for API Product IDs: " + apiProductIds, e);
+            throw new TechnicalDomainException(
+                "An error occurred while finding plans for reference IDs: " + referenceIds + " (" + referenceType + ")",
+                e
+            );
         }
     }
 }
