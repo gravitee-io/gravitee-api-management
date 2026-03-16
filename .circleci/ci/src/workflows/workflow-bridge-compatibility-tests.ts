@@ -63,12 +63,11 @@ export class BridgeCompatibilityTestsWorkflow {
           database: ['bridge'],
           apim_client_tag: [
             'master-latest',
+            '4.11.x-latest',
             '4.10.x-latest',
             'graviteeio@4.10.0',
             '4.9.x-latest',
             'graviteeio@4.9.0',
-            '4.8.x-latest',
-            'graviteeio@4.8.0',
           ],
         },
       }),
