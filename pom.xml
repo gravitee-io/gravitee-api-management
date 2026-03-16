@@ -285,7 +285,7 @@
         <gravitee-entrypoint-http-get.version>3.0.0-alpha.1</gravitee-entrypoint-http-get.version>
         <gravitee-entrypoint-http-post.version>3.0.0-alpha.1</gravitee-entrypoint-http-post.version>
         <gravitee-entrypoint-sse.version>6.0.0-alpha.1</gravitee-entrypoint-sse.version>
-        <gravitee-entrypoint-webhook.version>7.0.0-alpha.2</gravitee-entrypoint-webhook.version>
+        <gravitee-entrypoint-webhook.version>7.0.0-beta.2</gravitee-entrypoint-webhook.version>
         <gravitee-entrypoint-websocket.version>3.0.0-alpha.1</gravitee-entrypoint-websocket.version>
         <gravitee-entrypoint-agent-to-agent.version>2.0.0-alpha.2</gravitee-entrypoint-agent-to-agent.version>
         <gravitee-entrypoint-mcp-tool-server.version>2.0.0-alpha.3</gravitee-entrypoint-mcp-tool-server.version>
