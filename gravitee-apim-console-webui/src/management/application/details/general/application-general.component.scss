@@ -156,6 +156,105 @@ $typography: map.get(gio.$mat-theme, typography);
   column-gap: 16px;
 }
 
+.tls-card {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    &__text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      h3 {
+        margin: 0;
+      }
+    }
+
+    &__subtitle {
+      @include mat.m2-typography-level($typography, caption);
+      margin: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    }
+  }
+
+  &__table {
+    width: 100%;
+  }
+
+  &__status {
+    text-transform: capitalize;
+    font-weight: 500;
+
+    &--active {
+      color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+
+    &--active_with_end {
+      color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+    }
+
+    &--scheduled {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    }
+
+    &--revoked {
+      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker');
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 24px 0;
+
+    &__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      mat-icon {
+        color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    &__text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    &__title {
+      @include mat.m2-typography-level($typography, subtitle-1);
+      margin: 0;
+    }
+
+    &__description {
+      @include mat.m2-typography-level($typography, caption);
+      margin: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    }
+  }
+
+  &__loader {
+    display: flex;
+    justify-content: center;
+    padding: 24px;
+  }
+}
+
 .danger-card {
   border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
 
