@@ -17,6 +17,8 @@
 import { ChangeDetectionStrategy, Component, Inject, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, UntypedFormControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
@@ -57,14 +59,17 @@ export class ApiGeneralInfoExportV4DialogComponent implements OnDestroy {
   public apiId: string;
   public fileName: string;
 
-  public selectedTabIndex = 0; // 0: Json ; 1: CRD
+  public selectedTabIndex = 0; // 0: Json ; 1: CRD ; 2: Terraform HCL
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiGeneralDetailsExportV4DialogData, ApiGeneralDetailsExportV4DialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiGeneralDetailsExportV4DialogData,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly iconRegistry: MatIconRegistry,
+    private readonly sanitizer: DomSanitizer,
   ) {
+    this.iconRegistry.addSvgIcon('terraform', this.sanitizer.bypassSecurityTrustResourceUrl('assets/terraform-svgrepo-com.svg'));
     this.apiId = dialogData.api.id;
 
     this.fileName = buildFileName(dialogData.api);
