@@ -199,6 +199,6 @@ export class WebuiLintTestJob {
       }),
     ];
 
-    return new Job('job-webui-libs-lint-test', NodeLtsExecutor.create('medium'), steps);
+    return new Job('job-webui-libs-lint-test', NodeLtsExecutor.create('medium+'), steps);
   }
 }
