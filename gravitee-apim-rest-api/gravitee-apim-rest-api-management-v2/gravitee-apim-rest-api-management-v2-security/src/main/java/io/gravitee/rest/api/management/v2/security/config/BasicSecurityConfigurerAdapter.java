@@ -270,6 +270,10 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/modules/*/assets/**")
+            .permitAll()
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/modules", "/modules/")
+            .permitAll()
             /*
              * Management UI resources.
              */

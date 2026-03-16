@@ -107,6 +107,17 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.gamma.plugin.module</groupId>
+            <artifactId>gravitee-gamma-plugin-module-handler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.gamma</groupId>
+            <artifactId>gravitee-gamma-rest-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>
             <artifactId>gravitee-apim-rest-api-repository</artifactId>
             <version>${project.version}</version>
