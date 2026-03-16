@@ -114,7 +114,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -311,12 +311,12 @@ public class ResourceContextConfiguration {
      * Automation resource tests don't need real implementation, so a mock is enough.
      */
     @Bean
-    public ApiProductPlanSearchQueryService apiProductPlanSearchQueryService() {
-        return mock(ApiProductPlanSearchQueryService.class);
+    public PlanSearchQueryService planSearchQueryService() {
+        return mock(PlanSearchQueryService.class);
     }
 
     /**
-     * Required by ApiProductPlanOperationsUseCase.
+     * Required by PlanOperationsUseCase.
      */
     @Bean
     public PublishPlanDomainService planOperationsDomainService() {

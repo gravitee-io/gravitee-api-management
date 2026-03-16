@@ -110,7 +110,7 @@ class ReorderPlanDomainServiceTest {
         );
 
         // When
-        service.reorderAfterUpdateForApiProduct(
+        service.reorderAfterUpdate(
             plans
                 .stream()
                 .filter(p -> p.getId().equals(toUpdate.getKey()))
@@ -138,7 +138,7 @@ class ReorderPlanDomainServiceTest {
         );
 
         // When
-        service.refreshOrderAfterDelete(API_ID);
+        service.refreshOrderAfterDelete(API_ID, GenericPlanEntity.ReferenceType.API);
 
         // Then
         Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
