@@ -470,4 +470,95 @@ describe('ApplicationService', () => {
         .flush({});
     });
   });
+
+  describe('listCertificates', () => {
+    it('should call the API with default pagination', done => {
+      const appId = 'my-app-id';
+
+      applicationService.listCertificates(appId).subscribe(response => {
+        expect(response).toBeDefined();
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/certificates?page=1&size=10`,
+        })
+        .flush({ data: [], page: { current: 1, per_page: 10, size: 0, total_elements: 0, total_pages: 0 } });
+    });
+
+    it('should call the API with custom pagination', done => {
+      const appId = 'my-app-id';
+
+      applicationService.listCertificates(appId, 2, 25).subscribe(response => {
+        expect(response).toBeDefined();
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/certificates?page=2&size=25`,
+        })
+        .flush({ data: [], page: { current: 2, per_page: 25, size: 0, total_elements: 0, total_pages: 0 } });
+    });
+  });
+
+  describe('createCertificate', () => {
+    it('should call the API', done => {
+      const appId = 'my-app-id';
+      const newCert = { name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----' };
+
+      applicationService.createCertificate(appId, newCert).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/certificates`,
+      });
+
+      expect(req.request.body).toEqual(newCert);
+      req.flush({});
+    });
+  });
+
+  describe('updateCertificate', () => {
+    it('should call the API', done => {
+      const appId = 'my-app-id';
+      const certId = 'cert-id';
+      const update = { name: 'Updated Cert', endsAt: '2026-06-01T00:00:00Z' };
+
+      applicationService.updateCertificate(appId, certId, update).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/certificates/${certId}`,
+      });
+
+      expect(req.request.body).toEqual(update);
+      req.flush({});
+    });
+  });
+
+  describe('deleteCertificate', () => {
+    it('should call the API', done => {
+      const appId = 'my-app-id';
+      const certId = 'cert-id';
+
+      applicationService.deleteCertificate(appId, certId).subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/certificates/${certId}`,
+        })
+        .flush({});
+    });
+  });
 });

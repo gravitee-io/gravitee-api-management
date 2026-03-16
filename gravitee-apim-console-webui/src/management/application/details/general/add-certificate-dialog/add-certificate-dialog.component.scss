@@ -1,0 +1,12 @@
+.add-certificate-dialog {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 500px;
+  }
+
+  &__field {
+    width: 100%;
+  }
+}

@@ -20,23 +20,29 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { EMPTY } from 'rxjs';
 
 import { ApplicationGeneralComponent } from './application-general.component';
 import { ApplicationGeneralModule } from './application-general.module';
+import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../../../../entities/application/Application.fixture';
 import { Application, ApplicationType } from '../../../../entities/application/Application';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ClientCertificate, ClientCertificateStatus } from '../../../../entities/application/ClientCertificate';
 
 describe('ApplicationGeneralInfoComponent', () => {
   const APPLICATION_ID = 'id_test';
 
   let fixture: ComponentFixture<ApplicationGeneralComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -61,6 +67,7 @@ describe('ApplicationGeneralInfoComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ApplicationGeneralComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   });
@@ -76,6 +83,7 @@ describe('ApplicationGeneralInfoComponent', () => {
       const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest([]);
       fixture.detectChanges();
       await waitImageCheck();
 
@@ -111,9 +119,6 @@ describe('ApplicationGeneralInfoComponent', () => {
             renew_client_secret_supported: false,
             response_types: ['code', 'token', 'id_token'],
           },
-          tls: {
-            client_certificate: undefined,
-          },
         },
       });
     });
@@ -125,6 +130,7 @@ describe('ApplicationGeneralInfoComponent', () => {
       const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest([]);
       fixture.detectChanges();
       await waitImageCheck();
 
@@ -134,10 +140,6 @@ describe('ApplicationGeneralInfoComponent', () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
       expect(await nameInput.getValue()).toEqual('');
       await nameInput.setValue('123');
-
-      const clientCertificateInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_certificate"]' }));
-      expect(await clientCertificateInput.getValue()).toEqual('');
-      await clientCertificateInput.setValue('certificate');
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -155,9 +157,6 @@ describe('ApplicationGeneralInfoComponent', () => {
           app: {
             client_id: '123',
           },
-          tls: {
-            client_certificate: 'certificate',
-          },
         },
       });
     });
@@ -169,6 +168,7 @@ describe('ApplicationGeneralInfoComponent', () => {
       const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest([]);
       fixture.detectChanges();
       await waitImageCheck();
 
@@ -178,10 +178,6 @@ describe('ApplicationGeneralInfoComponent', () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
       expect(await nameInput.getValue()).toEqual('test_client_id');
       await nameInput.setValue('123');
-
-      const clientCertificate = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_certificate"]' }));
-      expect(await clientCertificate.getValue()).toEqual('');
-      await clientCertificate.setValue('certificate');
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -208,84 +204,210 @@ describe('ApplicationGeneralInfoComponent', () => {
             renew_client_secret_supported: false,
             response_types: ['code', 'token', 'id_token'],
           },
-          tls: {
-            client_certificate: 'certificate',
-          },
         },
       });
     });
   });
 
-  describe('Certificate count warning banner', () => {
-    it('should display warning when application has multiple certificates', async () => {
+  describe('Certificate table', () => {
+    it('should display certificates in the table', async () => {
       const applicationDetails = fakeApplication({ type: 'SIMPLE' });
-      applicationDetails.settings.tls = {
-        client_certificate: 'pem certificate',
-        certificate_count: 3,
-      };
       const applicationType = fakeApplicationType();
+      const certificates: ClientCertificate[] = [
+        {
+          id: 'cert-1',
+          name: 'My Certificate',
+          createdAt: '2026-01-15T10:00:00Z',
+          certificateExpiration: '2027-01-15T10:00:00Z',
+          endsAt: '2027-01-15T10:00:00Z',
+          status: ClientCertificateStatus.ACTIVE,
+        },
+        {
+          id: 'cert-2',
+          name: 'Old Certificate',
+          createdAt: '2025-06-01T10:00:00Z',
+          certificateExpiration: '2026-06-01T10:00:00Z',
+          endsAt: '2026-06-01T10:00:00Z',
+          status: ClientCertificateStatus.REVOKED,
+        },
+      ];
+
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest(certificates);
       fixture.detectChanges();
       await waitImageCheck();
 
-      const banner = getBanner();
-      expect(banner).toBeTruthy();
-      expect(banner.textContent).toContain('This application has 3 active certificates');
+      const rows = fixture.nativeElement.querySelectorAll('.tls-card__table tr[mat-row]');
+      expect(rows.length).toBe(2);
     });
 
-    it('should not display warning when application has one certificate', async () => {
+    it('should display empty state when no certificates', async () => {
       const applicationDetails = fakeApplication({ type: 'SIMPLE' });
-      applicationDetails.settings.tls = {
-        client_certificate: 'pem certificate',
-        certificate_count: 1,
-      };
-
-      await assertNoBanner(applicationDetails);
-    });
-
-    it('should not display warning when application no certificate', async () => {
-      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
-      applicationDetails.settings.tls = {
-        client_certificate: 'pem certificate',
-        certificate_count: 0,
-      };
-
-      await assertNoBanner(applicationDetails);
-    });
-
-    it('should not display warning when application has no TLS settings', async () => {
-      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
-      applicationDetails.settings = {};
-
-      await assertNoBanner(applicationDetails);
-    });
-
-    async function assertNoBanner(applicationDetails: Application) {
       const applicationType = fakeApplicationType();
+
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest([]);
       fixture.detectChanges();
       await waitImageCheck();
 
-      const banner = getBanner();
-      expect(banner).toBeFalsy();
-    }
+      const emptyMessage = fixture.nativeElement.querySelector('[data-testid="no-certificates-message"]');
+      expect(emptyMessage).toBeTruthy();
+      expect(emptyMessage.textContent).toContain('No mTLS certificates added');
+    });
 
-    function getBanner() {
-      return fixture.nativeElement.querySelector('gio-banner-warning');
-    }
+    it('should show add certificate button', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
+
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest([]);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const addButton = fixture.nativeElement.querySelector('[data-testid="add-certificate-button"]');
+      expect(addButton).toBeTruthy();
+    });
+  });
+
+  describe('Delete certificate', () => {
+    it('should_delete_certificate_after_confirmation', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
+      const certificates: ClientCertificate[] = [
+        {
+          id: 'cert-1',
+          name: 'My Certificate',
+          createdAt: '2026-01-15T10:00:00Z',
+          certificateExpiration: '2027-01-15T10:00:00Z',
+          endsAt: '2027-01-15T10:00:00Z',
+          status: ClientCertificateStatus.ACTIVE,
+        },
+      ];
+
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest(certificates);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="delete-certificate-button"]' }));
+      await deleteButton.click();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/certificates/cert-1`,
+          method: 'DELETE',
+        })
+        .flush(null);
+
+      expectListCertificatesRequest([]);
+    });
+  });
+
+  describe('Add certificate dialog targeting', () => {
+    it('should_target_active_cert_when_both_active_and_active_with_end_exist', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
+      const certificates: ClientCertificate[] = [
+        {
+          id: 'cert-old',
+          name: 'First Certificate (rotated)',
+          createdAt: '2025-06-01T10:00:00Z',
+          certificateExpiration: '2027-06-01T10:00:00Z',
+          endsAt: '2026-06-01T10:00:00Z',
+          status: ClientCertificateStatus.ACTIVE_WITH_END,
+        },
+        {
+          id: 'cert-new',
+          name: 'Second Certificate (current)',
+          createdAt: '2026-01-15T10:00:00Z',
+          certificateExpiration: '2027-01-15T10:00:00Z',
+          status: ClientCertificateStatus.ACTIVE,
+        },
+      ];
+
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest(certificates);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => EMPTY } as any);
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-certificate-button"]' }));
+      await addButton.click();
+
+      expect(openSpy).toHaveBeenCalledWith(
+        AddCertificateDialogComponent,
+        expect.objectContaining({
+          data: {
+            hasActiveCertificates: true,
+            activeCertificateId: 'cert-new',
+          },
+        }),
+      );
+    });
+
+    it('should_target_newest_active_with_end_cert_when_no_active_cert_exists', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
+      const certificates: ClientCertificate[] = [
+        {
+          id: 'cert-older',
+          name: 'Older Certificate',
+          createdAt: '2025-01-01T10:00:00Z',
+          certificateExpiration: '2027-01-01T10:00:00Z',
+          endsAt: '2026-12-01T10:00:00Z',
+          status: ClientCertificateStatus.ACTIVE_WITH_END,
+        },
+        {
+          id: 'cert-newer',
+          name: 'Newer Certificate',
+          createdAt: '2025-06-01T10:00:00Z',
+          certificateExpiration: '2027-06-01T10:00:00Z',
+          endsAt: '2027-01-01T10:00:00Z',
+          status: ClientCertificateStatus.ACTIVE_WITH_END,
+        },
+      ];
+
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest(certificates);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => EMPTY } as any);
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-certificate-button"]' }));
+      await addButton.click();
+
+      expect(openSpy).toHaveBeenCalledWith(
+        AddCertificateDialogComponent,
+        expect.objectContaining({
+          data: {
+            hasActiveCertificates: true,
+            activeCertificateId: 'cert-newer',
+          },
+        }),
+      );
+    });
   });
 
   describe('Application General details status is ARCHIVED', () => {
     it('details form should be set to readonly', async () => {
       const applicationDetails = fakeApplication({ status: 'ARCHIVED' });
-      applicationDetails.settings.tls = {
-        client_certificate: 'pem certificate',
-      };
       const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest([]);
       fixture.detectChanges();
       await waitImageCheck();
 
@@ -295,8 +417,8 @@ describe('ApplicationGeneralInfoComponent', () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
       expect(await nameInput.isDisabled()).toEqual(true);
 
-      const clientCertificateInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_certificate"]' }));
-      expect(await clientCertificateInput.isDisabled()).toEqual(true);
+      const addButton = fixture.nativeElement.querySelector('[data-testid="add-certificate-button"]');
+      expect(addButton).toBeFalsy();
     });
   });
 
@@ -316,6 +438,18 @@ describe('ApplicationGeneralInfoComponent', () => {
         method: 'GET',
       })
       .flush(applicationType);
+  }
+
+  function expectListCertificatesRequest(certificates: ClientCertificate[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/certificates?page=1&size=100`,
+        method: 'GET',
+      })
+      .flush({
+        data: certificates,
+        page: { current: 1, per_page: 100, size: certificates.length, total_elements: certificates.length, total_pages: 1 },
+      });
   }
 });
 

@@ -26,6 +26,7 @@ import {
   GioFormHeadersModule,
   GioFormSlideToggleModule,
   GioFormTagsInputModule,
+  GioLoaderModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
@@ -39,13 +40,18 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { ApplicationGeneralComponent } from './application-general.component';
+import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApplicationGeneralComponent],
+  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent],
   exports: [ApplicationGeneralComponent],
   imports: [
     CommonModule,
@@ -57,6 +63,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioFormFocusInvalidModule,
     GioFormSlideToggleModule,
     GioFormTagsInputModule,
+    GioLoaderModule,
     GioSaveBarModule,
 
     MatButtonModule,
@@ -69,6 +76,10 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatSlideToggleModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatTableModule,
+    MatDialogModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
 
     MatChipsModule,
 

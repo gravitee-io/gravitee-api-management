@@ -28,6 +28,7 @@ import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
 import { CreateApplication } from '../entities/application/CreateApplication';
 import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
+import { ClientCertificate, CreateClientCertificate, UpdateClientCertificate } from '../entities/application/ClientCertificate';
 
 @Injectable({
   providedIn: 'root',
@@ -214,5 +215,26 @@ export class ApplicationService {
 
   revokeApiKey(applicationId: string, apiKeyId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/apikeys/${apiKeyId}`);
+  }
+
+  listCertificates(applicationId: string, page = 1, size = 10): Observable<PagedResult<ClientCertificate>> {
+    return this.http.get<PagedResult<ClientCertificate>>(`${this.constants.env.baseURL}/applications/${applicationId}/certificates`, {
+      params: { page, size },
+    });
+  }
+
+  createCertificate(applicationId: string, certificate: CreateClientCertificate): Observable<ClientCertificate> {
+    return this.http.post<ClientCertificate>(`${this.constants.env.baseURL}/applications/${applicationId}/certificates`, certificate);
+  }
+
+  updateCertificate(applicationId: string, certificateId: string, update: UpdateClientCertificate): Observable<ClientCertificate> {
+    return this.http.put<ClientCertificate>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/certificates/${certificateId}`,
+      update,
+    );
+  }
+
+  deleteCertificate(applicationId: string, certificateId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/certificates/${certificateId}`);
   }
 }
