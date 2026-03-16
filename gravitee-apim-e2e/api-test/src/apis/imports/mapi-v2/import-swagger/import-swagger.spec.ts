@@ -41,13 +41,13 @@ describe('API - Imports OpenAPI specification', () => {
   let apiId: string;
 
   beforeAll(async () => {
-    createdTag = await succeed(shardingTagsAsAdmin.createTagRaw({ orgId, newTagEntity: { name: 'tag1' } }));
+    createdTag = await succeed(shardingTagsAsAdmin.createTagRaw({ orgId, newTagEntity: { name: 'tag1', key: 'tag-1' } }));
     createdGroup = await created(groupsAsAdmin.createGroupRaw({ orgId, envId, newGroupEntity: { name: 'group1' } }));
     createdCategory = await succeed(categoryAsAdmin.createCategoryRaw({ orgId, envId, newCategoryEntity: { name: 'cat1' } }));
   });
 
   afterAll(async () => {
-    await shardingTagsAsAdmin.deleteTagRaw({ orgId, tag: createdTag.id });
+    await shardingTagsAsAdmin.deleteTagRaw({ orgId, tag: createdTag.key });
     await groupsAsAdmin.deleteGroupRaw({ orgId, envId, group: createdGroup.id });
     await categoryAsAdmin.deleteCategoryRaw({ orgId, envId, categoryId: createdCategory.id });
   });
@@ -73,7 +73,7 @@ describe('API - Imports OpenAPI specification', () => {
     expect(importedApi.visibility).toBe('PRIVATE');
     expect(importedApi.groups).toHaveLength(1);
     expect(importedApi.categories).toStrictEqual(['cat1']);
-    expect(importedApi.tags).toStrictEqual(['tag1']);
+    expect(importedApi.tags).toStrictEqual(['tag-1']);
     expect(importedApi.lifecycleState).toBe('CREATED');
     expect(importedApi.state).toBe('STOPPED');
     expect(importedApi.listeners).toStrictEqual([
