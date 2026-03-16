@@ -21,7 +21,7 @@ import { adminAuthHeader, envId, managementV2BaseUrl } from '@gravitee/utils/api
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created } from '@lib/jest-utils';
+import { created, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { faker } from '@faker-js/faker';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
@@ -45,7 +45,7 @@ interface ApiProductPlan {
   status?: string;
 }
 
-describe('API Product plans (management v2)', () => {
+describeIfClientGatewaySupportingApiProduct('API Product plans (management v2)', () => {
   let api: ApiV4;
   let apiProduct: ApiProduct;
   let plan: ApiProductPlan;

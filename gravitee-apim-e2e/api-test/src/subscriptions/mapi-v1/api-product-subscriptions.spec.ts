@@ -15,6 +15,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { ApiType, ApiV4, HttpListener, PlanMode, PlanSecurityType } from '../../../../lib/management-v2-webclient-sdk/src/lib';
@@ -64,7 +65,7 @@ interface Subscription {
   status: string;
 }
 
-describe('API Product subscriptions (management v2)', () => {
+describeIfClientGatewaySupportingApiProduct('API Product subscriptions (management v2)', () => {
   let api: ApiV4;
   let apiProduct: ApiProduct;
   let autoPlan: ApiProductPlan;

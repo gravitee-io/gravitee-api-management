@@ -22,7 +22,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { faker } from '@faker-js/faker';
 
@@ -41,7 +41,7 @@ const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
  * T3: Remove all plans from API2 (remove API2 from product).
  * T4: Create new API Product with same 3 APIs; verify all 3.
  */
-describe('API Product - plan-removal timeline with same 3 APIs (T0–T4)', () => {
+describeIfClientGatewaySupportingApiProduct('API Product - plan-removal timeline with same 3 APIs (T0–T4)', () => {
   let api1: ApiV4;
   let api2: ApiV4;
   let api3: ApiV4;

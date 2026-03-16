@@ -23,7 +23,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/apim-http';
 import { faker } from '@faker-js/faker';
 
@@ -32,7 +32,7 @@ const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 // Shared secret for JWT signing (matches plan security configuration)
 const JWT_GIVEN_KEY = 'API_PRODUCT_JWT_GIVEN_KEY_' + faker.string.alphanumeric(8);
 
-describe('API Product with JWT plan - gateway security enforcement', () => {
+describeIfClientGatewaySupportingApiProduct('API Product with JWT plan - gateway security enforcement', () => {
   let api: ApiV4;
   let contextPath: string;
   let productId: string;
