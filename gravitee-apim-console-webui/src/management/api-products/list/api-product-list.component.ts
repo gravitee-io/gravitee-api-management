@@ -113,7 +113,10 @@ export class ApiProductListComponent {
   private readonly snackBarService = inject(SnackBarService);
   private readonly permissionService = inject(GioPermissionService);
 
-  displayedColumns = ['picture', 'name', 'apis', 'version', 'owner', 'actions'];
+  readonly hasUpdatePermission = this.permissionService.hasAnyMatching(['environment-api_product-u']);
+  readonly displayedColumns: string[] = this.hasUpdatePermission
+    ? ['picture', 'name', 'apis', 'version', 'owner', 'actions']
+    : ['picture', 'name', 'apis', 'version', 'owner'];
   searchLabel = 'Search';
   canCreateApiProduct = this.permissionService.hasAnyMatching(['environment-api_product-c']);
 

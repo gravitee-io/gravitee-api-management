@@ -34,6 +34,7 @@ import { Api, fakeProxyApiV4 } from '../../../entities/management-api-v2';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProductApisComponent', () => {
   let fixture: ComponentFixture<ApiProductApisComponent>;
@@ -88,6 +89,7 @@ describe('ApiProductApisComponent', () => {
       imports: [ApiProductApisComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-api_product-u'] },
         { provide: SnackBarService, useValue: fakeSnackBarService },
         {
           provide: ActivatedRoute,

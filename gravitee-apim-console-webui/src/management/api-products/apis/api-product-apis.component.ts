@@ -44,6 +44,7 @@ import {
 import { Api } from '../../../entities/management-api-v2';
 import { getApiContextPath } from '../../../shared/utils/api-access.util';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
@@ -99,8 +100,14 @@ export class ApiProductApisComponent implements OnInit {
   private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly snackBarService = inject(SnackBarService);
   private readonly matDialog = inject(MatDialog);
+  private readonly permissionService = inject(GioPermissionService);
 
-  readonly displayedColumns = ['picture', 'name', 'contextPath', 'definition', 'version', 'actions'] as const;
+  readonly hasUpdatePermission = this.permissionService.hasAnyMatching(['environment-api_product-u']);
+  get displayedColumns(): string[] {
+    return this.hasUpdatePermission
+      ? ['picture', 'name', 'contextPath', 'definition', 'version', 'actions']
+      : ['picture', 'name', 'contextPath', 'definition', 'version'];
+  }
   apisTableDS: ApiProductApiTableDS = [];
   apisTableDSUnpaginatedLength = 0;
   searchLabel = 'Search APIs...';

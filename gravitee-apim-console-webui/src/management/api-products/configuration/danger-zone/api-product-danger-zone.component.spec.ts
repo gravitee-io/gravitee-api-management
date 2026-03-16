@@ -31,6 +31,7 @@ import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
   template: `<api-product-danger-zone
     [apiProduct]="apiProduct()"
     [isReadOnly]="isReadOnly()"
+    [canDeleteApiProduct]="canDeleteApiProduct()"
     (removeApisClick)="onRemoveApis()"
     (deleteApiProductClick)="onDeleteApiProduct()"
   ></api-product-danger-zone>`,
@@ -44,6 +45,7 @@ class TestHostComponent {
     apiIds: ['api-1', 'api-2'],
   });
   isReadOnly = signal(false);
+  canDeleteApiProduct = signal(true);
   removeApisEmitted = false;
   deleteApiProductEmitted = false;
 

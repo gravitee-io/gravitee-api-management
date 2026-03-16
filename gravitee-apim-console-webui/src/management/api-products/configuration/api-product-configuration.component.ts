@@ -79,6 +79,8 @@ export class ApiProductConfigurationComponent {
   private readonly matDialog = inject(MatDialog);
 
   protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['environment-api_product-u']);
+  /** Delete API Product button enabled when user has update permission */
+  protected readonly canDeleteApiProduct = !!this.permissionService.hasAnyMatching(['environment-api_product-d']);
 
   readonly form = this.buildForm();
   readonly initialFormValue = signal<Record<string, unknown> | null>(null);

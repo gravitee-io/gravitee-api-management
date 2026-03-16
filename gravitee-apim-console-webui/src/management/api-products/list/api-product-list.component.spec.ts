@@ -53,7 +53,7 @@ describe('ApiProductListComponent', () => {
       imports: [ApiProductListComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
-        { provide: GioTestingPermissionProvider, useValue: ['environment-api_product-c'] },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-api_product-c', 'environment-api_product-u', 'environment-api_product-r'] },
         { provide: SnackBarService, useValue: fakeSnackBarService },
         {
           provide: ActivatedRoute,
