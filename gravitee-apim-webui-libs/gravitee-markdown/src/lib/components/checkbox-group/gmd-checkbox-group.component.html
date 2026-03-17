@@ -1,0 +1,57 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<fieldset
+  class="gmd-checkbox-group"
+  [attr.aria-labelledby]="label() ? groupLabelId() : null"
+  [attr.aria-required]="required() ? 'true' : null"
+  [attr.aria-invalid]="hasErrors() ? 'true' : null"
+  [attr.aria-describedby]="hasErrors() ? errorId() : null"
+>
+  @if (label()) {
+    <legend [id]="groupLabelId()" class="gmd-checkbox-group__group-label">
+      {{ label() }}
+      @if (required()) {
+        <span class="gmd-checkbox-group__required">*</span>
+      }
+    </legend>
+  }
+  <div class="gmd-checkbox-group__options">
+    @for (option of optionsVM(); track option) {
+      <label class="gmd-checkbox-group__option">
+        <input
+          type="checkbox"
+          [name]="name()"
+          [value]="option"
+          [checked]="internalValues().has(option)"
+          [disabled]="disabled()"
+          (change)="onChange($event, option)"
+          (blur)="onBlur()"
+        />
+        <span class="gmd-checkbox-group__option-label">{{ option }}</span>
+      </label>
+    }
+  </div>
+
+  @if (touched() && errorMessages().length) {
+    <div [id]="errorId()" class="gmd-checkbox-group__errors" role="alert">
+      @for (msg of errorMessages(); track msg) {
+        <div class="gmd-checkbox-group__error">{{ msg }}</div>
+      }
+    </div>
+  }
+</fieldset>
