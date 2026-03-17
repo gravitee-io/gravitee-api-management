@@ -18,12 +18,14 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
+import io.gravitee.apim.rest.api.automation.model.ClientCertificate;
 import io.gravitee.apim.rest.api.automation.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -68,6 +70,9 @@ public interface ApplicationMapper {
         expression = "java(applicationTLSSettings.getClientCertificate() != null ? applicationTLSSettings.getClientCertificate().stripTrailing() : null)"
     )
     ApplicationState applicationSpecAndStatusToApplicationState(ApplicationSpec spec, ApplicationCRDStatus status);
+
+    @Mapping(source = "content", target = "certificate")
+    CreateClientCertificate map(ClientCertificate clientCertificate);
 
     @Mapping(target = "pictureUrl", source = "picture")
     @Mapping(target = "notifyMembers", expression = "java(!applicationEntity.isDisableMembershipNotifications())")
