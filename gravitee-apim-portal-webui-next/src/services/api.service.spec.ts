@@ -17,7 +17,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApiService } from './api.service';
-import { fakeApisResponse } from '../entities/api/api.fixtures';
+import { fakeApi, fakeApisResponse } from '../entities/api/api.fixtures';
 import { ApisResponse } from '../entities/api/apis-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
@@ -64,6 +64,22 @@ describe('ApiService', () => {
       expect(req.request.method).toEqual('POST');
 
       req.flush(apisResponse);
+    });
+  });
+
+  describe('details', () => {
+    it('should_return_api_with_documentation_view', done => {
+      const apiId = 'my-api-id';
+      const api = fakeApi({ id: apiId });
+
+      service.details(apiId).subscribe(response => {
+        expect(response).toMatchObject(api);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${apiId}?view=documentation`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(api);
     });
   });
 });
