@@ -71,6 +71,7 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
             eventCrudService,
             eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            planQueryService,
             validateApiProductService
         );
     }

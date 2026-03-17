@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct;
 
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 
 /**
@@ -48,7 +51,6 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
 
     private final LatestEventFetcher eventsFetcher;
     private final ApiProductMapper apiProductMapper;
-    private final ApiProductPlanAppender apiProductPlanAppender;
     private final DeployerFactory deployerFactory;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
@@ -56,14 +58,12 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
     public ApiProductSynchronizer(
         final LatestEventFetcher eventsFetcher,
         final ApiProductMapper apiProductMapper,
-        final ApiProductPlanAppender apiProductPlanAppender,
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncFetcherExecutor,
         final ThreadPoolExecutor syncDeployerExecutor
     ) {
         this.eventsFetcher = eventsFetcher;
         this.apiProductMapper = apiProductMapper;
-        this.apiProductPlanAppender = apiProductPlanAppender;
         this.deployerFactory = deployerFactory;
         this.syncFetcherExecutor = syncFetcherExecutor;
         this.syncDeployerExecutor = syncDeployerExecutor;
@@ -152,16 +152,23 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
     ) {
         return eventsByType
             .flatMapMaybe(apiProductMapper::to)
-            .map(reactableApiProduct ->
-                ApiProductReactorDeployable.builder()
+            .map(reactableApiProduct -> {
+                List<Plan> plans = reactableApiProduct.getPlans();
+                var builder = ApiProductReactorDeployable.builder()
                     .apiProductId(reactableApiProduct.getId())
                     .syncAction(SyncAction.DEPLOY)
-                    .reactableApiProduct(reactableApiProduct)
-                    .build()
-            )
-            .buffer(bulkEvents())
-            .map(deployables -> apiProductPlanAppender.appends(deployables, environments))
-            .flatMapIterable(d -> d);
+                    .reactableApiProduct(reactableApiProduct);
+                if (plans != null && !plans.isEmpty()) {
+                    builder.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
+                    builder.definitionPlans(
+                        plans
+                            .stream()
+                            .filter(p -> p.getStatus() == PlanStatus.PUBLISHED || p.getStatus() == PlanStatus.DEPRECATED)
+                            .toList()
+                    );
+                }
+                return builder.build();
+            });
     }
 
     private Flowable<ApiProductReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {

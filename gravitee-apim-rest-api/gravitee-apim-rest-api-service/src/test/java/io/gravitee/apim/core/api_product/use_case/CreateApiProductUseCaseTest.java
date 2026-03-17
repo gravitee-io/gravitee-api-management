@@ -135,7 +135,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
-            notificationConfigCrudService
+            notificationConfigCrudService,
+            planQueryService
         );
 
         initRoles();

@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
@@ -39,7 +38,6 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     private final ApiProductManager apiProductManager;
     private final PlanService planService;
     private final DistributedSyncService distributedSyncService;
-    private final ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
     private final ApiProductSubscriptionRefresher subscriptionRefresher;
 
     @Override
@@ -96,17 +94,12 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     private void registerApiProductPlans(ApiProductReactorDeployable deployable) {
         String apiProductId = deployable.apiProductId();
         planService.register(deployable);
-        if (apiProductPlanDefinitionCache != null) {
-            apiProductPlanDefinitionCache.register(apiProductId, deployable.definitionPlans());
-        }
+        deployable.reactableApiProduct().setPlans(deployable.definitionPlans());
         log.debug("Registered {} plans for API Product [{}]", deployable.subscribablePlans().size(), apiProductId);
     }
 
     private void unregisterApiProductPlans(ApiProductReactorDeployable deployable) {
         planService.unregister(deployable);
-        if (apiProductPlanDefinitionCache != null) {
-            apiProductPlanDefinitionCache.unregister(deployable.apiProductId());
-        }
     }
 
     @Override

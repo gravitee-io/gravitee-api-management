@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,6 +56,8 @@ public class ReactableApiProduct implements Reactable, Serializable {
     private String organizationHrid;
 
     private Date deployedAt;
+
+    private List<Plan> plans;
 
     @Override
     public boolean enabled() {
