@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,6 +35,7 @@ import {
   ENV_LOGS_DEFAULT_PERIOD,
   EnvLogsMoreFiltersForm,
 } from '../../models/env-logs-more-filters.model';
+import { EnvLogsInitialValues } from '../../models/env-logs-initial-values.model';
 import { ApiFilterService } from '../../../dashboards/ui/dashboard-viewer/filters/api-filter.service';
 import { ApplicationFilterService } from '../../../dashboards/ui/dashboard-viewer/filters/application-filter.service';
 import {
@@ -141,11 +142,12 @@ function buildMoreFilterChips(more: EnvLogsMoreFiltersForm): FilterChip[] {
     EnvLogsMoreFiltersComponent,
   ],
 })
-export class EnvLogsFilterBarComponent {
+export class EnvLogsFilterBarComponent implements OnInit {
   private readonly apiFilterService = inject(ApiFilterService);
   private readonly applicationFilterService = inject(ApplicationFilterService);
 
   loading = input(false);
+  initialValues = input<EnvLogsInitialValues | undefined>(undefined);
   refresh = output<void>();
   filtersChanged = output<EnvLogsFilterValues>();
 
@@ -212,6 +214,37 @@ export class EnvLogsFilterBarComponent {
 
   constructor() {
     effect(() => this.emitCurrentFilters());
+  }
+
+  ngOnInit() {
+    const initial = this.initialValues();
+    if (!initial) return;
+
+    if (initial.period) {
+      this.form.controls.period.setValue(initial.period);
+    }
+    if (initial.apiIds?.length) {
+      this.form.controls.apis.setValue(initial.apiIds);
+    }
+    if (initial.applicationIds?.length) {
+      this.form.controls.applications.setValue(initial.applicationIds);
+    }
+
+    const moreDefaults = createDefaultMoreFilters();
+    this.moreFiltersValues.set({
+      ...moreDefaults,
+      methods: initial.methods ?? null,
+      statuses: initial.statuses ?? new Set(),
+      entrypoints: initial.entrypoints ?? null,
+      plans: initial.plans ?? null,
+      transactionId: initial.transactionId ?? null,
+      requestId: initial.requestId ?? null,
+      uri: initial.uri ?? null,
+      responseTime: initial.responseTime ?? null,
+      from: initial.from ?? null,
+      to: initial.to ?? null,
+      errorKeys: initial.errorKeys ?? null,
+    });
   }
 
   private emitCurrentFilters() {

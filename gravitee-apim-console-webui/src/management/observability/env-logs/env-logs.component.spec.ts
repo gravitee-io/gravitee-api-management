@@ -15,6 +15,8 @@
  */
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -381,4 +383,120 @@ describe('EnvLogsComponent', () => {
       expect(log.warnings).toEqual([{ key: 'SLOW_RESPONSE' }, { key: 'DEPRECATED_HEADER' }]);
     }));
   });
+});
+
+describe('EnvLogsComponent — query param persistence', () => {
+  let component: EnvLogsComponent;
+  let fixture: ComponentFixture<EnvLogsComponent>;
+  let httpTestingController: HttpTestingController;
+
+  function createComponentWithQueryParams(queryParams: Record<string, string>) {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule, EnvLogsComponent],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParams },
+            queryParams: of(queryParams),
+          },
+        },
+      ],
+    });
+
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(EnvLogsComponent);
+    component = fixture.componentInstance;
+  }
+
+  function flushErrorKeys() {
+    const reqs = httpTestingController.match(req => req.url.includes('/analytics/error-keys'));
+    reqs.forEach(req => req.flush([]));
+  }
+
+  afterEach(() => {
+    flushErrorKeys();
+    httpTestingController.verify();
+    fixture?.destroy();
+  });
+
+  it('should_restore_filters_from_query_params', fakeAsync(() => {
+    createComponentWithQueryParams({
+      period: '-7d',
+      methods: 'GET,POST',
+      statuses: '200,404',
+      apiIds: 'api-1,api-2',
+    });
+
+    fixture.detectChanges();
+    tick();
+
+    const searchReq = httpTestingController.expectOne(req => req.method === 'POST' && req.url.includes('/logs/search'));
+    const body = searchReq.request.body;
+
+    expect(body.filters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] }),
+        expect.objectContaining({ name: 'API', operator: 'IN', value: ['api-1', 'api-2'] }),
+        expect.objectContaining({ name: 'HTTP_STATUS', operator: 'IN', value: ['200', '404'] }),
+      ]),
+    );
+    searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+  }));
+
+  it('should_restore_pagination_from_query_params', fakeAsync(() => {
+    createComponentWithQueryParams({
+      perPage: '25',
+      methods: 'GET',
+    });
+
+    fixture.detectChanges();
+    tick();
+
+    // Verify the pagination signal was updated with restored perPage
+    expect(component.pagination().perPage).toBe(25);
+
+    // Flush any pending search requests
+    const searchReqs = httpTestingController.match(req => req.method === 'POST' && req.url.includes('/logs/search'));
+    searchReqs.forEach(req =>
+      req.flush({ data: [], pagination: { page: 1, perPage: 25, pageCount: 0, pageItemsCount: 0, totalCount: 0 } }),
+    );
+  }));
+
+  it('should_return_undefined_when_no_filter_query_params_exist', fakeAsync(() => {
+    createComponentWithQueryParams({});
+
+    fixture.detectChanges();
+    tick();
+
+    // With no query params, parseQueryParams returns undefined and default period is used
+    const searchReq = httpTestingController.expectOne(req => req.method === 'POST' && req.url.includes('/logs/search'));
+    searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+  }));
+
+  it('should_restore_more_filter_values_from_query_params', fakeAsync(() => {
+    createComponentWithQueryParams({
+      transactionId: 'txn-123',
+      requestId: 'req-456',
+      uri: '/api/test',
+      responseTime: '500',
+      methods: 'GET',
+    });
+
+    fixture.detectChanges();
+    tick();
+
+    const searchReq = httpTestingController.expectOne(req => req.method === 'POST' && req.url.includes('/logs/search'));
+    const body = searchReq.request.body;
+
+    expect(body.filters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'TRANSACTION_ID', value: 'txn-123' }),
+        expect.objectContaining({ name: 'REQUEST_ID', value: 'req-456' }),
+        expect.objectContaining({ name: 'URI', value: '/api/test' }),
+        expect.objectContaining({ name: 'RESPONSE_TIME', operator: 'GTE', value: 500 }),
+      ]),
+    );
+    searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+  }));
 });
