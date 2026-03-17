@@ -149,6 +149,9 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import jakarta.xml.bind.DatatypeConverter;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -168,6 +171,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Hex;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -658,6 +662,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     .orElseThrow(() -> new UserNotFoundException(username));
             }
 
+            // Verify the password digest to ensure the token hasn't already been used
+            String tokenPasswordDigest = jwt.getClaim(Claims.PASSWORD_DIGEST).asString();
+            if (tokenPasswordDigest != null) {
+                String currentDigest = computePasswordDigest(user.getPassword());
+                if (!tokenPasswordDigest.equals(currentDigest)) {
+                    throw new UserStateConflictException("Password reset token has already been used");
+                }
+            }
+
             // Set date fields
             user.setUpdatedAt(new Date());
 
@@ -690,6 +703,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 ex
             );
             throw new TechnicalManagementException(ex.getMessage(), ex);
+        }
+    }
+
+    static String computePasswordDigest(String passwordHash) {
+        if (passwordHash == null || passwordHash.isEmpty()) {
+            return "";
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(passwordHash.getBytes(StandardCharsets.UTF_8));
+            return Hex.toHexString(hash).substring(0, 16);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
     }
 
@@ -1095,7 +1121,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final String managementUri,
         final ACTION action
     ) {
-        return getTokenRegistrationParams(executionContext, userEntity, managementUri, action, null);
+        return getTokenRegistrationParams(executionContext, userEntity, managementUri, action, null, null);
     }
 
     @Override
@@ -1105,6 +1131,18 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final String managementUri,
         final ACTION action,
         final String targetPageUrl
+    ) {
+        return getTokenRegistrationParams(executionContext, userEntity, managementUri, action, targetPageUrl, null);
+    }
+
+    @Override
+    public Map<String, Object> getTokenRegistrationParams(
+        ExecutionContext executionContext,
+        final UserEntity userEntity,
+        final String managementUri,
+        final ACTION action,
+        final String targetPageUrl,
+        final String passwordDigest
     ) {
         // generate a JWT to store user's information and for security purpose
         final String jwtSecret = environment.getProperty("jwt.secret");
@@ -1123,7 +1161,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 )
             );
 
-        final String token = JWT.create()
+        var jwtBuilder = JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))
@@ -1131,8 +1169,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             .withClaim(Claims.EMAIL, userEntity.getEmail())
             .withClaim(Claims.FIRSTNAME, userEntity.getFirstname())
             .withClaim(Claims.LASTNAME, userEntity.getLastname())
-            .withClaim(Claims.ACTION, action.name())
-            .sign(algorithm);
+            .withClaim(Claims.ACTION, action.name());
+
+        if (passwordDigest != null) {
+            jwtBuilder = jwtBuilder.withClaim(Claims.PASSWORD_DIGEST, passwordDigest);
+        }
+
+        final String token = jwtBuilder.sign(algorithm);
 
         String userURL = "";
         String managementURL = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
@@ -1523,12 +1566,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 }
             }
 
+            final String passwordDigest = computePasswordDigest(user.getPassword());
             final Map<String, Object> params = getTokenRegistrationParams(
                 executionContext,
                 convert(user, false),
                 RESET_PASSWORD_PATH,
                 RESET_PASSWORD,
-                resetPageUrl
+                resetPageUrl,
+                passwordDigest
             );
 
             notifierService.trigger(executionContext, PortalHook.PASSWORD_RESET, params);
