@@ -17,11 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.user;
 
 import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
 import io.gravitee.apim.core.user.use_case.GetUserApplicationsUseCase;
+import io.gravitee.apim.core.user.use_case.GetUserGroupsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.model.UserApi;
 import io.gravitee.rest.api.management.v2.rest.model.UserApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UserApplication;
 import io.gravitee.rest.api.management.v2.rest.model.UserApplicationsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UserGroup;
+import io.gravitee.rest.api.management.v2.rest.model.UserGroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -46,6 +49,9 @@ public class UserResource extends AbstractResource {
 
     @Inject
     private GetUserApplicationsUseCase getUserApplicationsUseCase;
+
+    @Inject
+    private GetUserGroupsUseCase getUserGroupsUseCase;
 
     @GET
     @Path("/apis")
@@ -109,6 +115,40 @@ public class UserResource extends AbstractResource {
 
         return Response.ok(
             new UserApplicationsResponse()
+                .data(data)
+                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                .links(computePaginationLinks(output.totalCount(), paginationParam))
+        ).build();
+    }
+
+    @GET
+    @Path("/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    public Response getUserGroups(
+        @PathParam("userId") String userId,
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("environmentId") String environmentId
+    ) {
+        var output = getUserGroupsUseCase.execute(
+            new GetUserGroupsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+        );
+
+        List<UserGroup> data = output
+            .data()
+            .stream()
+            .map(group ->
+                new UserGroup()
+                    .id(group.getId())
+                    .name(group.getName())
+                    .environmentId(group.getEnvironmentId())
+                    .environmentName(group.getEnvironmentName())
+                    .roles(group.getRoles())
+            )
+            .toList();
+
+        return Response.ok(
+            new UserGroupsResponse()
                 .data(data)
                 .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
                 .links(computePaginationLinks(output.totalCount(), paginationParam))
