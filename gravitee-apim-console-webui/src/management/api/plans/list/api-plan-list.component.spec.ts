@@ -229,6 +229,7 @@ describe('ApiPlanListComponent', () => {
 
         component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
+        expectApiPlanGetRequest(plan2);
         expectApiPlanUpdateRequest({ ...plan2, order: 1 });
         expectApiGetRequest();
         expectApiPlansListRequest(
@@ -248,6 +249,7 @@ describe('ApiPlanListComponent', () => {
 
         component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
+        expectApiPlanGetRequest(plan2);
         expectApiPlanUpdateRequestFail({ ...plan2, order: 1 });
         expectApiGetRequest();
         expectApiPlansListRequest(
@@ -258,6 +260,30 @@ describe('ApiPlanListComponent', () => {
           [...PLAN_STATUS],
         );
         expect(snackBarSpy).toHaveBeenCalled();
+      });
+
+      it('should preserve flows when reordering (APIM-13161)', async () => {
+        // Simulate list response with flows stripped (as returned by fields=-flow)
+        const plan1 = fakePlanV2({ name: 'Plan 1️⃣', order: 1, flows: [] });
+        const plan2 = fakePlanV2({ name: 'Plan 2️⃣', order: 2, flows: [] });
+        await initComponent([plan1, plan2]);
+
+        component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
+
+        // GET returns the full plan — fixture defaults include a Mock policy flow
+        const plan2WithFlows = fakePlanV2({ name: 'Plan 2️⃣', order: 2 });
+        expectApiPlanGetRequest(plan2, plan2WithFlows);
+
+        // PUT body must include the flows from the GET response, not the stripped list entry
+        expectApiPlanUpdateRequest({ ...plan2WithFlows, order: 1 });
+        expectApiGetRequest();
+        expectApiPlansListRequest(
+          [
+            { ...plan2, order: 1 },
+            { ...plan1, order: 2 },
+          ],
+          [...PLAN_STATUS],
+        );
       });
     });
 
@@ -781,6 +807,12 @@ describe('ApiPlanListComponent', () => {
         'GET',
       )
       .flush(response);
+    fixture.detectChanges();
+  }
+
+  function expectApiPlanGetRequest(plan: Plan, response: Plan = plan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}`, 'GET');
+    req.flush(response);
     fixture.detectChanges();
   }
 
