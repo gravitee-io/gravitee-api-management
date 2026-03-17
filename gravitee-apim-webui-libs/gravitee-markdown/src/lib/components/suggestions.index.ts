@@ -22,6 +22,7 @@ import { buttonConfiguration } from './button/gmd-button.suggestions';
 import { cardTitleConfiguration } from './card/components/card-title/gmd-card-title.suggestions';
 import { cardConfiguration } from './card/gmd-card.suggestions';
 import { checkboxConfiguration } from './checkbox/gmd-checkbox.suggestions';
+import { checkboxGroupConfiguration } from './checkbox-group/gmd-checkbox-group.suggestions';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
 import { inputConfiguration } from './input/gmd-input.suggestions';
 import { radioConfiguration } from './radio/gmd-radio.suggestions';
@@ -45,4 +46,5 @@ export const componentSuggestionMap: ComponentSuggestionMap = {
   [ComponentSelector.SELECT]: selectConfiguration,
   [ComponentSelector.CHECKBOX]: checkboxConfiguration,
   [ComponentSelector.RADIO]: radioConfiguration,
+  [ComponentSelector.CHECKBOX_GROUP]: checkboxGroupConfiguration,
 };
