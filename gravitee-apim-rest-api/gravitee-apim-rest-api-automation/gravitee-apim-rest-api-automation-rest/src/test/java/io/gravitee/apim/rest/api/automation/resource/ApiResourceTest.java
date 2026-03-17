@@ -33,7 +33,6 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
-import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.model.PlanSecurityType;
 import io.gravitee.apim.rest.api.automation.model.PlanV4;
@@ -195,6 +194,46 @@ class ApiResourceTest extends AbstractResourceTest {
                     assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
+            }
+        }
+
+        @Test
+        void should_get_api_from_known_id_and_populate_hrid_with_null_pages_and_plans() {
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                    new ExportApiCRDUseCase.Output(
+                        ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).name("Test HRID").pages(null).plans(null).build()
+                    )
+                );
+                var state = expectEntityFromUUIDWithPopulatedHRIDs(API_ID);
+                SoftAssertions.assertSoftly(soft -> {
+                    assertThat(state.getId()).isEqualTo(API_ID);
+                    assertThat(state.getHrid()).isEqualTo("test-hrid");
+                    assertThat(state.getPages()).isEmpty();
+                    assertThat(state.getPlans()).isEmpty();
+                });
+            }
+        }
+
+        @Test
+        void should_preserve_existing_non_uuid_hrid() {
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                    new ExportApiCRDUseCase.Output(
+                        ApiCRDSpec.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .name("Test HRID")
+                            .hrid("my-custom-hrid")
+                            .pages(null)
+                            .plans(null)
+                            .build()
+                    )
+                );
+                var state = expectEntityFromUUIDWithPopulatedHRIDs(API_ID);
+                assertThat(state.getHrid()).isEqualTo("my-custom-hrid");
             }
         }
 
