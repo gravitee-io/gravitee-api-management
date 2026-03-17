@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.application.query_service;
+package io.gravitee.apim.core.user.model;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.common.Pageable;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface ApplicationQueryService {
-    Set<BaseApplicationEntity> findByEnvironment(String environmentId);
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class UserApplicationEntity {
 
-    Page<BaseApplicationEntity> searchByIds(Set<String> ids, String environmentId, Pageable pageable);
+    private String id;
+    private String name;
+    private String environmentId;
+    private String environmentName;
 }
