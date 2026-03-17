@@ -838,6 +838,14 @@ components:
           type: string
           format: date-time
           example: "2040-12-25T09:12:28Z"
+        metadata:
+          type: object
+          description: Key-value metadata for this subscription.
+          additionalProperties:
+            type: string
+          examples:
+            - key1: value1
+              key2: value2
       required:
         - hrid
         - applicationHrid
