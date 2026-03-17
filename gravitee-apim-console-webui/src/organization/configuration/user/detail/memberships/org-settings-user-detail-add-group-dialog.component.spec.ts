@@ -27,12 +27,10 @@ import {
   OrgSettingsUserDetailAddGroupDialogData,
 } from './org-settings-user-detail-add-group-dialog.component';
 
-import { Group } from '../../../../entities/group/group';
-import { fakeGroup } from '../../../../entities/group/group.fixture';
-import { GioTestingModule, CONSTANTS_TESTING } from '../../../../shared/testing';
-import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { Role } from '../../../../entities/role/role';
-import { fakeRole } from '../../../../entities/role/role.fixture';
+import { GioTestingModule, CONSTANTS_TESTING } from '../../../../../shared/testing';
+import { OrganizationSettingsModule } from '../../../organization-settings.module';
+import { Role } from '../../../../../entities/role/role';
+import { fakeRole } from '../../../../../entities/role/role.fixture';
 
 describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
   let fixture: ComponentFixture<OrgSettingsUserDetailAddGroupDialogComponent>;
@@ -49,6 +47,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
 
   beforeEach(() => {
     const dialogData: OrgSettingsUserDetailAddGroupDialogData = {
+      environmentId: 'envAlphaId',
       groupIdAlreadyAdded: [],
     };
     TestBed.configureTestingModule({
@@ -68,11 +67,9 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
 
   it('should fill and submit form', async () => {
     fixture.detectChanges();
-    expectGroupListByOrganizationRequest([
-      fakeGroup({ id: 'group-a', name: 'Group A', environmentId: 'roleEnvApiId', environmentName: 'Role Env API' }),
-    ]);
+    expectGroupsV2ByEnvironmentRequest('envAlphaId', [{ id: 'group-a', name: 'Group A' }]);
 
-    await fixture.whenStable(); // wait for async tasks like HTTP & `valueChanges` subscriptions
+    await fixture.whenStable();
     fixture.detectChanges();
     expectRolesListRequest('API', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_API_USER' }),
@@ -91,7 +88,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
     expect(await submitButton.isDisabled()).toBeTruthy();
 
     const groupIdSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=groupId' }));
-    await groupIdSelect.clickOptions({ text: 'Group A (Environment: Role Env API)' });
+    await groupIdSelect.clickOptions({ text: 'Group A' });
 
     const apiRoleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=apiRole' }));
     await apiRoleSelect.clickOptions({ text: 'ROLE_API_USER' });
@@ -109,18 +106,27 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
       applicationRole: 'ROLE_APPLICATION_ADMIN',
       integrationRole: 'ROLE_INTEGRATION_ADMIN',
       groupId: 'group-a',
+      groupName: 'Group A',
       isAdmin: null,
-      environmentId: 'roleEnvApiId',
+      environmentId: 'envAlphaId',
     });
   });
 
-  function expectGroupListByOrganizationRequest(groups: Group[] = []) {
-    httpTestingController
-      .expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.org.baseURL}/groups`,
-      })
-      .flush(groups);
+  function expectGroupsV2ByEnvironmentRequest(environmentId: string, groups: any[] = []) {
+    const req = httpTestingController.expectOne(
+      (request) => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/groups`,
+    );
+    req.flush({
+      data: groups,
+      pagination: {
+        page: 1,
+        perPage: 9999,
+        totalCount: groups.length,
+        pageCount: groups.length > 0 ? 1 : 0,
+        pageItemsCount: groups.length,
+      },
+    });
+    fixture.detectChanges();
   }
 
   function expectRolesListRequest(scope, roles: Role[] = []) {
