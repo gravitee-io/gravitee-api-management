@@ -56,13 +56,10 @@ import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics
   standalone: true,
 })
 export class EnvLogsDetailsComponent {
-  // 1. Injections
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly environmentLogsService = inject(EnvironmentLogsService);
   private readonly apiLogsV2Service = inject(ApiLogsV2Service);
   private readonly apiAnalyticsV2Service = inject(ApiAnalyticsV2Service);
-
-  // 2. State
   private readonly logId = this.activatedRoute.snapshot.params['logId'] as string | undefined;
   /**
    * The apiId query param acts as a guard: we only fetch data when both logId and apiId are present.
@@ -75,7 +72,6 @@ export class EnvLogsDetailsComponent {
   error = signal<string | null>(null);
   private loaded = signal(false);
 
-  // 3. Computed signals derived from the log signal
   log = toSignal(this.buildLogStream(), { initialValue: undefined });
   isLoading = computed(() => !this.loaded() && this.error() === null && !!this.logId && !!this.apiId);
 
@@ -87,6 +83,10 @@ export class EnvLogsDetailsComponent {
   responseBody = computed(() => this.log()?.entrypointResponse?.body ?? '');
   gatewayResponseHeaders = computed(() => this.formatHeaders(this.log()?.endpointResponse?.headers));
   gatewayResponseBody = computed(() => this.log()?.endpointResponse?.body ?? '');
+  hasDetailData = computed(() => {
+    const log = this.log();
+    return !!log?.entrypointRequest || !!log?.endpointRequest || !!log?.entrypointResponse || !!log?.endpointResponse;
+  });
 
   readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
     renderLineHighlight: 'none',
@@ -101,8 +101,6 @@ export class EnvLogsDetailsComponent {
       useShadows: false,
     },
   };
-
-  // 4. Private methods
 
   private buildLogStream(): Observable<EnvLog | undefined> {
     if (!this.logId || !this.apiId) {
