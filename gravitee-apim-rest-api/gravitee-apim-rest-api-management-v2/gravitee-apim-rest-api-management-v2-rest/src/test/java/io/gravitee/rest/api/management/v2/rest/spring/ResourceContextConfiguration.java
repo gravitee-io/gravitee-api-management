@@ -193,6 +193,7 @@ import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
 import io.gravitee.apim.core.user.use_case.GetUserApplicationsUseCase;
+import io.gravitee.apim.core.user.use_case.GetUserGroupsUseCase;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -1260,5 +1261,10 @@ public class ResourceContextConfiguration {
     @Bean
     public GetUserApplicationsUseCase getUserApplicationsUseCase() {
         return mock(GetUserApplicationsUseCase.class);
+    }
+
+    @Bean
+    public GetUserGroupsUseCase getUserGroupsUseCase() {
+        return mock(GetUserGroupsUseCase.class);
     }
 }
