@@ -126,7 +126,10 @@
                       (click)="onDeleteGroupClick(group)"
                       mat-button
                       aria-label="Button to delete user group"
-                      matTooltip="Delete"
+                      [disabled]="isApiRolePrimaryOwner(group.id)"
+                      [matTooltip]="
+                        isApiRolePrimaryOwner(group.id) ? 'Cannot remove a user who is API Primary Owner in this group' : 'Delete'
+                      "
                     >
                       <mat-icon>delete</mat-icon>
                     </button>
