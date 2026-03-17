@@ -182,7 +182,10 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    new PlansResponse().pagination(new Pagination()).data(List.of()).links(new Links().self(target.getUri().toString()))
+                    new PlansResponse()
+                        .pagination(new Pagination().page(1).perPage(10).pageCount(0).pageItemsCount(0).totalCount(0L))
+                        .data(List.of())
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
