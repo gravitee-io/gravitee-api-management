@@ -74,6 +74,9 @@ public interface ApplicationMapper {
     @Mapping(source = "content", target = "certificate")
     CreateClientCertificate map(ClientCertificate clientCertificate);
 
+    @Mapping(source = "certificate", target = "content")
+    ClientCertificate map(CreateClientCertificate createClientCertificate);
+
     @Mapping(target = "pictureUrl", source = "picture")
     @Mapping(target = "notifyMembers", expression = "java(!applicationEntity.isDisableMembershipNotifications())")
     @Mapping(
