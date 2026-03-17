@@ -100,6 +100,27 @@ public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlt
     }
 
     @Override
+    public Page<Group> searchByIds(Set<String> groupIds, String environmentId, Pageable pageable) {
+        var stream = storage.stream().filter(group -> groupIds.contains(group.getId()));
+        if (environmentId != null) {
+            stream = stream.filter(group -> environmentId.equals(group.getEnvironmentId()));
+        }
+        List<Group> filteredGroups = stream.toList();
+
+        int total = filteredGroups.size();
+        int pageSize = pageable.getPageSize();
+        int pageNumber = pageable.getPageNumber();
+        int from = (pageNumber - 1) * pageSize;
+
+        if (from >= total) {
+            return new Page<>(List.of(), pageNumber, pageSize, total);
+        }
+
+        int to = Math.min(from + pageSize, total);
+        return new Page<>(filteredGroups.subList(from, to), pageNumber, pageSize, total);
+    }
+
+    @Override
     public void initWith(List<Group> items) {
         storage.addAll(items);
     }
