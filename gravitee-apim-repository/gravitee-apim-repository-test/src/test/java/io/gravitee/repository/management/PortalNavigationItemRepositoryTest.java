@@ -378,6 +378,107 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         }
     }
 
+    //////////////////////////////////////
+    ////   SEARCH BY TYPE TESTS
+    //////////////////////////////////////
+
+    @Test
+    public void should_search_by_type_page() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .type(PortalNavigationItem.Type.PAGE.name())
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(4);
+        assertThat(items).extracting("type").containsOnly(PortalNavigationItem.Type.PAGE);
+        assertThat(items)
+            .extracting("id")
+            .containsExactlyInAnyOrder(
+                "2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+                "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+                "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+                "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+            );
+    }
+
+    @Test
+    public void should_search_by_type_link() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .type(PortalNavigationItem.Type.LINK.name())
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getId()).isEqualTo("3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a");
+        assertThat(items.getFirst().getType()).isEqualTo(PortalNavigationItem.Type.LINK);
+    }
+
+    @Test
+    public void should_search_by_type_folder() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .type(PortalNavigationItem.Type.FOLDER.name())
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getId()).isEqualTo("5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c");
+        assertThat(items.getFirst().getType()).isEqualTo(PortalNavigationItem.Type.FOLDER);
+    }
+
+    @Test
+    public void should_search_by_type_api() throws Exception {
+        PortalNavigationItem apiItem = PortalNavigationItem.builder()
+            .id("type-api-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("My API")
+            .type(PortalNavigationItem.Type.API)
+            .apiId("some-api-id")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(99)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("type-api-item")
+            .build();
+
+        portalNavigationItemRepository.create(apiItem);
+
+        try {
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+                .environmentId("env-1")
+                .type(PortalNavigationItem.Type.API.name())
+                .build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).hasSize(1);
+            assertThat(items.getFirst().getId()).isEqualTo("type-api-item");
+            assertThat(items.getFirst().getType()).isEqualTo(PortalNavigationItem.Type.API);
+            assertThat(items.getFirst().getApiId()).isEqualTo("some-api-id");
+        } finally {
+            portalNavigationItemRepository.delete("type-api-item");
+        }
+    }
+
+    @Test
+    public void should_search_by_type_returns_empty_when_no_match() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .type(PortalNavigationItem.Type.API.name())
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isEmpty();
+    }
+
     @Test
     public void should_search_public_items() throws Exception {
         // Create a private item for testing

@@ -32,4 +32,5 @@ public class PortalNavigationItemCriteria {
     private Boolean published;
     private Boolean root;
     private String visibility;
+    private String type;
 }
