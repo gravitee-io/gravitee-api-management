@@ -163,11 +163,11 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
             var body = response.readEntity(MetadataResponse.class);
             assertThat(body.getData()).isEqualTo(List.of());
             assertThat(body.getPagination())
-                .hasFieldOrPropertyWithValue("page", null)
-                .hasFieldOrPropertyWithValue("perPage", null)
-                .hasFieldOrPropertyWithValue("pageCount", null)
-                .hasFieldOrPropertyWithValue("pageItemsCount", null)
-                .hasFieldOrPropertyWithValue("totalCount", null);
+                .hasFieldOrPropertyWithValue("page", 1)
+                .hasFieldOrPropertyWithValue("perPage", 10)
+                .hasFieldOrPropertyWithValue("pageCount", 0)
+                .hasFieldOrPropertyWithValue("pageItemsCount", 0)
+                .hasFieldOrPropertyWithValue("totalCount", 0L);
         }
 
         @Test
