@@ -504,7 +504,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .extracting(ApiHealthLogsResponse::getData, ApiHealthLogsResponse::getPagination, ApiHealthLogsResponse::getLinks)
                 .contains(
                     List.of(),
-                    new Pagination(),
+                    new Pagination().page(1).perPage(10).pageCount(0).pageItemsCount(0).totalCount(0L),
                     new Links().self(
                         healthCheckLogsTarget
                             .queryParam("from", FROM.toEpochMilli())
