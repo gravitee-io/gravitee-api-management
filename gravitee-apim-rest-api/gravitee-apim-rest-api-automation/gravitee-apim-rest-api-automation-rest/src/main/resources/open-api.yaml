@@ -765,7 +765,9 @@ components:
       properties:
         clientCertificate:
           type: string
-          description: Application TLS client certificate
+          deprecated: true
+          description: >-
+            Application TLS client certificate. Deprecated: use clientCertificates instead for multiple certificate support.
           examples:
             - |
               -----BEGIN CERTIFICATE-----
@@ -789,8 +791,33 @@ components:
               pikgTVupVbhYcNMLOVXO7Q31UEYfC7fxMGqzybXg67EhvzoykXhhYo3YqAjho2yh
               um2oEO8b5eQVAwRaooVLh0uqjZCpfN2ozscPpiTM9Pj3xQ==
               -----END CERTIFICATE-----
+        clientCertificates:
+          type: array
+          description: List of client certificates for mTLS authentication. Supports certificate rotation.
+          items:
+            $ref: '#/components/schemas/ClientCertificate'
+    ClientCertificate:
+      description: A client certificate for mTLS authentication
+      type: object
+      properties:
+        name:
+          type: string
+          description: Certificate name for identification
+          maxLength: 255
+        content:
+          type: string
+          description: Certificate in PEM format
+        startsAt:
+          type: string
+          format: date-time
+          description: Date when this certificate becomes active
+        endsAt:
+          type: string
+          format: date-time
+          description: Date when this certificate will be removed
       required:
-        - clientCertificate
+        - name
+        - content
 
     ApplicationState:
       description: Application state that has been created/updated
