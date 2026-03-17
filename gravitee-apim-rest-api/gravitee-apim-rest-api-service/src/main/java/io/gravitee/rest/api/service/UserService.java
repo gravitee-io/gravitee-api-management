@@ -93,6 +93,15 @@ public interface UserService {
         String confirmationPageUrl
     );
 
+    Map<String, Object> getTokenRegistrationParams(
+        ExecutionContext executionContext,
+        UserEntity userEntity,
+        String portalUri,
+        ACTION action,
+        String confirmationPageUrl,
+        String passwordDigest
+    );
+
     UserEntity create(ExecutionContext executionContext, NewPreRegisterUserEntity newPreRegisterUserEntity);
 
     UserEntity createOrUpdateUserFromSocialIdentityProvider(
