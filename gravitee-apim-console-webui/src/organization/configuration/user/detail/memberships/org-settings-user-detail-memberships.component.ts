@@ -47,6 +47,7 @@ export interface MembershipGroupDS {
   id: string;
   name: string;
   environmentId?: string;
+  isApiPrimaryOwner?: boolean;
 }
 
 export interface MembershipApiDS {
@@ -75,7 +76,6 @@ export class OrgSettingsUserDetailMembershipsComponent {
   readonly userStatus = input<string>();
   readonly userDisplayName = input<string>();
   readonly isReadOnly = input(false);
-  readonly groupsAssociatedWithApis = input<Set<string>>(new Set());
 
   readonly groupRolesChanged = output<UntypedFormGroup>();
   readonly requestReload = output<void>();
@@ -183,7 +183,7 @@ export class OrgSettingsUserDetailMembershipsComponent {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.groupService.deleteMember(group.id, this.userId(), group.environmentId)),
         tap(() => this.snackBarService.success(`"${this.userDisplayName()}" has been deleted from the group "${group.name}"`)),
         catchError(({ error }) => {
@@ -205,15 +205,15 @@ export class OrgSettingsUserDetailMembershipsComponent {
         width: '500px',
         data: {
           environmentId: this.selectedEnvironmentId,
-          groupIdAlreadyAdded: this.initialGroups.map((g) => g.id),
+          groupIdAlreadyAdded: this.initialGroups.map(g => g.id),
         },
         role: 'alertdialog',
         id: 'addGroupConfirmDialog',
       })
       .afterClosed()
       .pipe(
-        filter((groupeAdded) => !isEmpty(groupeAdded)),
-        switchMap((groupeAdded) =>
+        filter(groupeAdded => !isEmpty(groupeAdded)),
+        switchMap(groupeAdded =>
           this.groupService.addOrUpdateMemberships(
             groupeAdded.groupId,
             [
@@ -249,7 +249,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
     const apiControl = groupControl.get('API');
     if (!apiControl) return false;
 
-    return apiControl.value === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis().has(groupId);
+    const group = this.initialGroups.find(g => g.id === groupId);
+    return apiControl.value === 'PRIMARY_OWNER' && !!group?.isApiPrimaryOwner;
   }
 
   private loadMembershipsForEnvironment(environmentId: string) {
@@ -261,17 +262,19 @@ export class OrgSettingsUserDetailMembershipsComponent {
         takeUntilDestroyed(this.destroyRef),
         catchError(() => of({ data: [], pagination: { page: 1, perPage: 9999, pageCount: 0, pageItemsCount: 0, totalCount: 0 } })),
       )
-      .subscribe((response) => {
-        const groups: Group[] = response.data.map((g) => ({
+      .subscribe(response => {
+        const groupsWithPrimaryOwner = response.data;
+        const groups: Group[] = groupsWithPrimaryOwner.map(g => ({
           id: g.id,
           name: g.name,
           environmentId: g.environmentId,
           roles: g.roles,
         }));
-        this.initialGroups = groups.map((g) => ({
+        this.initialGroups = groupsWithPrimaryOwner.map(g => ({
           id: g.id,
           name: g.name,
           environmentId: g.environmentId,
+          isApiPrimaryOwner: g.isApiPrimaryOwner,
         }));
         this.membershipGroups.set(this.initialGroups);
         this.groupsUnpaginatedLength.set(this.initialGroups.length);
@@ -287,8 +290,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
         takeUntilDestroyed(this.destroyRef),
         catchError(() => of({ data: [], pagination: { page: 1, perPage: 9999, pageCount: 0, pageItemsCount: 0, totalCount: 0 } })),
       )
-      .subscribe((response) => {
-        this.initialApis = response.data.map((api) => ({
+      .subscribe(response => {
+        this.initialApis = response.data.map(api => ({
           id: api.id,
           name: api.name,
           version: api.version,
@@ -308,8 +311,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
         takeUntilDestroyed(this.destroyRef),
         catchError(() => of({ data: [], pagination: { page: 1, perPage: 9999, pageCount: 0, pageItemsCount: 0, totalCount: 0 } })),
       )
-      .subscribe((response) => {
-        this.initialApplications = response.data.map((app) => ({
+      .subscribe(response => {
+        this.initialApplications = response.data.map(app => ({
           id: app.id,
           name: app.name,
           environmentId: app.environmentId,
@@ -347,7 +350,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
   }
 
   private createGroupRolesFormGroup(group: Group): UntypedFormGroup {
-    const isPrimaryOwnerAndAssociatedWithApi = group.roles['API'] === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis().has(group.id);
+    const groupDS = this.initialGroups.find(g => g.id === group.id);
+    const isPrimaryOwnerAndAssociatedWithApi = group.roles['API'] === 'PRIMARY_OWNER' && !!groupDS?.isApiPrimaryOwner;
     const apiControl = new UntypedFormControl({
       value: group.roles['API'],
       disabled: this.userStatus() !== 'ACTIVE' || this.isReadOnly() || isPrimaryOwnerAndAssociatedWithApi,

@@ -58,7 +58,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
   readonly groups = toSignal(
     this.groupV2Service
       .listByEnvironmentId(this.userDetailData.environmentId, 1, 9999)
-      .pipe(map((response) => (response.data ?? []).filter((g) => !this.userDetailData.groupIdAlreadyAdded.includes(g.id)))),
+      .pipe(map(response => (response.data ?? []).filter(g => !this.userDetailData.groupIdAlreadyAdded.includes(g.id)))),
   );
 
   readonly apiRoles = toSignal(this.roleService.list('API').pipe(shareReplay(1)), { initialValue: [] });
@@ -80,7 +80,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
 
   onSubmit() {
     const formValue = this.addGroupForm.getRawValue();
-    const selectedGroup = this.groups()?.find((g) => g.id === formValue.groupId);
+    const selectedGroup = this.groups()?.find(g => g.id === formValue.groupId);
     this.dialogRef.close({
       ...formValue,
       groupName: selectedGroup?.name ?? formValue.groupId,

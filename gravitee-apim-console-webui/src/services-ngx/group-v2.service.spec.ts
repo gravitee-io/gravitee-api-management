@@ -119,10 +119,10 @@ describe('GroupV2Service', () => {
   });
 
   describe('listByEnvironmentId', () => {
-    it('should call API with environmentId', (done) => {
+    it('should call API with environmentId', done => {
       const groupsResponse: GroupsResponse = fakeGroupsResponse({ pagination: { page: 1, perPage: 10 } });
 
-      groupService.listByEnvironmentId('envAlphaId').subscribe((groups) => {
+      groupService.listByEnvironmentId('envAlphaId').subscribe(groups => {
         expect(groups).toMatchObject(groupsResponse);
         done();
       });
@@ -133,10 +133,10 @@ describe('GroupV2Service', () => {
       req.flush(groupsResponse);
     });
 
-    it('should allow custom pagination', (done) => {
+    it('should allow custom pagination', done => {
       const groupsResponse: GroupsResponse = fakeGroupsResponse({ pagination: { page: 2, perPage: 5 } });
 
-      groupService.listByEnvironmentId('envAlphaId', 2, 5).subscribe((groups) => {
+      groupService.listByEnvironmentId('envAlphaId', 2, 5).subscribe(groups => {
         expect(groups).toMatchObject(groupsResponse);
         done();
       });
