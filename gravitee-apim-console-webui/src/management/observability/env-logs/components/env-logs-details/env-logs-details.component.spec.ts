@@ -268,4 +268,37 @@ describe('EnvLogsDetailsComponent', () => {
     expect(await harness.getTitleText()).toContain('Log');
     expect(await harness.getStatusBadgeText()).toBe('200');
   });
+
+  it('should show the Headers section when detail data is present', async () => {
+    const { fixture: f, harness } = await createComponent();
+    flushRequests();
+    f.detectChanges();
+
+    expect(await harness.hasHeadersSection()).toBe(true);
+  });
+
+  it('should hide the Headers section when detail endpoint fails', async () => {
+    const { fixture: f, harness } = await createComponent();
+
+    expectSearchRequest().flush(MOCK_SEARCH_RESPONSE);
+    expectDetailRequest().flush('Not Found', { status: 404, statusText: 'Not Found' });
+    expectMetricsRequest().flush(MOCK_METRICS);
+    f.detectChanges();
+
+    expect(await harness.hasHeadersSection()).toBe(false);
+    // Overview should still be visible
+    expect(await harness.getTitleText()).toContain('Log');
+  });
+
+  it('should hide the Headers section when both detail and metrics endpoints fail', async () => {
+    const { fixture: f, harness } = await createComponent();
+
+    expectSearchRequest().flush(MOCK_SEARCH_RESPONSE);
+    expectDetailRequest().flush('Not Found', { status: 404, statusText: 'Not Found' });
+    expectMetricsRequest().flush('Not Found', { status: 404, statusText: 'Not Found' });
+    f.detectChanges();
+
+    expect(await harness.hasHeadersSection()).toBe(false);
+    expect(await harness.getStatusBadgeText()).toBe('200');
+  });
 });
