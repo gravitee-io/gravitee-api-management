@@ -144,6 +144,7 @@ public class UserResource extends AbstractResource {
                     .environmentId(group.getEnvironmentId())
                     .environmentName(group.getEnvironmentName())
                     .roles(group.getRoles())
+                    .isApiPrimaryOwner(group.isApiPrimaryOwner())
             )
             .toList();
 

@@ -20,8 +20,8 @@ export const leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: Abstr
   const controls = formGroup.controls;
 
   const hasRole = Object.keys(controls)
-    .filter((key) => key !== 'groupId')
-    .some((key) => !!controls[key].value);
+    .filter(key => key !== 'groupId')
+    .some(key => !!controls[key].value);
 
   if (hasRole) {
     return null;

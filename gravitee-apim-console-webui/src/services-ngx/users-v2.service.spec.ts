@@ -38,13 +38,13 @@ describe('UsersV2Service', () => {
   });
 
   describe('getUserApis', () => {
-    it('should call API with default pagination', (done) => {
+    it('should call API with default pagination', done => {
       const fakeResponse = {
         data: [{ id: 'api1', name: 'API 1', version: '1.0', visibility: 'PUBLIC', environmentId: 'env1', environmentName: 'Env 1' }],
         pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
       };
 
-      service.getUserApis('userId', 'envId').subscribe((response) => {
+      service.getUserApis('userId', 'envId').subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -56,7 +56,7 @@ describe('UsersV2Service', () => {
       req.flush(fakeResponse);
     });
 
-    it('should allow custom pagination', (done) => {
+    it('should allow custom pagination', done => {
       service.getUserApis('userId', 'envId', 2, 20).subscribe(() => done());
 
       const req = httpTestingController.expectOne(
@@ -67,13 +67,13 @@ describe('UsersV2Service', () => {
   });
 
   describe('getUserApplications', () => {
-    it('should call API with default pagination', (done) => {
+    it('should call API with default pagination', done => {
       const fakeResponse = {
         data: [{ id: 'app1', name: 'App 1', environmentId: 'env1', environmentName: 'Env 1' }],
         pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
       };
 
-      service.getUserApplications('userId', 'envId').subscribe((response) => {
+      service.getUserApplications('userId', 'envId').subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -85,7 +85,7 @@ describe('UsersV2Service', () => {
       req.flush(fakeResponse);
     });
 
-    it('should allow custom pagination', (done) => {
+    it('should allow custom pagination', done => {
       service.getUserApplications('userId', 'envId', 3, 5).subscribe(() => done());
 
       const req = httpTestingController.expectOne(
@@ -96,13 +96,13 @@ describe('UsersV2Service', () => {
   });
 
   describe('getUserGroups', () => {
-    it('should call API with default pagination', (done) => {
+    it('should call API with default pagination', done => {
       const fakeResponse = {
         data: [{ id: 'group1', name: 'Group 1', environmentId: 'env1', environmentName: 'Env 1', roles: { API: 'ADMIN' } }],
         pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
       };
 
-      service.getUserGroups('userId', 'envId').subscribe((response) => {
+      service.getUserGroups('userId', 'envId').subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -114,7 +114,7 @@ describe('UsersV2Service', () => {
       req.flush(fakeResponse);
     });
 
-    it('should allow custom pagination', (done) => {
+    it('should allow custom pagination', done => {
       service.getUserGroups('userId', 'envId', 2, 50).subscribe(() => done());
 
       const req = httpTestingController.expectOne(

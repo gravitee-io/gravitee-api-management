@@ -640,7 +640,6 @@ describe('OrgSettingsUserDetailComponent', () => {
     reqDelete.flush(null);
 
     // After ngOnInit re-runs
-    expectApiSearchRequest();
     expectUserTokensGetRequest(user, []);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -701,13 +700,16 @@ describe('OrgSettingsUserDetailComponent', () => {
     const membershipsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__memberships-card' }));
 
     const apisTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="APIs table"]' }));
-    expect(await apisTable.getCellTextByIndex()).toEqual([['No API']]);
+    expect(await apisTable.getCellTextByIndex()).toEqual([]);
+    expect(await (await apisTable.host()).text()).toContain('No API');
 
     const applicationsTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="Applications table"]' }));
-    expect(await applicationsTable.getCellTextByIndex()).toEqual([['No application']]);
+    expect(await applicationsTable.getCellTextByIndex()).toEqual([]);
+    expect(await (await applicationsTable.host()).text()).toContain('No application');
 
     const groupsTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="Groups table"]' }));
-    expect(await groupsTable.getCellTextByIndex()).toEqual([['No group']]);
+    expect(await groupsTable.getCellTextByIndex()).toEqual([]);
+    expect(await (await groupsTable.host()).text()).toContain('No group');
   });
 
   // ---- Helper functions ----
@@ -725,7 +727,6 @@ describe('OrgSettingsUserDetailComponent', () => {
       integration?: Role[];
     } = {},
   ) {
-    expectApiSearchRequest();
     expectUserTokensGetRequest(user, tokens);
     expectUserGetRequest(user);
     expectEnvironmentListRequest(environments);
@@ -793,7 +794,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   function expectGroupsV2ByEnvironmentRequest(environmentId: string, groups: any[] = []) {
     const req = httpTestingController.expectOne(
-      (request) => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/groups`,
+      request => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/groups`,
     );
     req.flush({
       data: groups,
@@ -808,18 +809,9 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiSearchRequest() {
-    const req = httpTestingController.expectOne(
-      request => request.method === 'POST' && request.url.includes('/management/v2/environments/') && request.url.includes('/apis/_search'),
-    );
-    expect(req.request.method).toEqual('POST');
-    req.flush({ data: [], pagination: { page: 1, perPage: 10000, totalCount: 0, pageCount: 0, pageItemsCount: 0 } });
-    fixture.detectChanges();
-  }
-
   function expectUserApisV2Request(userId: string, environmentId: string, apis: any[] = []) {
     const req = httpTestingController.expectOne(
-      (request) =>
+      request =>
         request.method === 'GET' &&
         request.url === `${CONSTANTS_TESTING.org.v2BaseURL}/users/${userId}/apis` &&
         request.params.get('environmentId') === environmentId,
@@ -833,7 +825,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   function expectUserGroupsV2Request(userId: string, environmentId: string, groups: any[] = []) {
     const req = httpTestingController.expectOne(
-      (request) =>
+      request =>
         request.method === 'GET' &&
         request.url === `${CONSTANTS_TESTING.org.v2BaseURL}/users/${userId}/groups` &&
         request.params.get('environmentId') === environmentId,
@@ -853,7 +845,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   function expectUserApplicationsV2Request(userId: string, environmentId: string, applications: any[] = []) {
     const req = httpTestingController.expectOne(
-      (request) =>
+      request =>
         request.method === 'GET' &&
         request.url === `${CONSTANTS_TESTING.org.v2BaseURL}/users/${userId}/applications` &&
         request.params.get('environmentId') === environmentId,

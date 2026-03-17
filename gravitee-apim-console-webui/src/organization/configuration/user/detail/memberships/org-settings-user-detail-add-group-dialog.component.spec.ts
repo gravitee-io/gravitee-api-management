@@ -114,7 +114,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
 
   function expectGroupsV2ByEnvironmentRequest(environmentId: string, groups: any[] = []) {
     const req = httpTestingController.expectOne(
-      (request) => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/groups`,
+      request => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/groups`,
     );
     req.flush({
       data: groups,
