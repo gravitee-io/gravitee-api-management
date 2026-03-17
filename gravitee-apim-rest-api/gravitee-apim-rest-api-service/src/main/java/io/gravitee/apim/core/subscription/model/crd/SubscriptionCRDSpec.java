@@ -17,6 +17,7 @@ package io.gravitee.apim.core.subscription.model.crd;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.time.ZonedDateTime;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -56,4 +57,5 @@ public class SubscriptionCRDSpec {
 
     private String planId;
     private ZonedDateTime endingAt;
+    private Map<String, String> metadata;
 }

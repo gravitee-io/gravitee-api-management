@@ -114,7 +114,7 @@ public abstract class SubscriptionAdapter {
     @Mapping(target = "processedBy", ignore = true)
     @Mapping(target = "processedAt", ignore = true)
     @Mapping(target = "pausedAt", ignore = true)
-    @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "metadata", source = "metadata")
     @Mapping(target = "generalConditionsContentRevision", ignore = true)
     @Mapping(target = "generalConditionsContentPageId", ignore = true)
     @Mapping(target = "generalConditionsAccepted", ignore = true)

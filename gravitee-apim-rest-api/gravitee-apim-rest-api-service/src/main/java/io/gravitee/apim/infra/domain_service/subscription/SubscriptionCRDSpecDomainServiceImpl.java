@@ -95,6 +95,11 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
             update.setEndingAt(spec.getEndingAt());
         }
 
+        if (!Objects.equals(spec.getMetadata(), existing.getMetadata())) {
+            log.debug("Updating metadata for subscription [{}]", spec.getId());
+            update.setMetadata(spec.getMetadata());
+        }
+
         subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(update));
 
         return update;

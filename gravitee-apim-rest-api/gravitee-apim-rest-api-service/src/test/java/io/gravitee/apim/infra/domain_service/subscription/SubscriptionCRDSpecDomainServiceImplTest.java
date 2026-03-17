@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.subscription;
 
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -54,6 +55,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -190,6 +192,38 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     }
 
     @Test
+    void should_create_with_metadata() {
+        givenExistingJWTPlan();
+
+        var metadata = Map.of("key1", "value1", "key2", "value2");
+        var specWithMetadata = SPEC.toBuilder().metadata(metadata).build();
+
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID))).thenReturn(
+            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithMetadata))
+        );
+
+        subscriptionCrudService.initWith(
+            List.of(
+                subscriptionAdapter
+                    .fromSpec(specWithMetadata)
+                    .toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .subscribedBy(USER_ID)
+                    .build()
+            )
+        );
+
+        cut.createOrUpdate(AUDIT_INFO, specWithMetadata);
+
+        SoftAssertions.assertSoftly(soft -> {
+            var subscription = subscriptionCrudService.get(SUBSCRIPTION_ID);
+            soft.assertThat(subscription).isNotNull();
+            soft.assertThat(subscription.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscription.getMetadata()).isEqualTo(metadata);
+        });
+    }
+
+    @Test
     void should_update() {
         givenExistingJWTPlan();
 
@@ -201,6 +235,22 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
         });
+    }
+
+    @Test
+    void should_update_metadata() {
+        givenExistingJWTPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        var metadata = Map.of("key1", "value1");
+        var result = cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().metadata(metadata).build());
+
+        verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
+        assertThat(result.getMetadata()).isEqualTo(metadata);
     }
 
     @Test
