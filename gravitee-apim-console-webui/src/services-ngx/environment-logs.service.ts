@@ -96,7 +96,7 @@ export function periodToMs(period: string): number | null {
 type LogFilter = { name: string; operator: string; value: string | string[] | number };
 
 type SearchLogsRequestBody = {
-  timeRange: TimeRange;
+  timeRange?: TimeRange;
   filters?: LogFilter[];
 };
 
@@ -148,7 +148,8 @@ export class EnvironmentLogsService {
     params = params.append('perPage', param?.perPage ?? 10);
 
     const filters = buildFilters(param);
-    const body: SearchLogsRequestBody = { timeRange: this.resolveTimeRange(param) };
+    const timeRange = this.resolveTimeRange(param);
+    const body: SearchLogsRequestBody = timeRange ? { timeRange } : {};
 
     if (filters.length > 0) {
       body.filters = filters;
@@ -161,7 +162,7 @@ export class EnvironmentLogsService {
    * Resolves the time range for a search request.
    * Precedence: explicit timeRange > from/to > period > requestId wide window > default (24h).
    */
-  private resolveTimeRange(param?: SearchLogsParam): TimeRange {
+  private resolveTimeRange(param?: SearchLogsParam): TimeRange | undefined {
     if (param?.timeRange) {
       return param.timeRange;
     }
@@ -174,6 +175,11 @@ export class EnvironmentLogsService {
     }
     if (param?.from) {
       return { from: param.from, to: now.toISOString() };
+    }
+
+    // Period 'None' — no time filter, return all logs
+    if (param?.period === '0') {
+      return undefined;
     }
 
     // Period shorthand (e.g. '-1h')
