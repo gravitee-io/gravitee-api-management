@@ -53,6 +53,32 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /users/{userId}/applications:
+        parameters:
+            - $ref: "#/components/parameters/userIdParam"
+        get:
+            tags:
+                - Users
+            summary: Get applications the user is a member of
+            description: |
+                Get the list of applications the user is a member of.
+
+                User must have the ORGANIZATION_USERS[READ] permission.
+            operationId: getUserApplications
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/environmentIdParam"
+            responses:
+                "200":
+                    description: Paginated list of applications the user is a member of.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserApplicationsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
 components:
     schemas:
         UserApi:
@@ -83,6 +109,33 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/UserApi"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+                links:
+                    $ref: "#/components/schemas/Links"
+
+        UserApplication:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The application's unique identifier.
+                name:
+                    type: string
+                    description: The application's name.
+                environmentId:
+                    type: string
+                    description: The ID of the environment the application belongs to.
+                environmentName:
+                    type: string
+                    description: The name of the environment the application belongs to.
+        UserApplicationsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/UserApplication"
                 pagination:
                     $ref: "#/components/schemas/Pagination"
                 links:
