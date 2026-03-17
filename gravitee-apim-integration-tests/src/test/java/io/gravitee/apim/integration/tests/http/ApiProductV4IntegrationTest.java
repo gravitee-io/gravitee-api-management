@@ -42,7 +42,6 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -287,8 +286,9 @@ class ApiProductV4IntegrationTest {
             int preTransitionApi2Status = getStatus(client, API_2_PATH, key);
             assertDeterministicStatus(preTransitionApi1Status, preTransitionApi2Status);
 
-            // Simulate plan close/delete by removing product plans from cache.
-            getBean(ApiProductPlanDefinitionCache.class).unregister(productId);
+            // Simulate plan close/delete by removing product plans.
+            ReactableApiProduct deployedProduct = getBean(ApiProductRegistry.class).get(productId, ENV_ID);
+            deployedProduct.setPlans(List.of());
 
             int api1Status = getStatus(client, API_1_PATH, key);
             int api2Status = getStatus(client, API_2_PATH, key);
@@ -512,11 +512,13 @@ class ApiProductV4IntegrationTest {
         }
 
         void registerProductApiKeyPlanWithStatus(String apiProductId, String planId, PlanStatus status) {
-            getBean(ApiProductPlanDefinitionCache.class).register(apiProductId, List.of(productApiKeyPlan(planId, status)));
+            ReactableApiProduct product = getBean(ApiProductRegistry.class).get(apiProductId, ENV_ID);
+            product.setPlans(List.of(productApiKeyPlan(planId, status)));
         }
 
         void registerProductPlans(String apiProductId, List<Plan> plans) {
-            getBean(ApiProductPlanDefinitionCache.class).register(apiProductId, plans);
+            ReactableApiProduct product = getBean(ApiProductRegistry.class).get(apiProductId, ENV_ID);
+            product.setPlans(plans);
         }
 
         ReactableApiProduct product(String productId, Set<String> apiIds) {

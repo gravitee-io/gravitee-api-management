@@ -16,9 +16,9 @@
 package io.gravitee.gateway.handlers.api.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.gravitee.definition.model.v4.plan.AbstractPlan;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,12 +36,6 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
 
     @VisibleForTesting
     protected final Map<ApiProductRegistryKey, ReactableApiProduct> registry = new ConcurrentHashMap<>();
-
-    private final ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
-
-    public ApiProductRegistryImpl(ApiProductPlanDefinitionCache apiProductPlanDefinitionCache) {
-        this.apiProductPlanDefinitionCache = apiProductPlanDefinitionCache;
-    }
 
     @Override
     public ReactableApiProduct get(String apiProductId, String environmentId) {
@@ -100,18 +94,16 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
             return entries;
         }
 
-        // Iterate all registered products in the environment
         for (ReactableApiProduct product : registry.values()) {
             if (
                 product.getEnvironmentId() != null &&
                 product.getEnvironmentId().equals(environmentId) &&
                 product.getApiIds() != null &&
-                product.getApiIds().contains(apiId)
+                product.getApiIds().contains(apiId) &&
+                product.getPlans() != null
             ) {
-                // Get plans for this product from cache
-                List<? extends AbstractPlan> plans = apiProductPlanDefinitionCache.getByApiProductId(product.getId());
-                if (plans != null) {
-                    for (AbstractPlan plan : plans) {
+                for (Plan plan : product.getPlans()) {
+                    if (plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED) {
                         entries.add(new ApiProductPlanEntry(product.getId(), plan));
                     }
                 }

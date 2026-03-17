@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
@@ -61,9 +60,6 @@ class ApiProductDeployerTest {
     private DistributedSyncService distributedSyncService;
 
     @Mock
-    private ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
-
-    @Mock
     private EventManager eventManager;
 
     @Mock
@@ -73,13 +69,7 @@ class ApiProductDeployerTest {
 
     @BeforeEach
     void setUp() {
-        cut = new ApiProductDeployer(
-            apiProductManager,
-            planService,
-            distributedSyncService,
-            apiProductPlanDefinitionCache,
-            subscriptionRefresher
-        );
+        cut = new ApiProductDeployer(apiProductManager, planService, distributedSyncService, subscriptionRefresher);
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
@@ -212,7 +202,6 @@ class ApiProductDeployerTest {
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-123");
             verify(planService).unregister(deployable);
-            verify(apiProductPlanDefinitionCache).unregister("api-product-123");
         }
 
         @Test
