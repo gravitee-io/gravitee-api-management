@@ -132,7 +132,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     new GroupsResponse()
                         .data(List.of())
-                        .pagination(new Pagination())
+                        .pagination(new Pagination().page(1).perPage(10).pageCount(0).pageItemsCount(0).totalCount(0L))
                         .links(new Links().self(paginatedTarget.getUri().toString()))
                 );
         }
@@ -262,7 +262,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
                     new MembersResponse()
-                        .pagination(new Pagination())
+                        .pagination(new Pagination().page(1).perPage(10).pageCount(0).pageItemsCount(0).totalCount(0L))
                         .data(List.of())
                         .metadata(Map.of("groupName", GROUP_NAME))
                         .links(new Links().self(target.getUri().toString()))
@@ -573,7 +573,10 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
                 .isEqualTo(
-                    new GroupsResponse().data(List.of()).pagination(new Pagination()).links(new Links().self(target.getUri().toString()))
+                    new GroupsResponse()
+                        .data(List.of())
+                        .pagination(new Pagination().page(1).perPage(10).pageCount(0).pageItemsCount(10).totalCount(0L))
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
