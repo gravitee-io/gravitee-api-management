@@ -16,9 +16,11 @@
 package inmemory;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,9 +79,14 @@ public class PortalNavigationItemsQueryServiceInMemory
                     (criteria.getArea() == null || criteria.getArea().equals(item.getArea())) &&
                     (PARENT_ID_FILTER.test(item)) &&
                     (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished())) &&
-                    (criteria.getVisibility() == null || criteria.getVisibility().equals(item.getVisibility()))
+                    (criteria.getVisibility() == null || criteria.getVisibility().equals(item.getVisibility())) &&
+                    (criteria.getType() == null || matchesType(item, criteria.getType()))
             )
             .toList();
+    }
+
+    private boolean matchesType(PortalNavigationItem item, PortalNavigationItemType type) {
+        return type == item.getType();
     }
 
     @Override

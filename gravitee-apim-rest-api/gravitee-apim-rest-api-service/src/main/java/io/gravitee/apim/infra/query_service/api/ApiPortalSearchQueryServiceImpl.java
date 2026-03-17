@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,36 +46,39 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
     }
 
     @Override
-    public Page<Api> search(
-        String environmentId,
-        String organizationId,
-        String query,
-        Set<String> allowedApiIds,
-        Pageable pageable,
-        Sortable sortable
-    ) {
-        int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
+    public Page<Api> search(Query query) {
+        Set<String> allowedApiIds = query.allowedApiIds();
+        Optional<String> queryText = query.query().filter(s -> !s.isBlank());
+        Optional<Pageable> pageable = query.pageable();
+        Optional<Sortable> sortable = query.sortable();
 
-        if (allowedApiIds == null || allowedApiIds.isEmpty()) {
+        int pageNumber = pageable.map(Pageable::getPageNumber).orElse(1);
+
+        if (allowedApiIds.isEmpty()) {
             return new Page<>(List.of(), pageNumber, 0, 0);
         }
 
-        if (query == null || query.isBlank()) {
+        if (queryText.isEmpty()) {
             // No text query: delegate sorting and pagination to the repository
             return apiQueryService.search(
-                ApiSearchCriteria.builder().ids(List.copyOf(allowedApiIds)).environmentId(environmentId).build(),
-                toCoreSortable(sortable),
-                pageable,
+                ApiSearchCriteria.builder().ids(List.copyOf(allowedApiIds)).environmentId(query.environmentId()).build(),
+                sortable.map(this::toCoreSortable).orElse(null),
+                pageable.orElse(null),
                 null
             );
         }
 
-        var executionContext = new ExecutionContext(organizationId, environmentId);
-        Collection<String> luceneIds = apiSearchService.searchIds(executionContext, query.trim(), Map.of(), sortable);
+        var executionContext = new ExecutionContext(query.organizationId(), query.environmentId());
+        Collection<String> luceneIds = apiSearchService.searchIds(
+            executionContext,
+            queryText.get().trim(),
+            Map.of(),
+            sortable.orElse(null)
+        );
         List<String> intersected = luceneIds.stream().filter(allowedApiIds::contains).toList();
 
         int total = intersected.size();
-        int pageSize = pageable != null ? pageable.getPageSize() : 10;
+        int pageSize = pageable.map(Pageable::getPageSize).orElse(10);
 
         if (total == 0 || pageSize <= 0) {
             return new Page<>(List.of(), pageNumber, 0, total);
@@ -88,7 +92,7 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
 
         // Fetch by IDs then reorder to preserve Lucene relevance order
         Map<String, Api> apiById = apiQueryService
-            .search(ApiSearchCriteria.builder().ids(pageSubset).environmentId(environmentId).build(), null, null, null)
+            .search(ApiSearchCriteria.builder().ids(pageSubset).environmentId(query.environmentId()).build(), null, null, null)
             .getContent()
             .stream()
             .collect(Collectors.toMap(Api::getId, Function.identity()));

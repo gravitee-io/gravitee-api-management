@@ -17,9 +17,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
@@ -29,6 +31,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -47,15 +51,17 @@ class GetVisiblePortalNavigationApisUseCaseTest {
     private GetVisiblePortalNavigationApisUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory navQueryService;
     private MembershipQueryServiceInMemory membershipQueryService;
+    private ApiPortalSearchQueryServiceInMemory apiSearchQueryService;
 
     @BeforeEach
     void setUp() {
         navQueryService = new PortalNavigationItemsQueryServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
+        apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
-        useCase = new GetVisiblePortalNavigationApisUseCase(visibilityDomainService);
+        useCase = new GetVisiblePortalNavigationApisUseCase(visibilityDomainService, apiSearchQueryService);
     }
 
     @Test
@@ -67,7 +73,16 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             )
         );
 
-        var result = useCase.execute(new GetVisiblePortalNavigationApisUseCase.Input(ENV_ID, null, new PageableImpl(1, 10)));
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(1, 10),
+                Optional.empty(),
+                Set.of()
+            )
+        );
 
         assertThat(result.apis().getContent()).extracting(PortalNavigationApi::getApiId).containsExactly(PUBLIC_API_ID);
         assertThat(result.apis().getTotalElements()).isEqualTo(1);
@@ -83,7 +98,16 @@ class GetVisiblePortalNavigationApisUseCaseTest {
         );
         membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
 
-        var result = useCase.execute(new GetVisiblePortalNavigationApisUseCase.Input(ENV_ID, USER_ID, new PageableImpl(1, 10)));
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.of(USER_ID),
+                new PageableImpl(1, 10),
+                Optional.empty(),
+                Set.of()
+            )
+        );
 
         assertThat(result.apis().getContent())
             .extracting(PortalNavigationApi::getApiId)
@@ -101,7 +125,16 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             )
         );
 
-        var result = useCase.execute(new GetVisiblePortalNavigationApisUseCase.Input(ENV_ID, null, new PageableImpl(1, 2)));
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(1, 2),
+                Optional.empty(),
+                Set.of()
+            )
+        );
 
         assertThat(result.apis().getContent()).hasSize(2);
         assertThat(result.apis().getTotalElements()).isEqualTo(3);
@@ -117,7 +150,16 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             )
         );
 
-        var result = useCase.execute(new GetVisiblePortalNavigationApisUseCase.Input(ENV_ID, null, new PageableImpl(2, 2)));
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(2, 2),
+                Optional.empty(),
+                Set.of()
+            )
+        );
 
         assertThat(result.apis().getContent()).hasSize(1);
         assertThat(result.apis().getTotalElements()).isEqualTo(3);
@@ -133,10 +175,40 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             )
         );
 
-        var result = useCase.execute(new GetVisiblePortalNavigationApisUseCase.Input(ENV_ID, null, new PageableImpl(1, 10)));
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(1, 10),
+                Optional.empty(),
+                Set.of()
+            )
+        );
 
         assertThat(result.apis().getTotalElements()).isEqualTo(3);
         assertThat(result.apis().getContent()).hasSize(3);
+    }
+
+    @Test
+    void filters_by_query_using_api_search() {
+        navQueryService.initWith(
+            List.of(publishedApiNavItem("api-auth", PortalVisibility.PUBLIC), publishedApiNavItem("api-other", PortalVisibility.PUBLIC))
+        );
+        apiSearchQueryService.initWith(List.of(anApi("api-auth", "Auth Service", ENV_ID), anApi("api-other", "Other Service", ENV_ID)));
+
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(1, 10),
+                Optional.of("auth"),
+                Set.of()
+            )
+        );
+
+        assertThat(result.apis().getContent()).extracting(PortalNavigationApi::getApiId).containsExactly("api-auth");
     }
 
     // --- helpers ---
@@ -153,6 +225,10 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             .published(true)
             .visibility(visibility)
             .build();
+    }
+
+    private Api anApi(String id, String name, String envId) {
+        return Api.builder().id(id).name(name).environmentId(envId).build();
     }
 
     private Membership apiMembership(String userId, String apiId) {
