@@ -23,15 +23,11 @@ public class PaginationInfo {
     private PaginationInfo() {}
 
     public static Pagination computePaginationInfo(long totalCount, Integer pageItemsCount, PaginationParam paginationParam) {
-        Pagination pagination = new Pagination();
-        if (totalCount > 0) {
-            pagination
-                .page(paginationParam.getPage())
-                .perPage(paginationParam.getPerPage())
-                .pageItemsCount(pageItemsCount)
-                .pageCount((int) Math.ceil((double) totalCount / paginationParam.getPerPage()))
-                .totalCount(totalCount);
-        }
-        return pagination;
+        return new Pagination()
+            .page(paginationParam.getPage())
+            .perPage(paginationParam.getPerPage())
+            .pageItemsCount(pageItemsCount)
+            .pageCount(totalCount > 0 ? (int) Math.ceil((double) totalCount / paginationParam.getPerPage()) : 0)
+            .totalCount(totalCount);
     }
 }
