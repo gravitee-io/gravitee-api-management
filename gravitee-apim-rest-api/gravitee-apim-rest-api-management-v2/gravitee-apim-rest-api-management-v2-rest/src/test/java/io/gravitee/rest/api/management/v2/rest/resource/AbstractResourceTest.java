@@ -47,6 +47,7 @@ import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
 import io.gravitee.apim.core.user.use_case.GetUserApplicationsUseCase;
+import io.gravitee.apim.core.user.use_case.GetUserGroupsUseCase;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Parameter;
@@ -233,6 +234,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected GetUserApplicationsUseCase getUserApplicationsUseCase;
+
+    @Autowired
+    protected GetUserGroupsUseCase getUserGroupsUseCase;
 
     @Autowired
     protected GroupCrudServiceInMemory groupCrudServiceInMemory;

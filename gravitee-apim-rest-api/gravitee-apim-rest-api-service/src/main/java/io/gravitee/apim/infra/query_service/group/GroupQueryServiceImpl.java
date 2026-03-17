@@ -124,4 +124,11 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
             .search(GroupCriteria.builder().idIn(groupIds).build(), convert(pageable))
             .map(GroupAdapter.INSTANCE::toModel);
     }
+
+    @Override
+    public Page<Group> searchByIds(Set<String> groupIds, String environmentId, Pageable pageable) {
+        return groupRepository
+            .search(GroupCriteria.builder().idIn(groupIds).environmentId(environmentId).build(), convert(pageable))
+            .map(GroupAdapter.INSTANCE::toModel);
+    }
 }

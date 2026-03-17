@@ -296,6 +296,45 @@ class GroupQueryServiceImplTest {
     }
 
     @Nested
+    class SearchByIds {
+
+        @Test
+        @SneakyThrows
+        void should_search_groups_by_ids_with_pagination() {
+            List<io.gravitee.repository.management.model.Group> groups = List.of(aGroup("1").build(), aGroup("2").build());
+            Page<io.gravitee.repository.management.model.Group> page = new Page<>(groups, 0, groups.size(), 2);
+            when(groupRepository.search(any(), any())).thenReturn(page);
+
+            Page<Group> result = service.searchByIds(Set.of("1", "2"), null, new PageableImpl(1, 10));
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent().get(0).getId()).isEqualTo("1");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_page_when_no_results() {
+            Page<io.gravitee.repository.management.model.Group> page = new Page<>(List.of(), 0, 0, 0);
+            when(groupRepository.search(any(), any())).thenReturn(page);
+
+            Page<Group> result = service.searchByIds(Set.of("1"), "env-1", new PageableImpl(1, 10));
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() {
+            when(groupRepository.search(any(), any())).thenThrow(new RuntimeException("Test exception"));
+
+            Throwable throwable = catchThrowable(() -> service.searchByIds(Set.of("1"), null, new PageableImpl(1, 10)));
+
+            assertThat(throwable).isInstanceOf(RuntimeException.class).hasMessage("Test exception");
+        }
+    }
+
+    @Nested
     class SearchGroups {
 
         @Test
