@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.SubscriptionFixtures;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.repository.management.model.Subscription;
@@ -193,6 +195,48 @@ class SubscriptionAdapterTest {
 
             var subscription = subscriptionAdapter.fromEntity(entity);
             assertThat(subscription.getConfiguration()).isNull();
+        }
+    }
+
+    @Nested
+    class FromSpec {
+
+        @Test
+        void should_map_metadata_from_spec() {
+            var metadata = Map.of("key1", "value1", "key2", "value2");
+            var spec = SubscriptionCRDSpec.builder()
+                .id("sub-id")
+                .referenceId("api-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .applicationId("app-id")
+                .planId("plan-id")
+                .metadata(metadata)
+                .build();
+
+            SubscriptionEntity entity = subscriptionAdapter.fromSpec(spec);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(entity.getId()).isEqualTo("sub-id");
+                soft.assertThat(entity.getReferenceId()).isEqualTo("api-id");
+                soft.assertThat(entity.getApplicationId()).isEqualTo("app-id");
+                soft.assertThat(entity.getPlanId()).isEqualTo("plan-id");
+                soft.assertThat(entity.getMetadata()).isEqualTo(metadata);
+            });
+        }
+
+        @Test
+        void should_map_null_metadata_from_spec() {
+            var spec = SubscriptionCRDSpec.builder()
+                .id("sub-id")
+                .referenceId("api-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .applicationId("app-id")
+                .planId("plan-id")
+                .build();
+
+            SubscriptionEntity entity = subscriptionAdapter.fromSpec(spec);
+
+            assertThat(entity.getMetadata()).isNull();
         }
     }
 
