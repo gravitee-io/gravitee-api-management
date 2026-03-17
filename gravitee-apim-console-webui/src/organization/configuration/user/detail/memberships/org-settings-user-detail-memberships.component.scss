@@ -1,0 +1,61 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+$foreground: map.get(gio.$mat-theme, foreground);
+
+$border-color: mat.m2-get-color-from-palette($foreground, divider);
+
+.memberships {
+  &__section {
+    margin-top: 24px;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    overflow: hidden;
+
+    h3 {
+      margin: 0 16px;
+      padding-top: 16px;
+    }
+
+    &__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 16px;
+      padding-top: 8px;
+
+      h3 {
+        margin: 0;
+        padding-top: 0;
+      }
+    }
+
+    gio-table-wrapper {
+      margin-top: 8px;
+    }
+  }
+
+  &__table {
+    .mat-mdc-cell.mat-column-name {
+      .error {
+        color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+      }
+    }
+
+    .mat-mdc-cell.mat-column-groupAdmin {
+      text-align: center;
+    }
+
+    .mat-mdc-cell.mat-column-apiRoles,
+    .mat-mdc-cell.mat-column-applicationRole,
+    .mat-mdc-cell.mat-column-integrationRole {
+      mat-form-field {
+        max-width: 160px;
+      }
+    }
+
+    .mat-mdc-row.error {
+      box-shadow: 8px 0px 0px 0px mat.m2-get-color-from-palette(gio.$mat-error-palette, default, 0.42) inset;
+    }
+  }
+}
