@@ -118,6 +118,36 @@ describe('GroupV2Service', () => {
     });
   });
 
+  describe('listByEnvironmentId', () => {
+    it('should call API with environmentId', (done) => {
+      const groupsResponse: GroupsResponse = fakeGroupsResponse({ pagination: { page: 1, perPage: 10 } });
+
+      groupService.listByEnvironmentId('envAlphaId').subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/environments/envAlphaId/groups?page=1&perPage=10`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(groupsResponse);
+    });
+
+    it('should allow custom pagination', (done) => {
+      const groupsResponse: GroupsResponse = fakeGroupsResponse({ pagination: { page: 2, perPage: 5 } });
+
+      groupService.listByEnvironmentId('envAlphaId', 2, 5).subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/environments/envAlphaId/groups?page=2&perPage=5`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(groupsResponse);
+    });
+  });
+
   describe('listById', () => {
     it('should call API with a valid idList', done => {
       const validIdList = ['id1', 'id2'];

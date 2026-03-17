@@ -81,8 +81,9 @@ import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-membe
 import { OrgSettingAddTagDialogComponent } from './entrypoints-and-sharding-tags/dialog/org-settings-add-tag-dialog.component';
 import { OrgSettingAddMappingDialogComponent } from './entrypoints-and-sharding-tags/dialog/org-settings-add-mapping-dialog.component';
 import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.component';
-import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-settings-user-detail-add-group-dialog.component';
+import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/memberships/org-settings-user-detail-add-group-dialog.component';
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
+import { OrgSettingsUserDetailMembershipsComponent } from './user/detail/memberships/org-settings-user-detail-memberships.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/org-settings-platform-policies-config.component';
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
@@ -179,6 +180,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     OrgSettingAddMappingDialogComponent,
     OrgSettingsRoleComponent,
     OrgSettingsUserDetailAddGroupDialogComponent,
+    OrgSettingsUserDetailMembershipsComponent,
     OrgSettingsAuditComponent,
   ],
 })
