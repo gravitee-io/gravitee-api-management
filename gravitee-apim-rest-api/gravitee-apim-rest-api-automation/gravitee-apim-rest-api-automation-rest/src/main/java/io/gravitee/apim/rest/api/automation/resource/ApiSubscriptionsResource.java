@@ -93,6 +93,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .referenceType(SubscriptionReferenceType.API)
             .planId(legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId())
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
+            .metadata(spec.getMetadata())
             .build();
 
         SubscriptionCRDStatus status = importSubscriptionSpecUseCase

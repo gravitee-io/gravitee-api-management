@@ -54,7 +54,7 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
     @Override
     public SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec) {
         return find(spec.getId())
-            .map((existing -> update(auditInfo, existing, spec)))
+            .map(existing -> update(auditInfo, existing, spec))
             .orElseGet(() -> create(auditInfo, spec));
     }
 
@@ -84,10 +84,15 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
         }
 
         log.debug("Auto accepting subscription [{}]", spec.getId());
-        return acceptService.autoAccept(subscription.getId(), ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON, "", auditInfo);
+        return getAutoAccept(auditInfo, spec, subscription.getId());
     }
 
     private SubscriptionEntity update(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
+        if (existing.getStatus() == SubscriptionEntity.Status.CLOSED) {
+            var restored = restoreAsAccepted(auditInfo, existing, spec);
+            return update(auditInfo, restored, spec);
+        }
+
         var update = existing.toBuilder().build();
 
         if (!Objects.equals(spec.getEndingAt(), existing.getEndingAt())) {
@@ -103,6 +108,16 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
         subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(update));
 
         return update;
+    }
+
+    private SubscriptionEntity restoreAsAccepted(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
+        log.debug("Restoring closed subscription [{}]", spec.getId());
+        subscriptionService.restore(toExecutionContext(auditInfo), existing.getId());
+        return getAutoAccept(auditInfo, spec, existing.getId());
+    }
+
+    private SubscriptionEntity getAutoAccept(AuditInfo auditInfo, SubscriptionCRDSpec spec, String id) {
+        return acceptService.autoAccept(id, ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON, "", auditInfo);
     }
 
     private Optional<SubscriptionEntity> find(String id) {
