@@ -74,6 +74,12 @@ export class TreeService {
     return this.findFirstPageIdRecursively(this.treeNodes);
   }
 
+  findFirstPageIdWithinNode(nodeId: string): string | null {
+    const node = this.treeNodesById.get(nodeId);
+    if (!node?.children?.length) return null;
+    return this.findFirstPageIdRecursively(node.children as TreeNode[]);
+  }
+
   private findFirstPageIdRecursively(nodes: TreeNode[]): string | null {
     for (const node of nodes) {
       if (node.type === 'PAGE') {
