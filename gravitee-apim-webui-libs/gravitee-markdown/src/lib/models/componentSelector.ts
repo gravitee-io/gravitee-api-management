@@ -26,6 +26,7 @@ export enum ComponentSelector {
   SELECT = 'gmd-select',
   CHECKBOX = 'gmd-checkbox',
   RADIO = 'gmd-radio',
+  CHECKBOX_GROUP = 'gmd-checkbox-group',
 }
 
 export function getComponentSelector(componentTag: string): ComponentSelector | undefined {

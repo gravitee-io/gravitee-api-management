@@ -18,6 +18,7 @@ import { reflectComponentType, Type } from '@angular/core';
 import { GmdButtonComponent } from './button/gmd-button.component';
 import { GmdCardComponent } from './card/gmd-card.component';
 import { GmdCheckboxComponent } from './checkbox/gmd-checkbox.component';
+import { GmdCheckboxGroupComponent } from './checkbox-group/gmd-checkbox-group.component';
 import { GridComponent } from './grid/grid.component';
 import { GmdInputComponent } from './input/gmd-input.component';
 import { GmdRadioComponent } from './radio/gmd-radio.component';
@@ -51,4 +52,5 @@ export const componentAttributeNames = [
   ...getComponentInputNames(GmdSelectComponent),
   ...getComponentInputNames(GmdCheckboxComponent),
   ...getComponentInputNames(GmdRadioComponent),
+  ...getComponentInputNames(GmdCheckboxGroupComponent),
 ];
