@@ -47,6 +47,15 @@ export class GroupV2Service {
     });
   }
 
+  listByEnvironmentId(environmentId: string, page = 1, perPage = 10): Observable<GroupsResponse> {
+    return this.http.get<GroupsResponse>(`${this.constants.v2BaseURL}/environments/${environmentId}/groups`, {
+      params: {
+        page,
+        perPage,
+      },
+    });
+  }
+
   listById(ids: string[] = [], page = 1, perPage = 10): Observable<GroupsResponse> {
     return this.http.post<GroupsResponse>(
       `${this.constants.env.v2BaseURL}/groups/_search`,
