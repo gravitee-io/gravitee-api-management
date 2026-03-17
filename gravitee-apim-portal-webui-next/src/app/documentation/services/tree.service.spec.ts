@@ -15,7 +15,7 @@
  */
 import { TreeService } from './tree.service';
 import { fakePortalNavigationFolder } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
-import { MOCK_ITEMS } from '../../../mocks/portal-navigation-item.mocks';
+import { makeItem, MOCK_ITEMS } from '../../../mocks/portal-navigation-item.mocks';
 
 const parentItem = fakePortalNavigationFolder();
 
@@ -33,13 +33,17 @@ describe('DocumentationTreeService', () => {
     expect(itemsTree).toBeTruthy();
     expect(itemsTree[0].id).toEqual('f1');
 
-    expect(itemsTree[0].children).toHaveLength(2);
+    expect(itemsTree[0].children).toHaveLength(3);
     expect(itemsTree[0].children![0].id).toEqual('f2');
 
     expect(itemsTree[0].children![0].children).toHaveLength(1);
     expect(itemsTree[0].children![0].children![0].id).toEqual('p1');
 
-    expect(itemsTree[0].children![1].id).toEqual('p2');
+    expect(itemsTree[0].children![1].id).toEqual('api1');
+    expect(itemsTree[0].children![1].children).toHaveLength(1);
+    expect(itemsTree[0].children![1].children![0].id).toEqual('p-api1');
+
+    expect(itemsTree[0].children![2].id).toEqual('p2');
 
     expect(itemsTree[1].id).toEqual('p3');
   });
@@ -85,6 +89,43 @@ describe('DocumentationTreeService', () => {
           label: 'Page 1',
         },
       ]);
+    });
+  });
+
+  describe('findFirstPageIdWithinNode', () => {
+    it('should return first page within folder', () => {
+      expect(service.findFirstPageIdWithinNode('f1')).toEqual('p1');
+      expect(service.findFirstPageIdWithinNode('f2')).toEqual('p1');
+    });
+
+    it('should return null when node has no pages', () => {
+      const items = [
+        makeItem('f1', 'FOLDER', 'Folder 1', 0),
+        makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
+        makeItem('l1', 'LINK', 'Link 1', 0, 'f2'),
+      ];
+      service.init(parentItem, items);
+      expect(service.findFirstPageIdWithinNode('f1')).toBeNull();
+      expect(service.findFirstPageIdWithinNode('f2')).toBeNull();
+    });
+
+    it('should return first page within API node', () => {
+      const items = [makeItem('api1', 'API', 'API 1', 0), makeItem('p-api1', 'PAGE', 'API doc', 0, 'api1')];
+      service.init(parentItem, items);
+      expect(service.findFirstPageIdWithinNode('api1')).toEqual('p-api1');
+    });
+  });
+
+  describe('getAncestorApiId', () => {
+    it('should return apiId when page is under API', () => {
+      const items = [makeItem('api1', 'API', 'API 1', 0), makeItem('p-api1', 'PAGE', 'API doc', 0, 'api1')];
+      service.init(parentItem, items);
+      expect(service.getAncestorApiId('p-api1')).toEqual('api-api1');
+    });
+
+    it('should return null when page has no API ancestor', () => {
+      expect(service.getAncestorApiId('p1')).toBeNull();
+      expect(service.getAncestorApiId('p3')).toBeNull();
     });
   });
 });

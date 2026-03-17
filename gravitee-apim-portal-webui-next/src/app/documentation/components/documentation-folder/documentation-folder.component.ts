@@ -60,7 +60,7 @@ enum NavParamsChange {
 export class DocumentationFolderComponent {
   navItem = input.required<PortalNavigationItem>();
   navId$ = toObservable(this.navItem).pipe(map(({ id }) => id));
-  pageId$ = this.activatedRoute.queryParams.pipe(map(({ pageId }) => pageId));
+  selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
 
   folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   tree = signal<TreeNode[]>([]);
@@ -90,15 +90,15 @@ export class DocumentationFolderComponent {
   }
 
   private loadFolderData(): Observable<FolderData | undefined> {
-    return merge(this.navId$.pipe(map(() => NavParamsChange.NAV_ID)), this.pageId$.pipe(map(() => NavParamsChange.PAGE_ID))).pipe(
-      debounceTime(0), // merge simultaneous change of navId and pageId
-      withLatestFrom(this.navId$, this.pageId$),
-      switchMap(([changedData, navId, pageId]) => {
+    return merge(this.navId$.pipe(map(() => NavParamsChange.NAV_ID)), this.selectedId$.pipe(map(() => NavParamsChange.PAGE_ID))).pipe(
+      debounceTime(0), // merge simultaneous change of navId and selectedId
+      withLatestFrom(this.navId$, this.selectedId$),
+      switchMap(([changedData, navId, selectedId]) => {
         switch (changedData) {
           case NavParamsChange.NAV_ID:
-            return this.loadChildrenAndContent(navId, pageId);
+            return this.loadChildrenAndContent(navId, selectedId);
           case NavParamsChange.PAGE_ID:
-            return this.loadContentOrRedirect(pageId);
+            return this.loadContentOrRedirect(selectedId);
           default:
             return of(this.folderData());
         }
@@ -107,16 +107,16 @@ export class DocumentationFolderComponent {
     );
   }
 
-  private loadChildrenAndContent(navId: string, pageId: string): Observable<FolderData> {
+  private loadChildrenAndContent(navId: string, selectedId: string): Observable<FolderData> {
     return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navId).pipe(
       tap(children => this.treeService.init(this.navItem(), children)),
       tap(() => this.tree.set(this.treeService.getTree())),
-      switchMap(children => this.loadContentOrRedirect(pageId, children)),
+      switchMap(children => this.loadContentOrRedirect(selectedId, children)),
     );
   }
 
-  private loadContentOrRedirect(pageId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
-    if (!pageId) {
+  private loadContentOrRedirect(selectedId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
+    if (!selectedId) {
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
         tap(() => this.subscribeApiId.set(null)),
@@ -124,13 +124,20 @@ export class DocumentationFolderComponent {
       );
     }
 
-    if (!children.some(item => item.id === pageId)) {
+    const child = children.find(item => item.id === selectedId);
+    if (!child) {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
-    return this.itemsService.getNavigationItemContent(pageId).pipe(
-      tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(pageId))),
-      tap(() => this.subscribeApiId.set(this.treeService.getAncestorApiId(pageId))),
+    if (child.type === 'API' || child.type === 'FOLDER') {
+      // APIs and folders are not selectable, so we need to navigate to the first page within the API or folder
+      const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
+      return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
+    }
+
+    return this.itemsService.getNavigationItemContent(selectedId).pipe(
+      tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
+      tap(() => this.subscribeApiId.set(this.treeService.getAncestorApiId(selectedId))),
       map(selectedPageContent => ({ children, selectedPageContent })),
     );
   }
@@ -142,10 +149,10 @@ export class DocumentationFolderComponent {
     }
   }
 
-  private navigateToPage(pageId: string) {
+  private navigateToPage(selectedId: string) {
     this.router.navigate([], {
       relativeTo: this.activatedRoute,
-      queryParams: { pageId },
+      queryParams: { selectedId },
     });
   }
 

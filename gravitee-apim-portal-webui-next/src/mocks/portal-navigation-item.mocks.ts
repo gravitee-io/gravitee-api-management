@@ -49,4 +49,6 @@ export const MOCK_ITEMS = [
   makeItem('p1', 'PAGE', 'Page 1', 0, 'f2', 'f1'),
   makeItem('p2', 'PAGE', 'Page 2', 1, 'f1', 'f1'),
   makeItem('p3', 'PAGE', 'Page 3', 1), // root
+  makeItem('api1', 'API', 'API 1', 0, 'f1', 'f1'),
+  makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1'),
 ];

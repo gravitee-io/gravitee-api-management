@@ -34,7 +34,7 @@ describe('DocumentationFolderComponent', () => {
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
   let routerSpy: jest.Mocked<Router>;
-  let queryParamsSubject: BehaviorSubject<{ pageId?: string }>;
+  let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
   const MOCK_ITEM = { title: 'Test item' };
   const MOCK_CHILDREN = MOCK_ITEMS;
@@ -43,8 +43,8 @@ describe('DocumentationFolderComponent', () => {
   const gmdViewerContent = (content: string) => `<p>${content}</p>\n`;
 
   const init = async (
-    params: Partial<{ queryParams: { pageId?: string }; items: PortalNavigationItem[]; content: string; isAuthenticated: boolean }> = {
-      queryParams: { pageId: 'p1' },
+    params: Partial<{ queryParams: { selectedId?: string }; items: PortalNavigationItem[]; content: string; isAuthenticated: boolean }> = {
+      queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
       content: MOCK_CONTENT,
       isAuthenticated: true,
@@ -85,7 +85,15 @@ describe('DocumentationFolderComponent', () => {
 
         const tree = await harness.getTreeHarness();
         expect(tree).not.toBeNull();
-        expect(await tree!.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 1', 'Page 2', 'Page 3']);
+        expect(await tree!.getAllItemTitles()).toEqual([
+          'Folder 1',
+          'Folder 2',
+          'Page 1',
+          'API 1',
+          'API 1 Documentation',
+          'Page 2',
+          'Page 3',
+        ]);
 
         const treeEmptyState = await harness.getSidenavEmptyState();
         expect(await treeEmptyState?.getText()).toBeUndefined();
@@ -106,7 +114,7 @@ describe('DocumentationFolderComponent', () => {
 
         expect(routerSpy.navigate).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
-          queryParams: { pageId: 'p1' },
+          queryParams: { selectedId: 'p1' },
         });
 
         const treeHarness = await harness.getTreeHarness();
@@ -119,7 +127,7 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should select page when pageId is provided', async () => {
-        await init({ items: MOCK_CHILDREN, queryParams: { pageId: 'p2' }, content: MOCK_CONTENT });
+        await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p2' }, content: MOCK_CONTENT });
 
         const treeHarness = await harness.getTreeHarness();
         const selectedItem = await treeHarness?.getSelectedItem();
@@ -131,7 +139,7 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should not show subscribe button when selected page has no API ancestor', async () => {
-        await init({ items: MOCK_CHILDREN, queryParams: { pageId: 'p2' }, content: MOCK_CONTENT });
+        await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p2' }, content: MOCK_CONTENT });
 
         const subscribeButton = await harness.getSubscribeButton();
         expect(subscribeButton).toBeNull();
@@ -160,8 +168,45 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should redirect to 404 when provided pageId is unknown', async () => {
-        await init({ items: MOCK_CHILDREN, queryParams: { pageId: 'p999' }, content: MOCK_CONTENT });
+        await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p999' }, content: MOCK_CONTENT });
         expect(routerSpy.navigate).toHaveBeenCalledWith(['/404']);
+      });
+
+      it('should redirect to first page when selectedId is folder', async () => {
+        await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'f1' }, content: MOCK_CONTENT });
+
+        expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+          relativeTo: expect.anything(),
+          queryParams: { selectedId: 'p1' },
+        });
+
+        const treeHarness = await harness.getTreeHarness();
+        const selectedItem = await treeHarness?.getSelectedItem();
+        expect(selectedItem).toBeDefined();
+        expect(await selectedItem!.getText()).toEqual('Page 1');
+
+        const breadcrumbs = await harness.getBreadcrumbs();
+        expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Folder 2/Page 1');
+      });
+
+      it('should redirect to first page when selectedId is API', async () => {
+        const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+        const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+        await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'api1' }, content: MOCK_CONTENT });
+
+        expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+          relativeTo: expect.anything(),
+          queryParams: { selectedId: 'p-api1' },
+        });
+
+        const treeHarness = await harness.getTreeHarness();
+        const selectedItem = await treeHarness?.getSelectedItem();
+        expect(selectedItem).toBeDefined();
+        expect(await selectedItem!.getText()).toEqual('API 1 Documentation');
+
+        const viewer = await harness.getGmdViewer();
+        expect(viewer).not.toBeNull();
+        expect(await viewer!.getRenderedHtml()).toEqual(gmdViewerContent(MOCK_CONTENT));
       });
     });
 
@@ -202,7 +247,7 @@ describe('DocumentationFolderComponent', () => {
 
       expect(routerSpy.navigate).toHaveBeenCalledWith([], {
         relativeTo: expect.anything(),
-        queryParams: { pageId: 'p2' },
+        queryParams: { selectedId: 'p2' },
       });
 
       const selectedItem = await tree?.getSelectedItem();
@@ -222,7 +267,7 @@ describe('DocumentationFolderComponent', () => {
     it('should show subscribe button when api documentation is clicked', async () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
       const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
-      await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT });
+      await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
 
       expect(await harness.getSubscribeButton()).not.toBeNull();
     });
@@ -230,7 +275,7 @@ describe('DocumentationFolderComponent', () => {
     it('should navigate to subscribe page when subscribe button is clicked and user is authenticated', async () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
       const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
-      await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT });
+      await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
 
       const subscribeButton = await harness.getSubscribeButton();
       expect(subscribeButton).not.toBeNull();
@@ -245,7 +290,7 @@ describe('DocumentationFolderComponent', () => {
     it('should show disabled button when user is not authenticated', async () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
       const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
-      await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT, isAuthenticated: false });
+      await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT, isAuthenticated: false });
 
       const subscribeButton = await harness.getSubscribeButton();
       expect(subscribeButton).not.toBeNull();
