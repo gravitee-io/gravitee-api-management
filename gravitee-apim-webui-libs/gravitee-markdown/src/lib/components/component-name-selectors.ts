@@ -16,6 +16,7 @@
 import { reflectComponentType, Type } from '@angular/core';
 
 import { GmdCheckboxComponent } from './checkbox/gmd-checkbox.component';
+import { GmdCheckboxGroupComponent } from './checkbox-group/gmd-checkbox-group.component';
 import { GmdInputComponent } from './input/gmd-input.component';
 import { GmdRadioComponent } from './radio/gmd-radio.component';
 import { GmdSelectComponent } from './select/gmd-select.component';
@@ -52,4 +53,5 @@ export const selfClosingComponentNames = [
   getComponentName(GmdSelectComponent),
   getComponentName(GmdCheckboxComponent),
   getComponentName(GmdRadioComponent),
+  getComponentName(GmdCheckboxGroupComponent),
 ];
