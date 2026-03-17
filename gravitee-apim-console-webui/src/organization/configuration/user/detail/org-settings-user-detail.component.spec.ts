@@ -640,7 +640,6 @@ describe('OrgSettingsUserDetailComponent', () => {
     reqDelete.flush(null);
 
     // After ngOnInit re-runs
-    expectApiSearchRequest();
     expectUserTokensGetRequest(user, []);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -725,7 +724,6 @@ describe('OrgSettingsUserDetailComponent', () => {
       integration?: Role[];
     } = {},
   ) {
-    expectApiSearchRequest();
     expectUserTokensGetRequest(user, tokens);
     expectUserGetRequest(user);
     expectEnvironmentListRequest(environments);
@@ -808,6 +806,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
+<<<<<<< HEAD
   function expectApiSearchRequest() {
     const req = httpTestingController.expectOne(
       request => request.method === 'POST' && request.url.includes('/management/v2/environments/') && request.url.includes('/apis/_search'),
@@ -817,6 +816,8 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
+=======
+>>>>>>> b7e48a5335 (feat(rest-api,console): add isApiPrimaryOwner field to UserGroup response)
   function expectUserApisV2Request(userId: string, environmentId: string, apis: any[] = []) {
     const req = httpTestingController.expectOne(
       (request) =>
