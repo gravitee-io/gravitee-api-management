@@ -938,17 +938,21 @@ public class UserServiceTest {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(passwordValidator.validate(anyString())).thenReturn(true);
 
+        String existingPasswordHash = "$2a$10$existingBcryptHash";
+        String passwordDigest = UserServiceImpl.computePasswordDigest(existingPasswordHash);
+
         User user = new User();
         user.setId("CUSTOM_LONG_ID");
         user.setEmail(EMAIL);
         user.setFirstname(FIRST_NAME);
         user.setLastname(LAST_NAME);
         user.setOrganizationId(ORGANIZATION);
+        user.setPassword(existingPasswordHash);
         when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
         when(userRepository.update(any())).thenAnswer(returnsFirstArg());
 
         ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
+        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name(), passwordDigest));
         userEntity.setPassword(PASSWORD);
 
         userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
@@ -962,6 +966,30 @@ public class UserServiceTest {
             any(),
             any()
         );
+    }
+
+    @Test(expected = UserStateConflictException.class)
+    public void changePassword_tokenAlreadyUsed() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        String originalPasswordHash = "$2a$10$originalBcryptHash";
+        String newPasswordHash = "$2a$10$newBcryptHashAfterReset";
+        String originalDigest = UserServiceImpl.computePasswordDigest(originalPasswordHash);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
+        user.setPassword(newPasswordHash);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
+        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name(), originalDigest));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test(expected = PasswordFormatInvalidException.class)
@@ -1234,12 +1262,16 @@ public class UserServiceTest {
     }
 
     private String createJWT(long expirationSeconds, String action) {
+        return createJWT(expirationSeconds, action, null);
+    }
+
+    private String createJWT(long expirationSeconds, String action, String passwordDigest) {
         Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 
         Date issueAt = new Date();
         Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(expirationSeconds));
 
-        return JWT.create()
+        var builder = JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))
@@ -1247,18 +1279,13 @@ public class UserServiceTest {
             .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
             .withClaim(JWTHelper.Claims.FIRSTNAME, FIRST_NAME)
             .withClaim(JWTHelper.Claims.LASTNAME, LAST_NAME)
-            .withClaim(JWTHelper.Claims.ACTION, action)
-            .sign(algorithm);
-        /*
-        HashMap<String, Object> claims = new HashMap<>();
-        claims.put(JWTHelper.Claims.SUBJECT, USER_NAME);
-        claims.put(JWTHelper.Claims.EMAIL, EMAIL);
-        claims.put(JWTHelper.Claims.FIRSTNAME, FIRST_NAME);
-        claims.put(JWTHelper.Claims.LASTNAME, LAST_NAME);
-        claims.put(JWTHelper.Claims.ACTION, USER_REGISTRATION);
-        claims.put("exp", expirationSeconds);
-        return new JWTSigner(JWT_SECRET).sign(claims);
-         */
+            .withClaim(JWTHelper.Claims.ACTION, action);
+
+        if (passwordDigest != null) {
+            builder = builder.withClaim(JWTHelper.Claims.PASSWORD_DIGEST, passwordDigest);
+        }
+
+        return builder.sign(algorithm);
     }
 
     private String createJWT(long expirationSeconds) {
