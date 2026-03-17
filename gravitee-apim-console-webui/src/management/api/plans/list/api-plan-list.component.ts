@@ -120,17 +120,23 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     this.plansTableDS = [...currentData];
 
     const movedPlan = this.plansTableDS[event.currentIndex];
+<<<<<<< HEAD
     movedPlan.order = event.currentIndex + 1;
     delete movedPlan.securityTypeLabel;
+=======
+    const newOrder = event.currentIndex + 1;
+>>>>>>> 84b15ab1e6 (fix(console): fetch full plan before reorder to preserve flows)
 
     this.plansService
-      .update(this.api.id, movedPlan.id, movedPlan)
+      .get(this.api.id, movedPlan.id)
       .pipe(
+        switchMap((fullPlan) => this.plansService.update(this.api.id, movedPlan.id, { ...fullPlan, order: newOrder })),
+        tap(() => this.ngOnInit()),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
-          return of({});
+          this.ngOnInit();
+          return EMPTY;
         }),
-        tap(() => this.ngOnInit()),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
