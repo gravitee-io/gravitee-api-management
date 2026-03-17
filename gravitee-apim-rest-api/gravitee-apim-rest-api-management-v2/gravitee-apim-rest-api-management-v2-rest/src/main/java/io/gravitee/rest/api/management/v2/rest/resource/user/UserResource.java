@@ -16,9 +16,12 @@
 package io.gravitee.rest.api.management.v2.rest.resource.user;
 
 import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
+import io.gravitee.apim.core.user.use_case.GetUserApplicationsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.model.UserApi;
 import io.gravitee.rest.api.management.v2.rest.model.UserApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UserApplication;
+import io.gravitee.rest.api.management.v2.rest.model.UserApplicationsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -40,6 +43,9 @@ public class UserResource extends AbstractResource {
 
     @Inject
     private GetUserApisUseCase getUserApisUseCase;
+
+    @Inject
+    private GetUserApplicationsUseCase getUserApplicationsUseCase;
 
     @GET
     @Path("/apis")
@@ -70,6 +76,39 @@ public class UserResource extends AbstractResource {
 
         return Response.ok(
             new UserApisResponse()
+                .data(data)
+                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                .links(computePaginationLinks(output.totalCount(), paginationParam))
+        ).build();
+    }
+
+    @GET
+    @Path("/applications")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    public Response getUserApplications(
+        @PathParam("userId") String userId,
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("environmentId") String environmentId
+    ) {
+        var output = getUserApplicationsUseCase.execute(
+            new GetUserApplicationsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+        );
+
+        List<UserApplication> data = output
+            .data()
+            .stream()
+            .map(app ->
+                new UserApplication()
+                    .id(app.getId())
+                    .name(app.getName())
+                    .environmentId(app.getEnvironmentId())
+                    .environmentName(app.getEnvironmentName())
+            )
+            .toList();
+
+        return Response.ok(
+            new UserApplicationsResponse()
                 .data(data)
                 .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
                 .links(computePaginationLinks(output.totalCount(), paginationParam))
