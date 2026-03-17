@@ -867,6 +867,9 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private void storeSelectorHttpMethods(final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
+        if (httpMethods == null || httpMethods.isEmpty()) {
+            return;
+        }
         storeMethods(
             FLOW_SELECTOR_HTTP_METHODS,
             flowId,

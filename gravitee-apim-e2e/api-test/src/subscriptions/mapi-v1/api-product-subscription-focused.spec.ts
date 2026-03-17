@@ -22,7 +22,7 @@ import { forManagementV2AsApiUser, forPortalAsAdminUser } from '@gravitee/utils/
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import { faker } from '@faker-js/faker';
@@ -37,7 +37,7 @@ const portalSubscriptionApi = new SubscriptionApi(forPortalAsAdminUser());
  * E2 - Subscription revoked/cancelled: After revoke/close, same key returns 401.
  * E3 - Two apps on same product plan (isolation): Revoking one key leaves the other working.
  */
-describe('API Product subscription-focused e2e', () => {
+describeIfClientGatewaySupportingApiProduct('API Product subscription-focused e2e', () => {
   let api: ApiV4;
   let contextPath: string;
   let productId: string;

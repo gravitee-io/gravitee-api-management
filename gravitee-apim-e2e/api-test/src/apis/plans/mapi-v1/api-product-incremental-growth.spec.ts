@@ -22,7 +22,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { created, noContent, succeed, describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { faker } from '@faker-js/faker';
 
@@ -39,7 +39,7 @@ const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
  * - Phase 2: the same key is validated against all three context paths and
  *   each must return 200.
  */
-describe('API Product - incremental growth from 1 API to 3 APIs with the same subscription key', () => {
+describeIfClientGatewaySupportingApiProduct('API Product - incremental growth from 1 API to 3 APIs with the same subscription key', () => {
   let api1: ApiV4;
   let api2: ApiV4;
   let api3: ApiV4;

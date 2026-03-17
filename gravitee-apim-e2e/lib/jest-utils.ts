@@ -126,23 +126,19 @@ export const describeIfV3 = describeIf(process.env.V4_EMULATION_ENGINE_DEFAULT =
 export const describeIfV4EmulationEngine = describeIf(process.env.V4_EMULATION_ENGINE_DEFAULT == 'yes');
 
 /**
- * Check if V4 API Debug feature is supported by the client gateway (in bridge compatibility tests).
- * This feature has been introduced in 4.8.0
+ * Returns true if the client gateway version (from APIM_CLIENT_TAG) meets the given minimum version.
+ * If no tag is set, assumes the feature is supported.
+ * Accepts tag formats like "4.7.x-latest" or "graviteeio@4.7.0".
  */
-function isClientGatewaySupportingV4APIDebugFeature(): boolean {
+function isClientGatewayVersionAtLeast(minMajor: number, minMinor: number): boolean {
   const clientTag = process.env.APIM_CLIENT_TAG;
   if (!clientTag) {
     return true;
   }
 
-  // Extract version from tag (e.g., "4.7.x-latest", "graviteeio@4.7.0")
-  let versionStr = clientTag;
-  if (clientTag.includes('@')) {
-    versionStr = clientTag.split('@')[1];
-  }
+  let versionStr = clientTag.includes('@') ? clientTag.split('@')[1] : clientTag;
   versionStr = versionStr.replace('-latest', '');
 
-  // Parse major.minor version
   const match = versionStr.match(/^(\d+)\.(\d+)/);
   if (!match) {
     return true;
@@ -151,10 +147,26 @@ function isClientGatewaySupportingV4APIDebugFeature(): boolean {
   const major = parseInt(match[1], 10);
   const minor = parseInt(match[2], 10);
 
-  // V4 API Debug feature is supported if version >= 4.8.0
-  return major > 4 || (major === 4 && minor >= 8);
+  return major > minMajor || (major === minMajor && minor >= minMinor);
+}
+
+/**
+ * Check if V4 API Debug feature is supported by the client gateway (in bridge compatibility tests).
+ * This feature has been introduced in 4.8.0
+ */
+function isClientGatewaySupportingV4APIDebugFeature(): boolean {
+  return isClientGatewayVersionAtLeast(4, 8);
+}
+
+/**
+ * Check if API Product feature is supported by the client gateway (in bridge compatibility tests).
+ * This feature has been introduced in 4.11.0
+ */
+function isClientGatewaySupportingApiProductFeature(): boolean {
+  return isClientGatewayVersionAtLeast(4, 11);
 }
 
 export const describeIfClientGatewayCompatible = describeIf(isClientGatewaySupportingV4APIDebugFeature());
+export const describeIfClientGatewaySupportingApiProduct = describeIf(isClientGatewaySupportingApiProductFeature());
 
 export * from './jest-retry';

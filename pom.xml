@@ -61,7 +61,7 @@
         <gravitee-exchange.version>2.0.1</gravitee-exchange.version>
         <gravitee-expression-language.version>4.3.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>5.0.0-alpha.6</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>5.0.0</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.2.0</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.7.1</gravitee-kubernetes.version>
@@ -174,7 +174,7 @@
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
         <gravitee-alert-engine-connectors-ws.version>2.3.0</gravitee-alert-engine-connectors-ws.version>
-        <gravitee-connector-http.version>5.0.8</gravitee-connector-http.version>
+        <gravitee-connector-http.version>5.0.9</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>5.2.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
@@ -301,11 +301,11 @@
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>10.0.0-alpha.3</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>6.0.0-alpha.6</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>6.0.0-alpha.7</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.1.0</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>2.0.0-alpha.3</gravitee-reactor-llm-proxy.version>
         <gravitee-reactor-a2a-proxy.version>1.0.0-alpha.1</gravitee-reactor-a2a-proxy.version>
-        <gravitee-resource-ai-vector-store-redis.version>1.0.0-alpha.3</gravitee-resource-ai-vector-store-redis.version>
+        <gravitee-resource-ai-vector-store-redis.version>1.0.0-alpha.4</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0-alpha.1</gravitee-resource-ai-vector-store-aws-s3.version>
         <gravitee-resource-ai-model-text-embedding.version>1.0.0-alpha.4</gravitee-resource-ai-model-text-embedding.version>
         <gravitee-policy-ai-semantic-caching.version>1.0.0-alpha.3</gravitee-policy-ai-semantic-caching.version>

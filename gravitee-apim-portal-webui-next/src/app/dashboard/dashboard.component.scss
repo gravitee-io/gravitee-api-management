@@ -25,6 +25,11 @@ app-sidenav-layout {
   height: 100%;
 
   .dashboard {
+    &__main-content {
+      display: flex;
+      width: 100%;
+    }
+
     &__sidenav {
       &__content {
         display: flex;

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { adminAuthHeader, envId, managementV2BaseUrl } from '@gravitee/utils/api-products';
 
-describe('API Product plan security - KEY_LESS rejected', () => {
+describeIfClientGatewaySupportingApiProduct('API Product plan security - KEY_LESS rejected', () => {
   let productId: string;
 
   beforeAll(async () => {
