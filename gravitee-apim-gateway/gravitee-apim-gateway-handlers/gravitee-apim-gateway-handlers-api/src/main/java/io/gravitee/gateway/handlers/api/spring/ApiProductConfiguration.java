@@ -18,9 +18,7 @@ package io.gravitee.gateway.handlers.api.spring;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
-import io.gravitee.gateway.handlers.api.registry.impl.ApiProductPlanDefinitionCacheImpl;
 import io.gravitee.gateway.handlers.api.registry.impl.ApiProductRegistryImpl;
 import io.gravitee.node.api.license.LicenseManager;
 import org.springframework.context.annotation.Bean;
@@ -34,13 +32,8 @@ import org.springframework.context.annotation.Configuration;
 public class ApiProductConfiguration {
 
     @Bean
-    public ApiProductRegistry apiProductRegistry(ApiProductPlanDefinitionCache apiProductPlanDefinitionCache) {
-        return new ApiProductRegistryImpl(apiProductPlanDefinitionCache);
-    }
-
-    @Bean
-    public ApiProductPlanDefinitionCache apiProductPlanDefinitionCache() {
-        return new ApiProductPlanDefinitionCacheImpl();
+    public ApiProductRegistry apiProductRegistry() {
+        return new ApiProductRegistryImpl();
     }
 
     @Bean

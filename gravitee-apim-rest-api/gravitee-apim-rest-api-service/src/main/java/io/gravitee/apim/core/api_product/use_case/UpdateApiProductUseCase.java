@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainS
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -39,11 +40,13 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
@@ -62,6 +65,7 @@ public class UpdateApiProductUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
+    private final PlanQueryService planQueryService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
 
@@ -120,12 +124,29 @@ public class UpdateApiProductUseCase {
     }
 
     private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
+        var plans = planQueryService
+            .findAllForApiProduct(apiProduct.getId())
+            .stream()
+            .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+            .filter(Objects::nonNull)
+            .toList();
+
+        var payload = ApiProductDeploymentPayload.builder()
+            .id(apiProduct.getId())
+            .name(apiProduct.getName())
+            .description(apiProduct.getDescription())
+            .version(apiProduct.getVersion())
+            .apiIds(apiProduct.getApiIds())
+            .environmentId(apiProduct.getEnvironmentId())
+            .plans(plans)
+            .build();
+
         final Event event = eventCrudService.createEvent(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             Set.of(auditInfo.environmentId()),
             EventType.DEPLOY_API_PRODUCT,
-            apiProduct,
+            payload,
             Map.ofEntries(
                 entry(Event.EventProperties.USER, auditInfo.actor().userId()),
                 entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
