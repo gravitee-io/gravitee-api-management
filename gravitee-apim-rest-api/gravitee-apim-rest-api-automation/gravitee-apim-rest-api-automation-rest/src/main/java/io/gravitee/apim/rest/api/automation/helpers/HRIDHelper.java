@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@CustomLog
 public class HRIDHelper {
 
     static final String HRID_PREFIX = "hrid-";
@@ -35,18 +37,22 @@ public class HRIDHelper {
     private static final String NON_LETTERS_AND_DIGITS_START = "^[^a-zA-Z0-9]+";
     private static final String NON_LETTERS_AND_DIGITS_END = "[^a-zA-Z0-9]+$";
     private static final String NON_LETTERS_AND_DIGITS = "[^a-zA-Z0-9]+";
-    private static final Pattern HRID_ONLY_GROUP = Pattern.compile("-*([a-z0-9][a-z0-9-]+[a-z0-9])-*");
+    private static final Pattern HRID_ONLY_GROUP = Pattern.compile("([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
     public static final String HEADER_X_GRAVITEE_SET_HRID = "X-Gravitee-Set-Hrid";
 
     public static String nameToHRID(String name) {
         if (name == null || name.isBlank()) {
+            log.warn("Generating random HRID for name={} as it is blank", name);
             return randomHRID();
         }
-        String sanitized = name.replaceAll(NON_LETTERS_AND_DIGITS_START, "").toLowerCase();
-        sanitized = sanitized.replaceAll(NON_LETTERS_AND_DIGITS_END, "").toLowerCase();
-        sanitized = sanitized.replaceAll(NON_LETTERS_AND_DIGITS, "-").toLowerCase();
+        String sanitized = name
+            .replaceAll(NON_LETTERS_AND_DIGITS_START, "")
+            .replaceAll(NON_LETTERS_AND_DIGITS_END, "")
+            .replaceAll(NON_LETTERS_AND_DIGITS, "-")
+            .toLowerCase();
         Matcher matcher = HRID_ONLY_GROUP.matcher(sanitized);
         if (!matcher.matches()) {
+            log.warn("Generating random HRID for name={} as it does not match the HRID pattern", name);
             return randomHRID();
         }
         return matcher.group(1);
