@@ -169,22 +169,32 @@ public class ApiResource extends AbstractResource {
 
     private static void setPageParentAndGeneralConditionsHRIDs(ApiCRDSpec api) {
         Map<String, String> pageIDsToHrid = new HashMap<>();
-        api.getPages().forEach((k, v) -> pageIDsToHrid.put(v.getId(), nameToHRID(v.getName())));
-        api
-            .getPages()
-            .values()
-            .stream()
-            .filter(p -> p.getParentId() != null)
-            .forEach(p -> p.setParentHrid(pageIDsToHrid.get(p.getParentId())));
-        api
-            .getPlans()
-            .values()
-            .stream()
-            .filter(p -> p.getGeneralConditions() != null)
-            .forEach(p -> p.setGeneralConditionsHrid(pageIDsToHrid.get(p.getGeneralConditions())));
+        if (api.getPages() != null) {
+            api.getPages().forEach((k, v) -> pageIDsToHrid.put(v.getId(), nameToHRID(v.getName())));
+            api
+                .getPages()
+                .values()
+                .stream()
+                .filter(p -> p.getParentId() != null)
+                .forEach(p -> {
+                    String hrid = pageIDsToHrid.get(p.getParentId());
+                    if (hrid == null) {
+                        log.warn("Could not resolve HRID for parentId={}", p.getParentId());
+                    }
+                    p.setParentHrid(hrid);
+                });
+        }
+        if (api.getPlans() != null) {
+            api
+                .getPlans()
+                .values()
+                .stream()
+                .filter(p -> p.getGeneralConditions() != null)
+                .forEach(p -> p.setGeneralConditionsHrid(pageIDsToHrid.get(p.getGeneralConditions())));
+        }
     }
 
-    public static boolean isUUID(String value) {
+    private static boolean isUUID(String value) {
         try {
             UUID.fromString(value);
             return true;

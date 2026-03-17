@@ -56,14 +56,14 @@
       </ng-template>
       <gio-banner-info>
         <div>
-          Export your API Definition as a Terraform HCL resource and start using the Gravitee Terraform provider to manage your API
-          declaratively.
+          To know how to export your API Definition as a Terraform HCL file and start using the Gravitee Terraform provider to manage your
+          API declaratively follow this link:
           <a
             href="https://registry.terraform.io/providers/gravitee-io/apim/latest/docs/guides/docgen_export-tutorial"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Link to documentation <mat-icon class="content__crd__link__icon" svgIcon="gio:external-link"></mat-icon>
+            HCL export tutorial <mat-icon class="content__crd__link__icon" svgIcon="gio:external-link"></mat-icon>
           </a>
         </div>
       </gio-banner-info>
@@ -73,7 +73,7 @@
 
 <mat-dialog-actions align="end" class="actions">
   <button mat-flat-button [mat-dialog-close]="false">Cancel</button>
-  <button color="primary" mat-raised-button (click)="onExport()" [disabled]="selectedTabIndex === 2" data-testid="api_info_export_api">
+  <button color="primary" mat-raised-button (click)="onExport()" [hidden]="selectedTabIndex === 2" data-testid="api_info_export_api">
     Export
   </button>
 </mat-dialog-actions>
