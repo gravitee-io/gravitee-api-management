@@ -187,6 +187,9 @@ components:
                     description: The roles the user has in this group, as a map of scope to role name.
                     additionalProperties:
                         type: string
+                isApiPrimaryOwner:
+                    type: boolean
+                    description: Whether this group is the primary owner of at least one API.
         UserGroupsResponse:
             type: object
             properties:

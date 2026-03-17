@@ -41,6 +41,7 @@ export interface UserGroupResponse {
   environmentId: string;
   environmentName: string;
   roles: Record<string, string>;
+  isApiPrimaryOwner?: boolean;
 }
 
 export interface PaginatedResponse<T> {

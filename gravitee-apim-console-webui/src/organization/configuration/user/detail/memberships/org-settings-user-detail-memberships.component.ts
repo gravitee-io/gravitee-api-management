@@ -47,6 +47,7 @@ export interface MembershipGroupDS {
   id: string;
   name: string;
   environmentId?: string;
+  isApiPrimaryOwner?: boolean;
 }
 
 export interface MembershipApiDS {
@@ -75,7 +76,6 @@ export class OrgSettingsUserDetailMembershipsComponent {
   readonly userStatus = input<string>();
   readonly userDisplayName = input<string>();
   readonly isReadOnly = input(false);
-  readonly groupsAssociatedWithApis = input<Set<string>>(new Set());
 
   readonly groupRolesChanged = output<UntypedFormGroup>();
   readonly requestReload = output<void>();
@@ -249,7 +249,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
     const apiControl = groupControl.get('API');
     if (!apiControl) return false;
 
-    return apiControl.value === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis().has(groupId);
+    const group = this.initialGroups.find((g) => g.id === groupId);
+    return apiControl.value === 'PRIMARY_OWNER' && !!group?.isApiPrimaryOwner;
   }
 
   private loadMembershipsForEnvironment(environmentId: string) {
@@ -262,16 +263,18 @@ export class OrgSettingsUserDetailMembershipsComponent {
         catchError(() => of({ data: [], pagination: { page: 1, perPage: 9999, pageCount: 0, pageItemsCount: 0, totalCount: 0 } })),
       )
       .subscribe((response) => {
-        const groups: Group[] = response.data.map((g) => ({
+        const groupsWithPrimaryOwner = response.data;
+        const groups: Group[] = groupsWithPrimaryOwner.map((g) => ({
           id: g.id,
           name: g.name,
           environmentId: g.environmentId,
           roles: g.roles,
         }));
-        this.initialGroups = groups.map((g) => ({
+        this.initialGroups = groupsWithPrimaryOwner.map((g) => ({
           id: g.id,
           name: g.name,
           environmentId: g.environmentId,
+          isApiPrimaryOwner: g.isApiPrimaryOwner,
         }));
         this.membershipGroups.set(this.initialGroups);
         this.groupsUnpaginatedLength.set(this.initialGroups.length);
@@ -347,7 +350,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
   }
 
   private createGroupRolesFormGroup(group: Group): UntypedFormGroup {
-    const isPrimaryOwnerAndAssociatedWithApi = group.roles['API'] === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis().has(group.id);
+    const groupDS = this.initialGroups.find((g) => g.id === group.id);
+    const isPrimaryOwnerAndAssociatedWithApi = group.roles['API'] === 'PRIMARY_OWNER' && !!groupDS?.isApiPrimaryOwner;
     const apiControl = new UntypedFormControl({
       value: group.roles['API'],
       disabled: this.userStatus() !== 'ACTIVE' || this.isReadOnly() || isPrimaryOwnerAndAssociatedWithApi,
