@@ -29,14 +29,13 @@ import java.util.Set;
 public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInMemory<Api> implements ApiPortalSearchQueryService {
 
     @Override
-    public Page<Api> search(
-        String environmentId,
-        String organizationId,
-        String query,
-        Set<String> allowedApiIds,
-        Pageable pageable,
-        Sortable sortable
-    ) {
+    public Page<Api> search(Query q) {
+        String environmentId = q.environmentId();
+        String query = q.query().orElse(null);
+        Set<String> allowedApiIds = q.allowedApiIds();
+        Pageable pageable = q.pageable().orElse(null);
+        Sortable sortable = q.sortable().orElse(null);
+
         int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
         int pageSize = pageable != null ? pageable.getPageSize() : 10;
 

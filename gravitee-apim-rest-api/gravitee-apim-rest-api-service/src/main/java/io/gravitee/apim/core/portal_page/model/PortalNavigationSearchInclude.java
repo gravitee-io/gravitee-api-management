@@ -15,18 +15,6 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
-public class PortalNavigationItemQueryCriteria {
-
-    private String environmentId;
-    private Boolean root;
-    private PortalNavigationItemId parentId;
-    private PortalArea area;
-    private Boolean published;
-    private PortalVisibility visibility;
-    private PortalNavigationItemType type;
+public enum PortalNavigationSearchInclude {
+    API,
 }

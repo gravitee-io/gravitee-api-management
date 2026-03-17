@@ -26,6 +26,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -37,11 +38,10 @@ public class SearchApisForPortalUseCase {
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
 
     public Output execute(Input input) {
-        Set<String> allowedIds = visibilityDomainService
-            .resolveVisibleItems(input.environmentId(), input.userId())
-            .stream()
-            .map(PortalNavigationApi::getApiId)
-            .collect(toSet());
+        List<PortalNavigationApi> visible = input.userId() != null
+            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
+            : visibilityDomainService.resolveVisibleItems(input.environmentId());
+        Set<String> allowedIds = visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
 
         return new Output(
             apiPortalSearchQueryService.search(

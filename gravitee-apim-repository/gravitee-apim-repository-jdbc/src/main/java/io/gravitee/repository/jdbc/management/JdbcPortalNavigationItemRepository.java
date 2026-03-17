@@ -179,6 +179,16 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("visibility = ?");
                 params.add(criteria.getVisibility());
             }
+
+            if (hasText(criteria.getType())) {
+                try {
+                    PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());
+                    clauses.add("type = ?");
+                    params.add(type.name());
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid portal navigation item type value: {}", criteria.getType());
+                }
+            }
         }
 
         return new CriteriaClauses(clauses, params);

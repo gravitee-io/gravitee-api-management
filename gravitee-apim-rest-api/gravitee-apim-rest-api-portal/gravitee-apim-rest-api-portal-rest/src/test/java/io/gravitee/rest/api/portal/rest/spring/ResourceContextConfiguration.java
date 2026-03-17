@@ -21,13 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiExposedEntrypointDomainServiceInMemory;
+import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -90,7 +93,9 @@ import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryServic
 import io.gravitee.apim.core.logs_engine.use_case.GetLogsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
@@ -102,6 +107,7 @@ import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -109,6 +115,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQuerySer
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalNavigationApisUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
@@ -129,6 +136,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGrou
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -1063,6 +1071,45 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService
     ) {
         return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService);
+    }
+
+    @Bean
+    public ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService() {
+        return new ApiPortalSearchQueryServiceInMemory();
+    }
+
+    @Bean
+    public MembershipQueryServiceInMemory membershipQueryService() {
+        return new MembershipQueryServiceInMemory();
+    }
+
+    @Bean
+    public SubscriptionQueryServiceInMemory subscriptionQueryService() {
+        return new SubscriptionQueryServiceInMemory();
+    }
+
+    @Bean
+    public ApiPortalMembershipDomainService apiPortalMembershipDomainService(
+        MembershipQueryService membershipQueryService,
+        SubscriptionQueryService subscriptionQueryService
+    ) {
+        return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+    }
+
+    @Bean
+    public PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        ApiPortalMembershipDomainService apiPortalMembershipDomainService
+    ) {
+        return new PortalNavigationApiVisibilityDomainService(portalNavigationItemsQueryService, apiPortalMembershipDomainService);
+    }
+
+    @Bean
+    public GetVisiblePortalNavigationApisUseCase getVisiblePortalNavigationApisUseCase(
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
+        ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService
+    ) {
+        return new GetVisiblePortalNavigationApisUseCase(portalNavigationApiVisibilityDomainService, apiPortalSearchQueryService);
     }
 
     @Bean

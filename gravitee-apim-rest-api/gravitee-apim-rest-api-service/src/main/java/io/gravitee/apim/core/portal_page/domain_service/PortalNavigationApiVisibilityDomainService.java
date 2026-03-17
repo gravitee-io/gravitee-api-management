@@ -15,20 +15,16 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
-import static java.util.stream.Collectors.toSet;
-
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.common.Pageable;
-import jakarta.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -39,59 +35,63 @@ public class PortalNavigationApiVisibilityDomainService {
     private final ApiPortalMembershipDomainService apiMembershipDomainService;
 
     /**
+     * Resolves visible APIs for unauthenticated portal access where only public APIs should be exposed.
+     */
+    public List<PortalNavigationApi> resolveVisibleItems(String environmentId) {
+        return fetchApiItems(environmentId)
+            .stream()
+            .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
+            .toList();
+    }
+
+    /**
      * Enforces portal navigation access control by filtering APIs based on visibility rules and user permissions.
      */
-    public List<PortalNavigationApi> resolveVisibleItems(String environmentId, @Nullable String userId) {
-        return resolveVisibleItemsStream(environmentId, userId).toList();
+    public List<PortalNavigationApi> resolveVisibleItems(String environmentId, String userId) {
+        List<PortalNavigationApi> apiItems = fetchApiItems(environmentId);
+
+        Set<String> publicIds = new HashSet<>();
+        Set<String> privateIds = new HashSet<>();
+        for (PortalNavigationApi item : apiItems) {
+            if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
+                publicIds.add(item.getApiId());
+            } else {
+                privateIds.add(item.getApiId());
+            }
+        }
+
+        Set<String> allowedIds = new HashSet<>(publicIds);
+        allowedIds.addAll(apiMembershipDomainService.filterApiIdsByUserMembership(userId, privateIds));
+        allowedIds.addAll(apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, privateIds));
+
+        return apiItems
+            .stream()
+            .filter(i -> allowedIds.contains(i.getApiId()))
+            .toList();
     }
 
-    public Page<PortalNavigationApi> resolveVisibleItemsPage(String environmentId, @Nullable String userId, Pageable pageable) {
-        List<PortalNavigationApi> all = resolveVisibleItemsStream(environmentId, userId).toList();
-        int skip = (pageable.getPageNumber() - 1) * pageable.getPageSize();
-        int limit = pageable.getPageSize();
-        List<PortalNavigationApi> content = all.stream().skip(skip).limit(limit).toList();
-        return new Page<>(content, pageable.getPageNumber(), content.size(), all.size());
-    }
-
-    private Stream<PortalNavigationApi> resolveVisibleItemsStream(String environmentId, @Nullable String userId) {
-        List<PortalNavigationApi> apiItems = queryService
-            .search(PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).published(true).root(false).build())
+    private List<PortalNavigationApi> fetchApiItems(String environmentId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.API)
+                    .build()
+            )
             .stream()
             .filter(PortalNavigationApi.class::isInstance)
             .map(PortalNavigationApi.class::cast)
             .toList();
-
-        Set<String> allowedIds = apiItems
-            .stream()
-            .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
-            .map(PortalNavigationApi::getApiId)
-            .collect(toSet());
-
-        if (userId == null) {
-            return apiItems.stream().filter(i -> allowedIds.contains(i.getApiId()));
-        }
-
-        Set<String> privateApiIds = apiItems
-            .stream()
-            .filter(i -> PortalVisibility.PRIVATE.equals(i.getVisibility()))
-            .map(PortalNavigationApi::getApiId)
-            .collect(toSet());
-
-        allowedIds.addAll(apiMembershipDomainService.filterApiIdsByUserMembership(userId, privateApiIds));
-        allowedIds.addAll(apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, privateApiIds));
-
-        return apiItems.stream().filter(i -> allowedIds.contains(i.getApiId()));
     }
 
     /**
      * Checks visibility of a single PortalNavigationApi for the given user.
      */
-    public boolean isVisibleToUser(PortalNavigationApi item, @Nullable String userId) {
+    public boolean isVisibleToUser(PortalNavigationApi item, String userId) {
         if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return true;
-        }
-        if (userId == null) {
-            return false;
         }
         Set<String> candidate = Set.of(item.getApiId());
         return (
