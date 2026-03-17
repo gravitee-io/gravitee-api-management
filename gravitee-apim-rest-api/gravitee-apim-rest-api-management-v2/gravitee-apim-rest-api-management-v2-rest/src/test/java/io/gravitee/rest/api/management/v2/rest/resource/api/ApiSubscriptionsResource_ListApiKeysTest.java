@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscriptionsResourceTest {
@@ -75,12 +76,12 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
         assertEquals(0, subscriptionApiKeysResponse.getData().size());
 
         // Check pagination
-        Pagination pagination = subscriptionApiKeysResponse.getPagination();
-        assertNull(pagination.getPage());
-        assertNull(pagination.getPerPage());
-        assertNull(pagination.getPageItemsCount());
-        assertNull(pagination.getTotalCount());
-        assertNull(pagination.getPageCount());
+        Assertions.assertThat(subscriptionApiKeysResponse.getPagination())
+            .hasFieldOrPropertyWithValue("page", 1)
+            .hasFieldOrPropertyWithValue("perPage", 10)
+            .hasFieldOrPropertyWithValue("pageCount", 0)
+            .hasFieldOrPropertyWithValue("pageItemsCount", 0)
+            .hasFieldOrPropertyWithValue("totalCount", 0L);
 
         // Check links
         Links links = subscriptionApiKeysResponse.getLinks();
