@@ -79,6 +79,32 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /users/{userId}/groups:
+        parameters:
+            - $ref: "#/components/parameters/userIdParam"
+        get:
+            tags:
+                - Users
+            summary: Get groups the user is a member of
+            description: |
+                Get the list of groups the user is a member of.
+
+                User must have the ORGANIZATION_USERS[READ] permission.
+            operationId: getUserGroups
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/environmentIdParam"
+            responses:
+                "200":
+                    description: Paginated list of groups the user is a member of.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserGroupsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
 components:
     schemas:
         UserApi:
@@ -136,6 +162,38 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/UserApplication"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+                links:
+                    $ref: "#/components/schemas/Links"
+
+        UserGroup:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The group's unique identifier.
+                name:
+                    type: string
+                    description: The group's name.
+                environmentId:
+                    type: string
+                    description: The ID of the environment the group belongs to.
+                environmentName:
+                    type: string
+                    description: The name of the environment the group belongs to.
+                roles:
+                    type: object
+                    description: The roles the user has in this group, as a map of scope to role name.
+                    additionalProperties:
+                        type: string
+        UserGroupsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/UserGroup"
                 pagination:
                     $ref: "#/components/schemas/Pagination"
                 links:
