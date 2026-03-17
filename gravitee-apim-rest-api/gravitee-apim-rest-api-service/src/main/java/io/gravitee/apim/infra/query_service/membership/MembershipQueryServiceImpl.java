@@ -74,6 +74,30 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
     }
 
     @Override
+    public Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        Membership.Type memberType,
+        Membership.ReferenceType referenceType
+    ) {
+        try {
+            return membershipRepository
+                .findByMemberIdAndMemberTypeAndReferenceType(
+                    memberId,
+                    MembershipMemberType.valueOf(memberType.name()),
+                    MembershipReferenceType.valueOf(referenceType.name())
+                )
+                .stream()
+                .map(MembershipAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurs while trying to find %s memberships for member %s", referenceType, memberId),
+                e
+            );
+        }
+    }
+
+    @Override
     public List<String> findClustersIdsThatUserBelongsTo(String memberId) {
         return fetch(
             () ->
@@ -87,23 +111,6 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
             .stream()
             .map(Membership::getReferenceId)
             .toList();
-    }
-
-    @Override
-    public Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    ) {
-        return fetch(
-            () ->
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                    memberId,
-                    MembershipMemberType.valueOf(memberType.name()),
-                    MembershipReferenceType.valueOf(referenceType.name())
-                ),
-            String.format("An error occurs while trying to find memberships of type %s for member %s", referenceType, memberId)
-        );
     }
 
     @Override
