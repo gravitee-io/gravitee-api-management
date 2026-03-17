@@ -18,14 +18,21 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { EMPTY } from 'rxjs';
 import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
+import moment from 'moment';
 
 import type { EnvLog } from './models/env-log.model';
 
-import { EnvLogsFilterBarComponent, EnvLogsFilterValues } from './components/env-logs-filter-bar/env-logs-filter-bar.component';
+import { EnvLogsInitialValues } from './models/env-logs-initial-values.model';
+import {
+  EnvLogsFilterBarComponent,
+  EnvLogsFilterValues,
+  ENV_LOGS_PERIODS,
+} from './components/env-logs-filter-bar/env-logs-filter-bar.component';
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 
 import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam } from '../../../services-ngx/environment-logs.service';
@@ -35,6 +42,7 @@ import { Pagination } from '../../../entities/management-api-v2';
 import { GioHeaderComponent } from '../../../shared/components/gio-header/gio-header.component';
 
 const EMPTY_FIELD = '—';
+const DEFAULT_PER_PAGE = 10;
 
 @Component({
   selector: 'env-logs',
@@ -48,11 +56,15 @@ export class EnvLogsComponent {
   private readonly environmentLogsService = inject(EnvironmentLogsService);
   private readonly snackBarService = inject(SnackBarService);
   private readonly datePipe = inject(DatePipe);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
-  pagination = signal<Pagination>({ page: 1, perPage: 10, totalCount: 0 });
+  pagination = signal<Pagination>({ page: 1, perPage: DEFAULT_PER_PAGE, totalCount: 0 });
   filters = signal<EnvLogsFilterValues | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  initialValues = signal<EnvLogsInitialValues | undefined>(this.parseQueryParams());
 
   private readonly searchParams = computed(() => ({
     pagination: this.pagination(),
@@ -83,10 +95,79 @@ export class EnvLogsComponent {
   onFiltersChanged(filters: EnvLogsFilterValues) {
     this.filters.set(filters);
     this.pagination.update(prev => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    this.syncQueryParams(filters, this.pagination());
   }
 
   onPaginationUpdated(event: GioTableWrapperPagination) {
     this.pagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
+    this.syncQueryParams(this.filters(), this.pagination());
+  }
+
+  private syncQueryParams(filters: EnvLogsFilterValues | null, pagination: Pagination) {
+    const queryParams: Record<string, string | null> = {
+      page: pagination.page > 1 ? String(pagination.page) : null,
+      perPage: pagination.perPage === DEFAULT_PER_PAGE ? null : String(pagination.perPage),
+      period: filters?.period && filters.period !== '0' ? filters.period : null,
+      apiIds: filters?.apiIds?.length ? filters.apiIds.join(',') : null,
+      applicationIds: filters?.applicationIds?.length ? filters.applicationIds.join(',') : null,
+      methods: filters?.more?.methods?.length ? filters.more.methods.join(',') : null,
+      statuses: filters?.more?.statuses?.size ? [...filters.more.statuses].join(',') : null,
+      entrypoints: filters?.more?.entrypoints?.length ? filters.more.entrypoints.join(',') : null,
+      planIds: filters?.more?.plans?.length ? filters.more.plans.join(',') : null,
+      transactionId: filters?.more?.transactionId ?? null,
+      requestId: filters?.more?.requestId ?? null,
+      uri: filters?.more?.uri ?? null,
+      responseTime: filters?.more?.responseTime != null && filters.more.responseTime > 0 ? String(filters.more.responseTime) : null,
+      from: filters?.more?.from?.toISOString() ?? null,
+      to: filters?.more?.to?.toISOString() ?? null,
+      errorKeys: filters?.more?.errorKeys?.length ? filters.more.errorKeys.join(',') : null,
+    };
+
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+      replaceUrl: true,
+    });
+  }
+
+  private parseQueryParams(): EnvLogsInitialValues | undefined {
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    this.restorePagination(queryParams);
+
+    const nonFilterKeys = new Set(['apiId', 'page', 'perPage']);
+    const hasAnyFilter = Object.keys(queryParams).some(k => !nonFilterKeys.has(k));
+    if (!hasAnyFilter) return undefined;
+
+    const period = queryParams['period'] ? ENV_LOGS_PERIODS.find(p => p.value === queryParams['period']) : undefined;
+    const splitOrUndefined = (key: string): string[] | undefined => queryParams[key]?.split(',').filter(Boolean) || undefined;
+
+    return {
+      period,
+      apiIds: splitOrUndefined('apiIds'),
+      applicationIds: splitOrUndefined('applicationIds'),
+      methods: splitOrUndefined('methods'),
+      statuses: queryParams['statuses'] ? new Set(queryParams['statuses'].split(',').map(Number)) : undefined,
+      entrypoints: splitOrUndefined('entrypoints'),
+      plans: splitOrUndefined('planIds'),
+      transactionId: queryParams['transactionId'] || undefined,
+      requestId: queryParams['requestId'] || undefined,
+      uri: queryParams['uri'] || undefined,
+      responseTime: queryParams['responseTime'] ? Number(queryParams['responseTime']) : undefined,
+      from: queryParams['from'] ? moment(queryParams['from']) : undefined,
+      to: queryParams['to'] ? moment(queryParams['to']) : undefined,
+      errorKeys: splitOrUndefined('errorKeys'),
+    };
+  }
+
+  private restorePagination(queryParams: Record<string, string>) {
+    const page = Number(queryParams['page']);
+    if (page > 1) {
+      this.pagination.update(prev => ({ ...prev, page }));
+    }
+    const perPage = Number(queryParams['perPage']);
+    if (perPage && perPage !== DEFAULT_PER_PAGE) {
+      this.pagination.update(prev => ({ ...prev, perPage }));
+    }
   }
 
   private fetchLogs(params: { pagination: Pagination; filters: EnvLogsFilterValues | null }) {

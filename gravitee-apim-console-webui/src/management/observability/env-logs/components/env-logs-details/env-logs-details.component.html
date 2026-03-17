@@ -26,7 +26,7 @@
     <gio-banner-error data-testid="error-banner">{{ errorMsg }}</gio-banner-error>
   } @else if (log(); as log) {
     <div class="logs-details__container">
-      <a class="back-button" mat-flat-button [routerLink]="['..']" aria-label="Back to logs"
+      <a class="back-button" mat-flat-button [routerLink]="['..']" queryParamsHandling="preserve" aria-label="Back to logs"
         ><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a
       >
       <gio-header title="Log" />
