@@ -23,7 +23,6 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -70,8 +69,6 @@ public class DeployerFactory {
     private final DistributedSyncService distributedSyncService;
 
     private final io.gravitee.gateway.handlers.api.manager.ApiProductManager apiProductManager;
-
-    private final ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
 
     private final ApiProductSubscriptionRefresher apiProductSubscriptionRefresher;
 
@@ -128,12 +125,6 @@ public class DeployerFactory {
                 "ApiProductSubscriptionRefresher is not available. API Product deploy requires repository sync to be enabled."
             );
         }
-        return new ApiProductDeployer(
-            apiProductManager,
-            planCache,
-            distributedSyncService,
-            apiProductPlanDefinitionCache,
-            apiProductSubscriptionRefresher
-        );
+        return new ApiProductDeployer(apiProductManager, planCache, distributedSyncService, apiProductSubscriptionRefresher);
     }
 }

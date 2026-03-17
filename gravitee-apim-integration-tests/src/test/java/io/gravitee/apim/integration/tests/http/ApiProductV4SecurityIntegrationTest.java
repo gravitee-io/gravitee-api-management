@@ -54,7 +54,6 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
@@ -113,8 +112,9 @@ class ApiProductV4SecurityIntegrationTest {
         void should_return_200_success_with_jwt_and_subscription_on_the_api_product_api(HttpClient client) throws Exception {
             final String productId = "jwt-product-success";
             final String planId = "jwt-product-plan-success";
-            registerProductPlans(productId, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
             allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
 
             int status = getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000));
@@ -128,8 +128,9 @@ class ApiProductV4SecurityIntegrationTest {
         void should_return_401_unauthorized_with_wrong_security_on_the_api_product_api(HttpClient client) {
             final String productId = "jwt-product-wrong-security";
             final String planId = "jwt-product-plan-wrong-security";
-            registerProductPlans(productId, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
 
             assertThat(getStatus(client, API_1_PATH)).isEqualTo(401);
             assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer a-jwt-token")).isEqualTo(401);
@@ -143,8 +144,9 @@ class ApiProductV4SecurityIntegrationTest {
         void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api_product_api(HttpClient client) throws Exception {
             final String productId = "jwt-product-expired";
             final String planId = "jwt-product-plan-expired";
-            registerProductPlans(productId, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
             allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
 
             int status = getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(-5000));
@@ -190,8 +192,9 @@ class ApiProductV4SecurityIntegrationTest {
         void should_be_able_to_call_api_product_with_mtls_plan(@WithCert HttpClient client) throws Exception {
             final String productId = "mtls-product-success";
             final String planId = PLAN_MTLS_ID;
-            registerProductPlans(productId, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
 
             Subscription subscription = mtlsSubscription(API_1_ID, planId, false);
             subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
@@ -209,8 +212,9 @@ class ApiProductV4SecurityIntegrationTest {
         void should_be_able_to_call_api_product_with_mtls_plan_and_several_cert(@WithCert HttpClient client) throws Exception {
             final String productId = "mtls-product-multi-cert";
             final String planId = PLAN_MTLS_ID;
-            registerProductPlans(productId, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
 
             Subscription subscription = mtlsSubscription(API_1_ID, planId, true);
             subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
@@ -228,8 +232,9 @@ class ApiProductV4SecurityIntegrationTest {
         void should_not_be_able_to_call_api_product_with_mtls_plan_if_no_cert_in_request(HttpClient client) {
             final String productId = "mtls-product-no-cert";
             final String planId = PLAN_MTLS_ID;
-            registerProductPlans(productId, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
 
             assertThat(getStatus(client, API_1_PATH)).isEqualTo(401);
         }
@@ -358,8 +363,8 @@ class ApiProductV4SecurityIntegrationTest {
             ).thenReturn(Optional.of(subscription));
         }
 
-        void registerProductPlans(String apiProductId, List<Plan> plans) {
-            getBean(ApiProductPlanDefinitionCache.class).register(apiProductId, plans);
+        void registerProductPlans(ReactableApiProduct product, List<Plan> plans) {
+            product.setPlans(plans);
         }
 
         ReactableApiProduct product(String productId, Set<String> apiIds) {

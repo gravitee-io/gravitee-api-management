@@ -93,6 +93,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             eventCrudService,
             eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            planQueryService,
             apiProductIndexerDomainService,
             apiProductPrimaryOwnerDomainService
         );
