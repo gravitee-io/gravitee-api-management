@@ -26,10 +26,11 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -82,5 +83,21 @@ public interface PortalNavigationItemMapper {
 
     default String map(PortalPageContentId portalPageContentId) {
         return portalPageContentId.json();
+    }
+
+    default Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> map(
+        Set<io.gravitee.rest.api.portal.rest.model.PortalNavigationSearchInclude> includes
+    ) {
+        if (includes == null) {
+            return Set.of();
+        }
+        return includes
+            .stream()
+            .map(i ->
+                switch (i) {
+                    case API -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API;
+                }
+            )
+            .collect(Collectors.toSet());
     }
 }

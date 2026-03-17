@@ -3196,6 +3196,60 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /portal-navigation-items/_search:
+        get:
+            tags:
+                - Portal
+            summary: Search portal navigation items.
+            operationId: searchPortalNavigationItems
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: query
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                - name: type
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - api
+                - name: include
+                  in: query
+                  required: false
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/PortalNavigationSearchInclude"
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      default: 1
+                - name: size
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                200:
+                    description: Search results
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalNavigationItemsSearchResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
     /portal-navigation-items/{portalNavigationItemId}:
         parameters:
             - name: portalNavigationItemId
@@ -3844,6 +3898,21 @@ components:
         #####################
         # Responses Objects #
         #####################
+        PortalNavigationItemsSearchResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/PortalNavigationItem"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                apis:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Api"
+                links:
+                    $ref: "#/components/schemas/Links"
         SubscriptionForm:
             type: object
             description: Subscription form returned to API consumers when the form is enabled. Contains only the form content (GMD).
@@ -6427,6 +6496,10 @@ components:
             type: string
             description: The portal area (used by portal navigation items)
             enum: [HOMEPAGE, TOP_NAVBAR]
+        PortalNavigationSearchInclude:
+            type: string
+            enum:
+                - api
         BasePortalNavigationItem:
             type: object
             description: Base portal navigation item

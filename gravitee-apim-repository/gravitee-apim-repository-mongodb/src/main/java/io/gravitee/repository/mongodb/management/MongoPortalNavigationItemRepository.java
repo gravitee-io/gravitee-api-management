@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
@@ -125,6 +124,15 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
 
             if (criteria.getVisibility() != null) {
                 query.addCriteria(where("visibility").is(criteria.getVisibility()));
+            }
+
+            if (hasText(criteria.getType())) {
+                try {
+                    PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());
+                    query.addCriteria(where("type").is(type));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid portal navigation item type value: {}", criteria.getType());
+                }
             }
         }
         return query;

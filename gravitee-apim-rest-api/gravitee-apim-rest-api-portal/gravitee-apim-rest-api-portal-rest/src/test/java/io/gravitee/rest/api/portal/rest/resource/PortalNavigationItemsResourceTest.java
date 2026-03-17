@@ -16,19 +16,30 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -38,6 +49,9 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
+
+    @Autowired
+    private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService;
 
     @Override
     protected String contextPath() {
@@ -53,6 +67,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         GraviteeContext.cleanContext();
         portalNavigationItemsQueryService.reset();
+        apiPortalSearchQueryService.reset();
     }
 
     @Test
@@ -169,20 +184,6 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             );
     }
 
-    private String getIdFromItem(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem item) {
-        Object actual = item.getActualInstance();
-
-        if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationPage page) {
-            return page.getId();
-        } else if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder folder) {
-            return folder.getId();
-        } else if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationLink link) {
-            return link.getId();
-        }
-
-        return null;
-    }
-
     @Test
     void should_return_navigation_items_when_user_is_authenticated() {
         // Given
@@ -203,5 +204,148 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
         );
         assertThat(result).hasSize(items.size());
+    }
+
+    // --- _search endpoint tests ---
+
+    @Test
+    void should_return_400_when_type_param_is_missing() {
+        Response response = target("/_search").queryParam("query", "auth").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void should_return_400_when_type_param_is_blank() {
+        Response response = target("/_search").queryParam("query", "auth").queryParam("type", "").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void should_return_paginated_api_navigation_items() {
+        // Given
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+        apiPortalSearchQueryService.initWith(List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build()));
+
+        // When
+        Response response = target("/_search")
+            .queryParam("query", "auth")
+            .queryParam("type", "api")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .request()
+            .get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        assertThat(result).containsKey("data");
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).hasSize(1);
+        assertThat(result).containsKey("metadata");
+        @SuppressWarnings("unchecked")
+        var metadata = (Map<String, Object>) result.get("metadata");
+        assertThat(metadata).containsKey("pagination");
+        @SuppressWarnings("unchecked")
+        var pagination = (Map<String, Object>) metadata.get("pagination");
+        assertThat(pagination).containsEntry("total", 1);
+        assertThat(pagination).containsEntry("current_page", 1);
+    }
+
+    @Test
+    void should_return_empty_results_when_query_matches_nothing() {
+        // Given
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+
+        // When - query that doesn't match
+        Response response = target("/_search").queryParam("query", "xyz-no-match").queryParam("type", "api").request().get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).isEmpty();
+    }
+
+    @Test
+    void should_include_api_objects_in_apis_field_when_include_api() {
+        // Given
+        String apiId = "api-uuid-1";
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId(apiId)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+        apiPortalSearchQueryService.initWith(List.of(Api.builder().id(apiId).name("Auth API").environmentId(ENV_ID).build()));
+
+        var mockApiEntity = Mockito.mock(GenericApiEntity.class);
+        when(apiSearchService.findGenericByEnvironmentAndIdIn(any(), any())).thenReturn(Set.of(mockApiEntity));
+        var mockApi = new io.gravitee.rest.api.portal.rest.model.Api();
+        mockApi.setId(apiId);
+        mockApi.setName("Auth API");
+        when(apiMapper.convert(any(), any())).thenReturn(mockApi);
+
+        // When
+        Response response = target("/_search")
+            .queryParam("query", "auth")
+            .queryParam("type", "api")
+            .queryParam("include", "api")
+            .request()
+            .get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        assertThat(result).containsKey("metadata");
+        assertThat(result).containsKey("apis");
+        @SuppressWarnings("unchecked")
+        var apis = (List<Object>) result.get("apis");
+        assertThat(apis).hasSize(1);
+    }
+
+    private String getIdFromItem(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem item) {
+        Object actual = item.getActualInstance();
+
+        if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationPage page) {
+            return page.getId();
+        } else if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder folder) {
+            return folder.getId();
+        } else if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationLink link) {
+            return link.getId();
+        }
+
+        return null;
     }
 }
