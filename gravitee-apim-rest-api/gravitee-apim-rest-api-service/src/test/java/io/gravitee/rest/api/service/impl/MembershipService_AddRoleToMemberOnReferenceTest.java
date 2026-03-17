@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
@@ -57,6 +58,7 @@ import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -495,5 +497,90 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
             )
         ).isInstanceOf(NotAuthorizedMembershipException.class);
+    }
+
+    @Test
+    public void shouldInvalidateRoleCacheAfterAddingUserMembership() throws Exception {
+        // Reproduces the first-SSO-login bug: getRoles caches an empty set for a brand-new user,
+        // then addRoleToMemberOnReference creates the membership — the cache must be invalidated
+        // so that the next getRoles call returns the correct role from the DB.
+        String userId = "user-id";
+        String envId = "DEFAULT";
+
+        RoleEntity envRole = RoleEntity.builder()
+            .id("ENV_MEMBER")
+            .name("MEMBER")
+            .scope(RoleScope.ENVIRONMENT)
+            .permissions(Map.of())
+            .build();
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "MEMBER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(envRole)
+        );
+        when(roleService.findById("ENV_MEMBER")).thenReturn(envRole);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        when(userService.findById(GraviteeContext.getExecutionContext(), userId)).thenReturn(userEntity);
+
+        Membership createdMembership = new Membership();
+        createdMembership.setId("membership-id");
+        createdMembership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT);
+        createdMembership.setReferenceId(envId);
+        createdMembership.setMemberId(userId);
+        createdMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
+        createdMembership.setRoleId("ENV_MEMBER");
+
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                userId,
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT,
+                envId,
+                "ENV_MEMBER"
+            )
+        ).thenReturn(Collections.emptySet());
+
+        // 1st call: getRoles() loader (empty — no membership yet)
+        // 2nd call: userRolesOnReference check inside addRoleToMemberOnReference
+        // 3rd call: getUserMember() inside addRoleToMemberOnReference
+        // 4th call: getRoles() loader after cache invalidation
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                userId,
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT,
+                envId
+            )
+        ).thenReturn(Collections.emptySet(), Set.of(createdMembership), Set.of(createdMembership), Set.of(createdMembership));
+
+        when(membershipRepository.create(any())).thenReturn(createdMembership);
+        when(node.id()).thenReturn("node-id");
+
+        // Step 1: prime a stale empty cache entry for this user/environment
+        Set<RoleEntity> rolesBefore = membershipService.getRoles(
+            MembershipReferenceType.ENVIRONMENT,
+            envId,
+            MembershipMemberType.USER,
+            userId
+        );
+        assertTrue(rolesBefore.isEmpty(), "Cache should start empty for a brand-new user");
+
+        // Step 2: add the ENVIRONMENT membership (must invalidate the stale cache entry)
+        membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getExecutionContext(),
+            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, envId),
+            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "MEMBER")
+        );
+
+        // Step 3: getRoles must now reflect the new membership, not the stale empty cache
+        Set<RoleEntity> rolesAfter = membershipService.getRoles(
+            MembershipReferenceType.ENVIRONMENT,
+            envId,
+            MembershipMemberType.USER,
+            userId
+        );
+        assertFalse(rolesAfter.isEmpty(), "Role cache should have been invalidated after membership creation");
+        assertEquals(envRole, rolesAfter.iterator().next());
     }
 }
