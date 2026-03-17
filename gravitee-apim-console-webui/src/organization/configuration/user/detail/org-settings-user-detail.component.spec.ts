@@ -640,7 +640,6 @@ describe('OrgSettingsUserDetailComponent', () => {
     reqDelete.flush(null);
 
     // After ngOnInit re-runs
-    expectApiSearchRequest();
     expectUserTokensGetRequest(user, []);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -725,7 +724,6 @@ describe('OrgSettingsUserDetailComponent', () => {
       integration?: Role[];
     } = {},
   ) {
-    expectApiSearchRequest();
     expectUserTokensGetRequest(user, tokens);
     expectUserGetRequest(user);
     expectEnvironmentListRequest(environments);
@@ -805,16 +803,6 @@ describe('OrgSettingsUserDetailComponent', () => {
         pageItemsCount: groups.length,
       },
     });
-    fixture.detectChanges();
-  }
-
-  function expectApiSearchRequest() {
-    const req = httpTestingController.expectOne(
-      (request) =>
-        request.method === 'POST' && request.url.includes('/management/v2/environments/') && request.url.includes('/apis/_search'),
-    );
-    expect(req.request.method).toEqual('POST');
-    req.flush({ data: [], pagination: { page: 1, perPage: 10000, totalCount: 0, pageCount: 0, pageItemsCount: 0 } });
     fixture.detectChanges();
   }
 

@@ -25,7 +25,9 @@ import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.user.model.UserGroupEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -78,6 +80,9 @@ public class GetUserGroupsUseCase {
             .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
+        // Compute apiPrimaryOwner for each group in the page
+        Map<String, Boolean> apiPrimaryOwnerByGroupId = computeApiPrimaryOwner(groupPage.getContent());
+
         List<UserGroupEntity> data = groupPage
             .getContent()
             .stream()
@@ -89,11 +94,48 @@ public class GetUserGroupsUseCase {
                     .environmentId(envId)
                     .environmentName(envId != null ? environmentNames.get(envId) : null)
                     .roles(rolesByGroupId.getOrDefault(group.getId(), Map.of()))
+                    .apiPrimaryOwner(apiPrimaryOwnerByGroupId.getOrDefault(group.getId(), false))
                     .build();
             })
             .toList();
 
         return new Output(data, groupPage.getTotalElements());
+    }
+
+    private Map<String, Boolean> computeApiPrimaryOwner(List<Group> groups) {
+        Map<String, Boolean> result = new HashMap<>();
+        Map<String, List<Membership>> apiMembershipsByGroupId = new HashMap<>();
+        Set<String> apiMembershipRoleIds = new HashSet<>();
+
+        for (Group group : groups) {
+            var apiMemberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
+                group.getId(),
+                Membership.Type.GROUP,
+                Membership.ReferenceType.API
+            );
+            apiMembershipsByGroupId.put(group.getId(), new ArrayList<>(apiMemberships));
+            apiMemberships.forEach(m -> {
+                if (m.getRoleId() != null) apiMembershipRoleIds.add(m.getRoleId());
+            });
+        }
+
+        Map<String, Role> apiRolesById = roleQueryService
+            .findByIds(apiMembershipRoleIds)
+            .stream()
+            .collect(Collectors.toMap(Role::getId, r -> r));
+
+        for (Group group : groups) {
+            boolean isPrimaryOwner = apiMembershipsByGroupId
+                .getOrDefault(group.getId(), List.of())
+                .stream()
+                .anyMatch(m -> {
+                    Role role = apiRolesById.get(m.getRoleId());
+                    return role != null && role.getScope() == Role.Scope.API && "PRIMARY_OWNER".equals(role.getName());
+                });
+            result.put(group.getId(), isPrimaryOwner);
+        }
+
+        return result;
     }
 
     private Map<String, String> resolveEnvironmentNames(Set<String> environmentIds) {

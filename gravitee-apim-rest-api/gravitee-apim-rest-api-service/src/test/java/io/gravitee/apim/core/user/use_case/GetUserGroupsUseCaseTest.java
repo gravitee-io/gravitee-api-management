@@ -145,6 +145,81 @@ class GetUserGroupsUseCaseTest {
     }
 
     @Test
+    void should_set_apiPrimaryOwner_when_group_is_primary_owner_of_api() {
+        membershipQueryService.initWith(
+            List.of(
+                // User belongs to group-1
+                Membership.builder()
+                    .id("m1")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId("group-1")
+                    .roleId("role-api-user")
+                    .build(),
+                // group-1 is PRIMARY_OWNER of an API
+                Membership.builder()
+                    .id("m-api-po")
+                    .memberId("group-1")
+                    .memberType(Membership.Type.GROUP)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId("api-1")
+                    .roleId("role-api-po")
+                    .build(),
+                // User belongs to group-2
+                Membership.builder()
+                    .id("m2")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId("group-2")
+                    .roleId("role-api-user")
+                    .build(),
+                // group-2 is a regular USER member of an API (not primary owner)
+                Membership.builder()
+                    .id("m-api-user")
+                    .memberId("group-2")
+                    .memberType(Membership.Type.GROUP)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId("api-2")
+                    .roleId("role-api-user")
+                    .build()
+            )
+        );
+        groupQueryService.initWith(
+            List.of(
+                Group.builder().id("group-1").name("Group 1").environmentId("env-1").build(),
+                Group.builder().id("group-2").name("Group 2").environmentId("env-1").build()
+            )
+        );
+        roleQueryService.initWith(
+            List.of(
+                Role.builder().id("role-api-user").name("USER").scope(Role.Scope.API).build(),
+                Role.builder().id("role-api-po").name("PRIMARY_OWNER").scope(Role.Scope.API).build()
+            )
+        );
+        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Dev").build()));
+
+        var output = useCase.execute(new GetUserGroupsUseCase.Input(USER_ID, null, 1, 10));
+
+        assertThat(output.data()).hasSize(2);
+        var group1 = output
+            .data()
+            .stream()
+            .filter(g -> g.getId().equals("group-1"))
+            .findFirst()
+            .orElseThrow();
+        var group2 = output
+            .data()
+            .stream()
+            .filter(g -> g.getId().equals("group-2"))
+            .findFirst()
+            .orElseThrow();
+        assertThat(group1.isApiPrimaryOwner()).isTrue();
+        assertThat(group2.isApiPrimaryOwner()).isFalse();
+    }
+
+    @Test
     void should_paginate_correctly() {
         membershipQueryService.initWith(
             List.of(

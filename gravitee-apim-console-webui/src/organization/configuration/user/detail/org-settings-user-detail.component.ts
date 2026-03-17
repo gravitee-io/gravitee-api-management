@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { combineLatest, EMPTY, from, merge, Observable, of, Subject, zip } from 'rxjs';
+import { combineLatest, EMPTY, from, merge, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { toString } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -26,10 +26,7 @@ import {
   OrgSettingsUserGenerateTokenComponent,
   OrgSettingsUserGenerateTokenDialogData,
 } from './tokens/org-settings-user-generate-token.component';
-import {
-  EnvironmentTab,
-  OrgSettingsUserDetailMembershipsComponent,
-} from './memberships/org-settings-user-detail-memberships.component';
+import { EnvironmentTab, OrgSettingsUserDetailMembershipsComponent } from './memberships/org-settings-user-detail-memberships.component';
 
 import { Environment } from '../../../../entities/environment/environment';
 import { User } from '../../../../entities/user/user';
@@ -45,7 +42,6 @@ import { Token } from '../../../../entities/user/userTokens';
 import { UsersTokenService } from '../../../../services-ngx/users-token.service';
 import { Constants } from '../../../../entities/Constants';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -90,7 +86,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   // Memberships sub-component inputs
   membershipEnvironments: EnvironmentTab[] = [];
-  groupsAssociatedWithApis: Set<string> = new Set();
 
   // Group roles form group from the memberships sub-component
   private groupsRolesFormGroup: UntypedFormGroup;
@@ -129,31 +124,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     @Inject(Constants) private readonly constants: Constants,
     private readonly permissionService: GioPermissionService,
-    private readonly apiV2Service: ApiV2Service,
   ) {}
 
   ngOnInit(): void {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['organization-user-u']);
 
-    // Fetch all APIs to build a set of group IDs associated with APIs
-    const apisWithGroups$ = this.apiV2Service.search({}, undefined, 1, 10000, false).pipe(
-      tap((apisResponse) => {
-        this.groupsAssociatedWithApis = new Set();
-        apisResponse.data.forEach((api) => {
-          if (api.groups && api.groups.length > 0) {
-            api.groups.forEach((groupId) => {
-              this.groupsAssociatedWithApis.add(groupId);
-            });
-          }
-        });
-      }),
-      catchError(() => {
-        this.groupsAssociatedWithApis = new Set();
-        return of(null);
-      }),
-    );
-
-    combineLatest([this.usersService.get(this.activatedRoute.snapshot.params.userId), this.environmentService.list(), apisWithGroups$])
+    combineLatest([this.usersService.get(this.activatedRoute.snapshot.params.userId), this.environmentService.list()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([user, environments]) => {
         const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
