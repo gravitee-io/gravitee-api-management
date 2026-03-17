@@ -153,6 +153,7 @@ import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
+import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -1023,5 +1024,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public GetUserApisUseCase getUserApisUseCase() {
+        return mock(GetUserApisUseCase.class);
     }
 }

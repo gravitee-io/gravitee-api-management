@@ -277,6 +277,15 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>model-users</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-users.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
 						<id>model-plugins-deprecated</id>
 						<goals>
 							<goal>generate</goal>
