@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -254,6 +255,34 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     }
 
     @Test
+    void should_restore_AsAccepted_closed_subscription_on_update() {
+        givenExistingJWTPlan();
+
+        var closedEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
+
+        // When restore is called on the mock, also update the in-memory crud service to PENDING
+        doAnswer(invocation -> {
+            subscriptionCrudService.update(
+                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
+            );
+            return closedEntity;
+        })
+            .when(subscriptionService)
+            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+
+        var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
+
+        verify(subscriptionService).restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+        });
+    }
+
+    @Test
     void should_close_on_delete() {
         cut.delete(AUDIT_INFO, SPEC.getId());
 
@@ -276,10 +305,6 @@ class SubscriptionCRDSpecDomainServiceImplTest {
 
     private void givenExistingPlan(Plan plan) {
         planCrudService.initWith(List.of(plan));
-    }
-
-    private void givenExistingSubscription(SubscriptionEntity subscription) {
-        subscriptionCrudService.initWith(List.of(subscription));
     }
 
     private CloseSubscriptionDomainService closeSubscriptionDomainService() {
