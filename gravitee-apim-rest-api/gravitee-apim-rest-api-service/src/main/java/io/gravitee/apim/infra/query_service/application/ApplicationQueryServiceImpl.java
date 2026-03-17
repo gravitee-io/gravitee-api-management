@@ -19,10 +19,13 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.infra.adapter.ApplicationAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Set;
@@ -39,6 +42,22 @@ public class ApplicationQueryServiceImpl extends AbstractService implements Appl
 
     public ApplicationQueryServiceImpl(@Lazy ApplicationRepository applicationRepository) {
         this.applicationRepository = applicationRepository;
+    }
+
+    @Override
+    public Page<BaseApplicationEntity> searchByIds(Set<String> ids, String environmentId, Pageable pageable) {
+        try {
+            var criteriaBuilder = ApplicationCriteria.builder().restrictedToIds(ids);
+            if (environmentId != null) {
+                criteriaBuilder.environmentIds(Set.of(environmentId));
+            }
+            var repoPageable = convert(pageable);
+            var page = applicationRepository.search(criteriaBuilder.build(), repoPageable);
+            var content = page.getContent().stream().map(ApplicationAdapter.INSTANCE::toEntity).toList();
+            return new Page<>(content, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurred while searching applications by ids", e);
+        }
     }
 
     @Override
