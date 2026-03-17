@@ -223,6 +223,83 @@ class MembershipQueryServiceImplTest {
     }
 
     @Nested
+    class FindByMemberIdAndMemberTypeAndReferenceType {
+
+        @Test
+        @SneakyThrows
+        void should_return_all_memberships_matching() {
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenAnswer(invocation ->
+                Set.of(
+                    Membership.builder()
+                        .referenceType(invocation.getArgument(2))
+                        .referenceId("api-1")
+                        .roleId("role-id")
+                        .id("membership-1")
+                        .memberType(invocation.getArgument(1))
+                        .memberId(invocation.getArgument(0))
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .source("system")
+                        .build()
+                )
+            );
+
+            var result = service.findByMemberIdAndMemberTypeAndReferenceType(
+                "user-id",
+                io.gravitee.apim.core.membership.model.Membership.Type.USER,
+                io.gravitee.apim.core.membership.model.Membership.ReferenceType.API
+            );
+
+            assertThat(result)
+                .hasSize(1)
+                .containsExactly(
+                    io.gravitee.apim.core.membership.model.Membership.builder()
+                        .id("membership-1")
+                        .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
+                        .referenceId("api-1")
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .memberId("user-id")
+                        .memberType(io.gravitee.apim.core.membership.model.Membership.Type.USER)
+                        .roleId("role-id")
+                        .source("system")
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_collection_when_no_match() {
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenAnswer(invocation -> Set.of());
+
+            var result = service.findByMemberIdAndMemberTypeAndReferenceType(
+                "user-id",
+                io.gravitee.apim.core.membership.model.Membership.Type.USER,
+                io.gravitee.apim.core.membership.model.Membership.ReferenceType.API
+            );
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() ->
+                service.findByMemberIdAndMemberTypeAndReferenceType(
+                    "user-id",
+                    io.gravitee.apim.core.membership.model.Membership.Type.USER,
+                    io.gravitee.apim.core.membership.model.Membership.ReferenceType.API
+                )
+            );
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find API memberships for member user-id");
+        }
+    }
+
+    @Nested
     class FindGroupsThatUserBelongsTo {
 
         @Test

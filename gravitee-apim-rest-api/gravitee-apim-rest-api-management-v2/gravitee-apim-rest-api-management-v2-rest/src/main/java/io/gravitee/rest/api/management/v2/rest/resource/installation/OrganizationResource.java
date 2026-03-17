@@ -31,6 +31,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ResourcesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.promotions.PromotionsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
+import io.gravitee.rest.api.management.v2.rest.resource.user.UserResource;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import jakarta.inject.Inject;
@@ -118,6 +119,7 @@ public class OrganizationResource extends AbstractResource {
         return resourceContext.getResource(ManagementUIResource.class);
     }
 
+<<<<<<< HEAD
     @Path("promotions")
     public PromotionsResource getOrganizationPromotionsResource() {
         return resourceContext.getResource(PromotionsResource.class);
@@ -126,5 +128,10 @@ public class OrganizationResource extends AbstractResource {
     @Path("analytics/dashboards")
     public DashboardsResource getDashboardsResource() {
         return resourceContext.getResource(DashboardsResource.class);
+=======
+    @Path("/users/{userId}")
+    public UserResource getUserResource() {
+        return resourceContext.getResource(UserResource.class);
+>>>>>>> 299d0b16a4 (feat(rest-api): add GET /organizations/{orgId}/users/{userId}/apis endpoint)
     }
 }

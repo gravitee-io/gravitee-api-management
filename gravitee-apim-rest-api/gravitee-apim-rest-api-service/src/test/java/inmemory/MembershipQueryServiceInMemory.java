@@ -73,6 +73,23 @@ public class MembershipQueryServiceInMemory implements MembershipQueryService, I
     }
 
     @Override
+    public Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        Membership.Type memberType,
+        Membership.ReferenceType referenceType
+    ) {
+        return storage
+            .stream()
+            .filter(
+                membership ->
+                    membership.getMemberId().equals(memberId) &&
+                    membership.getMemberType() == memberType &&
+                    membership.getReferenceType() == referenceType
+            )
+            .toList();
+    }
+
+    @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String userId) {
         return storage
             .stream()
