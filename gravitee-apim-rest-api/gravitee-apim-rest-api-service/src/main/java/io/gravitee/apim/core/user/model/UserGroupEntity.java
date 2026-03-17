@@ -32,4 +32,5 @@ public class UserGroupEntity {
     private String environmentId;
     private String environmentName;
     private Map<String, String> roles;
+    private boolean apiPrimaryOwner;
 }
