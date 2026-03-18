@@ -51,6 +51,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
     public static final String INVALID_HTTP_METHOD = "INVALID_HTTP_METHOD";
+    public static final String ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT = "failover.managedEndpoint";
 
     private final EndpointManager endpointManager;
 
@@ -125,6 +126,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         if (managedEndpoint != null) {
             HttpEndpointConnector endpointConnector = managedEndpoint.getConnector();
             ctx.setInternalAttribute(ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID, endpointConnector.id());
+            ctx.setInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT, managedEndpoint);
             return (T) endpointConnector;
         }
 
