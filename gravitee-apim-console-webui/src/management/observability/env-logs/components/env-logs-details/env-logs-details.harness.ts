@@ -66,4 +66,12 @@ export class EnvLogsDetailsHarness extends ComponentHarness {
     const loadingEl = await this.locatorForOptional('.logs-details__loading')();
     return loadingEl !== null;
   }
+
+  async hasHeadersSection(): Promise<boolean> {
+    const headers = await this.locatorForAll('h3')();
+    for (const h of headers) {
+      if ((await h.text()).trim() === 'Headers') return true;
+    }
+    return false;
+  }
 }

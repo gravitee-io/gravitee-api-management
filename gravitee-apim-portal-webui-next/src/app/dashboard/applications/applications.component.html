@@ -16,24 +16,24 @@
 
 -->
 
-<div class="content">
-  <div class="apps-list__header">
-    <div class="apps-list__header__title">
-      <div class="title next-gen-h3" i18n="@@applicationsTitle">Applications</div>
-      <p class="next-gen-body" i18n="@@applicationsDescription">
-        An application lets developers connect their projects to your APIs and manage access via subscriptions
-      </p>
-    </div>
-
-    @if (canCreate()) {
-      <button mat-stroked-button class="secondary-button create-button" [routerLink]="['create']">
-        <mat-icon>add</mat-icon>
-        <span i18n="@@applicationsCreateButton">Create</span>
-      </button>
-    }
+<div class="apps-list__header">
+  <div class="apps-list__header__title">
+    <div class="title next-gen-h3" i18n="@@applicationsTitle">Applications</div>
+    <p class="next-gen-body" i18n="@@applicationsDescription">
+      An application lets developers connect their projects to your APIs and manage access via subscriptions
+    </p>
   </div>
 
-  <app-cards-grid [cards]="applicationPaginator().data">
+  @if (canCreate()) {
+    <button mat-stroked-button class="secondary-button create-button" [routerLink]="['create']">
+      <mat-icon>add</mat-icon>
+      <span i18n="@@applicationsCreateButton">Create</span>
+    </button>
+  }
+</div>
+
+<div class="apps-list__content">
+  <app-cards-grid class="apps-list__grid" [cards]="applicationPaginator().data" [showEmptyState]="!loadingPage()">
     <ng-template #cardTemplate let-app>
       <app-application-card
         [applicationId]="app.id"
@@ -49,7 +49,9 @@
       <p class="next-gen-body" i18n="@@noAppsDescription">You haven't created any applications yet.</p>
     </ng-container>
   </app-cards-grid>
-
+  @if (loadingPage()) {
+    <app-loader class="apps-list__loader" />
+  }
   @if (applicationPaginator().totalResults > 0) {
     <app-pagination
       class="list-page__pagination"
