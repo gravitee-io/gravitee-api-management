@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from 'react';
+import { useReducer, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PageLayout } from '@baros/components/layout/PageLayout';
 import { Button } from '@baros/components/ui/button';
@@ -14,12 +14,14 @@ export function PolicyStudioPage() {
   const { api, loading: apiLoading, error: apiError, saveApi } = useApi(apiId ?? '');
   const { policies, loading: policiesLoading, error: policiesError } = usePolicies();
   const [state, dispatch] = useReducer(policyStudioReducer, initialState);
+  const [initializedApiId, setInitializedApiId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (api?.flows) {
+    if (api && api.id !== initializedApiId) {
       dispatch({ type: 'SET_FLOWS', flows: safeFlows(api.flows) });
+      setInitializedApiId(api.id);
     }
-  }, [api]);
+  }, [api, initializedApiId]);
 
   const loading = apiLoading || policiesLoading;
   const error = apiError ?? policiesError;

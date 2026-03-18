@@ -40,11 +40,12 @@ export function useApi(apiId: string): UseApiResult {
   }, [apiId]);
 
   const saveApi = useCallback(async (updatedApi: ApiV4) => {
-    await apiFetch<ApiV4>(`/v2/apis/${apiId}`, {
+    const result = await apiFetch<ApiV4>(`/v2/apis/${apiId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedApi),
     });
+    setApi(result);
   }, [apiId]);
 
   return { api, loading, error, saveApi };

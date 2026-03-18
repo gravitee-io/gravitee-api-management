@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { ScrollArea } from '@baros/components/ui/scroll-area';
 import { Separator } from '@baros/components/ui/separator';
@@ -12,10 +12,13 @@ interface PolicyCatalogProps {
 export function PolicyCatalog({ policies }: PolicyCatalogProps) {
   const [search, setSearch] = useState('');
 
-  const filtered = policies.filter((p) => {
-    const name = p.name ?? p.id ?? '';
-    return name.toLowerCase().includes(search.toLowerCase());
-  });
+  const filtered = useMemo(
+    () => policies.filter((p) => {
+      const name = p.name ?? p.id ?? '';
+      return name.toLowerCase().includes(search.toLowerCase());
+    }),
+    [policies, search],
+  );
 
   return (
     <div className="flex w-64 shrink-0 flex-col border-l">

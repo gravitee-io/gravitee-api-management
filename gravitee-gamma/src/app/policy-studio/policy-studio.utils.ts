@@ -1,10 +1,9 @@
 import type { Flow, Step, Phase, HttpMethod, PolicyPlugin } from './types';
 
-export function newStep(policyId: string, policies?: PolicyPlugin[]): Step {
-  const policy = policies?.find((p) => p.id === policyId);
+export function newStep(policyId: string, policyName?: string): Step {
   return {
     id: crypto.randomUUID(),
-    name: policy?.name ?? policyId,
+    name: policyName ?? policyId,
     enabled: true,
     policy: policyId,
     configuration: {},
@@ -28,12 +27,7 @@ export function newFlow(name: string, path: string, methods?: HttpMethod[]): Flo
   };
 }
 
-export function reorder<T>(list: readonly T[], from: number, to: number): T[] {
-  const result = [...list];
-  const [removed] = result.splice(from, 1);
-  result.splice(to, 0, removed);
-  return result;
-}
+export { arrayMove as reorder } from '@dnd-kit/sortable';
 
 export function updateFlowPhase(flow: Flow, phase: Phase, updater: (steps: Step[]) => Step[]): Flow {
   return {
@@ -42,13 +36,19 @@ export function updateFlowPhase(flow: Flow, phase: Phase, updater: (steps: Step[
   };
 }
 
+const API_TYPE_TO_PROTOCOL: Record<string, string> = {
+  PROXY: 'HTTP_PROXY',
+  MESSAGE: 'MESSAGE',
+};
+
 export function isPhaseCompatible(
   policy: PolicyPlugin | undefined,
   phase: Phase,
-  apiType: string = 'HTTP_PROXY',
+  apiType: string = 'PROXY',
 ): boolean {
   if (!policy?.flowPhaseCompatibility) return true;
-  const allowed = policy.flowPhaseCompatibility[apiType];
+  const protocolType = API_TYPE_TO_PROTOCOL[apiType] ?? 'HTTP_PROXY';
+  const allowed = policy.flowPhaseCompatibility[protocolType];
   if (!allowed) return true;
   return allowed.includes(phase);
 }

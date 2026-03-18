@@ -1,4 +1,4 @@
-import { useState, type Dispatch } from 'react';
+import { useState, useMemo, useRef, type Dispatch } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -27,22 +27,32 @@ interface PolicyStudioLayoutProps {
 
 export function PolicyStudioLayout({ state, dispatch, policies, apiType }: PolicyStudioLayoutProps) {
   const [selectedStepKey, setSelectedStepKey] = useState<StepKey | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [activeDragData, setActiveDragData] = useState<DragData | null>(null);
-  const [dropState, setDropState] = useState<Record<string, 'compatible' | 'incompatible' | null>>({});
+  const [dropPhaseState, setDropPhaseState] = useState<{ phase: Phase; status: 'compatible' | 'incompatible' } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  const policyMap = useMemo(
+    () => new Map(policies.map((p) => [p.id, p])),
+    [policies],
   );
 
   const currentFlow = state.flows[state.selectedFlowIndex] ?? null;
   const selectedStep = selectedStepKey && currentFlow
     ? (currentFlow[selectedStepKey.phase] ?? [])[selectedStepKey.index] ?? null
     : null;
+  const sheetOpen = selectedStepKey !== null;
+
+  const lastDropPhaseRef = useRef<string | null>(null);
 
   function handleStepSelect(stepKey: StepKey) {
     setSelectedStepKey(stepKey);
-    setSheetOpen(true);
+  }
+
+  function handleSheetOpenChange(open: boolean) {
+    if (!open) setSelectedStepKey(null);
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -53,7 +63,10 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event;
     if (!over) {
-      setDropState({});
+      if (lastDropPhaseRef.current !== null) {
+        lastDropPhaseRef.current = null;
+        setDropPhaseState(null);
+      }
       return;
     }
 
@@ -63,31 +76,34 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
     const overData = over.data.current as { type?: string; phase?: Phase } | undefined;
     if (overData?.type !== 'phase' || !overData.phase) return;
 
-    const policy = policies.find((p) => p.id === dragData.policyId);
-    const compatible = isPhaseCompatible(policy, overData.phase, apiType);
+    const policy = policyMap.get(dragData.policyId);
+    const status = isPhaseCompatible(policy, overData.phase, apiType) ? 'compatible' : 'incompatible';
+    const key = `${overData.phase}-${status}`;
 
-    setDropState({ [over.id as string]: compatible ? 'compatible' : 'incompatible' });
+    if (lastDropPhaseRef.current === key) return;
+    lastDropPhaseRef.current = key;
+    setDropPhaseState({ phase: overData.phase, status });
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveDragData(null);
-    setDropState({});
+    setDropPhaseState(null);
+    lastDropPhaseRef.current = null;
 
     if (!over) return;
 
     const dragData = active.data.current as DragData | undefined;
     if (!dragData) return;
 
-    // Drag policy from catalog to a phase
     if (dragData.type === 'policy') {
       const overData = over.data.current as { type?: string; phase?: Phase; flowIndex?: number } | undefined;
       if (overData?.type !== 'phase' || !overData.phase) return;
 
-      const policy = policies.find((p) => p.id === dragData.policyId);
+      const policy = policyMap.get(dragData.policyId);
       if (!isPhaseCompatible(policy, overData.phase, apiType)) return;
 
-      const step = newStep(dragData.policyId, policies);
+      const step = newStep(dragData.policyId, policy?.name);
       dispatch({
         type: 'ADD_STEP',
         flowIndex: overData.flowIndex ?? state.selectedFlowIndex,
@@ -97,7 +113,6 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
       return;
     }
 
-    // Reorder step within a phase
     if (dragData.type === 'step') {
       if (active.id === over.id) return;
 
@@ -122,19 +137,19 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
 
   function handleDragCancel() {
     setActiveDragData(null);
-    setDropState({});
+    setDropPhaseState(null);
+    lastDropPhaseRef.current = null;
   }
 
   function getDropStateForPhase(phase: Phase): 'compatible' | 'incompatible' | null {
-    const key = `phase-${state.selectedFlowIndex}-${phase}`;
-    return dropState[key] ?? null;
+    if (!dropPhaseState || dropPhaseState.phase !== phase) return null;
+    return dropPhaseState.status;
   }
 
-  // Find the dragged item name for the overlay
-  const dragOverlayLabel = (() => {
+  const dragOverlayLabel = useMemo(() => {
     if (!activeDragData) return null;
     if (activeDragData.type === 'policy') {
-      const policy = policies.find((p) => p.id === activeDragData.policyId);
+      const policy = policyMap.get(activeDragData.policyId);
       return policy?.name ?? activeDragData.policyId;
     }
     if (activeDragData.type === 'step') {
@@ -143,7 +158,7 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
       return step?.name ?? step?.policy ?? 'Step';
     }
     return null;
-  })();
+  }, [activeDragData, policyMap, state.flows]);
 
   return (
     <DndContext
@@ -194,7 +209,7 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
 
       <StepConfigSheet
         open={sheetOpen}
-        onOpenChange={setSheetOpen}
+        onOpenChange={handleSheetOpenChange}
         step={selectedStep}
         phase={selectedStepKey?.phase ?? null}
         onSave={(configuration) => {

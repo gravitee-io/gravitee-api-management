@@ -31,8 +31,10 @@ export const initialState: PolicyStudioState = {
 
 export function policyStudioReducer(state: PolicyStudioState, action: PolicyStudioAction): PolicyStudioState {
   switch (action.type) {
-    case 'SET_FLOWS':
-      return { ...state, flows: action.flows, isDirty: false, selectedFlowIndex: 0 };
+    case 'SET_FLOWS': {
+      const selectedFlowIndex = Math.min(state.selectedFlowIndex, Math.max(0, action.flows.length - 1));
+      return { ...state, flows: action.flows, isDirty: false, selectedFlowIndex };
+    }
 
     case 'SELECT_FLOW': {
       const index = Math.max(0, Math.min(action.index, state.flows.length - 1));
