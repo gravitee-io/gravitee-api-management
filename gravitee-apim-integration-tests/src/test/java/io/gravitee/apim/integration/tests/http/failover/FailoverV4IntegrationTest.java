@@ -18,6 +18,7 @@ package io.gravitee.apim.integration.tests.http.failover;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_APIKEY_ID;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
@@ -669,6 +670,84 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @Test
         void should_success_on_first_retry(HttpClient client) {
             super.should_success_on_first_retry(client);
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class FailureConditionEvaluation extends AbstractGatewayTest {
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-failure-condition.json")
+        void should_retry_when_failure_condition_matches_and_succeed_on_second_attempt(HttpClient client) {
+            // Given a backend that returns 500 on the first call, then 200 on the second
+            wiremock.stubFor(
+                get("/endpoint")
+                    .inScenario("failure-condition")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willReturn(serverError().withBody("error"))
+                    .willSetStateTo("recovered")
+            );
+            wiremock.stubFor(
+                get("/endpoint").inScenario("failure-condition").whenScenarioStateIs("recovered").willReturn(ok(RESPONSE_FROM_BACKEND))
+            );
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the response should be 200 (recovered on retry)
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                    return true;
+                });
+
+            // Then the backend should have been called 2 times (1st 500 + 2nd 200)
+            wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-failure-condition.json")
+        void should_not_retry_when_response_is_successful(HttpClient client) {
+            // Given a backend that returns 200 directly
+            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the response should be 200
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                    return true;
+                });
+
+            // Then the backend should have been called only once (no retry)
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
     }
 
