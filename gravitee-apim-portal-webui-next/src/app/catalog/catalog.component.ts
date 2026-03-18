@@ -33,9 +33,8 @@ import { LoaderComponent } from '../../components/loader/loader.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
-import { ApisResponse } from '../../entities/api/apis-response';
-import { ApiService } from '../../services/api.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
+import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
 interface ApiVM {
   id: string;
@@ -45,6 +44,8 @@ interface ApiVM {
   isEnabledMcpServer: boolean;
   picture?: string;
   labels?: string[];
+  rootId: string;
+  navItemId: string;
 }
 
 interface ApiPaginatorVM {
@@ -80,7 +81,7 @@ export class CatalogComponent {
   pageSizeOptions = [8, 20, 40, 80];
   viewMode = signal<'grid' | 'list'>('grid');
 
-  private readonly apiService = inject(ApiService);
+  private readonly portalNavigationItemsService = inject(PortalNavigationItemsService);
   private readonly breakpointService = inject(ObservabilityBreakpointService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -89,7 +90,9 @@ export class CatalogComponent {
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
   protected readonly tableColumns = computed(() => (this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'version', 'mcp']));
-  protected apiPaginator: Signal<ApiPaginatorVM> = toSignal(this.loadApis$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
+  protected apiPaginator: Signal<ApiPaginatorVM> = toSignal(this.loadNavigationItemsWithApis$(), {
+    initialValue: { data: [], page: 1, totalResults: 0 },
+  });
 
   constructor() {
     effect(() => {
@@ -122,27 +125,36 @@ export class CatalogComponent {
   }
 
   navigateToApi(id: string) {
-    this.router.navigate(['api', id], { relativeTo: this.route });
+    const api = this.apiPaginator().data.find(api => api.id === id);
+    if (api) {
+      this.router.navigate(['/documentation', api.rootId], { queryParams: { selectedId: api.navItemId } });
+    } else {
+      this.router.navigate(['/404']);
+    }
   }
 
-  private loadApis$(): Observable<ApiPaginatorVM> {
+  private loadNavigationItemsWithApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
-      map(currentPage => ({ currentPage, pageSize: this.pageSize, query: this.query() })),
+      map(page => ({ page, pageSize: this.pageSize, query: this.query() })),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
       tap(_ => this.loadingPage.set(true)),
-      switchMap(({ currentPage, pageSize, query }) => this.searchApis$(currentPage, pageSize, query)),
+      switchMap(({ page, pageSize, query }) =>
+        this.portalNavigationItemsService
+          .searchNavigationItemsWithApis(page, query, pageSize)
+          .pipe(catchError(_ => of({ data: [], metadata: undefined }))),
+      ),
       map(resp => {
-        const data = resp.data
-          ? resp.data.map(api => ({
-              id: api.id,
-              content: api.description,
-              version: api.version,
-              title: api.name,
-              picture: api._links?.picture,
-              isEnabledMcpServer: !!api.mcp,
-              labels: api.labels,
-            }))
-          : [];
+        const data = resp.data.map(item => ({
+          id: item.id,
+          content: item.description,
+          version: item.version,
+          title: item.name,
+          picture: item._links?.picture,
+          isEnabledMcpServer: !!item.mcp,
+          labels: item.labels,
+          rootId: item.rootId,
+          navItemId: item.navItemId,
+        }));
 
         const page = resp.metadata?.pagination?.current_page ?? 1;
         const totalResults = resp.metadata?.pagination?.total ?? 0;
@@ -154,9 +166,5 @@ export class CatalogComponent {
       }),
       tap(_ => this.loadingPage.set(false)),
     );
-  }
-
-  private searchApis$(page: number, size: number, query?: string): Observable<ApisResponse> {
-    return this.apiService.search(page, 'all', query ?? '', size).pipe(catchError(_ => of({ data: [], metadata: undefined })));
   }
 }
