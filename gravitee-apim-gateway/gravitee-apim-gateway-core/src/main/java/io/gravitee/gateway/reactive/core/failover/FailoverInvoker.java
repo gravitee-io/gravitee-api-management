@@ -88,12 +88,29 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
             ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
             // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
-            return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx));
+            return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx)).andThen(evaluateFailureCondition(ctx));
         })
             .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
             .retry(failoverConfiguration.getMaxRetries())
             .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
             .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)));
+    }
+
+    private Completable evaluateFailureCondition(HttpExecutionContext ctx) {
+        String condition = failoverConfiguration.getFailureCondition();
+        if (condition == null || condition.isEmpty()) {
+            return Completable.complete();
+        }
+        return ctx
+            .getTemplateEngine()
+            .eval(condition, Boolean.class)
+            .flatMapCompletable(isFailure -> {
+                if (Boolean.TRUE.equals(isFailure)) {
+                    return Completable.error(new FailoverConditionMatchException("Failover condition matched: " + condition));
+                }
+                return Completable.complete();
+            })
+            .onErrorComplete(t -> !(t instanceof FailoverConditionMatchException));
     }
 
     private CircuitBreaker circuitBreaker(HttpExecutionContext ctx) {

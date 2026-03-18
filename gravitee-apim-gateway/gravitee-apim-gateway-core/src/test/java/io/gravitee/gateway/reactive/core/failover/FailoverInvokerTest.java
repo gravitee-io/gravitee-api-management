@@ -16,12 +16,14 @@
 package io.gravitee.gateway.reactive.core.failover;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
@@ -39,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -202,5 +205,110 @@ class FailoverInvokerTest {
         assertThat(executionContextArgumentCaptor.getAllValues())
             .hasSize(1)
             .allSatisfy(ctx -> assertThat(ctx.<String>getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).isEqualTo("endpoint-name"));
+    }
+
+    @Nested
+    class FailureConditionEvaluation {
+
+        private static final String CONDITION = "{#response.status >= 500}";
+
+        @Mock
+        private TemplateEngine templateEngine;
+
+        @Mock
+        private HttpExecutionContext mockCtx;
+
+        @BeforeEach
+        void setUpConditionTests() {
+            lenient().when(mockCtx.getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).thenReturn("endpoint-name");
+            lenient().when(mockCtx.request()).thenReturn(request);
+            lenient().when(mockCtx.getTemplateEngine()).thenReturn(templateEngine);
+            lenient()
+                .when(mockCtx.interruptWith(any()))
+                .thenAnswer(invocation -> {
+                    ExecutionFailure failure = invocation.getArgument(0);
+                    return Completable.error(new InterruptionFailureException(failure));
+                });
+        }
+
+        @Test
+        void should_retry_when_failure_condition_matches() {
+            // Given
+            cut = new FailoverInvoker(
+                endpointInvoker,
+                Failover.builder().failureCondition(CONDITION).slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+                API_ID
+            );
+            when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.just(true));
+            when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
+
+            // When - condition always true → retries exhausted → 502
+            cut
+                .invoke(mockCtx)
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertError(
+                    t ->
+                        t instanceof InterruptionFailureException &&
+                        ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+                );
+
+            // Then - 1 initial + 2 retries = 3 invocations
+            verify(endpointInvoker, times(3)).invoke(mockCtx);
+        }
+
+        @Test
+        void should_not_retry_when_condition_does_not_match() {
+            // Given
+            cut = new FailoverInvoker(
+                endpointInvoker,
+                Failover.builder().failureCondition(CONDITION).slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+                API_ID
+            );
+            when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.just(false));
+            when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
+
+            // When
+            cut.invoke(mockCtx).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            // Then
+            verify(endpointInvoker, times(1)).invoke(mockCtx);
+        }
+
+        @Test
+        void should_not_evaluate_when_no_condition_configured() {
+            // Given
+            cut = new FailoverInvoker(
+                endpointInvoker,
+                Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+                API_ID
+            );
+            when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
+
+            // When
+            cut.invoke(mockCtx).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            // Then
+            verify(endpointInvoker, times(1)).invoke(mockCtx);
+            verify(templateEngine, times(0)).eval(CONDITION, Boolean.class);
+        }
+
+        @Test
+        void should_ignore_el_evaluation_error() {
+            // Given
+            cut = new FailoverInvoker(
+                endpointInvoker,
+                Failover.builder().failureCondition(CONDITION).slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+                API_ID
+            );
+            when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.error(new RuntimeException("EL evaluation error")));
+            when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
+
+            // When
+            cut.invoke(mockCtx).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            // Then - no retry, error is silently ignored
+            verify(endpointInvoker, times(1)).invoke(mockCtx);
+        }
     }
 }
