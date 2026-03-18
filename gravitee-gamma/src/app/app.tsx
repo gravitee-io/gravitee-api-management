@@ -10,6 +10,7 @@ import type { AppOption } from '@baros/components/layout/AppDropdown';
 import { AppBetaLayout } from './app-beta/AppBetaLayout';
 import { DeveloperPortalLayout } from './developer-portal/DeveloperPortalLayout';
 import { PortalHomepageRemote } from './developer-portal/PortalHomepageRemote';
+import { PolicyStudioPage } from './policy-studio/PolicyStudioPage';
 
 const INSTALLATION_APPLICATIONS_URL = '/management/v2/installation/applications';
 
@@ -152,6 +153,7 @@ export function App() {
                         <Route path="/" element={<WelcomePage />} />
                         <Route path="/app-alpha/*" element={<AppAlpha />} />
                         <Route path="/app-beta/*" element={<AppBetaLayout />} />
+                        <Route path="/policy-studio/:apiId" element={<PolicyStudioPage />} />
                         <Route path="/developer-portal" element={<DeveloperPortalLayout />}>
                             <Route path="homepage" element={<PortalHomepageRemote />} />
                             <Route index element={<Navigate to="homepage" replace />} />
