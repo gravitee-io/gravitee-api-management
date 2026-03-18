@@ -29,6 +29,7 @@ import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -112,6 +113,9 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     public Set<User> findByIds(final Collection<String> ids) throws TechnicalException {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptySet();
+        }
         final String[] lastId = new String[1];
         List<String> uniqueIds = ids
             .stream()
