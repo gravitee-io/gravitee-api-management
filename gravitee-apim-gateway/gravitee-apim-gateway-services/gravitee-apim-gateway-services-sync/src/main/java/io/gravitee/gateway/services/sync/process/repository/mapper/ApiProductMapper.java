@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
@@ -80,7 +81,7 @@ public class ApiProductMapper {
                     .apiIds(payload.getApiIds())
                     .environmentId(payload.getEnvironmentId())
                     .deployedAt(new Date(event.getCreatedAt().getTime()))
-                    .plans(payload.getPlans())
+                    .plans(filteredPlans(payload.getPlans()))
                     .build();
 
                 // Fill environment and organization details
@@ -92,6 +93,16 @@ public class ApiProductMapper {
                 return null;
             }
         });
+    }
+
+    private static List<Plan> filteredPlans(List<Plan> plans) {
+        if (plans == null || plans.isEmpty()) {
+            return plans;
+        }
+        return plans
+            .stream()
+            .filter(p -> p.getStatus() == PlanStatus.PUBLISHED || p.getStatus() == PlanStatus.DEPRECATED)
+            .toList();
     }
 
     /**

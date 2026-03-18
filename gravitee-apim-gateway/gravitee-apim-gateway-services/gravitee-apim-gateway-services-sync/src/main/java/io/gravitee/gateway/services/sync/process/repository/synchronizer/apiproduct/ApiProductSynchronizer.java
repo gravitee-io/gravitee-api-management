@@ -16,7 +16,6 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct;
 
 import io.gravitee.definition.model.v4.plan.Plan;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -83,7 +82,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
             )
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(events -> processEvents(events, environments))
+            .compose(this::processEvents)
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
@@ -106,10 +105,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
         return Order.API_PRODUCT.index();
     }
 
-    private Flowable<ApiProductReactorDeployable> processEvents(
-        final Flowable<List<Event>> eventsFlowable,
-        final Set<String> environments
-    ) {
+    private Flowable<ApiProductReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {
         return eventsFlowable
             // fetch per page
             .flatMap(events ->
@@ -119,7 +115,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                     .groupBy(Event::getType)
                     .flatMap(eventsByType -> {
                         if (eventsByType.getKey() == EventType.DEPLOY_API_PRODUCT) {
-                            return prepareForDeployment(eventsByType, environments);
+                            return prepareForDeployment(eventsByType);
                         } else if (eventsByType.getKey() == EventType.UNDEPLOY_API_PRODUCT) {
                             return prepareForUndeployment(eventsByType);
                         } else {
@@ -146,10 +142,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
             });
     }
 
-    private Flowable<ApiProductReactorDeployable> prepareForDeployment(
-        final GroupedFlowable<EventType, Event> eventsByType,
-        final Set<String> environments
-    ) {
+    private Flowable<ApiProductReactorDeployable> prepareForDeployment(final GroupedFlowable<EventType, Event> eventsByType) {
         return eventsByType
             .flatMapMaybe(apiProductMapper::to)
             .map(reactableApiProduct -> {
@@ -160,12 +153,6 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                     .reactableApiProduct(reactableApiProduct);
                 if (plans != null && !plans.isEmpty()) {
                     builder.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
-                    builder.definitionPlans(
-                        plans
-                            .stream()
-                            .filter(p -> p.getStatus() == PlanStatus.PUBLISHED || p.getStatus() == PlanStatus.DEPRECATED)
-                            .toList()
-                    );
                 }
                 return builder.build();
             });
