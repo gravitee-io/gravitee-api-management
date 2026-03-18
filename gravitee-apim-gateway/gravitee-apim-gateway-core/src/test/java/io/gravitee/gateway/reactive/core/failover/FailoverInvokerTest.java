@@ -33,6 +33,7 @@ import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -71,6 +72,9 @@ class FailoverInvokerTest {
     @Mock
     private Metrics metrics;
 
+    @Mock
+    private EndpointManager endpointManager;
+
     private HttpExecutionContext executionContext;
 
     private FailoverInvoker cut;
@@ -84,13 +88,13 @@ class FailoverInvokerTest {
 
     @Test
     void should_return_id() {
-        cut = new FailoverInvoker(endpointInvoker, Failover.builder().build(), API_ID);
+        cut = new FailoverInvoker(endpointInvoker, Failover.builder().build(), API_ID, endpointManager);
         assertThat(cut.getId()).isEqualTo("failover-invoker");
     }
 
     @Test
     void should_configure_one_circuit_breaker_if_not_per_subscription() {
-        cut = new FailoverInvoker(endpointInvoker, Failover.builder().perSubscription(false).build(), API_ID);
+        cut = new FailoverInvoker(endpointInvoker, Failover.builder().perSubscription(false).build(), API_ID, endpointManager);
         assertThat(cut.circuitBreaker).isNotNull();
         assertThat(cut.circuitBreaker.getName()).isEqualTo(API_ID);
         assertThat(cut.circuitBreakerRegistry).isNull();
@@ -98,7 +102,7 @@ class FailoverInvokerTest {
 
     @Test
     void should_configure_circuit_breaker_registry_if_per_subscription() {
-        cut = new FailoverInvoker(endpointInvoker, Failover.builder().perSubscription(true).build(), API_ID);
+        cut = new FailoverInvoker(endpointInvoker, Failover.builder().perSubscription(true).build(), API_ID, endpointManager);
         assertThat(cut.circuitBreaker).isNull();
         assertThat(cut.circuitBreakerRegistry).isNotNull();
     }
@@ -108,7 +112,8 @@ class FailoverInvokerTest {
         cut = new FailoverInvoker(
             endpointInvoker,
             Failover.builder().slowCallDuration(50).maxRetries(2).perSubscription(true).build(),
-            API_ID
+            API_ID,
+            endpointManager
         );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete());
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
@@ -134,7 +139,8 @@ class FailoverInvokerTest {
         cut = new FailoverInvoker(
             endpointInvoker,
             Failover.builder().slowCallDuration(50).maxRetries(2).perSubscription(false).build(),
-            API_ID
+            API_ID,
+            endpointManager
         );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete().delay(100, TimeUnit.MILLISECONDS));
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
@@ -161,7 +167,8 @@ class FailoverInvokerTest {
         cut = new FailoverInvoker(
             endpointInvoker,
             Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
-            API_ID
+            API_ID,
+            endpointManager
         );
         when(endpointInvoker.invoke(executionContext)).thenReturn(
             executionContext.interruptWith(new ExecutionFailure(505)),
@@ -185,7 +192,8 @@ class FailoverInvokerTest {
         cut = new FailoverInvoker(
             endpointInvoker,
             Failover.builder().slowCallDuration(50).maxRetries(0).perSubscription(false).build(),
-            API_ID
+            API_ID,
+            endpointManager
         );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete().delay(100, TimeUnit.MILLISECONDS));
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
@@ -237,7 +245,8 @@ class FailoverInvokerTest {
             cut = new FailoverInvoker(
                 endpointInvoker,
                 Failover.builder().failureCondition(CONDITION).slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
-                API_ID
+                API_ID,
+                endpointManager
             );
             when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.just(true));
             when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
@@ -263,7 +272,8 @@ class FailoverInvokerTest {
             cut = new FailoverInvoker(
                 endpointInvoker,
                 Failover.builder().failureCondition(CONDITION).slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
-                API_ID
+                API_ID,
+                endpointManager
             );
             when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.just(false));
             when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
@@ -281,7 +291,8 @@ class FailoverInvokerTest {
             cut = new FailoverInvoker(
                 endpointInvoker,
                 Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
-                API_ID
+                API_ID,
+                endpointManager
             );
             when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
 
@@ -299,7 +310,8 @@ class FailoverInvokerTest {
             cut = new FailoverInvoker(
                 endpointInvoker,
                 Failover.builder().failureCondition(CONDITION).slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
-                API_ID
+                API_ID,
+                endpointManager
             );
             when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.error(new RuntimeException("EL evaluation error")));
             when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
