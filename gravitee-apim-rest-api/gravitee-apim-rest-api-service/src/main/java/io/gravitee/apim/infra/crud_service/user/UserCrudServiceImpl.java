@@ -55,6 +55,9 @@ public class UserCrudServiceImpl implements UserCrudService {
 
     @Override
     public Set<BaseUserEntity> findBaseUsersByIds(List<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Set.of();
+        }
         try {
             log.debug("Find users [userIds={}]", userIds);
             return userRepository.findByIds(userIds).stream().map(UserAdapter.INSTANCE::fromUser).collect(Collectors.toSet());

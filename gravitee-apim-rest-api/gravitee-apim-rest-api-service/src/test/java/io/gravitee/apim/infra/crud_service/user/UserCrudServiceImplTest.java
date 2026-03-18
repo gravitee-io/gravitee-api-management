@@ -36,6 +36,8 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 public class UserCrudServiceImplTest {
 
@@ -120,6 +122,13 @@ public class UserCrudServiceImplTest {
 
     @Nested
     class FindBaseUserByIds {
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        void should_return_empty_set_when_user_ids_is_null_or_empty(List<String> userIds) {
+            var result = service.findBaseUsersByIds(userIds);
+            assertThat(result).isEmpty();
+        }
 
         @Test
         void should_find_users_and_adapt_them() throws TechnicalException {
