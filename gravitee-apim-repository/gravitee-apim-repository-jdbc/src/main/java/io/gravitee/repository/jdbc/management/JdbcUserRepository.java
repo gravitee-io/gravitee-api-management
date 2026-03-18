@@ -110,6 +110,9 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     public Set<User> findByIds(final Collection<String> ids) throws TechnicalException {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptySet();
+        }
         final String[] lastId = new String[1];
         List<String> uniqueIds = ids
             .stream()
