@@ -94,7 +94,6 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     private void registerApiProductPlans(ApiProductReactorDeployable deployable) {
         String apiProductId = deployable.apiProductId();
         planService.register(deployable);
-        deployable.reactableApiProduct().setPlans(deployable.definitionPlans());
         log.debug("Registered {} plans for API Product [{}]", deployable.subscribablePlans().size(), apiProductId);
     }
 

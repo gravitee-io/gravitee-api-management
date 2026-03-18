@@ -346,8 +346,7 @@ class ApiProductSynchronizerTest {
     class PlansInPayloadTest {
 
         @Test
-        void should_set_subscribable_and_definition_plans_when_payload_contains_published_plan()
-            throws InterruptedException, JsonProcessingException {
+        void should_set_subscribable_plans_when_payload_contains_published_plan() throws InterruptedException, JsonProcessingException {
             Event event = createDeployEventWithPlans(
                 "api-product-plans",
                 List.of(Map.of("id", "plan-published", "name", "Published Plan", "status", "PUBLISHED"))
@@ -361,13 +360,13 @@ class ApiProductSynchronizerTest {
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).containsExactly("plan-published");
-            assertThat(deployable.definitionPlans()).hasSize(1);
-            assertThat(deployable.definitionPlans().get(0).getId()).isEqualTo("plan-published");
-            assertThat(deployable.definitionPlans().get(0).getStatus()).isEqualTo(PlanStatus.PUBLISHED);
+            assertThat(deployable.reactableApiProduct().getPlans()).hasSize(1);
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getId()).isEqualTo("plan-published");
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getStatus()).isEqualTo(PlanStatus.PUBLISHED);
         }
 
         @Test
-        void should_include_deprecated_plan_in_definition_plans() throws InterruptedException, JsonProcessingException {
+        void should_include_deprecated_plan_in_subscribable_and_reactable_plans() throws InterruptedException, JsonProcessingException {
             Event event = createDeployEventWithPlans(
                 "api-product-deprecated",
                 List.of(Map.of("id", "plan-deprecated", "name", "Deprecated Plan", "status", "DEPRECATED"))
@@ -381,13 +380,13 @@ class ApiProductSynchronizerTest {
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).containsExactly("plan-deprecated");
-            assertThat(deployable.definitionPlans()).hasSize(1);
-            assertThat(deployable.definitionPlans().get(0).getStatus()).isEqualTo(PlanStatus.DEPRECATED);
+            assertThat(deployable.reactableApiProduct().getPlans()).hasSize(1);
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getStatus()).isEqualTo(PlanStatus.DEPRECATED);
         }
 
         @Test
-        void should_exclude_closed_plan_from_definition_plans_but_keep_in_subscribable()
-            throws InterruptedException, JsonProcessingException {
+        void should_exclude_closed_plan_from_subscribable_and_reactable_plans() throws InterruptedException, JsonProcessingException {
+            // Mapper filters to PUBLISHED|DEPRECATED — CLOSED plans are stripped before the synchronizer sees them
             Event event = createDeployEventWithPlans(
                 "api-product-closed",
                 List.of(Map.of("id", "plan-closed", "name", "Closed Plan", "status", "CLOSED"))
@@ -400,12 +399,12 @@ class ApiProductSynchronizerTest {
             verify(apiProductDeployer).deploy(captor.capture());
 
             ApiProductReactorDeployable deployable = captor.getValue();
-            assertThat(deployable.subscribablePlans()).containsExactly("plan-closed");
-            assertThat(deployable.definitionPlans()).isEmpty();
+            assertThat(deployable.subscribablePlans()).isEmpty();
+            assertThat(deployable.reactableApiProduct().getPlans()).isEmpty();
         }
 
         @Test
-        void should_filter_mixed_status_plans_correctly() throws InterruptedException, JsonProcessingException {
+        void should_filter_mixed_status_plans_keeping_only_published_and_deprecated() throws InterruptedException, JsonProcessingException {
             Event event = createDeployEventWithPlans(
                 "api-product-mixed",
                 List.of(
@@ -422,17 +421,16 @@ class ApiProductSynchronizerTest {
             verify(apiProductDeployer).deploy(captor.capture());
 
             ApiProductReactorDeployable deployable = captor.getValue();
-            assertThat(deployable.subscribablePlans()).containsExactlyInAnyOrder("plan-pub", "plan-dep", "plan-clo");
-            // CLOSED plan excluded from definitionPlans
-            assertThat(deployable.definitionPlans()).hasSize(2);
-            assertThat(deployable.definitionPlans())
+            // CLOSED plan is excluded by the mapper — only PUBLISHED and DEPRECATED reach the gateway
+            assertThat(deployable.subscribablePlans()).containsExactlyInAnyOrder("plan-pub", "plan-dep");
+            assertThat(deployable.reactableApiProduct().getPlans())
                 .extracting(p -> p.getId())
                 .containsExactlyInAnyOrder("plan-pub", "plan-dep");
         }
 
         @Test
         void should_not_set_plans_when_payload_has_no_plans() throws InterruptedException, JsonProcessingException {
-            // payload without "plans" key → plans will be null on ReactableApiProduct
+            // payload without "plans" key → no plans on ReactableApiProduct
             Event event = new Event();
             event.setId("event-no-plans");
             event.setType(DEPLOY_API_PRODUCT);
@@ -462,7 +460,7 @@ class ApiProductSynchronizerTest {
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).isEmpty();
-            assertThat(deployable.definitionPlans()).isEmpty();
+            assertThat(deployable.reactableApiProduct().getPlans()).isNullOrEmpty();
         }
 
         private Event createDeployEventWithPlans(String apiProductId, List<Map<String, String>> plans) throws JsonProcessingException {
