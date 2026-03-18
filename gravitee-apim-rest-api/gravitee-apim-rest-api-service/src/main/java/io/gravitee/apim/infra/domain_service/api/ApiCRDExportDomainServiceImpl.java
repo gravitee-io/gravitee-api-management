@@ -114,8 +114,10 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
         membersById.forEach((id, member) -> {
             var user = usersById.get(id);
-            member.setSourceId(user.getSourceId());
-            member.setSource(user.getSource());
+            if (user != null) {
+                member.setSourceId(user.getSourceId());
+                member.setSource(user.getSource());
+            }
             member.setId(null);
         });
     }
