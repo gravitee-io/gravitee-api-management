@@ -65,14 +65,12 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
-import io.vertx.rxjava3.core.http.HttpServer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -690,19 +688,6 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-            final int availablePort = getAvailablePort();
-            final HttpServer httpServer = Vertx.vertx().createHttpServer(new HttpServerOptions().setPort(availablePort));
-            httpServer.connectionHandler(connection -> {
-                System.out.println("🤞connection");
-            });
-            httpServer.requestHandler(request -> {
-                System.out.println(" request: " + request.absoluteURI());
-                if (request.absoluteURI().contains("dynamic-param")) {
-                    //                    request.response().setStatusCode(200).end("ok from backend - 1");
-                }
-            });
-            httpServer.listen().subscribe();
-
             if (isLegacyApi(definitionClass)) {
                 throw new IllegalStateException("should be testing a v4 API");
             }
