@@ -31,7 +31,6 @@ import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -99,7 +98,6 @@ class ApiProductDeployerTest {
                 .apiProductId("api-product-123")
                 .reactableApiProduct(reactableApiProduct)
                 .subscribablePlans(Set.of())
-                .definitionPlans(List.of())
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
@@ -122,7 +120,6 @@ class ApiProductDeployerTest {
                 .apiProductId("api-product-min")
                 .reactableApiProduct(reactableApiProduct)
                 .subscribablePlans(Set.of())
-                .definitionPlans(List.of())
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
@@ -145,7 +142,6 @@ class ApiProductDeployerTest {
                 .apiProductId("api-product-123")
                 .reactableApiProduct(reactableApiProduct)
                 .subscribablePlans(Set.of())
-                .definitionPlans(List.of())
                 .build();
 
             cut.doAfterDeployment(deployable).test().assertComplete();
@@ -174,7 +170,6 @@ class ApiProductDeployerTest {
                 .apiProductId("api-product-123")
                 .reactableApiProduct(newProduct)
                 .subscribablePlans(Set.of("plan-1"))
-                .definitionPlans(List.of())
                 .build();
 
             when(apiProductManager.get("api-product-123")).thenReturn(oldProduct);
@@ -340,7 +335,6 @@ class ApiProductDeployerTest {
                 .apiProductId(product.getId())
                 .reactableApiProduct(product)
                 .subscribablePlans(Set.of())
-                .definitionPlans(List.of())
                 .build();
         }
 
@@ -372,7 +366,6 @@ class ApiProductDeployerTest {
                 .apiProductId("api-product-123")
                 .reactableApiProduct(reactableApiProduct)
                 .subscribablePlans(Set.of("plan-1"))
-                .definitionPlans(List.of())
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
