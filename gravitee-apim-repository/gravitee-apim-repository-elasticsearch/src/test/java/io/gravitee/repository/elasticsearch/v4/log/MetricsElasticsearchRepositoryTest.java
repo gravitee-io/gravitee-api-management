@@ -33,6 +33,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -890,7 +891,10 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
 
         @Test
         void should_return_distinct_error_keys_for_api() {
-            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "f1608475-dd77-4603-a084-75dd775603e9", null, null);
+            var from = timeProvider.getNow().minus(1, ChronoUnit.DAYS).toEpochMilli();
+            var to = timeProvider.getNow().plus(1, ChronoUnit.DAYS).toEpochMilli();
+
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "f1608475-dd77-4603-a084-75dd775603e9", from, to);
 
             assertThat(result)
                 .hasSize(2)
