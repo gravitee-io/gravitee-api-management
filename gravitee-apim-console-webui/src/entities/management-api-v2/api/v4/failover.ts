@@ -24,4 +24,6 @@ export interface Failover {
   openStateDuration?: number;
   maxFailures?: number;
   perSubscription?: boolean;
+  failureCondition?: string;
+  forceNextEndpointOnFailure?: boolean;
 }

@@ -79,9 +79,19 @@ describe('ApiV4FailoverComponent', () => {
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
 
     // Check each field is disabled
+    const forceNextToggle = await loader.getHarness(
+      MatSlideToggleHarness.with({ selector: '[formControlName="forceNextEndpointOnFailure"]' }),
+    );
+    expect(await forceNextToggle.isChecked()).toEqual(false);
+    expect(await forceNextToggle.isDisabled()).toBe(true);
+
     const maxRetriesInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxRetries"]' }));
     expect(await maxRetriesInput.isDisabled()).toBe(true);
     expect(await maxRetriesInput.getValue()).toEqual('2');
+
+    const failureConditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="failureCondition"]' }));
+    expect(await failureConditionInput.isDisabled()).toBe(true);
+    expect(await failureConditionInput.getValue()).toEqual('');
 
     const slowCallDurationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="slowCallDuration"]' }));
     expect(await slowCallDurationInput.isDisabled()).toBe(true);
@@ -115,7 +125,9 @@ describe('ApiV4FailoverComponent', () => {
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.failover).toStrictEqual({
       enabled: true,
+      forceNextEndpointOnFailure: false,
       maxRetries: 2,
+      failureCondition: undefined,
       slowCallDuration: 200,
       openStateDuration: 2000,
       maxFailures: 2,
@@ -207,7 +219,9 @@ describe('ApiV4FailoverComponent', () => {
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.failover).toStrictEqual({
       enabled: true,
+      forceNextEndpointOnFailure: false,
       maxRetries: 3,
+      failureCondition: undefined,
       slowCallDuration: 300,
       openStateDuration: 3000,
       maxFailures: 3,
@@ -230,8 +244,16 @@ describe('ApiV4FailoverComponent', () => {
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
 
     // Check each field is disabled
+    const forceNextToggle = await loader.getHarness(
+      MatSlideToggleHarness.with({ selector: '[formControlName="forceNextEndpointOnFailure"]' }),
+    );
+    expect(await forceNextToggle.isDisabled()).toBe(true);
+
     const maxRetriesInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxRetries"]' }));
     expect(await maxRetriesInput.isDisabled()).toBe(true);
+
+    const failureConditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="failureCondition"]' }));
+    expect(await failureConditionInput.isDisabled()).toBe(true);
 
     const slowCallDurationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="slowCallDuration"]' }));
     expect(await slowCallDurationInput.isDisabled()).toBe(true);
@@ -245,6 +267,58 @@ describe('ApiV4FailoverComponent', () => {
     const perSubscriptionToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="perSubscription"]' }));
     expect(await perSubscriptionToggle.isDisabled()).toBe(true);
     expect(await perSubscriptionToggle.isChecked()).toEqual(true);
+  });
+
+  it('should display and submit failureCondition and forceNextEndpointOnFailure', async () => {
+    const api = fakeApiV4({
+      id: API_ID,
+      failover: {
+        enabled: true,
+        maxRetries: 2,
+        slowCallDuration: 200,
+        openStateDuration: 2000,
+        maxFailures: 2,
+        perSubscription: true,
+        failureCondition: '{#response.status >= 500}',
+        forceNextEndpointOnFailure: true,
+      },
+    });
+    expectApiGetRequest(api);
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+    // Verify forceNextEndpointOnFailure toggle is loaded with correct value
+    const forceNextToggle = await loader.getHarness(
+      MatSlideToggleHarness.with({ selector: '[formControlName="forceNextEndpointOnFailure"]' }),
+    );
+    expect(await forceNextToggle.isChecked()).toEqual(true);
+    expect(await forceNextToggle.isDisabled()).toBe(false);
+
+    // Verify failureCondition input is loaded with correct value
+    const failureConditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="failureCondition"]' }));
+    expect(await failureConditionInput.getValue()).toEqual('{#response.status >= 500}');
+    expect(await failureConditionInput.isDisabled()).toBe(false);
+
+    // Modify values via UI controls
+    await forceNextToggle.toggle();
+    await failureConditionInput.setValue('{#response.status >= 502}');
+    await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxRetries"]' })).then(input => input.setValue('3'));
+
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    // Expect fetch api and update
+    expectApiGetRequest(api);
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+    expect(req.request.body.failover).toStrictEqual({
+      enabled: true,
+      forceNextEndpointOnFailure: false,
+      maxRetries: 3,
+      failureCondition: '{#response.status >= 502}',
+      slowCallDuration: 200,
+      openStateDuration: 2000,
+      maxFailures: 2,
+      perSubscription: true,
+    });
   });
 
   function expectApiGetRequest(api: ApiV4) {
