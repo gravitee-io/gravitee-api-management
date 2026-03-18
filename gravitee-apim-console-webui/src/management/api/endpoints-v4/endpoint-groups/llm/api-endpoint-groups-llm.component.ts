@@ -67,7 +67,7 @@ export class ApiEndpointGroupsLlmComponent {
     const api = this.api();
     return api?.definitionContext?.origin === 'KUBERNETES' || !canUpdate;
   });
-  public llmProxyDisplayedColumns = ['model', 'costInput', 'costOutput'];
+  public llmProxyDisplayedColumns = ['model', 'costInput', 'costOutput', 'aliases'];
   private readonly messageLicenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
