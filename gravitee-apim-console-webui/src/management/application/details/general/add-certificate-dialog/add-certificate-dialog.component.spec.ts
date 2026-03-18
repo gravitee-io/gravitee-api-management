@@ -70,6 +70,23 @@ describe('AddCertificateDialogComponent', () => {
       expect(await submitButton.isDisabled()).toBe(true);
     });
 
+    it('should_set_minDate_to_today', () => {
+      const today = new Date();
+      const minDate = fixture.componentInstance.minDate;
+      expect(minDate.getFullYear()).toBe(today.getFullYear());
+      expect(minDate.getMonth()).toBe(today.getMonth());
+      expect(minDate.getDate()).toBe(today.getDate());
+    });
+
+    it('should_reject_past_expiration_date', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 5);
+      fixture.componentInstance.form.get('endsAt').setValue(pastDate);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.form.get('endsAt').hasError('matDatepickerMin')).toBe(true);
+    });
+
     it('should_submit_with_name_and_certificate', async () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
       await nameInput.setValue('my-cert');
@@ -123,6 +140,15 @@ describe('AddCertificateDialogComponent', () => {
       expect(gracePeriodControl).toBeTruthy();
       expect(gracePeriodControl.hasError('required')).toBe(true);
       expect(fixture.componentInstance.form.invalid).toBe(true);
+    });
+
+    it('should_reject_past_grace_period_date', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 3);
+      fixture.componentInstance.form.get('gracePeriodEnd').setValue(pastDate);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.form.get('gracePeriodEnd').hasError('matDatepickerMin')).toBe(true);
     });
 
     it('should_include_active_certificate_id_in_result', async () => {

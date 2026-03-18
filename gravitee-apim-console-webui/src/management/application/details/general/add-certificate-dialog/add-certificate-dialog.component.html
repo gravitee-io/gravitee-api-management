@@ -44,10 +44,19 @@
 
     <mat-form-field class="add-certificate-dialog__field">
       <mat-label>Expiration Date (optional)</mat-label>
-      <input matInput [matDatepicker]="expirationPicker" formControlName="endsAt" data-testid="certificate-expiration-input" />
+      <input
+        matInput
+        [matDatepicker]="expirationPicker"
+        [min]="minDate"
+        formControlName="endsAt"
+        data-testid="certificate-expiration-input"
+      />
       <mat-datepicker-toggle matIconSuffix [for]="expirationPicker"></mat-datepicker-toggle>
       <mat-datepicker #expirationPicker></mat-datepicker>
       <mat-hint>When this certificate should stop being active</mat-hint>
+      @if (form.get('endsAt').hasError('matDatepickerMin')) {
+        <mat-error>Expiration date must not be in the past.</mat-error>
+      }
     </mat-form-field>
 
     @if (data.hasActiveCertificates) {
@@ -55,12 +64,15 @@
 
       <mat-form-field class="add-certificate-dialog__field">
         <mat-label>Grace Period end for current certificate</mat-label>
-        <input matInput [matDatepicker]="gracePicker" formControlName="gracePeriodEnd" data-testid="grace-period-input" />
+        <input matInput [matDatepicker]="gracePicker" [min]="minDate" formControlName="gracePeriodEnd" data-testid="grace-period-input" />
         <mat-datepicker-toggle matIconSuffix [for]="gracePicker"></mat-datepicker-toggle>
         <mat-datepicker #gracePicker></mat-datepicker>
         <mat-hint>When the currently active certificate should be revoked</mat-hint>
         @if (form.get('gracePeriodEnd').hasError('required')) {
           <mat-error>Grace period end date is required when rotating certificates.</mat-error>
+        }
+        @if (form.get('gracePeriodEnd').hasError('matDatepickerMin')) {
+          <mat-error>Grace period end date must not be in the past.</mat-error>
         }
       </mat-form-field>
     }
