@@ -77,7 +77,7 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerApiEntity createAPI(ExecutionContext executionContext, ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        return this.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V1);
+        return this.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
 
         if (descriptor != null) {
-            if (definitionVersion.equals(DefinitionVersion.V2)) {
+            if (DefinitionVersion.V2.equals(definitionVersion)) {
                 return new OAIToAPIV2Converter(
                     swaggerDescriptor,
                     policyOperationVisitorManager,
