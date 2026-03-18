@@ -7601,6 +7601,10 @@ components:
                     type: string
                     nullable: true
                     description: An EL expression evaluated on the response to determine if it should be considered a failure (e.g. "{#response.status >= 500}"). If null, response content is not evaluated.
+                forceNextEndpointOnFailure:
+                    type: boolean
+                    description: If true, on retry the next endpoint in the group is forced instead of relying on the shared load balancer. This ensures retries target different endpoints.
+                    default: false
 
         CreateDocumentation:
             type: object
