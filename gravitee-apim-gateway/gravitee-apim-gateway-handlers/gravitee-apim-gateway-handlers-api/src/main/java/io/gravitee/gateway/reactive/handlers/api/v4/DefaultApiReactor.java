@@ -296,7 +296,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected HttpInvoker endpointInvoker(EndpointManager endpointManager) {
         final HttpEndpointInvoker endpointInvoker = new HttpEndpointInvoker(endpointManager);
         if (api.getDefinition().failoverEnabled()) {
-            return new FailoverInvoker(endpointInvoker, api.getDefinition().getFailover(), api.getId());
+            return new FailoverInvoker(endpointInvoker, api.getDefinition().getFailover(), api.getId(), endpointManager);
         }
         return endpointInvoker;
     }
