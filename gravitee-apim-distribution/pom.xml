@@ -1630,7 +1630,7 @@
                     </exclusions>
                 </dependency>
                 <dependency>
-                    <groupId>io.gravitee.resource</groupId>
+                    <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-ai-model-text-embedding</artifactId>
                     <version>${gravitee-resource-ai-model-text-embedding.version}</version>
                     <type>zip</type>
