@@ -81,7 +81,7 @@
     @if (subscriptionForm) {
       <section class="subscribe-to-api-checkout__form" aria-label="Subscription form">
         <gmd-form-host [content]="subscriptionForm.gmdContent">
-          <gmd-viewer [content]="subscriptionForm.gmdContent" />
+          <gmd-viewer [content]="subscriptionForm.gmdContent" [darkMode]="themeService.darkMode()" />
         </gmd-form-host>
       </section>
     }

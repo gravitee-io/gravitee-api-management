@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, Input, InputSignal, OnInit, WritableSignal } from '@angular/core';
+import { Component, inject, input, Input, InputSignal, OnInit, WritableSignal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 
 import { GmdFormHostComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -21,6 +21,7 @@ import { GmdFormHostComponent, GraviteeMarkdownViewerModule } from '@gravitee/gr
 import { ApiAccessComponent } from '../../../../components/api-access/api-access.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
 import { SubscriptionInfoComponent } from '../../../../components/subscription-info/subscription-info.component';
+import { ThemeService } from '../../../../services/theme.service';
 import { Api } from '../../../../entities/api/api';
 import { Application } from '../../../../entities/application/application';
 import { Plan } from '../../../../entities/plan/plan';
@@ -43,6 +44,8 @@ import { Subscription } from '../../../../entities/subscription/subscription';
   providers: [],
 })
 export class SubscribeToApiCheckoutComponent implements OnInit {
+  protected readonly themeService = inject(ThemeService);
+
   @Input()
   api!: Api;
 

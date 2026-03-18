@@ -42,7 +42,8 @@
   }
 }
 
-// Dark mode preview: --preview-dark-* from theme (ngStyle); fallbacks when theme omits values
+// Dark mode preview: --preview-dark-* from theme (ngStyle); fallbacks when theme omits values.
+// Custom CSS in GMD content uses :host(.dark-mode) — gmd-viewer adds this class via darkMode input.
 .homepage-editor.dark-preview {
   gmd-editor {
     @include gmd.editor-overrides(

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { ThemeService } from '../../services/theme.service';
 import { RedocContentViewerComponent } from '../redoc-content-viewer/redoc-content-viewer.component';
 
 @Component({
@@ -29,4 +30,5 @@ import { RedocContentViewerComponent } from '../redoc-content-viewer/redoc-conte
 })
 export class NavigationItemContentViewerComponent {
   pageContent = input.required<PortalPageContent | null>();
+  protected readonly themeService = inject(ThemeService);
 }

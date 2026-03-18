@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, forwardRef } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { isString } from 'lodash';
 
@@ -34,6 +34,7 @@ import { isString } from 'lodash';
 export class GraviteeMarkdownEditorComponent implements ControlValueAccessor {
   value = '';
   isDisabled = false;
+  darkMode = input<boolean>(false);
 
   constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
 

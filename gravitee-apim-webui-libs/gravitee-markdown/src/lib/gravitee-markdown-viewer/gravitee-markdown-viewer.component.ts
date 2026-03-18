@@ -24,6 +24,9 @@ import { GraviteeMarkdownRendererService } from '../services/gravitee-markdown-r
 
 @Component({
   selector: 'gmd-viewer',
+  host: {
+    '[class.dark-mode]': 'darkMode()',
+  },
   templateUrl: './gravitee-markdown-viewer.component.html',
   // eslint-disable-next-line @angular-eslint/prefer-standalone
   standalone: false,
@@ -31,6 +34,7 @@ import { GraviteeMarkdownRendererService } from '../services/gravitee-markdown-r
 })
 export class GraviteeMarkdownViewerComponent {
   content = input<string>('');
+  darkMode = input<boolean>(false);
   renderedContent!: string;
   parsers: HookParserEntry[] = prefixStripperParser;
 

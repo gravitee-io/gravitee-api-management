@@ -19,7 +19,7 @@
 @if (pageContentVM) {
   @switch (pageContentVM.type) {
     @case ('GRAVITEE_MARKDOWN') {
-      <gmd-viewer [content]="pageContentVM.content" appInnerLink />
+      <gmd-viewer [content]="pageContentVM.content" [darkMode]="themeService.darkMode()" appInnerLink />
     }
     @case ('OPENAPI') {
       <app-redoc-content-viewer [content]="pageContentVM.content" />
