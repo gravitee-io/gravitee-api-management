@@ -21,6 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
 import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -46,6 +47,7 @@ import { GioLicenseBannerModule } from '../../../../shared/components/gio-licens
     MatTableModule,
     MatTooltipModule,
     MatIconModule,
+    MatChipsModule,
     MatSnackBarModule,
     GioIconsModule,
 
