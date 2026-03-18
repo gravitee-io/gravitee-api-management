@@ -17,12 +17,16 @@ package io.gravitee.apim.core.application_certificate.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Date;
 import java.util.List;
@@ -78,7 +82,43 @@ class DeleteClientCertificateUseCaseTest {
 
         assertThat(clientCertificateCrudService.storage()).isEmpty();
 
+        verify(applicationCertificatesUpdateDomainService).validateCertificateRemoval(appId, certId);
         verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(appId);
+    }
+
+    @Test
+    void should_not_delete_when_last_active_certificate_with_mtls_subscriptions() {
+        var certId = "cert-id";
+        var appId = "app-id";
+        var certificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            appId,
+            "Test Certificate",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        doThrow(new ClientCertificateLastRemovalException(appId))
+            .when(applicationCertificatesUpdateDomainService)
+            .validateCertificateRemoval(appId, certId);
+
+        var input = new DeleteClientCertificateUseCase.Input(certId);
+
+        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateLastRemovalException.class);
+
+        assertThat(clientCertificateCrudService.storage()).hasSize(1);
+        verify(applicationCertificatesUpdateDomainService, never()).updateActiveMTLSSubscriptions(anyString());
     }
 
     @Test
