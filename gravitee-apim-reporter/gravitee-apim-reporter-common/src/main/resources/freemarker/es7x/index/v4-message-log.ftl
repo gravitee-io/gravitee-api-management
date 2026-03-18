@@ -50,9 +50,11 @@
     </#if>
     <#if log.getMessage().getMetadata()??>
     ,"metadata":{
+    <#assign first = true>
     <#list log.getMessage().getMetadata() as metadataKey, metadataValue>
-      "${metadataKey}": "${metadataValue?j_string}"
-      <#sep>,</#sep>
+      <#if metadataValue?? && !metadataValue?is_sequence>
+        <#if !first>,</#if>"${metadataKey}": "${metadataValue?string?j_string}"<#assign first = false>
+      </#if>
     </#list>
     }
     </#if>
