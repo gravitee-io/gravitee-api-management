@@ -26,6 +26,7 @@ import { GioIconsModule, GioLicenseTestingModule, LICENSE_CONFIGURATION_TESTING,
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiEndpointGroupsLlmComponent } from './api-endpoint-groups-llm.component';
@@ -64,6 +65,7 @@ describe('ApiEndpointGroupsLlmComponent', () => {
         MatButtonModule,
         MatTableModule,
         MatIconModule,
+        MatChipsModule,
         GioIconsModule,
         MatDialogModule,
         RouterTestingModule,
@@ -197,8 +199,8 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       const modelsRows = await componentHarness.getModelsTableRows(0);
       expect(modelsRows).toHaveLength(2);
-      expect(modelsRows[0]).toEqual(['gpt-3.5-turbo', '0.001', '0.002']);
-      expect(modelsRows[1]).toEqual(['gpt-4', '0.03', '0.06']);
+      expect(modelsRows[0]).toEqual(['gpt-3.5-turbo', '0.001', '0.002', '']);
+      expect(modelsRows[1]).toEqual(['gpt-4', '0.03', '0.06', '']);
     });
   });
 
