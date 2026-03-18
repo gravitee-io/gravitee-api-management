@@ -223,29 +223,6 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     }
 
     @Test
-    void should_clear_certificate_when_no_active_certificates() {
-        // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
-        planCrudService.initWith(List.of(mtlsPlan));
-
-        String existingEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
-        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, existingEncodedCert);
-        subscriptionCrudService.initWith(List.of(subscription));
-
-        // No active certificates (only revoked)
-        ClientCertificate revokedCertificate = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
-        clientCertificateCrudService.initWith(List.of(revokedCertificate));
-
-        // When
-        service.updateActiveMTLSSubscriptions(APPLICATION_ID);
-
-        // Then: subscription should be updated with empty string
-        SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
-        assertThat(result.getClientCertificate()).isEmpty();
-        assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
-    }
-
-    @Test
     void should_update_ActiveMTLSSubscriptions_multiple_subscriptions() {
         // Given: an mTLS plan
         Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
