@@ -38,6 +38,7 @@ export interface AddCertificateDialogResult {
 })
 export class AddCertificateDialogComponent {
   form: FormGroup;
+  minDate: Date = new Date();
 
   constructor(
     private readonly dialogRef: MatDialogRef<AddCertificateDialogComponent, AddCertificateDialogResult>,
