@@ -34,7 +34,9 @@ import {
 
 export type FailoverForm = {
   enabled: FormControl<boolean>;
+  forceNextEndpointOnFailure: FormControl<boolean>;
   maxRetries: FormControl<number>;
+  failureCondition: FormControl<string>;
   slowCallDuration: FormControl<number>;
   openStateDuration: FormControl<number>;
   maxFailures: FormControl<number>;
@@ -89,12 +91,26 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
 
     this.failoverForm = this.formBuilder.group({
       enabled: [{ value: failover?.enabled, disabled: isReadOnly }, []],
+      forceNextEndpointOnFailure: [
+        {
+          value: failover?.forceNextEndpointOnFailure ?? false,
+          disabled: isFailoverReadOnly,
+        },
+        [],
+      ],
       maxRetries: [
         {
           value: failover?.maxRetries ?? 2,
           disabled: isFailoverReadOnly,
         },
         [Validators.required, Validators.min(0)],
+      ],
+      failureCondition: [
+        {
+          value: failover?.failureCondition ?? '',
+          disabled: isFailoverReadOnly,
+        },
+        [],
       ],
       slowCallDuration: [
         { value: failover?.slowCallDuration ?? 2000, disabled: isFailoverReadOnly },
@@ -117,7 +133,15 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
   }
 
   private setupDisablingFields() {
-    const controlKeys = ['maxRetries', 'slowCallDuration', 'openStateDuration', 'maxFailures', 'perSubscription'];
+    const controlKeys = [
+      'forceNextEndpointOnFailure',
+      'maxRetries',
+      'failureCondition',
+      'slowCallDuration',
+      'openStateDuration',
+      'maxFailures',
+      'perSubscription',
+    ];
     this.failoverForm
       .get('enabled')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
@@ -129,7 +153,16 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    const { enabled, maxRetries, slowCallDuration, openStateDuration, maxFailures, perSubscription } = this.failoverForm.getRawValue();
+    const {
+      enabled,
+      forceNextEndpointOnFailure,
+      maxRetries,
+      failureCondition,
+      slowCallDuration,
+      openStateDuration,
+      maxFailures,
+      perSubscription,
+    } = this.failoverForm.getRawValue();
     let confirmUpdate$: Observable<boolean>;
     if (enabled && !perSubscription) {
       confirmUpdate$ = this.matDialog
@@ -161,8 +194,11 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
           this.apiService.update(api.id, {
             ...api,
             failover: {
+              ...api.failover,
               enabled,
+              forceNextEndpointOnFailure,
               maxRetries,
+              failureCondition: failureCondition || undefined,
               slowCallDuration,
               openStateDuration,
               maxFailures,
