@@ -30,6 +30,7 @@ public class DeleteClientCertificateUseCase {
 
     public void execute(Input input) {
         ClientCertificate certificate = clientCertificateCrudService.findById(input.clientCertificateId());
+        applicationCertificatesUpdateDomainService.validateCertificateRemoval(certificate.applicationId(), input.clientCertificateId());
         clientCertificateCrudService.delete(input.clientCertificateId());
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
     }
