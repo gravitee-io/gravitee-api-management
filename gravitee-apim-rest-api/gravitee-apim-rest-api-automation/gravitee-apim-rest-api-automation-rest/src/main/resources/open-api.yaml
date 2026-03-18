@@ -2161,6 +2161,10 @@ components:
           type: boolean
           description: If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the API.
           default: true
+        failureCondition:
+          type: string
+          nullable: true
+          description: An EL expression evaluated on the response to determine if it should be considered a failure (e.g. "{#response.status >= 500}"). If null, response content is not evaluated.
     Metadata:
       description: Metadata is a generic data structure used internally
       type: object
