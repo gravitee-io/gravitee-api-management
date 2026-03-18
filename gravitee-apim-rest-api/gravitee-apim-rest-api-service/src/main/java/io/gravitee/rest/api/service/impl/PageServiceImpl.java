@@ -1763,7 +1763,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
                 return List.of();
             }
-        } catch (TechnicalException e) {
+        } catch (Exception e) {
             log.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
             return emptyList();
         }

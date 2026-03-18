@@ -365,4 +365,100 @@ public class PageService_AutoFetchTest {
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
         verify(pageRepository).update(argThat(page -> page.getUseAutoFetch() == null));
     }
+
+    @Test
+    public void shouldContinueProcessingWhenOnePageThrowsRuntimeException() throws Exception {
+        // Shared fetcher source config
+        PageSource pageSource = new PageSource();
+        pageSource.setType("type");
+        pageSource.setConfiguration("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}");
+        Date pastDate = new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli());
+
+        // Page 1: good page, non-ROOT (getType() returns null by default), fetched successfully
+        Page goodPage1 = mock(Page.class);
+        when(goodPage1.getSource()).thenReturn(pageSource);
+        when(goodPage1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(goodPage1.getReferenceId()).thenReturn("envId");
+        when(goodPage1.getUpdatedAt()).thenReturn(pastDate);
+        when(goodPage1.getVisibility()).thenReturn("PUBLIC");
+
+        // Page 2: bad page — getType() throws RuntimeException (simulates orphaned page referencing deleted API)
+        // getType() is NOT called by isFetchRequired filter, only by executeAutoFetch
+        Page badPage = mock(Page.class);
+        when(badPage.getSource()).thenReturn(pageSource);
+        when(badPage.getUpdatedAt()).thenReturn(pastDate);
+        when(badPage.getId()).thenReturn("orphaned-page-id");
+        when(badPage.getType()).thenThrow(new RuntimeException("Simulated: API not found for orphaned page"));
+
+        // Page 3: good page, non-ROOT, fetched successfully
+        Page goodPage3 = mock(Page.class);
+        when(goodPage3.getSource()).thenReturn(pageSource);
+        when(goodPage3.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(goodPage3.getReferenceId()).thenReturn("envId");
+        when(goodPage3.getUpdatedAt()).thenReturn(pastDate);
+        when(goodPage3.getVisibility()).thenReturn("PUBLIC");
+
+        when(pageRepository.search(any())).thenReturn(Arrays.asList(goodPage1, badPage, goodPage3));
+        when(pageRepository.update(any())).thenReturn(goodPage1);
+
+        // Shared fetcher plugin setup (same as shouldFetch_SourcePage_AutoFetch)
+        FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
+        when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
+        Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
+        when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
+            fetcherConfiguration
+        );
+        AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
+        PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
+
+        // Act — before the fix, this would throw (stream terminated by uncaught RuntimeException)
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
+
+        // Assert — pages 1 and 3 fetched, page 2 skipped gracefully
+        assertEquals(2, pages);
+    }
+
+    @Test
+    public void shouldNotCrashWhenSinglePageThrowsRuntimeException() throws Exception {
+        PageSource pageSource = new PageSource();
+        pageSource.setType("type");
+        pageSource.setConfiguration("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}");
+
+        // Single page that throws RuntimeException inside executeAutoFetch
+        Page badPage = mock(Page.class);
+        when(badPage.getSource()).thenReturn(pageSource);
+        when(badPage.getUpdatedAt()).thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
+        when(badPage.getId()).thenReturn("orphaned-page-id");
+        when(badPage.getType()).thenThrow(new RuntimeException("Simulated: API not found for orphaned page"));
+
+        when(pageRepository.search(any())).thenReturn(Arrays.asList(badPage));
+
+        // Fetcher plugin setup (needed for isFetchRequired filter)
+        FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
+        when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
+        Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
+        when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
+            fetcherConfiguration
+        );
+        AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
+        PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
+
+        // Act — should not throw, even though the page causes a RuntimeException
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
+
+        // Assert — no pages fetched, but no crash either
+        assertEquals(0, pages);
+    }
 }
