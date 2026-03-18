@@ -223,7 +223,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     }
 
     @Test
-    void should_clear_certificate_when_no_active_certificates() {
+    void should_not_update_subscriptions_when_no_active_certificates() {
         // Given: an mTLS plan
         Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
@@ -236,10 +236,13 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         ClientCertificate revokedCertificate = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(revokedCertificate));
 
-        // When calling => error should be thrown
-        assertThatThrownBy(() -> service.updateActiveMTLSSubscriptions(APPLICATION_ID))
-            .isInstanceOf(ClientCertificateLastRemovalException.class)
-            .hasMessageContaining(APPLICATION_ID);
+        // When
+        service.updateActiveMTLSSubscriptions(APPLICATION_ID);
+
+        // Then: subscription should remain unchanged
+        SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
+        assertThat(result.getClientCertificate()).isEqualTo(existingEncodedCert);
+        assertThat(result.getCreatedAt()).isSameAs(result.getUpdatedAt());
     }
 
     @Test
@@ -323,6 +326,83 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
         String decodedCertificate = new String(Base64.getDecoder().decode(result.getClientCertificate()), StandardCharsets.UTF_8);
         assertThat(decodedCertificate).isEqualTo(PEM_CERTIFICATE_1);
+    }
+
+    @Test
+    void should_allow_certificate_removal_when_no_mtls_subscriptions() {
+        Plan apiKeyPlan = buildPlan(PlanSecurityType.API_KEY.getLabel());
+        planCrudService.initWith(List.of(apiKeyPlan));
+
+        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
+        subscriptionCrudService.initWith(List.of(subscription));
+
+        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        service.validateCertificateRemoval(APPLICATION_ID, "cert-1");
+    }
+
+    @Test
+    void should_allow_certificate_removal_when_other_active_certs_remain() {
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
+        planCrudService.initWith(List.of(mtlsPlan));
+
+        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
+        subscriptionCrudService.initWith(List.of(subscription));
+
+        ClientCertificate cert1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate cert2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_2);
+        clientCertificateCrudService.initWith(List.of(cert1, cert2));
+
+        service.validateCertificateRemoval(APPLICATION_ID, "cert-1");
+    }
+
+    @Test
+    void should_allow_certificate_removal_when_active_with_end_cert_remains() {
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
+        planCrudService.initWith(List.of(mtlsPlan));
+
+        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
+        subscriptionCrudService.initWith(List.of(subscription));
+
+        ClientCertificate cert1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate cert2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE_WITH_END, PEM_CERTIFICATE_2);
+        clientCertificateCrudService.initWith(List.of(cert1, cert2));
+
+        service.validateCertificateRemoval(APPLICATION_ID, "cert-1");
+    }
+
+    @Test
+    void should_reject_certificate_removal_when_last_active_cert_and_mtls_subscriptions_exist() {
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
+        planCrudService.initWith(List.of(mtlsPlan));
+
+        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
+        subscriptionCrudService.initWith(List.of(subscription));
+
+        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        assertThatThrownBy(() -> service.validateCertificateRemoval(APPLICATION_ID, "cert-1"))
+            .isInstanceOf(ClientCertificateLastRemovalException.class)
+            .hasMessageContaining(APPLICATION_ID);
+    }
+
+    @Test
+    void should_reject_certificate_removal_when_only_non_active_certs_remain_and_mtls_subscriptions_exist() {
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
+        planCrudService.initWith(List.of(mtlsPlan));
+
+        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
+        subscriptionCrudService.initWith(List.of(subscription));
+
+        ClientCertificate activeCert = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate revokedCert = buildClientCertificate("cert-2", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_2);
+        clientCertificateCrudService.initWith(List.of(activeCert, revokedCert));
+
+        assertThatThrownBy(() -> service.validateCertificateRemoval(APPLICATION_ID, "cert-1"))
+            .isInstanceOf(ClientCertificateLastRemovalException.class)
+            .hasMessageContaining(APPLICATION_ID);
     }
 
     private Plan buildPlan(String securityType) {
