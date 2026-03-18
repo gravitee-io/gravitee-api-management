@@ -78,12 +78,17 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap(api => {
-          const defVersion = mapDefinitionVersionToLabel(this.api.definitionVersion);
+          const currentVersion = api.definitionVersion as unknown as string;
+          const isV1OrMissing = currentVersion === 'V1' || !currentVersion;
+          const targetVersion = isV1OrMissing ? 'V2' : api.definitionVersion;
+          const defVersionLabel = mapDefinitionVersionToLabel(targetVersion);
           if (this.selectedSwaggerDoc) {
-            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, defVersion);
+            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, defVersionLabel);
           } else {
-            api.pathMappings.push(this.pathFormGroup.getRawValue().path);
-            return this.apiV2Service.update(api.id, api);
+            const pathValue = this.pathFormGroup.getRawValue().path;
+            const pathMappings = api.pathMappings ?? [];
+            pathMappings.push(pathValue);
+            return this.apiV2Service.update(api.id, { ...api, pathMappings });
           }
         }),
         catchError(() => {
