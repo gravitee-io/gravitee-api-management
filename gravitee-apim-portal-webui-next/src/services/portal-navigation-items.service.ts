@@ -15,11 +15,16 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { catchError, Observable, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
-import { PortalArea, PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
+import {
+  PortalNavigationApisSearchResponse,
+  PortalNavigationApiSearchItem,
+  PortalNavigationItemsSearchResponse,
+} from '../entities/portal-navigation/portal-navigation-apis-search';
+import { PortalNavigationApi, PortalNavigationItem, PortalArea } from '../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
 @Injectable({
@@ -60,5 +65,52 @@ export class PortalNavigationItemsService {
         return of(undefined);
       }),
     );
+  }
+
+  searchNavigationItemsWithApis(page = 1, query = '', size = 8): Observable<PortalNavigationApisSearchResponse> {
+    const params: Record<string, string | number> = {
+      type: 'api',
+      include: 'api',
+      page,
+      size,
+    };
+    if (query) params['query'] = query;
+
+    return this.http
+      .get<PortalNavigationItemsSearchResponse>(`${this.configService.baseURL}/portal-navigation-items/_search`, { params })
+      .pipe(map(res => this.mapToSearchResponse(res)));
+  }
+
+  private mapToSearchResponse(res: PortalNavigationItemsSearchResponse): PortalNavigationApisSearchResponse {
+    const navItems = res.data ?? [];
+    const apis = res.apis ?? [];
+    const apiById = new Map(apis.map(api => [api.id, api]));
+
+    const data: PortalNavigationApiSearchItem[] = navItems
+      .filter((item): item is PortalNavigationApi => item.type === 'API')
+      .flatMap(item => {
+        const api = apiById.get(item.apiId);
+        return api
+          ? [
+              {
+                id: api.id,
+                name: api.name,
+                version: api.version,
+                description: api.description,
+                _links: api._links,
+                mcp: api.mcp,
+                labels: api.labels,
+                rootId: item.rootId,
+                navItemId: item.id,
+              },
+            ]
+          : [];
+      });
+
+    return {
+      data,
+      metadata: res.metadata,
+      links: res.links,
+    };
   }
 }

@@ -18,6 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
 import { PortalNavigationItemsService } from './portal-navigation-items.service';
+import { fakeApi } from '../entities/api/api.fixtures';
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 import { AppTestingModule } from '../testing/app-testing.module';
 
@@ -154,5 +155,53 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/${id}`);
 
     req.flush(mockItem);
+  });
+
+  it('should search APIs and map to PortalNavigationApisSearchResponse', done => {
+    const api = fakeApi({ id: 'api-1', name: 'Test API', version: '1.0', description: 'Desc' });
+    const rawResponse = {
+      data: [{ type: 'API' as const, apiId: api.id, id: 'nav-1', rootId: 'root-1' }],
+      apis: [api],
+      links: {},
+      metadata: {
+        pagination: {
+          current_page: 1,
+          size: 10,
+          total: 42,
+          total_pages: 5,
+        },
+      },
+    };
+
+    service.searchNavigationItemsWithApis(1, '', 10).subscribe(res => {
+      expect(res.data).toHaveLength(1);
+      expect(res.data[0]).toEqual({
+        id: api.id,
+        name: api.name,
+        version: api.version,
+        description: api.description,
+        _links: api._links,
+        mcp: api.mcp,
+        labels: api.labels,
+        rootId: 'root-1',
+        navItemId: 'nav-1',
+      });
+      expect(res.metadata?.pagination?.current_page).toBe(1);
+      expect(res.metadata?.pagination?.size).toBe(10);
+      expect(res.metadata?.pagination?.total).toBe(42);
+      expect(res.metadata?.pagination?.total_pages).toBe(5);
+      done();
+    });
+
+    const req = httpMock.expectOne(
+      r =>
+        r.method === 'GET' &&
+        r.url === `${baseURL}/portal-navigation-items/_search` &&
+        r.params.get('type') === 'api' &&
+        r.params.get('include') === 'api' &&
+        r.params.get('page') === '1' &&
+        r.params.get('size') === '10',
+    );
+    req.flush(rawResponse);
   });
 });
