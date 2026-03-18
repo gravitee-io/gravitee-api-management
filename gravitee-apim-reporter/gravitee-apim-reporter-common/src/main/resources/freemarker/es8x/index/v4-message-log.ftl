@@ -50,11 +50,14 @@
     </#if>
     <#if log.getMessage().getMetadata()??>
     ,"metadata":{
-    <#assign first = true>
+    <#assign printable_metadata = {}>
     <#list log.getMessage().getMetadata() as metadataKey, metadataValue>
-      <#if metadataValue?? && !metadataValue?is_sequence>
-        <#if !first>,</#if>"${metadataKey}": "${metadataValue?string?j_string}"<#assign first = false>
-      </#if>
+        <#if metadataValue?? && !metadataValue?is_sequence>
+            <#assign printable_metadata = printable_metadata + {metadataKey: metadataValue}>
+        </#if>
+    </#list>
+    <#list printable_metadata as metadataKey, metadataValue>
+      "${metadataKey}": "${metadataValue?string?j_string}"<#sep>,</#sep>
     </#list>
     }
     </#if>
