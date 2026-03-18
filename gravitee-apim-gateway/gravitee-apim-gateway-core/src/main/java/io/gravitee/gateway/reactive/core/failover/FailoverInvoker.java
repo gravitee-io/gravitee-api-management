@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.core.failover;
 
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -30,15 +31,22 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class FailoverInvoker implements HttpInvoker, Invoker {
 
     private final HttpInvoker delegate;
     private final Failover failoverConfiguration;
+    private final EndpointManager endpointManager;
 
     @VisibleForTesting
     final CircuitBreaker circuitBreaker;
@@ -51,9 +59,10 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         return "failover-invoker";
     }
 
-    public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId) {
+    public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId, EndpointManager endpointManager) {
         this.delegate = delegate;
         this.failoverConfiguration = failoverConfiguration;
+        this.endpointManager = endpointManager;
         final CircuitBreakerConfig circuitBreakerConfiguration = CircuitBreakerConfig.custom()
             .permittedNumberOfCallsInHalfOpenState(1)
             .slowCallDurationThreshold(Duration.of(failoverConfiguration.getSlowCallDuration(), ChronoUnit.MILLIS))
@@ -82,11 +91,17 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
     @Override
     public Completable invoke(HttpExecutionContext ctx) {
         final String originalEndpoint = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
+        final AtomicInteger attemptIndex = new AtomicInteger(0);
+        final AtomicReference<List<String>> capturedEndpoints = new AtomicReference<>();
+
         return Completable.defer(() -> {
             // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
             ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
             // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
             ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+
+            forceNextEndpoint(ctx, attemptIndex, capturedEndpoints);
+
             // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
             return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx)).andThen(evaluateFailureCondition(ctx));
         })
@@ -94,6 +109,69 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             .retry(failoverConfiguration.getMaxRetries())
             .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
             .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)));
+    }
+
+    private void forceNextEndpoint(HttpExecutionContext ctx, AtomicInteger attemptIndex, AtomicReference<List<String>> capturedEndpoints) {
+        if (!failoverConfiguration.isForceNextEndpointOnFailure()) {
+            return;
+        }
+
+        int attempt = attemptIndex.getAndIncrement();
+        if (attempt == 0) {
+            // First attempt: let the LB pick the endpoint normally, we'll capture it after invocation
+            // Capture happens on retry (attempt > 0), using the ManagedEndpoint set by HttpEndpointInvoker
+            return;
+        }
+
+        List<String> endpoints = capturedEndpoints.get();
+        if (endpoints == null) {
+            // Build the ordered list of endpoints starting from the one after the initially selected endpoint
+            endpoints = buildEndpointRotation(ctx);
+            capturedEndpoints.set(endpoints);
+        }
+
+        if (endpoints != null && !endpoints.isEmpty()) {
+            // Select the next endpoint in the rotation (attempt-1 because attempt 0 was the LB pick)
+            int index = (attempt - 1) % endpoints.size();
+            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, endpoints.get(index));
+        }
+    }
+
+    private List<String> buildEndpointRotation(HttpExecutionContext ctx) {
+        ManagedEndpoint selectedEndpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
+        if (selectedEndpoint == null) {
+            return null;
+        }
+
+        String selectedGroupName = selectedEndpoint.getGroup().getDefinition().getName();
+        String selectedEndpointName = selectedEndpoint.getDefinition().getName();
+
+        // Get all endpoints from the same group
+        List<ManagedEndpoint> allEndpoints = endpointManager.all();
+        List<String> groupEndpointNames = new ArrayList<>();
+        int selectedIndex = -1;
+
+        for (ManagedEndpoint ep : allEndpoints) {
+            if (ep.getGroup().getDefinition().getName().equals(selectedGroupName)) {
+                String name = ep.getDefinition().getName();
+                if (name.equals(selectedEndpointName)) {
+                    selectedIndex = groupEndpointNames.size();
+                }
+                groupEndpointNames.add(name);
+            }
+        }
+
+        if (groupEndpointNames.size() <= 1 || selectedIndex == -1) {
+            return null;
+        }
+
+        // Build rotation starting from the endpoint after the selected one
+        List<String> rotation = new ArrayList<>(groupEndpointNames.size() - 1);
+        for (int i = 1; i < groupEndpointNames.size(); i++) {
+            int idx = (selectedIndex + i) % groupEndpointNames.size();
+            rotation.add(groupEndpointNames.get(idx));
+        }
+        return rotation;
     }
 
     private Completable evaluateFailureCondition(HttpExecutionContext ctx) {
