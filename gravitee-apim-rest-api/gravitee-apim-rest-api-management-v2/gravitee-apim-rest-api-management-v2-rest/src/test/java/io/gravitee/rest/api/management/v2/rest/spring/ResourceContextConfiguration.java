@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import fakes.spring.FakeConfiguration;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCRDExportDomainServiceInMemory;
@@ -228,6 +229,7 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -239,6 +241,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.impl.JsonPatchServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -250,6 +253,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -852,6 +856,14 @@ public class ResourceContextConfiguration {
     @Bean
     public io.gravitee.rest.api.service.sanitizer.HtmlSanitizer legacyHtmlSanitizer() {
         return new io.gravitee.rest.api.service.sanitizer.HtmlSanitizer(new MockEnvironment());
+    }
+
+    @Bean
+    public JsonPatchService jsonPatchService(
+        @Qualifier("defaultMapper") JsonMapper objectMapper,
+        io.gravitee.rest.api.service.sanitizer.HtmlSanitizer legacyHtmlSanitizer
+    ) {
+        return new JsonPatchServiceImpl(objectMapper, legacyHtmlSanitizer);
     }
 
     @Bean

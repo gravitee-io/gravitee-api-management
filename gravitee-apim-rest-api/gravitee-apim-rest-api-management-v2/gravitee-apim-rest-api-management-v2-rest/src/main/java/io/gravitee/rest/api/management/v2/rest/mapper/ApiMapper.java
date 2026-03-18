@@ -293,8 +293,8 @@ public interface ApiMapper {
     Page map(io.gravitee.apim.core.api.model.crd.PageCRD crd);
 
     io.gravitee.apim.core.api.model.crd.PageCRD map(Page crd);
+    UpdateApiV4 mapToUpdateApiV4(ApiV4 api);
 
-    // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
