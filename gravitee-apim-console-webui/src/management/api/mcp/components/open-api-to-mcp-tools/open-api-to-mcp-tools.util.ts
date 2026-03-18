@@ -315,7 +315,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
         usedNames.add(toolName);
       }
 
-      const description = op.summary || op.description || `API for ${method.toUpperCase()} ${path}`;
+      const description = [op.summary, op.description].filter(Boolean).join('\n\n') || `API for ${method.toUpperCase()} ${path}`;
       const mergedParams = mergeParameters(pathLevelParams, op.parameters || []);
       const paramSchema = extractParameterSchema(mergedParams);
       const bodySchema = extractRequestBodySchema(op.requestBody);

@@ -1229,6 +1229,104 @@ paths:
     });
   });
 
+  describe('description extraction', () => {
+    it('combines summary and description when both are present', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/sales-units': {
+            post: {
+              operationId: 'postSalesUnits',
+              summary: 'Create a sales unit',
+              description:
+                'The Manufactured Managed in Stock articles are not supported. This endpoint validates business rules before creation.',
+              responses: {
+                '201': { description: 'Created' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.description).toBe(
+        'Create a sales unit\n\nThe Manufactured Managed in Stock articles are not supported. This endpoint validates business rules before creation.',
+      );
+    });
+
+    it('uses only summary when description is absent', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'getUsers',
+              summary: 'List all users',
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result[0].toolDefinition.description).toBe('List all users');
+    });
+
+    it('uses only description when summary is absent', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'getUsers',
+              description: 'Returns a list of all registered users with their details.',
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result[0].toolDefinition.description).toBe('Returns a list of all registered users with their details.');
+    });
+
+    it('uses fallback when neither summary nor description is present', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'getUsers',
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result[0].toolDefinition.description).toBe('API for GET /users');
+    });
+  });
+
   describe('Error cases', () => {
     it.each([
       [
