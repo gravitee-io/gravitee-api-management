@@ -27,17 +27,21 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PromotionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PromotionCrudServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainServiceTestInitializer;
 import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.environment.model.Environment;
@@ -46,6 +50,7 @@ import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -101,18 +106,23 @@ class ProcessPromotionUseCaseTest {
     private final ImportDefinitionUpdateDomainServiceTestInitializer importDefinitionUpdateDomainService =
         new ImportDefinitionUpdateDomainServiceTestInitializer(apiCrudServiceInMemory);
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
+    private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+    private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private AuditDomainService auditService;
     private CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private ProcessPromotionUseCase useCase;
 
     @BeforeEach
     public void setUp() {
         cockpitPromotionServiceProvider = mock(CockpitPromotionServiceProvider.class);
+        auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
         useCase = new ProcessPromotionUseCase(
             promotionCrudService,
             cockpitPromotionServiceProvider,
             importDefinitionCreateDomainService.initialize(),
-            importDefinitionUpdateDomainService.initialize(ENVIRONMENT_ID)
+            importDefinitionUpdateDomainService.initialize(ENVIRONMENT_ID),
+            auditService
         );
 
         UuidString.overrideGenerator(() -> UUID);
@@ -120,7 +130,7 @@ class ProcessPromotionUseCaseTest {
 
     @AfterEach
     public void cleanUp() {
-        Stream.of(promotionCrudService, apiCrudServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream.of(promotionCrudService, apiCrudServiceInMemory, auditCrudService, userCrudService).forEach(InMemoryAlternative::reset);
         UuidString.reset();
     }
 
@@ -286,6 +296,74 @@ class ProcessPromotionUseCaseTest {
                 assertThat(api.getId()).isEqualTo(UUID);
                 assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.CREATED);
                 assertThat(api.getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+            });
+    }
+
+    @Test
+    void should_create_promotion_audit_log_in_target_environment_when_v4_promotion_is_accepted() {
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
+        var existingApi = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId(CROSS_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, existingApi));
+
+        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                existingApi,
+                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(auditCrudService.storage()).anySatisfy(audit -> {
+            assertThat(audit.getReferenceId()).isEqualTo(API_ID);
+            assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_CREATED.name());
+            assertThat(audit.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+            assertThat(audit.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+            assertThat(audit.getUser()).isEqualTo(USER_NAME);
+        });
+    }
+
+    @Test
+    void should_create_promotion_audit_log_in_target_environment_when_v4_promotion_is_rejected() {
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        when(cockpitPromotionServiceProvider.requestPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
+            CockpitReplyStatus.SUCCEEDED
+        );
+
+        useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                false,
+                null,
+                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(auditCrudService.storage())
+            .hasSize(1)
+            .first()
+            .satisfies(audit -> {
+                assertThat(audit.getReferenceId()).isEqualTo(API_ID);
+                assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_CREATED.name());
+                assertThat(audit.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                assertThat(audit.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                assertThat(audit.getUser()).isEqualTo(USER_NAME);
             });
     }
 
