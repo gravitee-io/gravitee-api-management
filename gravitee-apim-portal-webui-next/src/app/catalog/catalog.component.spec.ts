@@ -23,6 +23,7 @@ import { ApiCardHarness } from '../../components/api-card/api-card.harness';
 import { PaginationHarness } from '../../components/pagination/pagination.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
+import { PortalNavigationItemsSearchResponse } from '../../entities/portal-navigation/portal-navigation-apis-search';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('CatalogComponent', () => {
@@ -48,14 +49,16 @@ describe('CatalogComponent', () => {
       apisResponse: ApisResponse;
       page: number;
       size: number;
+      hasNextPage: boolean;
     }> = {
       apisResponse: fakeApisResponse(),
       page: 1,
       size: 20,
+      hasNextPage: false,
     },
   ) => {
     await initBase();
-    expectApiList(params.apisResponse, params.page, params.size);
+    expectApiList(params.apisResponse, params.page ?? 1, params.size ?? 20, params.hasNextPage ?? false);
     fixture.detectChanges();
   };
 
@@ -95,6 +98,7 @@ describe('CatalogComponent', () => {
             },
           },
         }),
+        hasNextPage: true,
       });
     });
 
@@ -160,7 +164,7 @@ describe('CatalogComponent', () => {
       it('should show empty API list', async () => {
         await initBase();
         httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=&size=20&q=`)
+          .expectOne(portalSearchUrl(1, 20))
           .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
         fixture.detectChanges();
 
@@ -171,7 +175,46 @@ describe('CatalogComponent', () => {
     });
   });
 
-  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 20) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=&size=${size}&q=`).flush(apisResponse);
+  function portalSearchUrl(page: number, size: number, q = '') {
+    const base = `${TESTING_BASE_URL}/portal-navigation-items/_search?type=api&include=api&page=${page}&size=${size}`;
+    return q ? `${base}&query=${encodeURIComponent(q)}` : base;
+  }
+
+  function toPortalSearchResponse(
+    apisResponse: ApisResponse,
+    page: number,
+    size: number,
+    hasNextPage = false,
+  ): PortalNavigationItemsSearchResponse {
+    const apis = apisResponse.data ?? [];
+    const links = { ...apisResponse.links };
+    if (hasNextPage) links.next = `${TESTING_BASE_URL}/portal-navigation-items/_search?page=${page + 1}&size=${size}`;
+    const pagination = apisResponse.metadata?.pagination;
+    return {
+      data: apis.map(api => ({
+        type: 'API' as const,
+        apiId: api.id,
+        id: `nav-${api.id}`,
+        rootId: `root-${page}`,
+      })),
+      apis,
+      links,
+      metadata: pagination
+        ? {
+            pagination: {
+              current_page: pagination.current_page ?? page,
+              size: pagination.size ?? size,
+              total: pagination.total ?? apis.length,
+              total_pages: pagination.total_pages ?? 1,
+            },
+          }
+        : undefined,
+    } as PortalNavigationItemsSearchResponse;
+  }
+
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 20, hasNextPage = false) {
+    const url = `${TESTING_BASE_URL}/portal-navigation-items/_search?type=api&include=api&page=${page}&size=${size}`;
+    const req = httpTestingController.expectOne(url);
+    req.flush(toPortalSearchResponse(apisResponse, page, size, hasNextPage));
   }
 });
