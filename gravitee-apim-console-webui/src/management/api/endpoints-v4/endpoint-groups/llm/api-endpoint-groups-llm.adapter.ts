@@ -23,12 +23,15 @@ export type Provider = {
 export type ProviderConfiguration = {
   provider: 'OPEN_AI_COMPATIBLE' | 'OPEN_AI';
   models: Model[];
+  aliasOnly?: boolean;
+  aliasRequiresPrefix?: boolean;
 };
 
 export type Model = {
   outputPrice?: number;
   inputPrice?: number;
   name: string;
+  aliases?: string[];
 };
 
 export const toProviders = (api: ApiV4): Provider[] => {
