@@ -295,6 +295,9 @@ public interface ApiMapper {
     io.gravitee.apim.core.api.model.crd.PageCRD map(Page crd);
 
     // UpdateApi
+    /** Map full ApiV4 (e.g. from patched export) to UpdateApiV4 for use with the same update path as PUT .../apis/{apiId}. */
+    UpdateApiV4 mapToUpdateApiV4(ApiV4 api);
+
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);

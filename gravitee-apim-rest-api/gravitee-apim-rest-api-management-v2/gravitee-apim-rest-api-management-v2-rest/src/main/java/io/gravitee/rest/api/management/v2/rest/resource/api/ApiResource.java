@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -41,8 +42,10 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -59,6 +62,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIssuesInner;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
@@ -85,6 +89,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesRe
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.JsonPatch;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -110,6 +115,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -120,6 +126,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
+import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
@@ -127,7 +134,11 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -136,7 +147,9 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -154,6 +167,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -201,6 +215,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ExportApiUseCase exportApiUseCase;
+
+    @Inject
+    private JsonPatchService jsonPatchService;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -523,6 +540,112 @@ public class ApiResource extends AbstractResource {
         return Response.ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
             .build();
+    }
+
+    @PATCH
+    @Path("/definition")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Partially update a V4 HTTP Proxy API definition (JSON Patch)",
+        description = """
+        JSON Patch (RFC 6902) on the API export document—the same structure as **GET** `.../apis/{apiId}/_export/definition`. \
+        Intended for **v2 → v4 management parity**: small, programmatic updates without a full **PUT** body.
+
+        **Scope:** V4 HTTP Proxy only (`definitionVersion=V4`, `type=proxy`). Message, Native/TCP, Federated, and other kinds \
+        return **400**.
+
+        **Persisted payload:** Only the **`api`** object is mapped to **UpdateApiV4** and saved, using the **same update path \
+        and validation as PUT** `.../apis/{apiId}` for V4. Patches under **plans**, **metadata**, **members**, **pages**, \
+        **apiPicture**, etc. are **not** applied (use dedicated endpoints where available).
+
+        **dryRun:** `dryRun=true` applies the patch **in memory** and returns the patched JSON **without persisting**. \
+        The response may still contain patched envelope paths that **would not** be written on a real update.
+
+        **If-Match:** Optional; when present it must match the API revision ETag (same as **PUT** `.../apis/{apiId}`). \
+        Mismatch → **412 Precondition Failed**.
+
+        **Permissions:** **API_DEFINITION[UPDATE]** *or* **API_GATEWAY_DEFINITION[UPDATE]** (same OR rule as V4 PUT). \
+        Without gateway-definition update (unless primary owner or admin), **listeners** from the patch are ignored.""",
+        tags = { "API Definition" }
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully updated with json patches (or result of dry run)",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExportApiV4.class))
+    )
+    @ApiResponse(responseCode = "204", description = "Patch test failed (no change applied)")
+    @ApiResponse(responseCode = "400", description = "API kind does not support definition PATCH")
+    @ApiResponse(responseCode = "412", description = "Precondition failed (If-Match does not match current revision)")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response patchApiDefinition(
+        @Context final HttpHeaders headers,
+        @PathParam("apiId") String apiId,
+        @RequestBody(required = true) @Valid @NotNull final Collection<JsonPatch> patches,
+        @QueryParam("dryRun") @DefaultValue("false") final boolean dryRun
+    ) {
+        final GenericApiEntity genericEntity = getGenericApiEntityById(apiId, false, false, false, false);
+
+        if (
+            !(genericEntity instanceof ApiEntity api) ||
+            genericEntity.getDefinitionVersion() != DefinitionVersion.V4 ||
+            api.getType() != ApiType.PROXY
+        ) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message(
+                            "JSON Patch on the API definition is only available for V4 HTTP Proxy APIs; this API type is not supported."
+                        )
+                )
+                .build();
+        }
+
+        evaluateIfMatch(headers, Long.toString(genericEntity.getUpdatedAt().getTime()));
+
+        var exportOutput = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
+        String definitionJson = patchDefinitionToJson(ImportExportApiMapper.INSTANCE.map(exportOutput.definition()));
+
+        try {
+            String definitionModified = jsonPatchService.execute(definitionJson, patches);
+            if (dryRun) {
+                return Response.ok(definitionModified).build();
+            }
+
+            ExportApiV4 patchedExport = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(definitionModified);
+            UpdateApiV4 updateApiV4 = ApiMapper.INSTANCE.mapToUpdateApiV4(patchedExport.getApi());
+
+            ApiEntity currentApi = (ApiEntity) genericEntity;
+            ApiEntity updatedEntity = updateHttpApiV4(currentApi, updateApiV4);
+
+            var reExport = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
+            ExportApiV4 updatedDefinition = ImportExportApiMapper.INSTANCE.map(reExport.definition());
+
+            return Response.ok(updatedDefinition)
+                .tag(Long.toString(updatedEntity.getUpdatedAt().getTime()))
+                .lastModified(updatedEntity.getUpdatedAt())
+                .build();
+        } catch (JsonPatchTestFailedException e) {
+            return Response.noContent()
+                .tag(Long.toString(genericEntity.getUpdatedAt().getTime()))
+                .lastModified(genericEntity.getUpdatedAt())
+                .build();
+        }
+    }
+
+    private static String patchDefinitionToJson(ExportApiV4 exportApiV4) {
+        try {
+            return ImportExportApiMapper.JSON_MAPPER.writeValueAsString(exportApiV4);
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Failed to serialize API definition", e);
+        }
     }
 
     @GET
