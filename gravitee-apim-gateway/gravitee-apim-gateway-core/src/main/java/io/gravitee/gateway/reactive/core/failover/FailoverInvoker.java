@@ -133,7 +133,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         if (endpoints != null && !endpoints.isEmpty()) {
             // Select the next endpoint in the rotation (attempt-1 because attempt 0 was the LB pick)
             int index = (attempt - 1) % endpoints.size();
-            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, endpoints.get(index));
+            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, endpoints.get(index) + ":");
         }
     }
 

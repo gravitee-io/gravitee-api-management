@@ -753,6 +753,48 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
     @Nested
     @GatewayTest
+    class ForceNextEndpointOnFailure extends AbstractGatewayTest {
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-three-endpoints-force-next.json")
+        void should_try_different_endpoints_on_each_retry(HttpClient client) {
+            // Given all endpoints return 500 (triggering failureCondition "{#response.status >= 500}")
+            wiremock.stubFor(get("/endpoint-1").willReturn(serverError().withBody("error-1")));
+            wiremock.stubFor(get("/endpoint-2").willReturn(serverError().withBody("error-2")));
+            wiremock.stubFor(get("/endpoint-3").willReturn(serverError().withBody("error-3")));
+
+            // When requesting the API (all retries fail → 502)
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    return true;
+                });
+
+            // Then all three endpoints should have been called exactly once each
+            // (forceNextEndpointOnFailure ensures different endpoints on each retry)
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint-1")));
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint-2")));
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint-3")));
+        }
+    }
+
+    @Nested
+    @GatewayTest
     class DynamicRoutingToGroup extends FailoverV4EmulationIntegrationTest.DynamicRoutingToGroup {
 
         @Override
