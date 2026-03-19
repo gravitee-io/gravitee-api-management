@@ -191,6 +191,16 @@ describe('WebhookLogsListComponent', () => {
     expect(rowCells[0][4]).toBe('—');
   });
 
+  it('should_not_display_column_picker_button', () => {
+    const baseComponentDebug = fixture.debugElement.query(By.directive(LogsListBaseComponent));
+    const baseComponent = baseComponentDebug.componentInstance as LogsListBaseComponent<WebhookLog>;
+
+    expect(baseComponent.hasColumnPicker()).toBe(false);
+
+    const plusButton = fixture.debugElement.query(By.css('.select-visible-columns-btn'));
+    expect(plusButton).toBeNull();
+  });
+
   function createWebhookLog(overrides: Partial<WebhookLogWithId>): WebhookLogWithId {
     return {
       id: 'log-id',
