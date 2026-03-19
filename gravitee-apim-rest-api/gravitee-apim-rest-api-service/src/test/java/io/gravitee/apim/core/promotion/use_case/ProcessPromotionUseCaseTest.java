@@ -227,13 +227,13 @@ class ProcessPromotionUseCaseTest {
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
         var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var aleadyPromotedApi = ApiFixtures.aProxyApiV4()
+        var promotedApiInTargetEnv = ApiFixtures.aProxyApiV4()
             .toBuilder()
-            .id(API_ID)
+            .id("already-promoted-api")
             .crossId(CROSS_ID)
             .environmentId(ENVIRONMENT.getId())
             .build();
-        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, promotedApiInTargetEnv));
 
         when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
@@ -375,13 +375,13 @@ class ProcessPromotionUseCaseTest {
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
         var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var aleadyPromotedApi = ApiFixtures.aProxyApiV4()
+        var promotedApiInTargetEnv = ApiFixtures.aProxyApiV4()
             .toBuilder()
-            .id(API_ID)
+            .id("already-promoted-api")
             .crossId(CROSS_ID)
             .environmentId(ENVIRONMENT.getId())
             .build();
-        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, promotedApiInTargetEnv));
 
         Throwable throwable = catchThrowable(() ->
             useCase.execute(
