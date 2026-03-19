@@ -2200,6 +2200,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-message-encryption-decryption</artifactId>
+                    <version>${gravitee-policy-kafka-message-encryption-decryption.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-kafka-offloading</artifactId>
                     <version>${gravitee-policy-offloading.version}</version>
                     <type>zip</type>
