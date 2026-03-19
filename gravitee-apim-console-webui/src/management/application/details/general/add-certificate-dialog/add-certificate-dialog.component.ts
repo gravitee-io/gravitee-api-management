@@ -19,6 +19,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
+import { NewFile } from '@gravitee/ui-particles-angular';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 
@@ -50,6 +51,7 @@ export class AddCertificateDialogComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   form: FormGroup;
+  filePickerValue: unknown[] = [];
   minDate = new Date();
   maxEndsAt: Date | undefined;
   maxGracePeriod: Date | undefined;
@@ -72,6 +74,15 @@ export class AddCertificateDialogComponent {
     this.setupCertificateValidation();
   }
 
+  async onFileSelected(event: (NewFile | string)[] | undefined): Promise<void> {
+    if (!event?.length) return;
+    const file = event[0];
+    if (!(file instanceof NewFile)) return;
+    const content = await this.readFileAsText(file.file);
+    this.form.controls['certificate'].setValue(content);
+    this.filePickerValue = [];
+  }
+
   onSubmit(): void {
     if (this.form.invalid) {
       return;
@@ -85,6 +96,15 @@ export class AddCertificateDialogComponent {
       endsAt: endsAt ? new Date(endsAt).toISOString() : undefined,
       gracePeriodEnd: gracePeriodEnd ? new Date(gracePeriodEnd).toISOString() : undefined,
       activeCertificateId: this.data.activeCertificateId,
+    });
+  }
+
+  private readFileAsText(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsText(file);
     });
   }
 

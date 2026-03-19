@@ -27,26 +27,49 @@
       }
     </mat-form-field>
 
-    <mat-form-field class="add-certificate-dialog__field">
-      <mat-label>Certificate</mat-label>
-      <textarea
-        matInput
-        formControlName="certificate"
-        rows="8"
-        placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-        data-testid="certificate-pem-input"
-      ></textarea>
-      @if (isValidating) {
-        <mat-hint>Validating certificate...</mat-hint>
-      } @else if (validationError) {
-        <mat-hint class="add-certificate-dialog__error-hint">{{ validationError }}</mat-hint>
-      } @else {
-        <mat-hint>Paste the PEM-encoded client certificate</mat-hint>
-      }
-      @if (form.get('certificate').hasError('required')) {
-        <mat-error>Certificate is required.</mat-error>
-      }
-    </mat-form-field>
+    <div class="add-certificate-dialog__certificate-input">
+      <div class="add-certificate-dialog__section">
+        <span class="add-certificate-dialog__section-title">Paste certificate</span>
+        <mat-form-field class="add-certificate-dialog__field">
+          <mat-label>Certificate</mat-label>
+          <textarea
+            matInput
+            formControlName="certificate"
+            rows="8"
+            placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+            data-testid="certificate-pem-input"
+          ></textarea>
+          @if (isValidating) {
+            <mat-hint>Validating certificate...</mat-hint>
+          } @else if (validationError) {
+            <mat-hint class="add-certificate-dialog__error-hint">{{ validationError }}</mat-hint>
+          } @else {
+            <mat-hint>Paste the PEM-encoded client certificate</mat-hint>
+          }
+          @if (form.get('certificate').hasError('required')) {
+            <mat-error>Certificate is required.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="add-certificate-dialog__section">
+        <span class="add-certificate-dialog__section-title">Upload file</span>
+        <gio-form-file-picker
+          accept=".pem,.crt,.cer"
+          [ngModel]="filePickerValue"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFileSelected($event)"
+        >
+          <gio-form-file-picker-add-button class="add-certificate-dialog__upload-zone">
+            <div class="add-certificate-dialog__upload-zone__content">
+              <mat-icon svgIcon="gio:upload"></mat-icon>
+              <p><strong>Drag and drop</strong> a file</p>
+              <p class="add-certificate-dialog__upload-zone__hint">Supported file formats: .pem, .crt</p>
+            </div>
+          </gio-form-file-picker-add-button>
+        </gio-form-file-picker>
+      </div>
+    </div>
 
     <mat-form-field class="add-certificate-dialog__field">
       <mat-label>Active until</mat-label>
