@@ -31,8 +31,8 @@ import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCert
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -77,7 +77,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
             subscription.getEndingAt() != null &&
             Objects.equals(genericPlanEntity.getPlanSecurity().getType(), PlanSecurityType.MTLS.name())
         ) {
-            Set<ClientCertificate> byApplicationIdAndStatuses = clientCertificateCrudService.findByApplicationIdAndStatuses(
+            List<ClientCertificate> byApplicationIdAndStatuses = clientCertificateCrudService.findByApplicationIdAndStatuses(
                 applicationId,
                 ClientCertificateStatus.ACTIVE_WITH_END
             );

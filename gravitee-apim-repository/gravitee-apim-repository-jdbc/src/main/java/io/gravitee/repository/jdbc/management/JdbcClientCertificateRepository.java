@@ -28,9 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -91,12 +89,12 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
+    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
         log.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, Arrays.toString(statuses));
 
         if (statuses == null || statuses.length == 0) {
-            return new HashSet<>();
+            return List.of();
         }
 
         try {
@@ -110,27 +108,26 @@ public class JdbcClientCertificateRepository
 
             var args = Stream.concat(Stream.of(applicationId), statusStrings.stream()).toArray();
 
-            List<ClientCertificate> clientCertificates = jdbcTemplate.query(sql, getOrm().getRowMapper(), args);
-            return new HashSet<>(clientCertificates);
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), args);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find client certificates by application id and statuses", ex);
         }
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
         throws TechnicalException {
         log.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, Arrays.toString(statuses));
 
         if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
-            return new HashSet<>();
+            return List.of();
         }
 
         try {
             List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
             List<String> applicationIdList = new ArrayList<>(applicationIds);
 
-            Set<ClientCertificate> result = new HashSet<>();
+            List<ClientCertificate> result = new ArrayList<>();
 
             // Process application IDs in batches to avoid SQL IN clause limitations
             int batchSize = 500;
@@ -163,11 +160,11 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
+    public List<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
         log.debug("JdbcClientCertificateRepository.findByStatuses({})", Arrays.toString(statuses));
 
         if (statuses == null || statuses.length == 0) {
-            return Set.of();
+            return List.of();
         }
 
         try {
@@ -175,8 +172,7 @@ public class JdbcClientCertificateRepository
 
             var sql = getOrm().getSelectAllSql() + " WHERE status IN (" + getOrm().buildInClause(statusStrings) + ")";
 
-            var clientCertificates = jdbcTemplate.query(sql, ps -> getOrm().setArguments(ps, statusStrings, 1), getOrm().getRowMapper());
-            return new HashSet<>(clientCertificates);
+            return jdbcTemplate.query(sql, ps -> getOrm().setArguments(ps, statusStrings, 1), getOrm().getRowMapper());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find client certificates by statuses", ex);
         }

@@ -29,7 +29,6 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -126,33 +125,33 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
+    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
         log.debug("Find client certificates by application ID [{}] and statuses [{}]", applicationId, statuses);
 
         if (statuses == null || statuses.length == 0) {
-            return new HashSet<>();
+            return List.of();
         }
 
         List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
 
         List<ClientCertificateMongo> clientCertificates = internalRepository.findByApplicationIdAndStatuses(applicationId, statusStrings);
-        return clientCertificates.stream().map(mapper::map).collect(Collectors.toSet());
+        return clientCertificates.stream().map(mapper::map).toList();
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
         throws TechnicalException {
         log.debug("Find client certificates by application IDs [{}] and statuses [{}]", applicationIds, statuses);
 
         if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
-            return new HashSet<>();
+            return List.of();
         }
 
         List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
         List<String> applicationIdList = new ArrayList<>(applicationIds);
 
-        Set<ClientCertificate> result = new HashSet<>();
+        List<ClientCertificate> result = new ArrayList<>();
 
         // Process application IDs in batches to avoid query size limitations
         int batchSize = 500;
@@ -167,17 +166,17 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
-    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
+    public List<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
         log.debug("Find client certificates by statuses [{}]", (Object) statuses);
 
         if (statuses == null || statuses.length == 0) {
-            return Set.of();
+            return List.of();
         }
 
         try {
             var statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
             var clientCertificates = internalRepository.findByStatuses(statusStrings);
-            return clientCertificates.stream().map(mapper::map).collect(Collectors.toSet());
+            return clientCertificates.stream().map(mapper::map).toList();
         } catch (Exception e) {
             throw new TechnicalException("Failed to find client certificates by statuses", e);
         }

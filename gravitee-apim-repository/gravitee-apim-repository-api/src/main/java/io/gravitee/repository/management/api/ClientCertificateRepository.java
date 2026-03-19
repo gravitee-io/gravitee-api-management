@@ -21,7 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.ClientCertificate;
 import io.gravitee.repository.management.model.ClientCertificateStatus;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Repository interface for ClientCertificate CRUD operations.
@@ -44,10 +44,10 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      *
      * @param applicationId the application ID
      * @param statuses the statuses to filter by
-     * @return a set of client certificates matching the criteria
+     * @return a list of client certificates matching the criteria
      * @throws TechnicalException if an error occurs
      */
-    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
+    List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException;
 
     /**
@@ -56,10 +56,10 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      *
      * @param applicationIds the collection of application IDs
      * @param statuses the statuses to filter by
-     * @return a set of client certificates matching the criteria
+     * @return a list of client certificates matching the criteria
      * @throws TechnicalException if an error occurs
      */
-    Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
+    List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
         throws TechnicalException;
 
     /**
@@ -67,10 +67,10 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * Returns an empty set if {@code statuses} is null or empty.
      *
      * @param statuses one or more {@link ClientCertificateStatus} values to filter by
-     * @return a set of client certificates matching the criteria
+     * @return a list of client certificates matching the criteria
      * @throws TechnicalException if a database-level error occurs
      */
-    Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException;
+    List<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException;
 
     /**
      * Check if a client certificate with the given fingerprint exists for an active application,

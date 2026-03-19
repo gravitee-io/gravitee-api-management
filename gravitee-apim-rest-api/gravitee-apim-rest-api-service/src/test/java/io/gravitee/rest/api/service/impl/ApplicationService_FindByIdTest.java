@@ -37,8 +37,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,7 +95,7 @@ public class ApplicationService_FindByIdTest {
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
         when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(
-            Set.of(
+            List.of(
                 clientCertificate("old", Date.from(Instant.now().minus(1, ChronoUnit.DAYS))),
                 clientCertificate("most_recent", Date.from(Instant.now().plus(1, ChronoUnit.DAYS))),
                 clientCertificate("now", Date.from(Instant.now()))
@@ -104,7 +104,28 @@ public class ApplicationService_FindByIdTest {
 
         final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         assertNotNull(applicationEntity);
-        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isEqualTo("most_recent");
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificates())
+            .extracting("certificate")
+            .containsExactly("old", "now", "most_recent");
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isNull();
+    }
+
+    @Test
+    public void shouldFindByIdWithLegacyCert() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getName()).thenReturn("app-1");
+
+        // same name as app, only one certificate => legacy/migrated cert
+        ClientCertificate clientCertificate = new ClientCertificate("app-1", "certificate", null, null);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(List.of(clientCertificate));
+
+        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        assertNotNull(applicationEntity);
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isEqualTo("certificate");
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificates()).isNull();
     }
 
     private static ClientCertificate clientCertificate(String cert, Date createdAt) {
