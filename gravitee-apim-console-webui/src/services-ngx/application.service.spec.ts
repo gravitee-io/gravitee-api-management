@@ -561,4 +561,29 @@ describe('ApplicationService', () => {
         .flush({});
     });
   });
+
+  describe('validateCertificate', () => {
+    it('should call the API', done => {
+      const appId = 'my-app-id';
+      const pemCertificate = '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----';
+      const mockResponse = {
+        certificateExpiration: '2026-12-31T23:59:59Z',
+        subject: 'CN=test',
+        issuer: 'CN=issuer',
+      };
+
+      applicationService.validateCertificate(appId, pemCertificate).subscribe(response => {
+        expect(response).toEqual(mockResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/certificates/_validate`,
+      });
+
+      expect(req.request.body).toEqual({ certificate: pemCertificate });
+      req.flush(mockResponse);
+    });
+  });
 });

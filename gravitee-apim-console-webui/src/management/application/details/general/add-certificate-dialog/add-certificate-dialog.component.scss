@@ -9,4 +9,8 @@
   &__field {
     width: 100%;
   }
+
+  &__error-hint {
+    color: var(--mat-form-field-error-text-color);
+  }
 }

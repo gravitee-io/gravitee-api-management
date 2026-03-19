@@ -28,7 +28,12 @@ import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
 import { CreateApplication } from '../entities/application/CreateApplication';
 import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
-import { ClientCertificate, CreateClientCertificate, UpdateClientCertificate } from '../entities/application/ClientCertificate';
+import {
+  ClientCertificate,
+  CreateClientCertificate,
+  UpdateClientCertificate,
+  ValidateCertificateResponse,
+} from '../entities/application/ClientCertificate';
 
 @Injectable({
   providedIn: 'root',
@@ -236,5 +241,12 @@ export class ApplicationService {
 
   deleteCertificate(applicationId: string, certificateId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/certificates/${certificateId}`);
+  }
+
+  validateCertificate(applicationId: string, certificate: string): Observable<ValidateCertificateResponse> {
+    return this.http.post<ValidateCertificateResponse>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/certificates/_validate`,
+      { certificate },
+    );
   }
 }

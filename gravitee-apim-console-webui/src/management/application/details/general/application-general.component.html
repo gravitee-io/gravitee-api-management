@@ -240,13 +240,13 @@
 
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Uploaded</th>
-            <td mat-cell *matCellDef="let cert">{{ cert.createdAt | date: 'mediumDate' }}</td>
+            <td mat-cell *matCellDef="let cert">{{ cert.createdAt | date: 'medium' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="endsAt">
-            <th mat-header-cell *matHeaderCellDef>Expiry date</th>
+            <th mat-header-cell *matHeaderCellDef>Expiry date and time</th>
             <td mat-cell *matCellDef="let cert">
-              {{ cert.endsAt ? (cert.endsAt | date: 'mediumDate') : '—' }}
+              {{ cert.endsAt ? (cert.endsAt | date: 'medium') : '—' }}
             </td>
           </ng-container>
 

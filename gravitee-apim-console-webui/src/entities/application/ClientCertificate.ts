@@ -51,3 +51,9 @@ export interface UpdateClientCertificate {
   startsAt?: string;
   endsAt?: string;
 }
+
+export interface ValidateCertificateResponse {
+  certificateExpiration: string;
+  subject: string;
+  issuer: string;
+}
