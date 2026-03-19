@@ -17,11 +17,10 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
 import { NewFile } from '@gravitee/ui-particles-angular';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
+import { ValidateCertificateResponse } from '../../../../../entities/application/ClientCertificate';
 
 export interface AddCertificateDialogData {
   applicationId: string;
@@ -38,6 +37,16 @@ export interface AddCertificateDialogResult {
   activeCertificateId?: string;
 }
 
+interface UploadFormControls {
+  name: FormControl<string>;
+  certificate: FormControl<string>;
+}
+
+interface ConfigureFormControls {
+  endsAt: FormControl<Date | null>;
+  gracePeriodEnd?: FormControl<Date | null>;
+}
+
 @Component({
   selector: 'add-certificate-dialog',
   templateUrl: './add-certificate-dialog.component.html',
@@ -50,13 +59,18 @@ export class AddCertificateDialogComponent {
   private readonly applicationService = inject(ApplicationService);
   private readonly destroyRef = inject(DestroyRef);
 
-  form: FormGroup;
+  readonly steps = ['Upload', 'Configure', 'Confirm'];
+  currentStep = 0;
+
+  uploadForm: FormGroup<UploadFormControls>;
+  configureForm: FormGroup<ConfigureFormControls>;
   filePickerValue: unknown[] = [];
   minDate = new Date();
   maxEndsAt: Date | undefined;
   maxGracePeriod: Date | undefined;
   isValidating = false;
   validationError: string | undefined;
+  validationResponse: ValidateCertificateResponse | undefined;
 
   constructor() {
     const gracePeriodDefault = this.data.activeCertificateExpiration ? new Date(this.data.activeCertificateExpiration) : null;
@@ -64,14 +78,15 @@ export class AddCertificateDialogComponent {
       this.maxGracePeriod = gracePeriodDefault;
     }
 
-    this.form = new FormGroup({
-      name: new FormControl('', Validators.required),
-      certificate: new FormControl('', Validators.required),
-      endsAt: new FormControl(null),
-      ...(this.data.hasActiveCertificates ? { gracePeriodEnd: new FormControl(gracePeriodDefault, Validators.required) } : {}),
+    this.uploadForm = new FormGroup<UploadFormControls>({
+      name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      certificate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     });
 
-    this.setupCertificateValidation();
+    this.configureForm = new FormGroup<ConfigureFormControls>({
+      endsAt: new FormControl<Date | null>(null),
+      ...(this.data.hasActiveCertificates ? { gracePeriodEnd: new FormControl<Date | null>(gracePeriodDefault, Validators.required) } : {}),
+    });
   }
 
   async onFileSelected(event: (NewFile | string)[] | undefined): Promise<void> {
@@ -79,16 +94,52 @@ export class AddCertificateDialogComponent {
     const file = event[0];
     if (!(file instanceof NewFile)) return;
     const content = await this.readFileAsText(file.file);
-    this.form.controls['certificate'].setValue(content);
+    this.uploadForm.controls.certificate.setValue(content);
     this.filePickerValue = [];
   }
 
-  onSubmit(): void {
-    if (this.form.invalid) {
+  onValidate(): void {
+    if (this.uploadForm.invalid) {
       return;
     }
 
-    const { name, certificate, endsAt, gracePeriodEnd } = this.form.getRawValue();
+    const certificate = this.uploadForm.controls.certificate.value;
+    this.isValidating = true;
+    this.validationError = undefined;
+
+    this.applicationService
+      .validateCertificate(this.data.applicationId, certificate)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: response => {
+          this.isValidating = false;
+          this.validationResponse = response;
+          const expiration = new Date(response.certificateExpiration);
+          this.maxEndsAt = expiration;
+          this.configureForm.controls.endsAt.setValue(expiration);
+          this.currentStep = 1;
+        },
+        error: () => {
+          this.isValidating = false;
+          this.validationError = 'Invalid certificate format';
+        },
+      });
+  }
+
+  onContinueToConfirm(): void {
+    if (this.configureForm.invalid) {
+      return;
+    }
+    this.currentStep = 2;
+  }
+
+  onSubmit(): void {
+    if (this.uploadForm.invalid || this.configureForm.invalid) {
+      return;
+    }
+
+    const { name, certificate } = this.uploadForm.getRawValue();
+    const { endsAt, gracePeriodEnd } = this.configureForm.getRawValue();
 
     this.dialogRef.close({
       name,
@@ -106,39 +157,5 @@ export class AddCertificateDialogComponent {
       reader.onerror = reject;
       reader.readAsText(file);
     });
-  }
-
-  private setupCertificateValidation(): void {
-    this.form.controls['certificate'].valueChanges
-      .pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        switchMap((certificate: string) => {
-          if (!certificate?.trim()) {
-            this.maxEndsAt = undefined;
-            this.isValidating = false;
-            this.validationError = undefined;
-            return EMPTY;
-          }
-          this.isValidating = true;
-          this.validationError = undefined;
-          return this.applicationService.validateCertificate(this.data.applicationId, certificate).pipe(
-            catchError(() => {
-              this.maxEndsAt = undefined;
-              this.isValidating = false;
-              this.validationError = 'Invalid certificate format';
-              return EMPTY;
-            }),
-          );
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(response => {
-        this.isValidating = false;
-        this.validationError = undefined;
-        const expiration = new Date(response.certificateExpiration);
-        this.maxEndsAt = expiration;
-        this.form.controls['endsAt'].setValue(expiration);
-      });
   }
 }

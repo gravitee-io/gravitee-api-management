@@ -472,7 +472,7 @@ describe('ApplicationService', () => {
   });
 
   describe('listCertificates', () => {
-    it('should call the API with default pagination', done => {
+    it('should_call_the_API_with_default_pagination', done => {
       const appId = 'my-app-id';
 
       applicationService.listCertificates(appId).subscribe(response => {
@@ -488,7 +488,7 @@ describe('ApplicationService', () => {
         .flush({ data: [], page: { current: 1, per_page: 10, size: 0, total_elements: 0, total_pages: 0 } });
     });
 
-    it('should call the API with custom pagination', done => {
+    it('should_call_the_API_with_custom_pagination', done => {
       const appId = 'my-app-id';
 
       applicationService.listCertificates(appId, 2, 25).subscribe(response => {
@@ -506,7 +506,7 @@ describe('ApplicationService', () => {
   });
 
   describe('createCertificate', () => {
-    it('should call the API', done => {
+    it('should_call_the_API', done => {
       const appId = 'my-app-id';
       const newCert = { name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----' };
 
@@ -525,7 +525,7 @@ describe('ApplicationService', () => {
   });
 
   describe('updateCertificate', () => {
-    it('should call the API', done => {
+    it('should_call_the_API', done => {
       const appId = 'my-app-id';
       const certId = 'cert-id';
       const update = { name: 'Updated Cert', endsAt: '2026-06-01T00:00:00Z' };
@@ -545,7 +545,7 @@ describe('ApplicationService', () => {
   });
 
   describe('deleteCertificate', () => {
-    it('should call the API', done => {
+    it('should_call_the_API', done => {
       const appId = 'my-app-id';
       const certId = 'cert-id';
 
@@ -563,7 +563,7 @@ describe('ApplicationService', () => {
   });
 
   describe('validateCertificate', () => {
-    it('should call the API', done => {
+    it('should_call_the_API', done => {
       const appId = 'my-app-id';
       const pemCertificate = '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----';
       const mockResponse = {

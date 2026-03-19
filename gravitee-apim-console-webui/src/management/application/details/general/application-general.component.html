@@ -280,12 +280,12 @@
               @if (!isReadOnly) {
                 <button
                   mat-icon-button
-                  aria-label="Delete certificate"
-                  matTooltip="Delete certificate"
+                  aria-label="Revoke certificate"
+                  matTooltip="Revoke certificate"
                   (click)="deleteCertificate(cert)"
                   data-testid="delete-certificate-button"
                 >
-                  <mat-icon svgIcon="gio:trash"></mat-icon>
+                  <mat-icon svgIcon="gio:x-circle"></mat-icon>
                 </button>
               }
             </td>
