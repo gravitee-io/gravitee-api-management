@@ -50,16 +50,28 @@ class ImportDefinitionPageDomainService {
         }
 
         var savedPages = apiDocumentationDomainService.getApiPages(apiId, null);
-        var pageMap = savedPages.stream().collect(Collectors.toMap(Page::getCrossId, Function.identity()));
+        var pageMap = savedPages
+            .stream()
+            .filter(p -> p.getCrossId() != null)
+            .collect(Collectors.toMap(Page::getCrossId, Function.identity()));
         var now = Date.from(TimeProvider.now().toInstant());
 
         for (var importedPage : pagesToImport) {
-            var existingPage = pageMap.get(importedPage.getCrossId());
+            var existingPage = importedPage.getCrossId() != null
+                ? pageMap.get(importedPage.getCrossId())
+                : savedPages
+                    .stream()
+                    .filter(p -> p.getType() == importedPage.getType() && importedPage.getName().equals(p.getName()))
+                    .findFirst()
+                    .orElse(null);
             var pageToSave = importedPage.toBuilder().referenceType(Page.ReferenceType.API).referenceId(apiId).updatedAt(now);
             if (existingPage == null) {
                 createApiDocumentationDomainService.createPage(pageToSave.createdAt(now).build(), auditInfo);
             } else {
-                updateApiDocumentationDomainService.updatePage(pageToSave.build(), existingPage, auditInfo);
+                // Match is by crossId; the imported page may carry a different id (e.g. after id generation on update).
+                // Persistence must use the existing row id.
+                var mergedForUpdate = pageToSave.id(existingPage.getId()).createdAt(existingPage.getCreatedAt()).build();
+                updateApiDocumentationDomainService.updatePage(mergedForUpdate, existingPage, auditInfo);
             }
         }
     }

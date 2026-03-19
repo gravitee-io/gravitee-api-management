@@ -21,8 +21,10 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.use_case.DetachAutomatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
@@ -30,7 +32,9 @@ import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
+import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -59,6 +63,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIssuesInner;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
@@ -84,6 +90,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.ApiSpecGenRe
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -127,6 +134,7 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
+import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
@@ -247,6 +255,12 @@ public class ApiResource extends AbstractResource {
     @Inject
     private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
 
+    @Inject
+    private UpdateApiDefinitionUseCase updateApiDefinitionUseCase;
+
+    @Inject
+    private OAIToUpdateApiUseCase oaiToUpdateApiUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -320,6 +334,73 @@ public class ApiResource extends AbstractResource {
     public Response getApiById(@PathParam("apiId") String apiId) {
         final GenericApiEntity apiEntity = getGenericApiEntityById(apiId, true);
         return apiResponse(apiEntity);
+    }
+
+    @PUT
+    @Path("/_import/definition")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiWithDefinition(@PathParam("apiId") String apiId, @Valid ExportApiV4 apiToImport) {
+        verifyImage(apiToImport.getApiPicture(), "picture");
+        verifyImage(apiToImport.getApiBackground(), "background");
+
+        ImportDefinition importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(apiToImport);
+
+        try {
+            var audit = getAuditInfo();
+            UpdateApiDefinitionUseCase.Output output = updateApiDefinitionUseCase.execute(
+                new UpdateApiDefinitionUseCase.Input(apiId, importDefinition, audit)
+            );
+
+            boolean isSynchronized = apiStateService.isSynchronized(
+                GraviteeContext.getExecutionContext(),
+                getGenericApiEntityById(apiId, false)
+            );
+
+            return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+        } catch (InvalidPathsException e) {
+            throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
+    }
+
+    @PUT
+    @Path("/_import/swagger")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiFromSwagger(@PathParam("apiId") String apiId, @Valid @NotNull ImportSwaggerDescriptor descriptor) {
+        try {
+            var audit = getAuditInfo();
+            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
+                .payload(descriptor.getPayload())
+                .withPolicies(descriptor.getWithPolicies() != null ? new ArrayList<>(descriptor.getWithPolicies()) : null)
+                .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
+                .build();
+
+            var output = oaiToUpdateApiUseCase.execute(
+                OAIToUpdateApiUseCase.Input.builder()
+                    .apiId(apiId)
+                    .importSwaggerDescriptor(importSwaggerDescriptor)
+                    .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
+                    .withOASValidationPolicy(Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()))
+                    .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
+                    .auditInfo(audit)
+                    .build()
+            );
+
+            if (output == null) {
+                throw new BadRequestException("Unable to read the swagger specification");
+            }
+
+            boolean isSynchronized = apiStateService.isSynchronized(
+                GraviteeContext.getExecutionContext(),
+                getGenericApiEntityById(apiId, false)
+            );
+            return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+        } catch (InvalidPathsException e) {
+            throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
     }
 
     @PUT
@@ -1167,6 +1248,14 @@ public class ApiResource extends AbstractResource {
     private void assertNoPrimaryOwnerReassignment(String poRole) {
         if (PRIMARY_OWNER.name().equals(poRole)) {
             throw new TransferOwnershipNotAllowedException(poRole);
+        }
+    }
+
+    private static void verifyImage(String imageContent, String imageUsage) {
+        try {
+            ImageUtils.verify(imageContent);
+        } catch (InvalidImageException e) {
+            throw new BadRequestException("Invalid image format for api " + imageUsage);
         }
     }
 }

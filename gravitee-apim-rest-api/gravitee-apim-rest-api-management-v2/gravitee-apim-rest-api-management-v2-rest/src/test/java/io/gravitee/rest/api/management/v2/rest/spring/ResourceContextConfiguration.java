@@ -67,7 +67,9 @@ import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
@@ -568,6 +570,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    @Primary
+    public UpdateApiDefinitionUseCase updateApiDefinitionUseCase() {
+        return mock(UpdateApiDefinitionUseCase.class);
+    }
+
+    @Bean
+    @Primary
     public GetApiDefinitionUseCase getApiDefinitionUseCase() {
         return mock(GetApiDefinitionUseCase.class);
     }
@@ -580,6 +589,12 @@ public class ResourceContextConfiguration {
     @Bean
     public OAIDomainService oaiDomainService() {
         return mock(OAIDomainService.class);
+    }
+
+    @Bean
+    @Primary
+    public OAIToUpdateApiUseCase oaiToUpdateApiUseCase() {
+        return mock(OAIToUpdateApiUseCase.class);
     }
 
     @Bean

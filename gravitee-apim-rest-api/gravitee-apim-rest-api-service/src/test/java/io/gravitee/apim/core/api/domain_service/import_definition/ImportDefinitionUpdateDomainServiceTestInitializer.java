@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.domain_service.import_definition;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
@@ -37,6 +39,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
@@ -62,6 +65,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     public final ApiService apiService = mock(ApiService.class);
     public final CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     public final ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
+    public final ApiImportDomainService apiImportDomainService = mock(ApiImportDomainService.class);
 
     // In Memory
     public ApiCrudServiceInMemory apiCrudServiceInMemory;
@@ -101,6 +105,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
 
     public ImportDefinitionUpdateDomainServiceTestInitializer(ApiCrudServiceInMemory apiCrudService) {
         apiCrudServiceInMemory = Objects.requireNonNullElseGet(apiCrudService, ApiCrudServiceInMemory::new);
+
+        doNothing().when(apiImportDomainService).createMembers(any(), any());
+        doNothing().when(apiImportDomainService).createMedias(any(), any(), any());
 
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
             apiQueryServiceInMemory,
@@ -149,7 +156,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             apiPrimaryOwnerDomainService,
             metadataDomainServiceInitializer.initialize(),
             planDomainServiceInitializer.initialize(environmentId),
-            pageDomainServiceTestInitializer.initialize()
+            pageDomainServiceTestInitializer.initialize(),
+            apiImportDomainService,
+            flowCrudServiceInMemory
         );
     }
 
@@ -175,6 +184,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         reset(apiService);
         reset(categoryDomainService);
         reset(validateApiDomainService);
+        reset(apiImportDomainService);
+        doNothing().when(apiImportDomainService).createMembers(any(), any());
+        doNothing().when(apiImportDomainService).createMedias(any(), any(), any());
 
         apiImagesServiceProvider.reset();
     }

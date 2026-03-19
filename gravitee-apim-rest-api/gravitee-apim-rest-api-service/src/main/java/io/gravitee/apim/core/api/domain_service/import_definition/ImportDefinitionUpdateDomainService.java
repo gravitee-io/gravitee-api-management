@@ -19,22 +19,30 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 @DomainService
@@ -49,6 +57,8 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService;
     private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
+    private final ApiImportDomainService apiImportDomainService;
+    private final FlowCrudService flowCrudService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -59,7 +69,9 @@ public class ImportDefinitionUpdateDomainService {
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
-        ImportDefinitionPageDomainService importDefinitionPageDomainService
+        ImportDefinitionPageDomainService importDefinitionPageDomainService,
+        ApiImportDomainService apiImportDomainService,
+        FlowCrudService flowCrudService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -70,6 +82,8 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionMetadataDomainService = importDefinitionMetadataDomainService;
         this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
+        this.apiImportDomainService = apiImportDomainService;
+        this.flowCrudService = flowCrudService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -77,9 +91,11 @@ public class ImportDefinitionUpdateDomainService {
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(auditInfo.environmentId(), importDefinition);
         var apiExport = apiWithIds.getApiExport();
 
+        restoreApiFlowIdsByPosition(apiExport, apiId);
+
         var updatedApi = switch (existingPromotedApi.getType()) {
             case PROXY, MESSAGE -> updateApiDomainService.updateV4(
-                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()),
+                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
                 auditInfo
             );
             case NATIVE -> updateNativeApi(apiId, apiWithIds.getApiExport(), auditInfo);
@@ -90,6 +106,7 @@ public class ImportDefinitionUpdateDomainService {
         apiImagesServiceProvider.updateApiBackground(apiId, apiExport.getBackground(), auditInfo);
 
         new ImportDefinitionSubEntityProcessor(updatedApi.getId())
+            .addSubEntity("Members", () -> importMembersIfPresent(importDefinition.getMembers(), apiId))
             .addSubEntity("Metadata", () ->
                 importDefinitionMetadataDomainService.upsertMetadata(apiId, importDefinition.getMetadata(), auditInfo)
             )
@@ -97,9 +114,37 @@ public class ImportDefinitionUpdateDomainService {
             .addSubEntity("Plans", () ->
                 importDefinitionPlanDomainService.upsertPlanWithFlows(existingPromotedApi, importDefinition.getPlans(), auditInfo)
             )
+            .addSubEntity("Media", () -> importMediaIfPresent(importDefinition.getApiMedia(), apiId, auditInfo))
             .process();
 
         return updatedApi;
+    }
+
+    private void restoreApiFlowIdsByPosition(ApiExport apiExport, String apiId) {
+        if (apiExport == null || apiExport.getFlows() == null || apiExport.getFlows().isEmpty()) {
+            return;
+        }
+        var incomingFlows = apiExport.getFlows();
+        List<? extends AbstractFlow> existingFlows = ApiType.NATIVE.equals(apiExport.getType())
+            ? flowCrudService.getNativeApiFlows(apiId)
+            : flowCrudService.getApiV4Flows(apiId);
+        for (int i = 0; i < incomingFlows.size() && i < existingFlows.size(); i++) {
+            incomingFlows.get(i).setId(existingFlows.get(i).getId());
+        }
+    }
+
+    private void importMembersIfPresent(Set<ApiMember> members, String apiId) {
+        if (members == null || members.isEmpty()) {
+            return;
+        }
+        apiImportDomainService.createMembers(members, apiId);
+    }
+
+    private void importMediaIfPresent(List<Media> apiMedia, String apiId, AuditInfo auditInfo) {
+        if (apiMedia == null || apiMedia.isEmpty()) {
+            return;
+        }
+        apiImportDomainService.createMedias(apiMedia, apiId, new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()));
     }
 
     private Api updateNativeApi(String apiId, ApiExport apiExport, AuditInfo auditInfo) {
