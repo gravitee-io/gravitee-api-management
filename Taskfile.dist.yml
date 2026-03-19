@@ -52,6 +52,7 @@ tasks:
     cmds:
       - docker build -t ${DOCKER_REGISTRY}/apim-management-ui:$DOCKER_TAG -f gravitee-apim-console-webui/docker/Dockerfile ./gravitee-apim-console-webui
       - docker build -t ${DOCKER_REGISTRY}/apim-portal-ui:$DOCKER_TAG -f gravitee-apim-portal-webui/docker/Dockerfile ./gravitee-apim-portal-webui
+      - docker build -t ${DOCKER_REGISTRY}/gamma-ui:$DOCKER_TAG -f gravitee-gamma/gravitee-gamma-control-plane-webui/docker/Dockerfile ./gravitee-gamma/gravitee-gamma-control-plane-webui
 
   postgres-driver:
     desc: "Download postgres jdbc driver"
