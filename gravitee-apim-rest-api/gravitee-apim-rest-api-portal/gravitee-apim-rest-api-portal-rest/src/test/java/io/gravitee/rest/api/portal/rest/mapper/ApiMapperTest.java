@@ -26,11 +26,18 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -259,5 +266,75 @@ public class ApiMapperTest {
         assertEquals(basePath + "/background?", links.getBackground());
         assertEquals(basePath + "/plans", links.getPlans());
         assertEquals(basePath + "/ratings", links.getRatings());
+    }
+
+    @Test
+    public void should_map_mcp_when_entrypoint_type_is_mcp_proxy() {
+        io.gravitee.rest.api.model.v4.api.ApiEntity apiEntityV4 = anApiV4WithListeners(
+            List.of(
+                httpListener(
+                    List.of(entrypoint("mcp-proxy", "{\"mcpPath\":\"/mcp\",\"tools\":[{\"toolDefinition\":{\"name\":\"Cats\"}}]}"))
+                )
+            )
+        );
+
+        when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntityV4))).thenReturn(List.of(new ApiEntrypointEntity(API_ENTRYPOINT_1)));
+        when(apiEntrypointService.getApiEntrypointsListenerType(eq(apiEntityV4))).thenReturn("HTTP");
+        doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
+        doReturn(false)
+            .when(parameterService)
+            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntityV4);
+
+        assertNotNull(responseApi.getMcp());
+        assertEquals("/mcp", responseApi.getMcp().get("mcpPath"));
+        assertTrue(responseApi.getMcp().get("tools") instanceof List);
+        List<?> tools = (List<?>) responseApi.getMcp().get("tools");
+        assertEquals(1, tools.size());
+    }
+
+    @Test
+    public void should_map_mcp_when_mcp_entrypoint_is_not_in_first_listener() {
+        io.gravitee.rest.api.model.v4.api.ApiEntity apiEntityV4 = anApiV4WithListeners(
+            List.of(
+                httpListener(List.of(entrypoint("http-proxy", "{}"))),
+                httpListener(List.of(entrypoint("mcp-proxy", "{\"mcpPath\":\"/mcp-tools\"}")))
+            )
+        );
+
+        when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntityV4))).thenReturn(List.of(new ApiEntrypointEntity(API_ENTRYPOINT_1)));
+        when(apiEntrypointService.getApiEntrypointsListenerType(eq(apiEntityV4))).thenReturn("HTTP");
+        doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
+        doReturn(false)
+            .when(parameterService)
+            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntityV4);
+
+        assertNotNull(responseApi.getMcp());
+        assertEquals("/mcp-tools", responseApi.getMcp().get("mcpPath"));
+    }
+
+    private io.gravitee.rest.api.model.v4.api.ApiEntity anApiV4WithListeners(List<Listener> listeners) {
+        return io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+            .id(API_ID)
+            .name(API_NAME)
+            .description(API_DESCRIPTION)
+            .apiVersion(API_VERSION)
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.MCP_PROXY)
+            .listeners(listeners)
+            .visibility(Visibility.PUBLIC)
+            .lifecycleState(ApiLifecycleState.PUBLISHED)
+            .build();
+    }
+
+    private HttpListener httpListener(List<Entrypoint> entrypoints) {
+        return HttpListener.builder().paths(List.of(Path.builder().path("/").build())).entrypoints(entrypoints).build();
+    }
+
+    private Entrypoint entrypoint(String type, String configuration) {
+        return Entrypoint.builder().type(type).configuration(configuration).build();
     }
 }
