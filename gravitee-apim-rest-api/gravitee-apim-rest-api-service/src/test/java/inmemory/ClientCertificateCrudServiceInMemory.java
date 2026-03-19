@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ClientCertificateCrudServiceInMemory implements ClientCertificateCrudService, InMemoryAlternative<ClientCertificate> {
 
@@ -139,9 +138,9 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
         if (statuses == null || statuses.length == 0) {
-            return Set.of();
+            return List.of();
         }
         Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
@@ -149,13 +148,13 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .filter(cert -> applicationId.equals(cert.applicationId()))
             .filter(cert -> statusSet.contains(cert.status()))
             .map(ClientCertificate::new)
-            .collect(Collectors.toSet());
+            .toList();
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         if (statuses == null || statuses.length == 0) {
-            return Set.of();
+            return List.of();
         }
         Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
@@ -163,20 +162,20 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .filter(cert -> applicationIds.contains(cert.applicationId()))
             .filter(cert -> statusSet.contains(cert.status()))
             .map(ClientCertificate::new)
-            .collect(Collectors.toSet());
+            .toList();
     }
 
     @Override
-    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
         if (statuses == null || statuses.length == 0) {
-            return Set.of();
+            return List.of();
         }
         var statusSet = Set.of(statuses);
         return storage
             .stream()
             .filter(cert -> statusSet.contains(cert.status()))
             .map(ClientCertificate::new)
-            .collect(Collectors.toSet());
+            .toList();
     }
 
     @Override

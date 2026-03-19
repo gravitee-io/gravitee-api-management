@@ -150,6 +150,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
@@ -1349,7 +1350,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             })
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        Set<ClientCertificate> certificates = clientCertificateCrudService.findByApplicationIdsAndStatuses(
+        List<ClientCertificate> certificates = clientCertificateCrudService.findByApplicationIdsAndStatuses(
             apps.stream().map(ApplicationListItem::getId).toList(),
             ClientCertificateStatus.ACTIVE,
             ClientCertificateStatus.ACTIVE_WITH_END
@@ -1432,21 +1433,29 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     ClientCertificateStatus.ACTIVE_WITH_END
                 )
                 .stream()
-                .sorted(Comparator.comparing(ClientCertificate::createdAt).reversed())
+                .sorted(Comparator.comparing(ClientCertificate::createdAt))
                 .toList();
+
             if (!list.isEmpty()) {
-                settings.setTls(
-                    TlsSettings.builder()
-                        .clientCertificate(list.getFirst().certificate())
-                        .clientCertificates(
-                            list
-                                .stream()
-                                .map(c -> new CreateClientCertificate(c.name(), c.startsAt(), c.endsAt(), c.certificate()))
-                                .toList()
-                        )
-                        .certificateCount(list.size())
-                        .build()
-                );
+                if (list.size() == 1 && list.getFirst().name().equals(application.getName())) {
+                    // This is a nasty trick to comply with upgraded application
+                    // or legacy management or application in APIs (using the certificate singular instead of the list)
+                    settings.setTls(
+                        TlsSettings.builder().clientCertificate(list.getFirst().certificate()).certificateCount(list.size()).build()
+                    );
+                } else {
+                    settings.setTls(
+                        TlsSettings.builder()
+                            .clientCertificates(
+                                list
+                                    .stream()
+                                    .map(c -> new CreateClientCertificate(c.name(), c.startsAt(), c.endsAt(), c.certificate()))
+                                    .toList()
+                            )
+                            .certificateCount(list.size())
+                            .build()
+                    );
+                }
             }
         }
 

@@ -40,7 +40,7 @@ import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -229,7 +229,7 @@ public class SubscriptionValidationServiceImplTest {
                 );
                 when(
                     clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
-                ).thenReturn(Set.of(cert));
+                ).thenReturn(List.of(cert));
 
                 assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).isInstanceOf(
                     SubscriptionEndsAfterClientCertificateException.class
@@ -250,7 +250,7 @@ public class SubscriptionValidationServiceImplTest {
                 );
                 when(
                     clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
-                ).thenReturn(Set.of(cert));
+                ).thenReturn(List.of(cert));
 
                 assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
             }
@@ -275,7 +275,7 @@ public class SubscriptionValidationServiceImplTest {
                 );
                 when(
                     clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
-                ).thenReturn(Set.of(before, after));
+                ).thenReturn(List.of(before, after));
 
                 assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
             }
@@ -295,7 +295,7 @@ public class SubscriptionValidationServiceImplTest {
 
                 when(
                     clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
-                ).thenReturn(Set.of());
+                ).thenReturn(List.of());
 
                 assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
             }

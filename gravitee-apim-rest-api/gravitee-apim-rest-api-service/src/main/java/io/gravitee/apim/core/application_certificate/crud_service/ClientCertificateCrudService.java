@@ -20,8 +20,8 @@ import io.gravitee.apim.core.application_certificate.model.ClientCertificateStat
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Service for managing client certificates.
@@ -76,27 +76,27 @@ public interface ClientCertificateCrudService {
      *
      * @param applicationId the application ID
      * @param statuses the statuses to filter by
-     * @return a set of client certificates matching the criteria
+     * @return a list of client certificates matching the criteria
      */
-    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses);
+    List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses);
 
     /**
      * Find all client certificates for a given set of applications filtered by statuses.
      *
      * @param applicationIds application IDs
      * @param statuses the statuses to filter by
-     * @return a set of client certificates matching the criteria
+     * @return a list of client certificates matching the criteria
      */
-    Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses);
+    List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses);
 
     /**
      * Find all client certificates matching the given statuses, regardless of application.
      * Returns an empty set if {@code statuses} is null or empty.
      *
      * @param statuses one or more {@link ClientCertificateStatus} values to filter by
-     * @return a set of client certificates matching the criteria
+     * @return a list of client certificates matching the criteria
      */
-    Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses);
+    List<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses);
 
     /**
      * Delete all client certificates for a given application.
