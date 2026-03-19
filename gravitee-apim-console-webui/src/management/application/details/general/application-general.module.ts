@@ -49,10 +49,11 @@ import { ApplicationGeneralComponent } from './application-general.component';
 import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { DaysLeftPipe } from '../../../../shared/pipes/days-left.pipe';
 import { DATE_TIME_FORMATS } from '../../../../shared/utils/timeFrameRanges';
 
 @NgModule({
-  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent],
+  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent, DaysLeftPipe],
   exports: [ApplicationGeneralComponent],
   imports: [
     CommonModule,
