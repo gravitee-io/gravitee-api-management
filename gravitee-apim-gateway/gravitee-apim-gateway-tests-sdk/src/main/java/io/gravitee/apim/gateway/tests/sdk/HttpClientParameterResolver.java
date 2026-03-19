@@ -50,7 +50,7 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
         if (gatewayConfig.httpPorts().size() == 1) {
             httpClientOptions.setDefaultPort(gatewayConfig.httpPort());
         }
-        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1).setHttp2MaxSize(1);
+        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(5).setHttp2MaxSize(1);
         gatewayTest.configureHttpClient(httpClientOptions, poolOptions, gatewayConfig, parameterContext);
         HttpClient httpClient = vertx.createHttpClient(httpClientOptions, poolOptions);
         gatewayTest.registerATearDownHandler("HTTP client", () -> httpClient.close().onErrorComplete().subscribe());
