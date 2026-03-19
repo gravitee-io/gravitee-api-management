@@ -35,6 +35,33 @@
       </ng-container>
     }
 
+    @if (hasColumnPicker()) {
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions">
+          <div class="select-visible-columns-btn">
+            <button mat-button [matMenuTriggerFor]="visibleColumnsMenu"><mat-icon svgIcon="gio:plus"></mat-icon></button>
+          </div>
+          <mat-menu #visibleColumnsMenu="matMenu">
+            <div matMenuContent class="visible-columns-menu">
+              @for (column of columns(); track column.id) {
+                @if (column.label) {
+                  <mat-checkbox
+                    [checked]="displayedColumnsOption[column.id]"
+                    (change)="displayedColumnsOption[column.id] = $event.checked"
+                    (click)="$event.stopPropagation()"
+                    (keydown)="$event.stopPropagation()"
+                    >{{ column.label }}</mat-checkbox
+                  >
+                }
+              }
+            </div>
+            <button mat-raised-button class="apply-visible-columns" (click)="updateVisibleColumns()">Apply</button>
+          </mat-menu>
+        </th>
+        <td mat-cell *matCellDef="let log"></td>
+      </ng-container>
+    }
+
     <tr mat-header-row *matHeaderRowDef="displayedColumns()" [attr.data-testid]="tableId() + '_header'"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns()" [attr.data-testid]="tableId() + '_row'"></tr>
 
