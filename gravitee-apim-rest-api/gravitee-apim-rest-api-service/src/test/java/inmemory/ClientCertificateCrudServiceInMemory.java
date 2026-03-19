@@ -61,11 +61,11 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             now,
             now,
             clientCertificate.certificate(),
-            null,
-            null,
-            null,
-            null,
-            null,
+            clientCertificate.certificateExpiration(),
+            clientCertificate.subject(),
+            clientCertificate.issuer(),
+            clientCertificate.fingerprint(),
+            clientCertificate.environmentId(),
             status
         );
 
@@ -191,6 +191,18 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .filter(cert -> cert.status() == ClientCertificateStatus.ACTIVE || cert.status() == ClientCertificateStatus.ACTIVE_WITH_END)
             .max(Comparator.comparing(ClientCertificate::createdAt))
             .map(ClientCertificate::new);
+    }
+
+    @Override
+    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) {
+        return storage
+            .stream()
+            .anyMatch(
+                cert ->
+                    fingerprint.equals(cert.fingerprint()) &&
+                    environmentId.equals(cert.environmentId()) &&
+                    cert.status() != ClientCertificateStatus.REVOKED
+            );
     }
 
     @Override

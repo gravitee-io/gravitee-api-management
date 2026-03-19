@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
@@ -54,6 +55,9 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
 
     @Autowired
     private ClientCertificateCrudService clientCertificateCrudService;
+
+    @Autowired
+    private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
     @Override
     public boolean upgrade() throws UpgraderException {
@@ -96,12 +100,26 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             // Set the application environment id in the context
             GraviteeContext.setCurrentEnvironment(application.getEnvironmentId());
 
-            // Create a new ClientCertificate named after the Application
-
-            clientCertificateCrudService.create(
-                applicationId,
-                new ClientCertificate(applicationName, decodeCert(base64Certificate), null, null)
+            var certToCreate = new ClientCertificate(applicationName, decodeCert(base64Certificate), null, null);
+            var certInfo = clientCertificateValidationDomainService.validate(certToCreate.certificate());
+            var enriched = new ClientCertificate(
+                null,
+                null,
+                null,
+                certToCreate.name(),
+                certToCreate.startsAt(),
+                certToCreate.endsAt(),
+                null,
+                null,
+                certToCreate.certificate(),
+                certInfo.certificateExpiration(),
+                certInfo.subject(),
+                certInfo.issuer(),
+                certInfo.fingerprint(),
+                null,
+                null
             );
+            clientCertificateCrudService.create(applicationId, enriched);
 
             log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);
         } catch (AbstractClientCertificateException e) {

@@ -29,6 +29,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -39,6 +41,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +77,11 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
     @Mock
     private ClientCertificateCrudService clientCertificateCrudService;
+
+    @Mock
+    private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
+
+    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unused", "CN=unused", "SHA256:abc");
 
     @BeforeEach
     void setUp() {
@@ -135,6 +143,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
         when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
 
         // When
@@ -168,6 +177,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Page<Application> page2 = new Page<>(List.of(app2), 2, 1, 2);
 
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page1).thenReturn(page2);
+        when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
         when(clientCertificateCrudService.create(any(), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
 
         // When
@@ -213,16 +223,14 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithInvalidPem), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
-        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenThrow(
-            new ClientCertificateInvalidException()
-        );
+        when(clientCertificateValidationDomainService.validate(any())).thenThrow(new ClientCertificateInvalidException());
 
         // When
         boolean result = upgrader.upgrade();
 
         // Then
         assertThat(result).isTrue();
-        verify(clientCertificateCrudService).create(eq("app-1"), any(ClientCertificate.class));
+        verify(clientCertificateCrudService, never()).create(any(), any(ClientCertificate.class));
         verify(applicationRepository).update(
             argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
         );
@@ -239,6 +247,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
         when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenThrow(
             new RuntimeException("Database connection failed")
         );
@@ -259,6 +268,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
         when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
         when(applicationRepository.update(any(Application.class))).thenThrow(new TechnicalException("Database update failed"));
 

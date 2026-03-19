@@ -17,71 +17,180 @@
 -->
 <span mat-dialog-title>Add certificate</span>
 
-<form [formGroup]="form">
-  <mat-dialog-content class="add-certificate-dialog__content">
-    <mat-form-field class="add-certificate-dialog__field">
-      <mat-label>Certificate Name</mat-label>
-      <input matInput formControlName="name" type="text" maxlength="256" data-testid="certificate-name-input" />
-      @if (form.get('name').hasError('required')) {
-        <mat-error>Certificate name is required.</mat-error>
-      }
-    </mat-form-field>
+<mat-dialog-content class="add-certificate-dialog__content">
+  <mat-stepper [linear]="true" animationDuration="0" #stepper>
+    <mat-step [completed]="uploadStepCompleted" label="Upload">
+      <form [formGroup]="uploadForm" class="add-certificate-dialog__step-content">
+        <mat-form-field class="add-certificate-dialog__field">
+          <mat-label>Certificate Name</mat-label>
+          <input matInput formControlName="name" type="text" maxlength="256" data-testid="certificate-name-input" />
+          @if (uploadForm.controls.name.hasError('required')) {
+            <mat-error>Certificate name is required.</mat-error>
+          }
+        </mat-form-field>
 
-    <mat-form-field class="add-certificate-dialog__field">
-      <mat-label>Certificate</mat-label>
-      <textarea
-        matInput
-        formControlName="certificate"
-        rows="8"
-        placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-        data-testid="certificate-pem-input"
-      ></textarea>
-      <mat-hint>Paste the PEM-encoded client certificate</mat-hint>
-      @if (form.get('certificate').hasError('required')) {
-        <mat-error>Certificate is required.</mat-error>
-      }
-    </mat-form-field>
+        <div class="add-certificate-dialog__certificate-input">
+          <div class="add-certificate-dialog__section">
+            <span class="add-certificate-dialog__section-title">Paste certificate</span>
+            <mat-form-field class="add-certificate-dialog__field">
+              <mat-label>Certificate</mat-label>
+              <textarea
+                matInput
+                formControlName="certificate"
+                rows="5"
+                placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                data-testid="certificate-pem-input"
+              ></textarea>
+              @if (isValidating) {
+                <mat-hint>Validating certificate...</mat-hint>
+              } @else {
+                <mat-hint>Paste the PEM-encoded client certificate</mat-hint>
+              }
+              @if (uploadForm.controls.certificate.hasError('required')) {
+                <mat-error>Certificate is required.</mat-error>
+              }
+            </mat-form-field>
+          </div>
 
-    <mat-form-field class="add-certificate-dialog__field">
-      <mat-label>Expiration Date (optional)</mat-label>
-      <input
-        matInput
-        [matDatepicker]="expirationPicker"
-        [min]="minDate"
-        formControlName="endsAt"
-        data-testid="certificate-expiration-input"
-      />
-      <mat-datepicker-toggle matIconSuffix [for]="expirationPicker"></mat-datepicker-toggle>
-      <mat-datepicker #expirationPicker></mat-datepicker>
-      <mat-hint>When this certificate should stop being active</mat-hint>
-      @if (form.get('endsAt').hasError('matDatepickerMin')) {
-        <mat-error>Expiration date must not be in the past.</mat-error>
-      }
-    </mat-form-field>
+          <div class="add-certificate-dialog__section">
+            <span class="add-certificate-dialog__section-title">Upload file</span>
+            <gio-form-file-picker
+              accept=".pem,.crt,.cer"
+              [ngModel]="filePickerValue"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onFileSelected($event)"
+            >
+              <gio-form-file-picker-add-button class="add-certificate-dialog__upload-zone">
+                <div class="add-certificate-dialog__upload-zone__content">
+                  <mat-icon svgIcon="gio:upload"></mat-icon>
+                  <p><strong>Drag and drop</strong> a file</p>
+                  <p class="add-certificate-dialog__upload-zone__hint">Supported file formats: .pem, .crt</p>
+                </div>
+              </gio-form-file-picker-add-button>
+            </gio-form-file-picker>
+          </div>
+        </div>
 
-    @if (data.hasActiveCertificates) {
-      <gio-banner-info>Both certificates will remain active during the grace period to avoid downtime.</gio-banner-info>
-
-      <mat-form-field class="add-certificate-dialog__field">
-        <mat-label>Grace Period end for current certificate</mat-label>
-        <input matInput [matDatepicker]="gracePicker" [min]="minDate" formControlName="gracePeriodEnd" data-testid="grace-period-input" />
-        <mat-datepicker-toggle matIconSuffix [for]="gracePicker"></mat-datepicker-toggle>
-        <mat-datepicker #gracePicker></mat-datepicker>
-        <mat-hint>When the currently active certificate should be revoked</mat-hint>
-        @if (form.get('gracePeriodEnd').hasError('required')) {
-          <mat-error>Grace period end date is required when rotating certificates.</mat-error>
+        @if (validationError) {
+          <gio-banner-error data-testid="validation-error-banner">{{ validationError }}</gio-banner-error>
         }
-        @if (form.get('gracePeriodEnd').hasError('matDatepickerMin')) {
-          <mat-error>Grace period end date must not be in the past.</mat-error>
-        }
-      </mat-form-field>
-    }
-  </mat-dialog-content>
+      </form>
+    </mat-step>
 
-  <mat-dialog-actions align="end">
-    <button mat-flat-button [mat-dialog-close]="undefined" type="button">Cancel</button>
-    <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="onSubmit()" data-testid="add-certificate-submit">
-      Add Certificate
+    <mat-step [stepControl]="configureForm" label="Configure">
+      <form [formGroup]="configureForm" class="add-certificate-dialog__step-content">
+        <gio-banner-success data-testid="validation-success-banner">Certificate validated successfully</gio-banner-success>
+
+        <mat-form-field class="add-certificate-dialog__field">
+          <mat-label>Active until</mat-label>
+          <input
+            matInput
+            [owlDateTime]="expirationPicker"
+            [min]="minDate"
+            [max]="maxEndsAt"
+            formControlName="endsAt"
+            data-testid="certificate-expiration-input"
+          />
+          <mat-icon [owlDateTimeTrigger]="expirationPicker" matSuffix svgIcon="gio:calendar"></mat-icon>
+          <owl-date-time #expirationPicker></owl-date-time>
+          <mat-hint>When this certificate should stop being active</mat-hint>
+          @if (configureForm.controls.endsAt.hasError('owlDateTimeMin')) {
+            <mat-error>Expiration date must not be in the past.</mat-error>
+          }
+          @if (configureForm.controls.endsAt.hasError('owlDateTimeMax')) {
+            <mat-error>Expiration date must not be after the certificate expiration.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (data.hasActiveCertificates) {
+          <gio-banner-info>Both certificates will remain active during the grace period to avoid downtime.</gio-banner-info>
+
+          <mat-form-field class="add-certificate-dialog__field">
+            <mat-label>Grace Period end for current certificate</mat-label>
+            <input
+              matInput
+              [owlDateTime]="gracePicker"
+              [min]="minDate"
+              [max]="maxGracePeriod"
+              formControlName="gracePeriodEnd"
+              data-testid="grace-period-input"
+            />
+            <mat-icon [owlDateTimeTrigger]="gracePicker" matSuffix svgIcon="gio:calendar"></mat-icon>
+            <owl-date-time #gracePicker></owl-date-time>
+            <mat-hint>When the currently active certificate should be revoked</mat-hint>
+            @if (configureForm.controls.gracePeriodEnd?.hasError('required')) {
+              <mat-error>Grace period end date is required when rotating certificates.</mat-error>
+            }
+            @if (configureForm.controls.gracePeriodEnd?.hasError('owlDateTimeMin')) {
+              <mat-error>Grace period end date must not be in the past.</mat-error>
+            }
+            @if (configureForm.controls.gracePeriodEnd?.hasError('owlDateTimeMax')) {
+              <mat-error>Grace period end date must not be after the active certificate's expiration.</mat-error>
+            }
+          </mat-form-field>
+        }
+      </form>
+    </mat-step>
+
+    <mat-step label="Confirm">
+      <div class="add-certificate-dialog__step-content">
+        <gio-banner-success data-testid="validation-success-banner">Certificate validated successfully</gio-banner-success>
+
+        <div class="add-certificate-dialog__summary" data-testid="certificate-summary">
+          <span class="add-certificate-dialog__summary-title">Certificate Summary</span>
+          <div class="add-certificate-dialog__summary-row">
+            <span class="add-certificate-dialog__summary-label">Certificate Name:</span>
+            <span class="add-certificate-dialog__summary-value" data-testid="certificate-summary-name-value">{{
+              uploadForm.controls.name.value
+            }}</span>
+          </div>
+          <div
+            class="add-certificate-dialog__summary-row"
+            [class.add-certificate-dialog__summary-row--last]="!configureForm.controls.gracePeriodEnd?.value"
+          >
+            <span class="add-certificate-dialog__summary-label">Active until:</span>
+            <span class="add-certificate-dialog__summary-value" data-testid="certificate-summary-active-until-value">{{
+              configureForm.controls.endsAt.value | date: 'medium'
+            }}</span>
+          </div>
+          @if (configureForm.controls.gracePeriodEnd?.value) {
+            <div class="add-certificate-dialog__summary-row add-certificate-dialog__summary-row--last">
+              <span class="add-certificate-dialog__summary-label">Grace period ends:</span>
+              <span class="add-certificate-dialog__summary-value" data-testid="certificate-summary-grace-period-value">{{
+                configureForm.controls.gracePeriodEnd.value | date: 'medium'
+              }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (stepper.selectedIndex > 0) {
+    <button
+      mat-stroked-button
+      type="button"
+      class="add-certificate-dialog__previous-button"
+      (click)="stepper.previous()"
+      data-testid="certificate-previous-button"
+    >
+      Previous
     </button>
-  </mat-dialog-actions>
-</form>
+  }
+  <button mat-flat-button [mat-dialog-close]="undefined" type="button" data-testid="certificate-cancel-button">Cancel</button>
+  @if (stepper.selectedIndex === 0) {
+    <button mat-raised-button color="primary" [disabled]="isValidating" (click)="onValidate()" data-testid="certificate-validate-button">
+      @if (isValidating) {
+        Validating...
+      } @else {
+        Continue
+      }
+    </button>
+  } @else if (stepper.selectedIndex === 1) {
+    <button mat-raised-button color="primary" (click)="onContinueToConfirm()" data-testid="certificate-continue-button">Continue</button>
+  } @else {
+    <button mat-raised-button color="primary" (click)="onSubmit()" data-testid="add-certificate-submit">Add Certificate</button>
+  }
+</mat-dialog-actions>

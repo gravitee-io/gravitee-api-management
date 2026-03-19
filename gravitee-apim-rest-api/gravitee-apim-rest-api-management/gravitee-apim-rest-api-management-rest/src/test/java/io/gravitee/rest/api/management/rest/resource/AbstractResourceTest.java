@@ -28,6 +28,7 @@ import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertif
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.common.event.EventManager;
@@ -188,6 +189,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected DeleteClientCertificateUseCase deleteClientCertificateUseCase;
+
+    @Autowired
+    protected ValidateClientCertificateUseCase validateClientCertificateUseCase;
 
     @Autowired
     protected PolicyOperationVisitorManager policyOperationVisitorManager;

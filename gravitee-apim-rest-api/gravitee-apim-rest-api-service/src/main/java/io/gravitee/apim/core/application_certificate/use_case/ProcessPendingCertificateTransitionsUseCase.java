@@ -65,14 +65,14 @@ public class ProcessPendingCertificateTransitionsUseCase {
     }
 
     public Output execute(Input input) {
-        log.info("Processing pending certificate transitions");
+        log.debug("Processing pending certificate transitions");
 
         var candidates = clientCertificateCrudService.findByStatuses(
             ClientCertificateStatus.ACTIVE_WITH_END,
             ClientCertificateStatus.SCHEDULED
         );
 
-        log.info("Found {} candidate certificates to evaluate", candidates.size());
+        log.debug("Found {} candidate certificates to evaluate", candidates.size());
 
         List<ClientCertificate> transitioned = new ArrayList<>();
         int failedCount = 0;

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -229,6 +230,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ClientCertificateCrudService clientCertificateCrudService;
+
+    @Autowired
+    private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -530,15 +534,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // Create client certificates if provided
             for (var cert : clientCertificates) {
-                clientCertificateCrudService.create(
-                    application.getId(),
-                    new ClientCertificate(
-                        cert.name() != null ? cert.name() : application.getName(),
-                        cert.certificate(),
-                        cert.startsAt(),
-                        cert.endsAt()
-                    )
+                var certToCreate = new ClientCertificate(
+                    cert.name() != null ? cert.name() : application.getName(),
+                    cert.certificate(),
+                    cert.startsAt(),
+                    cert.endsAt()
                 );
+                clientCertificateCrudService.create(application.getId(), validateAndEnrich(certToCreate, executionContext));
             }
 
             Application createdApplication = applicationRepository.create(application);
@@ -755,10 +757,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             ClientCertificate existingCert = existingByCertificate.get(incomingCert.certificate());
             if (existingCert == null) {
                 // Create new certificate
-                clientCertificateCrudService.create(
-                    applicationId,
-                    new ClientCertificate(incomingCert.name(), incomingCert.certificate(), incomingCert.startsAt(), incomingCert.endsAt())
+                var certToCreate = new ClientCertificate(
+                    incomingCert.name(),
+                    incomingCert.certificate(),
+                    incomingCert.startsAt(),
+                    incomingCert.endsAt()
                 );
+                clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext));
             } else if (hasChanges(incomingCert, existingCert)) {
                 // Update existing certificate only if there are changes (name, startsAt, endsAt)
                 clientCertificateCrudService.update(
@@ -774,6 +779,27 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 clientCertificateCrudService.delete(existingCert.id());
             }
         }
+    }
+
+    private ClientCertificate validateAndEnrich(ClientCertificate certToCreate, ExecutionContext executionContext) {
+        var certInfo = clientCertificateValidationDomainService.validateForCreation(certToCreate, executionContext.getEnvironmentId());
+        return new ClientCertificate(
+            null,
+            null,
+            null,
+            certToCreate.name(),
+            certToCreate.startsAt(),
+            certToCreate.endsAt(),
+            null,
+            null,
+            certToCreate.certificate(),
+            certInfo.certificateExpiration(),
+            certInfo.subject(),
+            certInfo.issuer(),
+            certInfo.fingerprint(),
+            null,
+            null
+        );
     }
 
     private boolean hasChanges(CreateClientCertificate incoming, ClientCertificate existing) {
