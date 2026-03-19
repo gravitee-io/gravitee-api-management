@@ -110,6 +110,15 @@ public class SubscriptionCacheService implements SubscriptionService {
             unregisterFromClientCertificate(cachedSubscription);
         }
 
+        // remove previous subscription plan entries from cache if plan has changed (e.g. subscription transfer)
+        if (
+            cachedSubscription != null &&
+            cachedSubscription.getPlan() != null &&
+            !cachedSubscription.getPlan().equals(subscription.getPlan())
+        ) {
+            unregisterFromClientCertificate(cachedSubscription);
+        }
+
         log.debug(
             "Load accepted subscription with client Id  [id: {}] [api: {}] [plan: {}] [application: {}]",
             subscription.getId(),
@@ -142,6 +151,15 @@ public class SubscriptionCacheService implements SubscriptionService {
             cachedSubscription != null &&
             cachedSubscription.getClientId() != null &&
             !cachedSubscription.getClientId().equals(subscription.getClientId())
+        ) {
+            unregisterFromClientId(cachedSubscription);
+        }
+
+        // remove previous subscription plan entries from cache if plan has changed (e.g. subscription transfer)
+        if (
+            cachedSubscription != null &&
+            cachedSubscription.getPlan() != null &&
+            !cachedSubscription.getPlan().equals(subscription.getPlan())
         ) {
             unregisterFromClientId(cachedSubscription);
         }
