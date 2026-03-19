@@ -17,20 +17,27 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
+import io.gravitee.rest.api.model.clientcertificate.ValidateCertificateRequest;
+import io.gravitee.rest.api.model.clientcertificate.ValidateCertificateResponse;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ApplicationClientCertificatesResourceTest extends AbstractResourceTest {
@@ -40,6 +47,11 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
     @Override
     protected String contextPath() {
         return "applications/" + APPLICATION_ID + "/certificates";
+    }
+
+    @BeforeEach
+    public void resetValidateMock() {
+        reset(validateClientCertificateUseCase);
     }
 
     @Test
@@ -101,6 +113,47 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
         CreateClientCertificate createRequest = new CreateClientCertificate("My Certificate", null, null, null);
 
         final Response response = envTarget().request().post(Entity.json(createRequest));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+    }
+
+    @Test
+    public void should_validate_certificate_and_return_metadata() {
+        var expiration = new Date();
+        var certificateInfo = new CertificateInfo(expiration, "CN=unit-tests", "CN=unit-tests", "sha256-fingerprint");
+        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class))).thenReturn(
+            new ValidateClientCertificateUseCase.Output(certificateInfo)
+        );
+
+        var request = new ValidateCertificateRequest("-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
+        final Response response = envTarget("/_validate").request().post(Entity.json(request));
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var body = response.readEntity(ValidateCertificateResponse.class);
+            soft.assertThat(body.certificateExpiration()).isEqualTo(expiration);
+            soft.assertThat(body.subject()).isEqualTo("CN=unit-tests");
+            soft.assertThat(body.issuer()).isEqualTo("CN=unit-tests");
+        });
+        verify(validateClientCertificateUseCase).execute(any(ValidateClientCertificateUseCase.Input.class));
+    }
+
+    @Test
+    public void should_return_400_when_certificate_is_invalid() {
+        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class))).thenThrow(
+            new ClientCertificateInvalidException()
+        );
+
+        var request = new ValidateCertificateRequest("not-a-valid-pem");
+        final Response response = envTarget("/_validate").request().post(Entity.json(request));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+    }
+
+    @Test
+    public void should_return_400_when_certificate_is_null() {
+        var request = new ValidateCertificateRequest(null);
+        final Response response = envTarget("/_validate").request().post(Entity.json(request));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
     }

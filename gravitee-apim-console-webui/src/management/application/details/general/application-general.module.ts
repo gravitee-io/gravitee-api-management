@@ -32,25 +32,30 @@ import {
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule, MatNativeDateModule } from '@angular/material/core';
+import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatStepperModule } from '@angular/material/stepper';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
 import { ApplicationGeneralComponent } from './application-general.component';
 import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
+import { CertificateDetailDialogComponent } from './certificate-detail-dialog/certificate-detail-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { DaysLeftPipe } from '../../../../shared/pipes/days-left.pipe';
+import { DATE_TIME_FORMATS } from '../../../../shared/utils/timeFrameRanges';
 
 @NgModule({
-  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent],
+  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent, CertificateDetailDialogComponent, DaysLeftPipe],
   exports: [ApplicationGeneralComponent],
   imports: [
     CommonModule,
@@ -77,15 +82,18 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTooltipModule,
     MatTableModule,
     MatDialogModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
+    MatStepperModule,
+    OwlDateTimeModule,
+    OwlMomentDateTimeModule,
 
     MatChipsModule,
 
+    FormsModule,
     ReactiveFormsModule,
     RouterModule,
     GioBannerModule,
     GioFormHeadersModule,
   ],
+  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
 })
 export class ApplicationGeneralModule {}

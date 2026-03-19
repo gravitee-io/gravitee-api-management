@@ -18,7 +18,9 @@ package io.gravitee.apim.core.application_certificate.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -27,9 +29,31 @@ public class CreateClientCertificateUseCase {
 
     private final ClientCertificateCrudService clientCertificateCrudService;
     private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private final ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
     public Output execute(Input input) {
-        ClientCertificate certificate = clientCertificateCrudService.create(input.applicationId(), input.toCreate());
+        String environmentId = GraviteeContext.getCurrentEnvironment();
+        var certInfo = clientCertificateValidationDomainService.validateForCreation(input.toCreate(), environmentId);
+
+        ClientCertificate enriched = new ClientCertificate(
+            null,
+            null,
+            null,
+            input.toCreate().name(),
+            input.toCreate().startsAt(),
+            input.toCreate().endsAt(),
+            null,
+            null,
+            input.toCreate().certificate(),
+            certInfo.certificateExpiration(),
+            certInfo.subject(),
+            certInfo.issuer(),
+            certInfo.fingerprint(),
+            null,
+            null
+        );
+
+        ClientCertificate certificate = clientCertificateCrudService.create(input.applicationId(), enriched);
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(input.applicationId());
         return new Output(certificate);
     }

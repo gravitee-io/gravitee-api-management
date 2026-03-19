@@ -31,11 +31,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientCertificateRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateDateBoundsInvalidException;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
@@ -157,7 +153,6 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_create_certificate_with_active_status_when_no_dates() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
@@ -181,7 +176,6 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_create_certificate_with_scheduled_status_when_starts_at_in_future() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
@@ -194,7 +188,6 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_create_certificate_with_active_with_end_status_when_ends_at_in_future() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
@@ -207,7 +200,6 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_create_certificate_with_revoked_status_when_ends_at_in_past() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
@@ -219,12 +211,21 @@ class ClientCertificateCrudServiceImplTest {
     }
 
     @Test
-    void should_raise_error_when_certificate_already_exists() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(true);
-        ClientCertificate toCreate = new ClientCertificate("Certificate", PEM_CERTIFICATE, null, null);
-        assertThatCode(() -> clientCertificateCrudService.create(APPLICATION_ID, toCreate)).isInstanceOf(
-            ClientCertificateAlreadyUsedException.class
+    void should_delegate_exists_by_fingerprint_check_to_repository() throws TechnicalException {
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)).thenReturn(true);
+
+        assertThat(clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)).isTrue();
+    }
+
+    @Test
+    void should_throw_technical_management_exception_when_exists_by_fingerprint_fails() throws TechnicalException {
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), any())).thenThrow(
+            new TechnicalException("Database error")
         );
+
+        assertThatThrownBy(() ->
+            clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)
+        ).isInstanceOf(TechnicalManagementException.class);
     }
 
     @Test
@@ -469,76 +470,6 @@ class ClientCertificateCrudServiceImplTest {
     }
 
     @Test
-    void should_throw_invalid_exception_when_certificate_is_malformed() {
-        String invalidCertificate = """
-            -----BEGIN CERTIFICATE-----
-            This one is invalid
-            -----END CERTIFICATE-----
-            """;
-
-        ClientCertificate toCreate = new ClientCertificate("Invalid Certificate", invalidCertificate, null, null);
-        assertThatThrownBy(() -> {
-            clientCertificateCrudService.create(APPLICATION_ID, toCreate);
-        }).isInstanceOf(ClientCertificateInvalidException.class);
-    }
-
-    @Test
-    void should_throw_empty_exception_when_no_certificate_can_be_extracted() {
-        String noCertificate = """
-            no certificate header, so not parsed as an exception by the library.
-            """;
-        ClientCertificate toCreate = new ClientCertificate("Empty Certificate", noCertificate, null, null);
-        assertThatThrownBy(() -> clientCertificateCrudService.create(APPLICATION_ID, toCreate)).isInstanceOf(
-            ClientCertificateEmptyException.class
-        );
-    }
-
-    @Test
-    void should_throw_authority_exception_when_certificate_is_a_ca() {
-        String caCertificate = """
-            -----BEGIN CERTIFICATE-----
-            MIIGAzCCA+ugAwIBAgIUcso7he1LovzeKw5od1lZD3vlNOAwDQYJKoZIhvcNAQEL
-            BQAwgZAxKTAnBgkqhkiG9w0BCQEWGmNvbnRhY3RAZ3Jhdml0ZWVzb3VyY2UuY29t
-            MRAwDgYDVQQDDAdBUElNX0NOMQ0wCwYDVQQLDARBUElNMRQwEgYDVQQKDAtBUElN
-            X1Rlc3RlcjEOMAwGA1UEBwwFTGlsbGUxDzANBgNVBAgMBkZyYW5jZTELMAkGA1UE
-            BhMCRlIwHhcNMjQwODI4MDY0NzMzWhcNMzQwODI2MDY0NzMzWjCBkDEpMCcGCSqG
-            SIb3DQEJARYaY29udGFjdEBncmF2aXRlZXNvdXJjZS5jb20xEDAOBgNVBAMMB0FQ
-            SU1fQ04xDTALBgNVBAsMBEFQSU0xFDASBgNVBAoMC0FQSU1fVGVzdGVyMQ4wDAYD
-            VQQHDAVMaWxsZTEPMA0GA1UECAwGRnJhbmNlMQswCQYDVQQGEwJGUjCCAiIwDQYJ
-            KoZIhvcNAQEBBQADggIPADCCAgoCggIBAMOEVa4niB+yfSz9+cxoydZTMoHVPUEJ
-            6o4NT34pcGf4Q6+DwNmV3Lrk291rw4hhXnlzflw4AOEZEbbpVBCC304vfjSt+enE
-            MP8AtuIAsAJXjKMNBO3saD+6fhLdyIdz3rjq+fMcIAcjGFGQqgQJoniLnrnDU3ee
-            WX0XnRHFOB1iGfMZ2X+0PptKvKH8Pq33er6tCCCH2cA7Owc4+6herDtP4oQ+xSqY
-            spEORK37iRg7Pm8NgA/GsfjBIDjyjBsYN+waNGuS02MR8znQfgk+DjZlc4+e93vK
-            VJfTzgMdOG1a/imB1mdwZvO1l9nSlArJlfvItCzi+2dc6Us67Pp8XyCiHK/2I7nJ
-            DBDs84o3SA4uWe6SXfOGulTma6ENPsKC5Oh8VbbZvubbgNqFRCY19yz66zhq4wH4
-            7W90TGZelHez6Dk/cCnl3WRPljuEzRcqRiU8YWdMCVqAfjdgxdSiQCOWa+Ug7Hlz
-            LUvRcCAS2i20oGePKJ1Zl9IJuoik8QCovzjPP4bGgySTzvlhuKB7kyxJ6EDmo1Ic
-            k2HVr0VvLRV4O1gT2lGFSu2k0QquV6WeKoQni+/oZfMRv1LTc0m+r34PN+ZdL+01
-            2Bkcs2lmdp5oTwbSjw8w76Yf1vtz0SSwaQDgss8t0dJZNPECnHL+wki5byyrsdBM
-            bJbovk7g8HUJAgMBAAGjUzBRMB0GA1UdDgQWBBQ3IIhDN+2FihTlbDjDIPdXjIEz
-            GDAfBgNVHSMEGDAWgBQ3IIhDN+2FihTlbDjDIPdXjIEzGDAPBgNVHRMBAf8EBTAD
-            AQH/MA0GCSqGSIb3DQEBCwUAA4ICAQBCyUHgdsx5tG09ol5PoHULn7QpUNYqdRo2
-            Go3Qy+VTl1PngnKzWcpzFgc4zf+gaQG55KelulqOSAr13GBL2Wd9u7diM5OQQ6pK
-            dhxWu9i2U/7LMSASYpNgawHTVdZ6tLi5hPxL8WQxoEBtXGIynQNKI6z76AjZwRcr
-            fgq+CB2Ai8jcJxWCcMfbABPAPSwK9bRAmuP95+K7CXiCOvVnHQFQT3xMw4yyZ2Qq
-            HrAL42RGyiejAx8eraE8fH8Dq9iWn6q91WY60nesyOnZLkZz/c8mTvibCE97d767
-            rJUJREeS4MHFOw/wHXN/JeLryedUGSR4pEllBS/QjUhiUysvM+02a1XuwP0qD/5v
-            697tDuozn/i7N9O0ThbZNR9KlSSMqAJ1iWpijt7e7Rr/CqP/42HYOZSyuoYGiydA
-            P5TTsFBjbDTs2XtPEjPkoZ2vzegKLcT7H/pBtNHdwNnEcLbgDLwMGwxWI6urkjx4
-            uz/iY/SibzgTnuxgTjW03HFVOFq9w2Tv/4qFNJrCxt+aQwG4RjnS77zS4AFoJ6ZI
-            YQvqCvXVVosYZWLZGkbQSc2iNS2Wr5dFqngl3py6kps8BcUDzF/J/9QLMLI3ZTUt
-            P5EfACFOUJGjCiuDC02wG2mO44Y98bT3oIMdjH9haMd5eoEAxmFy+M4UVTa2YK6u
-            Q6teMha+jg==
-            -----END CERTIFICATE-----""";
-        ClientCertificate createDto = new ClientCertificate("CA Certificate", caCertificate, null, null);
-
-        assertThatThrownBy(() -> clientCertificateCrudService.create(APPLICATION_ID, createDto)).isInstanceOf(
-            ClientCertificateAuthorityException.class
-        );
-    }
-
-    @Test
     void should_create_certificate_with_scheduled_status_when_starts_at_and_ends_at_in_future() throws TechnicalException {
         ClientCertificate domainCertificate = new ClientCertificate(
             "Scheduled Certificate",
@@ -546,7 +477,6 @@ class ClientCertificateCrudServiceImplTest {
             Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
             Date.from(Instant.now().plus(2, ChronoUnit.DAYS))
         );
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(APPLICATION_ID, domainCertificate);
@@ -623,19 +553,15 @@ class ClientCertificateCrudServiceImplTest {
 
     @MethodSource("datesBounds")
     @ParameterizedTest
-    void should_validation_date_boundaries(Date startDate, Date endDate, boolean valid) throws TechnicalException {
+    void should_validate_date_boundaries_on_update(Date startDate, Date endDate, boolean valid) throws TechnicalException {
         when(clientCertificateRepository.findById(any())).thenReturn(
             Optional.of(io.gravitee.repository.management.model.ClientCertificate.builder().build())
         );
-        ClientCertificate clientCertificate = new ClientCertificate("With dates", PEM_CERTIFICATE, startDate, endDate);
+        ClientCertificate clientCertificate = new ClientCertificate("With dates", startDate, endDate);
         if (valid) {
-            assertThatCode(() -> clientCertificateCrudService.create(APPLICATION_ID, clientCertificate)).doesNotThrowAnyException();
-            assertThatCode(() -> clientCertificateCrudService.update(APPLICATION_ID, clientCertificate)).doesNotThrowAnyException();
+            assertThatCode(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate)).doesNotThrowAnyException();
         } else {
-            assertThatThrownBy(() -> clientCertificateCrudService.create(APPLICATION_ID, clientCertificate)).isInstanceOf(
-                ClientCertificateDateBoundsInvalidException.class
-            );
-            assertThatThrownBy(() -> clientCertificateCrudService.update(APPLICATION_ID, clientCertificate)).isInstanceOf(
+            assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate)).isInstanceOf(
                 ClientCertificateDateBoundsInvalidException.class
             );
         }
