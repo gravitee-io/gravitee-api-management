@@ -45,6 +45,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -196,7 +197,13 @@ public class SearchEnvironmentLogsUseCase {
             }
         }
 
-        Set<String> apiIds = userContext.apis().orElseGet(Collections::emptyList).stream().map(Api::getId).collect(Collectors.toSet());
+        Set<String> apiIds = userContext
+            .apis()
+            .orElseGet(Collections::emptyList)
+            .stream()
+            .filter(api -> api.getType() == ApiType.PROXY)
+            .map(Api::getId)
+            .collect(Collectors.toSet());
         filterContext.limitByApiIds(apiIds);
 
         var builder = SearchLogsFilters.builder();
