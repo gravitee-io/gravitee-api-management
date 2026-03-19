@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.mapper.ClientCertificateMapper;
@@ -24,6 +25,8 @@ import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
+import io.gravitee.rest.api.model.clientcertificate.ValidateCertificateRequest;
+import io.gravitee.rest.api.model.clientcertificate.ValidateCertificateResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -62,6 +65,9 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
 
     @Inject
     private CreateClientCertificateUseCase createClientCertificateUseCase;
+
+    @Inject
+    private ValidateClientCertificateUseCase validateClientCertificateUseCase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -111,6 +117,29 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
             )
             .clientCertificate();
         return Response.created(this.getLocationHeader(created.id())).entity(ClientCertificateMapper.INSTANCE.toDto(created)).build();
+    }
+
+    @POST
+    @Path("_validate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Validate a PEM-encoded client certificate",
+        description = "Parses the certificate and returns its metadata without persisting it. User must have the APPLICATION_DEFINITION[READ] permission to use this service."
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Certificate is valid",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidateCertificateResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Certificate is invalid, empty, or is a CA certificate")
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response validateCertificate(@Valid @NotNull final ValidateCertificateRequest request) {
+        var result = validateClientCertificateUseCase.execute(new ValidateClientCertificateUseCase.Input(request.certificate()));
+        var certificateInfo = result.certificateInfo();
+        return Response.ok(
+            new ValidateCertificateResponse(certificateInfo.certificateExpiration(), certificateInfo.subject(), certificateInfo.issuer())
+        ).build();
     }
 
     @Path("{certId}")
