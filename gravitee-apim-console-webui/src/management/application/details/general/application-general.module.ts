@@ -42,13 +42,14 @@ import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
 import { ApplicationGeneralComponent } from './application-general.component';
 import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { DATE_TIME_FORMATS } from '../../../../shared/utils/timeFrameRanges';
 
 @NgModule({
   declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent],
@@ -78,8 +79,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTooltipModule,
     MatTableModule,
     MatDialogModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
+    OwlDateTimeModule,
+    OwlMomentDateTimeModule,
 
     MatChipsModule,
 
@@ -88,5 +89,6 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioBannerModule,
     GioFormHeadersModule,
   ],
+  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
 })
 export class ApplicationGeneralModule {}

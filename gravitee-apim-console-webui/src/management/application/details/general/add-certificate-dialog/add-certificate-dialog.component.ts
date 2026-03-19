@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+
+import { ApplicationService } from '../../../../../services-ngx/application.service';
 
 export interface AddCertificateDialogData {
+  applicationId: string;
   hasActiveCertificates: boolean;
   activeCertificateId?: string;
+  activeCertificateExpiration?: string;
 }
 
 export interface AddCertificateDialogResult {
@@ -37,19 +44,32 @@ export interface AddCertificateDialogResult {
   standalone: false,
 })
 export class AddCertificateDialogComponent {
-  form: FormGroup;
-  minDate: Date = new Date();
+  private readonly dialogRef = inject(MatDialogRef<AddCertificateDialogComponent>);
+  readonly data: AddCertificateDialogData = inject(MAT_DIALOG_DATA);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    private readonly dialogRef: MatDialogRef<AddCertificateDialogComponent, AddCertificateDialogResult>,
-    @Inject(MAT_DIALOG_DATA) public data: AddCertificateDialogData,
-  ) {
+  form: FormGroup;
+  minDate = new Date();
+  maxEndsAt: Date | undefined;
+  maxGracePeriod: Date | undefined;
+  isValidating = false;
+  validationError: string | undefined;
+
+  constructor() {
+    const gracePeriodDefault = this.data.activeCertificateExpiration ? new Date(this.data.activeCertificateExpiration) : null;
+    if (gracePeriodDefault) {
+      this.maxGracePeriod = gracePeriodDefault;
+    }
+
     this.form = new FormGroup({
       name: new FormControl('', Validators.required),
       certificate: new FormControl('', Validators.required),
       endsAt: new FormControl(null),
-      ...(data.hasActiveCertificates ? { gracePeriodEnd: new FormControl(null, Validators.required) } : {}),
+      ...(this.data.hasActiveCertificates ? { gracePeriodEnd: new FormControl(gracePeriodDefault, Validators.required) } : {}),
     });
+
+    this.setupCertificateValidation();
   }
 
   onSubmit(): void {
@@ -66,5 +86,39 @@ export class AddCertificateDialogComponent {
       gracePeriodEnd: gracePeriodEnd ? new Date(gracePeriodEnd).toISOString() : undefined,
       activeCertificateId: this.data.activeCertificateId,
     });
+  }
+
+  private setupCertificateValidation(): void {
+    this.form.controls['certificate'].valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap((certificate: string) => {
+          if (!certificate?.trim()) {
+            this.maxEndsAt = undefined;
+            this.isValidating = false;
+            this.validationError = undefined;
+            return EMPTY;
+          }
+          this.isValidating = true;
+          this.validationError = undefined;
+          return this.applicationService.validateCertificate(this.data.applicationId, certificate).pipe(
+            catchError(() => {
+              this.maxEndsAt = undefined;
+              this.isValidating = false;
+              this.validationError = 'Invalid certificate format';
+              return EMPTY;
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        this.isValidating = false;
+        this.validationError = undefined;
+        const expiration = new Date(response.certificateExpiration);
+        this.maxEndsAt = expiration;
+        this.form.controls['endsAt'].setValue(expiration);
+      });
   }
 }

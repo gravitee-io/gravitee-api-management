@@ -347,10 +347,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(openSpy).toHaveBeenCalledWith(
         AddCertificateDialogComponent,
         expect.objectContaining({
-          data: {
+          data: expect.objectContaining({
             hasActiveCertificates: true,
             activeCertificateId: 'cert-new',
-          },
+          }),
         }),
       );
     });
@@ -392,10 +392,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(openSpy).toHaveBeenCalledWith(
         AddCertificateDialogComponent,
         expect.objectContaining({
-          data: {
+          data: expect.objectContaining({
             hasActiveCertificates: true,
             activeCertificateId: 'cert-newer',
-          },
+          }),
         }),
       );
     });

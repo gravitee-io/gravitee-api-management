@@ -84,7 +84,7 @@ describe('AddCertificateDialogComponent', () => {
       fixture.componentInstance.form.get('endsAt').setValue(pastDate);
       fixture.detectChanges();
 
-      expect(fixture.componentInstance.form.get('endsAt').hasError('matDatepickerMin')).toBe(true);
+      expect(fixture.componentInstance.form.get('endsAt').hasError('owlDateTimeMin')).toBe(true);
     });
 
     it('should_submit_with_name_and_certificate', async () => {
@@ -148,7 +148,7 @@ describe('AddCertificateDialogComponent', () => {
       fixture.componentInstance.form.get('gracePeriodEnd').setValue(pastDate);
       fixture.detectChanges();
 
-      expect(fixture.componentInstance.form.get('gracePeriodEnd').hasError('matDatepickerMin')).toBe(true);
+      expect(fixture.componentInstance.form.get('gracePeriodEnd').hasError('owlDateTimeMin')).toBe(true);
     });
 
     it('should_include_active_certificate_id_in_result', async () => {

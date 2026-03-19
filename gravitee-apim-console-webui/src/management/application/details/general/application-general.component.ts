@@ -226,8 +226,10 @@ export class ApplicationGeneralComponent implements OnInit {
       .open<AddCertificateDialogComponent, AddCertificateDialogData, AddCertificateDialogResult>(AddCertificateDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
+          applicationId: this.activatedRoute.snapshot.params.applicationId,
           hasActiveCertificates: !!activeCert,
           activeCertificateId: activeCert?.id,
+          activeCertificateExpiration: activeCert?.certificateExpiration,
         },
         role: 'dialog',
         id: 'addCertificateDialog',
