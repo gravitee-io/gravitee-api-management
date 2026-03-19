@@ -112,4 +112,14 @@ public interface ClientCertificateCrudService {
      * @return the most recent active client certificate, or empty if none found
      */
     Optional<ClientCertificate> findMostRecentActiveByApplicationId(String applicationId);
+
+    /**
+     * Check whether a non-revoked certificate with the given fingerprint already exists
+     * for an active application in the specified environment.
+     *
+     * @param fingerprint the SHA-256 certificate fingerprint
+     * @param environmentId the environment ID
+     * @return true if such a certificate exists
+     */
+    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId);
 }

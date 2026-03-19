@@ -26,7 +26,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.infra.crud_service.application_certificates.ClientCertificateCrudServiceImpl;
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -67,6 +69,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,11 +134,17 @@ public class ApplicationService_CreateTest {
     private ClientRegistrationService clientRegistrationService;
 
     @Mock
-    private ClientCertificateCrudServiceImpl clientCertificateCrudService;
+    private ClientCertificateCrudService clientCertificateCrudService;
+
+    @Mock
+    private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
+
+    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
 
     @Before
     public void setup() {
         GraviteeContext.cleanContext();
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenReturn(VALID_CERT_INFO);
     }
 
     @Test
@@ -433,7 +442,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateCrudService.create(any(), any())).thenCallRealMethod();
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(new ClientCertificateInvalidException());
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
@@ -460,7 +469,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateCrudService.create(any(), any())).thenCallRealMethod();
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(new ClientCertificateEmptyException());
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
@@ -479,7 +488,9 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateCrudService.create(any(), any())).thenThrow(ClientCertificateAlreadyUsedException.class);
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(
+            ClientCertificateAlreadyUsedException.class
+        );
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
@@ -498,7 +509,9 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateCrudService.create(any(), any())).thenCallRealMethod();
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(
+            new ClientCertificateAuthorityException()
+        );
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))

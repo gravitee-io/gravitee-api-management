@@ -34,6 +34,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -103,6 +105,7 @@ import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -175,6 +178,16 @@ public class ApplicationService_UpdateTest {
 
     @Mock
     private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
+    @Mock
+    private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
+
+    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
+
+    @Before
+    public void setUp() {
+        lenient().when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenReturn(VALID_CERT_INFO);
+    }
 
     @Test
     public void shouldUpdate() throws TechnicalException {
