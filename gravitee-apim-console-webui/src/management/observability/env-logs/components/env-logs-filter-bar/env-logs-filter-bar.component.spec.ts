@@ -340,11 +340,14 @@ describe('EnvLogsFilterBarComponent', () => {
       expect(chip?.value).toBe('api-1');
     });
 
-    it('should not produce chips for errorKeys (they appear in filtersParam only)', () => {
+    it('should produce chips for errorKeys', () => {
       component.moreFiltersValues.set({ ...DEFAULT_MORE_FILTERS, errorKeys: ['TIMEOUT'] });
       fixture.detectChanges();
 
-      expect(component.filterChips().some(c => c.key === 'errorKeys')).toBe(false);
+      const chip = component.filterChips().find(c => c.key === 'errorKeys');
+      expect(chip).toBeTruthy();
+      expect(chip!.value).toBe('TIMEOUT');
+      expect(chip!.display).toBe('TIMEOUT');
     });
 
     it('should fall back to the raw id when the API id is not in the name map', () => {

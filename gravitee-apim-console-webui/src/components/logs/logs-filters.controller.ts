@@ -122,6 +122,7 @@ class LogsFiltersController {
   private fields = {
     responseTime: 'response-time',
     id: '_id',
+    errorKey: 'error-key',
   };
   private onFiltersChange: any;
   private metadata: any;
@@ -325,6 +326,9 @@ class LogsFiltersController {
         case 'host':
           this.filters.host = v.replace(/\\"/g, '');
           break;
+        case 'error-key':
+          this.filters.errorKey = v.replace(/^\*(.*)\*$/g, '');
+          break;
         default:
           this.$log.error('unknown filter: ', k);
           break;
@@ -367,7 +371,15 @@ class LogsFiltersController {
       }
 
       if (key === 'body') {
-        val = '*' + val + '*';
+        if (!val.includes('*')) {
+          val = '*' + val + '*';
+        }
+      }
+      if (key === 'errorKey') {
+        val = val.toUpperCase();
+        if (!val.includes('*')) {
+          val = '*' + val + '*';
+        }
       }
       const params = val.constructor === Array && val.length > 1 ? LogsFiltersController.convert(val) : val;
       query += this.map(key, this.fields, true) + ':' + params;

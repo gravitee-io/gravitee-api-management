@@ -76,8 +76,8 @@ type FilterChip = {
   display: string;
 };
 
-type MoreFilterArrayKey = 'entrypoints' | 'methods' | 'plans';
-const MORE_FILTER_ARRAY_KEYS: readonly MoreFilterArrayKey[] = ['entrypoints', 'methods', 'plans'];
+type MoreFilterArrayKey = 'entrypoints' | 'methods' | 'plans' | 'errorKeys';
+const MORE_FILTER_ARRAY_KEYS: readonly MoreFilterArrayKey[] = ['entrypoints', 'methods', 'plans', 'errorKeys'];
 
 function isMoreFilterArrayKey(key: string): key is MoreFilterArrayKey {
   return (MORE_FILTER_ARRAY_KEYS as readonly string[]).includes(key);
