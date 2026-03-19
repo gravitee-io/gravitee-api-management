@@ -35,7 +35,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
@@ -85,6 +85,7 @@ import { DATE_TIME_FORMATS } from '../../../../shared/utils/timeFrameRanges';
 
     MatChipsModule,
 
+    FormsModule,
     ReactiveFormsModule,
     RouterModule,
     GioBannerModule,

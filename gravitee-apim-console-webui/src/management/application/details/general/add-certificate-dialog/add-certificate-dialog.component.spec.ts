@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { NewFile } from '@gravitee/ui-particles-angular';
 
 import { AddCertificateDialogComponent, AddCertificateDialogData } from './add-certificate-dialog.component';
 
@@ -106,6 +107,17 @@ describe('AddCertificateDialogComponent', () => {
           activeCertificateId: undefined,
         }),
       );
+    });
+
+    it('should_populate_certificate_field_when_file_is_uploaded', async () => {
+      const pemContent = '-----BEGIN CERTIFICATE-----\nfiletest\n-----END CERTIFICATE-----';
+      const file = new File([pemContent], 'cert.pem', { type: 'application/x-pem-file' });
+      const newFile = new NewFile(file);
+
+      await fixture.componentInstance.onFileSelected([newFile]);
+
+      expect(fixture.componentInstance.form.controls['certificate'].value).toBe(pemContent);
+      expect(fixture.componentInstance.filePickerValue).toEqual([]);
     });
   });
 
