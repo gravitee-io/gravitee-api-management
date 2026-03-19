@@ -1,0 +1,42 @@
+{
+  "id": "simple-tcp-proxy-websocket",
+  "name": "TCP Proxy WebSocket",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "proxy",
+  "description": "TCP Proxy for WebSocket integration tests",
+  "listeners": [
+    {
+      "type": "tcp",
+      "hosts": [
+        "myapi.tcp.local"
+      ],
+      "entrypoints": [
+        {
+          "type": "tcp-proxy",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "tcp-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "tcp-proxy",
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": {
+              "host": "localhost",
+              "port": 8080,
+              "secured": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
