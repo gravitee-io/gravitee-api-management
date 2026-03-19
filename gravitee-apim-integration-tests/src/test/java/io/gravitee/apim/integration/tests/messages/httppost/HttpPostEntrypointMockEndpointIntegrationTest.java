@@ -84,7 +84,8 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
         ParameterContext parameterContext
     ) {
         super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
-        // Pool is already configured to 1 connection by default, which eases the connection drain test.
+        // Force pool to 1 connection. This allows to ease the connection drain test.
+        poolOptions.setHttp1MaxSize(1);
     }
 
     private MessageStorage messageStorage;
