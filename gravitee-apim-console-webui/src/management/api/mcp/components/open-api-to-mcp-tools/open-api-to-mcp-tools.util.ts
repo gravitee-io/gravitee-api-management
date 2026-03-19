@@ -124,6 +124,20 @@ function generateGatewayMapping(op: OperationObject, method: string, path: strin
   };
 }
 
+// Operation-level params override path-level params with the same (in, name) key (OpenAPI spec §4.8.9).
+function mergeParameters(
+  pathLevelParams: (ParameterObject | ReferenceObject)[],
+  operationParams: (ParameterObject | ReferenceObject)[],
+): (ParameterObject | ReferenceObject)[] {
+  const merged = new Map<string, ParameterObject | ReferenceObject>();
+
+  for (const param of [...pathLevelParams, ...operationParams] as ParameterObject[]) {
+    merged.set(`${param.in}:${param.name}`, param);
+  }
+
+  return Array.from(merged.values());
+}
+
 function extractParameterSchema(parameters: (ParameterObject | ReferenceObject)[]): ParameterSchema {
   const pathParams: ParameterSchema['pathParams'] = {};
   const queryParams: ParameterSchema['queryParams'] = {};
@@ -213,6 +227,8 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
   const usedNames = new Set<string>();
 
   for (const [path, pathItem] of Object.entries(api.paths || {})) {
+    const pathLevelParams = pathItem?.parameters || [];
+
     for (const [method, operation] of Object.entries(pathItem || {})) {
       // if method is not a valid HTTP method, skip it
       if (!['get', 'post', 'put', 'delete', 'patch', 'options', 'head'].includes(method)) {
@@ -230,7 +246,8 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       }
 
       const description = op.summary || op.description || `API for ${method.toUpperCase()} ${path}`;
-      const paramSchema = extractParameterSchema(op.parameters || []);
+      const mergedParams = mergeParameters(pathLevelParams, op.parameters || []);
+      const paramSchema = extractParameterSchema(mergedParams);
       const bodySchema = extractBodySchema(op.requestBody);
 
       const mergedParameters: JsonSchema = {
