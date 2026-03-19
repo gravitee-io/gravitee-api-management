@@ -6,6 +6,11 @@
 }
 
 .import {
+  // When rendered inside a MatDialog the panel is constrained to maxHeight.
+  // Ensure the card fills that height and scrolls rather than overflowing.
+  max-height: 100%;
+  overflow-y: auto;
+
   &__row {
     margin-top: 24px;
   }

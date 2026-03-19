@@ -210,7 +210,7 @@
           *gioPermission="{ anyOf: ['api-definition-c'] }"
           mat-button
           class="details-card__actions_btn"
-          [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4' || api.definitionVersion === 'V1'"
+          [disabled]="isKubernetesOrigin || api.definitionVersion === 'V1'"
           (click)="importApi()"
         >
           <mat-icon svgIcon="gio:download" />
