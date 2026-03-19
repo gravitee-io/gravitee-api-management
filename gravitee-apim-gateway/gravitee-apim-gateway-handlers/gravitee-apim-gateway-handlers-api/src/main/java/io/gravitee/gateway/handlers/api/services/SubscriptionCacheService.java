@@ -110,6 +110,15 @@ public class SubscriptionCacheService implements SubscriptionService {
             unregisterFromClientCertificate(cachedSubscription);
         }
 
+        // remove previous subscription plan entries from cache if plan has changed (e.g. subscription transfer)
+        if (
+            cachedSubscription != null &&
+            cachedSubscription.getPlan() != null &&
+            !cachedSubscription.getPlan().equals(subscription.getPlan())
+        ) {
+            unregisterFromClientCertificate(cachedSubscription);
+        }
+
         log.debug("Registering subscription [{}] for API [{}] by client certificate", subscription.getId(), subscription.getApi());
         final Set<String> servers = extractApiServersId(subscription);
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, servers);
@@ -136,6 +145,15 @@ public class SubscriptionCacheService implements SubscriptionService {
             cachedSubscription != null &&
             cachedSubscription.getClientId() != null &&
             !cachedSubscription.getClientId().equals(subscription.getClientId())
+        ) {
+            unregisterFromClientId(cachedSubscription);
+        }
+
+        // remove previous subscription plan entries from cache if plan has changed (e.g. subscription transfer)
+        if (
+            cachedSubscription != null &&
+            cachedSubscription.getPlan() != null &&
+            !cachedSubscription.getPlan().equals(subscription.getPlan())
         ) {
             unregisterFromClientId(cachedSubscription);
         }
