@@ -34,6 +34,7 @@ import { DEFAULT_MORE_FILTERS, EnvLogsMoreFiltersForm } from '../../../../models
 import { DATE_TIME_FORMATS } from '../../../../../../../shared/utils/timeFrameRanges';
 import { HTTP_METHODS } from '../../../../../../../entities/management-api-v2';
 import { AnalyticsService } from '../../../../../../../services-ngx/analytics.service';
+import { periodToMs } from '../../../../../../../services-ngx/environment-logs.service';
 import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
 import { ApiPlanV2Service } from '../../../../../../../services-ngx/api-plan-v2.service';
 
@@ -95,6 +96,7 @@ export class EnvLogsMoreFiltersComponent {
 
   showMoreFilters = input(false);
   formValues = input<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
+  period = input<string>('0');
 
   /**
    * IDs of the APIs currently selected in the quick filter bar.
@@ -237,10 +239,22 @@ export class EnvLogsMoreFiltersComponent {
   private initSideEffects(): void {
     effect(() => {
       this.updateFormFromInput(this.formValues());
-      const from = this.formValues().from?.valueOf() ?? Date.now() - 24 * 60 * 60 * 1000;
-      const to = this.formValues().to?.valueOf() ?? Date.now();
+      const from = this.formValues().from?.valueOf();
+      const to = this.formValues().to?.valueOf();
+      let effectiveFrom: number;
+      let effectiveTo: number;
+
+      if (from && to) {
+        effectiveFrom = from;
+        effectiveTo = to;
+      } else {
+        const ms = periodToMs(this.period());
+        effectiveTo = Date.now();
+        effectiveFrom = effectiveTo - (ms ?? 24 * 60 * 60 * 1000);
+      }
+
       this.analyticsService
-        .getEnvironmentErrorKeys(from, to)
+        .getEnvironmentErrorKeys(effectiveFrom, effectiveTo)
         .pipe(
           catchError(() => of([])),
           takeUntilDestroyed(this.destroyRef),
@@ -264,8 +278,13 @@ export class EnvLogsMoreFiltersComponent {
         switchMap(() => {
           const from = this.form.controls.from.value?.valueOf();
           const to = this.form.controls.to.value?.valueOf();
-          if (!from || !to) return of(this.errorKeysOptions);
-          return this.analyticsService.getEnvironmentErrorKeys(from, to).pipe(catchError(() => of([])));
+          if (from && to) {
+            return this.analyticsService.getEnvironmentErrorKeys(from, to).pipe(catchError(() => of([])));
+          }
+          const ms = periodToMs(this.period());
+          const effectiveTo = Date.now();
+          const effectiveFrom = effectiveTo - (ms ?? 24 * 60 * 60 * 1000);
+          return this.analyticsService.getEnvironmentErrorKeys(effectiveFrom, effectiveTo).pipe(catchError(() => of([])));
         }),
         takeUntilDestroyed(this.destroyRef),
       )

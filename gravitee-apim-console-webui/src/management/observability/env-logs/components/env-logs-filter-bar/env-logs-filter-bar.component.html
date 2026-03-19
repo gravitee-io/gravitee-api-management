@@ -49,6 +49,7 @@
             [showMoreFilters]="showMoreFilters()"
             [formValues]="moreFiltersValues()"
             [selectedApiIds]="selectedApiIds()"
+            [period]="form.controls.period.value.value"
             (closeMoreFilters)="showMoreFilters.set(false)"
             (applyMoreFilters)="applyMoreFilters($event)"
           ></env-logs-more-filters>
