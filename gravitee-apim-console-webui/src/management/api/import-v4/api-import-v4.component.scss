@@ -5,6 +5,10 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
+.import__dialog-title {
+  color: inherit;
+}
+
 .import {
   &__row {
     margin-top: 24px;

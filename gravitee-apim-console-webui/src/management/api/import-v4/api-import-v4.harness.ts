@@ -24,9 +24,9 @@ export class ApiImportV4Harness extends ComponentHarness {
   static hostSelector = 'api-api-import-v4';
 
   private getFormatSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="format"]' }));
-  private getSourceSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="source"]' }));
+  private getSourceSelectGroup = this.locatorForOptional(GioFormSelectionInlineHarness.with({ selector: '[formControlName="source"]' }));
   private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
-  private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
+  private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '.import__save-button' }));
   private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
   private getFormatErrorBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
   private getImportDocumentationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="withDocumentation"]' }));
@@ -42,6 +42,10 @@ export class ApiImportV4Harness extends ComponentHarness {
     return this.getSaveButton().then(btn => btn.isDisabled());
   }
 
+  public async getSaveButtonText() {
+    return this.getSaveButton().then(btn => btn.getText());
+  }
+
   public async cancel() {
     return this.getCancelButton().then(btn => btn.click());
   }
@@ -51,7 +55,7 @@ export class ApiImportV4Harness extends ComponentHarness {
   }
 
   public async selectSource(source: string) {
-    return this.getSourceSelectGroup().then(group => group.select(source));
+    return this.getSourceSelectGroup().then(group => group?.select(source));
   }
 
   public async pickFiles(files: File[]) {
