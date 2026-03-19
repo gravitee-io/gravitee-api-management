@@ -609,6 +609,108 @@ paths:
     });
   });
 
+  describe('Path-level parameters inheritance', () => {
+    it('includes path-level parameters in inputSchema and gatewayMapping', async () => {
+      const spec = `
+openapi: 3.0.1
+info:
+  title: mcp-path-param-test
+  version: '1.0'
+paths:
+  '/items/{itemId}':
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getItem
+      summary: Get an item by ID
+      parameters:
+        - name: includeDetails
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+`;
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+
+      const tool = result[0];
+
+      const properties = tool.toolDefinition.inputSchema['properties'];
+      expect(properties).toHaveProperty('itemId');
+      expect(properties['itemId'].type).toBe('integer');
+      expect(properties).toHaveProperty('includeDetails');
+      expect(properties['includeDetails'].type).toBe('boolean');
+
+      expect(tool.toolDefinition.inputSchema['required']).toContain('itemId');
+
+      expect(tool.gatewayMapping.http.path).toBe('/items/:itemId');
+      expect(tool.gatewayMapping.http.pathParams).toEqual(['itemId']);
+      expect(tool.gatewayMapping.http.queryParams).toEqual(['includeDetails']);
+    });
+
+    it('operation-level parameter overrides path-level parameter with same name', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/items/{itemId}': {
+            parameters: [
+              {
+                name: 'itemId',
+                in: 'path',
+                required: true,
+                schema: { type: 'integer' },
+                description: 'Path-level description',
+              },
+            ],
+            get: {
+              operationId: 'getItem',
+              summary: 'Get item',
+              parameters: [
+                {
+                  name: 'itemId',
+                  in: 'path',
+                  required: true,
+                  schema: { type: 'string' },
+                  description: 'Operation-level description',
+                },
+              ],
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+
+      const properties = result[0].toolDefinition.inputSchema['properties'];
+
+      expect(properties['itemId'].type).toBe('string');
+      expect(properties['itemId'].description).toBe('Operation-level description');
+    });
+  });
+
   describe('Error cases', () => {
     it.each([
       [
