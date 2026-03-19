@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, output, TemplateRef } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, TemplateRef } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { NgTemplateOutlet } from '@angular/common';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
 
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { Pagination } from '../../../../../entities/management-api-v2';
@@ -25,6 +30,7 @@ import {
   GioTableWrapperFilters,
   GioTableWrapperPagination,
 } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { Constants } from '../../../../../entities/Constants';
 
 export interface LogsListColumnDef {
   id: string;
@@ -37,16 +43,42 @@ export interface LogsListColumnDef {
   templateUrl: './logs-list-base.component.html',
   styleUrls: ['./logs-list-base.component.scss'],
   standalone: true,
-  imports: [GioTableWrapperModule, MatTableModule, MatSort, NgTemplateOutlet],
+  imports: [
+    GioTableWrapperModule,
+    MatTableModule,
+    MatSort,
+    NgTemplateOutlet,
+    MatCheckboxModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIcon,
+    FormsModule,
+  ],
 })
 export class LogsListBaseComponent<T = unknown> {
+  private readonly constants = inject(Constants, { optional: true });
+
   logs = input.required<T[]>();
   pagination = input.required<Pagination>();
   columns = input.required<LogsListColumnDef[]>();
   tableId = input<string>('logsTable');
   ariaLabel = input<string>('Logs table');
+  storageKey = input<string>();
 
   paginationUpdated = output<GioTableWrapperPagination>();
+
+  readonly hasColumnPicker = computed(() => !!this.storageKey());
+
+  displayedColumnsOption: Record<string, boolean> = {};
+  private readonly pickerDisplayedColumns = signal<string[]>([]);
+
+  private readonly storageId = computed(() => {
+    const key = this.storageKey();
+    if (!key) {
+      return null;
+    }
+    return `${this.constants?.org?.currentEnv?.id ?? 'default'}-${key}-logs-list-visible-columns`;
+  });
 
   readonly gioTableWrapperFilters = computed(() => {
     const pagination = this.pagination();
@@ -59,9 +91,45 @@ export class LogsListBaseComponent<T = unknown> {
     };
   });
 
-  readonly displayedColumns = computed(() => this.columns().map(col => col.id));
+  readonly displayedColumns = computed(() => {
+    if (this.hasColumnPicker()) {
+      return [...this.pickerDisplayedColumns(), 'actions'];
+    }
+    return this.columns().map(col => col.id);
+  });
 
   readonly pageSizeOptions: number[] = [10, 25, 50, 100];
+
+  constructor() {
+    effect(() => {
+      const id = this.storageId();
+      if (!id) return;
+
+      const stored = localStorage.getItem(id);
+
+      if (stored) {
+        try {
+          const storedColumns: Record<string, boolean> = JSON.parse(stored);
+          this.displayedColumnsOption = storedColumns;
+          this.pickerDisplayedColumns.set(Object.keys(storedColumns).filter(k => storedColumns[k]));
+          return;
+        } catch {
+          // Corrupted data — clear it and fall through to defaults
+          localStorage.removeItem(id);
+        }
+      }
+
+      const allIds = this.columns().map(c => c.id);
+      this.pickerDisplayedColumns.set(allIds);
+      this.displayedColumnsOption = allIds.reduce(
+        (acc, curr) => {
+          acc[curr] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      );
+    });
+  }
 
   onFiltersChanged(event: GioTableWrapperFilters) {
     const eventPagination = event.pagination;
@@ -70,6 +138,27 @@ export class LogsListBaseComponent<T = unknown> {
     const currentPage = currentPagination.page ?? 0;
     if ((currentPerPage >= 0 && currentPerPage !== eventPagination.size) || (currentPage >= 0 && currentPage !== eventPagination.index)) {
       this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
+    }
+  }
+
+  updateVisibleColumns() {
+    const checkedColumns = Object.entries(this.displayedColumnsOption)
+      .filter(([_k, v]) => v)
+      .map(([k]) => k);
+
+    // Prevent deselecting all columns — keep current selection if none are checked
+    if (checkedColumns.length === 0) {
+      // Re-check all currently displayed columns to stay in sync with UI
+      for (const col of this.pickerDisplayedColumns()) {
+        this.displayedColumnsOption[col] = true;
+      }
+      return;
+    }
+
+    this.pickerDisplayedColumns.set(checkedColumns);
+    const id = this.storageId();
+    if (id) {
+      localStorage.setItem(id, JSON.stringify(this.displayedColumnsOption));
     }
   }
 }

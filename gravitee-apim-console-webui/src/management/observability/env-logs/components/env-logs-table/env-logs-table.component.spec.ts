@@ -23,6 +23,8 @@ import { EnvLogsTableComponent } from './env-logs-table.component';
 import { EnvLogsTableHarness } from './env-logs-table.harness';
 
 import { fakeEnvLog, fakeEnvLogs } from '../../models/env-log.fixture';
+import { Constants } from '../../../../../entities/Constants';
+import { CONSTANTS_TESTING } from '../../../../../shared/testing';
 
 describe('EnvLogsTableComponent', () => {
   let fixture: ComponentFixture<EnvLogsTableComponent>;
@@ -34,7 +36,7 @@ describe('EnvLogsTableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EnvLogsTableComponent, NoopAnimationsModule],
-      providers: [provideRouter([]), provideHttpClient()],
+      providers: [provideRouter([]), provideHttpClient(), { provide: Constants, useValue: CONSTANTS_TESTING }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EnvLogsTableComponent);
