@@ -96,7 +96,7 @@ export function periodToMs(period: string): number | null {
 type LogFilter = { name: string; operator: string; value: string | string[] | number };
 
 type SearchLogsRequestBody = {
-  timeRange?: TimeRange;
+  timeRange: TimeRange;
   filters?: LogFilter[];
 };
 
@@ -132,6 +132,7 @@ function buildFilters(param?: SearchLogsParam): LogFilter[] {
 }
 
 const WIDE_SEARCH_WINDOW_MS = 315_576_000_000;
+const SEVEN_DAYS_MS = 7 * 86_400_000;
 
 @Injectable({
   providedIn: 'root',
@@ -148,8 +149,7 @@ export class EnvironmentLogsService {
     params = params.append('perPage', param?.perPage ?? 10);
 
     const filters = buildFilters(param);
-    const timeRange = this.resolveTimeRange(param);
-    const body: SearchLogsRequestBody = timeRange ? { timeRange } : {};
+    const body: SearchLogsRequestBody = { timeRange: this.resolveTimeRange(param) };
 
     if (filters.length > 0) {
       body.filters = filters;
@@ -160,9 +160,9 @@ export class EnvironmentLogsService {
 
   /**
    * Resolves the time range for a search request.
-   * Precedence: explicit timeRange > from/to > period > requestId wide window > default (24h).
+   * Precedence: explicit timeRange > from/to > period > requestId wide window > default (7 days).
    */
-  private resolveTimeRange(param?: SearchLogsParam): TimeRange | undefined {
+  private resolveTimeRange(param?: SearchLogsParam): TimeRange {
     if (param?.timeRange) {
       return param.timeRange;
     }
@@ -177,9 +177,9 @@ export class EnvironmentLogsService {
       return { from: param.from, to: now.toISOString() };
     }
 
-    // Period 'None' — no time filter, return all logs
+    // Period 'None' — default to last 7 days
     if (param?.period === '0') {
-      return undefined;
+      return { from: new Date(now.getTime() - SEVEN_DAYS_MS).toISOString(), to: now.toISOString() };
     }
 
     // Period shorthand (e.g. '-1h')
@@ -196,8 +196,7 @@ export class EnvironmentLogsService {
       return { from: wideWindowStart.toISOString(), to: now.toISOString() };
     }
 
-    // Default: last 24 hours
-    const oneDayAgo = new Date(now.getTime() - 86_400_000);
-    return { from: oneDayAgo.toISOString(), to: now.toISOString() };
+    // Default: last 7 days
+    return { from: new Date(now.getTime() - SEVEN_DAYS_MS).toISOString(), to: now.toISOString() };
   }
 }
