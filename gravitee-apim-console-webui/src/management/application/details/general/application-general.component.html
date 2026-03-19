@@ -253,7 +253,24 @@
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let cert">
-              <span class="tls-card__status tls-card__status--{{ cert.status | lowercase }}">{{ cert.status }}</span>
+              @switch (cert.status) {
+                @case ('ACTIVE') {
+                  <span class="gio-badge-success">Active</span>
+                }
+                @case ('ACTIVE_WITH_END') {
+                  @if (cert.endsAt | daysLeft: 15; as label) {
+                    <span class="gio-badge-warning">{{ label }}</span>
+                  } @else {
+                    <span class="gio-badge-success">Active</span>
+                  }
+                }
+                @case ('SCHEDULED') {
+                  <span class="gio-badge-neutral">Scheduled</span>
+                }
+                @case ('REVOKED') {
+                  <span class="gio-badge-neutral">Expired</span>
+                }
+              }
             </td>
           </ng-container>
 

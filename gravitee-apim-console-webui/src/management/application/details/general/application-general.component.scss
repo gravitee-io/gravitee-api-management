@@ -184,27 +184,6 @@ $typography: map.get(gio.$mat-theme, typography);
     width: 100%;
   }
 
-  &__status {
-    text-transform: capitalize;
-    font-weight: 500;
-
-    &--active {
-      color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
-    }
-
-    &--active_with_end {
-      color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
-    }
-
-    &--scheduled {
-      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
-    }
-
-    &--revoked {
-      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker');
-    }
-  }
-
   &__empty {
     display: flex;
     flex-direction: column;
