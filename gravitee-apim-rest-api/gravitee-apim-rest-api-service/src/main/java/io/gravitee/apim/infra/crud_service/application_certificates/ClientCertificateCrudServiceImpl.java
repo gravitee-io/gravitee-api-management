@@ -44,9 +44,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -193,14 +192,14 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
         try {
             log.debug("Find client certificates by application ID {} and statuses {}", applicationId, Arrays.toString(statuses));
             return clientCertificateRepository
                 .findByApplicationIdAndStatuses(applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
                 .stream()
                 .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .collect(Collectors.toSet());
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to find client certificates by application ID " + applicationId + " and statuses",
@@ -210,14 +209,14 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         try {
             log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds, Arrays.toString(statuses));
             return clientCertificateRepository
                 .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
                 .stream()
                 .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .collect(Collectors.toSet());
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to find client certificates by application IDs and statuses",
@@ -227,14 +226,14 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
         try {
             log.debug("Find client certificates by statuses {}", Arrays.toString(statuses));
             return clientCertificateRepository
                 .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
                 .stream()
                 .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .collect(Collectors.toSet());
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find client certificates by statuses", e);
         }
@@ -286,7 +285,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find most recent active client certificate for application: {}", applicationId);
 
-            Set<io.gravitee.repository.management.model.ClientCertificate> certificates =
+            List<io.gravitee.repository.management.model.ClientCertificate> certificates =
                 clientCertificateRepository.findByApplicationIdAndStatuses(
                     applicationId,
                     io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
