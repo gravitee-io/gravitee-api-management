@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
+package io.gravitee.rest.api.model.clientcertificate;
 
-import io.gravitee.common.http.HttpStatusCode;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Date;
 
-/**
- * @author GraviteeSource Team
- */
-public abstract class AbstractClientCertificateException extends AbstractManagementException {
-
-    protected AbstractClientCertificateException() {}
-
-    protected AbstractClientCertificateException(Throwable cause) {
-        super(cause);
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
-    }
-}
+@Schema(name = "ValidateCertificateResponse", description = "Result of validating a PEM-encoded client certificate")
+public record ValidateCertificateResponse(
+    @Schema(description = "Expiration date extracted from the certificate") Date certificateExpiration,
+    @Schema(description = "Subject of the certificate") String subject,
+    @Schema(description = "Issuer of the certificate") String issuer
+) {}
