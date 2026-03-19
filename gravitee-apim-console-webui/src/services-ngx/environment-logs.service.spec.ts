@@ -172,6 +172,71 @@ describe('EnvironmentLogsService', () => {
 
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
+
+    describe('time range resolution', () => {
+      const EMPTY_RESPONSE = { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } };
+
+      it('should_always_include_timeRange_in_request_body_when_period_is_none', done => {
+        service.searchLogs({ period: '0' }).subscribe(() => done());
+
+        const req = httpTestingController.expectOne({ method: 'POST' });
+        expect(req.request.body.timeRange).toBeDefined();
+        expect(req.request.body.timeRange.from).toBeDefined();
+        expect(req.request.body.timeRange.to).toBeDefined();
+        req.flush(EMPTY_RESPONSE);
+      });
+
+      it('should_use_7_day_window_when_period_is_none', done => {
+        const beforeCall = Date.now();
+        service.searchLogs({ period: '0' }).subscribe(() => done());
+
+        const req = httpTestingController.expectOne({ method: 'POST' });
+        const fromMs = new Date(req.request.body.timeRange.from).getTime();
+        const toMs = new Date(req.request.body.timeRange.to).getTime();
+        const sevenDaysMs = 7 * 86_400_000;
+        expect(toMs - fromMs).toBeGreaterThanOrEqual(sevenDaysMs - 1000);
+        expect(toMs - fromMs).toBeLessThan(sevenDaysMs + 1000);
+        expect(toMs).toBeGreaterThanOrEqual(beforeCall);
+        req.flush(EMPTY_RESPONSE);
+      });
+
+      it('should_use_period_shorthand_for_time_range', done => {
+        const beforeCall = Date.now();
+        service.searchLogs({ period: '-1h' }).subscribe(() => done());
+
+        const req = httpTestingController.expectOne({ method: 'POST' });
+        const fromMs = new Date(req.request.body.timeRange.from).getTime();
+        const toMs = new Date(req.request.body.timeRange.to).getTime();
+        expect(toMs - fromMs).toBeGreaterThanOrEqual(3_600_000 - 1000);
+        expect(toMs - fromMs).toBeLessThan(3_600_000 + 1000);
+        expect(toMs).toBeGreaterThanOrEqual(beforeCall);
+        req.flush(EMPTY_RESPONSE);
+      });
+
+      it('should_use_explicit_from_and_to_when_provided', done => {
+        const from = '2025-01-01T00:00:00Z';
+        const to = '2025-01-02T00:00:00Z';
+        service.searchLogs({ from, to }).subscribe(() => done());
+
+        const req = httpTestingController.expectOne({ method: 'POST' });
+        expect(req.request.body.timeRange).toEqual({ from, to });
+        req.flush(EMPTY_RESPONSE);
+      });
+
+      it('should_default_to_7_days_when_no_period_or_dates_provided', done => {
+        const beforeCall = Date.now();
+        service.searchLogs({}).subscribe(() => done());
+
+        const req = httpTestingController.expectOne({ method: 'POST' });
+        const fromMs = new Date(req.request.body.timeRange.from).getTime();
+        const toMs = new Date(req.request.body.timeRange.to).getTime();
+        const sevenDaysMs = 7 * 86_400_000;
+        expect(toMs - fromMs).toBeGreaterThanOrEqual(sevenDaysMs - 1000);
+        expect(toMs - fromMs).toBeLessThan(sevenDaysMs + 1000);
+        expect(toMs).toBeGreaterThanOrEqual(beforeCall);
+        req.flush(EMPTY_RESPONSE);
+      });
+    });
   });
 });
 
