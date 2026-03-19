@@ -43,7 +43,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -377,15 +376,15 @@ class ClientCertificateCrudServiceImplTest {
                 eq(APPLICATION_ID),
                 any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)
             )
-        ).thenReturn(Set.of(repositoryCertificate));
+        ).thenReturn(List.of(repositoryCertificate));
 
-        Set<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdAndStatuses(
+        List<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdAndStatuses(
             APPLICATION_ID,
             ClientCertificateStatus.ACTIVE
         );
 
         assertThat(result).hasSize(1);
-        assertThat(result.iterator().next().id()).isEqualTo(CERTIFICATE_ID);
+        assertThat(result.getFirst().id()).isEqualTo(CERTIFICATE_ID);
     }
 
     @Test
@@ -407,9 +406,9 @@ class ClientCertificateCrudServiceImplTest {
                 eq(List.of(APPLICATION_ID, applicationId2)),
                 any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)
             )
-        ).thenReturn(Set.of(repositoryCertificate1, repositoryCertificate2));
+        ).thenReturn(List.of(repositoryCertificate1, repositoryCertificate2));
 
-        Set<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdsAndStatuses(
+        List<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdsAndStatuses(
             List.of(APPLICATION_ID, applicationId2),
             ClientCertificateStatus.ACTIVE,
             ClientCertificateStatus.ACTIVE_WITH_END
@@ -450,7 +449,7 @@ class ClientCertificateCrudServiceImplTest {
         );
         when(
             clientCertificateRepository.findByStatuses(any(io.gravitee.repository.management.model.ClientCertificateStatus[].class))
-        ).thenReturn(Set.of(repositoryCertificate1, repositoryCertificate2));
+        ).thenReturn(List.of(repositoryCertificate1, repositoryCertificate2));
 
         var result = clientCertificateCrudService.findByStatuses(ClientCertificateStatus.ACTIVE);
 
@@ -585,7 +584,7 @@ class ClientCertificateCrudServiceImplTest {
                 io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
                 io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
             )
-        ).thenReturn(Set.of(oldCertificate, recentCertificate));
+        ).thenReturn(List.of(oldCertificate, recentCertificate));
 
         Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
 
@@ -601,7 +600,7 @@ class ClientCertificateCrudServiceImplTest {
                 io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
                 io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
             )
-        ).thenReturn(Set.of());
+        ).thenReturn(List.of());
 
         Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
 

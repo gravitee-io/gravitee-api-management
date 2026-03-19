@@ -247,7 +247,7 @@ public class ApplicationService_UpdateTest {
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of(mockCert));
+        ).thenReturn(java.util.List.of(mockCert));
 
         final ApplicationEntity applicationEntity = applicationService.update(
             GraviteeContext.getExecutionContext(),
@@ -774,7 +774,7 @@ public class ApplicationService_UpdateTest {
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of());
+        ).thenReturn(java.util.List.of());
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -831,7 +831,7 @@ public class ApplicationService_UpdateTest {
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of(existingCert));
+        ).thenReturn(java.util.List.of(existingCert));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -883,7 +883,7 @@ public class ApplicationService_UpdateTest {
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of());
+        ).thenReturn(java.util.List.of());
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -947,7 +947,7 @@ public class ApplicationService_UpdateTest {
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of(existingCert));
+        ).thenReturn(java.util.List.of(existingCert));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -1060,7 +1060,7 @@ public class ApplicationService_UpdateTest {
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of(keptCert, removedCert, toUpdateCert));
+        ).thenReturn(java.util.List.of(keptCert, removedCert, toUpdateCert));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
