@@ -51,26 +51,22 @@ describe('CertificateDetailDialogComponent', () => {
   });
 
   it('should_display_certificate_name', () => {
-    const values = fixture.nativeElement.querySelectorAll('[data-testid="certificate-detail-value"]');
-    const texts = Array.from(values).map((el: Element) => el.textContent.trim());
-    expect(texts).toContain('My Certificate');
+    const el = fixture.nativeElement.querySelector('[data-testid="certificate-detail-name-value"]');
+    expect(el.textContent.trim()).toBe('My Certificate');
   });
 
   it('should_display_subject', () => {
-    const values = fixture.nativeElement.querySelectorAll('[data-testid="certificate-detail-value"]');
-    const texts = Array.from(values).map((el: Element) => el.textContent.trim());
-    expect(texts).toContain('CN=test-subject, O=Acme Corp');
+    const el = fixture.nativeElement.querySelector('[data-testid="certificate-detail-subject-value"]');
+    expect(el.textContent.trim()).toBe('CN=test-subject, O=Acme Corp');
   });
 
   it('should_display_issuer', () => {
-    const values = fixture.nativeElement.querySelectorAll('[data-testid="certificate-detail-value"]');
-    const texts = Array.from(values).map((el: Element) => el.textContent.trim());
-    expect(texts).toContain('CN=test-issuer, O=Acme CA');
+    const el = fixture.nativeElement.querySelector('[data-testid="certificate-detail-issuer-value"]');
+    expect(el.textContent.trim()).toBe('CN=test-issuer, O=Acme CA');
   });
 
   it('should_display_expiry_information', () => {
-    const values = fixture.nativeElement.querySelectorAll('[data-testid="certificate-detail-value"]');
-    const expiryText = (values[3] as Element).textContent.trim();
-    expect(expiryText).toContain('2027');
+    const el = fixture.nativeElement.querySelector('[data-testid="certificate-detail-expires-value"]');
+    expect(el.textContent.trim()).toContain('2027');
   });
 });
