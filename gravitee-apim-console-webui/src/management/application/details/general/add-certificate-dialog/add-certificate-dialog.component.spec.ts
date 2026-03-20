@@ -217,6 +217,26 @@ describe('AddCertificateDialogComponent', () => {
       expect(texts).toContain('my-cert');
     });
 
+    it('should_go_back_to_upload_step_when_clicking_previous_on_configure_step', async () => {
+      await advanceToConfigureStep();
+      expect(fixture.componentInstance.currentStep).toBe(1);
+
+      const previousButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }));
+      await previousButton.click();
+
+      expect(fixture.componentInstance.currentStep).toBe(0);
+    });
+
+    it('should_go_back_to_configure_step_when_clicking_previous_on_confirm_step', async () => {
+      await advanceToConfirmStep();
+      expect(fixture.componentInstance.currentStep).toBe(2);
+
+      const previousButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }));
+      await previousButton.click();
+
+      expect(fixture.componentInstance.currentStep).toBe(1);
+    });
+
     it('should_populate_ends_at_from_validation_response', async () => {
       await advanceToConfigureStep();
 

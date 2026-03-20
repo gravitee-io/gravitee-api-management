@@ -126,6 +126,12 @@ export class AddCertificateDialogComponent {
       });
   }
 
+  goBack(): void {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+    }
+  }
+
   onContinueToConfirm(): void {
     if (this.configureForm.invalid) {
       return;
