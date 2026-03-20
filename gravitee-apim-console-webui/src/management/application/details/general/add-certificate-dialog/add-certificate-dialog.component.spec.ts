@@ -107,6 +107,108 @@ describe('AddCertificateDialogComponent', () => {
         }),
       );
     });
+<<<<<<< HEAD
+=======
+
+    it('should_populate_certificate_field_when_file_is_uploaded', async () => {
+      const pemContent = '-----BEGIN CERTIFICATE-----\nfiletest\n-----END CERTIFICATE-----';
+      const file = new File([pemContent], 'cert.pem', { type: 'application/x-pem-file' });
+      const newFile = new NewFile('cert.pem', '', file);
+
+      await fixture.componentInstance.onFileSelected([newFile]);
+
+      expect(fixture.componentInstance.uploadForm.controls.certificate.value).toBe(pemContent);
+      expect(fixture.componentInstance.filePickerValue).toEqual([]);
+    });
+  });
+
+  describe('stepper flow', () => {
+    beforeEach(() => {
+      createComponent({ hasActiveCertificates: false });
+    });
+
+    it('should_show_validation_error_banner_when_validation_fails', async () => {
+      await fillUploadForm();
+      await clickValidate();
+      failValidation();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.validationError).toBe('Invalid certificate format');
+      const errorBanner = fixture.nativeElement.querySelector('[data-testid="validation-error-banner"]');
+      expect(errorBanner).toBeTruthy();
+      expect(errorBanner.textContent).toContain('Invalid certificate format');
+      expect(fixture.componentInstance.currentStep).toBe(0);
+    });
+
+    it('should_advance_to_configure_step_on_successful_validation', async () => {
+      await advanceToConfigureStep();
+
+      expect(fixture.componentInstance.currentStep).toBe(1);
+      expect(fixture.componentInstance.validationResponse).toEqual(MOCK_VALIDATION_RESPONSE);
+
+      const successBanner = fixture.nativeElement.querySelector('[data-testid="validation-success-banner"]');
+      expect(successBanner).toBeTruthy();
+      expect(successBanner.textContent).toContain('Certificate validated successfully');
+    });
+
+    it('should_advance_to_confirm_step_from_configure', async () => {
+      await advanceToConfigureStep();
+      await clickContinueToConfirm();
+
+      expect(fixture.componentInstance.currentStep).toBe(2);
+    });
+
+    it('should_show_summary_table_on_confirm_step', async () => {
+      await advanceToConfirmStep();
+
+      const summary = fixture.nativeElement.querySelector('[data-testid="certificate-summary"]');
+      expect(summary).toBeTruthy();
+
+      const nameValue = fixture.nativeElement.querySelector('[data-testid="certificate-summary-name-value"]');
+      expect(nameValue.textContent.trim()).toBe('my-cert');
+
+      const activeUntilValue = fixture.nativeElement.querySelector('[data-testid="certificate-summary-active-until-value"]');
+      expect(activeUntilValue.textContent.trim()).toBeTruthy();
+    });
+
+    it('should_go_back_to_upload_step_when_clicking_previous_on_configure_step', async () => {
+      await advanceToConfigureStep();
+      expect(fixture.componentInstance.currentStep).toBe(1);
+
+      const previousButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }));
+      await previousButton.click();
+
+      expect(fixture.componentInstance.currentStep).toBe(0);
+    });
+
+    it('should_go_back_to_configure_step_when_clicking_previous_on_confirm_step', async () => {
+      await advanceToConfirmStep();
+      expect(fixture.componentInstance.currentStep).toBe(2);
+
+      const previousButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }));
+      await previousButton.click();
+
+      expect(fixture.componentInstance.currentStep).toBe(1);
+    });
+
+    it('should_populate_ends_at_from_validation_response', async () => {
+      await advanceToConfigureStep();
+
+      const endsAt = fixture.componentInstance.configureForm.controls.endsAt.value;
+      expect(new Date(endsAt).toISOString()).toBe('2027-06-15T10:00:00.000Z');
+    });
+
+    it('should_reject_past_expiration_date', async () => {
+      await advanceToConfigureStep();
+
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 3);
+      fixture.componentInstance.configureForm.controls.endsAt.setValue(pastDate);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.configureForm.controls.endsAt.hasError('owlDateTimeMin')).toBe(true);
+    });
+>>>>>>> 023a93a4e9 (test: use data test id consistently and improve coverage)
   });
 
   describe('rotation (with active certificates)', () => {
