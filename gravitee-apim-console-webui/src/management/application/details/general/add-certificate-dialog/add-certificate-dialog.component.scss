@@ -10,61 +10,19 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
     gap: 8px;
     min-width: 500px;
-  }
 
-  &__stepper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-  }
-
-  &__stepper-step {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__stepper-circle {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: mat.m2-font-size($typography, caption);
-    background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
-
-    &--active {
-      background: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
-      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
-    }
-
-    &--completed {
-      background: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
-      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
-
-      mat-icon {
-        width: 16px;
-        height: 16px;
-        font-size: 16px;
-      }
-    }
-  }
-
-  &__stepper-divider {
-    flex: 1;
-    height: 1px;
-    background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  }
-
-  &__stepper-label {
-    font-size: mat.m2-font-size($typography, caption);
-    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-
-    &--active {
-      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    mat-stepper {
+      --mat-stepper-container-color: transparent;
+      --mat-stepper-line-color: #{mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20')};
+      --mat-stepper-header-hover-state-layer-color: transparent;
+      --mat-stepper-header-focus-state-layer-color: transparent;
+      --mat-stepper-header-hover-state-layer-opacity: 0;
+      --mat-stepper-header-focus-state-layer-opacity: 0;
+      --mat-stepper-header-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20')};
+      --mat-stepper-header-selected-state-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default')};
+      --mat-stepper-header-done-state-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default')};
+      --mat-stepper-header-edit-state-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default')};
+      --mat-stepper-header-selected-state-label-text-color: #{mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default')};
     }
   }
 
@@ -76,6 +34,7 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin: 0 -24px -24px;
 
     --mat-form-field-filled-label-text-color: #{mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker80')};
     --mat-form-field-outlined-label-text-color: #{mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker80')};

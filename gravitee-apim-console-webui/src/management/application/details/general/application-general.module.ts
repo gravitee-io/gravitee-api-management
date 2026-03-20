@@ -42,6 +42,7 @@ import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatStepperModule } from '@angular/material/stepper';
 import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
@@ -81,6 +82,7 @@ import { DATE_TIME_FORMATS } from '../../../../shared/utils/timeFrameRanges';
     MatTooltipModule,
     MatTableModule,
     MatDialogModule,
+    MatStepperModule,
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
 
