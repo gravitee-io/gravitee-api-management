@@ -163,12 +163,23 @@
             uploadForm.controls.name.value
           }}</span>
         </div>
-        <div class="add-certificate-dialog__summary-row add-certificate-dialog__summary-row--last">
+        <div
+          class="add-certificate-dialog__summary-row"
+          [class.add-certificate-dialog__summary-row--last]="!configureForm.controls.gracePeriodEnd?.value"
+        >
           <span class="add-certificate-dialog__summary-label">Active until:</span>
           <span class="add-certificate-dialog__summary-value" data-testid="certificate-summary-value">{{
             configureForm.controls.endsAt.value | date: 'medium'
           }}</span>
         </div>
+        @if (configureForm.controls.gracePeriodEnd?.value) {
+          <div class="add-certificate-dialog__summary-row add-certificate-dialog__summary-row--last">
+            <span class="add-certificate-dialog__summary-label">Grace period ends:</span>
+            <span class="add-certificate-dialog__summary-value" data-testid="certificate-summary-value">{{
+              configureForm.controls.gracePeriodEnd.value | date: 'medium'
+            }}</span>
+          </div>
+        }
       </div>
     </div>
   }
