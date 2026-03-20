@@ -41,7 +41,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import lombok.CustomLog;
 
+@CustomLog
 public class FailoverInvoker implements HttpInvoker, Invoker {
 
     private final HttpInvoker delegate;
@@ -57,6 +59,20 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
     @Override
     public String getId() {
         return "failover-invoker";
+    }
+
+    /**
+     * Constructs a new instance of {@code FailoverInvoker}.
+     * This constructor is deprecated and marked for removal. Use the alternative constructor
+     * that includes an {@code EndpointManager} parameter instead.
+     *
+     * @param delegate the {@link HttpInvoker} delegate used for HTTP invocations.
+     * @param failoverConfiguration the {@link Failover} configuration that specifies the failover behavior and settings.
+     * @param apiId the identifier of the API for which this invoker is instantiated.
+     */
+    @Deprecated(forRemoval = true)
+    public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId) {
+        this(delegate, failoverConfiguration, apiId, null);
     }
 
     public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId, EndpointManager endpointManager) {
@@ -113,6 +129,10 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
 
     private void forceNextEndpoint(HttpExecutionContext ctx, AtomicInteger attemptIndex, AtomicReference<List<String>> capturedEndpoints) {
         if (!failoverConfiguration.isForceNextEndpointOnFailure()) {
+            return;
+        }
+        if (endpointManager == null) {
+            ctx.withLogger(log).warn("Endpoint manager is null, cannot force next endpoint");
             return;
         }
 
