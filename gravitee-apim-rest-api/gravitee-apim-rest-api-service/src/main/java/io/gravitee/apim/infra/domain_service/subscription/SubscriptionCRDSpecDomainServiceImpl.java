@@ -19,6 +19,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
+import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -88,6 +90,8 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
     }
 
     private SubscriptionEntity update(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
+        rejectImmutableFieldChanges(existing, spec);
+
         if (existing.getStatus() == SubscriptionEntity.Status.CLOSED) {
             var restored = restoreAsAccepted(auditInfo, existing, spec);
             return update(auditInfo, restored, spec);
@@ -118,6 +122,15 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
 
     private SubscriptionEntity getAutoAccept(AuditInfo auditInfo, SubscriptionCRDSpec spec, String id) {
         return acceptService.autoAccept(id, ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON, "", auditInfo);
+    }
+
+    private static void rejectImmutableFieldChanges(SubscriptionEntity existing, SubscriptionCRDSpec spec) {
+        if (!Objects.equals(spec.getPlanId(), existing.getPlanId())) {
+            throw new SubscriptionPlanImmutableException(spec.getId());
+        }
+        if (!Objects.equals(spec.getApplicationId(), existing.getApplicationId())) {
+            throw new SubscriptionApplicationImmutableException(spec.getId());
+        }
     }
 
     private Optional<SubscriptionEntity> find(String id) {
