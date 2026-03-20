@@ -12,6 +12,10 @@
     display: grid;
     flex-direction: row;
     flex-wrap: nowrap;
+
+    md-input-container {
+      min-width: 12.5rem;
+    }
   }
 
   .gv-alerts-alert_trigger-msg {
