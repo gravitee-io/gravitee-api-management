@@ -26,6 +26,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,12 +55,19 @@ class UpdateSubscriptionFormUseCaseTest {
 
         // When
         var result = useCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), "<gmd-input name=\"updated\"/>")
+            new UpdateSubscriptionFormUseCase.Input(
+                existingForm.getEnvironmentId(),
+                existingForm.getId(),
+                "<gmd-input name=\"updated\" fieldKey=\"updated\"/>"
+            )
         );
 
         // Then
-        assertThat(result.subscriptionForm().getGmdContent()).isEqualTo(GraviteeMarkdown.of("<gmd-input name=\"updated\"/>"));
+        assertThat(result.subscriptionForm().getGmdContent()).isEqualTo(
+            GraviteeMarkdown.of("<gmd-input name=\"updated\" fieldKey=\"updated\"/>")
+        );
         assertThat(result.subscriptionForm().getId()).isEqualTo(existingForm.getId());
+        assertThat(result.subscriptionForm().getValidationConstraints()).isEqualTo(SubscriptionFormFieldConstraints.empty());
     }
 
     @Test
@@ -67,7 +75,7 @@ class UpdateSubscriptionFormUseCaseTest {
         var input = new UpdateSubscriptionFormUseCase.Input(
             "env-1",
             SubscriptionFormId.of("550e8400-e29b-41d4-a716-446655440000"),
-            "<gmd-input name=\"test\"/>"
+            "<gmd-input name=\"test\" fieldKey=\"test\"/>"
         );
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }

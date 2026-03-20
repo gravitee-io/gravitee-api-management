@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -36,4 +37,7 @@ public class SubscriptionFormMongo {
     private String environmentId;
     private String gmdContent;
     private boolean enabled;
+
+    @NonNull
+    private String validationConstraints;
 }

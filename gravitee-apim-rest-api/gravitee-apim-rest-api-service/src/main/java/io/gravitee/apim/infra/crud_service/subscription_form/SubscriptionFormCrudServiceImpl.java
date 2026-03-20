@@ -48,6 +48,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
                 .environmentId(subscriptionForm.getEnvironmentId())
                 .gmdContent(subscriptionForm.getGmdContent())
                 .enabled(subscriptionForm.isEnabled())
+                .validationConstraints(subscriptionForm.getValidationConstraints())
                 .build()
             : subscriptionForm;
         try {

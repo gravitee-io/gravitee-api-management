@@ -74,6 +74,7 @@ public class DefaultSubscriptionFormUpgrader implements Upgrader {
                     .environmentId(environment.getId())
                     .gmdContent(getDefaultFormContent())
                     .enabled(false) // Disabled by default
+                    .validationConstraints("{}")
                     .build();
 
                 subscriptionFormRepository.create(defaultForm);

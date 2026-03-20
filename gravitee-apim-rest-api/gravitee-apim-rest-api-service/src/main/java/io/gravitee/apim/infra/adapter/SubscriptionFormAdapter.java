@@ -15,9 +15,16 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.subscription_form.model.Constraint;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import java.util.List;
+import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -32,12 +39,41 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionFormAdapter {
     SubscriptionFormAdapter INSTANCE = Mappers.getMapper(SubscriptionFormAdapter.class);
 
+    ObjectMapper FIELD_CONSTRAINTS_JSON = new ObjectMapper().findAndRegisterModules();
+
+    static String writeFieldConstraintsJson(SubscriptionFormFieldConstraints constraints) {
+        if (constraints == null || constraints.isEmpty()) {
+            return "{}";
+        }
+        try {
+            return FIELD_CONSTRAINTS_JSON.writerFor(new TypeReference<Map<String, List<Constraint>>>() {}).writeValueAsString(
+                constraints.byFieldKey()
+            );
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to serialize subscription form field constraints", e);
+        }
+    }
+
+    static SubscriptionFormFieldConstraints parseFieldConstraintsJson(String json) {
+        if (json == null || json.isBlank()) {
+            return SubscriptionFormFieldConstraints.empty();
+        }
+        try {
+            Map<String, List<Constraint>> map = FIELD_CONSTRAINTS_JSON.readValue(json, new TypeReference<>() {});
+            return map.isEmpty() ? SubscriptionFormFieldConstraints.empty() : new SubscriptionFormFieldConstraints(map);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to deserialize subscription form field constraints", e);
+        }
+    }
+
     @Mapping(target = "id", source = "id", qualifiedByName = "idToSubscriptionFormId")
     @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "stringToGraviteeMarkdown")
+    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "jsonToFieldConstraints")
     SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm subscriptionForm);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "subscriptionFormIdToId")
     @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
+    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "fieldConstraintsToJson")
     io.gravitee.repository.management.model.SubscriptionForm toRepository(SubscriptionForm subscriptionForm);
 
     @Named("idToSubscriptionFormId")
@@ -58,5 +94,15 @@ public interface SubscriptionFormAdapter {
     @Named("graviteeMarkdownToString")
     default String graviteeMarkdownToString(GraviteeMarkdown gmd) {
         return gmd != null ? gmd.value() : null;
+    }
+
+    @Named("jsonToFieldConstraints")
+    default SubscriptionFormFieldConstraints jsonToFieldConstraints(String json) {
+        return parseFieldConstraintsJson(json);
+    }
+
+    @Named("fieldConstraintsToJson")
+    default String fieldConstraintsToJson(SubscriptionFormFieldConstraints constraints) {
+        return writeFieldConstraintsJson(constraints);
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.subscription_form.model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +27,8 @@ import java.util.stream.Stream;
 /**
  * A single validation rule for a subscription form field.
  *
- * <p>Constraints are extracted from a {@link SubscriptionFormSchema} at save time and persisted
- * alongside the schema. At submission time the validator iterates the constraint map and calls
+ * <p>Constraints are derived from a {@link SubscriptionFormSchema} at save time and persisted as JSON.
+ * At submission time the validator iterates the constraint map and calls
  * {@link #validate(String, String)} — no schema knowledge required.</p>
  *
  * <p>Implementations split rule logic ({@link #check(String)}) from the human-readable message
@@ -36,6 +38,20 @@ import java.util.stream.Stream;
  *
  * @author Gravitee.io Team
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = Constraint.Required.class, name = "required"),
+        @JsonSubTypes.Type(value = Constraint.MustBeTrue.class, name = "mustBeTrue"),
+        @JsonSubTypes.Type(value = Constraint.NonEmptySelection.class, name = "nonEmptySelection"),
+        @JsonSubTypes.Type(value = Constraint.ReadOnly.class, name = "readOnly"),
+        @JsonSubTypes.Type(value = Constraint.MinLength.class, name = "minLength"),
+        @JsonSubTypes.Type(value = Constraint.MaxLength.class, name = "maxLength"),
+        @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
+        @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
+        @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
+    }
+)
 public sealed interface Constraint
     permits
         Constraint.Required,
