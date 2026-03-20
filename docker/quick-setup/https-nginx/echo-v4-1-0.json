@@ -138,6 +138,7 @@
                             "configuration": {
                                 "requiresClientAuthentication": true,
                                 "requiresSsl": true,
+                                "useXForwardedProto": true,
                                 "whitelistClientCertificates": [
                                     "C=FR,ST=France,L=Lille,O=GraviteeSource,OU=Demo,CN=nginx,EMAILADDRESS=nginx@graviteesource.com",
                                     "C=FR,ST=France,L=Lille,O=GraviteeSource,OU=Demo,CN=localhost,EMAILADDRESS=client@graviteesource.com"
