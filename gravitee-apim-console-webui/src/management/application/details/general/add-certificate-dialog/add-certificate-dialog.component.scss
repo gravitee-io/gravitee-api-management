@@ -118,6 +118,8 @@ $typography: map.get(gio.$mat-theme, typography);
     font-size: mat.m2-font-size($typography, subtitle-2);
     word-break: break-all;
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker80');
+    margin-left: auto;
+    text-align: right;
   }
 
   &__certificate-input {
