@@ -175,6 +175,17 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  @if (currentStep > 0) {
+    <button
+      mat-stroked-button
+      type="button"
+      class="add-certificate-dialog__previous-button"
+      (click)="goBack()"
+      data-testid="certificate-previous-button"
+    >
+      Previous
+    </button>
+  }
   <button mat-flat-button [mat-dialog-close]="undefined" type="button" data-testid="certificate-cancel-button">Cancel</button>
   @if (currentStep === 0) {
     <button

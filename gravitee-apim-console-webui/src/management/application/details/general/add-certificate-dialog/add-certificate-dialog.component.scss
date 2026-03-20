@@ -141,6 +141,10 @@ $typography: map.get(gio.$mat-theme, typography);
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
   }
 
+  &__previous-button {
+    margin-right: auto;
+  }
+
   &__upload-zone {
     width: 100%;
 
