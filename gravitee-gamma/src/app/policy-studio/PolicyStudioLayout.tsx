@@ -39,6 +39,15 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
     [policies],
   );
 
+  const requestCompatiblePolicies = useMemo(
+    () => policies.filter((p) => isPhaseCompatible(p, 'request', apiType)),
+    [policies, apiType],
+  );
+  const responseCompatiblePolicies = useMemo(
+    () => policies.filter((p) => isPhaseCompatible(p, 'response', apiType)),
+    [policies, apiType],
+  );
+
   const currentFlow = state.flows[state.selectedFlowIndex] ?? null;
   const selectedStep = selectedStepKey && currentFlow
     ? (currentFlow[selectedStepKey.phase] ?? [])[selectedStepKey.index] ?? null
@@ -185,10 +194,17 @@ export function PolicyStudioLayout({ state, dispatch, policies, apiType }: Polic
             flow={currentFlow}
             flowIndex={state.selectedFlowIndex}
             selectedStepKey={selectedStepKey}
+            requestCompatiblePolicies={requestCompatiblePolicies}
+            responseCompatiblePolicies={responseCompatiblePolicies}
             onStepSelect={handleStepSelect}
             onStepRemove={(phase, stepIndex) =>
               dispatch({ type: 'REMOVE_STEP', flowIndex: state.selectedFlowIndex, phase, stepIndex })
             }
+            onInsertStep={(phase, atIndex, policyId) => {
+              const policy = policyMap.get(policyId);
+              const step = newStep(policyId, policy?.name);
+              dispatch({ type: 'INSERT_STEP', flowIndex: state.selectedFlowIndex, phase, step, atIndex });
+            }}
             requestDropState={getDropStateForPhase('request')}
             responseDropState={getDropStateForPhase('response')}
           />

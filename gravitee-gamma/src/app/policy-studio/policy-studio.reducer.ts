@@ -15,6 +15,7 @@ export type PolicyStudioAction =
   | { type: 'REMOVE_FLOW'; index: number }
   | { type: 'TOGGLE_FLOW_ENABLED'; index: number }
   | { type: 'ADD_STEP'; flowIndex: number; phase: Phase; step: Step }
+  | { type: 'INSERT_STEP'; flowIndex: number; phase: Phase; step: Step; atIndex: number }
   | { type: 'REMOVE_STEP'; flowIndex: number; phase: Phase; stepIndex: number }
   | { type: 'REORDER_STEP'; flowIndex: number; phase: Phase; from: number; to: number }
   | { type: 'UPDATE_STEP_CONFIG'; flowIndex: number; phase: Phase; stepIndex: number; configuration: Record<string, unknown> }
@@ -70,6 +71,21 @@ export function policyStudioReducer(state: PolicyStudioState, action: PolicyStud
         flows: state.flows.map((f, i) =>
           i === action.flowIndex
             ? updateFlowPhase(f, action.phase, (steps) => [...steps, action.step])
+            : f,
+        ),
+        isDirty: true,
+      };
+
+    case 'INSERT_STEP':
+      return {
+        ...state,
+        flows: state.flows.map((f, i) =>
+          i === action.flowIndex
+            ? updateFlowPhase(f, action.phase, (steps) => {
+                const copy = [...steps];
+                copy.splice(action.atIndex, 0, action.step);
+                return copy;
+              })
             : f,
         ),
         isDirty: true,

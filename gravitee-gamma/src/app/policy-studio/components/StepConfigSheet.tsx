@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import Form from '@rjsf/core';
+import validator from '@rjsf/validator-ajv8';
+import type { IChangeEvent } from '@rjsf/core';
 import {
   Sheet,
   SheetContent,
@@ -21,8 +24,7 @@ interface StepConfigSheetProps {
 
 export function StepConfigSheet({ open, onOpenChange, step, phase, onSave }: StepConfigSheetProps) {
   const { schema, loading, error, fetchSchema } = usePolicySchema();
-  const [configJson, setConfigJson] = useState('');
-  const [parseError, setParseError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   const stepId = step?.id ?? null;
   const stepPolicy = step?.policy ?? null;
@@ -30,22 +32,17 @@ export function StepConfigSheet({ open, onOpenChange, step, phase, onSave }: Ste
   useEffect(() => {
     if (open && step && stepPolicy) {
       fetchSchema(stepPolicy);
-      setConfigJson(JSON.stringify(step.configuration ?? {}, null, 2));
-      setParseError(null);
+      setFormData(step.configuration ?? {});
     }
-    // Depend on stable values, not the step object reference
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, stepId, stepPolicy, fetchSchema]);
 
+  function handleChange(e: IChangeEvent) {
+    setFormData(e.formData);
+  }
+
   function handleSave() {
-    try {
-      const parsed = JSON.parse(configJson);
-      setParseError(null);
-      onSave(parsed);
-      onOpenChange(false);
-    } catch {
-      setParseError('Invalid JSON');
-    }
+    onSave(formData);
+    onOpenChange(false);
   }
 
   const policyName = step?.name ?? step?.policy ?? 'Unknown policy';
@@ -61,7 +58,7 @@ export function StepConfigSheet({ open, onOpenChange, step, phase, onSave }: Ste
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-auto space-y-4 py-4">
+        <div className="flex-1 overflow-auto py-4">
           {loading && (
             <div className="text-sm text-muted-foreground">Loading schema...</div>
           )}
@@ -69,28 +66,18 @@ export function StepConfigSheet({ open, onOpenChange, step, phase, onSave }: Ste
             <div className="text-sm text-destructive">Failed to load schema: {error.message}</div>
           )}
           {schema && !loading && (
-            <div className="space-y-3">
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground mb-1">JSON Schema</h4>
-                <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-40">
-                  {JSON.stringify(schema, null, 2)}
-                </pre>
-              </div>
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground mb-1">Configuration</h4>
-                <textarea
-                  value={configJson}
-                  onChange={(e) => {
-                    setConfigJson(e.target.value);
-                    setParseError(null);
-                  }}
-                  className="h-48 w-full rounded-md border border-input bg-background p-3 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  spellCheck={false}
-                />
-                {parseError && (
-                  <div className="mt-1 text-xs text-destructive">{parseError}</div>
-                )}
-              </div>
+            <div className="rjsf-sheet">
+              <Form
+                schema={schema}
+                formData={formData}
+                validator={validator}
+                onChange={handleChange}
+                liveValidate
+                showErrorList={false}
+              >
+                {/* Hide default submit button — we use our own in SheetFooter */}
+                <></>
+              </Form>
             </div>
           )}
         </div>

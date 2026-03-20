@@ -1,18 +1,21 @@
 import { Separator } from '@baros/components/ui/separator';
-import type { Flow, Phase, StepKey } from '../types';
+import type { Flow, Phase, StepKey, PolicyPlugin } from '../types';
 import { PhaseRow } from './PhaseRow';
 
 interface FlowCanvasProps {
   readonly flow: Flow | null;
   readonly flowIndex: number;
   readonly selectedStepKey: StepKey | null;
+  readonly requestCompatiblePolicies?: PolicyPlugin[];
+  readonly responseCompatiblePolicies?: PolicyPlugin[];
   readonly onStepSelect: (key: StepKey) => void;
   readonly onStepRemove: (phase: Phase, stepIndex: number) => void;
+  readonly onInsertStep?: (phase: Phase, atIndex: number, policyId: string) => void;
   readonly requestDropState?: 'compatible' | 'incompatible' | null;
   readonly responseDropState?: 'compatible' | 'incompatible' | null;
 }
 
-export function FlowCanvas({ flow, flowIndex, selectedStepKey, onStepSelect, onStepRemove, requestDropState, responseDropState }: FlowCanvasProps) {
+export function FlowCanvas({ flow, flowIndex, selectedStepKey, requestCompatiblePolicies, responseCompatiblePolicies, onStepSelect, onStepRemove, onInsertStep, requestDropState, responseDropState }: FlowCanvasProps) {
   if (!flow) {
     return (
       <div className="flex flex-1 items-center justify-center text-muted-foreground">
@@ -42,6 +45,8 @@ export function FlowCanvas({ flow, flowIndex, selectedStepKey, onStepSelect, onS
         selectedStepKey={selectedStepKey}
         onStepSelect={onStepSelect}
         onStepRemove={onStepRemove}
+        compatiblePolicies={requestCompatiblePolicies}
+        onInsertStep={onInsertStep}
         dropState={requestDropState}
       />
 
@@ -55,6 +60,8 @@ export function FlowCanvas({ flow, flowIndex, selectedStepKey, onStepSelect, onS
         selectedStepKey={selectedStepKey}
         onStepSelect={onStepSelect}
         onStepRemove={onStepRemove}
+        compatiblePolicies={responseCompatiblePolicies}
+        onInsertStep={onInsertStep}
         dropState={responseDropState}
       />
     </div>

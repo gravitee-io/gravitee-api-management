@@ -1,9 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@baros/components/ui/collapsible';
 import { ScrollArea } from '@baros/components/ui/scroll-area';
 import { Separator } from '@baros/components/ui/separator';
+import { cn } from '@baros/lib/utils';
 import type { PolicyPlugin } from '../types';
 import { PolicyCatalogItem } from './PolicyCatalogItem';
+
+const UNCATEGORIZED = 'Others';
 
 interface PolicyCatalogProps {
   readonly policies: PolicyPlugin[];
@@ -19,6 +23,23 @@ export function PolicyCatalog({ policies }: PolicyCatalogProps) {
     }),
     [policies, search],
   );
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, PolicyPlugin[]>();
+    for (const p of filtered) {
+      const cat = p.category || UNCATEGORIZED;
+      const list = map.get(cat);
+      if (list) list.push(p);
+      else map.set(cat, [p]);
+    }
+    return [...map.entries()].sort(([a], [b]) => {
+      if (a === UNCATEGORIZED) return 1;
+      if (b === UNCATEGORIZED) return -1;
+      return a.localeCompare(b);
+    });
+  }, [filtered]);
+
+  const isSearching = search.length > 0;
 
   return (
     <div className="flex w-64 shrink-0 flex-col border-l">
@@ -38,14 +59,30 @@ export function PolicyCatalog({ policies }: PolicyCatalogProps) {
         />
       </div>
       <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-1 p-2">
+        <div className="flex flex-col p-2">
           {filtered.length === 0 && (
             <div className="px-2 py-8 text-center text-xs text-muted-foreground">
               No policies found
             </div>
           )}
-          {filtered.map((policy) => (
-            <PolicyCatalogItem key={policy.id} policy={policy} />
+          {grouped.map(([category, items]) => (
+            <Collapsible key={category} defaultOpen open={isSearching ? true : undefined} className="group/collapsible">
+              <CollapsibleTrigger className="flex w-full items-center gap-1 px-2 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground">
+                <ChevronDown className={cn(
+                  'h-3 w-3 transition-transform',
+                  'group-data-[state=closed]/collapsible:-rotate-90',
+                )} />
+                {category}
+                <span className="ml-auto text-[10px] font-normal">{items.length}</span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="flex flex-col gap-1 pb-1">
+                  {items.map((policy) => (
+                    <PolicyCatalogItem key={policy.id} policy={policy} />
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           ))}
         </div>
       </ScrollArea>
