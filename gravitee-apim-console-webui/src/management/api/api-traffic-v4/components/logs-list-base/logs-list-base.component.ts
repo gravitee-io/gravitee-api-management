@@ -22,7 +22,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { FormsModule } from '@angular/forms';
 
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { Pagination } from '../../../../../entities/management-api-v2';
@@ -43,17 +42,7 @@ export interface LogsListColumnDef {
   templateUrl: './logs-list-base.component.html',
   styleUrls: ['./logs-list-base.component.scss'],
   standalone: true,
-  imports: [
-    GioTableWrapperModule,
-    MatTableModule,
-    MatSort,
-    NgTemplateOutlet,
-    MatCheckboxModule,
-    MatMenuModule,
-    MatButtonModule,
-    MatIcon,
-    FormsModule,
-  ],
+  imports: [GioTableWrapperModule, MatTableModule, MatSort, NgTemplateOutlet, MatCheckboxModule, MatMenuModule, MatButtonModule, MatIcon],
 })
 export class LogsListBaseComponent<T = unknown> {
   private readonly constants = inject(Constants, { optional: true });
@@ -110,11 +99,17 @@ export class LogsListBaseComponent<T = unknown> {
       if (stored) {
         try {
           const storedColumns: Record<string, boolean> = JSON.parse(stored);
-          this.displayedColumnsOption = storedColumns;
-          this.pickerDisplayedColumns.set(Object.keys(storedColumns).filter(k => storedColumns[k]));
+          const currentIds = new Set(this.columns().map(c => c.id));
+
+          const reconciled: Record<string, boolean> = {};
+          for (const colId of currentIds) {
+            reconciled[colId] = storedColumns[colId] ?? true;
+          }
+
+          this.displayedColumnsOption = reconciled;
+          this.pickerDisplayedColumns.set(Object.keys(reconciled).filter(k => reconciled[k]));
           return;
         } catch {
-          // Corrupted data — clear it and fall through to defaults
           localStorage.removeItem(id);
         }
       }
@@ -141,17 +136,21 @@ export class LogsListBaseComponent<T = unknown> {
     }
   }
 
+  resetColumnOptions() {
+    const applied = new Set(this.pickerDisplayedColumns());
+    this.displayedColumnsOption = {};
+    for (const col of this.columns()) {
+      this.displayedColumnsOption[col.id] = applied.has(col.id);
+    }
+  }
+
   updateVisibleColumns() {
     const checkedColumns = Object.entries(this.displayedColumnsOption)
       .filter(([_k, v]) => v)
       .map(([k]) => k);
 
-    // Prevent deselecting all columns — keep current selection if none are checked
     if (checkedColumns.length === 0) {
-      // Re-check all currently displayed columns to stay in sync with UI
-      for (const col of this.pickerDisplayedColumns()) {
-        this.displayedColumnsOption[col] = true;
-      }
+      this.resetColumnOptions();
       return;
     }
 
