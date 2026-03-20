@@ -49,10 +49,10 @@ export interface ConnectionLogDetail {
   timestamp: string;
   clientIdentifier: string;
   requestEnded: boolean;
-  entrypointRequest: ConnectionLogDetailRequest;
-  endpointRequest: ConnectionLogDetailRequest;
-  entrypointResponse: ConnectionLogDetailResponse;
-  endpointResponse: ConnectionLogDetailResponse;
+  entrypointRequest?: ConnectionLogDetailRequest;
+  endpointRequest?: ConnectionLogDetailRequest;
+  entrypointResponse?: ConnectionLogDetailResponse;
+  endpointResponse?: ConnectionLogDetailResponse;
   message?: string;
   errorKey?: string;
   errorComponentName?: string;
