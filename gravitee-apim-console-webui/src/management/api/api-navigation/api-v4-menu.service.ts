@@ -228,7 +228,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE')
+    if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE' || api.type === 'LLM_PROXY')
       tabs.push({
         displayName: 'Failover',
         routerLink: 'v4/failover',
