@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, viewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatStepper } from '@angular/material/stepper';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NewFile } from '@gravitee/ui-particles-angular';
 
@@ -58,9 +59,10 @@ export class AddCertificateDialogComponent {
   readonly data: AddCertificateDialogData = inject(MAT_DIALOG_DATA);
   private readonly applicationService = inject(ApplicationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  readonly steps = ['Upload', 'Configure', 'Confirm'];
-  currentStep = 0;
+  readonly stepper = viewChild.required<MatStepper>('stepper');
+  uploadStepCompleted = false;
 
   uploadForm: FormGroup<UploadFormControls>;
   configureForm: FormGroup<ConfigureFormControls>;
@@ -99,6 +101,7 @@ export class AddCertificateDialogComponent {
   }
 
   onValidate(): void {
+    this.uploadForm.markAllAsTouched();
     if (this.uploadForm.invalid) {
       return;
     }
@@ -117,7 +120,9 @@ export class AddCertificateDialogComponent {
           const expiration = new Date(response.certificateExpiration);
           this.maxEndsAt = expiration;
           this.configureForm.controls.endsAt.setValue(expiration);
-          this.currentStep = 1;
+          this.uploadStepCompleted = true;
+          this.cdr.detectChanges();
+          this.stepper().next();
         },
         error: () => {
           this.isValidating = false;
@@ -126,17 +131,12 @@ export class AddCertificateDialogComponent {
       });
   }
 
-  goBack(): void {
-    if (this.currentStep > 0) {
-      this.currentStep--;
-    }
-  }
-
   onContinueToConfirm(): void {
+    this.configureForm.markAllAsTouched();
     if (this.configureForm.invalid) {
       return;
     }
-    this.currentStep = 2;
+    this.stepper().next();
   }
 
   onSubmit(): void {
