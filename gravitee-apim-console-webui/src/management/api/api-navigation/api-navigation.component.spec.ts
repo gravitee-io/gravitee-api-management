@@ -245,6 +245,23 @@ describe('ApiNavigationComponent', () => {
       );
     });
 
+    it('should compute menu search items for V4 LLM_PROXY API', async () => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, type: 'LLM_PROXY' }));
+
+      expect(addSearchItemByGroupIds).toHaveBeenCalledTimes(1);
+      expect(addSearchItemByGroupIds).toHaveBeenCalledWith(
+        expect.arrayContaining(
+          ['Endpoints', 'Endpoints', 'Failover'].map(name =>
+            expect.objectContaining({
+              name,
+              routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${ENVIRONMENT_ID}/apis/${API_ID}/`),
+            }),
+          ),
+        ),
+      );
+    });
+
     it('should compute menu search items for V2 API', async () => {
       fixture.detectChanges();
       expectApiGetRequest(fakeApiV2({ id: API_ID }));
