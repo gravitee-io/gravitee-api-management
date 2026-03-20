@@ -30,6 +30,7 @@ import { EMPTY } from 'rxjs';
 import { ApplicationGeneralComponent } from './application-general.component';
 import { ApplicationGeneralModule } from './application-general.module';
 import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
+import { CertificateDetailDialogComponent } from './certificate-detail-dialog/certificate-detail-dialog.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../../../../entities/application/Application.fixture';
@@ -255,6 +256,47 @@ describe('ApplicationGeneralInfoComponent', () => {
       const emptyMessage = fixture.nativeElement.querySelector('[data-testid="no-certificates-message"]');
       expect(emptyMessage).toBeTruthy();
       expect(emptyMessage.textContent).toContain('No mTLS certificates added');
+    });
+
+    it('should_open_detail_dialog_when_clicking_view_button', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
+      const certificates: ClientCertificate[] = [
+        {
+          id: 'cert-1',
+          name: 'My Certificate',
+          createdAt: '2026-01-15T10:00:00Z',
+          certificateExpiration: '2027-01-15T10:00:00Z',
+          endsAt: '2027-01-15T10:00:00Z',
+          subject: 'CN=test-subject',
+          issuer: 'CN=test-issuer',
+          status: ClientCertificateStatus.ACTIVE,
+        },
+      ];
+
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      expectListCertificatesRequest(certificates);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => EMPTY } as any);
+
+      const viewButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="view-certificate-button"]' }));
+      await viewButton.click();
+
+      expect(openSpy).toHaveBeenCalledWith(
+        CertificateDetailDialogComponent,
+        expect.objectContaining({
+          data: expect.objectContaining({
+            id: 'cert-1',
+            name: 'My Certificate',
+            subject: 'CN=test-subject',
+            issuer: 'CN=test-issuer',
+          }),
+        }),
+      );
     });
 
     it('should show add certificate button', async () => {
