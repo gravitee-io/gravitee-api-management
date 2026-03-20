@@ -34,6 +34,7 @@ import {
   AddCertificateDialogData,
   AddCertificateDialogResult,
 } from './add-certificate-dialog/add-certificate-dialog.component';
+import { CertificateDetailDialogComponent } from './certificate-detail-dialog/certificate-detail-dialog.component';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
@@ -267,6 +268,15 @@ export class ApplicationGeneralComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  viewCertificateDetails(cert: ClientCertificate): void {
+    this.matDialog.open<CertificateDetailDialogComponent, ClientCertificate>(CertificateDetailDialogComponent, {
+      width: GIO_DIALOG_WIDTH.MEDIUM,
+      data: cert,
+      role: 'dialog',
+      id: 'certificateDetailDialog',
+    });
   }
 
   deleteCertificate(cert: ClientCertificate): void {

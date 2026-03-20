@@ -4,6 +4,7 @@
 
 @use '../../../../scss/gio-layout' as gio-layout;
 
+$background: map.get(gio.$mat-theme, background);
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
@@ -157,31 +158,28 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .tls-card {
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-
-    &__text {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      h3 {
-        margin: 0;
-      }
-    }
-
-    &__subtitle {
-      @include mat.m2-typography-level($typography, caption);
-      margin: 0;
-      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
-    }
+  &__header__button {
+    margin-left: auto;
   }
 
   &__table {
     width: 100%;
+    margin-top: 16px;
+
+    .mat-mdc-header-row {
+      height: 42px;
+      background-color: mat.m2-get-color-from-palette($background, 'background');
+    }
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+
+    .mat-column-actions {
+      width: 0;
+    }
   }
 
   &__empty {

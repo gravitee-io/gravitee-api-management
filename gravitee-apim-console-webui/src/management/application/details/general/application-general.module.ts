@@ -47,13 +47,14 @@ import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-
 
 import { ApplicationGeneralComponent } from './application-general.component';
 import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
+import { CertificateDetailDialogComponent } from './certificate-detail-dialog/certificate-detail-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { DaysLeftPipe } from '../../../../shared/pipes/days-left.pipe';
 import { DATE_TIME_FORMATS } from '../../../../shared/utils/timeFrameRanges';
 
 @NgModule({
-  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent, DaysLeftPipe],
+  declarations: [ApplicationGeneralComponent, AddCertificateDialogComponent, CertificateDetailDialogComponent, DaysLeftPipe],
   exports: [ApplicationGeneralComponent],
   imports: [
     CommonModule,
