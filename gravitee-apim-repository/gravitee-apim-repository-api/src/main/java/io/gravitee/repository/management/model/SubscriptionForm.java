@@ -52,4 +52,10 @@ public class SubscriptionForm {
      * Whether the form is enabled and visible to API consumers.
      */
     private boolean enabled;
+
+    /**
+     * JSON string of validation constraints per field key, derived from the GMD content.
+     * {@code null} when nothing is stored (empty rule sets are typically not persisted).
+     */
+    private String validationConstraints;
 }

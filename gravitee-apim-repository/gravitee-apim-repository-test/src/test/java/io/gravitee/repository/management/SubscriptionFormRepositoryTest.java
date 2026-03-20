@@ -42,6 +42,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         assertThat(form.getEnvironmentId()).isEqualTo("env-1");
         assertThat(form.getGmdContent()).contains("gmd-grid");
         assertThat(form.isEnabled()).isTrue();
+        assertThat(form.getValidationConstraints()).isEqualTo("{\"email\":[{\"type\":\"required\"}]}");
     }
 
     @Test
@@ -94,8 +95,9 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         SubscriptionForm form = SubscriptionForm.builder()
             .id("sub-form-new")
             .environmentId("env-new")
-            .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\"/></gmd-card>")
+            .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\" fieldKey=\"field\"/></gmd-card>")
             .enabled(false)
+            .validationConstraints("{\"field\":[]}")
             .build();
 
         Set<SubscriptionForm> allBefore = subscriptionFormRepository.findAll();
@@ -111,6 +113,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         assertThat(saved.getEnvironmentId()).isEqualTo("env-new");
         assertThat(saved.getGmdContent()).contains("gmd-input");
         assertThat(saved.isEnabled()).isFalse();
+        assertThat(saved.getValidationConstraints()).isEqualTo("{\"field\":[]}");
     }
 
     @Test
@@ -123,19 +126,22 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm updated = existing
             .toBuilder()
-            .gmdContent("<gmd-card><gmd-input name=\"updated\" label=\"Updated\"/></gmd-card>")
+            .gmdContent("<gmd-card><gmd-input name=\"updated\" label=\"Updated\" fieldKey=\"updated\"/></gmd-card>")
             .enabled(true)
+            .validationConstraints("{\"updated\":[]}")
             .build();
 
         SubscriptionForm result = subscriptionFormRepository.update(updated);
 
         assertThat(result.getGmdContent()).contains("updated");
         assertThat(result.isEnabled()).isTrue();
+        assertThat(result.getValidationConstraints()).contains("updated");
 
         Optional<SubscriptionForm> reloaded = subscriptionFormRepository.findById("sub-form-update");
         assertThat(reloaded).isPresent();
         assertThat(reloaded.get().getGmdContent()).contains("updated");
         assertThat(reloaded.get().isEnabled()).isTrue();
+        assertThat(reloaded.get().getValidationConstraints()).contains("updated");
     }
 
     @Test
