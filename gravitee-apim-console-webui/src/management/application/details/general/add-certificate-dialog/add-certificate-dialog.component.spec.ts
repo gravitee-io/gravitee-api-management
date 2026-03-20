@@ -212,9 +212,11 @@ describe('AddCertificateDialogComponent', () => {
       const summary = fixture.nativeElement.querySelector('[data-testid="certificate-summary"]');
       expect(summary).toBeTruthy();
 
-      const summaryValues = fixture.nativeElement.querySelectorAll('[data-testid="certificate-summary-value"]');
-      const texts = Array.from(summaryValues).map((el: Element) => el.textContent.trim());
-      expect(texts).toContain('my-cert');
+      const nameValue = fixture.nativeElement.querySelector('[data-testid="certificate-summary-name-value"]');
+      expect(nameValue.textContent.trim()).toBe('my-cert');
+
+      const activeUntilValue = fixture.nativeElement.querySelector('[data-testid="certificate-summary-active-until-value"]');
+      expect(activeUntilValue.textContent.trim()).toBeTruthy();
     });
 
     it('should_go_back_to_upload_step_when_clicking_previous_on_configure_step', async () => {
@@ -242,6 +244,17 @@ describe('AddCertificateDialogComponent', () => {
 
       const endsAt = fixture.componentInstance.configureForm.controls.endsAt.value;
       expect(new Date(endsAt).toISOString()).toBe('2027-06-15T10:00:00.000Z');
+    });
+
+    it('should_reject_past_expiration_date', async () => {
+      await advanceToConfigureStep();
+
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 3);
+      fixture.componentInstance.configureForm.controls.endsAt.setValue(pastDate);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.configureForm.controls.endsAt.hasError('owlDateTimeMin')).toBe(true);
     });
   });
 

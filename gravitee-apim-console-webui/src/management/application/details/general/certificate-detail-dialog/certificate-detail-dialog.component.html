@@ -21,19 +21,23 @@
   <div class="certificate-detail-dialog__summary" data-testid="certificate-detail-summary">
     <div class="certificate-detail-dialog__summary-row">
       <span class="certificate-detail-dialog__summary-label">Certificate Name:</span>
-      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-value">{{ certificate.name }}</span>
+      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-name-value">{{ certificate.name }}</span>
     </div>
     <div class="certificate-detail-dialog__summary-row">
       <span class="certificate-detail-dialog__summary-label">Subject:</span>
-      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-value">{{ certificate.subject ?? '—' }}</span>
+      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-subject-value">{{
+        certificate.subject ?? '—'
+      }}</span>
     </div>
     <div class="certificate-detail-dialog__summary-row">
       <span class="certificate-detail-dialog__summary-label">Issuer:</span>
-      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-value">{{ certificate.issuer ?? '—' }}</span>
+      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-issuer-value">{{
+        certificate.issuer ?? '—'
+      }}</span>
     </div>
     <div class="certificate-detail-dialog__summary-row certificate-detail-dialog__summary-row--last">
       <span class="certificate-detail-dialog__summary-label">Expires:</span>
-      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-value">
+      <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-expires-value">
         @if (certificate.endsAt | daysLeft; as daysLeftLabel) {
           {{ daysLeftLabel }} ({{ certificate.endsAt | date: 'medium' }})
         } @else {
