@@ -43,12 +43,14 @@ public class SubscriptionForm {
 
     private GraviteeMarkdown gmdContent;
     private boolean enabled;
+    private SubscriptionFormFieldConstraints validationConstraints;
 
     /**
-     * Updates this form with new GMD content (mutates in place).
+     * Updates this form (mutates in place).
      */
-    public void update(GraviteeMarkdown gmdContent) {
+    public void update(GraviteeMarkdown gmdContent, SubscriptionFormFieldConstraints constraints) {
         this.gmdContent = gmdContent;
+        this.validationConstraints = constraints;
     }
 
     /**

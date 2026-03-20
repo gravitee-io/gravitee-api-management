@@ -323,4 +323,12 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_11_0/10_make_root_id_not_null_portal_navigation_items.yml
     - include:
+<<<<<<< HEAD
         - file: liquibase/changelogs/v4_11_0/11_add_allow_multi_jwt_oauth2_subscriptions_to_apis.yml
+=======
+        - file: liquibase/changelogs/v4_11_0/11_add_validation_constraints_to_subscription_forms.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
+>>>>>>> 33594c8307 (feat: persist validation constraints for subscription forms)

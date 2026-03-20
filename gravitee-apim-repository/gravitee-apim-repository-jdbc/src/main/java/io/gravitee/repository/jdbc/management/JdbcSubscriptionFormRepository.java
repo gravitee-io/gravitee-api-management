@@ -50,6 +50,7 @@ public class JdbcSubscriptionFormRepository
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("gmd_content", Types.LONGNVARCHAR, String.class)
             .addColumn("enabled", Types.BIT, boolean.class)
+            .addColumn("validation_constraints", Types.CLOB, String.class)
             .build();
     }
 
