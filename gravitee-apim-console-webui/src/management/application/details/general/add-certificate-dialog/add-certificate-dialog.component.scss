@@ -4,9 +4,128 @@
     flex-direction: column;
     gap: 8px;
     min-width: 500px;
+
+<<<<<<< HEAD
+  &__field {
+    width: 100%;
+  }
+=======
+    mat-stepper {
+      --mat-stepper-container-color: transparent;
+      --mat-stepper-line-color: #{mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20')};
+      --mat-stepper-header-hover-state-layer-color: transparent;
+      --mat-stepper-header-focus-state-layer-color: transparent;
+      --mat-stepper-header-hover-state-layer-opacity: 0;
+      --mat-stepper-header-focus-state-layer-opacity: 0;
+      --mat-stepper-header-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20')};
+      --mat-stepper-header-selected-state-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default')};
+      --mat-stepper-header-done-state-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default')};
+      --mat-stepper-header-edit-state-icon-background-color: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default')};
+      --mat-stepper-header-selected-state-label-text-color: #{mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default')};
+    }
   }
 
   &__field {
     width: 100%;
   }
+
+  &__step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 -24px -24px;
+
+    --mat-form-field-filled-label-text-color: #{mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker80')};
+    --mat-form-field-outlined-label-text-color: #{mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker80')};
+  }
+
+  &__summary {
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__summary-title {
+    @include gio.subtitle-typography();
+    font-weight: mat.m2-font-weight($typography, subtitle-2);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    margin-bottom: 12px;
+  }
+
+  &__summary-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
+    &--last {
+      border-bottom: none;
+    }
+  }
+
+  &__summary-label {
+    font-size: mat.m2-font-size($typography, body-1);
+    min-width: 140px;
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker60');
+  }
+
+  &__summary-value {
+    font-weight: mat.m2-font-weight($typography, subtitle-2);
+    font-size: mat.m2-font-size($typography, subtitle-2);
+    word-break: break-all;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker80');
+    margin-left: auto;
+    text-align: right;
+  }
+
+  &__certificate-input {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-radius: 8px;
+  }
+
+  &__section-title {
+    font-weight: mat.m2-font-weight($typography, subtitle-2);
+    font-size: mat.m2-font-size($typography, subtitle-2);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+  }
+
+  &__previous-button {
+    margin-right: auto;
+  }
+
+  &__upload-zone {
+    width: 100%;
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px;
+      text-align: center;
+
+      mat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 32px;
+      }
+    }
+
+    &__hint {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    }
+  }
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
 }

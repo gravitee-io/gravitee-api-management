@@ -42,8 +42,14 @@ import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
+<<<<<<< HEAD
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+=======
+import { MatStepperModule } from '@angular/material/stepper';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
 
 import { ApplicationGeneralComponent } from './application-general.component';
 import { AddCertificateDialogComponent } from './add-certificate-dialog/add-certificate-dialog.component';
@@ -78,8 +84,14 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTooltipModule,
     MatTableModule,
     MatDialogModule,
+<<<<<<< HEAD
     MatDatepickerModule,
     MatNativeDateModule,
+=======
+    MatStepperModule,
+    OwlDateTimeModule,
+    OwlMomentDateTimeModule,
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
 
     MatChipsModule,
 

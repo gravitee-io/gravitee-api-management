@@ -47,6 +47,63 @@ describe('AddCertificateDialogComponent', () => {
     fixture.detectChanges();
   };
 
+<<<<<<< HEAD
+=======
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  async function fillUploadForm(name: string = 'my-cert', certificate: string = VALID_PEM): Promise<void> {
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
+    await nameInput.setValue(name);
+    const certInput = await loader.getHarness(MatInputHarness.with({ selector: '[data-testid="certificate-pem-input"]' }));
+    await certInput.setValue(certificate);
+  }
+
+  async function clickValidate(): Promise<void> {
+    const validateButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-validate-button"]' }));
+    await validateButton.click();
+  }
+
+  function flushValidation(response: ValidateCertificateResponse = MOCK_VALIDATION_RESPONSE): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/certificates/_validate`,
+      method: 'POST',
+    });
+    req.flush(response);
+  }
+
+  function failValidation(): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/certificates/_validate`,
+      method: 'POST',
+    });
+    req.flush({ message: 'Invalid certificate' }, { status: 400, statusText: 'Bad Request' });
+  }
+
+  async function advanceToConfigureStep(name: string = 'my-cert', certificate: string = VALID_PEM): Promise<void> {
+    await fillUploadForm(name, certificate);
+    await clickValidate();
+    flushValidation();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function clickContinueToConfirm(): Promise<void> {
+    const continueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-continue-button"]' }));
+    await continueButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function advanceToConfirmStep(name: string = 'my-cert', certificate: string = VALID_PEM): Promise<void> {
+    await advanceToConfigureStep(name, certificate);
+    await clickContinueToConfirm();
+  }
+
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
   describe('first certificate (no active certificates)', () => {
     beforeEach(() => {
       createComponent({ hasActiveCertificates: false });
@@ -65,9 +122,20 @@ describe('AddCertificateDialogComponent', () => {
       expect(gracePeriodInputs.length).toBe(0);
     });
 
+<<<<<<< HEAD
     it('should_disable_submit_when_form_is_empty', async () => {
       const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-certificate-submit"]' }));
       expect(await submitButton.isDisabled()).toBe(true);
+=======
+    it('should_show_validation_errors_when_clicking_continue_with_empty_form', async () => {
+      const validateButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-validate-button"]' }));
+      await validateButton.click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.uploadForm.controls.name.touched).toBe(true);
+      expect(fixture.componentInstance.uploadForm.controls.certificate.touched).toBe(true);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(0);
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
     });
 
     it('should_set_minDate_to_today', () => {
@@ -137,13 +205,13 @@ describe('AddCertificateDialogComponent', () => {
       const errorBanner = fixture.nativeElement.querySelector('[data-testid="validation-error-banner"]');
       expect(errorBanner).toBeTruthy();
       expect(errorBanner.textContent).toContain('Invalid certificate format');
-      expect(fixture.componentInstance.currentStep).toBe(0);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(0);
     });
 
     it('should_advance_to_configure_step_on_successful_validation', async () => {
       await advanceToConfigureStep();
 
-      expect(fixture.componentInstance.currentStep).toBe(1);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(1);
       expect(fixture.componentInstance.validationResponse).toEqual(MOCK_VALIDATION_RESPONSE);
 
       const successBanner = fixture.nativeElement.querySelector('[data-testid="validation-success-banner"]');
@@ -155,7 +223,7 @@ describe('AddCertificateDialogComponent', () => {
       await advanceToConfigureStep();
       await clickContinueToConfirm();
 
-      expect(fixture.componentInstance.currentStep).toBe(2);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(2);
     });
 
     it('should_show_summary_table_on_confirm_step', async () => {
@@ -173,22 +241,24 @@ describe('AddCertificateDialogComponent', () => {
 
     it('should_go_back_to_upload_step_when_clicking_previous_on_configure_step', async () => {
       await advanceToConfigureStep();
-      expect(fixture.componentInstance.currentStep).toBe(1);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(1);
 
       const previousButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }));
       await previousButton.click();
+      fixture.detectChanges();
 
-      expect(fixture.componentInstance.currentStep).toBe(0);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(0);
     });
 
     it('should_go_back_to_configure_step_when_clicking_previous_on_confirm_step', async () => {
       await advanceToConfirmStep();
-      expect(fixture.componentInstance.currentStep).toBe(2);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(2);
 
       const previousButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }));
       await previousButton.click();
+      fixture.detectChanges();
 
-      expect(fixture.componentInstance.currentStep).toBe(1);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(1);
     });
 
     it('should_populate_ends_at_from_validation_response', async () => {
@@ -226,15 +296,29 @@ describe('AddCertificateDialogComponent', () => {
       expect(gracePeriodInput).toBeTruthy();
     });
 
+<<<<<<< HEAD
     it('should_disable_submit_when_grace_period_is_not_set', async () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
       await nameInput.setValue('rotation-cert');
+=======
+    it('should_not_advance_when_grace_period_is_not_set', async () => {
+      await advanceToConfigureStep();
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
 
       const certInput = await loader.getHarness(MatInputHarness.with({ selector: '[data-testid="certificate-pem-input"]' }));
       await certInput.setValue('-----BEGIN CERTIFICATE-----\nnew\n-----END CERTIFICATE-----');
 
+<<<<<<< HEAD
       const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-certificate-submit"]' }));
       expect(await submitButton.isDisabled()).toBe(true);
+=======
+      const continueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="certificate-continue-button"]' }));
+      await continueButton.click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.configureForm.controls.gracePeriodEnd.touched).toBe(true);
+      expect(fixture.componentInstance.stepper().selectedIndex).toBe(1);
+>>>>>>> 0c2d8a16bb (refactor: use material stepper for mtls cert rotation)
     });
 
     it('should_mark_form_invalid_when_grace_period_is_not_set', () => {
