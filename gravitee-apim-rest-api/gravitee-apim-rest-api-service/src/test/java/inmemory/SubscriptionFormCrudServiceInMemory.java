@@ -40,6 +40,7 @@ public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrud
                 .environmentId(subscriptionForm.getEnvironmentId())
                 .gmdContent(subscriptionForm.getGmdContent())
                 .enabled(subscriptionForm.isEnabled())
+                .validationConstraints(subscriptionForm.getValidationConstraints())
                 .build()
             : subscriptionForm;
         storage.add(toStore);
