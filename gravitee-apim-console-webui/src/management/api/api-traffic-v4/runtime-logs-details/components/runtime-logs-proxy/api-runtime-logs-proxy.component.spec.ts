@@ -153,6 +153,41 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     ]);
   });
 
+  it('should render request details when response logging is disabled (no entrypoint/endpoint response on payload)', async () => {
+    await initComponent();
+
+    expectApiMetric(
+      fakeApiMetricResponse({
+        apiId: API_ID,
+        requestId: REQUEST_ID,
+      }),
+    );
+    expectApiWithConnectionLog(
+      fakeConnectionLogDetail(base => ({
+        ...base,
+        apiId: API_ID,
+        requestId: REQUEST_ID,
+        entrypointRequest: fakeConnectionLogDetailRequest({ body: 'entrypoint-only-body' }),
+        endpointRequest: fakeConnectionLogDetailRequest({ body: 'endpoint-only-body', uri: '' }),
+        entrypointResponse: undefined,
+        endpointResponse: undefined,
+      })),
+    );
+
+    const logHarness = await loader.getHarness(ApiProxyRequestLogOverviewHarness);
+    expect(await logHarness.getAllKeyValues()).toEqual([
+      { key: 'Method', value: 'GET' },
+      { key: 'URI', value: '/api-uri' },
+      { key: 'X-Header', value: 'first-header' },
+      { key: 'X-Header-Multiple', value: 'first-header,second-header' },
+      { key: 'Method', value: 'GET' },
+      { key: 'URI', value: null },
+      { key: 'X-Header', value: 'first-header' },
+      { key: 'X-Header-Multiple', value: 'first-header,second-header' },
+    ]);
+    expect(await logHarness.getBodies()).toEqual(['entrypoint-only-body', 'endpoint-only-body']);
+  });
+
   it('should display nothing when connection log is not found', async () => {
     await initComponent();
 
