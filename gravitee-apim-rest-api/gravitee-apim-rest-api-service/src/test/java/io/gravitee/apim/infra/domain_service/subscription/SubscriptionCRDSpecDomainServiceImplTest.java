@@ -16,15 +16,39 @@
 package io.gravitee.apim.infra.domain_service.subscription;
 
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
+<<<<<<< HEAD
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+=======
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+>>>>>>> 2b5d949a99 (fix: forbid plan and application changes during subscription updates)
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
-import inmemory.*;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
+import inmemory.IntegrationAgentInMemory;
+import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.MetadataCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -36,6 +60,8 @@ import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomai
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
+import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -44,6 +70,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -202,6 +229,141 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    void should_update_metadata() {
+        givenExistingJWTPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        var metadata = Map.of("key1", "value1");
+        var result = cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().metadata(metadata).build());
+
+        verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
+        assertThat(result.getMetadata()).isEqualTo(metadata);
+    }
+
+    @Test
+    void should_restore_as_accepted_a_closed_subscription() {
+        givenExistingJWTPlan();
+
+        var closedEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
+
+        // When restore is called on the mock, also update the in-memory crud service to PENDING
+        doAnswer(invocation -> {
+            subscriptionCrudService.update(
+                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
+            );
+            return closedEntity;
+        })
+            .when(subscriptionService)
+            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+
+        var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
+
+        verify(subscriptionService).restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+        });
+    }
+
+    @Test
+    void should_fail_restoring_a_closed_subscription_while_modifying_application() {
+        givenExistingJWTPlan();
+
+        var closedEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
+
+        var withUpdatedApplication = SPEC.toBuilder().applicationId("other-application-id").build();
+        var copy = withUpdatedApplication.toBuilder().build();
+
+        assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, withUpdatedApplication))
+            .isInstanceOf(SubscriptionApplicationImmutableException.class)
+            .hasMessageContaining(SUBSCRIPTION_ID)
+            .hasMessageContaining("application");
+
+        // make exception is raised before any alterations, and the perstance layer is never called
+        assertThat(withUpdatedApplication).usingRecursiveAssertion().isEqualTo(copy);
+        verify(subscriptionService, never()).restore(any(), any());
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
+    }
+
+    @Test
+    void should_fail_restoring_a_closed_subscription_while_modifying_plan() {
+        givenExistingJWTPlan();
+
+        var closedEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
+
+        // When restore is called on the mock, also update the in-memory crud service to PENDING
+        doAnswer(invocation -> {
+            subscriptionCrudService.update(
+                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
+            );
+            return closedEntity;
+        })
+            .when(subscriptionService)
+            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+
+        var withUpdatedPlan = SPEC.toBuilder().planId("other-plan-id").build();
+        var copy = withUpdatedPlan.toBuilder().build();
+
+        assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, withUpdatedPlan))
+            .isInstanceOf(SubscriptionPlanImmutableException.class)
+            .hasMessageContaining(SUBSCRIPTION_ID)
+            .hasMessageContaining("plan");
+
+        // make exception is raised before any alterations, and the perstance layer is never called
+        assertThat(withUpdatedPlan).usingRecursiveAssertion().isEqualTo(copy);
+        verify(subscriptionService, never()).restore(any(), any());
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
+    }
+
+    @Test
+    void should_reject_update_when_plan_changed() {
+        givenExistingJWTPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        var specWithDifferentPlan = SPEC.toBuilder().planId("other-plan-id").build();
+
+        assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, specWithDifferentPlan))
+            .isInstanceOf(SubscriptionPlanImmutableException.class)
+            .hasMessageContaining(SUBSCRIPTION_ID);
+    }
+
+    @Test
+    void should_reject_update_when_application_changed() {
+        givenExistingJWTPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        var specWithDifferentApp = SPEC.toBuilder().applicationId("other-application-id").build();
+
+        assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, specWithDifferentApp))
+            .isInstanceOf(SubscriptionApplicationImmutableException.class)
+            .hasMessageContaining(SUBSCRIPTION_ID);
+    }
+
+    @Test
+>>>>>>> 2b5d949a99 (fix: forbid plan and application changes during subscription updates)
     void should_close_on_delete() {
         cut.delete(AUDIT_INFO, SPEC.getId());
 
