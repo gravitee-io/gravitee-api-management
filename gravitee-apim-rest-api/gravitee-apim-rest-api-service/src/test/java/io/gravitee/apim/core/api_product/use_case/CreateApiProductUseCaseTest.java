@@ -110,7 +110,6 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiProductPrimaryOwnerFactory = new ApiProductPrimaryOwnerFactory(
             membershipQueryService,
-            parametersQueryService,
             roleQueryService,
             userCrudService,
             groupQueryService

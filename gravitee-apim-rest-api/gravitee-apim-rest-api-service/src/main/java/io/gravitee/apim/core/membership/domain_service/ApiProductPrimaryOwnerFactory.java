@@ -23,13 +23,8 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
-import io.gravitee.apim.core.parameters.model.ParameterContext;
-import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -39,22 +34,13 @@ import lombok.AllArgsConstructor;
 public class ApiProductPrimaryOwnerFactory {
 
     private final MembershipQueryService membershipQueryService;
-    private final ParametersQueryService parametersQueryService;
     private final RoleQueryService roleQueryService;
     private final UserCrudService userCrudService;
     private final GroupQueryService groupQueryService;
 
     public PrimaryOwnerEntity createForNewApiProduct(String organizationId, String environmentId, String userId) {
-        var mode = ApiPrimaryOwnerMode.valueOf(
-            parametersQueryService.findAsString(
-                Key.API_PRIMARY_OWNER_MODE,
-                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-            )
-        );
-        return switch (mode) {
-            case HYBRID, USER -> initUserPrimaryOwner(userId);
-            case GROUP -> initWithFirstGroupWhereUserIsPrimaryOwner(userId, organizationId);
-        };
+        // TODO: Introduce Key.API_PRODUCT_PRIMARY_OWNER_MODE with HYBRID, USER, GROUP support
+        return initUserPrimaryOwner(userId);
     }
 
     private PrimaryOwnerEntity initUserPrimaryOwner(String userId) {
