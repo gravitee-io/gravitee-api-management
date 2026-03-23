@@ -24,12 +24,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UserApiEntity {
+public class UserApplication {
 
     private String id;
     private String name;
-    private String version;
-    private String visibility;
     private String environmentId;
     private String environmentName;
 }
