@@ -22,6 +22,8 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CategoryDomainServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -48,6 +50,7 @@ import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
@@ -109,6 +112,7 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
     public final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     public final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     public final CreateCategoryApiDomainService createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
+    public final CategoryDomainService categoryDomainService = new CategoryDomainServiceInMemory(new CategoryQueryServiceInMemory());
 
     public ImportDefinitionCreateDomainServiceTestInitializer(ApiCrudServiceInMemory apiCrudService) {
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
@@ -214,7 +218,8 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
             createApiDocumentationDomainService,
             apiIdsCalculatorDomainService,
             metadataCrudService,
-            documentationValidationDomainService
+            documentationValidationDomainService,
+            categoryDomainService
         );
     }
 }
