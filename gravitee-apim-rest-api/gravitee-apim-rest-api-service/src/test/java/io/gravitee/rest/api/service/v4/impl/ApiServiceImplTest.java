@@ -55,6 +55,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
@@ -294,6 +295,9 @@ public class ApiServiceImplTest {
     private ApiCategoryService apiCategoryService;
 
     @Mock
+    private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
+
+    @Mock
     private IntegrationRepository integrationRepository;
 
     @Mock
@@ -368,7 +372,8 @@ public class ApiServiceImplTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
-            apiCategoryService
+            apiCategoryService,
+            removeApiFromApiProductsDomainService
         );
         var apiSearchService = new ApiSearchServiceImpl(
             apiRepository,
@@ -457,6 +462,22 @@ public class ApiServiceImplTest {
             eq(GraviteeContext.getExecutionContext()),
             argThat(indexableApi -> indexableApi instanceof GenericApiEntity && indexableApi.getId().equals(API_ID))
         );
+        verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
+    }
+
+    @Test
+    public void shouldRemoveApiFromAllApiProductsWhenDeleting() throws TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setLifecycleState(LifecycleState.STOPPED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
     }
 
     @Test(expected = ApiNotDeletableException.class)
