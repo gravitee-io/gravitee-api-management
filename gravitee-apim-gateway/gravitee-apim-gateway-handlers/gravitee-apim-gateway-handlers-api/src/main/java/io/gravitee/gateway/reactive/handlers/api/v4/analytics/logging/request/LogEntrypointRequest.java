@@ -55,6 +55,9 @@ public class LogEntrypointRequest extends LogRequest {
         if (isLogHeaders()) {
             this.setHeaders(HttpHeaders.create(request.headers()));
         }
+
+        this.setTraceId(ctx.getTracer().traceId());
+        this.setSpanId(ctx.getTracer().spanId());
     }
 
     protected boolean isLogPayload() {

@@ -64,6 +64,10 @@ public class LogEndpointResponse extends LogResponse {
             this.setHeaders(response.headers());
             response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
         }
+
+        this.setTraceId(ctx.getTracer().traceId());
+        this.setSpanId(ctx.getTracer().spanId());
+
         this.setStatus(response.status());
     }
 

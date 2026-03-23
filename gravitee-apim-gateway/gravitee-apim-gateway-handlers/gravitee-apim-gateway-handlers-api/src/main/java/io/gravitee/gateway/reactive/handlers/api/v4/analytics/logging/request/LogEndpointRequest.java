@@ -61,6 +61,9 @@ public class LogEndpointRequest extends LogRequest {
             this.setHeaders(HttpHeaders.create(request.headers()));
         }
 
+        this.setTraceId(ctx.getTracer().traceId());
+        this.setSpanId(ctx.getTracer().spanId());
+
         Metrics metrics = ctx.metrics();
         this.setUri(metrics.getEndpoint() != null ? metrics.getEndpoint() : "");
         setMethod(ctx.request().method());

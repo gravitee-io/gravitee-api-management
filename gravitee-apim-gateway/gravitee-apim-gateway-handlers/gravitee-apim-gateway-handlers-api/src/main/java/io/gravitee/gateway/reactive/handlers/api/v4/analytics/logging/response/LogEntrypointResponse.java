@@ -54,6 +54,9 @@ public class LogEntrypointResponse extends LogResponse {
         }
 
         this.setStatus(response.status());
+
+        this.setTraceId(ctx.getTracer().traceId());
+        this.setSpanId(ctx.getTracer().spanId());
     }
 
     protected boolean isLogPayload() {

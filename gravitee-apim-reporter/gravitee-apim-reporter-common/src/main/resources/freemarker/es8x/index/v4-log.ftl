@@ -42,6 +42,12 @@
       </#list>
     }
     </#if>
+    <#if log.getEntrypointRequest().getSpanId()??>
+    ,"span-id":"${log.getEntrypointRequest().getSpanId()}"
+    </#if>
+    <#if log.getEntrypointRequest().getTraceId()??>
+    ,"trace-id":"${log.getEntrypointRequest().getTraceId()}"
+    </#if>
   }
   </#if>
   <#if log.getEntrypointResponse()??>
@@ -64,6 +70,12 @@
         <#sep>,</#sep>
       </#list>
     }
+    </#if>
+    <#if log.getEntrypointResponse().getSpanId()??>
+    ,"span-id":"${log.getEntrypointResponse().getSpanId()}"
+    </#if>
+    <#if log.getEntrypointResponse().getTraceId()??>
+    ,"trace-id":"${log.getEntrypointResponse().getTraceId()}"
     </#if>
   }
   </#if>
@@ -89,6 +101,12 @@
       </#list>
     }
     </#if>
+    <#if log.getEndpointRequest().getSpanId()??>
+    ,"span-id":"${log.getEndpointRequest().getSpanId()}"
+    </#if>
+    <#if log.getEndpointRequest().getTraceId()??>
+    ,"trace-id":"${log.getEndpointRequest().getTraceId()}"
+    </#if>
   }
   </#if>
   <#if log.getEndpointResponse()??>
@@ -111,6 +129,12 @@
         <#sep>,</#sep>
       </#list>
     }
+    </#if>
+    <#if log.getEndpointResponse().getSpanId()??>
+    ,"span-id":"${log.getEndpointResponse().getSpanId()}"
+    </#if>
+    <#if log.getEndpointResponse().getTraceId()??>
+    ,"trace-id":"${log.getEndpointResponse().getTraceId()}"
     </#if>
   }
   </#if>

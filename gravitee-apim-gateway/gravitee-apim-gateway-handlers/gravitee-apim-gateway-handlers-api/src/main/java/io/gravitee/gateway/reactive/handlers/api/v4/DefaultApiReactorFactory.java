@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.Version;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -422,12 +423,20 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     protected TracingContext createTracingContext(final Api api, final String serviceNameSpace) {
         if (isApiTracingEnabled(api)) {
             Tracer tracer = openTelemetryFactory.createTracer(
-                api.getId(),
-                api.getName(),
-                serviceNameSpace,
-                api.getApiVersion(),
+                node.id(),
+                node.application(),
+                "GATEWAY",
+                Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories
             );
+
+//            Tracer tracer = openTelemetryFactory.createTracer(
+//                api.getId(),
+//                api.getName(),
+//                serviceNameSpace,
+//                api.getApiVersion(),
+//                instrumenterTracerFactories
+//            );
             return new TracingContext(tracer, isApiTracingEnabled(api), isApiTracingVerboseEnabled(api));
         } else {
             return TracingContext.noop();
