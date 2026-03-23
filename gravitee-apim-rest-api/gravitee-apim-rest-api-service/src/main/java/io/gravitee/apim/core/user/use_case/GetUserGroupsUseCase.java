@@ -23,7 +23,7 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
-import io.gravitee.apim.core.user.model.UserGroupEntity;
+import io.gravitee.apim.core.user.model.UserGroup;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,12 +83,12 @@ public class GetUserGroupsUseCase {
         // Compute apiPrimaryOwner for each group in the page
         Map<String, Boolean> apiPrimaryOwnerByGroupId = computeApiPrimaryOwner(groupPage.getContent());
 
-        List<UserGroupEntity> data = groupPage
+        List<UserGroup> data = groupPage
             .getContent()
             .stream()
             .map(group -> {
                 String envId = group.getEnvironmentId();
-                return UserGroupEntity.builder()
+                return UserGroup.builder()
                     .id(group.getId())
                     .name(group.getName())
                     .environmentId(envId)
@@ -152,5 +152,5 @@ public class GetUserGroupsUseCase {
 
     public record Input(String userId, String environmentId, int page, int perPage) {}
 
-    public record Output(List<UserGroupEntity> data, long totalCount) {}
+    public record Output(List<UserGroup> data, long totalCount) {}
 }
