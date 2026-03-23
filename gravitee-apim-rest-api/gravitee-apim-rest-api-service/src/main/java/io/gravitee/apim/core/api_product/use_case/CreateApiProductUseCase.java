@@ -43,6 +43,7 @@ import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudSer
 import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.time.ZonedDateTime;
@@ -130,7 +131,7 @@ public class CreateApiProductUseCase {
 
     private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
         var plans = planQueryService
-            .findAllForApiProduct(apiProduct.getId())
+            .findAllByReferenceIdAndReferenceType(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
             .stream()
             .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
             .filter(Objects::nonNull)
