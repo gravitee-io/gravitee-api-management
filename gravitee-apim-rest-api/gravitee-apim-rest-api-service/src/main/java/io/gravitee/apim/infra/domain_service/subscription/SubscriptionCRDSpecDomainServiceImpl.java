@@ -90,8 +90,6 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
     }
 
     private SubscriptionEntity update(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
-<<<<<<< HEAD
-=======
         rejectImmutableFieldChanges(existing, spec);
 
         if (existing.getStatus() == SubscriptionEntity.Status.CLOSED) {
@@ -99,7 +97,6 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
             return update(auditInfo, restored, spec);
         }
 
->>>>>>> 2b5d949a99 (fix: forbid plan and application changes during subscription updates)
         var update = existing.toBuilder().build();
 
         if (!Objects.equals(spec.getEndingAt(), existing.getEndingAt())) {
@@ -112,8 +109,6 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
         return update;
     }
 
-<<<<<<< HEAD
-=======
     private SubscriptionEntity restoreAsAccepted(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
         log.debug("Restoring closed subscription [{}]", spec.getId());
         subscriptionService.restore(toExecutionContext(auditInfo), existing.getId());
@@ -133,7 +128,6 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
         }
     }
 
->>>>>>> 2b5d949a99 (fix: forbid plan and application changes during subscription updates)
     private Optional<SubscriptionEntity> find(String id) {
         try {
             return Optional.ofNullable(subscriptionService.findById(id)).map(adapter::toCore);

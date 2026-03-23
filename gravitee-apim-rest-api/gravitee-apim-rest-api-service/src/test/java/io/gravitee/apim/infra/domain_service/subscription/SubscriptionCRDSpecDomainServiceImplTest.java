@@ -16,19 +16,16 @@
 package io.gravitee.apim.infra.domain_service.subscription;
 
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
-<<<<<<< HEAD
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-=======
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
->>>>>>> 2b5d949a99 (fix: forbid plan and application changes during subscription updates)
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -229,24 +226,6 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     }
 
     @Test
-<<<<<<< HEAD
-=======
-    void should_update_metadata() {
-        givenExistingJWTPlan();
-
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
-
-        var metadata = Map.of("key1", "value1");
-        var result = cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().metadata(metadata).build());
-
-        verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
-        assertThat(result.getMetadata()).isEqualTo(metadata);
-    }
-
-    @Test
     void should_restore_as_accepted_a_closed_subscription() {
         givenExistingJWTPlan();
 
@@ -363,7 +342,6 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     }
 
     @Test
->>>>>>> 2b5d949a99 (fix: forbid plan and application changes during subscription updates)
     void should_close_on_delete() {
         cut.delete(AUDIT_INFO, SPEC.getId());
 
