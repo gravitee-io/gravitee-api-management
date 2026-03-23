@@ -23,7 +23,7 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
-import io.gravitee.apim.core.user.model.UserApiEntity;
+import io.gravitee.apim.core.user.model.UserApi;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.HashMap;
@@ -67,12 +67,12 @@ public class GetUserApisUseCase {
             .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
-        List<UserApiEntity> data = apiPage
+        List<UserApi> data = apiPage
             .getContent()
             .stream()
             .map(api -> {
                 String envId = api.getEnvironmentId();
-                return UserApiEntity.builder()
+                return UserApi.builder()
                     .id(api.getId())
                     .name(api.getName())
                     .version(api.getVersion())
@@ -100,5 +100,5 @@ public class GetUserApisUseCase {
 
     public record Input(String userId, String environmentId, int page, int perPage) {}
 
-    public record Output(List<UserApiEntity> data, long totalCount) {}
+    public record Output(List<UserApi> data, long totalCount) {}
 }
