@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -27,6 +26,8 @@ import java.util.Set;
 public interface CategoryDomainService {
     Set<String> toCategoryId(Api api, String environmentId);
     Set<String> toCategoryKey(Api api, String environmentId);
+
+    Set<String> resolveToCategoryIds(String environmentId, Set<String> categoryIdsOrKeys);
 
     void updateOrderCategoriesOfApi(String apiId, Collection<String> categoryIds);
 }
