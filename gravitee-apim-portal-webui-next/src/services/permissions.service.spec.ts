@@ -17,6 +17,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { PermissionsService } from './permissions.service';
+import { PortalApiViewParam } from '../entities/api/portal-api-view-param';
 import { fakeUserApiPermissions, fakeUserApplicationPermissions } from '../entities/permission/permission.fixtures';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
@@ -49,7 +50,12 @@ describe('PermissionsService', () => {
       done();
     });
 
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/permissions?apiId=${apiId}`);
+    const req = httpTestingController.expectOne(
+      request =>
+        request.url === `${TESTING_BASE_URL}/permissions` &&
+        request.params.get('apiId') === apiId &&
+        request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+    );
     expect(req.request.method).toEqual('GET');
     req.flush(userApiPermissions);
   });

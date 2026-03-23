@@ -19,6 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiService } from './api.service';
 import { fakeApi, fakeApisResponse } from '../entities/api/api.fixtures';
 import { ApisResponse } from '../entities/api/apis-response';
+import { PortalApiViewParam } from '../entities/api/portal-api-view-param';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApiService', () => {
@@ -77,7 +78,11 @@ describe('ApiService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${apiId}?view=documentation`);
+      const req = httpTestingController.expectOne(
+        request =>
+          request.url === `${TESTING_BASE_URL}/apis/${apiId}` &&
+          request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+      );
       expect(req.request.method).toEqual('GET');
       req.flush(api);
     });

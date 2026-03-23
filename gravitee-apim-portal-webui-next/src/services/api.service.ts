@@ -20,6 +20,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { Api } from '../entities/api/api';
 import { ApisResponse } from '../entities/api/apis-response';
+import { PortalApiViewParam } from '../entities/api/portal-api-view-param';
 
 @Injectable({
   providedIn: 'root',
@@ -42,6 +43,8 @@ export class ApiService {
   }
 
   details(apiId: string): Observable<Api> {
-    return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}?view=documentation`);
+    return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}`, {
+      params: { [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION },
+    });
   }
 }

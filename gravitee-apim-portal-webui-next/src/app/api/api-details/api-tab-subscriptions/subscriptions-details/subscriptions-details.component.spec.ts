@@ -27,6 +27,7 @@ import { ConfirmDialogHarness } from '../../../../../components/confirm-dialog/c
 import { SubscriptionInfoHarness } from '../../../../../components/subscription-info/subscription-info.harness';
 import { Api } from '../../../../../entities/api/api';
 import { fakeApi } from '../../../../../entities/api/api.fixtures';
+import { PortalApiViewParam } from '../../../../../entities/api/portal-api-view-param';
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
 import { Configuration } from '../../../../../entities/configuration/configuration';
@@ -401,11 +402,23 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   function expectGetApi(api: Api = fakeApi()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${api.id}?view=documentation`).flush(api);
+    httpTestingController
+      .expectOne(
+        request =>
+          request.url === `${TESTING_BASE_URL}/apis/${api.id}` &&
+          request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+      )
+      .flush(api);
   }
 
   function expectGetApiPermissions(permissions = fakeUserApiPermissions({ PLAN: ['R'] })) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/permissions?apiId=${API_ID}`).flush(permissions);
+    const req = httpTestingController.expectOne(
+      request =>
+        request.url === `${TESTING_BASE_URL}/permissions` &&
+        request.params.get('apiId') === API_ID &&
+        request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+    );
+    req.flush(permissions);
   }
 
   function expectPostChangeConsumerStatus() {
