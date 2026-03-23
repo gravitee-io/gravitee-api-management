@@ -34,6 +34,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
+import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -93,6 +94,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     private final PlanCrudService planCrudService;
     private final IntegrationCrudService integrationCrudService;
     private final FlowCrudService flowCrudService;
+    private final ApiCategoryQueryService apiCategoryQueryService;
 
     @Override
     public GraviteeDefinition export(String apiId, AuditInfo auditInfo, Collection<Excludable> excluded) {
@@ -129,14 +131,16 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 Function<Plan, PlanDescriptor.V4> mapPlanV4 = DEFINITION_ADAPTER::mapPlanV4;
                 var plans = mapPlan(apiId, mapPlanV4.andThen(this::planWithFlowV4), excluded);
                 var flows = flowCrudService.getApiV4Flows(apiId);
-                var api = DEFINITION_ADAPTER.mapV4(api1, apiPrimaryOwner, workflowState, groups, metadata, flows);
+                var apiWithCategoryKeys = apiWithCategoryKeys(api1);
+                var api = DEFINITION_ADAPTER.mapV4(apiWithCategoryKeys, apiPrimaryOwner, workflowState, groups, metadata, flows);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
             case V4_NATIVE -> {
                 Function<Plan, PlanDescriptor.Native> mapPlanNative = DEFINITION_ADAPTER::mapPlanNative;
                 var plans = mapPlan(apiId, mapPlanNative.andThen(this::planWithFlowNative), excluded);
                 var flows = flowCrudService.getNativeApiFlows(apiId);
-                var api = DEFINITION_ADAPTER.mapNative(api1, apiPrimaryOwner, workflowState, groups, metadata, flows);
+                var apiWithCategoryKeys = apiWithCategoryKeys(api1);
+                var api = DEFINITION_ADAPTER.mapNative(apiWithCategoryKeys, apiPrimaryOwner, workflowState, groups, metadata, flows);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
             case FEDERATED -> {
@@ -248,5 +252,13 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private PlanDescriptor.Native planWithFlowNative(PlanDescriptor.Native planNative) {
         return planNative.withFlow(flowCrudService.getNativePlanFlows(planNative.id()));
+    }
+
+    private Api apiWithCategoryKeys(Api api) {
+        var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(api);
+        if (categoryKeys.isEmpty() && (api.getCategories() == null || api.getCategories().isEmpty())) {
+            return api;
+        }
+        return api.toBuilder().categories(Set.copyOf(categoryKeys)).build();
     }
 }

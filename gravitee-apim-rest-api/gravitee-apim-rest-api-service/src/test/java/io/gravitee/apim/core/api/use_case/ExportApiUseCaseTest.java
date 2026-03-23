@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
+import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -101,6 +102,7 @@ class ExportApiUseCaseTest {
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+    ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
 
     ApiExportDomainService apiExportDomainService;
 
@@ -133,7 +135,8 @@ class ExportApiUseCaseTest {
             apiPrimaryOwnerDomainService,
             planCrudService,
             integrationCrudService,
-            flowCrudService
+            flowCrudService,
+            apiCategoryQueryService
         );
         sut = new ExportApiUseCase(apiExportDomainService);
         roleQueryService.initWith(
@@ -176,7 +179,8 @@ class ExportApiUseCaseTest {
             apiCrudService,
             planCrudService,
             integrationCrudService,
-            flowCrudService
+            flowCrudService,
+            apiCategoryQueryService
         ).forEach(InMemoryAlternative::reset);
     }
 
