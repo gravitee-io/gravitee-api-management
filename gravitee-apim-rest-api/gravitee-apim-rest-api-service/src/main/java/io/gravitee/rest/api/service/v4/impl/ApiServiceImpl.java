@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -168,6 +169,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
+    private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -202,7 +204,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final TagsValidationService tagsValidationService,
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
-        ApiCategoryService apiCategoryService
+        ApiCategoryService apiCategoryService,
+        RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -234,6 +237,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.groupService = groupService;
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
+        this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
     }
 
     @Override
@@ -661,6 +665,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete Api Category Order entries
             apiCategoryService.deleteApiFromCategories(apiId);
+
+            // Remove API from all API Products that reference it
+            removeApiFromApiProductsDomainService.removeApiFromApiProducts(
+                apiId,
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                getAuthenticatedUser() != null ? getAuthenticatedUser().getUsername() : "system"
+            );
 
             // Delete alerts
             final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);

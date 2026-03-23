@@ -140,6 +140,16 @@ public class MongoApiProductRepository implements ApiProductsRepository {
     }
 
     @Override
+    public void removeApiFromAllApiProducts(String apiId) throws TechnicalException {
+        log.debug("MongoApiProductRepository.removeApiFromAllApiProducts({})", apiId);
+        try {
+            internalApiProductRepo.removeApiFromAllApiProducts(apiId);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to remove api from all api products", ex);
+        }
+    }
+
+    @Override
     public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
         if (isEmpty(ids)) {
             return Set.of();

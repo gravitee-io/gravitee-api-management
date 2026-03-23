@@ -72,6 +72,11 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
     }
 
     @Override
+    public void removeApiFromAllApiProducts(String apiId) throws TechnicalException {
+        // NoOp implementation — no persistence layer to update
+    }
+
+    @Override
     public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
         return Set.of();
     }

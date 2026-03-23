@@ -30,6 +30,7 @@ public interface ApiProductsRepository extends CrudRepository<ApiProduct, String
     Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException;
     Set<ApiProduct> findByEnvironmentId(String environmentId) throws TechnicalException;
     Set<ApiProduct> findByApiId(String apiId) throws TechnicalException;
+    void removeApiFromAllApiProducts(String apiId) throws TechnicalException;
     Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException;
     Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException;
     Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable) throws TechnicalException;

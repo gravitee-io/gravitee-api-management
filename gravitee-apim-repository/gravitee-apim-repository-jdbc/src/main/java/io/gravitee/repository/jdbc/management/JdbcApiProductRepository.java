@@ -218,6 +218,16 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     }
 
     @Override
+    public void removeApiFromAllApiProducts(String apiId) throws TechnicalException {
+        log.debug("JdbcApiProductRepository.removeApiFromAllApiProducts({})", apiId);
+        try {
+            jdbcTemplate.update("DELETE FROM " + API_PRODUCT_APIS + " WHERE api_id = ?", apiId);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to remove api from all api products", ex);
+        }
+    }
+
+    @Override
     public Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException {
         if (CollectionUtils.isEmpty(apiIds)) {
             return Set.of();
