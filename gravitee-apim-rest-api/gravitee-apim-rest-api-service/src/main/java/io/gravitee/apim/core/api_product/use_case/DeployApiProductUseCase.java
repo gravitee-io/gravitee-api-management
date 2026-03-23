@@ -30,6 +30,7 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.Map;
 import java.util.Objects;
@@ -68,7 +69,7 @@ public class DeployApiProductUseCase {
 
     private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
         var plans = planQueryService
-            .findAllForApiProduct(apiProduct.getId())
+            .findAllByReferenceIdAndReferenceType(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
             .stream()
             .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
             .filter(Objects::nonNull)
