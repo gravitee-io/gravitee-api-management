@@ -33,6 +33,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.portal.rest.resource.param.PortalApiViewParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
@@ -61,7 +62,6 @@ public class ApiResource extends AbstractResource {
 
     private static final String INCLUDE_PAGES = "pages";
     private static final String INCLUDE_PLANS = "plans";
-    private static final String VIEW_DOCUMENTATION = "documentation";
 
     @Context
     private ResourceContext resourceContext;
@@ -99,14 +99,14 @@ public class ApiResource extends AbstractResource {
     public Response getApiByApiId(
         @PathParam("apiId") String apiId,
         @QueryParam("include") List<String> include,
-        @QueryParam("view") String view
+        @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view
     ) {
         String username = getAuthenticatedUserOrNull();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
 
-        if (VIEW_DOCUMENTATION.equalsIgnoreCase(view)) {
+        if (PortalApiViewParam.isDocumentationView(view)) {
             var output = getApiForPortalUseCase.execute(
                 new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, username)
             );

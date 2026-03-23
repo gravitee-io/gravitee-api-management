@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.api.use_case.GetApiForPortalUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.portal.rest.resource.param.PortalApiViewParam;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -48,13 +50,27 @@ public class PermissionsResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private GetApiForPortalUseCase getApiForPortalUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCurrentUserPermissions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId) {
+    public Response getCurrentUserPermissions(
+        @QueryParam("apiId") String apiId,
+        @QueryParam("applicationId") String applicationId,
+        @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view
+    ) {
         final String userId = getAuthenticatedUser();
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (apiId != null) {
-            if (!accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
+            if (PortalApiViewParam.isDocumentationView(view)) {
+                var output = getApiForPortalUseCase.execute(
+                    new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, getAuthenticatedUserOrNull())
+                );
+                if (!output.visible()) {
+                    throw new ApiNotFoundException(apiId);
+                }
+            } else if (!accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
                 throw new ApiNotFoundException(apiId);
             }
             Map<String, char[]> permissions;
