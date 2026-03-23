@@ -93,6 +93,9 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
     }
 
     private static ApiType mapApiType(String value) {
+        if (value == null) {
+            throw InvalidQueryException.forNullFilterValue(FilterSpec.Name.API_TYPE.name());
+        }
         var apiType = API_TYPE_MAPPING.get(value);
         if (apiType == null) {
             throw InvalidQueryException.forUnknownAPIType(value);
