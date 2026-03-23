@@ -66,4 +66,9 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
             .filter(apiProduct -> ids.contains(apiProduct.getId()))
             .collect(Collectors.toList());
     }
+
+    @Override
+    public void removeApiFromAllApiProducts(String apiId) {
+        storage.forEach(apiProduct -> apiProduct.removeApiId(apiId));
+    }
 }
