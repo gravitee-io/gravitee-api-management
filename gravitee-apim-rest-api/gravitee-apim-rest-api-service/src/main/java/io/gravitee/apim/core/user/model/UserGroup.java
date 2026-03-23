@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UserGroupEntity {
+public class UserGroup {
 
     private String id;
     private String name;

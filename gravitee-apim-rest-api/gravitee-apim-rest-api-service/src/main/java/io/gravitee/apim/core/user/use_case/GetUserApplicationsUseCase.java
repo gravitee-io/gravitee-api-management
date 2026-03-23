@@ -20,7 +20,7 @@ import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
-import io.gravitee.apim.core.user.model.UserApplicationEntity;
+import io.gravitee.apim.core.user.model.UserApplication;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.HashMap;
@@ -62,12 +62,12 @@ public class GetUserApplicationsUseCase {
             .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
-        List<UserApplicationEntity> data = appPage
+        List<UserApplication> data = appPage
             .getContent()
             .stream()
             .map(app -> {
                 String envId = app.getEnvironmentId();
-                return UserApplicationEntity.builder()
+                return UserApplication.builder()
                     .id(app.getId())
                     .name(app.getName())
                     .environmentId(envId)
@@ -93,5 +93,5 @@ public class GetUserApplicationsUseCase {
 
     public record Input(String userId, String environmentId, int page, int perPage) {}
 
-    public record Output(List<UserApplicationEntity> data, long totalCount) {}
+    public record Output(List<UserApplication> data, long totalCount) {}
 }
