@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
-import { Observable } from 'rxjs';
+import { ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSnapshot } from '@angular/router';
+import { catchError, EMPTY, Observable } from 'rxjs';
 
 import { Api } from '../entities/api/api';
 import { ApiService } from '../services/api.service';
@@ -24,4 +25,14 @@ export const apiResolver = ((
   route: ActivatedRouteSnapshot,
   _: RouterStateSnapshot,
   apiService: ApiService = inject(ApiService),
-): Observable<Api> => apiService.details(route.params['apiId'])) satisfies ResolveFn<Api>;
+  router: Router = inject(Router),
+): Observable<Api> =>
+  apiService.details(route.params['apiId']).pipe(
+    catchError((err: unknown) => {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        void router.navigate(['/404']);
+        return EMPTY;
+      }
+      throw err;
+    }),
+  )) satisfies ResolveFn<Api>;
