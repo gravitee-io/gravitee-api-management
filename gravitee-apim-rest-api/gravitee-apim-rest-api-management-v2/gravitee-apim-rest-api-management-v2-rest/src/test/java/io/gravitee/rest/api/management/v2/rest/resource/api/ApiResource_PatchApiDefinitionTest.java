@@ -88,9 +88,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         ApiEntity updated = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name("tes-api-key-patched").updatedAt(after).build();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(current);
-        when(exportApiUseCase.execute(any()))
-            .thenReturn(new ExportApiUseCase.Output(minimalProxyExport("before")))
-            .thenReturn(new ExportApiUseCase.Output(minimalProxyExport("tes-api-key-patched")));
+        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("before")));
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenReturn(updated);
@@ -110,7 +108,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
             eq(false),
             eq(USER_NAME)
         );
-        verify(exportApiUseCase, times(2)).execute(any());
+        verify(exportApiUseCase, times(1)).execute(any());
     }
 
     @Test
@@ -118,9 +116,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         Date updated = new Date(1_700_000_000_002L);
         ApiEntity current = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(updated).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(current);
-        when(exportApiUseCase.execute(any()))
-            .thenReturn(new ExportApiUseCase.Output(minimalProxyExport("api-name")))
-            .thenReturn(new ExportApiUseCase.Output(minimalProxyExport("api-name")));
+        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("api-name")));
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenReturn(current);

@@ -134,11 +134,7 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -546,38 +542,6 @@ public class ApiResource extends AbstractResource {
     @Path("/definition")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "Partially update a V4 HTTP Proxy API definition (JSON Patch)",
-        description = """
-        JSON Patch (RFC 6902) on the API export document—the same structure as **GET** `.../apis/{apiId}/_export/definition`. \
-        Intended for **v2 → v4 management parity**: small, programmatic updates without a full **PUT** body.
-
-        **Scope:** V4 HTTP Proxy only (`definitionVersion=V4`, `type=proxy`). Message, Native/TCP, Federated, and other kinds \
-        return **400**.
-
-        **Persisted payload:** Only the **`api`** object is mapped to **UpdateApiV4** and saved, using the **same update path \
-        and validation as PUT** `.../apis/{apiId}` for V4. Patches under **plans**, **metadata**, **members**, **pages**, \
-        **apiPicture**, etc. are **not** applied (use dedicated endpoints where available).
-
-        **dryRun:** `dryRun=true` applies the patch **in memory** and returns the patched JSON **without persisting**. \
-        The response may still contain patched envelope paths that **would not** be written on a real update.
-
-        **If-Match:** Optional; when present it must match the API revision ETag (same as **PUT** `.../apis/{apiId}`). \
-        Mismatch → **412 Precondition Failed**.
-
-        **Permissions:** **API_DEFINITION[UPDATE]** *or* **API_GATEWAY_DEFINITION[UPDATE]** (same OR rule as V4 PUT). \
-        Without gateway-definition update (unless primary owner or admin), **listeners** from the patch are ignored.""",
-        tags = { "API Definition" }
-    )
-    @ApiResponse(
-        responseCode = "200",
-        description = "API successfully updated with json patches (or result of dry run)",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExportApiV4.class))
-    )
-    @ApiResponse(responseCode = "204", description = "Patch test failed (no change applied)")
-    @ApiResponse(responseCode = "400", description = "API kind does not support definition PATCH")
-    @ApiResponse(responseCode = "412", description = "Precondition failed (If-Match does not match current revision)")
-    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
@@ -585,16 +549,17 @@ public class ApiResource extends AbstractResource {
         }
     )
     public Response patchApiDefinition(
-        @Context final HttpHeaders headers,
+        @Context HttpHeaders headers,
         @PathParam("apiId") String apiId,
-        @RequestBody(required = true) @Valid @NotNull final Collection<JsonPatch> patches,
-        @QueryParam("dryRun") @DefaultValue("false") final boolean dryRun
+        @RequestBody(required = true) @Valid @NotNull Collection<JsonPatch> patches,
+        @QueryParam("dryRun") @DefaultValue("false") boolean dryRun
     ) {
-        final GenericApiEntity genericEntity = getGenericApiEntityById(apiId, false, false, false, false);
+        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
+        evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
         if (
-            !(genericEntity instanceof ApiEntity api) ||
-            genericEntity.getDefinitionVersion() != DefinitionVersion.V4 ||
+            !(currentEntity instanceof ApiEntity api) ||
+            currentEntity.getDefinitionVersion() != DefinitionVersion.V4 ||
             api.getType() != ApiType.PROXY
         ) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -608,10 +573,8 @@ public class ApiResource extends AbstractResource {
                 .build();
         }
 
-        evaluateIfMatch(headers, Long.toString(genericEntity.getUpdatedAt().getTime()));
-
-        var exportOutput = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
-        String definitionJson = patchDefinitionToJson(ImportExportApiMapper.INSTANCE.map(exportOutput.definition()));
+        var export = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
+        String definitionJson = patchDefinitionToJson(ImportExportApiMapper.INSTANCE.map(export.definition()));
 
         try {
             String definitionModified = jsonPatchService.execute(definitionJson, patches);
@@ -622,20 +585,17 @@ public class ApiResource extends AbstractResource {
             ExportApiV4 patchedExport = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(definitionModified);
             UpdateApiV4 updateApiV4 = ApiMapper.INSTANCE.mapToUpdateApiV4(patchedExport.getApi());
 
-            ApiEntity currentApi = (ApiEntity) genericEntity;
-            ApiEntity updatedEntity = updateHttpApiV4(currentApi, updateApiV4);
+            GenericApiEntity updatedEntity = updateApiV4(currentEntity, updateApiV4);
 
-            var reExport = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
-            ExportApiV4 updatedDefinition = ImportExportApiMapper.INSTANCE.map(reExport.definition());
-
-            return Response.ok(updatedDefinition)
+            return Response.ok(patchedExport)
                 .tag(Long.toString(updatedEntity.getUpdatedAt().getTime()))
                 .lastModified(updatedEntity.getUpdatedAt())
                 .build();
         } catch (JsonPatchTestFailedException e) {
+            log.trace("JSON Patch definition test did not apply for API [{}]", apiId, e);
             return Response.noContent()
-                .tag(Long.toString(genericEntity.getUpdatedAt().getTime()))
-                .lastModified(genericEntity.getUpdatedAt())
+                .tag(Long.toString(currentEntity.getUpdatedAt().getTime()))
+                .lastModified(currentEntity.getUpdatedAt())
                 .build();
         }
     }
