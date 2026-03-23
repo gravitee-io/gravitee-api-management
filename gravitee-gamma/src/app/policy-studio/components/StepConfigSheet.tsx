@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import Form from '@rjsf/core';
+import { withTheme } from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import type { IChangeEvent } from '@rjsf/core';
+import { barosTheme } from '../rjsf-theme';
+
+const Form = withTheme(barosTheme);
 import {
   Sheet,
   SheetContent,
