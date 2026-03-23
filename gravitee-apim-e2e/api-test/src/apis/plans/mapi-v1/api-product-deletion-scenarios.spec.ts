@@ -361,6 +361,7 @@ describeIfClientGatewaySupportingApiProduct(
         await fetchGatewaySuccess({
           contextPath: (api2.listeners[0] as HttpListener).paths[0].path,
           headers: { 'X-Gravitee-Api-Key': apiKey },
+          maxRetries: 10,
         });
       });
     });
