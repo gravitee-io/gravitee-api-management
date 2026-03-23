@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Settings, Search, Globe, type LucideIcon } from 'lucide-react';
+import { Box, Settings, Search, Globe, Workflow, type LucideIcon } from 'lucide-react';
 import { TopNav } from '@baros/components/layout/TopNav';
 import { TopNavUser } from '@baros/components/layout/TopNavUser';
 import { GraviteeLogo } from '@baros/components/layout/GraviteeLogo';
@@ -10,6 +10,7 @@ import type { AppOption } from '@baros/components/layout/AppDropdown';
 import { AppBetaLayout } from './app-beta/AppBetaLayout';
 import { DeveloperPortalLayout } from './developer-portal/DeveloperPortalLayout';
 import { PortalHomepageRemote } from './developer-portal/PortalHomepageRemote';
+import { PolicyStudioPage } from './policy-studio/PolicyStudioPage';
 
 const INSTALLATION_APPLICATIONS_URL = '/management/v2/installation/applications';
 
@@ -57,6 +58,7 @@ const FALLBACK_APPS: AppOption[] = [
     { key: 'app-alpha', name: 'App Alpha', icon: Box },
     { key: 'app-beta', name: 'App Beta', icon: Settings },
     { key: 'developer-portal', name: 'Developer Portal', icon: Globe },
+    { key: 'policy-studio/demo-api', name: 'Policy Studio', icon: Workflow },
 ];
 
 const APP_ALPHA_ENTRY_URL = 'http://localhost:4201/remoteEntry.js';
@@ -92,6 +94,7 @@ function useActiveAppKey(): string {
     if (pathname.startsWith('/app-alpha')) return 'app-alpha';
     if (pathname.startsWith('/app-beta')) return 'app-beta';
     if (pathname.startsWith('/developer-portal')) return 'developer-portal';
+    if (pathname.startsWith('/policy-studio')) return 'policy-studio/demo-api';
     return '';
 }
 
@@ -152,6 +155,7 @@ export function App() {
                         <Route path="/" element={<WelcomePage />} />
                         <Route path="/app-alpha/*" element={<AppAlpha />} />
                         <Route path="/app-beta/*" element={<AppBetaLayout />} />
+                        <Route path="/policy-studio/:apiId" element={<PolicyStudioPage />} />
                         <Route path="/developer-portal" element={<DeveloperPortalLayout />}>
                             <Route path="homepage" element={<PortalHomepageRemote />} />
                             <Route index element={<Navigate to="homepage" replace />} />
