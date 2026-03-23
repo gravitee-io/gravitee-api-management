@@ -199,7 +199,17 @@ class ApiTypeFilterTransformerTest {
 
         assertThatThrownBy(() -> transformer.transform(context, List.of(apiTypeFilter)))
             .isInstanceOf(InvalidQueryException.class)
-            .hasMessageContaining("Unknown API type UNKNOWN");
+            .hasMessageContaining("Unknown API type 'UNKNOWN'");
+    }
+
+    @Test
+    void should_throw_on_null_api_type_value() {
+        var context = buildContext(Set.of("api-1"));
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, null);
+
+        assertThatThrownBy(() -> transformer.transform(context, List.of(apiTypeFilter)))
+            .isInstanceOf(InvalidQueryException.class)
+            .hasMessageContaining("requires a non-null value");
     }
 
     @Test
