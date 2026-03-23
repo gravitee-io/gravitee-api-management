@@ -17,17 +17,17 @@ package io.gravitee.rest.api.management.v2.rest.resource.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.user.model.UserApiEntity;
+import io.gravitee.apim.core.user.model.UserApi;
 import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.UserApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -51,12 +51,7 @@ class UsersResourceApisTest extends AbstractResourceTest {
     @Test
     void should_return_403_when_missing_permission() {
         when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ORGANIZATION_USERS,
-                ORGANIZATION,
-                RolePermissionAction.READ
-            )
+            permissionService.hasPermission(any(), eq(RolePermission.ORGANIZATION_USERS), eq(ORGANIZATION), eq(RolePermissionAction.READ))
         ).thenReturn(false);
 
         final Response response = rootTarget().request().get();
@@ -67,7 +62,7 @@ class UsersResourceApisTest extends AbstractResourceTest {
     @Test
     void should_return_200_with_paginated_response() {
         var apis = List.of(
-            UserApiEntity.builder()
+            UserApi.builder()
                 .id("api-1")
                 .name("My API")
                 .version("1.0")
