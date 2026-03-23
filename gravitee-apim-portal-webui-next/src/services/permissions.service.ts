@@ -18,6 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
+import { PortalApiViewParam } from '../entities/api/portal-api-view-param';
 import { UserApiPermissions, UserApplicationPermissions } from '../entities/permission/permission';
 
 @Injectable({
@@ -30,7 +31,9 @@ export class PermissionsService {
   ) {}
 
   getApiPermissions(apiId: string): Observable<UserApiPermissions> {
-    return this.http.get<UserApiPermissions>(`${this.configService.baseURL}/permissions`, { params: { apiId } });
+    return this.http.get<UserApiPermissions>(`${this.configService.baseURL}/permissions`, {
+      params: { apiId, [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION },
+    });
   }
 
   getApplicationPermissions(applicationId: string): Observable<UserApplicationPermissions> {
