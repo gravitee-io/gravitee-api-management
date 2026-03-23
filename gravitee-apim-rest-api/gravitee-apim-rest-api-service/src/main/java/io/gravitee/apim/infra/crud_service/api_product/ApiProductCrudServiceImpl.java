@@ -107,4 +107,13 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
             throw new TechnicalManagementException("Failed to find API Products by ids", e);
         }
     }
+
+    @Override
+    public void removeApiFromAllApiProducts(String apiId) {
+        try {
+            apiProductsRepository.removeApiFromAllApiProducts(apiId);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to remove api [" + apiId + "] from all api products", e);
+        }
+    }
 }

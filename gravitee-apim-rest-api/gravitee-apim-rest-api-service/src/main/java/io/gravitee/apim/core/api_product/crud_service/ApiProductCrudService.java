@@ -25,4 +25,5 @@ public interface ApiProductCrudService {
     ApiProduct update(ApiProduct updateApiProduct);
     ApiProduct get(String id);
     List<ApiProduct> findByIds(Collection<String> ids);
+    void removeApiFromAllApiProducts(String apiId);
 }

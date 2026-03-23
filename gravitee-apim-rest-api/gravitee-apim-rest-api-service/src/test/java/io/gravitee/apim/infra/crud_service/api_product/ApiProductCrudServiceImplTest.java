@@ -186,6 +186,28 @@ public class ApiProductCrudServiceImplTest {
     }
 
     @Nested
+    class RemoveApiFromAllApiProducts {
+
+        @Test
+        public void should_delegate_to_repository() throws TechnicalException {
+            apiProductCrudService.removeApiFromAllApiProducts("api-id");
+
+            verify(apiProductsRepository).removeApiFromAllApiProducts("api-id");
+        }
+
+        @Test
+        public void should_throw_technical_management_exception_when_repository_fails() throws TechnicalException {
+            doThrow(new TechnicalException("DB error")).when(apiProductsRepository).removeApiFromAllApiProducts("api-id");
+
+            var exception = assertThrows(io.gravitee.rest.api.service.exceptions.TechnicalManagementException.class, () ->
+                apiProductCrudService.removeApiFromAllApiProducts("api-id")
+            );
+
+            assertThat(exception.getMessage()).contains("api-id");
+        }
+    }
+
+    @Nested
     class Get {
 
         @Test

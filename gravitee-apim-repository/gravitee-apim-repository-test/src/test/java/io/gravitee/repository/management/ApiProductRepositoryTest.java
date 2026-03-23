@@ -230,6 +230,34 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldRemoveApiFromAllApiProducts() throws TechnicalException {
+        // "api1" appears in two API Products: f66274c9 (apiIds=[api1,api2]) and cad107c9 (apiIds=[api1])
+        apiProductsRepository.removeApiFromAllApiProducts("api1");
+
+        // api1 must be gone from f66274c9, api2 still present
+        var product1 = apiProductsRepository.findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3");
+        assertThat(product1).isPresent();
+        assertThat(product1.get().getApiIds()).doesNotContain("api1").contains("api2");
+
+        // api1 must be gone from cad107c9 (no other apiIds remain)
+        var product2 = apiProductsRepository.findByApiId("api1");
+        assertThat(product2).isEmpty();
+
+        // 459a022c was not affected — still has its original apiIds
+        var product3 = apiProductsRepository.findByApiId("api2");
+        assertThat(product3).isNotEmpty();
+        product3.forEach(p -> assertThat(p.getApiIds()).doesNotContain("api1"));
+    }
+
+    @Test
+    public void shouldDoNothingWhenRemovingApiNotPresentInAnyProduct() throws TechnicalException {
+        apiProductsRepository.removeApiFromAllApiProducts("unknown-api-id");
+
+        // All 3 products still present and unchanged
+        assertThat(apiProductsRepository.findByEnvironmentId("my-env")).hasSize(3);
+    }
+
+    @Test
     public void shouldFindAllApiProducts() throws TechnicalException {
         Set<ApiProduct> apiProducts = apiProductsRepository.findAll();
 

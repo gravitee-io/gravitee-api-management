@@ -39,6 +39,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.CollectionUtils;
 
 public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositoryCustom {
@@ -50,6 +51,13 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
     public Set<ApiProductMongo> findByApiId(String apiId) {
         Query query = new Query(Criteria.where("apiIds").is(apiId));
         return new HashSet<>(mongoTemplate.find(query, ApiProductMongo.class));
+    }
+
+    @Override
+    public void removeApiFromAllApiProducts(String apiId) {
+        Query query = new Query(Criteria.where("apiIds").is(apiId));
+        Update update = new Update().pull("apiIds", apiId);
+        mongoTemplate.updateMulti(query, update, ApiProductMongo.class);
     }
 
     @Override
