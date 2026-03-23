@@ -16,8 +16,8 @@
 import { isNumber } from 'angular';
 
 import { Component, inject, OnInit } from '@angular/core';
-import { map, shareReplay, switchMap, take, catchError, finalize } from 'rxjs/operators';
-import { ReplaySubject, of, Observable } from 'rxjs';
+import { map, switchMap, take, catchError, finalize } from 'rxjs/operators';
+import { ReplaySubject, of, Observable, EMPTY } from 'rxjs';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -75,7 +75,8 @@ export class WebhookLogsComponent implements OnInit {
   private readonly applicationService = inject(ApplicationService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
-  private readonly api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
+  private readonly apiSubject$ = new ReplaySubject<Api>(1);
+  private readonly api$: Observable<Api> = this.apiSubject$.asObservable();
 
   isReportingDisabled$ = this.api$.pipe(
     map((api) => {
@@ -108,6 +109,7 @@ export class WebhookLogsComponent implements OnInit {
   loading = false;
 
   ngOnInit(): void {
+    this.loadApi();
     const qp = this.activatedRoute.snapshot.queryParams;
 
     const initialStatuses = qp?.statuses
@@ -559,6 +561,7 @@ export class WebhookLogsComponent implements OnInit {
       )
       .subscribe((result) => {
         if (result?.saved) {
+          this.loadApi();
           const qp = this.activatedRoute.snapshot.queryParams;
           const page = qp?.page ? Number(qp.page) : 1;
           const perPage = qp?.perPage ? Number(qp.perPage) : 10;
@@ -608,6 +611,19 @@ export class WebhookLogsComponent implements OnInit {
 
   private isApiV4(api: Api): api is ApiV4 {
     return api?.definitionVersion === 'V4';
+  }
+
+  private loadApi(): void {
+    this.apiService
+      .get(this.activatedRoute.snapshot.params.apiId)
+      .pipe(
+        take(1),
+        catchError(() => {
+          this.snackBarService.error('Failed to load API settings');
+          return EMPTY;
+        }),
+      )
+      .subscribe((api) => this.apiSubject$.next(api));
   }
 
   /**
