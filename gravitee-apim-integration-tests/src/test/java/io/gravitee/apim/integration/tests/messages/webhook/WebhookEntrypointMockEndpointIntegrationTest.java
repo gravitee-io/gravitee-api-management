@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.webhook;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
@@ -519,8 +520,14 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // Make sure the token endpoint has been called with the JWT bearer grant type.
-        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        wiremock.verify(
+            moreThanOrExactly(1),
+            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                .withRequestBody(containing("client_assertion="))
+        );
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
@@ -557,8 +564,14 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // Make sure the token endpoint has been called with the JWT bearer grant type.
-        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        wiremock.verify(
+            moreThanOrExactly(1),
+            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                .withRequestBody(containing("client_assertion="))
+        );
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
@@ -602,8 +615,14 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // Make sure the token endpoint has been called with the JWT bearer grant type.
-        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        wiremock.verify(
+            moreThanOrExactly(1),
+            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                .withRequestBody(containing("client_assertion="))
+        );
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
@@ -643,8 +662,14 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // Make sure the token endpoint has been called with the JWT bearer grant type.
-        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        wiremock.verify(
+            moreThanOrExactly(1),
+            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                .withRequestBody(containing("client_assertion="))
+        );
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
@@ -687,8 +712,14 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // Make sure the token endpoint has been called with the JWT bearer grant type.
-        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        wiremock.verify(
+            moreThanOrExactly(1),
+            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                .withRequestBody(containing("client_assertion="))
+        );
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(

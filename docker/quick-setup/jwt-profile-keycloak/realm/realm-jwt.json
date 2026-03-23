@@ -1,0 +1,60 @@
+{
+  "id": "jwt-test",
+  "realm": "jwt-test",
+  "displayName": "JWT Test Realm",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 300,
+  "clients": [
+    {
+      "id": "apim-webhook-client-id",
+      "clientId": "apim-webhook-client",
+      "name": "APIM Webhook Client (JWT Auth)",
+      "description": "Used by APIM Gateway to fetch tokens via JWT Bearer client auth (RFC 7523)",
+      "enabled": true,
+      "clientAuthenticatorType": "client-jwt",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "use.jwks.url": "false",
+        "jwt.credential.public.key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0DRyEjSB6eAr8uWNyeT3PaxCcBR0FwSSsB9ChIsyc7ydfVOZ/RODZxVaU0lKLHmawjuq4k/HV9nDzcYbJb9473pnDLJY/GRD9OeJI7nqOjqjy+9eAy64daC8Of/Ql8GRi3Tfl8cjEa1Sd2qji/wLoVVYp6XUQiLyRyJtlFuoTIe0DU2kPu7AnE5QhWRvURhSXwacTG2lJLrAZvgAz25G1HlPUg3Iu3CIvXPWHbY5/veWcP0YU49QxV9DULYoT1Z4ZmegV/UCT28WBj+cLhCnWBFZfbtb5i5HPXe8mOtWpkbvdkOCGuuKWXL88DXGDM0Q5ispTHsZrNEQYeFIp4XVQwIDAQAB"
+      }
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "id": "offline_access",
+        "name": "offline_access",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "jwt-test"
+      },
+      {
+        "id": "uma_authorization",
+        "name": "uma_authorization",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "jwt-test"
+      },
+      {
+        "id": "default-roles-jwt-test",
+        "name": "default-roles-jwt-test",
+        "composite": true,
+        "composites": {
+          "realm": ["offline_access", "uma_authorization"]
+        },
+        "clientRole": false,
+        "containerId": "jwt-test"
+      }
+    ]
+  },
+  "defaultRoles": ["default-roles-jwt-test"]
+}

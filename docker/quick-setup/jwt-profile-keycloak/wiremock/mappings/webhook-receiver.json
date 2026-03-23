@@ -1,0 +1,43 @@
+{
+  "mappings": [
+    {
+      "name": "Webhook receiver - accept any Bearer token",
+      "request": {
+        "method": "POST",
+        "urlPattern": "/webhook.*",
+        "headers": {
+          "Authorization": {
+            "matches": "Bearer .+"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "status": "received",
+          "timestamp": "{{now}}"
+        }
+      }
+    },
+    {
+      "name": "Webhook receiver - missing/bad auth (debug)",
+      "request": {
+        "method": "POST",
+        "urlPattern": "/webhook.*"
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "error": "unauthorized",
+          "message": "Missing or invalid Authorization header - expected Bearer token from Keycloak"
+        }
+      }
+    }
+  ]
+}
