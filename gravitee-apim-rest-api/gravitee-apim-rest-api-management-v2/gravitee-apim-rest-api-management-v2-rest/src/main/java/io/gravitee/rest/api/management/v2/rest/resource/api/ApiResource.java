@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -88,6 +87,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.ApiSpecGenRe
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.management.v2.rest.usecase.PatchApiDefinitionUseCase;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.JsonPatch;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -115,7 +115,6 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -126,7 +125,6 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
-import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
@@ -213,7 +211,7 @@ public class ApiResource extends AbstractResource {
     private ExportApiUseCase exportApiUseCase;
 
     @Inject
-    private JsonPatchService jsonPatchService;
+    private PatchApiDefinitionUseCase patchApiDefinitionUseCase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -557,55 +555,26 @@ public class ApiResource extends AbstractResource {
         final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
         evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
-        if (
-            !(currentEntity instanceof ApiEntity api) ||
-            currentEntity.getDefinitionVersion() != DefinitionVersion.V4 ||
-            api.getType() != ApiType.PROXY
-        ) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new Error()
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                        .message(
-                            "JSON Patch on the API definition is only available for V4 HTTP Proxy APIs; this API type is not supported."
-                        )
-                )
-                .build();
+        if (!supportsJsonPatchDefinition(currentEntity)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(apiDefinitionPatchNotSupported(apiId)).build();
         }
 
-        var export = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
-        String definitionJson = patchDefinitionToJson(ImportExportApiMapper.INSTANCE.map(export.definition()));
+        var patchOutput = patchApiDefinitionUseCase.execute(new PatchApiDefinitionUseCase.Input(apiId, getAuditInfo(), patches, dryRun));
 
-        try {
-            String definitionModified = jsonPatchService.execute(definitionJson, patches);
-            if (dryRun) {
-                return Response.ok(definitionModified).build();
-            }
-
-            ExportApiV4 patchedExport = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(definitionModified);
-            UpdateApiV4 updateApiV4 = ApiMapper.INSTANCE.mapToUpdateApiV4(patchedExport.getApi());
-
-            GenericApiEntity updatedEntity = updateApiV4(currentEntity, updateApiV4);
-
-            return Response.ok(patchedExport)
-                .tag(Long.toString(updatedEntity.getUpdatedAt().getTime()))
-                .lastModified(updatedEntity.getUpdatedAt())
-                .build();
-        } catch (JsonPatchTestFailedException e) {
-            log.trace("JSON Patch definition test did not apply for API [{}]", apiId, e);
-            return Response.noContent()
+        return switch (patchOutput) {
+            case PatchApiDefinitionUseCase.Result.PatchTestFailed() -> Response.noContent()
                 .tag(Long.toString(currentEntity.getUpdatedAt().getTime()))
                 .lastModified(currentEntity.getUpdatedAt())
                 .build();
-        }
-    }
-
-    private static String patchDefinitionToJson(ExportApiV4 exportApiV4) {
-        try {
-            return ImportExportApiMapper.JSON_MAPPER.writeValueAsString(exportApiV4);
-        } catch (JsonProcessingException e) {
-            throw new TechnicalManagementException("Failed to serialize API definition", e);
-        }
+            case PatchApiDefinitionUseCase.Result.DryRun(String json) -> Response.ok(
+                ImportExportApiMapper.INSTANCE.definitionToExportApiV4(json)
+            ).build();
+            case PatchApiDefinitionUseCase.Result.ApplyPatch(String json) -> responseAfterPatchedDefinitionPersist(
+                currentEntity,
+                apiId,
+                json
+            );
+        };
     }
 
     @GET
@@ -1212,6 +1181,35 @@ public class ApiResource extends AbstractResource {
             .message("Api [" + apiId + "] is not valid.")
             .putParametersItem("apiId", apiId)
             .technicalCode("api.invalid");
+    }
+
+    private static boolean supportsJsonPatchDefinition(GenericApiEntity currentEntity) {
+        if (!(currentEntity instanceof ApiEntity api)) {
+            return false;
+        }
+        return currentEntity.getDefinitionVersion() == DefinitionVersion.V4 && api.getType() == ApiType.PROXY;
+    }
+
+    private static Error apiDefinitionPatchNotSupported(String apiId) {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("JSON Patch on the API definition is only available for V4 HTTP Proxy APIs; this API type is not supported.")
+            .putParametersItem("apiId", apiId)
+            .technicalCode("api.definition.patch.unsupported");
+    }
+
+    private Response responseAfterPatchedDefinitionPersist(GenericApiEntity currentEntity, String apiId, String patchedExportJson) {
+        ExportApiV4 patchedExport = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(patchedExportJson);
+        UpdateApiV4 updateApiV4 = ApiMapper.INSTANCE.mapToUpdateApiV4(patchedExport.getApi());
+        GenericApiEntity updatedEntity = updateApiV4(currentEntity, updateApiV4);
+
+        var reExport = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
+        ExportApiV4 updatedDefinition = ImportExportApiMapper.INSTANCE.map(reExport.definition());
+
+        return Response.ok(updatedDefinition)
+            .tag(Long.toString(updatedEntity.getUpdatedAt().getTime()))
+            .lastModified(updatedEntity.getUpdatedAt())
+            .build();
     }
 
     private void checkApiReviewWorkflow(final GenericApiEntity api, final String action) {

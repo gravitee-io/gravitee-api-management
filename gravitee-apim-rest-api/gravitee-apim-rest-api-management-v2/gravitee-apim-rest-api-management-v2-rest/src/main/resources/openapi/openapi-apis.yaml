@@ -561,6 +561,53 @@ paths:
                                 $ref: "#/components/schemas/ExportApiV4"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/definition:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        patch:
+            tags:
+                - APIs
+            summary: Patch API definition
+            description: |-
+                Apply JSON Patch operations to the exported API definition for a V4 HTTP Proxy API.
+
+                The document patched is the same shape as returned by `GET .../_export/definition`. When `dryRun` is false, the API is updated using the same rules as `PUT .../apis/{apiId}` for a V4 API (including gateway-definition permission constraints on listeners).
+
+                User must have API_DEFINITION[UPDATE] or API_GATEWAY_DEFINITION[UPDATE] permissions.
+            operationId: patchApiDefinition
+            parameters:
+                - name: dryRun
+                  in: query
+                  required: false
+                  description: When true, the patch is evaluated against the export but the API is not persisted.
+                  schema:
+                      type: boolean
+                      default: false
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                $ref: "#/components/schemas/ApiDefinitionJsonPatch"
+            responses:
+                "200":
+                    description: |-
+                        Patched API definition in `ExportApiV4` form (same shape as `GET .../_export/definition`).
+
+                        With `dryRun=true`, the body is a preview only and is not persisted; `ETag` and `Last-Modified` are omitted, like the export endpoint.
+
+                        With `dryRun=false`, the API is updated and `ETag` / `Last-Modified` reflect the stored API after persist.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ExportApiV4"
+                "204":
+                    description: No change applied (for example JSON Patch `test` operation did not match)
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_start:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -3746,6 +3793,28 @@ components:
                     description: The list of API's media used in pages.
                     items:
                         $ref: "#/components/schemas/Media"
+
+        ApiDefinitionJsonPatch:
+            type: object
+            description: Gravitee JSON Patch entry (JSON Pointer path and operation).
+            required:
+                - jsonPath
+            properties:
+                jsonPath:
+                    type: string
+                    description: JSON Pointer path within the exported definition document.
+                    example: $.api.name
+                value:
+                    description: Value for add, replace, or test operations.
+                operation:
+                    type: string
+                    description: Patch operation; defaults to REPLACE when omitted.
+                    enum:
+                        - ADD
+                        - REMOVE
+                        - REPLACE
+                        - TEST
+                    default: REPLACE
 
         ImportSwaggerDescriptor:
             type: object

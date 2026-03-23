@@ -218,6 +218,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.rest.api.management.v2.rest.usecase.PatchApiDefinitionUseCase;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -863,6 +864,11 @@ public class ResourceContextConfiguration {
         io.gravitee.rest.api.service.sanitizer.HtmlSanitizer legacyHtmlSanitizer
     ) {
         return new JsonPatchServiceImpl(objectMapper, legacyHtmlSanitizer);
+    }
+
+    @Bean
+    public PatchApiDefinitionUseCase patchApiDefinitionUseCase(ExportApiUseCase exportApiUseCase, JsonPatchService jsonPatchService) {
+        return new PatchApiDefinitionUseCase(exportApiUseCase, jsonPatchService);
     }
 
     @Bean

@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProc
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
@@ -30,8 +31,10 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
+import io.gravitee.rest.api.management.v2.rest.usecase.PatchApiDefinitionUseCase;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
@@ -54,6 +57,11 @@ public class RestManagementConfiguration {
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
         return new ExpressionLanguageInitializer();
+    }
+
+    @Bean
+    public PatchApiDefinitionUseCase patchApiDefinitionUseCase(ExportApiUseCase exportApiUseCase, JsonPatchService jsonPatchService) {
+        return new PatchApiDefinitionUseCase(exportApiUseCase, jsonPatchService);
     }
 
     @Bean
