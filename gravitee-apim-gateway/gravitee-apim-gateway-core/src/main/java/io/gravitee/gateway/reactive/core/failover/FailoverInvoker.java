@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
+import org.springframework.util.StringUtils;
 
 @CustomLog
 public class FailoverInvoker implements HttpInvoker, Invoker {
@@ -70,7 +71,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      * @param failoverConfiguration the {@link Failover} configuration that specifies the failover behavior and settings.
      * @param apiId the identifier of the API for which this invoker is instantiated.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "4.11.0", forRemoval = true)
     public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId) {
         this(delegate, failoverConfiguration, apiId, null);
     }
@@ -107,16 +108,24 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
     @Override
     public Completable invoke(HttpExecutionContext ctx) {
         final String originalEndpoint = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
-        final AtomicInteger attemptIndex = new AtomicInteger(0);
-        final AtomicReference<List<String>> capturedEndpoints = new AtomicReference<>();
+        final AtomicInteger totalAttempts = new AtomicInteger(0);
+        final AtomicReference<List<String>> endpointRotation = new AtomicReference<>();
+        final AtomicReference<String> firstFailedEndpoint = new AtomicReference<>();
 
         return Completable.defer(() -> {
+            int attempt = totalAttempts.getAndIncrement();
+
+            // On retry, capture the endpoint that failed in the previous attempt
+            if (attempt > 0) {
+                firstFailedEndpoint.compareAndSet(null, resolveCurrentEndpointName(ctx));
+            }
+
             // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
             ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
             // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
             ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
-            forceNextEndpoint(ctx, attemptIndex, capturedEndpoints);
+            forceNextEndpoint(ctx, attempt, endpointRotation);
 
             // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
             return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx)).andThen(evaluateFailureCondition(ctx));
@@ -124,10 +133,25 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
             .retry(failoverConfiguration.getMaxRetries())
             .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
-            .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)));
+            .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)))
+            .doFinally(() -> recordFailoverMetrics(ctx, totalAttempts.get(), firstFailedEndpoint.get()));
     }
 
-    private void forceNextEndpoint(HttpExecutionContext ctx, AtomicInteger attemptIndex, AtomicReference<List<String>> capturedEndpoints) {
+    /**
+     * Forces the invocation to switch to the next available endpoint in the rotation if the configured
+     * failover settings permit this behavior, and the current attempt is not the first one.
+     * If the rotation cannot be computed (e.g., no managed endpoint in context, or single endpoint in the group),
+     * the default load balancer selection is preserved.
+     *
+     * @param ctx the {@link HttpExecutionContext} of the current invocation, which provides access
+     *            to request and plugin execution details.
+     * @param attempt the current invocation attempt count. A value of 0 indicates the first attempt,
+     *                and no endpoint rotation will occur.
+     * @param endpointRotation a mutable {@link AtomicReference} holding the list of available
+     *                         endpoints for failover. The list is lazily initialized on the first
+     *                         invocation.
+     */
+    private void forceNextEndpoint(HttpExecutionContext ctx, int attempt, AtomicReference<List<String>> endpointRotation) {
         if (!failoverConfiguration.isForceNextEndpointOnFailure()) {
             return;
         }
@@ -135,68 +159,97 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             ctx.withLogger(log).warn("Endpoint manager is null, cannot force next endpoint");
             return;
         }
-
-        int attempt = attemptIndex.getAndIncrement();
         if (attempt == 0) {
-            // First attempt: let the LB pick the endpoint normally, we'll capture it after invocation
-            // Capture happens on retry (attempt > 0), using the ManagedEndpoint set by HttpEndpointInvoker
+            // First attempt: let the LB pick the endpoint normally
+            ctx.withLogger(log).debug("First attempt, using load balancer to pick endpoint");
             return;
         }
 
-        List<String> endpoints = capturedEndpoints.get();
-        if (endpoints == null) {
-            // Build the ordered list of endpoints starting from the one after the initially selected endpoint
-            endpoints = buildEndpointRotation(ctx);
-            capturedEndpoints.set(endpoints);
-        }
+        List<String> rotation = initEndpointRotation(ctx, endpointRotation);
 
-        if (endpoints != null && !endpoints.isEmpty()) {
-            // Select the next endpoint in the rotation (attempt-1 because attempt 0 was the LB pick)
-            int index = (attempt - 1) % endpoints.size();
-            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, endpoints.get(index) + ":");
+        if (rotation != null && !rotation.isEmpty()) {
+            int index = (attempt - 1) % rotation.size();
+            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, rotation.get(index) + ":");
         }
     }
 
+    /**
+     * Initializes the endpoint rotation for failover handling. If the endpoint rotation list is not
+     * already initialized, this method builds the endpoint rotation from the provided execution context
+     * and sets it in the given atomic reference. The rotation ensures the endpoints are processed
+     * cyclically in failover scenarios.
+     *
+     * @param ctx the {@link HttpExecutionContext} providing the invocation context,
+     *            including attributes and execution details.
+     * @param endpointRotation a mutable {@link AtomicReference} holding the list of available
+     *                         endpoints for failover. The list is lazily initialized if null.
+     * @return the initialized or existing list of endpoint names in rotation order, or {@code null}
+     *         if no endpoints are available or could be determined from the context.
+     */
+    private List<String> initEndpointRotation(HttpExecutionContext ctx, AtomicReference<List<String>> endpointRotation) {
+        List<String> rotation = endpointRotation.get();
+        if (rotation == null) {
+            rotation = buildEndpointRotation(ctx);
+            endpointRotation.set(rotation);
+        }
+        return rotation;
+    }
+
+    /**
+     * Builds the rotation of endpoints for failover handling based on the provided execution context.
+     * The rotation is calculated by starting from the endpoint immediately following the currently
+     * selected one, cycling through the list of endpoints, and including the selected endpoint at the end.
+     * If the currently selected endpoint cannot be determined, or if there's only one endpoint available,
+     * the rotation will not be created.
+     *
+     * @param ctx the {@link HttpExecutionContext} providing the invocation context and attributes.
+     *            It should contain the currently selected endpoint as an internal attribute.
+     * @return a list of endpoint names in the calculated rotation order, or {@code null} if no
+     *         valid endpoints are available or the rotation could not be determined.
+     */
     private List<String> buildEndpointRotation(HttpExecutionContext ctx) {
         ManagedEndpoint selectedEndpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
         if (selectedEndpoint == null) {
             return null;
         }
 
-        String selectedGroupName = selectedEndpoint.getGroup().getDefinition().getName();
         String selectedEndpointName = selectedEndpoint.getDefinition().getName();
 
-        // Get all endpoints from the same group
-        List<ManagedEndpoint> allEndpoints = endpointManager.all();
-        List<String> groupEndpointNames = new ArrayList<>();
-        int selectedIndex = -1;
-
-        for (ManagedEndpoint ep : allEndpoints) {
-            if (ep.getGroup().getDefinition().getName().equals(selectedGroupName)) {
-                String name = ep.getDefinition().getName();
-                if (name.equals(selectedEndpointName)) {
-                    selectedIndex = groupEndpointNames.size();
-                }
-                groupEndpointNames.add(name);
-            }
-        }
-
-        if (groupEndpointNames.size() <= 1 || selectedIndex == -1) {
+        // Use the group definition to get endpoints in their declaration order
+        List<? extends io.gravitee.definition.model.v4.endpointgroup.Endpoint> definedEndpoints = selectedEndpoint
+            .getGroup()
+            .getDefinition()
+            .getEndpoints();
+        if (definedEndpoints == null || definedEndpoints.size() <= 1) {
             return null;
         }
 
-        // Build rotation starting from the endpoint after the selected one
-        List<String> rotation = new ArrayList<>(groupEndpointNames.size() - 1);
-        for (int i = 1; i < groupEndpointNames.size(); i++) {
-            int idx = (selectedIndex + i) % groupEndpointNames.size();
-            rotation.add(groupEndpointNames.get(idx));
+        List<String> endpointNames = new ArrayList<>(definedEndpoints.size());
+        int selectedIndex = -1;
+        for (int i = 0; i < definedEndpoints.size(); i++) {
+            String name = definedEndpoints.get(i).getName();
+            endpointNames.add(name);
+            if (name.equals(selectedEndpointName)) {
+                selectedIndex = i;
+            }
+        }
+
+        if (selectedIndex == -1) {
+            return null;
+        }
+
+        // Build full rotation starting from the endpoint after the selected one, cycling back to include it
+        List<String> rotation = new ArrayList<>(endpointNames.size());
+        for (int i = 1; i <= endpointNames.size(); i++) {
+            int idx = (selectedIndex + i) % endpointNames.size();
+            rotation.add(endpointNames.get(idx));
         }
         return rotation;
     }
 
     private Completable evaluateFailureCondition(HttpExecutionContext ctx) {
         String condition = failoverConfiguration.getFailureCondition();
-        if (condition == null || condition.isEmpty()) {
+        if (!StringUtils.hasText(condition)) {
             return Completable.complete();
         }
         return ctx
@@ -209,6 +262,26 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
                 return Completable.complete();
             })
             .onErrorComplete(t -> !(t instanceof FailoverConditionMatchException));
+    }
+
+    private String resolveCurrentEndpointName(HttpExecutionContext ctx) {
+        ManagedEndpoint endpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
+        return endpoint != null ? endpoint.getDefinition().getName() : null;
+    }
+
+    private void recordFailoverMetrics(HttpExecutionContext ctx, int totalAttempts, String firstFailed) {
+        int failoverCount = totalAttempts - 1;
+        if (failoverCount <= 0) {
+            return;
+        }
+        ctx.metrics().putAdditionalMetric("long_failover_count", (long) failoverCount);
+        if (firstFailed != null) {
+            ctx.metrics().putAdditionalKeywordMetric("keyword_failover_first-failed-endpoint", firstFailed);
+        }
+        ManagedEndpoint successfulEndpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
+        if (successfulEndpoint != null) {
+            ctx.metrics().putAdditionalKeywordMetric("keyword_failover_successful-endpoint", successfulEndpoint.getDefinition().getName());
+        }
     }
 
     private CircuitBreaker circuitBreaker(HttpExecutionContext ctx) {
