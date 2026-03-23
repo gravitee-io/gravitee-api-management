@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.portal.rest.resource.param.PortalApiViewParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -366,7 +367,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             )
         );
 
-        final Response response = target(API).queryParam("view", "documentation").request().get();
+        final Response response = target(API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
 
         assertEquals(OK_200, response.getStatus());
         final Api responseApi = response.readEntity(Api.class);
@@ -391,7 +395,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             )
         );
 
-        final Response response = target(API).queryParam("view", "documentation").request().get();
+        final Response response = target(API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
 
         assertEquals(NOT_FOUND_404, response.getStatus());
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -431,7 +438,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             )
         );
 
-        final Response response = target(API).queryParam("view", "documentation").request().get();
+        final Response response = target(API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
 
         assertEquals(OK_200, response.getStatus());
         final Api responseApi = response.readEntity(Api.class);

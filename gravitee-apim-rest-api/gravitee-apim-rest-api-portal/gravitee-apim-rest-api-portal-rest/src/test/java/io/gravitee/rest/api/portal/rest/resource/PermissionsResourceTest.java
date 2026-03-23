@@ -18,24 +18,36 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.PortalApiViewParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -45,9 +57,22 @@ public class PermissionsResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
     private static final String APPLICATION = "my-app";
+    private static final String ENV_ID = "DEFAULT";
+
+    @Autowired
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
+
+    @Autowired
+    private MembershipQueryServiceInMemory membershipQueryService;
 
     protected String contextPath() {
         return "permissions/";
+    }
+
+    @AfterEach
+    void tear_down_portal_navigation_state() {
+        portalNavigationItemsQueryService.reset();
+        membershipQueryService.reset();
     }
 
     @BeforeEach
@@ -136,5 +161,124 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
         final Map permissionsResponse = response.readEntity(Map.class);
         assertNotNull(permissionsResponse);
+    }
+
+    @Test
+    void should_return_permissions_with_documentation_view_when_can_access_from_portal_is_false_but_api_visible_in_nav() {
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build()
+            )
+        );
+
+        final Response response = target()
+            .queryParam("apiId", API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
+
+        assertEquals(OK_200, response.getStatus());
+        assertNotNull(response.readEntity(Map.class));
+    }
+
+    @Test
+    void should_return_not_found_with_documentation_view_when_api_not_visible_in_nav() {
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        final Response response = target()
+            .queryParam("apiId", API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        List<Error> errors = response.readEntity(ErrorResponse.class).getErrors();
+        assertEquals("errors.api.notFound", errors.get(0).getCode());
+    }
+
+    @Test
+    void should_fall_back_to_legacy_access_control_when_view_is_not_documentation() {
+        final Response response = target().queryParam("apiId", API).queryParam(PortalApiViewParam.QUERY_PARAM_NAME, "foo").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        verify(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+    }
+
+    @Test
+    void should_ignore_view_param_for_application_permissions() {
+        final Response response = target()
+            .queryParam("applicationId", APPLICATION)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
+
+        assertEquals(OK_200, response.getStatus());
+        Map permissionsResponse = response.readEntity(Map.class);
+        assertTrue(permissionsResponse.containsKey("APPLICATION"));
+    }
+
+    @Test
+    void should_return_permissions_with_documentation_view_when_private_nav_and_user_is_member() {
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("membership-" + USER_NAME + "-" + API)
+                    .memberId(USER_NAME)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId(API)
+                    .build()
+            )
+        );
+
+        final Response response = target()
+            .queryParam("apiId", API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
+
+        assertEquals(OK_200, response.getStatus());
+        assertNotNull(response.readEntity(Map.class));
     }
 }
