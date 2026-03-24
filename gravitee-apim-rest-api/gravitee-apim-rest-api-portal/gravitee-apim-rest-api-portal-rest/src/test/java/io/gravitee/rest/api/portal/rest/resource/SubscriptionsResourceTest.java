@@ -35,6 +35,7 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -58,6 +59,7 @@ import io.gravitee.rest.api.service.v4.exception.SubscriptionMetadataInvalidExce
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -229,6 +231,19 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
             .application(APPLICATION)
             .plan(PLAN)
             .metadata(Map.of("bad key", "value"));
+
+        final Response response = target().request().post(Entity.json(subscriptionInput));
+        Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        verify(createSubscriptionUseCase, times(1)).execute(any());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenSubscriptionFormMetadataIsInvalid() {
+        doThrow(new SubscriptionFormValidationException(List.of("Field 'email' is required")))
+            .when(createSubscriptionUseCase)
+            .execute(any());
+
+        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of());
 
         final Response response = target().request().post(Entity.json(subscriptionInput));
         Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
