@@ -152,6 +152,26 @@ public sealed interface Constraint
 
     /** Value must be at most {@code max} characters long (skipped when empty). */
     record MaxLength(int max) implements Constraint {
+        public static final int INPUT_MAX_LENGTH = 256;
+
+        public static final int TEXTAREA_MAX_LENGTH = 1024;
+
+        public static MaxLength forInput() {
+            return new MaxLength(INPUT_MAX_LENGTH);
+        }
+
+        public static MaxLength forInput(int userDefined) {
+            return new MaxLength(Math.min(userDefined, INPUT_MAX_LENGTH));
+        }
+
+        public static MaxLength forTextarea() {
+            return new MaxLength(TEXTAREA_MAX_LENGTH);
+        }
+
+        public static MaxLength forTextarea(int userDefined) {
+            return new MaxLength(Math.min(userDefined, TEXTAREA_MAX_LENGTH));
+        }
+
         @Override
         public boolean check(String value) {
             return value.isEmpty() || value.length() <= max;

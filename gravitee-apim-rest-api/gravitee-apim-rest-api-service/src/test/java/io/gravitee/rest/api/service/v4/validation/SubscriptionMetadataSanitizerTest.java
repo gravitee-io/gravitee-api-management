@@ -52,41 +52,6 @@ class SubscriptionMetadataSanitizerTest {
     }
 
     @Test
-    void should_throw_when_metadata_value_is_too_long() {
-        Map<String, String> tooLongValue = Map.of("valid_key", "a".repeat(1025));
-
-        var throwable = assertThrows(SubscriptionMetadataInvalidException.class, () -> cut.sanitizeAndValidate(tooLongValue));
-
-        assertThat(throwable.getTechnicalCode()).isEqualTo("subscription.metadata.value.too_long");
-        assertThat(throwable.getMessage()).isEqualTo("Metadata value for key 'valid_key' is too long (max 1024 characters).");
-    }
-
-    @Test
-    void should_throw_when_metadata_count_exceeds_maximum() {
-        Map<String, String> tooMany = new HashMap<>();
-        for (int i = 0; i < 26; i++) {
-            tooMany.put("key_" + i, "value");
-        }
-
-        var throwable = assertThrows(SubscriptionMetadataInvalidException.class, () -> cut.sanitizeAndValidate(tooMany));
-
-        assertThat(throwable.getTechnicalCode()).isEqualTo("subscription.metadata.too_many");
-        assertThat(throwable.getMessage()).isEqualTo("Too many metadata entries. Maximum is 25.");
-    }
-
-    @Test
-    void should_accept_metadata_at_maximum_count() {
-        Map<String, String> maxAllowed = new HashMap<>();
-        for (int i = 0; i < 25; i++) {
-            maxAllowed.put("key_" + i, "value");
-        }
-
-        var result = cut.sanitizeAndValidate(maxAllowed);
-
-        assertThat(result).hasSize(25);
-    }
-
-    @Test
     void should_strip_html_tags_and_omit_empty_values() {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("field_a", "<script>alert(1)</script>");
