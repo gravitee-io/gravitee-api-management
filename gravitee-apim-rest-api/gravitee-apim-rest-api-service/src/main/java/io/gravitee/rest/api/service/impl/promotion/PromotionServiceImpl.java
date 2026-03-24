@@ -323,6 +323,18 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             final Promotion updated = promotionRepository.update(promotion);
 
+            auditService.createApiAuditLog(
+                targetExecutionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(PROMOTION_CREATED)
+                    .createdAt(updated.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(updated)
+                    .build(),
+                updated.getApiId()
+            );
+
             return convert(updated);
         } catch (TechnicalException | IOException ex) {
             LOGGER.error("An error occurs while trying to process promotion", ex);
