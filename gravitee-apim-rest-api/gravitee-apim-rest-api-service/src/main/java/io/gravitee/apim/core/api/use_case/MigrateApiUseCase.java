@@ -256,7 +256,6 @@ public class MigrateApiUseCase {
                 .build()
         );
         var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
-        apiIndexerDomainService.delete(indexerContext, api);
         apiIndexerDomainService.index(indexerContext, upgraded, apiPrimaryOwner);
         // Plans
         migration.plans().forEach(planService::update);
