@@ -512,8 +512,7 @@ describe('LogsFiltersController', () => {
 
       const query = controller['buildQuery'](filters);
 
-      // The buildQuery escapes forward slashes, so / becomes \\/
-      expect(query).toContain('uri:\\\\/test\\\\/path*');
+      expect(query).toContain('uri:/test/path*');
     });
 
     it('should add trailing asterisk to uri if missing', () => {
@@ -523,8 +522,7 @@ describe('LogsFiltersController', () => {
 
       const query = controller['buildQuery'](filters);
 
-      // The buildQuery escapes forward slashes, so / becomes \\/
-      expect(query).toContain('uri:\\\\/test\\\\/path*');
+      expect(query).toContain('uri:/test/path*');
     });
 
     it('should escape special characters in uri', () => {
@@ -534,7 +532,8 @@ describe('LogsFiltersController', () => {
 
       const query = controller['buildQuery'](filters);
 
-      expect(query).toContain('\\+');
+      expect(query).toContain(String.raw`uri:/test\\+path*`);
+      expect(query).not.toContain('uri:/test path*');
     });
 
     it('should wrap body filter with wildcards', () => {
