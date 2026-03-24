@@ -28,6 +28,7 @@ import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSc
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
