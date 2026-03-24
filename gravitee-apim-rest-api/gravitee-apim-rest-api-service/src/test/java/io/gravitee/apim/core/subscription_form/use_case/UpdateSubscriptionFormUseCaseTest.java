@@ -24,10 +24,13 @@ import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,13 +40,15 @@ class UpdateSubscriptionFormUseCaseTest {
     private final SubscriptionFormCrudServiceInMemory crudService = new SubscriptionFormCrudServiceInMemory();
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
     private final GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
+    private final SubscriptionFormSchemaGenerator schemaGenerator = new SubscriptionFormSchemaGeneratorImpl();
+
     private UpdateSubscriptionFormUseCase useCase;
 
     @BeforeEach
     void setUp() {
         crudService.reset();
         queryService.reset();
-        useCase = new UpdateSubscriptionFormUseCase(crudService, queryService, gmdValidator);
+        useCase = new UpdateSubscriptionFormUseCase(crudService, queryService, gmdValidator, schemaGenerator);
     }
 
     @Test
@@ -67,7 +72,22 @@ class UpdateSubscriptionFormUseCaseTest {
             GraviteeMarkdown.of("<gmd-input name=\"updated\" fieldKey=\"updated\"/>")
         );
         assertThat(result.subscriptionForm().getId()).isEqualTo(existingForm.getId());
-        assertThat(result.subscriptionForm().getValidationConstraints()).isEqualTo(SubscriptionFormFieldConstraints.empty());
+        assertThat(result.subscriptionForm().getValidationConstraints()).isNotNull();
+        assertThat(result.subscriptionForm().getValidationConstraints().byFieldKey()).containsKey("updated");
+    }
+
+    @Test
+    void should_persist_empty_constraints_when_gmd_has_no_form_fields() {
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
+        crudService.initWith(List.of(existingForm));
+        queryService.initWith(List.of(existingForm));
+
+        var result = useCase.execute(
+            new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), "<p>Only static content</p>")
+        );
+
+        assertThat(result.subscriptionForm().getValidationConstraints()).isNotNull();
+        assertThat(result.subscriptionForm().getValidationConstraints().isEmpty()).isTrue();
     }
 
     @Test
@@ -78,6 +98,30 @@ class UpdateSubscriptionFormUseCaseTest {
             "<gmd-input name=\"test\" fieldKey=\"test\"/>"
         );
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
+    }
+
+    @Test
+    void should_throw_when_form_exceeds_max_field_count() {
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
+        crudService.initWith(List.of(existingForm));
+        queryService.initWith(List.of(existingForm));
+
+        int tooMany = SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + 1;
+        StringBuilder gmd = new StringBuilder();
+        for (int i = 0; i < tooMany; i++) {
+            gmd.append("<gmd-input fieldKey=\"field").append(i).append("\"/>");
+        }
+
+        var input = new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), gmd.toString());
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(SubscriptionFormValidationException.class)
+            .extracting(e -> ((SubscriptionFormValidationException) e).getErrors())
+            .satisfies(errors ->
+                assertThat(errors).containsExactly(
+                    "Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"
+                )
+            );
     }
 
     @Test

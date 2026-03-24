@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -318,6 +319,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected EndpointConnectorPluginService endpointConnectorPluginService;
+
+    @Autowired
+    protected SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator;
 
     public AbstractResourceTest() {
         super(
