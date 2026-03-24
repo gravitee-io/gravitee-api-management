@@ -173,6 +173,8 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         background: new FormControl(this.application.background),
         settings: settings as FormGroup,
       });
+
+      this.applicationForm.get('settings.tls.client_certificate')?.disable();
     }
   }
 

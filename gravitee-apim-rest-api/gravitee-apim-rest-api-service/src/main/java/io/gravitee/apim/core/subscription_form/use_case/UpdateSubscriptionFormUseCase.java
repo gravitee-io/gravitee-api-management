@@ -24,10 +24,12 @@ import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSc
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
