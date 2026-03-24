@@ -23,9 +23,13 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates and sanitizes subscription form metadata (keys, value length).
+ * Sanitizes subscription metadata: validates key format and strips HTML tags from values.
  * Values are plain text; HTML tags are stripped to prevent XSS when metadata is rendered.
  * No HTML encoding is applied, so characters like {@code @}, {@code +}, {@code =} are stored as-is.
+ *
+ * <p>Business-level limits (max value length, max entry count) are enforced separately by
+ * {@link io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator}
+ * for subscriptions that go through a subscription form.</p>
  *
  * @author GraviteeSource Team
  */
@@ -34,27 +38,18 @@ public class SubscriptionMetadataSanitizer {
 
     private static final Pattern KEY_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,100}$");
     private static final Pattern HTML_TAG = Pattern.compile("<[^>]*>");
-    private static final int MAX_VALUE_LENGTH = 1024;
-    private static final int MAX_METADATA_COUNT = 25;
 
     /**
-     * Validates metadata keys and value lengths, then strips HTML tags from each value.
+     * Validates metadata key format, strips HTML tags from each value, and omits blank values.
      * Any remaining characters (including {@code <}, {@code >}, non-Latin, etc.) are stored as-is.
      *
      * @param metadata raw metadata from the client
      * @return sanitized metadata, or empty map if input is null
-     * @throws SubscriptionMetadataInvalidException if a key is invalid or a value exceeds max length
+     * @throws SubscriptionMetadataInvalidException if a key does not match the required format
      */
     public Map<String, String> sanitizeAndValidate(Map<String, String> metadata) {
         if (metadata == null) {
             return Collections.emptyMap();
-        }
-
-        if (metadata.size() > MAX_METADATA_COUNT) {
-            throw new SubscriptionMetadataInvalidException(
-                SubscriptionMetadataInvalidException.Reason.TOO_MANY,
-                "Too many metadata entries. Maximum is " + MAX_METADATA_COUNT + "."
-            );
         }
 
         Map<String, String> sanitizedMetadata = new HashMap<>();
@@ -67,15 +62,7 @@ public class SubscriptionMetadataSanitizer {
                 );
             }
 
-            String value = entry.getValue();
-            if (value != null && value.length() > MAX_VALUE_LENGTH) {
-                throw new SubscriptionMetadataInvalidException(
-                    SubscriptionMetadataInvalidException.Reason.VALUE_TOO_LONG,
-                    "Metadata value for key '" + key + "' is too long (max " + MAX_VALUE_LENGTH + " characters)."
-                );
-            }
-
-            String sanitizedValue = stripHtmlTags(value);
+            String sanitizedValue = stripHtmlTags(entry.getValue());
             if (sanitizedValue == null || sanitizedValue.isBlank()) {
                 continue;
             }

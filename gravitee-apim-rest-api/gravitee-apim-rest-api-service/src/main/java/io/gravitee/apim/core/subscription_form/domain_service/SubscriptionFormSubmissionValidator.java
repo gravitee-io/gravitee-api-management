@@ -35,6 +35,9 @@ import java.util.Map;
  */
 public class SubscriptionFormSubmissionValidator {
 
+    /** Maximum number of metadata entries accepted in a subscription form submission. */
+    public static final int MAX_METADATA_COUNT = 25;
+
     private final SubscriptionFormFieldConstraints fieldConstraints;
 
     public SubscriptionFormSubmissionValidator(SubscriptionFormSchema schema) {
@@ -56,6 +59,11 @@ public class SubscriptionFormSubmissionValidator {
     public void validate(Map<String, String> submittedValues) {
         if (fieldConstraints.isEmpty()) {
             return;
+        }
+        if (submittedValues.size() > MAX_METADATA_COUNT) {
+            throw new SubscriptionFormValidationException(
+                List.of("Subscription metadata must not exceed " + MAX_METADATA_COUNT + " entries")
+            );
         }
         List<String> errors = fieldConstraints
             .byFieldKey()
