@@ -290,6 +290,37 @@ class SubscriptionFormSubmissionValidatorTest {
     }
 
     @Nested
+    class WhenValidatingMetadataCount {
+
+        @Test
+        void should_throw_when_submission_exceeds_max_metadata_count() {
+            var schema = schema(requiredInput("company"));
+            Map<String, String> tooMany = new java.util.HashMap<>();
+            for (int i = 0; i < SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + 1; i++) {
+                tooMany.put("key_" + i, "value");
+            }
+            assertThatThrownBy(() -> validateSubmission(schema, tooMany))
+                .isInstanceOf(SubscriptionFormValidationException.class)
+                .extracting(e -> ((SubscriptionFormValidationException) e).getErrors())
+                .satisfies(errors ->
+                    assertThat(errors).containsExactly(
+                        "Subscription metadata must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " entries"
+                    )
+                );
+        }
+
+        @Test
+        void should_not_throw_when_submission_is_at_max_metadata_count() {
+            var schema = schema(optionalInput("notes"));
+            Map<String, String> exactlyMax = new java.util.HashMap<>();
+            for (int i = 0; i < SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT; i++) {
+                exactlyMax.put("key_" + i, "value");
+            }
+            assertThatNoException().isThrownBy(() -> validateSubmission(schema, exactlyMax));
+        }
+    }
+
+    @Nested
     class WhenUsingPrebuiltFieldConstraints {
 
         @Test

@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.subscription_form.domain_service;
 
+import static io.gravitee.apim.core.subscription_form.model.Constraint.MaxLength.INPUT_MAX_LENGTH;
+import static io.gravitee.apim.core.subscription_form.model.Constraint.MaxLength.TEXTAREA_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.subscription_form.model.Constraint;
@@ -90,6 +92,41 @@ class SubscriptionFormConstraintsFactoryTest {
         var schema = new SubscriptionFormSchema(List.of(new CheckboxField("terms", true, null)));
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("terms")).containsExactly(new Constraint.MustBeTrue());
+    }
+
+    @Test
+    void should_apply_system_max_length_to_input_when_no_user_max_defined() {
+        var schema = new SubscriptionFormSchema(List.of(new InputField("name", false, null, null, null, null)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("name")).containsExactly(new Constraint.MaxLength(INPUT_MAX_LENGTH));
+    }
+
+    @Test
+    void should_apply_system_max_length_to_textarea_when_no_user_max_defined() {
+        var schema = new SubscriptionFormSchema(List.of(new TextareaField("bio", false, null, null, null)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("bio")).containsExactly(new Constraint.MaxLength(TEXTAREA_MAX_LENGTH));
+    }
+
+    @Test
+    void should_cap_input_max_length_at_system_limit_when_user_exceeds_it() {
+        var schema = new SubscriptionFormSchema(List.of(new InputField("name", false, null, null, 1000, null)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("name")).containsExactly(new Constraint.MaxLength(INPUT_MAX_LENGTH));
+    }
+
+    @Test
+    void should_cap_textarea_max_length_at_system_limit_when_user_exceeds_it() {
+        var schema = new SubscriptionFormSchema(List.of(new TextareaField("notes", false, null, null, 9999)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("notes")).containsExactly(new Constraint.MaxLength(TEXTAREA_MAX_LENGTH));
+    }
+
+    @Test
+    void should_preserve_user_max_length_when_within_system_limit() {
+        var schema = new SubscriptionFormSchema(List.of(new InputField("code", false, null, null, 50, null)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("code")).containsExactly(new Constraint.MaxLength(50));
     }
 
     @Test
