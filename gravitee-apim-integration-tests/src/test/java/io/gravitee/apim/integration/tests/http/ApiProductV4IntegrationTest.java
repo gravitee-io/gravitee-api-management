@@ -217,6 +217,39 @@ class ApiProductV4IntegrationTest {
             assertStatus(client, API_1_PATH, KEY_ALPHA, 401);
             assertStatus(client, API_2_PATH, KEY_ALPHA, 200);
         }
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        @DeployApiProducts(PRODUCT_RESOURCE)
+        void should_keep_sibling_api_accessible_after_underlying_api_is_undeployed_from_gateway(HttpClient client) {
+            allowKeyForApi(KEY_ALPHA, API_1_ID);
+            allowKeyForApi(KEY_ALPHA, API_2_ID);
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 200);
+            assertStatus(client, API_2_PATH, KEY_ALPHA, 200);
+
+            undeploy(API_1_ID);
+            redeployApiProduct(product(PRODUCT_ID, Set.of(API_2_ID)));
+
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 404);
+            assertStatus(client, API_2_PATH, KEY_ALPHA, 200);
+        }
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        @DeployApiProducts(PRODUCT_RESOURCE)
+        void should_return_401_for_all_apis_when_last_api_is_undeployed_and_product_redeployed_with_no_apis(HttpClient client) {
+            allowKeyForApi(KEY_ALPHA, API_1_ID);
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 200);
+
+            undeploy(API_1_ID);
+            redeployApiProduct(product(PRODUCT_ID, Set.of()));
+
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 404);
+        }
     }
 
     @Nested
