@@ -16,16 +16,15 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
-import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -33,21 +32,14 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
-import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
@@ -63,12 +55,10 @@ public class UpdateApiProductUseCase {
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateApiProductService validateApiProductService;
     private final ApiStateDomainService apiStateDomainService;
-    private final EventCrudService eventCrudService;
-    private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
-    private final PlanQueryService planQueryService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
+    private final DeployApiProductDomainService deployApiProductDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -119,42 +109,9 @@ public class UpdateApiProductUseCase {
         }
         apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), updated, primaryOwner);
 
-        publishDeployEvent(input.auditInfo(), updated);
+        deployApiProductDomainService.deploy(input.auditInfo(), updated);
         createAuditLog(beforeUpdate, updated, input.auditInfo());
         return new Output(updated);
-    }
-
-    private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
-        var plans = planQueryService
-            .findAllByReferenceIdAndReferenceType(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .stream()
-            .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
-            .filter(Objects::nonNull)
-            .toList();
-
-        var payload = ApiProductDeploymentPayload.builder()
-            .id(apiProduct.getId())
-            .name(apiProduct.getName())
-            .description(apiProduct.getDescription())
-            .version(apiProduct.getVersion())
-            .apiIds(apiProduct.getApiIds())
-            .environmentId(apiProduct.getEnvironmentId())
-            .plans(plans)
-            .build();
-
-        final Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_API_PRODUCT,
-            payload,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
-            )
-        );
-
-        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
 
     public record Input(String apiProductId, UpdateApiProduct updateApiProduct, AuditInfo auditInfo) {

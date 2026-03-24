@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.api_product.domain_service;
 
-import static java.util.Map.entry;
-
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -27,12 +25,8 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
-import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.model.EventType;
 import java.util.Map;
 import java.util.Set;
 import lombok.CustomLog;
@@ -46,8 +40,7 @@ public class RemoveApiFromApiProductsDomainService {
     private final ApiProductQueryService apiProductQueryService;
     private final ApiProductCrudService apiProductCrudService;
     private final ValidateApiProductService validateApiProductService;
-    private final EventCrudService eventCrudService;
-    private final EventLatestCrudService eventLatestCrudService;
+    private final DeployApiProductDomainService deployApiProductDomainService;
     private final AuditDomainService auditDomainService;
 
     public void removeApiFromApiProducts(String apiId, String organizationId, String environmentId, String userId) {
@@ -70,26 +63,11 @@ public class RemoveApiFromApiProductsDomainService {
             createAuditLog(auditInfo, updated);
             try {
                 validateApiProductService.validateForDeploy(updated);
-                publishDeployEvent(auditInfo, updated);
+                deployApiProductDomainService.deploy(auditInfo, updated);
             } catch (ValidationDomainException e) {
                 log.warn("API Product [{}] cannot be auto-deployed after API [{}] removal: {}", updated.getId(), apiId, e.getMessage());
             }
         });
-    }
-
-    private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
-        final Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_API_PRODUCT,
-            apiProduct,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
-            )
-        );
-        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
 
     private void createAuditLog(AuditInfo auditInfo, ApiProduct after) {

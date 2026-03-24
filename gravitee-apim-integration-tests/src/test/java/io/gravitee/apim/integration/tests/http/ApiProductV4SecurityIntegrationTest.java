@@ -100,7 +100,9 @@ class ApiProductV4SecurityIntegrationTest {
 
     private static final String ENV_ID = "DEFAULT";
     private static final String API_1_ID = "my-api-v4-1";
+    private static final String API_2_ID = "my-api-v4-2";
     private static final String API_1_PATH = "/test-1";
+    private static final String API_2_PATH = "/test-2";
 
     @Nested
     class JwtSecurityTypeScenarios extends SecurityTestPreparer {
@@ -135,6 +137,31 @@ class ApiProductV4SecurityIntegrationTest {
             assertThat(getStatus(client, API_1_PATH)).isEqualTo(401);
             assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer a-jwt-token")).isEqualTo(401);
             assertThat(getStatusWithHeader(client, API_1_PATH, "X-Gravitee-Api-Key", "an-api-key")).isEqualTo(401);
+        }
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        void should_keep_sibling_api_accessible_via_jwt_after_one_api_is_removed_from_product(HttpClient client) throws Exception {
+            final String productId = "jwt-product-deletion-sibling";
+            final String planId = "jwt-product-plan-deletion-sibling";
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID, API_2_ID));
+            registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
+            allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
+            allowJwtSubscriptionForApiAndPlan(API_2_ID, planId, JWT_CLIENT_ID);
+
+            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
+            assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
+
+            undeploy(API_1_ID);
+            ReactableApiProduct updatedProduct = product(productId, Set.of(API_2_ID));
+            registerProductPlans(updatedProduct, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
+            redeployApiProduct(updatedProduct);
+
+            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(404);
+            assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
         }
 
         @Test

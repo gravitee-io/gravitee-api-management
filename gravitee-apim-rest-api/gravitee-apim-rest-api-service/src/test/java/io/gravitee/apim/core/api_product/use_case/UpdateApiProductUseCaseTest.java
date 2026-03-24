@@ -38,6 +38,7 @@ import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -90,12 +91,10 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductQueryService,
             validateApiProductService,
             apiStateDomainService,
-            eventCrudService,
-            eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            planQueryService,
             apiProductIndexerDomainService,
-            apiProductPrimaryOwnerDomainService
+            apiProductPrimaryOwnerDomainService,
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService)
         );
     }
 
