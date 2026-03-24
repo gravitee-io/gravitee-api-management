@@ -356,9 +356,10 @@ class LogsFiltersController {
       }
 
       // 2. escape reserved characters
-      // + - = && || > < ! ( ) { } [ ] ^ " ~ ? : \ /
+      // + = && || > < ! ( ) { } [ ] ^ " ~ ? : \
+      const escapeSequenceRegex = /(&{2}|\|{2}|[+=><!(){}[\]^"~?:\\])/g;
       if (typeof val === 'string' || val instanceof String) {
-        val = val.replace(/(\+|-|=|&{2}|\|{2}|>|<|!|\(|\)|{|}|\[|]|\^|"|~|\?|:|\\|\/)/g, '\\\\$1');
+        val = val.replaceAll(escapeSequenceRegex, String.raw`\\$1`);
       }
 
       // 3. add the last * for uri
