@@ -142,6 +142,11 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
         var apiProducts = apiProductsRepository.findByApiId("api1");
 
         assertThat(apiProducts).hasSize(2).are(containingApi("api1"));
+        // Must return every API in the product, not only the queried id (used when removing one API from a product).
+        assertThat(apiProducts)
+            .filteredOn(p -> "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3".equals(p.getId()))
+            .singleElement()
+            .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api1", "api2"));
     }
 
     @Test
@@ -157,6 +162,14 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(products).isNotEmpty();
         assertThat(products).allMatch(p -> p.getApiIds() != null && (p.getApiIds().contains("api1") || p.getApiIds().contains("api2")));
+        assertThat(products)
+            .filteredOn(p -> "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3".equals(p.getId()))
+            .singleElement()
+            .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api1", "api2"));
+        assertThat(products)
+            .filteredOn(p -> "459a022c-e79c-4411-9a02-2ce79c141165".equals(p.getId()))
+            .singleElement()
+            .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api2", "api3"));
     }
 
     @Test

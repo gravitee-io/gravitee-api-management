@@ -344,13 +344,12 @@ describeIfClientGatewaySupportingApiProduct(
         await noContent(v2ApisResourceAsApiPublisher.deleteApiRaw({ envId, apiId: api1.id, closePlans: true }));
         // Mark as deleted so afterAll skips a second delete attempt.
         api1 = { ...api1, id: '' };
-
-        // Allow the gateway time to process the undeploy event.
         await new Promise((resolve) => setTimeout(resolve, 6000));
       });
 
       test('api1 path should return 404 after the underlying API is removed from the gateway', async () => {
-        const response = await fetch(`${process.env.GATEWAY_BASE_URL}${(api1.listeners[0] as HttpListener).paths[0].path}`, {
+        const api1Path = (api1.listeners[0] as HttpListener).paths[0].path;
+        const response = await fetch(`${process.env.GATEWAY_BASE_URL}${api1Path}`, {
           method: 'GET',
           headers: { 'X-Gravitee-Api-Key': apiKey },
         } as any);
