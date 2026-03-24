@@ -21,11 +21,12 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Field;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.MaxLengthAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.MinLengthAttribute;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.OptionsAttribute;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.PatternAttribute;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.ReadOnlyValueAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.TextareaField;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,6 +34,9 @@ import java.util.Map;
 
 /**
  * Builds {@link SubscriptionFormFieldConstraints} from a parsed {@link SubscriptionFormSchema}.
+ *
+ * <p>System-level length limits are always enforced regardless of user configuration.
+ * See {@link Constraint.MaxLength#INPUT_MAX_LENGTH} and {@link Constraint.MaxLength#TEXTAREA_MAX_LENGTH}.</p>
  *
  * @author Gravitee.io Team
  */
@@ -71,8 +75,12 @@ public final class SubscriptionFormConstraintsFactory {
         if (field instanceof MinLengthAttribute min && min.minLength() != null) {
             out.add(new Constraint.MinLength(min.minLength()));
         }
-        if (field instanceof MaxLengthAttribute max && max.maxLength() != null) {
-            out.add(new Constraint.MaxLength(max.maxLength()));
+        if (field instanceof InputField input) {
+            out.add(input.maxLength() != null ? Constraint.MaxLength.forInput(input.maxLength()) : Constraint.MaxLength.forInput());
+        } else if (field instanceof TextareaField textarea) {
+            out.add(
+                textarea.maxLength() != null ? Constraint.MaxLength.forTextarea(textarea.maxLength()) : Constraint.MaxLength.forTextarea()
+            );
         }
         if (field instanceof PatternAttribute pat && pat.pattern() != null) {
             out.add(new Constraint.MatchesPattern(pat.pattern()));
