@@ -43,6 +43,7 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.DuplicateOptions;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.MembershipDuplicateService;
 import io.gravitee.rest.api.service.PageDuplicateService;
@@ -56,6 +57,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -63,6 +65,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -116,7 +119,16 @@ public class ApiDuplicateServiceImplTest {
 
         duplicateOptions = DuplicateOptions.builder().contextPath("/my-context-path").filteredFields(List.of(PAGES, MEMBERS)).build();
 
-        sourceApi = aModelHttpApiV4().toBuilder().id(API_ID).plans(Set.of(aKeylessPlanV4(), anApiKeyPanV4())).build();
+        sourceApi = aModelHttpApiV4()
+            .toBuilder()
+            .id(API_ID)
+            .plans(
+                Set.of(
+                    aKeylessPlanV4().toBuilder().referenceId(API_ID).referenceType(GenericPlanEntity.ReferenceType.API).build(),
+                    anApiKeyPanV4().toBuilder().referenceId(API_ID).referenceType(GenericPlanEntity.ReferenceType.API).build()
+                )
+            )
+            .build();
 
         GraviteeContext.setCurrentEnvironment("my-env");
         GraviteeContext.setCurrentOrganization("my-org");
@@ -361,11 +373,32 @@ public class ApiDuplicateServiceImplTest {
             sourceApi
                 .getPlans()
                 .stream()
-                .map(p -> p.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).build())
+                .map(p -> p.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).referenceId(DUPLICATE_API_ID).build())
                 .collect(toSet())
         );
 
         verify(planService, times(sourceApi.getPlans().size())).createOrUpdatePlan(any(), any());
+    }
+
+    @Test
+    void should_duplicate_plans_with_referenceId_pointing_to_duplicate_api() {
+        service.duplicate(GraviteeContext.getExecutionContext(), sourceApi, duplicateOptions.withFilteredFields(List.of(PAGES, MEMBERS)));
+
+        var captor = ArgumentCaptor.forClass(PlanEntity.class);
+        verify(planService, times(sourceApi.getPlans().size())).createOrUpdatePlan(any(), captor.capture());
+
+        captor
+            .getAllValues()
+            .forEach(plan -> {
+                Assertions.assertThat(plan.getReferenceId())
+                    .as("Plan referenceId should point to the duplicate API, not the source")
+                    .isEqualTo(DUPLICATE_API_ID);
+                Assertions.assertThat(plan.getApiId()).as("Plan apiId should point to the duplicate API").isEqualTo(DUPLICATE_API_ID);
+                Assertions.assertThat(plan.getReferenceType())
+                    .as("Plan referenceType should be non-null after duplication")
+                    .isNotNull()
+                    .isEqualTo(GenericPlanEntity.ReferenceType.API);
+            });
     }
 
     @Test
@@ -384,8 +417,20 @@ public class ApiDuplicateServiceImplTest {
 
         assertThat(duplicated).hasOnlyPlans(
             Set.of(
-                keylessPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).generalConditions("dup-page-1").build(),
-                apiKeyPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).generalConditions("dup-page-2").build()
+                keylessPlan
+                    .toBuilder()
+                    .id("fake-uuid")
+                    .apiId(DUPLICATE_API_ID)
+                    .referenceId(DUPLICATE_API_ID)
+                    .generalConditions("dup-page-1")
+                    .build(),
+                apiKeyPlan
+                    .toBuilder()
+                    .id("fake-uuid")
+                    .apiId(DUPLICATE_API_ID)
+                    .referenceId(DUPLICATE_API_ID)
+                    .generalConditions("dup-page-2")
+                    .build()
             )
         );
 
@@ -404,7 +449,9 @@ public class ApiDuplicateServiceImplTest {
             duplicateOptions.withFilteredFields(List.of(PAGES, MEMBERS))
         );
 
-        assertThat(duplicated).hasOnlyPlans(Set.of(apiKeyPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).build()));
+        assertThat(duplicated).hasOnlyPlans(
+            Set.of(apiKeyPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).referenceId(DUPLICATE_API_ID).build())
+        );
 
         verify(planService, times(sourceApi.getPlans().size())).createOrUpdatePlan(any(), any());
     }

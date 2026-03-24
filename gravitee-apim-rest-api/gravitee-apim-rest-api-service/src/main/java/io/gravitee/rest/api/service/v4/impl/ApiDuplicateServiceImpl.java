@@ -134,6 +134,7 @@ public class ApiDuplicateServiceImpl extends AbstractService implements ApiDupli
             .stream()
             .map(planEntity -> {
                 planEntity.setApiId(duplicate.getId());
+                planEntity.setReferenceId(duplicate.getId());
                 planEntity.setId(UuidString.generateRandom());
                 if (planEntity.getGeneralConditions() != null) {
                     planEntity.setGeneralConditions(pagesIdMapping.get(planEntity.getGeneralConditions()));
