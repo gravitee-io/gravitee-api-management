@@ -202,7 +202,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                     "LEFT JOIN " +
                     API_PRODUCT_APIS +
                     " apa ON ap.id = apa.api_product_id " +
-                    "WHERE apa.api_id = ? " +
+                    "WHERE ap.id IN (SELECT api_product_id FROM " +
+                    API_PRODUCT_APIS +
+                    " WHERE api_id = ?) " +
                     "ORDER BY ap.id",
                 (ResultSet rs, int rowNum) -> {
                     ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
@@ -241,9 +243,11 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 "LEFT JOIN " +
                 API_PRODUCT_APIS +
                 " apa ON ap.id = apa.api_product_id " +
-                "WHERE apa.api_id IN (" +
+                "WHERE ap.id IN (SELECT api_product_id FROM " +
+                API_PRODUCT_APIS +
+                " WHERE api_id IN (" +
                 getOrm().buildInClause(idList) +
-                ") ORDER BY ap.id";
+                ")) ORDER BY ap.id";
             List<ApiProduct> apiProducts = jdbcTemplate.query(
                 sql,
                 (ResultSet rs, int rowNum) -> {

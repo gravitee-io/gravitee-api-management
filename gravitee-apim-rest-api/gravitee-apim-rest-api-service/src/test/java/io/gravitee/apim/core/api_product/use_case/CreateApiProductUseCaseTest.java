@@ -39,6 +39,7 @@ import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -131,12 +132,10 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             auditService,
             apiProductPrimaryOwnerDomainService,
             apiProductPrimaryOwnerFactory,
-            eventCrudService,
-            eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
             notificationConfigCrudService,
-            planQueryService
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService)
         );
 
         initRoles();

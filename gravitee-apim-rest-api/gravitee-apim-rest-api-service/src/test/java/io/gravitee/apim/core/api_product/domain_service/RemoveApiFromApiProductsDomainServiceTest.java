@@ -30,6 +30,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
@@ -41,6 +42,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
@@ -70,12 +72,12 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
             planQueryService,
             apiProductQueryService
         );
+        var deployApiProductDomainService = new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService);
         domainService = new RemoveApiFromApiProductsDomainService(
             apiProductQueryService,
             apiProductCrudService,
             validateApiProductService,
-            eventCrudService,
-            eventLatestCrudService,
+            deployApiProductDomainService,
             auditDomainService
         );
     }
@@ -165,6 +167,71 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
                 verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), any(), any());
                 verify(eventLatestCrudService, times(2)).createOrPatchLatestEvent(any(), any(), any());
+            }
+
+            @Test
+            void should_publish_deploy_event_with_api_product_deployment_payload_including_plans() {
+                domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
+
+                ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+                verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
+
+                payloadCaptor
+                    .getAllValues()
+                    .forEach(payload -> {
+                        assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
+                        ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
+                        assertThat(deployPayload.getPlans()).isNotNull().isNotEmpty();
+                        assertThat(deployPayload.getApiIds()).doesNotContain(API_ID);
+                    });
+            }
+
+            @Test
+            void should_publish_deploy_event_with_empty_plans_when_product_has_no_product_level_plans() {
+                planQueryService.reset();
+                planQueryService.initWith(
+                    List.of(
+                        PlanFixtures.aPlanHttpV4()
+                            .toBuilder()
+                            .id("plan-other-api")
+                            .referenceId("other-api")
+                            .referenceType(GenericPlanEntity.ReferenceType.API)
+                            .build()
+                    )
+                );
+
+                domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
+
+                ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+                verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
+
+                payloadCaptor
+                    .getAllValues()
+                    .forEach(payload -> {
+                        assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
+                        ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
+                        assertThat(deployPayload.getPlans()).isNotNull().isEmpty();
+                    });
+            }
+
+            @Test
+            void should_publish_deploy_event_for_product_that_has_zero_apis_after_removal() {
+                // PRODUCT_2 initially had only API_ID — after removal apiIds is empty.
+                domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
+
+                ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+                verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
+
+                var product2Payload = payloadCaptor
+                    .getAllValues()
+                    .stream()
+                    .map(p -> (ApiProductDeploymentPayload) p)
+                    .filter(p -> PRODUCT_2.equals(p.getId()))
+                    .findFirst();
+
+                assertThat(product2Payload).isPresent();
+                assertThat(product2Payload.get().getApiIds()).isEmpty();
+                assertThat(product2Payload.get().getPlans()).isNotNull();
             }
         }
 
