@@ -1776,6 +1776,58 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-fetch-rules</artifactId>
+                    <version>${gravitee-policy-kafka-rules.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-produce-rules</artifactId>
+                    <version>${gravitee-policy-kafka-rules.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-create-topic-rules</artifactId>
+                    <version>${gravitee-policy-kafka-rules.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-alter-topic-rules</artifactId>
+                    <version>${gravitee-policy-kafka-rules.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-token-ratelimit</artifactId>
                     <version>${gravitee-policy-token-ratelimit.version}</version>
                     <type>zip</type>
