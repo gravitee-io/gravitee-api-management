@@ -1,0 +1,139 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.rest.api.portal.rest.resource;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.portal.rest.model.CreatePortalClientCertificateInput;
+import io.gravitee.rest.api.portal.rest.model.PortalClientCertificate;
+import io.gravitee.rest.api.portal.rest.model.PortalClientCertificatesResponse;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
+import java.util.Date;
+import java.util.List;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+public class PortalApplicationClientCertificatesResourceTest extends AbstractResourceTest {
+
+    private static final String APPLICATION_ID = "my-application";
+
+    @Override
+    protected String contextPath() {
+        return "applications/" + APPLICATION_ID + "/certificates";
+    }
+
+    @BeforeEach
+    public void init() {
+        resetAllMocks();
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    @Test
+    public void should_list_client_certificates() {
+        ClientCertificate cert1 = createClientCertificate("cert-1", "Certificate 1");
+        ClientCertificate cert2 = createClientCertificate("cert-2", "Certificate 2");
+        Page<ClientCertificate> page = new Page<>(List.of(cert1, cert2), 1, 2, 2);
+
+        when(getClientCertificatesUseCase.execute(any(GetClientCertificatesUseCase.Input.class))).thenReturn(
+            new GetClientCertificatesUseCase.Output(page)
+        );
+
+        final Response response = target().request().get();
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var result = response.readEntity(PortalClientCertificatesResponse.class);
+            soft.assertThat(result.getData()).hasSize(2);
+            soft.assertThat(result.getData().get(0).getId()).isEqualTo("cert-1");
+        });
+        verify(getClientCertificatesUseCase).execute(any(GetClientCertificatesUseCase.Input.class));
+    }
+
+    @Test
+    public void should_create_client_certificate() {
+        var createRequest = new CreatePortalClientCertificateInput();
+        createRequest.setName("My Certificate");
+        createRequest.setCertificate("-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
+
+        ClientCertificate created = createClientCertificate("new-cert-id", "My Certificate");
+
+        when(createClientCertificateUseCase.execute(any(CreateClientCertificateUseCase.Input.class))).thenReturn(
+            new CreateClientCertificateUseCase.Output(created)
+        );
+
+        final Response response = target().request().post(Entity.json(createRequest));
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            soft.assertThat(response.getHeaderString("Location")).contains("new-cert-id");
+            var result = response.readEntity(PortalClientCertificate.class);
+            soft.assertThat(result.getId()).isEqualTo("new-cert-id");
+            soft.assertThat(result.getName()).isEqualTo("My Certificate");
+        });
+        verify(createClientCertificateUseCase).execute(any(CreateClientCertificateUseCase.Input.class));
+    }
+
+    @Test
+    public void should_not_create_client_certificate_without_name() {
+        var createRequest = new CreatePortalClientCertificateInput();
+        createRequest.setCertificate("-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
+
+        final Response response = target().request().post(Entity.json(createRequest));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+    }
+
+    @Test
+    public void should_not_create_client_certificate_without_certificate() {
+        var createRequest = new CreatePortalClientCertificateInput();
+        createRequest.setName("My Certificate");
+
+        final Response response = target().request().post(Entity.json(createRequest));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+    }
+
+    private ClientCertificate createClientCertificate(String id, String name) {
+        return new ClientCertificate(
+            id,
+            null,
+            APPLICATION_ID,
+            name,
+            null,
+            null,
+            new Date(),
+            new Date(),
+            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
+            null,
+            null,
+            null,
+            null,
+            null,
+            ClientCertificateStatus.ACTIVE
+        );
+    }
+}
