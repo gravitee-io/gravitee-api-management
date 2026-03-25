@@ -144,6 +144,22 @@
         </mat-form-field>
       </div>
 
+      <!-- Allow Private Network -->
+      <div class="cors-card__allow-private-network" [class.disabled]="!corsForm.get('enabled').value">
+        <gio-form-slide-toggle class="cors-card__allow-private-network__enable-toggle">
+          <gio-form-label>Access-Control-Allow-Private-Network</gio-form-label>
+          When enabled, the gateway responds with <code>Access-Control-Allow-Private-Network: true</code> to preflight requests that include
+          <code>Access-Control-Request-Private-Network: true</code>. This is required for public websites to access private network
+          resources.
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="allowPrivateNetwork"
+            aria-label="CORS allow private network toggle"
+            name="allowPrivateNetwork"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
+
       <!-- Run policies -->
       <div class="cors-card__run-policies" [class.disabled]="!corsForm.get('enabled').value">
         <gio-form-slide-toggle class="cors-card__run-policies__enable-toggle">
