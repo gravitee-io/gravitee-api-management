@@ -3401,6 +3401,10 @@ components:
                           description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
                           default: false
                           example: false
+                      allowMultiJwtOauth2Subscriptions:
+                        type: boolean
+                        description: Allow an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
+                        default: false
 
         ApiFederated:
             type: object
@@ -3916,6 +3920,10 @@ components:
                           description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
                           default: false
                           example: false
+                      allowMultiJwtOauth2Subscriptions:
+                        type: boolean
+                        description: Allow an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
+                        default: false
                   required: [listeners, endpointGroups, type]
 
         UpdateApiFederated:
