@@ -62,7 +62,12 @@ public class UpdateSubscriptionFormUseCase {
             );
 
         var gmd = GraviteeMarkdown.of(input.gmdContent());
-        var schema = schemaGenerator.generate(gmd);
+        SubscriptionFormSchema schema;
+        try {
+            schema = schemaGenerator.generate(gmd);
+        } catch (IllegalArgumentException e) {
+            throw new SubscriptionFormValidationException(List.of(e.getMessage()));
+        }
         validateFieldCount(schema);
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         existingForm.update(gmd, constraints);

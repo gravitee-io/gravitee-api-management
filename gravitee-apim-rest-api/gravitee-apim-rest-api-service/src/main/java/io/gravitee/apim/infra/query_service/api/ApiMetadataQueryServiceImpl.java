@@ -82,4 +82,25 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
             throw new TechnicalManagementException(e);
         }
     }
+
+    @Override
+    public Map<String, ApiMetadata> findEnvironmentMetadata(final String environmentId) {
+        try {
+            return metadataRepository
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, environmentId)
+                .stream()
+                .map(m ->
+                    ApiMetadata.builder()
+                        .key(m.getKey())
+                        .defaultValue(m.getValue())
+                        .name(m.getName())
+                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                        .build()
+                )
+                .collect(toMap(ApiMetadata::getKey, Function.identity()));
+        } catch (TechnicalException e) {
+            log.error("An error occurs while trying to find environment metadata [environmentId={}]", environmentId, e);
+            throw new TechnicalManagementException(e);
+        }
+    }
 }

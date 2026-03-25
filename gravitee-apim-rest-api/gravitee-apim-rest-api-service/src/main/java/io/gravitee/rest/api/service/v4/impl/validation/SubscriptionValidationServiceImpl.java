@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormElResolverDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
@@ -53,6 +54,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     private final EntrypointConnectorPluginService entrypointService;
     private final SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
+    private final SubscriptionFormElResolverDomainService subscriptionFormElResolver;
 
     private final ClientCertificateCrudService clientCertificateCrudService;
 
@@ -75,8 +77,13 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
             .map(SubscriptionForm::getValidationConstraints)
             .filter(constraints -> !constraints.isEmpty())
             .ifPresent(constraints -> {
+                var resolved = subscriptionFormElResolver.resolveConstraints(
+                    constraints,
+                    genericPlanEntity.getEnvironmentId(),
+                    genericPlanEntity.getApiId()
+                );
                 var submitted = subscription.getMetadata() != null ? subscription.getMetadata() : Map.<String, String>of();
-                new SubscriptionFormSubmissionValidator(constraints).validate(submitted);
+                new SubscriptionFormSubmissionValidator(resolved).validate(submitted);
             });
     }
 

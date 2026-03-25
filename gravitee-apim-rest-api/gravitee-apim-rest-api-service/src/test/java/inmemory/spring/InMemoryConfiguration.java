@@ -567,4 +567,9 @@ public class InMemoryConfiguration {
     public SubscriptionFormQueryServiceInMemory subscriptionFormQueryService() {
         return new SubscriptionFormQueryServiceInMemory();
     }
+
+    @Bean
+    public SubscriptionFormElResolverInMemory subscriptionFormElResolver() {
+        return new SubscriptionFormElResolverInMemory();
+    }
 }

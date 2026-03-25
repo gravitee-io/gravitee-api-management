@@ -20,6 +20,7 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstr
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.DynamicOptionsAttribute;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Field;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.MinLengthAttribute;
@@ -61,17 +62,27 @@ public final class SubscriptionFormConstraintsFactory {
         }
 
         var out = new ArrayList<Constraint>();
+        addRequiredConstraint(field, out);
+        addLengthConstraints(field, out);
+        addPatternConstraint(field, out);
+        addOptionsConstraint(field, out);
+        return out;
+    }
 
-        if (field.required()) {
-            if (field instanceof CheckboxField) {
-                out.add(new Constraint.MustBeTrue());
-            } else if (field instanceof CheckboxGroupField) {
-                out.add(new Constraint.NonEmptySelection());
-            } else {
-                out.add(new Constraint.Required());
-            }
+    private static void addRequiredConstraint(Field field, List<Constraint> out) {
+        if (!field.required()) {
+            return;
         }
+        if (field instanceof CheckboxField) {
+            out.add(new Constraint.MustBeTrue());
+        } else if (field instanceof CheckboxGroupField) {
+            out.add(new Constraint.NonEmptySelection());
+        } else {
+            out.add(new Constraint.Required());
+        }
+    }
 
+    private static void addLengthConstraints(Field field, List<Constraint> out) {
         if (field instanceof MinLengthAttribute min && min.minLength() != null) {
             out.add(new Constraint.MinLength(min.minLength()));
         }
@@ -82,19 +93,28 @@ public final class SubscriptionFormConstraintsFactory {
                 textarea.maxLength() != null ? Constraint.MaxLength.forTextarea(textarea.maxLength()) : Constraint.MaxLength.forTextarea()
             );
         }
+    }
+
+    private static void addPatternConstraint(Field field, List<Constraint> out) {
         if (field instanceof PatternAttribute pat && pat.pattern() != null) {
             out.add(new Constraint.MatchesPattern(pat.pattern()));
         }
+    }
 
-        if (field instanceof OptionsAttribute opt && hasOptions(opt.options())) {
+    private static void addOptionsConstraint(Field field, List<Constraint> out) {
+        if (field instanceof DynamicOptionsAttribute dyn && dyn.dynamicOptions() != null) {
+            if (field instanceof CheckboxGroupField) {
+                out.add(new Constraint.DynamicEachOf(dyn.dynamicOptions().expression(), dyn.dynamicOptions().fallback()));
+            } else {
+                out.add(new Constraint.DynamicOneOf(dyn.dynamicOptions().expression(), dyn.dynamicOptions().fallback()));
+            }
+        } else if (field instanceof OptionsAttribute opt && hasOptions(opt.options())) {
             if (field instanceof CheckboxGroupField) {
                 out.add(new Constraint.EachOf(opt.options()));
             } else {
                 out.add(new Constraint.OneOf(opt.options()));
             }
         }
-
-        return out;
     }
 
     private static boolean hasOptions(List<String> options) {

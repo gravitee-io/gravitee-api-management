@@ -50,6 +50,8 @@ import java.util.stream.Stream;
         @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
         @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
         @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
+        @JsonSubTypes.Type(value = Constraint.DynamicOneOf.class, name = "dynamicOneOf"),
+        @JsonSubTypes.Type(value = Constraint.DynamicEachOf.class, name = "dynamicEachOf"),
     }
 )
 public sealed interface Constraint
@@ -62,7 +64,9 @@ public sealed interface Constraint
         Constraint.MaxLength,
         Constraint.MatchesPattern,
         Constraint.OneOf,
-        Constraint.EachOf {
+        Constraint.EachOf,
+        Constraint.DynamicOneOf,
+        Constraint.DynamicEachOf {
     /**
      * Whether the submitted value satisfies this constraint. The value is already trimmed; an empty string means absent.
      */
@@ -245,6 +249,42 @@ public sealed interface Constraint
                 .map(item -> String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, item))
                 .toList();
             return String.join("\n", lines);
+        }
+    }
+
+    /**
+     * Placeholder for a single-value option constraint whose allowed set is resolved at runtime from an EL expression.
+     *
+     * <p>This constraint is stored in the database and must be pre-resolved to a {@link OneOf} constraint
+     * (using the expression against the target API's metadata) before being passed to the validator.
+     * Its {@link #check(String)} throws {@link IllegalStateException} — it must never be evaluated directly.</p>
+     */
+    record DynamicOneOf(String expression, List<String> fallback) implements Constraint {
+        @Override
+        public boolean check(String value) {
+            throw new IllegalStateException("DynamicOneOf must be resolved before validation — call resolveConstraints() first");
+        }
+
+        @Override
+        public String formatErrorMessage(String fieldKey, String value) {
+            throw new IllegalStateException("DynamicOneOf must be resolved before validation — call resolveConstraints() first");
+        }
+    }
+
+    /**
+     * Placeholder for a multi-value option constraint whose allowed set is resolved at runtime from an EL expression.
+     *
+     * <p>Same pre-resolution semantics as {@link DynamicOneOf}, but resolves to an {@link EachOf} constraint.</p>
+     */
+    record DynamicEachOf(String expression, List<String> fallback) implements Constraint {
+        @Override
+        public boolean check(String value) {
+            throw new IllegalStateException("DynamicEachOf must be resolved before validation — call resolveConstraints() first");
+        }
+
+        @Override
+        public String formatErrorMessage(String fieldKey, String value) {
+            throw new IllegalStateException("DynamicEachOf must be resolved before validation — call resolveConstraints() first");
         }
     }
 

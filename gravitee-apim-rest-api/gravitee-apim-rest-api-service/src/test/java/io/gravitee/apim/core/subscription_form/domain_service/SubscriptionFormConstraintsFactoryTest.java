@@ -23,6 +23,7 @@ import io.gravitee.apim.core.subscription_form.model.Constraint;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.DynamicOptions;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RadioField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.SelectField;
@@ -52,7 +53,7 @@ class SubscriptionFormConstraintsFactoryTest {
 
     @Test
     void should_ignore_required_and_options_when_radio_is_readonly() {
-        var schema = new SubscriptionFormSchema(List.of(new RadioField("plan", true, "Free", List.of("Free", "Pro"))));
+        var schema = new SubscriptionFormSchema(List.of(new RadioField("plan", true, "Free", List.of("Free", "Pro"), null)));
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("plan")).containsExactly(new Constraint.ReadOnly("Free"));
     }
@@ -82,7 +83,7 @@ class SubscriptionFormConstraintsFactoryTest {
 
     @Test
     void should_map_select_optional_with_one_of_only() {
-        var schema = new SubscriptionFormSchema(List.of(new SelectField("plan", false, List.of("Free", "Pro"))));
+        var schema = new SubscriptionFormSchema(List.of(new SelectField("plan", false, List.of("Free", "Pro"), null)));
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("plan")).containsExactly(new Constraint.OneOf(List.of("Free", "Pro")));
     }
@@ -131,11 +132,43 @@ class SubscriptionFormConstraintsFactoryTest {
 
     @Test
     void should_map_checkbox_group_required_with_each_of() {
-        var schema = new SubscriptionFormSchema(List.of(new CheckboxGroupField("tags", true, List.of("A", "B"))));
+        var schema = new SubscriptionFormSchema(List.of(new CheckboxGroupField("tags", true, List.of("A", "B"), null)));
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("tags")).containsExactly(
             new Constraint.NonEmptySelection(),
             new Constraint.EachOf(List.of("A", "B"))
+        );
+    }
+
+    @Test
+    void should_emit_dynamic_one_of_for_select_with_dynamic_options() {
+        var dynamic = new DynamicOptions("api.metadata['envs']", List.of("Prod", "Test"));
+        var schema = new SubscriptionFormSchema(List.of(new SelectField("env", false, null, dynamic)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("env")).containsExactly(
+            new Constraint.DynamicOneOf("api.metadata['envs']", List.of("Prod", "Test"))
+        );
+    }
+
+    @Test
+    void should_emit_dynamic_one_of_for_radio_with_dynamic_options() {
+        var dynamic = new DynamicOptions("api.metadata['plans']", List.of("Free"));
+        var schema = new SubscriptionFormSchema(List.of(new RadioField("plan", true, null, null, dynamic)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("plan")).containsExactly(
+            new Constraint.Required(),
+            new Constraint.DynamicOneOf("api.metadata['plans']", List.of("Free"))
+        );
+    }
+
+    @Test
+    void should_emit_dynamic_each_of_for_checkbox_group_with_dynamic_options() {
+        var dynamic = new DynamicOptions("api.metadata['tags']", List.of("Alpha", "Beta"));
+        var schema = new SubscriptionFormSchema(List.of(new CheckboxGroupField("tags", true, null, dynamic)));
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("tags")).containsExactly(
+            new Constraint.NonEmptySelection(),
+            new Constraint.DynamicEachOf("api.metadata['tags']", List.of("Alpha", "Beta"))
         );
     }
 }
