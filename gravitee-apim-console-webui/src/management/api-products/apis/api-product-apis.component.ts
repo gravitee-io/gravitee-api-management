@@ -278,6 +278,7 @@ export class ApiProductApisComponent implements OnInit {
     const newApiIds = selectedApis.map(api => api.id);
     const updatedApiIds = [...currentApiIds, ...newApiIds];
     return this.apiProductV2Service.updateApiProductApis(apiProductId, updatedApiIds).pipe(
+      tap(() => this.apiProductV2Service.notifyApiProductChanged()),
       map(() => selectedApis),
       catchError(this.handleError('An error occurred while adding the APIs', EMPTY)),
     );
@@ -310,6 +311,7 @@ export class ApiProductApisComponent implements OnInit {
       switchMap(apiProduct => {
         const updatedApiIds = (apiProduct.apiIds || []).filter(id => id !== api.id);
         return this.apiProductV2Service.updateApiProductApis(apiProductId, updatedApiIds).pipe(
+          tap(() => this.apiProductV2Service.notifyApiProductChanged()),
           catchError(this.handleError('An error occurred while removing the API', EMPTY)),
           map(() => undefined),
         );

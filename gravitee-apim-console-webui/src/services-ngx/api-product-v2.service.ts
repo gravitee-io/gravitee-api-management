@@ -46,11 +46,12 @@ export class ApiProductV2Service {
   ) {}
 
   /**
-   * Notifies subscribers that plan state has changed. Must be called after any operation that
-   * modifies plans: create, update, publish, deprecate, close, reorder, or delete.
-   * Keeps the navigation banner (e.g. NEED_REDEPLOY) in sync with the latest plan state.
+   * Notifies subscribers to refetch the API Product (deployment state, verify deploy).
+   * Call after plan changes (create, update, publish, deprecate, close, reorder, delete) or after
+   * definition changes that affect gateway sync (e.g. API list on the product). PUT responses may
+   * omit computed deploymentState; this forces a GET so the "Deploy API Product" banner stays in sync.
    */
-  notifyPlanStateChanged(): void {
+  notifyApiProductChanged(): void {
     this._planStateVersion.update(v => v + 1);
   }
 

@@ -142,6 +142,7 @@ export class ApiProductConfigurationComponent {
       .update(product.id, updateApiProduct)
       .pipe(
         tap(() => {
+          this.apiProductV2Service.notifyApiProductChanged();
           this.initialFormValue.set(this.form.getRawValue());
           this.snackBarService.success('Configuration successfully saved!');
           this.onReloadDetails();
@@ -182,6 +183,7 @@ export class ApiProductConfigurationComponent {
         filter((confirm): confirm is true => confirm === true),
         switchMap(() => this.apiProductV2Service.updateApiProductApis(apiProductId, [])),
         tap(() => {
+          this.apiProductV2Service.notifyApiProductChanged();
           this.snackBarService.success('All APIs have been removed from the API Product.');
           this.onReloadDetails();
         }),
