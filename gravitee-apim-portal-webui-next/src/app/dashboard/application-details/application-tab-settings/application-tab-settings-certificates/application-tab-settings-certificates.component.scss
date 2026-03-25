@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../../../scss/theme';
+
+.certificates {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: theme.$background-color;
+  border-radius: 8px;
+  outline: 1px solid #d3d5dc;
+  padding: 16px;
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid theme.$border-color;
+
+    &__info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    &__subtitle {
+      margin: 0;
+      color: #5c5959;
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 16px;
+
+    &__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background-color: #d6ffff;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: #0097a7;
+      }
+    }
+
+    &__title {
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 25px;
+      color: #100c27;
+      text-align: center;
+    }
+
+    &__description {
+      color: #606274;
+      text-align: center;
+      max-width: 360px;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 2px solid theme.$border-color;
+
+    &__tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #5c5959;
+      line-height: 20px;
+      white-space: nowrap;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #100c27;
+      }
+
+      &--active {
+        color: #6c59bd;
+        border-bottom-color: #6c59bd;
+        font-weight: 600;
+      }
+
+      &__count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        background-color: #e1e5ed;
+        font-size: 12px;
+        font-weight: 600;
+        color: #5f6368;
+      }
+    }
+  }
+
+  &__table {
+    width: 100%;
+    overflow: hidden;
+
+    &__cell--actions {
+      white-space: nowrap;
+    }
+  }
+}

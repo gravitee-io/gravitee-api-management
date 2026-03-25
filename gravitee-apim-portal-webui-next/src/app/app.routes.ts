@@ -29,7 +29,6 @@ import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscri
 import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
 import { ApiComponent } from './api/api.component';
 import { authGuard } from '../guards/auth.guard';
-import { ApplicationTabCertificatesComponent } from './dashboard/application-details/application-tab-certificates/application-tab-certificates.component';
 import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
@@ -203,10 +202,6 @@ export const routes: Routes = [
             path: 'settings',
             component: ApplicationTabSettingsComponent,
             resolve: { applicationTypeConfiguration: applicationTypeResolver },
-          },
-          {
-            path: 'certificates',
-            component: ApplicationTabCertificatesComponent,
           },
         ],
       },

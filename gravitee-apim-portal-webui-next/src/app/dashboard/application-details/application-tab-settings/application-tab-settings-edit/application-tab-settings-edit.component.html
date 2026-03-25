@@ -133,6 +133,13 @@
           }
         </div>
 
+        <mat-divider />
+
+        <app-application-tab-settings-certificates
+          [applicationId]="applicationId()"
+          [userApplicationPermissions]="userApplicationPermissions()"
+        />
+
         <div class="settings-edit__form__actions">
           <button
             mat-flat-button

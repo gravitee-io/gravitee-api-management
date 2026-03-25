@@ -29,9 +29,6 @@
       <a mat-tab-link [routerLink]="['.', 'logs']" routerLinkActive #logsActive="routerLinkActive" [active]="logsActive.isActive"
         ><span class="next-gen-small-bold" i18n="@@appAnalyticsAndLogs">Logs</span></a
       >
-      <a mat-tab-link [routerLink]="['.', 'certificates']" routerLinkActive #certsActive="routerLinkActive" [active]="certsActive.isActive"
-        ><span class="next-gen-small-bold" i18n="@@appCertificates">Certificates</span></a
-      >
     </nav>
     <mat-tab-nav-panel #tabPanel>
       <div class="application__content">
