@@ -125,6 +125,48 @@ export class ApiEndpointGroupsLlmComponent {
       .subscribe();
   }
 
+  public deleteEndpoint(groupIndex: number, endpointName: string): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete Endpoint',
+          content: `Are you sure you want to delete the endpoint <strong>${endpointName}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteEndpointConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirm => confirm === true),
+        switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
+        switchMap(api => {
+          const apiV4 = api as ApiV4;
+          const endpointGroups = apiV4.endpointGroups || [];
+          const group = endpointGroups[groupIndex];
+          if (group?.endpoints) {
+            remove(group.endpoints, e => e.name === endpointName);
+          }
+          return this.apiService.update(apiV4.id, { ...apiV4, endpointGroups } as UpdateApi);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(
+            error.message === 'Validation error' ? `${error.message}: ${error.details[0].message}` : error.message,
+          );
+          return EMPTY;
+        }),
+        switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
+        map(refreshedApi => {
+          const apiV4 = refreshedApi as ApiV4;
+          this.providersTableData.set(toProviders(apiV4));
+          this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   public onRequestUpgrade() {
     this.licenseService.openDialog(this.apiType === 'LLM_PROXY' ? this.llmProxyLicenseOptions : this.messageLicenseOptions);
   }
