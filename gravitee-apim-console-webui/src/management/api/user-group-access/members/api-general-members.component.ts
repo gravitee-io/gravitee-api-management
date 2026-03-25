@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -244,12 +244,7 @@ export class ApiGeneralMembersComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((apiDialogResult): apiDialogResult is ApiGroupsDialogResult => !!apiDialogResult && !this.isKubernetesOrigin),
-        switchMap(apiDialogResult => {
-          return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
-        }),
-        switchMap(([apiDialogResult, api]) => {
-          return this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
-        }),
+        switchMap(apiDialogResult => this.apiService.updateGroups(this.apiId, apiDialogResult.groups)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
