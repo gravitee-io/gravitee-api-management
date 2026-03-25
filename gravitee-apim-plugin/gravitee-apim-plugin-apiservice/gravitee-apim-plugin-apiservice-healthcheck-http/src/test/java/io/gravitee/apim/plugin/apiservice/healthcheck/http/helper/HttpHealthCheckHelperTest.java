@@ -146,7 +146,7 @@ public class HttpHealthCheckHelperTest {
 
             when(endpointGroup.getEndpoints()).thenReturn(List.of(endpoint));
             when(endpoint.getServices()).thenReturn(services);
-            assertFalse(HttpHealthCheckHelper.canHandle(api, TENANT_ID));
+            assertTrue(HttpHealthCheckHelper.canHandle(api, TENANT_ID));
         }
 
         @Test
