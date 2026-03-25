@@ -36,7 +36,7 @@
           <div class="form-row form-row--inline">
             <mat-form-field appearance="outline" class="form-field--name">
               <mat-label>Name </mat-label>
-              <input matInput formControlName="name" required [maxlength]="nameMaxLength" />
+              <input matInput formControlName="name" required />
               @if (form.controls.name.hasError('required')) {
                 <mat-error>Name is required</mat-error>
               }
