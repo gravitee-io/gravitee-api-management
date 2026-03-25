@@ -38,4 +38,10 @@ public interface AccessPointQueryService {
     List<AccessPoint> getGatewayAccessPoints(final String environmentId);
 
     List<AccessPoint> getKafkaGatewayAccessPoints(final String environmentId);
+
+    List<AccessPoint> getGammaConsoleAccessPoints();
+
+    List<AccessPoint> getGammaConsoleAccessPoints(final String organizationId);
+    AccessPoint getGammaConsoleAccessPoint(final String organizationId);
+    AccessPoint getGammaApiAccessPoint(final String organizationId);
 }

@@ -69,14 +69,21 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Value("${installation.api.portal.url:${installation.api.url:#{null}}}")
     private String portalApiUrl;
 
+    @Value("${installation.api.gamma.url:${installation.api.url:#{null}}}")
+    private String gammaApiUrl;
+
     @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
 
     @Value("${installation.api.proxyPath.portal:${http.api.portal.entrypoint:${http.api.entrypoint:/}portal}}")
     private String portalProxyPath;
 
+    @Value("${installation.api.proxyPath.gamma:${http.api.gamma.entrypoint:${http.api.entrypoint:/}gamma}}")
+    private String gammaProxyPath;
+
     private final Map<String, String> consoleUrls = new HashMap<>();
     private final Map<String, String> portalUrls = new HashMap<>();
+    private final Map<String, String> gammaUrls = new HashMap<>();
 
     public InstallationAccessQueryServiceImpl(
         final ConfigurableEnvironment environment,
@@ -99,6 +106,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         if (!installationTypeDomainService.isMultiTenant()) {
             consoleUrls.putAll(loadUrls("console", "orgId"));
             portalUrls.putAll(loadUrls("portal", "envId"));
+            gammaUrls.putAll(loadUrls("gamma", "orgId"));
 
             // Handle legacy urls
             handleEnvironmentUrls();
@@ -106,6 +114,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             // Validate api url
             validateApiUrl(consoleApiUrl);
             validateApiUrl(portalApiUrl);
+            validateApiUrl(gammaApiUrl);
         }
     }
 
@@ -376,6 +385,73 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         } else {
             return List.of();
         }
+    }
+
+    @Override
+    public String getGammaApiPath() {
+        return gammaProxyPath;
+    }
+
+    @Override
+    public List<String> getGammaUrls() {
+        if (installationTypeDomainService.isMultiTenant()) {
+            List<AccessPoint> accessPoints = accessPointQueryService.getGammaConsoleAccessPoints();
+            return accessPoints.stream().map(this::buildHttpUrl).toList();
+        } else {
+            Collection<OrganizationEntity> organizations = organizationService.findAll();
+            if (organizations == null || organizations.isEmpty()) {
+                OrganizationEntity organization = organizationService.getDefaultOrInitialize();
+                return List.of(getGammaUrlFromEnv(organization.getId()));
+            } else {
+                return organizations.stream().map(OrganizationEntity::getId).map(this::getGammaUrlFromEnv).toList();
+            }
+        }
+    }
+
+    @Override
+    public List<String> getGammaUrls(final String organizationId) {
+        if (installationTypeDomainService.isMultiTenant()) {
+            List<AccessPoint> accessPoints = accessPointQueryService.getGammaConsoleAccessPoints(organizationId);
+            return accessPoints.stream().map(this::buildHttpUrl).toList();
+        } else {
+            String gammaUrl = getGammaUrlFromEnv(organizationId);
+            return List.of(gammaUrl);
+        }
+    }
+
+    @Override
+    public String getGammaUrl(final String organizationId) {
+        if (installationTypeDomainService.isMultiTenant()) {
+            AccessPoint accessPoint = accessPointQueryService.getGammaConsoleAccessPoint(organizationId);
+            return buildHttpUrl(accessPoint);
+        } else {
+            return getGammaUrlFromEnv(organizationId);
+        }
+    }
+
+    @NonNull
+    private String getGammaUrlFromEnv(final String organizationId) {
+        String gammaUrl = gammaUrls.get(organizationId);
+        if (gammaUrl == null) {
+            gammaUrl = DEFAULT_GAMMA_URL;
+        }
+        return gammaUrl;
+    }
+
+    @Override
+    public String getGammaAPIUrl(final String organizationId) {
+        String gammaAPIBaseUrl;
+        if (installationTypeDomainService.isMultiTenant()) {
+            AccessPoint gammaAccessPoint = accessPointQueryService.getGammaApiAccessPoint(organizationId);
+            gammaAPIBaseUrl = buildHttpUrl(gammaAccessPoint);
+        } else {
+            gammaAPIBaseUrl = gammaApiUrl;
+        }
+        if (gammaAPIBaseUrl != null) {
+            URI fullUrl = URI.create(gammaAPIBaseUrl).resolve(gammaProxyPath);
+            return fullUrl.toString();
+        }
+        return null;
     }
 
     private String buildHttpUrl(final AccessPoint accessPoint) {
