@@ -174,9 +174,9 @@ class ApiMigration {
         MigrationResult<EndpointGroup> endpointGroupMigrationResult = MigrationResult.value(
             EndpointGroup.builder().name(source.getName()).type(HTTP_PROXY).loadBalancer(mapLoadBalancer(source.getLoadBalancer())).build()
         );
-        String sharedConfiguration = null;
+        MigrationResult<String> sharedConfigResult = MigrationResult.value(null);
         try {
-            sharedConfiguration = sharedConfigurationMigration.convert(source);
+            sharedConfigResult = sharedConfigurationMigration.convert(source);
             endpoints = stream(source.getEndpoints()).map(this::mapEndpoint).collect(MigrationResult.collectList());
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint group {}", source.getName(), e);
@@ -201,7 +201,7 @@ class ApiMigration {
                 }
                 return egp;
             })
-            .foldLeft(MigrationResult.value(sharedConfiguration), (egp, b) -> {
+            .foldLeft(sharedConfigResult, (egp, b) -> {
                 if (egp != null) {
                     egp.setSharedConfiguration(b);
                 }
@@ -346,35 +346,59 @@ class ApiMigration {
             if (root == null || root.isNull() || root.isMissingNode()) {
                 return MigrationResult.value(config);
             }
-            JsonNode healthcheckNode = root.path("healthcheck");
-            if (healthcheckNode == null || healthcheckNode.isNull() || healthcheckNode.isMissingNode()) {
-                return MigrationResult.value(config);
-            }
-            ArrayNode steps = root.path("healthcheck").path("steps").isArray()
-                ? (ArrayNode) root.path("healthcheck").path("steps")
-                : JsonNodeFactory.instance.arrayNode();
-            for (JsonNode step : steps) {
-                ObjectNode response = (ObjectNode) step.path("response");
-                JsonNode assertionsNode = response.get("assertions");
-                response.remove("assertions");
-                if (assertionsNode != null && assertionsNode.isArray() && assertionsNode.size() == 1) {
-                    response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
-                }
-            }
-            JsonNode httpProxyNode = root.path("proxy");
-            if (httpProxyNode.isObject()) {
-                ObjectNode proxyObject = (ObjectNode) httpProxyNode;
-                boolean enabled = proxyObject.path("enabled").asBoolean(false);
-                boolean useSystemProxy = proxyObject.path("useSystemProxy").asBoolean(false);
-                if (enabled && useSystemProxy) {
-                    proxyObject.remove("port");
-                    proxyObject.remove("type");
-                }
-            }
-            return MigrationResult.value(jsonMapper.writeValueAsString(root));
+            migrateHealthCheckNode(root);
+            List<MigrationResult.Issue> proxyIssues = migrateProxyNode(root);
+            migrateHttpNode(root);
+            return MigrationResult.<String>value(jsonMapper.writeValueAsString(root)).addIssues(proxyIssues);
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint", e);
             return MigrationResult.issue(MigrationWarnings.ENDPOINT_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE);
+        }
+    }
+
+    private void migrateHealthCheckNode(ObjectNode root) {
+        JsonNode healthcheckNode = root.path("healthcheck");
+        if (healthcheckNode.isNull() || healthcheckNode.isMissingNode()) {
+            return;
+        }
+        ArrayNode steps = healthcheckNode.path("steps").isArray()
+            ? (ArrayNode) healthcheckNode.path("steps")
+            : JsonNodeFactory.instance.arrayNode();
+        for (JsonNode step : steps) {
+            JsonNode responseNode = step.path("response");
+            if (responseNode.isObject()) {
+                migrateHealthCheckStepResponse((ObjectNode) responseNode);
+            }
+        }
+    }
+
+    private void migrateHealthCheckStepResponse(ObjectNode response) {
+        JsonNode assertionsNode = response.get("assertions");
+        response.remove("assertions");
+        if (assertionsNode != null && assertionsNode.isArray() && assertionsNode.size() == 1) {
+            response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
+        }
+    }
+
+    private List<MigrationResult.Issue> migrateProxyNode(ObjectNode root) {
+        JsonNode httpProxyNode = root.path("proxy");
+        if (!httpProxyNode.isObject()) {
+            return List.of();
+        }
+        return SharedConfigurationMigration.sanitizeProxyObjectNode((ObjectNode) httpProxyNode);
+    }
+
+    private void migrateHttpNode(ObjectNode root) {
+        JsonNode httpNode = root.path("http");
+        if (!httpNode.isObject()) {
+            return;
+        }
+        ObjectNode httpObject = (ObjectNode) httpNode;
+        String version = httpObject.path("version").asText("HTTP_1_1");
+        if ("HTTP_2".equals(version)) {
+            httpObject.retain(SharedConfigurationMigration.HTTP2_ALLOWED);
+        } else {
+            httpObject.retain(SharedConfigurationMigration.HTTP11_ALLOWED);
         }
     }
 
