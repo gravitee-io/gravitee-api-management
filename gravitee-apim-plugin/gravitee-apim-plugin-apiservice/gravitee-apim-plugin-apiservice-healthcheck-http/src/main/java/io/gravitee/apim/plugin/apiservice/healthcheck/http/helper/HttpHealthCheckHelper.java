@@ -64,12 +64,12 @@ public class HttpHealthCheckHelper {
             !endpoint.isSecondary() &&
             !isNull(endpoint.getServices()) &&
             isServiceEnabled(endpoint.getServices().getHealthCheck()) &&
-            hasTenant(endpoint, tenant)
+            isTenantApplicable(endpoint, tenant)
         );
     }
 
-    private static boolean hasTenant(final Endpoint endpoint, final String tenant) {
-        return tenant == null || (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant));
+    private static boolean isTenantApplicable(final Endpoint endpoint, final String tenant) {
+        return tenant == null || endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant);
     }
 
     private static boolean isServiceEnabled(final Service healthCheckService) {
