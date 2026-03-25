@@ -118,7 +118,7 @@ export class ApiProductPlanEditComponent {
       .pipe(
         tap(() => {
           this.snackBarService.success('Configuration successfully saved!');
-          this.apiProductV2Service.notifyPlanStateChanged();
+          this.apiProductV2Service.notifyApiProductChanged();
         }),
         catchError(err => this.handleError(err, 'An error occurred while saving configuration.')),
         takeUntilDestroyed(this.destroyRef),

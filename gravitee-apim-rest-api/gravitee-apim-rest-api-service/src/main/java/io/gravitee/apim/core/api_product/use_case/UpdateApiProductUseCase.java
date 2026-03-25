@@ -32,6 +32,7 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
@@ -109,7 +110,12 @@ public class UpdateApiProductUseCase {
         }
         apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), updated, primaryOwner);
 
-        deployApiProductDomainService.deploy(input.auditInfo(), updated);
+        try {
+            validateApiProductService.validateForDeploy(updated);
+            deployApiProductDomainService.deploy(input.auditInfo(), updated);
+        } catch (ValidationDomainException e) {
+            log.warn("API Product [{}] was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
+        }
         createAuditLog(beforeUpdate, updated, input.auditInfo());
         return new Output(updated);
     }
