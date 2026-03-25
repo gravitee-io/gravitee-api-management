@@ -80,10 +80,10 @@ export class ApiProductConfigurationComponent {
 
   protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['environment-api_product-u']);
 
-  readonly form = this.buildForm();
-  readonly initialFormValue = signal<Record<string, unknown> | null>(null);
   readonly nameMaxLength = 512;
   readonly versionMaxLength = 64;
+  readonly form = this.buildForm();
+  readonly initialFormValue = signal<Record<string, unknown> | null>(null);
   private readonly reload$ = new Subject<void>();
   private currentApiProduct: ApiProduct | null = null;
 
