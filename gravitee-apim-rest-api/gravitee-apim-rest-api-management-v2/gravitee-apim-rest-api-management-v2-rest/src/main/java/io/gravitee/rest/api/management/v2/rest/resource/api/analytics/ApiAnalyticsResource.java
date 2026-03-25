@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsCountUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
@@ -36,6 +38,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -43,6 +46,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -69,6 +73,49 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @Inject
+    private SearchAnalyticsCountUseCase searchAnalyticsCountUseCase;
+
+    // ----- Unified analytics endpoint -----
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public Response getApiAnalytics(
+        @QueryParam("type") String type,
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to,
+        @QueryParam("field") String field,
+        @QueryParam("interval") Long interval,
+        @QueryParam("size") Integer size
+    ) {
+        if (type == null || type.isBlank()) {
+            throw new BadRequestException("Query parameter 'type' is required");
+        }
+        if (from == null || to == null) {
+            throw new BadRequestException("Query parameters 'from' and 'to' are required");
+        }
+        if (from > to) {
+            throw new BadRequestException("Query parameter 'from' must be less than or equal to 'to'");
+        }
+
+        Instant startTime = Instant.ofEpochMilli(from);
+        Instant endTime = Instant.ofEpochMilli(to);
+
+        return switch (type.toUpperCase()) {
+            case "COUNT" -> handleCount(startTime, endTime);
+            default -> throw new BadRequestException("Unsupported analytics query type: " + type);
+        };
+    }
+
+    private Response handleCount(Instant from, Instant to) {
+        var input = new SearchAnalyticsCountUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), from, to);
+        var output = searchAnalyticsCountUseCase.execute(GraviteeContext.getExecutionContext(), input);
+        return Response.ok(new ApiAnalyticsCountResponse().type("COUNT").count(output.count())).build();
+    }
+
+    // ----- Legacy individual endpoints (preserved for backward compatibility) -----
 
     @Path("/requests-count")
     @GET

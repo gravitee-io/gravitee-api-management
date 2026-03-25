@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,6 +69,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     WebTarget averageMessagesPerRequestTarget;
     WebTarget averageConnectionDurationTarget;
     WebTarget responseTimeOverTimeTarget;
+    WebTarget unifiedAnalyticsTarget;
 
     @Inject
     FakeAnalyticsQueryService fakeAnalyticsQueryService;
@@ -93,6 +95,117 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
         fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
+    }
+
+    @Nested
+    class UnifiedCountAnalytics {
+
+        @BeforeEach
+        public void prepareTarget() {
+            unifiedAnalyticsTarget = rootTarget();
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_400_if_missing_type() {
+            final Response response = unifiedAnalyticsTarget.queryParam("from", 1000L).queryParam("to", 2000L).request().get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_missing_from_or_to() {
+            final Response response = unifiedAnalyticsTarget.queryParam("type", "COUNT").request().get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_from_greater_than_to() {
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 2000L)
+                .queryParam("to", 1000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_unsupported_type() {
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "INVALID")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_count() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.requestsCount =
+                RequestsCount.builder().total(42L).countsByEntrypoint(Map.of("http-get", 42L)).build();
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(java.util.Map.class);
+            assertThat(body.get("type")).isEqualTo("COUNT");
+            assertThat(((Number) body.get("count")).longValue()).isEqualTo(42L);
+        }
+
+        @Test
+        void should_return_zero_count_when_no_data() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.requestsCount = null;
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(java.util.Map.class);
+            assertThat(body.get("type")).isEqualTo("COUNT");
+            assertThat(((Number) body.get("count")).longValue()).isEqualTo(0L);
+        }
     }
 
     @Nested

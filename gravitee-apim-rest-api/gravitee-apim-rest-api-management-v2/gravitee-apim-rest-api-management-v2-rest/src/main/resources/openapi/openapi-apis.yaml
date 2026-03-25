@@ -2137,7 +2137,77 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsResponseStatusOvertimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - name: type
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - COUNT
+                          - STATS
+                          - GROUP_BY
+                          - DATE_HISTO
+                  description: The type of analytics query to execute
+                - name: from
+                  in: query
+                  required: true
+                  schema:
+                      type: integer
+                      format: int64
+                  description: Start of the time range (epoch milliseconds)
+                - name: to
+                  in: query
+                  required: true
+                  schema:
+                      type: integer
+                      format: int64
+                  description: End of the time range (epoch milliseconds)
+                - name: field
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Field to aggregate on (required for STATS, GROUP_BY, DATE_HISTO)
+                - name: interval
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      format: int64
+                  description: Interval in milliseconds (required for DATE_HISTO)
+                - name: size
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                  description: Number of top results to return (for GROUP_BY, default 10)
+            tags:
+                - API Analytics
+            summary: Get API Analytics (unified)
+            description: |-
+                Unified analytics endpoint supporting COUNT, STATS, GROUP_BY, and DATE_HISTO query types.
+                TCP Proxy APIs are not supported.
 
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getApiAnalytics
+            responses:
+                "200":
+                    description: Analytics response (polymorphic based on type)
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/ApiAnalyticsCountResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
+                default:
+                    $ref: "#/components/responses/Error"
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -8367,6 +8437,24 @@ components:
                                     items:
                                         type: integer
                                         format: int64
+
+        ApiAnalyticsCountResponse:
+            description: Analytics count response
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsCountResponse"
+                        description: API Analytics count response for the unified endpoint.
+                        properties:
+                            type:
+                                type: string
+                                description: The analytics query type
+                                example: COUNT
+                            count:
+                                type: integer
+                                format: int64
+                                description: The total count of requests
+                                example: 42
 
         # Analytics - Logs
         ApiLogsResponse:
