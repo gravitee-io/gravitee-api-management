@@ -89,6 +89,11 @@ public class MigrationResult<T> {
         return state() != State.IMPOSSIBLE ? value : null;
     }
 
+    @Nullable
+    public T getValue() {
+        return value();
+    }
+
     public Collection<Issue> issues() {
         return List.copyOf(issues);
     }

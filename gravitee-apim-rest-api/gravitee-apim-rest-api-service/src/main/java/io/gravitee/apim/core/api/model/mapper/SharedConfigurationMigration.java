@@ -21,16 +21,22 @@ import static io.gravitee.plugin.configurations.http.ProtocolVersion.HTTP_2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.plugin.configurations.http.HttpClientOptions;
 import io.gravitee.plugin.configurations.ssl.SslOptions;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class SharedConfigurationMigration {
 
-    private static final Set<String> HTTP11_ALLOWED = Set.of(
+    static final int DEFAULT_PROXY_PORT = 3128;
+
+    static final Set<String> HTTP11_ALLOWED = Set.of(
         "version",
         "keepAlive",
         "keepAliveTimeout",
@@ -45,7 +51,7 @@ public class SharedConfigurationMigration {
         "maxConcurrentConnections"
     );
 
-    private static final Set<String> HTTP2_ALLOWED = Set.of(
+    static final Set<String> HTTP2_ALLOWED = Set.of(
         "version",
         "clearTextUpgrade",
         "keepAlive",
@@ -64,7 +70,51 @@ public class SharedConfigurationMigration {
 
     private final ObjectMapper objectMapper;
 
-    public String convert(io.gravitee.definition.model.EndpointGroup source) throws JsonProcessingException {
+    /**
+     * Sanitizes a proxy ObjectNode from a V2 config to comply with the V4 schema.
+     * <p>
+     * When proxy is disabled or uses the system proxy, V4 only allows {@code enabled} and
+     * {@code useSystemProxy} (strict {@code additionalProperties: false}). For a custom proxy,
+     * {@code host} and {@code port} are required; missing values are replaced with safe defaults
+     * and a {@link MigrationResult.Issue} at {@code CAN_BE_FORCED} is returned for each.
+     *
+     * @param proxyNode the proxy JSON node to sanitize in-place
+     * @return list of issues describing any defaults that were applied
+     */
+    static List<MigrationResult.Issue> sanitizeProxyObjectNode(ObjectNode proxyNode) {
+        List<MigrationResult.Issue> issues = new ArrayList<>();
+        boolean enabled = proxyNode.path("enabled").asBoolean(false);
+        boolean useSystemProxy = proxyNode.path("useSystemProxy").asBoolean(false);
+        if (!enabled || useSystemProxy) {
+            // No proxy or system proxy: V4 schema allows only enabled and useSystemProxy (additionalProperties: false)
+            proxyNode.remove("type");
+            proxyNode.remove("host");
+            proxyNode.remove("port");
+            proxyNode.remove("username");
+            proxyNode.remove("password");
+        } else {
+            // Custom proxy: host and port are required by V4 schema
+            String host = proxyNode.path("host").asText(null);
+            if (host == null || host.isEmpty()) {
+                proxyNode.put("host", "localhost");
+                issues.add(new MigrationResult.Issue(MigrationWarnings.PROXY_HOST_MISSING, MigrationResult.State.CAN_BE_FORCED));
+            }
+            int port = proxyNode.path("port").asInt(0);
+            if (port <= 0) {
+                proxyNode.put("port", DEFAULT_PROXY_PORT);
+                issues.add(
+                    new MigrationResult.Issue(
+                        MigrationWarnings.PROXY_PORT_DEFAULTED.formatted(DEFAULT_PROXY_PORT),
+                        MigrationResult.State.CAN_BE_FORCED
+                    )
+                );
+            }
+        }
+        return issues;
+    }
+
+    public MigrationResult<String> convert(io.gravitee.definition.model.EndpointGroup source) throws JsonProcessingException {
+        List<MigrationResult.Issue> issues = new ArrayList<>();
         ObjectNode httpClientOptions = mapHttpClientOptions(source.getHttpClientOptions());
         ObjectNode httpClientSslOptionsNode = mapHttpClientSslOptions(source.getHttpClientSslOptions());
         ObjectNode sharedConfiguration = objectMapper.createObjectNode();
@@ -79,21 +129,10 @@ public class SharedConfigurationMigration {
         }
         if (source.getHttpProxy() != null) {
             ObjectNode proxyNode = (ObjectNode) objectMapper.valueToTree(source.getHttpProxy());
-            if (source.getHttpProxy().isEnabled() && source.getHttpProxy().isUseSystemProxy()) {
-                proxyNode.remove("host");
-                proxyNode.remove("port");
-                proxyNode.remove("type");
-                proxyNode.put("useSystemProxy", true);
-                proxyNode.remove("enabled");
-            } else {
-                String host = source.getHttpProxy().getHost();
-                if (host == null || host.isEmpty()) {
-                    proxyNode.put("host", "/");
-                }
-            }
+            issues.addAll(sanitizeProxyObjectNode(proxyNode));
             sharedConfiguration.set("proxy", proxyNode);
         }
-        return objectMapper.writeValueAsString(sharedConfiguration);
+        return new MigrationResult<>(objectMapper.writeValueAsString(sharedConfiguration), issues);
     }
 
     private ObjectNode mapHttpClientOptions(io.gravitee.definition.model.HttpClientOptions httpClientOptions) {
