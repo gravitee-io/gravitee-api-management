@@ -66,6 +66,12 @@ public final class MigrationWarnings {
     public static final String DYNAMIC_PROPERTY_HTTP_ONLY =
         "Unable to migrate the API as Dynamic properties configuration only supports HTTP provider";
 
+    public static final String PROXY_HOST_MISSING =
+        "The endpoint proxy is configured as a custom proxy but has no host. The host has been set to a placeholder value. Please review your proxy configuration after migration";
+
+    public static final String PROXY_PORT_DEFAULTED =
+        "The endpoint proxy is configured as a custom proxy but has no valid port. The port has been set to the default value %d. Please review your proxy configuration after migration";
+
     public static final String POLICY_NOT_COMPATIBLE = "Unable to migrate the API as Policy %s is not compatible with V4 APIs";
 
     public static final String NON_GRAVITEE_POLICY =
