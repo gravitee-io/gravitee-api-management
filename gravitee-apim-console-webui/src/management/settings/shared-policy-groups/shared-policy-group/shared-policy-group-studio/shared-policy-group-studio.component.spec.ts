@@ -173,7 +173,7 @@ describe('SharedPolicyGroupStudioComponent', () => {
             description: 'What does the 🦊 say?',
             condition: undefined,
             messageCondition: undefined,
-            configuration: undefined,
+            configuration: {},
             enabled: true,
           },
         ],
