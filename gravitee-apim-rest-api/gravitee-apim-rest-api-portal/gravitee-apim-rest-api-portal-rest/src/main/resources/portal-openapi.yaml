@@ -1854,7 +1854,7 @@ paths:
             - $ref: "#/components/parameters/applicationIdParam"
         get:
             tags:
-                - Application
+                - Application Client Certificates
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
@@ -1879,7 +1879,7 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
         post:
             tags:
-                - Application
+                - Application Client Certificates
             requestBody:
                 description: Use to create a client certificate.
                 required: true
@@ -1912,7 +1912,7 @@ paths:
             - $ref: "#/components/parameters/certIdParam"
         get:
             tags:
-                - Application
+                - Application Client Certificates
             summary: Get a client certificate
             description: |
                 Get a client certificate by id.
@@ -1934,7 +1934,7 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
         put:
             tags:
-                - Application
+                - Application Client Certificates
             requestBody:
                 description: Use to update a client certificate.
                 required: true
@@ -1963,7 +1963,7 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
         delete:
             tags:
-                - Application
+                - Application Client Certificates
             summary: Delete a client certificate
             description: |
                 Delete a client certificate.

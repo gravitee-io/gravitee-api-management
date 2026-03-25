@@ -19,6 +19,8 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -30,10 +32,17 @@ public class DeleteClientCertificateUseCase {
 
     public void execute(Input input) {
         ClientCertificate certificate = clientCertificateCrudService.findById(input.clientCertificateId());
+        if (input.applicationId().isPresent() && !input.applicationId().get().equals(certificate.applicationId())) {
+            throw new ClientCertificateNotFoundException(input.clientCertificateId());
+        }
         applicationCertificatesUpdateDomainService.validateCertificateRemoval(certificate.applicationId(), input.clientCertificateId());
         clientCertificateCrudService.delete(input.clientCertificateId());
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
     }
 
-    public record Input(String clientCertificateId) {}
+    public record Input(Optional<String> applicationId, String clientCertificateId) {
+        public Input(String clientCertificateId) {
+            this(Optional.empty(), clientCertificateId);
+        }
+    }
 }

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ClientCertificate } from './client-certificate';
 
-.add-certificate-form {
-  display: flex;
-  flex-flow: column;
-  padding-top: 16px;
-  gap: 16px;
-  min-width: 480px;
-
-  mat-form-field {
-    width: 100%;
-  }
+export function fakeClientCertificate(overrides: Partial<ClientCertificate> = {}): ClientCertificate {
+  return {
+    id: 'cert-1',
+    name: 'My Certificate',
+    status: 'ACTIVE',
+    createdAt: '2026-01-01T00:00:00Z',
+    ...overrides,
+  };
 }

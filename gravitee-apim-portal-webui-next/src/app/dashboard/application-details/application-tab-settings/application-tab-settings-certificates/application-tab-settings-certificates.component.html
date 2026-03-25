@@ -23,108 +23,48 @@
         Manage mTLS certificates for this application
       </p>
     </div>
-    @if (canManage()) {
-      @if (certificates().length === 0) {
-        <button
-          mat-flat-button
-          color="primary"
-          (click)="openAddCertificateDialog()"
-          i18n="@@addCertificate"
-          aria-label="Add certificate"
-          data-testId="add-certificate"
-        >
-          Add certificate
-        </button>
-      } @else {
-        <button
-          mat-stroked-button
-          (click)="openAddCertificateDialog()"
-          i18n="@@addCertificate"
-          aria-label="Add certificate"
-          data-testId="add-certificate"
-        >
-          Add certificate
-        </button>
-      }
-    }
   </div>
 
-  @if (certificates().length === 0) {
+  @if (loadError()) {
+    <p class="next-gen-small certificates__error" i18n="@@certificatesLoadError">Failed to load certificates. Please try again.</p>
+  } @else if (certificates().length === 0) {
     <div class="certificates__empty">
-      <div class="certificates__empty__icon">
-        <mat-icon>workspace_premium</mat-icon>
-      </div>
-      <span class="certificates__empty__title" i18n="@@noCertificatesTitle">No mTLS certificates added</span>
-      <span class="certificates__empty__description next-gen-small" i18n="@@noCertificatesDescription">
+      <span class="material-icons icon-with-background" aria-hidden="true">workspace_premium</span>
+      <span class="next-gen-h5" i18n="@@noCertificatesTitle">No mTLS certificates added</span>
+      <span class="next-gen-small" i18n="@@noCertificatesDescription">
         Add your first certificate to enable mTLS authentication for this application
       </span>
     </div>
   } @else {
-    <div class="certificates__tabs">
-      <button
-        class="certificates__tabs__tab"
-        [class.certificates__tabs__tab--active]="activeTab() === 'active'"
-        (click)="activeTab.set('active')"
-        i18n="@@activeCertificatesTab"
-        aria-label="Active certificates"
-      >
-        Active certificates
-        <span class="certificates__tabs__tab__count">{{ activeCertificates().length }}</span>
-      </button>
-      <button
-        class="certificates__tabs__tab"
-        [class.certificates__tabs__tab--active]="activeTab() === 'history'"
-        (click)="activeTab.set('history')"
-        i18n="@@historyCertificatesTab"
-        aria-label="Certificate history"
-      >
-        Certificate history
-        <span class="certificates__tabs__tab__count">{{ historyCertificates().length }}</span>
-      </button>
-    </div>
-
-    <table mat-table [dataSource]="displayedCertificates()" class="certificates__table">
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef class="m3-title-medium" i18n="@@certName">Name</th>
-        <td mat-cell *matCellDef="let cert">{{ cert.name }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="createdAt">
-        <th mat-header-cell *matHeaderCellDef class="m3-title-medium" i18n="@@certUploaded">Uploaded</th>
-        <td mat-cell *matCellDef="let cert">{{ cert.createdAt | date: 'dd MMM yyyy' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="endsAt">
-        <th mat-header-cell *matHeaderCellDef class="m3-title-medium" i18n="@@certExpiry">Expiry date and time</th>
-        <td mat-cell *matCellDef="let cert">{{ cert.endsAt ? (cert.endsAt | date: 'dd MMM yyyy, HH:mm') : '—' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef class="m3-title-medium" i18n="@@certStatus">Status</th>
-        <td mat-cell *matCellDef="let cert">{{ cert.status | capitalizeFirst }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="daysRemaining">
-        <th mat-header-cell *matHeaderCellDef class="m3-title-medium" i18n="@@certDaysRemaining">Days Remaining</th>
-        <td mat-cell *matCellDef="let cert">{{ daysRemaining(cert.endsAt) ?? '—' }}</td>
-      </ng-container>
-
-      @if (canManage()) {
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let cert" class="certificates__table__cell--actions">
-            <button mat-icon-button i18n-aria-label="@@editCertificate" aria-label="Edit certificate" data-testId="edit-certificate">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button i18n-aria-label="@@deleteCertificate" aria-label="Delete certificate" data-testId="delete-certificate">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-      }
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
-    </table>
+    <mat-tab-group (selectedTabChange)="onTabChange()">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span i18n="@@activeCertificatesTab">Active certificates</span>
+          <span class="certificates__tab-count next-gen-caption">{{ activeCertificates().length }}</span>
+        </ng-template>
+        <app-paginated-table
+          [columns]="tableColumns"
+          [rows]="activeRows()"
+          [totalElements]="totalElements()"
+          [currentPage]="currentPage()"
+          [pageSize]="pageSize"
+          (pageChange)="onPageChange($event)"
+        />
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span i18n="@@historyCertificatesTab">Certificate history</span>
+          <span class="certificates__tab-count next-gen-caption">{{ historyCertificates().length }}</span>
+        </ng-template>
+        <app-paginated-table
+          [columns]="tableColumns"
+          [rows]="historyRows()"
+          [totalElements]="totalElements()"
+          [currentPage]="currentPage()"
+          [pageSize]="pageSize"
+          (pageChange)="onPageChange($event)"
+        />
+      </mat-tab>
+    </mat-tab-group>
   }
 </div>

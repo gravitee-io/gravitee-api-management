@@ -41,7 +41,13 @@ export interface UpdateClientCertificateInput {
   endsAt?: string;
 }
 
+export interface PaginateMetaData {
+  totalElements: number;
+}
+
 export interface ClientCertificatesResponse {
   data?: ClientCertificate[];
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    paginateMetaData?: PaginateMetaData;
+  };
 }

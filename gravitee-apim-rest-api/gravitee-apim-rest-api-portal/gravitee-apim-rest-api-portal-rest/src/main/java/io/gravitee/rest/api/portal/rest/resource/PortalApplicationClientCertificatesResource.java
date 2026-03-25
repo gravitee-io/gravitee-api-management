@@ -70,7 +70,6 @@ public class PortalApplicationClientCertificatesResource extends AbstractResourc
 
     private final PortalClientCertificateMapper mapper = PortalClientCertificateMapper.INSTANCE;
 
-    @SuppressWarnings("UnresolvedRestParam")
     @PathParam("applicationId")
     @Parameter(name = "applicationId", hidden = true)
     private String applicationId;
@@ -96,10 +95,10 @@ public class PortalApplicationClientCertificatesResource extends AbstractResourc
 
         List<PortalClientCertificate> certs = mapper.toDto(output.clientCertificates().getContent());
 
+        Map<String, Object> paginateMetadata = new HashMap<>();
+        paginateMetadata.put("totalElements", output.clientCertificates().getTotalElements());
         Map<String, Map<String, Object>> metadata = new HashMap<>();
-        Map<String, Object> paginateMetaData = new HashMap<>();
-        paginateMetaData.put("totalElements", output.clientCertificates().getTotalElements());
-        metadata.put("paginateMetaData", paginateMetaData);
+        metadata.put("paginateMetaData", paginateMetadata);
 
         return createListResponse(GraviteeContext.getExecutionContext(), certs, paginationParam, metadata);
     }

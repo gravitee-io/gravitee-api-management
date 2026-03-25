@@ -42,6 +42,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * Resource for managing a single client certificate of an application via the portal API.
@@ -61,6 +62,11 @@ public class PortalApplicationClientCertificateResource extends AbstractResource
     private DeleteClientCertificateUseCase deleteClientCertificateUseCase;
 
     private final PortalClientCertificateMapper mapper = PortalClientCertificateMapper.INSTANCE;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("applicationId")
+    @Parameter(name = "applicationId", hidden = true)
+    private String applicationId;
 
     @PathParam("certId")
     @Parameter(name = "certId", required = true, description = "Client certificate identifier")
@@ -82,7 +88,9 @@ public class PortalApplicationClientCertificateResource extends AbstractResource
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getCertificate() {
-        var cert = getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(certId)).clientCertificate();
+        var cert = getClientCertificateUseCase
+            .execute(new GetClientCertificateUseCase.Input(Optional.of(applicationId), certId))
+            .clientCertificate();
         return Response.ok(mapper.toDto(cert)).build();
     }
 
@@ -104,7 +112,7 @@ public class PortalApplicationClientCertificateResource extends AbstractResource
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateCertificate(@Valid @NotNull final UpdatePortalClientCertificateInput input) {
         var updated = updateClientCertificateUseCase
-            .execute(new UpdateClientCertificateUseCase.Input(certId, mapper.toDomain(input)))
+            .execute(new UpdateClientCertificateUseCase.Input(Optional.of(applicationId), certId, mapper.toDomain(input)))
             .clientCertificate();
         return Response.ok(mapper.toDto(updated)).build();
     }
@@ -122,7 +130,7 @@ public class PortalApplicationClientCertificateResource extends AbstractResource
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deleteCertificate() {
         // ClientCertificateLastRemovalException (HTTP 400) is mapped automatically by ManagementExceptionMapper
-        deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));
+        deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(Optional.of(applicationId), certId));
         return Response.noContent().build();
     }
 }
