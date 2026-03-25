@@ -79,4 +79,29 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
     public List<RestrictedDomain> getGatewayRestrictedDomains(final String environmentId) {
         return List.of();
     }
+
+    @Override
+    public String getGammaApiPath() {
+        return "/gamma";
+    }
+
+    @Override
+    public List<String> getGammaUrls() {
+        return List.of();
+    }
+
+    @Override
+    public List<String> getGammaUrls(final String organizationId) {
+        return List.of();
+    }
+
+    @Override
+    public String getGammaUrl(final String organizationId) {
+        return null;
+    }
+
+    @Override
+    public String getGammaAPIUrl(final String organizationId) {
+        return null;
+    }
 }

@@ -41,11 +41,13 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     private static final int NO_EXPLICIT_PORT = -1; // this resets explicit port in UriBuilder
     private static final String LOCAL_PORTAL_PREFIX = "/portal";
     private static final String LOCAL_MANAGEMENT_PREFIX = "/management";
+    private static final String LOCAL_GAMMA_PREFIX = "/gamma";
     public static final String X_ORIGINAL_FORWARDED_HOST = "X-Original-Forwarded-Host";
 
     private enum ApiContext {
         PORTAL,
         MANAGEMENT,
+        GAMMA,
         UNKNOWN,
     }
 
@@ -74,6 +76,8 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
                 return ApiContext.PORTAL;
             } else if (absolutePath.startsWith(LOCAL_MANAGEMENT_PREFIX)) {
                 return ApiContext.MANAGEMENT;
+            } else if (absolutePath.startsWith(LOCAL_GAMMA_PREFIX)) {
+                return ApiContext.GAMMA;
             }
         }
         return ApiContext.UNKNOWN;
@@ -100,6 +104,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
         String apiUrl = switch (apiContext) {
             case PORTAL -> installationAccessQueryService.getPortalAPIUrl(GraviteeContext.getDefaultEnvironment());
             case MANAGEMENT -> installationAccessQueryService.getConsoleAPIUrl(GraviteeContext.getDefaultOrganization());
+            case GAMMA -> installationAccessQueryService.getGammaAPIUrl(GraviteeContext.getDefaultOrganization());
             default -> null;
         };
 
@@ -160,6 +165,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
         String apiUrl = switch (apiContext) {
             case PORTAL -> installationAccessQueryService.getPortalAPIUrl(GraviteeContext.getDefaultEnvironment());
             case MANAGEMENT -> installationAccessQueryService.getConsoleAPIUrl(GraviteeContext.getDefaultOrganization());
+            case GAMMA -> installationAccessQueryService.getGammaAPIUrl(GraviteeContext.getDefaultOrganization());
             default -> null;
         };
 
@@ -245,12 +251,14 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
         String localPrefix = switch (apiContext) {
             case PORTAL -> LOCAL_PORTAL_PREFIX;
             case MANAGEMENT -> LOCAL_MANAGEMENT_PREFIX;
+            case GAMMA -> LOCAL_GAMMA_PREFIX;
             default -> null;
         };
 
         String proxyPath = switch (apiContext) {
             case PORTAL -> installationAccessQueryService.getPortalApiPath();
             case MANAGEMENT -> installationAccessQueryService.getConsoleApiPath();
+            case GAMMA -> installationAccessQueryService.getGammaApiPath();
             default -> null;
         };
 

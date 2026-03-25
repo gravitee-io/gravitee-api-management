@@ -152,6 +152,22 @@ public class GraviteeCorsUndefinedOrganizationConfigurationTest {
     }
 
     @Test
+    void should_initialize_fields_from_default_value_and_installation_including_gamma() {
+        when(installationAccessQueryService.getConsoleUrls()).thenReturn(List.of("custom-console-url"));
+        when(installationAccessQueryService.getGammaUrls()).thenReturn(List.of("custom-gamma-url"));
+        cut = new GraviteeCorsConfiguration(
+            environment,
+            parameterService,
+            installationAccessQueryService,
+            eventManager,
+            GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
+            ORGANIZATION_TYPE
+        );
+
+        assertEquals(Arrays.asList("*", "custom-console-url", "custom-gamma-url"), cut.getAllowedOriginPatterns());
+    }
+
+    @Test
     void should_not_set_fields_on_event_with_wrong_env_id() {
         eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ORG")));
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);

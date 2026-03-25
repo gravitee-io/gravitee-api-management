@@ -77,4 +77,24 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService 
     public List<AccessPoint> getKafkaGatewayAccessPoints(String environmentId) {
         return List.of();
     }
+
+    @Override
+    public List<AccessPoint> getGammaConsoleAccessPoints() {
+        return List.of();
+    }
+
+    @Override
+    public List<AccessPoint> getGammaConsoleAccessPoints(final String organizationId) {
+        return List.of();
+    }
+
+    @Override
+    public AccessPoint getGammaConsoleAccessPoint(final String organizationId) {
+        return null;
+    }
+
+    @Override
+    public AccessPoint getGammaApiAccessPoint(final String organizationId) {
+        return null;
+    }
 }

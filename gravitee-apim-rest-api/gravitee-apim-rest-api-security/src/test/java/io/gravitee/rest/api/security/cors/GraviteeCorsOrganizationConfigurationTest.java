@@ -217,6 +217,64 @@ public class GraviteeCorsOrganizationConfigurationTest {
     }
 
     @Test
+    void should_set_allowed_origin_on_gamma_console_access_points_event() {
+        eventManager.publishEvent(
+            new SimpleEvent<>(
+                AccessPointEvent.CREATED,
+                AccessPoint.builder()
+                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .host("gamma-origin")
+                    .target(AccessPoint.Target.GAMMA_CONSOLE)
+                    .build()
+            )
+        );
+
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*", "http://gamma-origin");
+    }
+
+    @Test
+    void should_remove_allowed_origin_on_gamma_console_access_points_deleted_event() {
+        AccessPoint gammaAccessPoint = AccessPoint.builder()
+            .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+            .referenceId(ORGANIZATION_ID)
+            .host("gamma-origin")
+            .target(AccessPoint.Target.GAMMA_CONSOLE)
+            .build();
+
+        eventManager.publishEvent(new SimpleEvent<>(AccessPointEvent.CREATED, gammaAccessPoint));
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*", "http://gamma-origin");
+
+        eventManager.publishEvent(new SimpleEvent<>(AccessPointEvent.DELETED, gammaAccessPoint));
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
+    }
+
+    @Test
+    void should_not_set_allowed_origin_on_gamma_console_access_points_event_with_wrong_org_id() {
+        eventManager.publishEvent(
+            new SimpleEvent<>(
+                AccessPointEvent.CREATED,
+                AccessPoint.builder()
+                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                    .referenceId("ANOTHER_ORG")
+                    .host("gamma-origin")
+                    .target(AccessPoint.Target.GAMMA_CONSOLE)
+                    .build()
+            )
+        );
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
+    }
+
+    @Test
+    void should_set_fields_on_event_with_installation_including_gamma() {
+        when(installationAccessQueryService.getConsoleUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-console-url"));
+        when(installationAccessQueryService.getGammaUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-gamma-url"));
+
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
+        assertEquals(Arrays.asList("origin1", "origin2", "custom-console-url", "custom-gamma-url"), cut.getAllowedOriginPatterns());
+    }
+
+    @Test
     void should_not_set_allowed_origin_on_access_point_event_with_wrong_env_id() {
         eventManager.publishEvent(
             new SimpleEvent<>(
