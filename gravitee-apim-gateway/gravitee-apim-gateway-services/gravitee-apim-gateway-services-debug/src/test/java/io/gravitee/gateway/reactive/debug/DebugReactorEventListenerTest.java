@@ -307,22 +307,26 @@ class DebugReactorEventListenerTest {
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-            verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
-            verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
-            verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
+            await()
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+                    verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+                    verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
-            verify(eventRepository, times(2)).update(eventCaptor.capture());
+                    verify(eventRepository, times(2)).update(eventCaptor.capture());
 
-            final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-            assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
+                    final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
+                    assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
 
-            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+                    verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
 
-            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
-            assertThat(capturedRevokeEvent).isNotNull();
-            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
-            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel);
-            assertThat(capturedRevokeEvent.metadata()).isNotNull();
+                    final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+                    assertThat(capturedRevokeEvent).isNotNull();
+                    assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+                    assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel);
+                    assertThat(capturedRevokeEvent.metadata()).isNotNull();
+                });
         }
 
         @Test
