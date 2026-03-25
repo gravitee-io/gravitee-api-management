@@ -25,6 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -90,7 +91,16 @@ public class EndpointGroupsValidationServiceImplTest {
         nativeFriendlyEndpoint.setSupportedApiType(ApiType.NATIVE);
         lenient().when(endpointService.findById(NATIVE_ENDPOINT_TYPE)).thenReturn(nativeFriendlyEndpoint);
 
-        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService, apiServicePluginService);
+        var llmProxyEndpoint = new ConnectorPluginEntity();
+        llmProxyEndpoint.setId("llm-proxy");
+        llmProxyEndpoint.setSupportedApiType(ApiType.LLM_PROXY);
+        lenient().when(endpointService.findById("llm-proxy")).thenReturn(llmProxyEndpoint);
+
+        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(
+            endpointService,
+            apiServicePluginService,
+            new ObjectMapper()
+        );
     }
 
     @Test(expected = EndpointMissingException.class)
@@ -881,5 +891,77 @@ public class EndpointGroupsValidationServiceImplTest {
         verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
         verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
         verify(endpointService).validateSharedConfiguration(any(), eq("{}"));
+    }
+
+    /**
+     * LLM Proxy provider consistency tests
+     */
+
+    @Test
+    public void should_throw_when_llm_proxy_endpoints_have_different_providers() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("llm-group");
+        endpointGroup.setType("llm-proxy");
+
+        Endpoint endpoint1 = new Endpoint();
+        endpoint1.setName("openai-endpoint");
+        endpoint1.setType("llm-proxy");
+        endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
+
+        Endpoint endpoint2 = new Endpoint();
+        endpoint2.setName("azure-endpoint");
+        endpoint2.setType("llm-proxy");
+        endpoint2.setConfiguration("{\"provider\":\"OPEN_AI_COMPATIBLE\"}");
+
+        endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+
+        assertThatExceptionOfType(EndpointGroupLlmProxyProviderMismatchInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup))
+        );
+    }
+
+    @Test
+    public void should_not_throw_when_llm_proxy_endpoints_have_same_provider() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("llm-group");
+        endpointGroup.setType("llm-proxy");
+
+        Endpoint endpoint1 = new Endpoint();
+        endpoint1.setName("openai-endpoint-1");
+        endpoint1.setType("llm-proxy");
+        endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
+
+        Endpoint endpoint2 = new Endpoint();
+        endpoint2.setName("openai-endpoint-2");
+        endpoint2.setType("llm-proxy");
+        endpoint2.setConfiguration("{\"provider\":\"OPEN_AI\"}");
+
+        endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+
+        List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup));
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    public void should_not_validate_provider_for_non_llm_proxy_groups() {
+        // HTTP endpoint group with different configurations should pass without provider validation
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("http-group");
+        endpointGroup.setType("http");
+
+        Endpoint endpoint1 = new Endpoint();
+        endpoint1.setName("endpoint-1");
+        endpoint1.setType("http");
+        endpoint1.setConfiguration("{\"provider\":\"A\"}");
+
+        Endpoint endpoint2 = new Endpoint();
+        endpoint2.setName("endpoint-2");
+        endpoint2.setType("http");
+        endpoint2.setConfiguration("{\"provider\":\"B\"}");
+
+        endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+
+        List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+        assertThat(result).hasSize(1);
     }
 }
