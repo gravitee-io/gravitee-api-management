@@ -64,21 +64,21 @@ export class ApiProductCreateComponent {
   private readonly snackBarService = inject(SnackBarService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly nameMaxLength = 512;
+  readonly versionMaxLength = 64;
+  readonly isCreating = signal(false);
   readonly form = new FormGroup<CreateApiProductForm>({
     name: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(512), Validators.minLength(1)],
+      validators: [Validators.required, Validators.maxLength(this.nameMaxLength), Validators.minLength(1)],
       asyncValidators: [apiProductNameUniqueAsyncValidator(this.apiProductV2Service)],
     }),
     version: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(64), Validators.minLength(1)],
+      validators: [Validators.required, Validators.maxLength(this.versionMaxLength), Validators.minLength(1)],
     }),
     description: new FormControl('', { nonNullable: true }),
   });
-  readonly nameMaxLength = 512;
-  readonly versionMaxLength = 64;
-  readonly isCreating = signal(false);
 
   onExit(): void {
     if (this.form.dirty) {
