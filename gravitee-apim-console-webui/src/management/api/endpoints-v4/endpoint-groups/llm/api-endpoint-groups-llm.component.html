@@ -23,7 +23,7 @@
           <div class="endpoint-group-card__header__title">
             <h3 class="mat-h3">{{ provider?.name }}</h3>
             <span class="gio-badge-primary">
-              {{ getProviderTypeDisplayName(provider?.providerConfiguration?.provider) }}
+              {{ getProviderTypeDisplayName(provider?.endpoints?.[0]?.providerConfiguration?.provider) }}
             </span>
           </div>
           <div class="endpoint-group-card__header__actions">
@@ -48,7 +48,7 @@
         </div>
         <table
           mat-table
-          [dataSource]="provider.providerConfiguration.models"
+          [dataSource]="provider.endpoints[0]?.providerConfiguration?.models ?? []"
           [attr.id]="'groupsTable-' + i"
           aria-label="Endpoint group table"
           class="gio-table-light"
