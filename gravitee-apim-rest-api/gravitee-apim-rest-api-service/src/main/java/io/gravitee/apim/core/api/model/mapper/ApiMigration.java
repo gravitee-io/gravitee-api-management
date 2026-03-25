@@ -347,18 +347,17 @@ class ApiMigration {
                 return MigrationResult.value(config);
             }
             JsonNode healthcheckNode = root.path("healthcheck");
-            if (healthcheckNode == null || healthcheckNode.isNull() || healthcheckNode.isMissingNode()) {
-                return MigrationResult.value(config);
-            }
-            ArrayNode steps = root.path("healthcheck").path("steps").isArray()
-                ? (ArrayNode) root.path("healthcheck").path("steps")
-                : JsonNodeFactory.instance.arrayNode();
-            for (JsonNode step : steps) {
-                ObjectNode response = (ObjectNode) step.path("response");
-                JsonNode assertionsNode = response.get("assertions");
-                response.remove("assertions");
-                if (assertionsNode != null && assertionsNode.isArray() && assertionsNode.size() == 1) {
-                    response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
+            if (healthcheckNode != null && !healthcheckNode.isNull() && !healthcheckNode.isMissingNode()) {
+                ArrayNode steps = root.path("healthcheck").path("steps").isArray()
+                    ? (ArrayNode) root.path("healthcheck").path("steps")
+                    : JsonNodeFactory.instance.arrayNode();
+                for (JsonNode step : steps) {
+                    ObjectNode response = (ObjectNode) step.path("response");
+                    JsonNode assertionsNode = response.get("assertions");
+                    response.remove("assertions");
+                    if (assertionsNode != null && assertionsNode.isArray() && assertionsNode.size() == 1) {
+                        response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
+                    }
                 }
             }
             JsonNode httpProxyNode = root.path("proxy");
@@ -366,9 +365,29 @@ class ApiMigration {
                 ObjectNode proxyObject = (ObjectNode) httpProxyNode;
                 boolean enabled = proxyObject.path("enabled").asBoolean(false);
                 boolean useSystemProxy = proxyObject.path("useSystemProxy").asBoolean(false);
-                if (enabled && useSystemProxy) {
-                    proxyObject.remove("port");
+                if (!enabled || useSystemProxy) {
+                    // No proxy or system proxy: V4 schema allows only enabled and useSystemProxy (additionalProperties: false)
                     proxyObject.remove("type");
+                    proxyObject.remove("host");
+                    proxyObject.remove("port");
+                    proxyObject.remove("username");
+                    proxyObject.remove("password");
+                } else {
+                    // Custom proxy: host and port are required by V4 schema
+                    String host = proxyObject.path("host").asText(null);
+                    if (host == null || host.isEmpty()) {
+                        proxyObject.put("host", "/");
+                    }
+                }
+            }
+            JsonNode httpNode = root.path("http");
+            if (httpNode.isObject()) {
+                ObjectNode httpObject = (ObjectNode) httpNode;
+                String version = httpObject.path("version").asText("HTTP_1_1");
+                if ("HTTP_2".equals(version)) {
+                    httpObject.retain(SharedConfigurationMigration.HTTP2_ALLOWED);
+                } else {
+                    httpObject.retain(SharedConfigurationMigration.HTTP11_ALLOWED);
                 }
             }
             return MigrationResult.value(jsonMapper.writeValueAsString(root));
