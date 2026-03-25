@@ -17,6 +17,13 @@ import { ApiV4 } from '../../../../../entities/management-api-v2';
 
 export type Provider = {
   name: string;
+  groupIndex: number;
+  endpoints: ProviderEndpoint[];
+};
+
+export type ProviderEndpoint = {
+  name: string;
+  endpointIndex: number;
   providerConfiguration: ProviderConfiguration;
 };
 
@@ -41,12 +48,13 @@ export const toProviders = (api: ApiV4): Provider[] => {
 
   return api.endpointGroups
     .filter(endpointGroup => endpointGroup.endpoints && endpointGroup.endpoints.length > 0)
-    .map(endpointGroup => {
-      const endpoint = endpointGroup.endpoints[0];
-
-      return {
-        name: endpointGroup.name,
+    .map((endpointGroup, groupIndex) => ({
+      name: endpointGroup.name,
+      groupIndex,
+      endpoints: endpointGroup.endpoints.map((endpoint, endpointIndex) => ({
+        name: endpoint.name,
+        endpointIndex,
         providerConfiguration: endpoint.configuration as ProviderConfiguration,
-      };
-    });
+      })),
+    }));
 };
