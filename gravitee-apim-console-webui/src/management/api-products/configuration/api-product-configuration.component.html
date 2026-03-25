@@ -28,7 +28,7 @@
         <div class="configuration-card__fields">
           <mat-form-field appearance="outline" class="configuration-card__fields__name">
             <mat-label>Name</mat-label>
-            <input matInput formControlName="name" [maxlength]="nameMaxLength" />
+            <input matInput formControlName="name" />
             @if (form.controls.name.hasError('required')) {
               <mat-error>Name is required.</mat-error>
             } @else if (form.controls.name.hasError('unique')) {

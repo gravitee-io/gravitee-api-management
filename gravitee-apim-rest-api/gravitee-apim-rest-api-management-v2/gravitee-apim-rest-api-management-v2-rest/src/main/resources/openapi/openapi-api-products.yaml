@@ -1757,7 +1757,7 @@ components:
           description: The API Product name to verify
           example: "My API Product"
           minLength: 1
-          maxLength: 255
+          maxLength: 512
         apiProductId:
           type: string
           description: Optional API Product ID for update scenarios. When provided, the verification will exclude this API Product from the uniqueness check.
@@ -1805,7 +1805,7 @@ components:
           type: string
           description: The API Product name
           minLength: 1
-          maxLength: 255
+          maxLength: 512
           example: "My API Product"
         description:
           type: string
@@ -1836,7 +1836,7 @@ components:
           type: string
           description: The API Product name
           minLength: 1
-          maxLength: 255
+          maxLength: 512
           example: "My Updated API Product"
         description:
           type: string
