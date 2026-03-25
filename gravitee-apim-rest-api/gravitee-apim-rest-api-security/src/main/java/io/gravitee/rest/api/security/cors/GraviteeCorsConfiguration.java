@@ -154,14 +154,20 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         if (allowedOriginPatterns != null) {
             builtAllowedOrigins.addAll(allowedOriginPatterns);
         }
-        List<String> urls = null;
         if (parameterReferenceType == ParameterReferenceType.ORGANIZATION) {
-            urls = getConsoleUrls();
+            List<String> consoleUrls = getConsoleUrls();
+            if (consoleUrls != null) {
+                builtAllowedOrigins.addAll(consoleUrls);
+            }
+            List<String> gammaUrls = getGammaUrls();
+            if (gammaUrls != null) {
+                builtAllowedOrigins.addAll(gammaUrls);
+            }
         } else if (parameterReferenceType == ParameterReferenceType.ENVIRONMENT) {
-            urls = getPortalUrls();
-        }
-        if (urls != null) {
-            builtAllowedOrigins.addAll(urls);
+            List<String> portalUrls = getPortalUrls();
+            if (portalUrls != null) {
+                builtAllowedOrigins.addAll(portalUrls);
+            }
         }
         return builtAllowedOrigins;
     }
@@ -171,6 +177,14 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
             return installationAccessQueryService.getConsoleUrls();
         } else {
             return installationAccessQueryService.getConsoleUrls(referenceId);
+        }
+    }
+
+    private List<String> getGammaUrls() {
+        if (referenceId.equals(UNDEFINED_REFERENCE_ID)) {
+            return installationAccessQueryService.getGammaUrls();
+        } else {
+            return installationAccessQueryService.getGammaUrls(referenceId);
         }
     }
 
@@ -227,7 +241,7 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         EventListener<AccessPointEvent, AccessPoint> {
         @Override
         public void onEvent(final Event<AccessPointEvent, AccessPoint> event) {
-            if (isReferenced(event) && (isConsoleTarget(event) || isPortalTarget(event))) {
+            if (isReferenced(event) && (isConsoleTarget(event) || isPortalTarget(event) || isGammaConsoleTarget(event))) {
                 List<String> newAllowedOriginPatterns = new ArrayList<>();
                 List<String> allowedOriginPatterns = graviteeCorsConfiguration.getAllowedOriginPatterns();
                 if (allowedOriginPatterns != null) {
@@ -261,6 +275,13 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
             return (
                 graviteeCorsConfiguration.parameterReferenceType == ParameterReferenceType.ORGANIZATION &&
                 event.content().getTarget() == AccessPoint.Target.CONSOLE
+            );
+        }
+
+        private boolean isGammaConsoleTarget(final Event<AccessPointEvent, AccessPoint> event) {
+            return (
+                graviteeCorsConfiguration.parameterReferenceType == ParameterReferenceType.ORGANIZATION &&
+                event.content().getTarget() == AccessPoint.Target.GAMMA_CONSOLE
             );
         }
     }

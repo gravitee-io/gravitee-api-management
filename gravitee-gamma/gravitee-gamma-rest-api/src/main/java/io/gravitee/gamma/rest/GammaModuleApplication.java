@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest;
 
 import com.fasterxml.jackson.core.util.JacksonFeature;
 import io.gravitee.gamma.rest.resources.GammaModulesResource;
+import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
@@ -50,6 +51,7 @@ public class GammaModuleApplication extends ResourceConfig {
 
     public GammaModuleApplication() {
         register(GammaModulesResource.class);
+        register(GammaUIResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);

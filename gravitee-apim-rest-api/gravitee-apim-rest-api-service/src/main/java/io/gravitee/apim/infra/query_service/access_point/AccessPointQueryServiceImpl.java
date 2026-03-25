@@ -172,6 +172,60 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
+    public List<AccessPoint> getGammaConsoleAccessPoints() {
+        try {
+            return findAccessPoints(AccessPoint.Target.GAMMA_CONSOLE);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while getting all gamma console access points", e);
+        }
+    }
+
+    @Override
+    public List<AccessPoint> getGammaConsoleAccessPoints(final String organizationId) {
+        try {
+            return findAccessPoints(
+                AccessPoint.ReferenceType.ORGANIZATION,
+                organizationId,
+                AccessPoint.Target.GAMMA_CONSOLE,
+                true
+            ).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting gamma console access point for organization '%s'", organizationId),
+                e
+            );
+        }
+    }
+
+    @Override
+    public AccessPoint getGammaConsoleAccessPoint(final String organizationId) {
+        try {
+            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.GAMMA_CONSOLE, false)
+                .findFirst()
+                .orElse(null);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting gamma console access point for organization '%s'", organizationId),
+                e
+            );
+        }
+    }
+
+    @Override
+    public AccessPoint getGammaApiAccessPoint(final String organizationId) {
+        try {
+            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.GAMMA_API, false)
+                .findFirst()
+                .orElse(null);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting gamma api access point for organization '%s'", organizationId),
+                e
+            );
+        }
+    }
+
+    @Override
     public List<AccessPoint> getKafkaGatewayAccessPoints(String environmentId) {
         try {
             return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.KAFKA_GATEWAY, false).toList();

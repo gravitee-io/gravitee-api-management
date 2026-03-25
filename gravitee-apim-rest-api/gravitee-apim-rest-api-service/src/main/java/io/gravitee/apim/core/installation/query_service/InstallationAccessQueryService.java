@@ -26,6 +26,7 @@ import java.util.List;
 public interface InstallationAccessQueryService {
     public static final String DEFAULT_CONSOLE_URL = "http://localhost:4000";
     public static final String DEFAULT_PORTAL_URL = "http://localhost:4100";
+    public static final String DEFAULT_GAMMA_URL = "http://localhost:4200";
     String getConsoleApiPath();
 
     String getPortalApiPath();
@@ -47,4 +48,14 @@ public interface InstallationAccessQueryService {
     String getPortalAPIUrl(final String environmentId);
 
     List<RestrictedDomain> getGatewayRestrictedDomains(final String environmentId);
+
+    String getGammaApiPath();
+
+    List<String> getGammaUrls();
+
+    List<String> getGammaUrls(final String organizationId);
+
+    String getGammaUrl(final String organizationId);
+
+    String getGammaAPIUrl(final String organizationId);
 }
