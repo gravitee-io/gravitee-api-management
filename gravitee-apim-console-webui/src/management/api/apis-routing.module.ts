@@ -1174,7 +1174,31 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'v4/endpoints/provider/:providerIndex',
+        path: 'v4/endpoints/provider/:providerIndex/edit',
+        component: ApiLlmProviderComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/provider/:providerIndex/new',
+        component: ApiLlmProviderComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/provider/:providerIndex/:endpointIndex',
         component: ApiLlmProviderComponent,
         data: {
           permissions: {
