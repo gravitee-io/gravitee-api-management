@@ -782,3 +782,8 @@ api:
 # Scoring
 scoring:
   enabled: false
+
+# Portal UI bootstrap fallback when environment setting portal.next.defaultAsBaseUrl is false (also supports env var DEFAULT_PORTAL on the Management API process).
+#portal:
+#  ui:
+#    defaultPortal: classic

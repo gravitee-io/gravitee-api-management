@@ -242,6 +242,8 @@ export interface PortalSettingsPortalNext {
   access: {
     enabled: boolean;
   };
+  /** When true, Next-Gen portal is the default at the portal host base URL (with dynamic routing). */
+  defaultAsBaseUrl?: boolean;
   banner?: {
     title?: string;
     subtitle?: string;

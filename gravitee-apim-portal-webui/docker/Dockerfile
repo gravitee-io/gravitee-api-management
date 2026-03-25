@@ -23,6 +23,7 @@ ENV ALLOWED_FRAME_ANCESTOR_URLS="'self'"
 ENV PORTAL_BASE_HREF="/"
 ENV PORTAL_API_URL="http://localhost:8083/portal"
 ENV DEFAULT_PORTAL="classic"
+ENV PORTAL_DYNAMIC_ROUTING="false"
 
 COPY ./dist /usr/share/nginx/html/
 
@@ -32,6 +33,9 @@ COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 COPY docker/config/default-next.conf /etc/nginx/conf.d/default-next.conf
 COPY docker/config/default-next.no-ipv6.conf /etc/nginx/conf.d/default-next.no-ipv6.conf
+COPY docker/config/default-dynamic.conf /etc/nginx/conf.d/default-dynamic.conf
+COPY docker/config/default-dynamic.no-ipv6.conf /etc/nginx/conf.d/default-dynamic.no-ipv6.conf
+COPY docker/config/redirect.template.html /usr/share/nginx/html/redirect.template.html
 
 RUN chown -R nginx:root /usr/share/nginx /etc/nginx \
     && chmod -R g=u /usr/share/nginx /etc/nginx

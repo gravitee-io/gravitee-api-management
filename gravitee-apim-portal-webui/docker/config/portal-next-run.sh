@@ -21,7 +21,14 @@ if [ -f "/usr/share/nginx/html/next/browser/assets/config.json" ]; then
     mv /usr/share/nginx/html/next/browser/assets/config.json.tmp /usr/share/nginx/html/next/browser/assets/config.json
 fi
 
-if [ "$DEFAULT_PORTAL" = "next" ]; then
+if [ -f "/usr/share/nginx/html/redirect.template.html" ] && [ "$PORTAL_DYNAMIC_ROUTING" = "true" ]; then
+    envsubst '$PORTAL_API_URL $DEFAULT_PORTAL' < /usr/share/nginx/html/redirect.template.html > /usr/share/nginx/html/redirect.html
+fi
+
+if [ "$PORTAL_DYNAMIC_ROUTING" = "true" ]; then
+    cp /etc/nginx/conf.d/default-dynamic.conf /etc/nginx/conf.d/default.conf
+    cp /etc/nginx/conf.d/default-dynamic.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
+elif [ "$DEFAULT_PORTAL" = "next" ]; then
     cp /etc/nginx/conf.d/default-next.conf /etc/nginx/conf.d/default.conf
     cp /etc/nginx/conf.d/default-next.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 fi

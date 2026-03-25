@@ -198,6 +198,7 @@ describe('PortalSettingsComponent', () => {
           access: {
             enabled: false,
           },
+          defaultAsBaseUrl: false,
           banner: {
             ...portalSettingsMock.portalNext.banner,
             enabled: true,

@@ -245,12 +245,16 @@ tests:
     asserts:
       - hasDocuments:
           count: 1
-      - equal:
-          path: spec.template.spec.containers[0].env[2].name
-          value: "DEFAULT_PORTAL"
-      - equal:
-          path: spec.template.spec.containers[0].env[2].value
-          value: "classic"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_PORTAL
+            value: "classic"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PORTAL_DYNAMIC_ROUTING
+            value: "false"
 
   - it: Should override DEFAULT_PORTAL environment variable value with next
     template: portal/portal-deployment.yaml
@@ -260,9 +264,8 @@ tests:
     asserts:
       - hasDocuments:
           count: 1
-      - equal:
-          path: spec.template.spec.containers[0].env[2].name
-          value: "DEFAULT_PORTAL"
-      - equal:
-          path: spec.template.spec.containers[0].env[2].value
-          value: "next"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_PORTAL
+            value: "next"

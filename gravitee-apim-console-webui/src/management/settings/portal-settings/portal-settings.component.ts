@@ -107,6 +107,7 @@ interface PortalForm {
   }>;
   portalNext: FormGroup<{
     access: FormGroup<{ enabled: FormControl<boolean> }>;
+    defaultAsBaseUrl: FormControl<boolean>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -205,13 +206,14 @@ export class PortalSettingsComponent implements OnInit {
           this.settings = portalSettings;
           this.initialPortalForm();
           this.isPortalNextEnabled = portalSettings?.portalNext?.access?.enabled;
+          const nextIsDefaultAtBase =
+            this.isPortalNextEnabled &&
+            (portalSettings?.portalNext?.defaultAsBaseUrl === true || this.constants.defaultPortal === 'next');
           this.portalUrl = isEmpty(portalSettings.portal.url)
             ? undefined
             : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) +
               '/portal/redirect' +
-              (this.isPortalNextEnabled && (!this.constants.defaultPortal || this.constants.defaultPortal === 'classic')
-                ? '?version=next'
-                : '');
+              (this.isPortalNextEnabled && !nextIsDefaultAtBase ? '?version=next' : '');
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -223,6 +225,20 @@ export class PortalSettingsComponent implements OnInit {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onPortalNextAccessChanged(): void {
+    const enabled = this.portalForm.get('portalNext.access.enabled')?.value === true;
+    const defaultCtrl = this.portalForm.get('portalNext.defaultAsBaseUrl');
+    if (!defaultCtrl || this.isReadonly('portal.next.defaultAsBaseUrl')) {
+      return;
+    }
+    if (enabled) {
+      defaultCtrl.enable({ emitEvent: false });
+    } else {
+      defaultCtrl.setValue(false, { emitEvent: false });
+      defaultCtrl.disable({ emitEvent: false });
+    }
   }
 
   initialPortalForm() {
@@ -387,6 +403,10 @@ export class PortalSettingsComponent implements OnInit {
             disabled: this.isReadonly('portalNext.access.enabled'),
           }),
         }),
+        defaultAsBaseUrl: new FormControl({
+          value: !!this.settings.portalNext?.defaultAsBaseUrl,
+          disabled: this.isReadonly('portal.next.defaultAsBaseUrl'),
+        }),
       }),
       scheduler: new FormGroup({
         tasks: new FormControl({
@@ -505,6 +525,8 @@ export class PortalSettingsComponent implements OnInit {
     if (!this.permissionService.hasAnyMatching(['environment-settings-u'])) {
       this.portalForm.disable();
     }
+
+    this.onPortalNextAccessChanged();
 
     this.formInitialValues = this.portalForm.getRawValue();
 
@@ -631,10 +653,10 @@ export class PortalSettingsComponent implements OnInit {
       },
       portalNext: {
         ...this.settings.portalNext,
-        ...this.portalForm.get('portalNext').value,
+        ...this.portalForm.get('portalNext').getRawValue(),
         access: {
           ...this.settings.portalNext.access,
-          ...this.portalForm.get('portalNext.access').value,
+          ...this.portalForm.get('portalNext.access').getRawValue(),
         },
       },
     };

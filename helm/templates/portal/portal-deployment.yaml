@@ -124,6 +124,8 @@ spec:
             {{- end }}
             - name: DEFAULT_PORTAL
               value: {{ .Values.portal.defaultPortal }}
+            - name: PORTAL_DYNAMIC_ROUTING
+              value: {{ .Values.portal.dynamicDefaultPortalRouting | quote }}
 {{- if .Values.portal.env | default .Values.portal.deployment.extraEnvs }}
 {{ toYaml ( .Values.portal.env | default .Values.portal.deployment.extraEnvs ) | indent 12 }}
 {{- end }}

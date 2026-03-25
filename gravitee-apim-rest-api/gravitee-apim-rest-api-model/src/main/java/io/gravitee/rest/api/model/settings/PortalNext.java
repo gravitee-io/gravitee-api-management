@@ -37,6 +37,9 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_ACCESS_ENABLED)
     private Enabled access;
 
+    @ParameterKey(Key.PORTAL_NEXT_DEFAULT_AS_BASE_URL)
+    private Boolean defaultAsBaseUrl;
+
     private Banner banner;
 
     private Catalog catalog;

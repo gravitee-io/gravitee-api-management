@@ -37,10 +37,13 @@ services:
     mongodb:
         image: mongo:${MONGODB_VERSION:-6.0}
         container_name: gio_apim_mongodb
+        # container_name: apim_mongodb
         restart: always
         volumes:
             - data-mongo:/data/db
             - apim-mongodb-logs:/var/log/mongodb
+        ports:
+            - '27017:27017'
         healthcheck:
             test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
             interval: 5s
@@ -52,7 +55,11 @@ services:
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
         container_name: gio_apim_elasticsearch
+        # container_name: apim_elasticsearch
         restart: always
+        ports:
+            - '9200:9200'
+            - '9300:9300'
         volumes:
             - data-elasticsearch:/usr/share/elasticsearch/data
         environment:
@@ -100,7 +107,7 @@ services:
             - frontend
 
     management_api:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:local3
         container_name: gio_apim_management_api
         restart: always
         ports:
@@ -118,6 +125,8 @@ services:
             - ./.license:/opt/graviteeio-management-api/license
         environment:
             - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            # Optional: must match portal UI when using PORTAL_DYNAMIC_ROUTING (bootstrap defaultPortal fallback after DB setting).
+            #- DEFAULT_PORTAL=next
             - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
             - gravitee_email_enabled=true
             - gravitee_email_host=mailhog
@@ -131,7 +140,7 @@ services:
             - email
 
     management_ui:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:local2
         container_name: gio_apim_management_ui
         restart: always
         ports:
@@ -140,14 +149,14 @@ services:
             - management_api
         environment:
             - MGMT_API_URL=http://localhost:8083/management/
-            #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as the default portal for management UI environment redirection.
+            #- DEFAULT_PORTAL=next # Console constants + Open Website link (align with management_api when using dynamic routing).
         volumes:
             - apim-management-ui-logs:/var/log/nginx
         networks:
             - frontend
 
     portal_ui:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:local3
         container_name: gio_apim_portal_ui
         restart: always
         ports:
@@ -156,7 +165,8 @@ services:
             - management_api
         environment:
             - PORTAL_API_URL=http://localhost:8083/portal
-            #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as default portal
+            #- DEFAULT_PORTAL=next # Fallback for redirect page when bootstrap is unavailable (align with management_api).
+            - PORTAL_DYNAMIC_ROUTING=true # Per-environment default via /ui/bootstrap; portals served under /classic/ and /next/
         volumes:
             - apim-portal-ui-logs:/var/log/nginx
         networks:

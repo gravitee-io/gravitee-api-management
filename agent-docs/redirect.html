@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Developer Portal</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #fafafa;
+      color: #555;
+    }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #275CF6;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <script>
+    (function () {
+      // Substituted at container startup by envsubst (via portal-next-run.sh)
+      var PORTAL_API_URL = '$PORTAL_API_URL';
+      var FALLBACK_PORTAL = '$DEFAULT_PORTAL' || 'classic';
+      var CACHE_KEY = 'gv-default-portal';
+      var CACHE_TTL_MS = 5 * 60 * 1000;
+      var TIMEOUT_MS = 3000;
+
+      // Preserve the user's original path, query, and hash so deep links work.
+      // e.g. /catalog/my-api?q=1#details → /next/catalog/my-api?q=1#details
+      var suffix =
+        window.location.pathname.replace(/^\/$/, '') +
+        window.location.search +
+        window.location.hash;
+
+      function redirectTo(portal) {
+        window.location.replace('/' + portal + '/' + suffix.replace(/^\//, ''));
+      }
+
+      // 1. Try localStorage cache for instant redirect on repeat visits
+      try {
+        var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+          return redirectTo(cached.portal);
+        }
+      } catch (_) {}
+
+      // 2. Call the enhanced /ui/bootstrap endpoint (single round-trip).
+      //    The backend resolves the environment from the Host header (Cloud)
+      //    or uses the default environment (self-hosted).
+      //    Expected response: { baseURL, organizationId, environmentId, defaultPortal }
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS);
+
+      fetch(PORTAL_API_URL + '/ui/bootstrap', { signal: ctrl.signal })
+        .then(function (r) {
+          if (!r.ok) throw new Error(r.status);
+          return r.json();
+        })
+        .then(function (bootstrap) {
+          clearTimeout(timer);
+          var portal = bootstrap.defaultPortal || FALLBACK_PORTAL;
+          try {
+            localStorage.setItem(
+              CACHE_KEY,
+              JSON.stringify({ portal: portal, ts: Date.now() })
+            );
+          } catch (_) {}
+          redirectTo(portal);
+        })
+        .catch(function () {
+          clearTimeout(timer);
+          redirectTo(FALLBACK_PORTAL);
+        });
+    })();
+  </script>
+</body>
+</html>

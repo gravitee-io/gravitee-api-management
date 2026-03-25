@@ -2114,6 +2114,8 @@ portal:
     #   mountPath: /mnt/volume
     #   readOnly: true
   defaultPortal: "classic" # set value to "next" to use the new portal by default
+  # When true, serves / with a redirect page that uses Portal API /ui/bootstrap (per-environment default). Requires both portals under /classic/ and /next/.
+  dynamicDefaultPortalRouting: false
 
   # If you want to use your own config.json you have to provide your configmap or secret in extraVolume part.
   # the name of the volume MUST be "config".

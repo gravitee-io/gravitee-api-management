@@ -18,7 +18,11 @@ package io.gravitee.rest.api.portal.rest.resource.bootstrap;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -61,6 +65,9 @@ public class PortalUIBootstrapResource {
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private ParameterService parameterService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the portal bootstrap", description = "Every users can use this service")
@@ -88,10 +95,17 @@ public class PortalUIBootstrapResource {
                 : GraviteeContext.getDefaultOrganization();
         }
 
+        String defaultPortal = resolveDefaultPortal(organizationId, environmentId);
+
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
         if (portalApiUrl != null) {
             return Response.ok(
-                PortalUIBootstrapEntity.builder().organizationId(organizationId).environmentId(environmentId).baseURL(portalApiUrl).build()
+                PortalUIBootstrapEntity.builder()
+                    .organizationId(organizationId)
+                    .environmentId(environmentId)
+                    .baseURL(portalApiUrl)
+                    .defaultPortal(defaultPortal)
+                    .build()
             ).build();
         }
 
@@ -105,6 +119,7 @@ public class PortalUIBootstrapResource {
                 .organizationId(organizationId)
                 .environmentId(environmentId)
                 .baseURL(uriComponents.toUriString())
+                .defaultPortal(defaultPortal)
                 .build()
         ).build();
     }
@@ -112,5 +127,25 @@ public class PortalUIBootstrapResource {
     private String getPortalProxyPath() {
         String entrypoint = environment.getProperty(PROPERTY_HTTP_API_PORTAL_ENTRYPOINT, "/portal");
         return environment.getProperty(PROPERTY_HTTP_API_PORTAL_PROXY_PATH, entrypoint);
+    }
+
+    /**
+     * Precedence: environment setting {@link Key#PORTAL_NEXT_DEFAULT_AS_BASE_URL} when Portal Next is enabled,
+     * then installation {@code DEFAULT_PORTAL} or {@code portal.ui.defaultPortal}, then {@code classic}.
+     */
+    String resolveDefaultPortal(String organizationId, String environmentId) {
+        ExecutionContext ctx = new ExecutionContext(organizationId, environmentId);
+        boolean portalNextEnabled = parameterService.findAsBoolean(ctx, Key.PORTAL_NEXT_ACCESS_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        if (!portalNextEnabled) {
+            return "classic";
+        }
+        if (parameterService.findAsBoolean(ctx, Key.PORTAL_NEXT_DEFAULT_AS_BASE_URL, ParameterReferenceType.ENVIRONMENT)) {
+            return "next";
+        }
+        String fromInstallation = environment.getProperty("portal.ui.defaultPortal", environment.getProperty("DEFAULT_PORTAL", "classic"));
+        if (fromInstallation != null && "next".equalsIgnoreCase(fromInstallation.trim())) {
+            return "next";
+        }
+        return "classic";
     }
 }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Developer Portal</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #fafafa;
+      color: #555;
+    }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #275CF6;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <script>
+    (function () {
+      var PORTAL_API_URL = '$PORTAL_API_URL';
+      var FALLBACK_PORTAL = '$DEFAULT_PORTAL' || 'classic';
+      var CACHE_KEY = 'gv-default-portal';
+      var CACHE_TTL_MS = 5 * 60 * 1000;
+      var TIMEOUT_MS = 8000;
+      /** Minimum time to show the loading UI (ms). Set to 0 in production if you want an instant redirect when bootstrap is fast. */
+      var MIN_VISIBLE_MS = 2500;
+
+      var params = new URLSearchParams(window.location.search);
+      var envFromQuery = params.get('environmentId');
+      params.delete('environmentId');
+      var qs = params.toString();
+      var pathOnly = window.location.pathname.replace(/^\/$/, '');
+      var suffix = pathOnly + (qs ? '?' + qs : '') + window.location.hash;
+      var envCacheKey = envFromQuery || '';
+      var pageLoadAt = Date.now();
+
+      function redirectTo(portal) {
+        var prefix = portal === 'next' ? 'next' : 'classic';
+        var path = suffix.replace(/^\//, '');
+        window.location.replace('/' + prefix + '/' + path);
+      }
+
+      function redirectWhenReady(portal) {
+        var elapsed = Date.now() - pageLoadAt;
+        var wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+        setTimeout(function () {
+          redirectTo(portal);
+        }, wait);
+      }
+
+      try {
+        var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (cached && Date.now() - cached.ts < CACHE_TTL_MS && cached.env === envCacheKey) {
+          return redirectWhenReady(cached.portal);
+        }
+      } catch (e) {}
+
+      var bootstrapUrl = PORTAL_API_URL + '/ui/bootstrap';
+      if (envFromQuery) {
+        bootstrapUrl += '?environmentId=' + encodeURIComponent(envFromQuery);
+      }
+
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS);
+
+      fetch(bootstrapUrl, { signal: ctrl.signal, credentials: 'omit' })
+        .then(function (r) {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.json();
+        })
+        .then(function (bootstrap) {
+          clearTimeout(timer);
+          var portal = bootstrap.defaultPortal || FALLBACK_PORTAL;
+          try {
+            localStorage.setItem(
+              CACHE_KEY,
+              JSON.stringify({ portal: portal, ts: Date.now(), env: envCacheKey })
+            );
+          } catch (e) {}
+          redirectWhenReady(portal);
+        })
+        .catch(function () {
+          clearTimeout(timer);
+          redirectWhenReady(FALLBACK_PORTAL);
+        });
+    })();
+  </script>
+</body>
+</html>

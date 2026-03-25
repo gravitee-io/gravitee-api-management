@@ -127,6 +127,11 @@ public enum Key {
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_ACCESS_ENABLED("portal.next.access.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_DEFAULT_AS_BASE_URL(
+        "portal.next.defaultAsBaseUrl",
+        Boolean.FALSE.toString(),
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
     PORTAL_NEXT_THEME_COLOR_PRIMARY("portal.next.theme.color.primary", "#275CF6", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_SECONDARY("portal.next.theme.color.secondary", "#2051B1", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_TERTIARY("portal.next.theme.color.tertiary", "#275CF6", new HashSet<>(singletonList(ENVIRONMENT))),

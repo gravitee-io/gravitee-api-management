@@ -29,4 +29,6 @@ public class PortalUIBootstrapEntity {
     private String baseURL;
     private String organizationId;
     private String environmentId;
+    /** Effective default experience at the portal host base path: {@code classic} or {@code next}. */
+    private String defaultPortal;
 }
