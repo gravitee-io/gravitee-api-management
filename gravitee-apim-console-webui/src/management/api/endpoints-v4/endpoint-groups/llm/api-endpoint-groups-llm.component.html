@@ -16,22 +16,19 @@
 
 -->
 @if (providersTableData().length > 0) {
-  @for (provider of providersTableData(); track provider.name; let i = $index) {
+  @for (provider of providersTableData(); track provider.name) {
     <mat-card class="endpoint-group-card">
       <mat-card-content>
         <div class="endpoint-group-card__header">
           <div class="endpoint-group-card__header__title">
             <h3 class="mat-h3">{{ provider?.name }}</h3>
-            <span class="gio-badge-primary">
-              {{ getProviderTypeDisplayName(provider?.endpoints?.[0]?.providerConfiguration?.provider) }}
-            </span>
           </div>
           <div class="endpoint-group-card__header__actions">
             <button
               *gioPermission="{ anyOf: ['api-definition-u'] }"
               mat-stroked-button
-              [attr.aria-label]="isReadOnly() ? 'View provider' : 'Edit Provider'"
-              [routerLink]="['./provider', i]"
+              [attr.aria-label]="isReadOnly() ? 'View provider group' : 'Edit provider group'"
+              [routerLink]="['./provider', provider.groupIndex, 'edit']"
             >
               <mat-icon [svgIcon]="isReadOnly() ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
               {{ isReadOnly() ? 'View' : 'Edit' }}
@@ -46,57 +43,103 @@
             </ng-container>
           </div>
         </div>
-        <table
-          mat-table
-          [dataSource]="provider.endpoints[0]?.providerConfiguration?.models ?? []"
-          [attr.id]="'groupsTable-' + i"
-          aria-label="Endpoint group table"
-          class="gio-table-light"
+        @for (endpoint of provider.endpoints; track endpoint.name; let j = $index) {
+          <div class="endpoint-group-card__endpoint">
+            <div class="endpoint-group-card__endpoint__header">
+              <div class="endpoint-group-card__endpoint__header__title">
+                <h4 class="mat-h4">{{ endpoint.name }}</h4>
+                <span class="gio-badge-primary">
+                  {{ getProviderTypeDisplayName(endpoint.providerConfiguration?.provider) }}
+                </span>
+              </div>
+              <div class="endpoint-group-card__endpoint__header__actions">
+                <button
+                  *gioPermission="{ anyOf: ['api-definition-u'] }"
+                  mat-stroked-button
+                  [attr.aria-label]="isReadOnly() ? 'View endpoint' : 'Edit endpoint'"
+                  [routerLink]="['./provider', provider.groupIndex, endpoint.endpointIndex]"
+                >
+                  <mat-icon [svgIcon]="isReadOnly() ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
+                  {{ isReadOnly() ? 'View' : 'Edit' }}
+                </button>
+                <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
+                  @if (provider.endpoints.length > 1) {
+                    <button
+                      mat-stroked-button
+                      aria-label="Delete endpoint"
+                      (click)="deleteEndpoint(provider.groupIndex, endpoint.name)"
+                      [disabled]="isReadOnly()"
+                    >
+                      <mat-icon svgIcon="gio:trash"></mat-icon>
+                      Delete
+                    </button>
+                  }
+                </ng-container>
+              </div>
+            </div>
+            <table
+              mat-table
+              [dataSource]="endpoint.providerConfiguration?.models ?? []"
+              [attr.id]="'groupsTable-' + provider.groupIndex + '-' + endpoint.endpointIndex"
+              aria-label="Endpoint models table"
+              class="gio-table-light"
+            >
+              <!-- Model Column -->
+              <ng-container matColumnDef="model">
+                <th mat-header-cell *matHeaderCellDef>Model</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.name }}
+                </td>
+              </ng-container>
+
+              <!-- Cost Input Column -->
+              <ng-container matColumnDef="costInput">
+                <th mat-header-cell *matHeaderCellDef>Cost per 1m tokens (input) ($)</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.inputPrice | number: '1.2' }}
+                </td>
+              </ng-container>
+
+              <!-- Cost Output Column -->
+              <ng-container matColumnDef="costOutput">
+                <th mat-header-cell *matHeaderCellDef>Cost per 1m tokens (output) ($)</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.outputPrice | number: '1.2' }}
+                </td>
+              </ng-container>
+
+              <!-- Alias Column -->
+              <ng-container matColumnDef="aliases">
+                <th mat-header-cell *matHeaderCellDef>Alias</th>
+                <td mat-cell *matCellDef="let element">
+                  <mat-chip-set aria-label="Model aliases">
+                    @for (alias of element.aliases ?? []; track alias) {
+                      <mat-chip>{{ alias }}</mat-chip>
+                    }
+                  </mat-chip-set>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="llmProxyDisplayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: llmProxyDisplayedColumns"></tr>
+
+              <!-- Row shown when there is no data -->
+              <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+                <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="llmProxyDisplayedColumns.length">No Models</td>
+              </tr>
+            </table>
+          </div>
+        }
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-stroked-button
+          aria-label="Add endpoint"
+          [routerLink]="['./provider', provider.groupIndex, 'new']"
+          [disabled]="isReadOnly()"
         >
-          <!-- Model Column -->
-          <ng-container matColumnDef="model">
-            <th mat-header-cell *matHeaderCellDef [id]="'model-' + i">Model</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.name }}
-            </td>
-          </ng-container>
-
-          <!-- Options Column -->
-          <ng-container matColumnDef="costInput">
-            <th mat-header-cell *matHeaderCellDef [id]="'costInput-' + i">Cost per 1m tokens (input) ($)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.inputPrice | number: '1.2' }}
-            </td>
-          </ng-container>
-
-          <!-- Weight Column -->
-          <ng-container matColumnDef="costOutput">
-            <th mat-header-cell *matHeaderCellDef [id]="'costOutput-' + i">Cost per 1m tokens (output) ($)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.outputPrice | number: '1.2' }}
-            </td>
-          </ng-container>
-
-          <!-- Alias Column -->
-          <ng-container matColumnDef="aliases">
-            <th mat-header-cell *matHeaderCellDef [id]="'aliases-' + i">Alias</th>
-            <td mat-cell *matCellDef="let element">
-              <mat-chip-set aria-label="Model aliases">
-                @for (alias of element.aliases ?? []; track alias) {
-                  <mat-chip>{{ alias }}</mat-chip>
-                }
-              </mat-chip-set>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="llmProxyDisplayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: llmProxyDisplayedColumns"></tr>
-
-          <!-- Row shown when there is no data -->
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="llmProxyDisplayedColumns.length">No Endpoints</td>
-          </tr>
-        </table>
+          <mat-icon svgIcon="gio:plus"></mat-icon>
+          Add endpoint
+        </button>
       </mat-card-content>
     </mat-card>
   }
