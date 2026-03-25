@@ -27,6 +27,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQu
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.StatsResult;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -88,6 +90,22 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
+                    .build()
+            );
+    }
+
+    @Override
+    public Optional<StatsResult> searchStats(ExecutionContext executionContext, String apiId, String field, Instant from, Instant to) {
+        return analyticsRepository
+            .searchStats(executionContext.getQueryContext(), new StatsQuery(apiId, field, from, to))
+            .map(statsAggregate ->
+                StatsResult
+                    .builder()
+                    .count(statsAggregate.getCount())
+                    .min(statsAggregate.getMin())
+                    .max(statsAggregate.getMax())
+                    .avg(statsAggregate.getAvg())
+                    .sum(statsAggregate.getSum())
                     .build()
             );
     }

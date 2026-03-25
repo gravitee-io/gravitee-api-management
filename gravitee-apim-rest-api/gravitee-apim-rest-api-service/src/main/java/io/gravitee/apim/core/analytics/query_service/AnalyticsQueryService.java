@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.StatsResult;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -52,6 +53,8 @@ public interface AnalyticsQueryService {
         Instant from,
         Instant to
     );
+
+    Optional<StatsResult> searchStats(ExecutionContext executionContext, String apiId, String field, Instant from, Instant to);
 
     Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, AnalyticsQueryParameters queryParameters);
 

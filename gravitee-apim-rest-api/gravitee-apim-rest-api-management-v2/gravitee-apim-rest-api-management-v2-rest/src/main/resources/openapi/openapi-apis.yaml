@@ -2198,12 +2198,7 @@ paths:
             operationId: getApiAnalytics
             responses:
                 "200":
-                    description: Analytics response (polymorphic based on type)
-                    content:
-                        application/json:
-                            schema:
-                                oneOf:
-                                    - $ref: "#/components/schemas/ApiAnalyticsCountResponse"
+                    $ref: "#/components/responses/ApiAnalyticsCountResponse"
                 "400":
                     $ref: "#/components/responses/Error"
                 default:

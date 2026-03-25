@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsCountUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsStatsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -77,6 +78,9 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchAnalyticsCountUseCase searchAnalyticsCountUseCase;
 
+    @Inject
+    private SearchAnalyticsStatsUseCase searchAnalyticsStatsUseCase;
+
     // ----- Unified analytics endpoint -----
 
     @GET
@@ -105,6 +109,7 @@ public class ApiAnalyticsResource extends AbstractResource {
 
         return switch (type.toUpperCase()) {
             case "COUNT" -> handleCount(startTime, endTime);
+            case "STATS" -> handleStats(field, startTime, endTime);
             default -> throw new BadRequestException("Unsupported analytics query type: " + type);
         };
     }
@@ -113,6 +118,27 @@ public class ApiAnalyticsResource extends AbstractResource {
         var input = new SearchAnalyticsCountUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), from, to);
         var output = searchAnalyticsCountUseCase.execute(GraviteeContext.getExecutionContext(), input);
         return Response.ok(new ApiAnalyticsCountResponse().type("COUNT").count(output.count())).build();
+    }
+
+    private Response handleStats(String field, Instant from, Instant to) {
+        if (field == null || field.isBlank()) {
+            throw new BadRequestException("Query parameter 'field' is required for STATS queries");
+        }
+        var input = new SearchAnalyticsStatsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), field, from, to);
+        var output = searchAnalyticsStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+        var stats = output.stats();
+        return Response
+            .ok(
+                java.util.Map.of(
+                    "type", "STATS",
+                    "count", stats.getCount(),
+                    "min", stats.getMin(),
+                    "max", stats.getMax(),
+                    "avg", stats.getAvg(),
+                    "sum", stats.getSum()
+                )
+            )
+            .build();
     }
 
     // ----- Legacy individual endpoints (preserved for backward compatibility) -----
