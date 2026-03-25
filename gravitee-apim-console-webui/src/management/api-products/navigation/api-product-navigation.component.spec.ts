@@ -223,7 +223,7 @@ describe('ApiProductNavigationComponent', () => {
 
     expect(fixture.nativeElement.textContent).not.toContain('out of sync');
 
-    TestBed.inject(ApiProductV2Service).notifyPlanStateChanged();
+    TestBed.inject(ApiProductV2Service).notifyApiProductChanged();
     fixture.detectChanges();
 
     flushRequests({ ...fakeApiProduct, deploymentState: 'NEED_REDEPLOY' }, true);

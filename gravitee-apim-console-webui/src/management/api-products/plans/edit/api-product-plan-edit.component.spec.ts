@@ -39,7 +39,7 @@ describe('ApiProductPlanEditComponent', () => {
   let harness: ApiProductPlanEditComponentHarness;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
-  let notifyPlanStateChangedSpy: jest.SpyInstance;
+  let notifyApiProductChangedSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
 
   async function setup(
@@ -73,7 +73,7 @@ describe('ApiProductPlanEditComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
-    notifyPlanStateChangedSpy = jest.spyOn(TestBed.inject(ApiProductV2Service), 'notifyPlanStateChanged');
+    notifyApiProductChangedSpy = jest.spyOn(TestBed.inject(ApiProductV2Service), 'notifyApiProductChanged');
     fixture.detectChanges();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProductPlanEditComponentHarness);
   }
@@ -313,7 +313,7 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+      expect(notifyApiProductChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
     it('notifies plan state changed after updating a plan so deploy banner is triggered', fakeAsync(async () => {
@@ -340,7 +340,7 @@ describe('ApiProductPlanEditComponent', () => {
 
       httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
 
-      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+      expect(notifyApiProductChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
     it('does not notify plan state changed when save fails', fakeAsync(async () => {
@@ -363,7 +363,7 @@ describe('ApiProductPlanEditComponent', () => {
         .flush({ message: 'Plan creation failed' }, { status: 500, statusText: 'Server Error' });
       tick();
 
-      expect(notifyPlanStateChangedSpy).not.toHaveBeenCalled();
+      expect(notifyApiProductChangedSpy).not.toHaveBeenCalled();
     }));
   });
 });
