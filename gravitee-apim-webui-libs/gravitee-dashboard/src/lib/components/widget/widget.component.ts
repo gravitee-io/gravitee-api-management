@@ -17,8 +17,8 @@ import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'gd-widget-title',
-  template: `<h3><ng-content>widget-title</ng-content></h3>`,
-  styleUrl: './widget.component.scss',
+  template: `<h3><ng-content /></h3>`,
+  styleUrl: './widget-title.component.scss',
 })
 export class WidgetTitleComponent {}
 

@@ -26,6 +26,19 @@ import { FacetsResponse } from './components/widget/model/response/facets-respon
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { Widget } from './components/widget/model/widget/widget.model';
 import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
+import { Dashboard } from './models/dashboard.model';
+
+const EMPTY_DASHBOARD: Dashboard = {
+  id: 'test-id',
+  name: 'Test Dashboard',
+  createdBy: 'user',
+  createdAt: new Date().toISOString(),
+  lastModified: new Date().toISOString(),
+  labels: {},
+  widgets: [],
+};
+
+const buildDashboard = (widgets: Widget[]): Dashboard => ({ ...EMPTY_DASHBOARD, widgets });
 
 describe('GraviteeDashboardComponent', () => {
   let component: GraviteeDashboardComponent;
@@ -66,7 +79,7 @@ describe('GraviteeDashboardComponent', () => {
 
     fixture.componentRef.setInput('baseURL', mockBaseURL);
     fixture.componentRef.setInput('filters', mockFilters);
-    fixture.componentRef.setInput('widgetConfigs', []);
+    fixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
     fixture.detectChanges();
   });
 
@@ -88,7 +101,7 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    fixture.componentRef.setInput('widgetConfigs', widgets);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     fixture.detectChanges();
 
     const dashboardWidgets = component.dashboardWidgets();
@@ -125,7 +138,7 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    fixture.componentRef.setInput('widgetConfigs', widgets);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     fixture.detectChanges();
     tick();
 
@@ -167,7 +180,7 @@ describe('GraviteeDashboardComponent', () => {
         },
       },
     ];
-    fixture.componentRef.setInput('widgetConfigs', widgets);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     fixture.detectChanges();
     tick();
 
@@ -214,7 +227,7 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    fixture.componentRef.setInput('widgetConfigs', widgets);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     fixture.detectChanges();
     tick();
 
@@ -282,7 +295,7 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    fixture.componentRef.setInput('widgetConfigs', widgets);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     fixture.detectChanges();
     tick();
 
@@ -366,7 +379,7 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    fixture.componentRef.setInput('widgetConfigs', widgets);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     fixture.detectChanges();
     tick();
 
@@ -418,7 +431,7 @@ describe('GraviteeDashboardComponent', () => {
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
     newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('widgetConfigs', []);
+    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
     newFixture.detectChanges();
 
     const component = newFixture.componentInstance;
@@ -458,7 +471,7 @@ describe('GraviteeDashboardComponent', () => {
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
     newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('widgetConfigs', []);
+    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
     newFixture.detectChanges();
 
     const component = newFixture.componentInstance;
@@ -496,11 +509,7 @@ describe('GraviteeDashboardComponent', () => {
       ],
     });
 
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    const newHttpTestingController = TestBed.inject(HttpTestingController);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('widgetConfigs', [
+    const widgets: Widget[] = [
       {
         id: '1',
         title: 'Widget',
@@ -515,7 +524,13 @@ describe('GraviteeDashboardComponent', () => {
           metrics: [],
         },
       },
-    ]);
+    ];
+
+    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
+    const newHttpTestingController = TestBed.inject(HttpTestingController);
+    newFixture.componentRef.setInput('baseURL', mockBaseURL);
+    newFixture.componentRef.setInput('filters', mockFilters);
+    newFixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     newFixture.detectChanges();
     tick();
 
@@ -573,7 +588,7 @@ describe('GraviteeDashboardComponent', () => {
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
     newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('widgetConfigs', []);
+    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
     newFixture.detectChanges();
 
     const component = newFixture.componentInstance;
@@ -615,7 +630,7 @@ describe('GraviteeDashboardComponent', () => {
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
     newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('widgetConfigs', []);
+    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
     newFixture.detectChanges();
 
     const component = newFixture.componentInstance;
@@ -656,7 +671,7 @@ describe('GraviteeDashboardComponent', () => {
       ],
     });
 
-    const widgetConfigs: Widget[] = [
+    const widgets: Widget[] = [
       {
         id: '1',
         title: 'Widget with own filter',
@@ -674,14 +689,13 @@ describe('GraviteeDashboardComponent', () => {
     const newHttpTestingController = TestBed.inject(HttpTestingController);
     newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('widgetConfigs', widgetConfigs);
+    newFixture.componentRef.setInput('dashboard', buildDashboard(widgets));
     newFixture.detectChanges();
     tick();
 
     const req = newHttpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
     const requestBody = req.request.body as MeasuresRequest;
 
-    // Should contain both widget-level and dashboard-level filters
     expect(requestBody.filters).toBeDefined();
     expect(requestBody.filters!.length).toBe(2);
 
@@ -693,8 +707,7 @@ describe('GraviteeDashboardComponent', () => {
     expect(apiFilter).toBeDefined();
     expect(apiFilter!.value).toEqual(['api-1']);
 
-    // Original widget config should not be mutated
-    expect(widgetConfigs[0].request!.filters).toEqual([widgetLevelFilter]);
+    expect(widgets[0].request!.filters).toEqual([widgetLevelFilter]);
 
     req.flush({
       metrics: [{ name: 'HTTP_REQUESTS', unit: 'NUMBER', measures: [{ name: 'COUNT', value: 50 }] }],

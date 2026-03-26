@@ -1,0 +1,79 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<h2 mat-dialog-title>Edit dashboard</h2>
+
+<mat-dialog-content [formGroup]="form">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" placeholder="Dashboard name" data-testid="dashboard-name-input" />
+    @if (form.controls.name.hasError('required') || form.controls.name.hasError('blank')) {
+      <mat-error>Name is required and cannot be blank</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="labels-section">
+    <div class="labels-header">
+      <span class="labels-title">Labels</span>
+      <button matButton="outlined" type="button" (click)="addLabel()" data-testid="add-label-btn">
+        <mat-icon>add</mat-icon>
+        Add label
+      </button>
+    </div>
+
+    <div formArrayName="labels">
+      @for (label of labelsArray.controls; track $index) {
+        <div class="label-row" [formGroupName]="$index">
+          <mat-form-field appearance="outline" class="label-key">
+            <mat-label>Key</mat-label>
+            <input matInput formControlName="key" [attr.data-testid]="'label-key-input-' + $index" />
+            @if (label.controls.key.hasError('required') || label.controls.key.hasError('blank')) {
+              <mat-error>Key is required and cannot be blank</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="label-value">
+            <mat-label>Value</mat-label>
+            <input matInput formControlName="value" [attr.data-testid]="'label-value-input-' + $index" />
+            @if (label.controls.value.hasError('required') || label.controls.value.hasError('blank')) {
+              <mat-error>Value is required and cannot be blank</mat-error>
+            }
+          </mat-form-field>
+
+          <button
+            mat-icon-button
+            type="button"
+            (click)="removeLabel($index)"
+            class="remove-label"
+            aria-label="Remove label"
+            [attr.data-testid]="'remove-label-btn-' + $index"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()" data-testid="cancel-btn">Cancel</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid || !hasChanges()" (click)="save()" data-testid="save-btn">
+    Save
+  </button>
+</mat-dialog-actions>

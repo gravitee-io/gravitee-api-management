@@ -18,6 +18,7 @@
 <div class="widget-container">
   <span class="widget-title-container" [class.is-draggable]="isDraggable()">
     <ng-content select="gd-widget-title" />
+    <ng-content select="[gdWidgetActions]" />
   </span>
 
   <span class="widget-body-container gridster-item-content">

@@ -1,0 +1,76 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="container">
+  <div class="dashboard-toolbar">
+    @if (showTitle()) {
+      <h1 class="dashboard-title">{{ localName() }}</h1>
+    }
+
+    <div class="toolbar-actions">
+      @if (capabilities().canAddWidget) {
+        <button mat-raised-button color="primary" disabled [matTooltip]="'Coming soon'">
+          <mat-icon>add</mat-icon>
+          New widget
+        </button>
+      }
+
+      @if (hasMenu()) {
+        <button
+          mat-icon-button
+          aria-label="Dashboard options"
+          data-testid="dashboard-options-btn"
+          [matMenuTriggerFor]="dashboardMenu"
+          [matTooltip]="'Dashboard options'"
+        >
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #dashboardMenu>
+          @if (capabilities().canEditMetadata) {
+            <button mat-menu-item (click)="openMetadataDialog()" data-testid="edit-dashboard-item">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+          }
+          @if (capabilities().canDeleteDashboard) {
+            <button mat-menu-item class="delete-action" (click)="deleteRequested.emit()" data-testid="delete-dashboard-item">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          }
+        </mat-menu>
+      }
+    </div>
+  </div>
+
+  <gd-generic-filter-bar
+    [filters]="filters()"
+    [currentSelectedFilters]="currentSelectedFilters()"
+    [defaultPeriod]="'5m'"
+    (selectedFilters)="onSelectedFilters($event)"
+    (refresh)="onRefresh()"
+    class="filterBar"
+  />
+
+  <gd-grid
+    [items]="dashboardWidgets()"
+    [editMode]="capabilities().canEditLayout"
+    (widgetsChange)="onWidgetsChange($event)"
+    (layoutChange)="onLayoutChange($event)"
+  />
+</div>
