@@ -13,28 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.widget-container {
-  display: flex;
-  height: 100%;
-  flex-flow: column;
-}
 
-.widget-title-container {
-  display: flex;
-  height: 50px;
-  flex-shrink: 0;
-  align-items: center;
-  padding: 0 4px 0 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.widget-body-container {
+:host {
+  display: block;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
-  height: 80%;
-  min-height: 0;
-  flex-grow: 1;
 }
 
-.widget-title-container.is-draggable {
-  cursor: move;
+h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

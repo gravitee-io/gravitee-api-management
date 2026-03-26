@@ -60,6 +60,10 @@ export class DashboardService {
     return this.http.get<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${id}`);
   }
 
+  public update(dashboard: Dashboard): Observable<Dashboard> {
+    return this.http.put<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${dashboard.id}`, dashboard);
+  }
+
   public delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${id}`);
   }

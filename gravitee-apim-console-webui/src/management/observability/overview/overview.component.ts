@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Widget } from '@gravitee/gravitee-dashboard';
+import { Dashboard } from '@gravitee/gravitee-dashboard';
 
 import { Component, inject } from '@angular/core';
 
@@ -28,5 +28,5 @@ import { GioHeaderComponent } from '../../../shared/components/gio-header/gio-he
   styleUrl: './overview.component.scss',
 })
 export class OverviewComponent {
-  widgets: Widget[] = inject(DashboardService).overviewDashboard().widgets;
+  readonly overviewDashboard: Dashboard = inject(DashboardService).overviewDashboard();
 }

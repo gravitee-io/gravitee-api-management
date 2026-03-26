@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Filter, GraviteeDashboardComponent, Widget } from '@gravitee/gravitee-dashboard';
+import {
+  Dashboard,
+  DashboardCapabilities,
+  DEFAULT_CAPABILITIES,
+  Filter,
+  GraviteeDashboardComponent,
+  SaveState,
+} from '@gravitee/gravitee-dashboard';
 
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 
 import { ApiFilterService } from './filters/api-filter.service';
 import { ApplicationFilterService } from './filters/application-filter.service';
@@ -29,7 +36,14 @@ import { Constants } from '../../../../../entities/Constants';
   styleUrl: './dashboard-viewer.component.scss',
 })
 export class DashboardViewerComponent {
-  widgets = input<Widget[]>([]);
+  dashboard = input.required<Dashboard>();
+  capabilities = input<DashboardCapabilities>(DEFAULT_CAPABILITIES);
+  showTitle = input<boolean>(true);
+
+  readonly deleteRequested = output<void>();
+  readonly nameChanged = output<string>();
+  readonly saveStateChange = output<SaveState>();
+
   readonly baseURL = inject(Constants).env.v2BaseURL;
 
   private readonly apisResultsLoader = inject(ApiFilterService).resultsLoader;
