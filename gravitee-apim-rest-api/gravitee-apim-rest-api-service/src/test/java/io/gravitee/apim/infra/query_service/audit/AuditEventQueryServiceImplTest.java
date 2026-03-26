@@ -27,7 +27,7 @@ public class AuditEventQueryServiceImplTest {
     void should_return_all_audit_events_names_sorted() {
         var result = service.listAllApiAuditEvents();
 
-        Assertions.assertThat(result).hasSize(48).isSortedAccordingTo(Comparator.naturalOrder());
+        Assertions.assertThat(result).hasSize(49).isSortedAccordingTo(Comparator.naturalOrder());
     }
 
     @Test

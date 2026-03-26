@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.promotion;
 
 import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
+import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_PROCESSED;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -351,7 +352,7 @@ public class PromotionServiceTest {
             argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
             eq(promotion.getApiId()),
             any(),
-            eq(PROMOTION_CREATED),
+            eq(PROMOTION_PROCESSED),
             any(),
             isNull(),
             any()
@@ -387,7 +388,7 @@ public class PromotionServiceTest {
             argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
             eq(promotion.getApiId()),
             any(),
-            eq(PROMOTION_CREATED),
+            eq(PROMOTION_PROCESSED),
             any(),
             isNull(),
             any()
