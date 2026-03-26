@@ -117,7 +117,7 @@ public class ProcessPromotionUseCase {
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(updatedPromotion.getApiId())
-                .event(ApiAuditEvent.PROMOTION_CREATED)
+                .event(ApiAuditEvent.PROMOTION_PROCESSED)
                 .actor(auditInfo.actor())
                 .oldValue(null)
                 .newValue(updatedPromotion)
