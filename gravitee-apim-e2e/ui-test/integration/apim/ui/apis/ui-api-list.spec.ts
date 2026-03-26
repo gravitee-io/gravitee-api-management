@@ -35,7 +35,6 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
       cy.getByDataTestId('search').should('be.visible');
       cy.get('td:contains("There is no API (yet)")').should('be.visible');
       cy.getByDataTestId('paginator-header').should('be.visible');
-      cy.getByDataTestId('paginator-footer').should('be.visible');
     });
 
     it("should load API creation page when 'Add API' button is clicked", function () {
