@@ -13,22 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config } from '@circleci/circleci-config-sdk';
+import { commands, Config, reusable } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
 import { CircleCIEnvironment } from '../../pipelines';
+import { InstallYarnCommand } from '../../commands';
 
 export class TestRestApiJob extends AbstractTestJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
     return super.create(
       dynamicConfig,
       environment,
       'job-test-rest-api',
-      new commands.Run({
-        name: `Run Rest API tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
-      }),
+      [
+        new reusable.ReusedCommand(installYarnCmd),
+        new commands.Run({
+          name: `Run Rest API tests`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
+        }),
+      ],
       UbuntuExecutor.create('medium'),
       ['gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/'],
     );

@@ -16,8 +16,9 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
-import { config } from '../../config';
 import { JobOptionalProperties } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Job/types/Job.types';
+import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
+import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 
 export abstract class AbstractTestJob {
@@ -25,7 +26,7 @@ export abstract class AbstractTestJob {
     dynamicConfig: Config,
     environment: CircleCIEnvironment,
     jobName: string,
-    testStep: commands.Run,
+    testSteps: Command[],
     executor: Executor,
     pathsToPersist: string[],
     properties?: JobOptionalProperties,
@@ -47,7 +48,7 @@ export abstract class AbstractTestJob {
         new commands.cache.Restore({
           keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
         }),
-        testStep,
+        ...testSteps,
         new commands.Run({
           name: 'Save test results',
           command: `mkdir -p ~/test-results/junit/
