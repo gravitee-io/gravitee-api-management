@@ -13,36 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme' as theme;
+import { ComponentHarness } from '@angular/cdk/testing';
 
-.copy-code {
-  &__copy-block {
-    display: flex;
-    flex-flow: column;
-    gap: 8px;
-  }
+import { DivHarness } from '../../../../testing/div.harness';
 
-  &__command-line {
-    display: flex;
-    flex-flow: row;
-    align-items: stretch;
-    padding-left: 10px;
-    border: theme.$border-width solid theme.$border-color;
-    border-radius: theme.$container-shape;
-    gap: 4px;
+export class ApiTabToolsComponentHarness extends ComponentHarness {
+  static readonly hostSelector = 'app-api-tab-tools';
 
-    &__container {
-      display: flex;
-      align-items: center;
-      flex-grow: 1;
-      overflow-x: auto;
-      padding: 8px 0;
+  private readonly getEmptyToolsMessage = this.locatorForOptional(
+    DivHarness.with({ selector: '[data-testid="api-tab-tools-empty-message"]' }),
+  );
 
-      &__code {
-        white-space: pre-wrap;
-        word-break: break-all;
-        margin: 0;
-      }
+  async getEmptyToolsMessageText(): Promise<string | null> {
+    const el = await this.getEmptyToolsMessage();
+    if (!el) {
+      return null;
     }
+    const text = await el.getText();
+    return text?.trim() ?? null;
   }
 }

@@ -19,21 +19,21 @@
   <mat-expansion-panel-header>
     <mat-panel-title>
       @if (tool().name) {
-        <div class="m3-title-large">{{ tool().name }}</div>
+        <div class="next-gen-h4">{{ tool().name }}</div>
       } @else {
-        <div class="m3-title-large" i18n="@@mcpToolTitle">MCP Tool</div>
+        <div class="next-gen-h4" i18n="@@mcpToolTitle">MCP Tool</div>
       }
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div class="mcp-tool">
     @if (tool().description) {
-      <div class="m3-body-medium" aria-label="MCP tool description">{{ tool().description }}</div>
+      <div class="next-gen-body" aria-label="MCP tool description">{{ tool().description }}</div>
     }
     <div class="mcp-tool__container">
       <div class="mcp-tool__display">
-        <div class="m3-body-large" i18n="@@mcpToolDefinition">Definition</div>
+        <div class="next-gen-h5" i18n="@@mcpToolDefinition">Definition</div>
         <div class="mcp-tool__display__code-block">
-          <pre>{{ tool() | json }}</pre>
+          <pre class="next-gen-body">{{ tool() | json }}</pre>
           <app-copy-code-icon [contentToCopy]="tool() | json" />
         </div>
       </div>
