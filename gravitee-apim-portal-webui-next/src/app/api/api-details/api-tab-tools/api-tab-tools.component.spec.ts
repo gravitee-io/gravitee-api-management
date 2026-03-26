@@ -50,9 +50,9 @@ describe('ApiTabToolsComponent', () => {
     );
     fixture.detectChanges();
 
-    const emptyMessage = fixture.nativeElement.querySelector('.api-tab-tools__empty');
+    const emptyMessage = fixture.nativeElement.querySelector('.api-tab-tools__tools__content .next-gen-body');
     expect(emptyMessage).not.toBeNull();
-    expect(emptyMessage.textContent.trim()).toContain('No tools available');
+    expect(emptyMessage.textContent.trim()).toContain('It seems that there are currently no tools available for this API.');
   });
 
   it('should show tools when available', async () => {

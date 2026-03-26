@@ -16,8 +16,13 @@
 
 -->
 <app-sidenav-layout [breadcrumbs]="breadcrumbs()">
-  @if (subscribeApiId()) {
-    <div breadcrumbActions>
+  @if (apiId()) {
+    <div breadcrumbActions class="documentation-folder__breadcrumb-actions">
+      @if (subscribeApiHasMcp()) {
+        <button mat-stroked-button type="button" (click)="this.mcpDrawerOpen.set(true)" data-testid="mcp-button">
+          <span i18n="@@documentationMcpButton">MCP</span>
+        </button>
+      }
       <button mat-stroked-button (click)="onSubscribe()" [disabled]="!currentUser()" data-testid="subscribe-button">
         @if (currentUser()) {
           <span i18n="@@subscribeToApiButton">Subscribe</span>
@@ -43,3 +48,30 @@
     <app-navigation-item-content-viewer [pageContent]="folderData()?.selectedPageContent ?? null" />
   </div>
 </app-sidenav-layout>
+
+@if (mcpDrawerOpen()) {
+  <div
+    class="documentation-folder__mcp-backdrop"
+    role="presentation"
+    tabindex="-1"
+    animate.enter="documentation-folder__mcp-backdrop__enter"
+    animate.leave="documentation-folder__mcp-backdrop__leave"
+    (click)="this.mcpDrawerOpen.set(false)"
+  ></div>
+  <div
+    class="documentation-folder__mcp-panel"
+    data-testid="mcp-tools-drawer"
+    animate.enter="documentation-folder__mcp-panel__enter"
+    animate.leave="documentation-folder__mcp-panel__leave"
+    role="dialog"
+    aria-modal="true"
+    i18n-aria-label="@@documentationMcpPanelAria"
+    aria-label="MCP tools"
+    [appIsMobile]="'documentation-folder__mcp-panel__mobile'"
+  >
+    <app-api-tab-tools [api]="api.value()!" />
+    <button class="documentation-folder__mcp-panel__close-button" mat-icon-button (click)="this.mcpDrawerOpen.set(false)">
+      <span class="material-icons" i18n="@@documentationMcpPanelCloseButton">close</span>
+    </button>
+  </div>
+}

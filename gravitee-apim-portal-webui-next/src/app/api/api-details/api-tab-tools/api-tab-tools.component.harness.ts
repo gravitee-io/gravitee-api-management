@@ -13,36 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme' as theme;
+import { ComponentHarness } from '@angular/cdk/testing';
 
-.copy-code {
-  &__copy-block {
-    display: flex;
-    flex-flow: column;
-    gap: 8px;
-  }
-
-  &__command-line {
-    display: flex;
-    flex-flow: row;
-    align-items: stretch;
-    padding-left: 10px;
-    border: theme.$border-width solid theme.$border-color;
-    border-radius: theme.$container-shape;
-    gap: 4px;
-
-    &__container {
-      display: flex;
-      align-items: center;
-      flex-grow: 1;
-      overflow-x: auto;
-      padding: 8px 0;
-
-      &__code {
-        white-space: pre-wrap;
-        word-break: break-all;
-        margin: 0;
-      }
-    }
-  }
+export class ApiTabToolsComponentHarness extends ComponentHarness {
+  static readonly hostSelector = 'app-api-tab-tools';
 }
