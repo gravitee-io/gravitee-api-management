@@ -19,6 +19,8 @@
 
 export * from './lib/gravitee-dashboard.service';
 export * from './lib/models/dashboard.model';
+export * from './lib/models/dashboard-capabilities.model';
+export * from './lib/models/dashboard-persistence.model';
 export * from './lib/gravitee-dashboard.component';
 
 export * from './lib/components/grid/grid.component';

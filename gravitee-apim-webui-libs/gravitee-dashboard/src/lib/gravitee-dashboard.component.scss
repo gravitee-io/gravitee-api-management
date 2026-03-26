@@ -13,28 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.widget-container {
+
+.container {
   display: flex;
-  height: 100%;
-  flex-flow: column;
+  flex-direction: column;
 }
 
-.widget-title-container {
+.dashboard-toolbar {
   display: flex;
-  height: 50px;
-  flex-shrink: 0;
   align-items: center;
-  padding: 0 4px 0 15px;
-  border-bottom: 1px solid #eee;
+  gap: 8px;
+  padding: 8px 32px;
 }
 
-.widget-body-container {
+.dashboard-title {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
-  height: 80%;
-  min-height: 0;
-  flex-grow: 1;
+  margin: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.widget-title-container.is-draggable {
-  cursor: move;
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.filterBar {
+  margin-left: 32px;
+  margin-right: 32px;
+}
+
+.delete-action {
+  color: var(--mat-sys-error, #b00020);
+
+  .mat-icon {
+    color: var(--mat-sys-error, #b00020);
+  }
 }

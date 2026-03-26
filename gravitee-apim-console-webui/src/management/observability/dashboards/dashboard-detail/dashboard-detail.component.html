@@ -16,29 +16,12 @@
 
 -->
 @if (dashboard(); as dashboard) {
-  <gio-header [title]="dashboard.name" [showActions]="true">
-    <ng-container additionalActions>
-      <gio-action-menu [icon]="'more_vert'">
-        <gio-action-menu-item
-          *gioPermission="{ anyOf: ['environment-dashboard-u'] }"
-          icon="gio:edit-pencil"
-          label="Edit"
-          [disabled]="true"
-          [matTooltip]="'Coming soon!'"
-          [matTooltipPosition]="'before'"
-        ></gio-action-menu-item>
-        <mat-divider></mat-divider>
-        <gio-action-menu-item
-          *gioPermission="{ anyOf: ['environment-dashboard-d'] }"
-          class="delete-action"
-          icon="gio:trash"
-          label="Delete"
-          (click)="deleteDashboard(dashboard)"
-        ></gio-action-menu-item>
-      </gio-action-menu>
-    </ng-container>
-  </gio-header>
-  <dashboard-viewer [widgets]="dashboard.widgets"></dashboard-viewer>
+  <dashboard-viewer
+    [dashboard]="dashboard"
+    [capabilities]="capabilities()"
+    (deleteRequested)="onDeleteRequested()"
+    (saveStateChange)="onSaveStateChange($event)"
+  />
 } @else {
   <p>Loading dashboard...</p>
 }

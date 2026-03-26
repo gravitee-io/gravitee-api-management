@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
+import { Dashboard, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -33,11 +33,22 @@ globalThis.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
+const MOCK_DASHBOARD: Dashboard = {
+  id: 'test-dashboard',
+  name: 'Test Dashboard',
+  createdBy: 'user',
+  createdAt: new Date().toISOString(),
+  lastModified: new Date().toISOString(),
+  labels: {},
+  widgets: [],
+};
+
 describe('DashboardViewerComponent', () => {
   let component: DashboardViewerComponent;
   let fixture: ComponentFixture<DashboardViewerComponent>;
   const mockGraviteeDashboardService = {
     getWidgets: jest.fn().mockReturnValue([]),
+    getMetrics: jest.fn().mockReturnValue(of({ metrics: [] })),
   };
 
   beforeEach(async () => {
@@ -71,6 +82,7 @@ describe('DashboardViewerComponent', () => {
 
     fixture = TestBed.createComponent(DashboardViewerComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('dashboard', MOCK_DASHBOARD);
     fixture.detectChanges();
   });
 
