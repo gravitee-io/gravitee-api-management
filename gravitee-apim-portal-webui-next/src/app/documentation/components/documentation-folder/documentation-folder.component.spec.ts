@@ -25,6 +25,7 @@ import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
+import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { AppTestingModule } from '../../../../testing/app-testing.module';
@@ -42,8 +43,22 @@ describe('DocumentationFolderComponent', () => {
 
   const gmdViewerContent = (content: string) => `<p>${content}</p>\n`;
 
+  const baseApiDetails = {
+    name: 'API',
+    version: '1',
+    description: '',
+    definitionVersion: 'V4' as const,
+    entrypoints: ['https://gw.test'],
+  };
+
   const init = async (
-    params: Partial<{ queryParams: { selectedId?: string }; items: PortalNavigationItem[]; content: string; isAuthenticated: boolean }> = {
+    params: Partial<{
+      queryParams: { selectedId?: string };
+      items: PortalNavigationItem[];
+      content: string;
+      isAuthenticated: boolean;
+      apiHasMcp: boolean;
+    }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
       content: MOCK_CONTENT,
@@ -63,12 +78,24 @@ describe('DocumentationFolderComponent', () => {
       getNavigationItemContent: jest.fn().mockReturnValue(of({ content: params.content!, type: 'GRAVITEE_MARKDOWN' })),
     } as unknown as PortalNavigationItemsService;
 
+    const apiHasMcp = params.apiHasMcp === true;
+    const apiServiceSpy = {
+      details: jest.fn().mockImplementation((id: string) =>
+        of({
+          ...baseApiDetails,
+          id,
+          ...(apiHasMcp ? { mcp: { mcpPath: '/mcp', tools: [] as { toolDefinition: Record<string, unknown> }[] } } : {}),
+        }),
+      ),
+    } as unknown as ApiService;
+
     await TestBed.configureTestingModule({
       imports: [DocumentationFolderComponent, MatIconTestingModule, AppTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } },
         { provide: Router, useValue: routerSpy },
         { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
+        { provide: ApiService, useValue: apiServiceSpy },
         { provide: CurrentUserService, useValue: { isUserAuthenticated: signal(params?.isAuthenticated ?? true) } },
       ],
     }).compileComponents();
@@ -295,6 +322,30 @@ describe('DocumentationFolderComponent', () => {
       const subscribeButton = await harness.getSubscribeButton();
       expect(subscribeButton).not.toBeNull();
       expect(await subscribeButton!.isDisabled()).toBe(true);
+    });
+
+    it('should not show MCP button when API has no MCP', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
+
+      expect(await harness.getMcpButton()).toBeNull();
+    });
+
+    it('should open MCP drawer with tools when MCP button clicked', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT, apiHasMcp: true });
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const mcpButton = await harness.getMcpButton();
+      expect(mcpButton).not.toBeNull();
+      await mcpButton!.click();
+      fixture.detectChanges();
+
+      expect(await harness.getApiTabToolsHarness()).not.toBeNull();
     });
   });
 });

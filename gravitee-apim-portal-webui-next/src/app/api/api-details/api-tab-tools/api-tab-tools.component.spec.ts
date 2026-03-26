@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiTabToolsComponent } from './api-tab-tools.component';
+import { ApiTabToolsComponentHarness } from './api-tab-tools.component.harness';
 import { McpToolHarness } from '../../../../components/mcp-tool/mcp-tool.harness';
 import { Api } from '../../../../entities/api/api';
 import { fakeApi } from '../../../../entities/api/api.fixtures';
@@ -50,9 +51,10 @@ describe('ApiTabToolsComponent', () => {
     );
     fixture.detectChanges();
 
-    const emptyMessage = fixture.nativeElement.querySelector('.api-tab-tools__empty');
+    const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiTabToolsComponentHarness);
+    const emptyMessage = await harness.getEmptyToolsMessageText();
     expect(emptyMessage).not.toBeNull();
-    expect(emptyMessage.textContent.trim()).toContain('No tools available');
+    expect(emptyMessage).toContain('It seems that there are currently no tools available for this API.');
   });
 
   it('should show tools when available', async () => {
