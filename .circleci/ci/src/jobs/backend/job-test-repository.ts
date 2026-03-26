@@ -25,12 +25,14 @@ export class TestRepositoryJob extends AbstractTestJob {
       dynamicConfig,
       environment,
       'job-test-repository',
-      new commands.Run({
-        name: `Run repository tests`,
-        // Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-        // and then collect and merge all coverage reports
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
-      }),
+      [
+        new commands.Run({
+          name: `Run repository tests`,
+          // Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos
+          // and then collect and merge all coverage reports
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
+        }),
+      ],
       UbuntuExecutor.create('large'),
       ['gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/'],
     );

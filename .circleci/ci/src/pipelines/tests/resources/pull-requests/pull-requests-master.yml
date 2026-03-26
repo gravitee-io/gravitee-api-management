@@ -188,7 +188,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: medium
     steps:
       - checkout
@@ -204,7 +204,7 @@ jobs:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout
@@ -235,7 +235,7 @@ jobs:
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-test-definition:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: small
     steps:
       - checkout
@@ -303,7 +303,7 @@ jobs:
           when: always
   job-test-gateway:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: medium
     steps:
       - checkout
@@ -346,6 +346,7 @@ jobs:
       - restore_cache:
           keys:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - cmd-install-yarn
       - run:
           name: Run Rest API tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
@@ -903,7 +904,7 @@ jobs:
       - cmd-docker-logout
   job-e2e-generate-sdk:
     docker:
-      - image: cimg/openjdk:21.0.5-node
+      - image: cimg/openjdk:21.0.9-node
     resource_class: small
     steps:
       - checkout
@@ -1061,7 +1062,7 @@ jobs:
       - cmd-notify-on-failure
   job-community-build:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout
@@ -1075,7 +1076,7 @@ jobs:
           jobName: job-community-build
   job-publish-on-artifactory:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout
@@ -1091,7 +1092,7 @@ jobs:
           jobName: job-publish-on-artifactory
   job-publish-on-nexus:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout

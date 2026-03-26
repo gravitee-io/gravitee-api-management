@@ -17,7 +17,7 @@ import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
-import { OpenJdkExecutor } from '../../executors';
+import { OpenJdkNodeExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
 
 export class PublishJob {
@@ -47,6 +47,6 @@ export class PublishJob {
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(jobName, OpenJdkNodeExecutor.create('large'), steps);
   }
 }

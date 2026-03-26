@@ -25,10 +25,12 @@ export class TestPluginJob extends AbstractTestJob {
       dynamicConfig,
       environment,
       'job-test-plugin',
-      new commands.Run({
-        name: `Run plugin tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
-      }),
+      [
+        new commands.Run({
+          name: `Run plugin tests`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
+        }),
+      ],
       UbuntuExecutor.create(),
       ['gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/'],
     );

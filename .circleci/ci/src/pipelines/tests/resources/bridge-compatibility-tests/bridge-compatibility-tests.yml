@@ -128,7 +128,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: medium
     steps:
       - checkout
@@ -144,7 +144,7 @@ jobs:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout
@@ -175,7 +175,7 @@ jobs:
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-e2e-generate-sdk:
     docker:
-      - image: cimg/openjdk:21.0.5-node
+      - image: cimg/openjdk:21.0.9-node
     resource_class: small
     steps:
       - checkout

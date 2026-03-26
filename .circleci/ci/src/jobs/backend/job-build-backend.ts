@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkExecutor } from '../../executors';
+import { OpenJdkNodeExecutor } from '../../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
@@ -60,6 +60,6 @@ export class BuildBackendJob {
         ],
       }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(jobName, OpenJdkNodeExecutor.create('large'), steps);
   }
 }
