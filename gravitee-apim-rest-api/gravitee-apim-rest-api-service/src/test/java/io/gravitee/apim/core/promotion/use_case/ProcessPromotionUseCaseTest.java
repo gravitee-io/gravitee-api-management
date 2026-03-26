@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -159,7 +160,7 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        when(cockpitPromotionServiceProvider.requestPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
+        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
             CockpitReplyStatus.SUCCEEDED
         );
 
@@ -177,13 +178,14 @@ class ProcessPromotionUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isNotNull();
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.REJECTED);
+        verify(cockpitPromotionServiceProvider, never()).requestPromotion(any(), any(), any());
     }
 
     @Test
     void should_throw_exception_when_v4_api_promotion_command_fails() {
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        when(cockpitPromotionServiceProvider.requestPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
+        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
             CockpitReplyStatus.ERROR
         );
 
@@ -233,7 +235,7 @@ class ProcessPromotionUseCaseTest {
             .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
 
-        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
         var result = useCase.execute(
             new ProcessPromotionUseCase.Input(
@@ -256,7 +258,7 @@ class ProcessPromotionUseCaseTest {
         var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi));
 
-        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
         importDefinitionCreateDomainService.parametersQueryService.initWith(
             List.of(
@@ -313,7 +315,7 @@ class ProcessPromotionUseCaseTest {
             .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, existingApi));
 
-        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
         useCase.execute(
             new ProcessPromotionUseCase.Input(
@@ -340,7 +342,7 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        when(cockpitPromotionServiceProvider.requestPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
+        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
             CockpitReplyStatus.SUCCEEDED
         );
 
@@ -380,8 +382,6 @@ class ProcessPromotionUseCaseTest {
             .environmentId(ENVIRONMENT.getId())
             .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
-
-        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
         Throwable throwable = catchThrowable(() ->
             useCase.execute(
