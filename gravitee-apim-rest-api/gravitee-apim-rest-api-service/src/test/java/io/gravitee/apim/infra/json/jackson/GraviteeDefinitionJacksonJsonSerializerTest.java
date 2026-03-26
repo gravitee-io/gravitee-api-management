@@ -42,4 +42,44 @@ class GraviteeDefinitionJacksonJsonSerializerTest {
             IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8)
         );
     }
+
+    @Test
+    @SneakyThrows
+    void should_serialize_channel_selector_operations_as_uppercase() {
+        // Given
+        var messageDefinition = GraviteeDefinitionFixtures.aGraviteeDefinitionMessage();
+
+        // When
+        var result = serializer.serialize(messageDefinition);
+
+        // Then - operations must be uppercase to match REST API model's OperationsEnum.fromValue()
+        assertThatJson(result).inPath("$.api.flows[0].selectors[0].operations").isArray().containsExactlyInAnyOrder("SUBSCRIBE", "PUBLISH");
+        assertThatJson(result).inPath("$.api.flows[0].selectors[0].type").isEqualTo("CHANNEL");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_serialize_sampling_type_as_uppercase() {
+        // Given
+        var messageDefinition = GraviteeDefinitionFixtures.aGraviteeDefinitionMessage();
+
+        // When
+        var result = serializer.serialize(messageDefinition);
+
+        // Then - sampling type must be uppercase to match REST API model's TypeEnum.fromValue()
+        assertThatJson(result).inPath("$.api.analytics.messageSampling.type").isEqualTo("PROBABILITY");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_serialize_message_api_type_as_uppercase() {
+        // Given
+        var messageDefinition = GraviteeDefinitionFixtures.aGraviteeDefinitionMessage();
+
+        // When
+        var result = serializer.serialize(messageDefinition);
+
+        // Then
+        assertThatJson(result).inPath("$.api.type").isEqualTo("MESSAGE");
+    }
 }
