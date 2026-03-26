@@ -134,7 +134,7 @@ class PromotionsResourceTest extends AbstractResourceTest {
             .satisfies(input -> {
                 assertThat(input.promotion()).isEqualTo(promotion);
                 assertThat(input.definitionVersion()).isEqualTo(DefinitionVersion.V4);
-                assertThat(input.importDefinition()).isNotNull();
+                assertThat(input.importDefinition()).isNull();
                 assertThat(input.isAccepted()).isFalse();
                 assertThat(input.auditInfo().environmentId()).isEqualTo(TARGET_ENV_ID);
             });
