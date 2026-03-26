@@ -25,6 +25,10 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
+import { AnalyticsCount } from '../entities/management-api-v2/analytics/analyticsCount';
+import { AnalyticsStats } from '../entities/management-api-v2/analytics/analyticsStats';
+import { AnalyticsGroupBy } from '../entities/management-api-v2/analytics/analyticsGroupBy';
+import { AnalyticsDateHisto } from '../entities/management-api-v2/analytics/analyticsDateHisto';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
@@ -46,6 +50,53 @@ export class ApiAnalyticsV2Service {
   public setTimeRangeFilter(timeRangeParams: TimeRangeParams) {
     this.timeRangeFilter$.next(timeRangeParams);
   }
+
+  // ----- Unified analytics endpoint methods -----
+
+  getCount(apiId: string): Observable<AnalyticsCount> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=COUNT&from=${from}&to=${to}`;
+        return this.http.get<AnalyticsCount>(url);
+      }),
+    );
+  }
+
+  getStats(apiId: string, field: string): Observable<AnalyticsStats> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&field=${field}&from=${from}&to=${to}`;
+        return this.http.get<AnalyticsStats>(url);
+      }),
+    );
+  }
+
+  getGroupBy(apiId: string, field: string, size?: number): Observable<AnalyticsGroupBy> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        let url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&field=${field}&from=${from}&to=${to}`;
+        if (size != null) {
+          url += `&size=${size}`;
+        }
+        return this.http.get<AnalyticsGroupBy>(url);
+      }),
+    );
+  }
+
+  getDateHisto(apiId: string, field: string, interval: number): Observable<AnalyticsDateHisto> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=DATE_HISTO&field=${field}&interval=${interval}&from=${from}&to=${to}`;
+        return this.http.get<AnalyticsDateHisto>(url);
+      }),
+    );
+  }
+
+  // ----- Legacy individual endpoint methods -----
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
     return this.timeRangeFilter().pipe(

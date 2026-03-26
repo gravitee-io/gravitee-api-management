@@ -23,6 +23,10 @@ import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analyt
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
+import { fakeAnalyticsCount } from '../entities/management-api-v2/analytics/analyticsCount.fixture';
+import { fakeAnalyticsStats } from '../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { fakeAnalyticsGroupBy } from '../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { fakeAnalyticsDateHisto } from '../entities/management-api-v2/analytics/analyticsDateHisto.fixture';
 import { timeFrameRangesParams } from '../shared/utils/timeFrameRanges';
 
 describe('ApiAnalyticsV2Service', () => {
@@ -43,6 +47,94 @@ describe('ApiAnalyticsV2Service', () => {
   afterEach(() => {
     httpTestingController.verify();
   });
+
+  // ----- Unified endpoint tests -----
+
+  describe('getCount', () => {
+    it('should call the unified analytics endpoint with type=COUNT', (done) => {
+      service.getCount(apiId).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsCount());
+        done();
+      });
+
+      const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+      const req = httpTestingController.expectOne((req) => {
+        return req.method === 'GET' && req.url.startsWith(url) && req.url.includes('type=COUNT');
+      });
+      req.flush(fakeAnalyticsCount());
+    });
+  });
+
+  describe('getStats', () => {
+    it('should call the unified analytics endpoint with type=STATS and field', (done) => {
+      service.getStats(apiId, 'gateway-response-time-ms').subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsStats());
+        done();
+      });
+
+      const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+      const req = httpTestingController.expectOne((req) => {
+        return (
+          req.method === 'GET' &&
+          req.url.startsWith(url) &&
+          req.url.includes('type=STATS') &&
+          req.url.includes('field=gateway-response-time-ms')
+        );
+      });
+      req.flush(fakeAnalyticsStats());
+    });
+  });
+
+  describe('getGroupBy', () => {
+    it('should call the unified analytics endpoint with type=GROUP_BY and field', (done) => {
+      service.getGroupBy(apiId, 'status').subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsGroupBy());
+        done();
+      });
+
+      const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+      const req = httpTestingController.expectOne((req) => {
+        return req.method === 'GET' && req.url.startsWith(url) && req.url.includes('type=GROUP_BY') && req.url.includes('field=status');
+      });
+      req.flush(fakeAnalyticsGroupBy());
+    });
+
+    it('should include size parameter when provided', (done) => {
+      service.getGroupBy(apiId, 'status', 5).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsGroupBy());
+        done();
+      });
+
+      const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+      const req = httpTestingController.expectOne((req) => {
+        return req.method === 'GET' && req.url.startsWith(url) && req.url.includes('type=GROUP_BY') && req.url.includes('size=5');
+      });
+      req.flush(fakeAnalyticsGroupBy());
+    });
+  });
+
+  describe('getDateHisto', () => {
+    it('should call the unified analytics endpoint with type=DATE_HISTO, field, and interval', (done) => {
+      service.getDateHisto(apiId, 'status', 3600000).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsDateHisto());
+        done();
+      });
+
+      const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+      const req = httpTestingController.expectOne((req) => {
+        return (
+          req.method === 'GET' &&
+          req.url.startsWith(url) &&
+          req.url.includes('type=DATE_HISTO') &&
+          req.url.includes('field=status') &&
+          req.url.includes('interval=3600000')
+        );
+      });
+      req.flush(fakeAnalyticsDateHisto());
+    });
+  });
+
+  // ----- Legacy endpoint tests -----
 
   describe('getRequestsCount', () => {
     it('should call the API', (done) => {
