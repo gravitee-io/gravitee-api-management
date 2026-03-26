@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, input, signal } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, input, signal } from '@angular/core';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+import { Api } from 'src/entities/api/api';
 
 import { TreeComponent } from './tree/tree.component';
 import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
+import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
+import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
+import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
 import { TreeNode, TreeService } from '../../services/tree.service';
 
 interface FolderData {
@@ -46,18 +52,24 @@ enum NavParamsChange {
 @Component({
   selector: 'app-documentation-folder',
   imports: [
+    CdkTrapFocus,
+    MobileClassDirective,
     SidenavLayoutComponent,
     TreeComponent,
     GraviteeMarkdownViewerModule,
     NavigationItemContentViewerComponent,
     AsyncPipe,
     MatButtonModule,
+    MatIconModule,
+    ApiTabToolsComponent,
   ],
-  standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
 })
 export class DocumentationFolderComponent {
+  private readonly apiService = inject(ApiService);
+  readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
+
   navItem = input.required<PortalNavigationItem>();
   navId$ = toObservable(this.navItem).pipe(map(({ id }) => id));
   selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
@@ -65,8 +77,14 @@ export class DocumentationFolderComponent {
   folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
-  subscribeApiId = signal<string | null>(null);
-  readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
+
+  apiId = signal<string | null>(null);
+  api = rxResource<Api | null, string | null>({
+    params: this.apiId,
+    stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
+  });
+  apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
+  mcpDrawerOpen = signal(false);
 
   constructor(
     private readonly router: Router,
@@ -80,7 +98,7 @@ export class DocumentationFolderComponent {
   }
 
   onSubscribe() {
-    const apiId = this.subscribeApiId();
+    const apiId = this.apiId();
     if (apiId) {
       this.router.navigate(['api', apiId, 'subscribe'], {
         relativeTo: this.activatedRoute,
@@ -119,7 +137,7 @@ export class DocumentationFolderComponent {
     if (!selectedId) {
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
-        tap(() => this.subscribeApiId.set(null)),
+        tap(() => this.apiId.set(null)),
         tap(() => this.navigateToFirstPage()),
       );
     }
@@ -137,7 +155,7 @@ export class DocumentationFolderComponent {
 
     return this.itemsService.getNavigationItemContent(selectedId).pipe(
       tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
-      tap(() => this.subscribeApiId.set(this.treeService.getAncestorApiId(selectedId))),
+      tap(() => this.apiId.set(this.treeService.getAncestorApiId(selectedId))),
       map(selectedPageContent => ({ children, selectedPageContent })),
     );
   }

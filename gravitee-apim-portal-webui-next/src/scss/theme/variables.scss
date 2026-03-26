@@ -49,6 +49,9 @@ $redoc-breakpoint-large: 75rem;
 $border-color: var(--gio-app-outline-color, #c7c7c7);
 $border-width: var(--gio-app-outline-width, 1px);
 
+// -- Shadows --
+$shadow-color: rgb(0 0 0 / 15%);
+
 // ============================================================================
 // Component-Specific variables
 // ============================================================================
@@ -74,7 +77,7 @@ $nav-bar-border-color: var(--gio-app-nav-bar-outline-color, $border-color);
 $nav-bar-elevation: var(--gio-app-nav-bar-elevation);
 $nav-bar-tab-indicator-height: 3px;
 $nav-bar-mobile-menu-icon-color: var(--gio-app-nav-bar-mobile-menu-icon-color, #000);
-$nav-bar-mobile-menu-box-elevation-shadow: var(--gio-app-nav-bar-mobile-menu-elevation-shadow, 0 11px 15px 0 rgb(0 0 0 / 20%));
+$nav-bar-mobile-menu-box-elevation-shadow: var(--gio-app-nav-bar-mobile-menu-elevation-shadow, 0 11px 15px 0 $shadow-color);
 $nav-bar-link-external-icon-color: var(--gio-app-nav-bar-link-external-icon-color, $link-icon-color);
 $footer-border-color: var(--gio-app-footer-outline-color, $border-color);
 
