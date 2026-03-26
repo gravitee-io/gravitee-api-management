@@ -257,8 +257,8 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriOrgPrefix = "/organizations/**";
-        String uriPrefix = uriOrgPrefix + "/environments/**";
+        String uriOrgPrefix = "/organizations/*";
+        String uriPrefix = uriOrgPrefix + "/environments/*";
 
         return security
             .authorizeHttpRequests()
@@ -306,7 +306,7 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .permitAll()
             .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**")
             .permitAll()
-            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/**/changePassword")
+            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/*/changePassword")
             .permitAll()
             .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users")
             .authenticated()
