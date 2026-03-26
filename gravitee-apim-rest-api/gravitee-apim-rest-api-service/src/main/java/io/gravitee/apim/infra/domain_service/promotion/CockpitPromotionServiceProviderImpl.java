@@ -50,6 +50,17 @@ public class CockpitPromotionServiceProviderImpl implements CockpitPromotionServ
     }
 
     @Override
+    public CockpitReplyStatus processPromotion(String organizationId, String environmentId, Promotion promotion) {
+        var cockpitReply = cockpitPromotionService.processPromotion(
+            new ExecutionContext(organizationId, environmentId),
+            PromotionAdapter.INSTANCE.toRestApiModel(promotion)
+        );
+        return cockpitReply.getStatus() == io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus.SUCCEEDED
+            ? CockpitReplyStatus.SUCCEEDED
+            : CockpitReplyStatus.ERROR;
+    }
+
+    @Override
     public Promotion createPromotion(String apiId, PromotionRequest promotionRequest, String userId) {
         PromotionEntity created = promotionService.create(
             GraviteeContext.getExecutionContext(),
