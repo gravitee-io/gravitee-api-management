@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_02_change_flow_selectors_path_length
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}flow_selectors
+            columnName: path
+            newDataType: nvarchar(2048)
