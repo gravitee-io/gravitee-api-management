@@ -18,7 +18,15 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -216,15 +224,18 @@ export class ApiLlmProviderComponent implements OnInit {
     const defaultNameForUnique =
       this.mode === 'edit-group' ? this.provider?.name || '' : this.mode === 'edit-endpoint' ? this.endpoint?.name || '' : '';
 
-    this.formGroup = new UntypedFormGroup({
-      name: new UntypedFormControl({ value: nameValue, disabled: this.isReadOnly }, [
-        Validators.required,
-        Validators.pattern(/^[^:]*$/),
-        isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, defaultNameForUnique),
-      ]),
-      configuration: new UntypedFormControl({ value: configurationValue, disabled: this.isReadOnly }, [Validators.required]),
-      sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigValue, disabled: this.isReadOnly }, [Validators.required]),
-    });
+    this.formGroup = new UntypedFormGroup(
+      {
+        name: new UntypedFormControl({ value: nameValue, disabled: this.isReadOnly }, [
+          Validators.required,
+          Validators.pattern(/^[^:]*$/),
+          isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, defaultNameForUnique),
+        ]),
+        configuration: new UntypedFormControl({ value: configurationValue, disabled: this.isReadOnly }, [Validators.required]),
+        sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigValue, disabled: this.isReadOnly }, [Validators.required]),
+      },
+      this.getProviderConsistencyValidators(),
+    );
 
     this.initialFormValue = this.formGroup.getRawValue();
   }
@@ -338,6 +349,29 @@ export class ApiLlmProviderComponent implements OnInit {
       ...api,
       endpointGroups: endpointGroups.map((group, i) => (i === this.providerIndex ? updatedProvider : group)),
     };
+  }
+
+  private getProviderConsistencyValidators(): ((control: AbstractControl) => ValidationErrors | null)[] {
+    if (this.mode !== 'create-endpoint' && this.mode !== 'edit-endpoint') {
+      return [];
+    }
+    const existingEndpoints = this.provider?.endpoints || [];
+    if (existingEndpoints.length === 0) {
+      return [];
+    }
+    const expectedProvider = existingEndpoints[0]?.configuration?.provider;
+    if (!expectedProvider) {
+      return [];
+    }
+    return [
+      (control: AbstractControl): ValidationErrors | null => {
+        const provider = control.value?.configuration?.provider;
+        if (!provider) {
+          return null;
+        }
+        return provider !== expectedProvider ? { providerMismatch: { expected: expectedProvider, actual: provider } } : null;
+      },
+    ];
   }
 
   private getSuccessMessage(name: string): string {
