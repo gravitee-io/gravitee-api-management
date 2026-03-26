@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsCountUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsDateHistoUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsGroupByUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsStatsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
@@ -85,6 +86,9 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchAnalyticsGroupByUseCase searchAnalyticsGroupByUseCase;
 
+    @Inject
+    private SearchAnalyticsDateHistoUseCase searchAnalyticsDateHistoUseCase;
+
     // ----- Unified analytics endpoint -----
 
     @GET
@@ -115,6 +119,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             case "COUNT" -> handleCount(startTime, endTime);
             case "STATS" -> handleStats(field, startTime, endTime);
             case "GROUP_BY" -> handleGroupBy(field, size, startTime, endTime);
+            case "DATE_HISTO" -> handleDateHisto(field, interval, startTime, endTime);
             default -> throw new BadRequestException("Unsupported analytics query type: " + type);
         };
     }
@@ -166,6 +171,31 @@ public class ApiAnalyticsResource extends AbstractResource {
                     "GROUP_BY",
                     "values",
                     groupBy.getValues() != null ? groupBy.getValues() : java.util.Collections.emptyMap()
+                )
+            )
+            .build();
+    }
+
+    private Response handleDateHisto(String field, Long interval, Instant from, Instant to) {
+        if (field == null || field.isBlank()) {
+            throw new BadRequestException("Query parameter 'field' is required for DATE_HISTO queries");
+        }
+        if (interval == null || interval <= 0) {
+            throw new BadRequestException("Query parameter 'interval' must be a positive number for DATE_HISTO queries");
+        }
+        var duration = java.time.Duration.ofMillis(interval);
+        var input = new SearchAnalyticsDateHistoUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), field, duration, from, to);
+        var output = searchAnalyticsDateHistoUseCase.execute(GraviteeContext.getExecutionContext(), input);
+        var histo = output.dateHistogram();
+        return Response
+            .ok(
+                java.util.Map.of(
+                    "type",
+                    "DATE_HISTO",
+                    "timestamps",
+                    histo.getTimestamps() != null ? histo.getTimestamps() : java.util.Collections.emptyList(),
+                    "values",
+                    histo.getValues() != null ? histo.getValues() : java.util.Collections.emptyMap()
                 )
             )
             .build();

@@ -21,6 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.DateHistogramResult;
 import io.gravitee.rest.api.model.v4.analytics.GroupByResult;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
@@ -62,6 +63,15 @@ public interface AnalyticsQueryService {
         String apiId,
         String field,
         int size,
+        Instant from,
+        Instant to
+    );
+
+    Optional<DateHistogramResult> searchDateHistogram(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        java.time.Duration interval,
         Instant from,
         Instant to
     );

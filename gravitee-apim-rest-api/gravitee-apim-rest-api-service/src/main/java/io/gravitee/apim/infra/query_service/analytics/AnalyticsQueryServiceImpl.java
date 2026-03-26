@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.DateHistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -36,6 +37,7 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.DateHistogramResult;
 import io.gravitee.rest.api.model.v4.analytics.GroupByResult;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
@@ -124,6 +126,20 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchGroupBy(executionContext.getQueryContext(), new GroupByQuery(apiId, field, size, from, to))
             .map(groupByAggregate -> GroupByResult.builder().values(groupByAggregate.getValues()).build());
+    }
+
+    @Override
+    public Optional<DateHistogramResult> searchDateHistogram(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        java.time.Duration interval,
+        Instant from,
+        Instant to
+    ) {
+        return analyticsRepository
+            .searchDateHistogram(executionContext.getQueryContext(), new DateHistogramQuery(apiId, field, interval, from, to))
+            .map(agg -> DateHistogramResult.builder().timestamps(agg.getTimestamps()).values(agg.getValues()).build());
     }
 
     @Override

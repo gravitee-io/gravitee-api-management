@@ -386,6 +386,115 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     }
 
     @Nested
+    class DateHistoAnalytics {
+
+        @BeforeEach
+        public void prepareTarget() {
+            unifiedAnalyticsTarget = rootTarget();
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("field", "status")
+                .queryParam("interval", 3600000L)
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_400_if_missing_field() {
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("interval", 3600000L)
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_missing_interval() {
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("field", "status")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_date_histogram_data() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.dateHistogramResult =
+                io.gravitee.rest.api.model.v4.analytics.DateHistogramResult
+                    .builder()
+                    .timestamps(java.util.List.of(1000L, 2000L))
+                    .values(java.util.Map.of("200", java.util.List.of(10L, 20L)))
+                    .build();
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("field", "status")
+                .queryParam("interval", 3600000L)
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(java.util.Map.class);
+            assertThat(body.get("type")).isEqualTo("DATE_HISTO");
+            var timestamps = (java.util.List<Object>) body.get("timestamps");
+            assertThat(timestamps).hasSize(2);
+        }
+
+        @Test
+        void should_return_empty_when_no_data() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.dateHistogramResult = null;
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("field", "status")
+                .queryParam("interval", 3600000L)
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(java.util.Map.class);
+            assertThat(body.get("type")).isEqualTo("DATE_HISTO");
+        }
+    }
+
+    @Nested
     class RequestsCountAnalytics {
 
         @BeforeEach
