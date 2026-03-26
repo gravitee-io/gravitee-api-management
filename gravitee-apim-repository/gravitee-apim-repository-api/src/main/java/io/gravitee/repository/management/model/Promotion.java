@@ -22,6 +22,7 @@ public class Promotion {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
         PROMOTION_CREATED,
+        PROMOTION_PROCESSED,
     }
 
     private String id;
