@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsCountUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsGroupByUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsStatsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
@@ -81,6 +82,9 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchAnalyticsStatsUseCase searchAnalyticsStatsUseCase;
 
+    @Inject
+    private SearchAnalyticsGroupByUseCase searchAnalyticsGroupByUseCase;
+
     // ----- Unified analytics endpoint -----
 
     @GET
@@ -110,6 +114,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         return switch (type.toUpperCase()) {
             case "COUNT" -> handleCount(startTime, endTime);
             case "STATS" -> handleStats(field, startTime, endTime);
+            case "GROUP_BY" -> handleGroupBy(field, size, startTime, endTime);
             default -> throw new BadRequestException("Unsupported analytics query type: " + type);
         };
     }
@@ -130,12 +135,37 @@ public class ApiAnalyticsResource extends AbstractResource {
         return Response
             .ok(
                 java.util.Map.of(
-                    "type", "STATS",
-                    "count", stats.getCount(),
-                    "min", stats.getMin(),
-                    "max", stats.getMax(),
-                    "avg", stats.getAvg(),
-                    "sum", stats.getSum()
+                    "type",
+                    "STATS",
+                    "count",
+                    stats.getCount(),
+                    "min",
+                    stats.getMin(),
+                    "max",
+                    stats.getMax(),
+                    "avg",
+                    stats.getAvg(),
+                    "sum",
+                    stats.getSum()
+                )
+            )
+            .build();
+    }
+
+    private Response handleGroupBy(String field, Integer size, Instant from, Instant to) {
+        if (field == null || field.isBlank()) {
+            throw new BadRequestException("Query parameter 'field' is required for GROUP_BY queries");
+        }
+        var input = new SearchAnalyticsGroupByUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), field, size, from, to);
+        var output = searchAnalyticsGroupByUseCase.execute(GraviteeContext.getExecutionContext(), input);
+        var groupBy = output.groupBy();
+        return Response
+            .ok(
+                java.util.Map.of(
+                    "type",
+                    "GROUP_BY",
+                    "values",
+                    groupBy.getValues() != null ? groupBy.getValues() : java.util.Collections.emptyMap()
                 )
             )
             .build();

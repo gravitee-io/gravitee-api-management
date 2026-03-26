@@ -22,6 +22,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.GroupByResult;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
@@ -55,6 +56,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public TopHitsApps topHitsApps;
     public TopFailedApis topFailedApis;
     public StatsResult statsResult;
+    public GroupByResult groupByResult;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -86,6 +88,18 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         return Optional.ofNullable(statsResult);
     }
 
+    @Override
+    public Optional<GroupByResult> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        int size,
+        Instant from,
+        Instant to
+    ) {
+        return Optional.ofNullable(groupByResult);
+    }
+
     public void reset() {
         requestsCount = null;
         averageMessagesPerRequest = null;
@@ -96,6 +110,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         requestResponseTime = null;
         topFailedApis = null;
         statsResult = null;
+        groupByResult = null;
     }
 
     @Override

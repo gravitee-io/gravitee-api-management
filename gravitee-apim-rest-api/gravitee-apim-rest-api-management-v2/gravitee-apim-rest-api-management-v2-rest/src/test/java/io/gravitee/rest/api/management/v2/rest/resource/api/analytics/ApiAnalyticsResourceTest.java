@@ -211,6 +211,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     @Nested
     class StatsAnalytics {
 
+        @BeforeEach
+        public void prepareTarget() {
+            unifiedAnalyticsTarget = rootTarget();
+        }
+
         @Test
         void should_return_403_if_incorrect_permissions() {
             when(
@@ -255,14 +260,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         void should_return_stats() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
             fakeAnalyticsQueryService.statsResult =
-                io.gravitee.rest.api.model.v4.analytics.StatsResult
-                    .builder()
-                    .count(100)
-                    .min(1.0)
-                    .max(500.0)
-                    .avg(42.5)
-                    .sum(4250.0)
-                    .build();
+                io.gravitee.rest.api.model.v4.analytics.StatsResult.builder().count(100).min(1.0).max(500.0).avg(42.5).sum(4250.0).build();
 
             final Response response = unifiedAnalyticsTarget
                 .queryParam("type", "STATS")
@@ -296,6 +294,94 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             var body = response.readEntity(java.util.Map.class);
             assertThat(body.get("type")).isEqualTo("STATS");
             assertThat(((Number) body.get("count")).longValue()).isEqualTo(0L);
+        }
+    }
+
+    @Nested
+    class GroupByAnalytics {
+
+        @BeforeEach
+        public void prepareTarget() {
+            unifiedAnalyticsTarget = rootTarget();
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("field", "status")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_400_if_missing_field() {
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_group_by_values() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.groupByResult =
+                io.gravitee.rest.api.model.v4.analytics.GroupByResult.builder().values(java.util.Map.of("200", 100L, "404", 10L)).build();
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("field", "status")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(java.util.Map.class);
+            assertThat(body.get("type")).isEqualTo("GROUP_BY");
+            var values = (java.util.Map<String, Object>) body.get("values");
+            assertThat(((Number) values.get("200")).longValue()).isEqualTo(100L);
+        }
+
+        @Test
+        void should_return_empty_values_when_no_data() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.groupByResult = null;
+
+            final Response response = unifiedAnalyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("field", "status")
+                .queryParam("from", 1000L)
+                .queryParam("to", 2000L)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(java.util.Map.class);
+            assertThat(body.get("type")).isEqualTo("GROUP_BY");
         }
     }
 

@@ -22,28 +22,26 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.v4.analytics.StatsResult;
+import io.gravitee.rest.api.model.v4.analytics.GroupByResult;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Use case for the unified STATS analytics query.
- * Returns statistical aggregations (min/max/avg/sum/count) for a given field on a V4 API.
+ * Use case for the unified GROUP_BY analytics query.
+ * Returns a map of field values to their occurrence count, bucketed using ES terms aggregation.
  */
 @Slf4j
 @RequiredArgsConstructor
 @UseCase
-public class SearchAnalyticsStatsUseCase {
+public class SearchAnalyticsGroupByUseCase {
 
-    private static final Set<String> ALLOWED_FIELDS = Set.of(
-        "gateway-response-time-ms",
-        "endpoint-response-time-ms",
-        "request-content-length",
-        "gateway-latency-ms"
-    );
+    private static final int DEFAULT_SIZE = 10;
+
+    private static final Set<String> ALLOWED_FIELDS = Set.of("status", "mapped-status", "application", "plan", "host", "uri");
 
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
@@ -52,11 +50,13 @@ public class SearchAnalyticsStatsUseCase {
         validateField(input.field());
         validateApiRequirements(input);
 
-        var stats = analyticsQueryService
-            .searchStats(executionContext, input.apiId(), input.field(), input.from(), input.to())
-            .orElse(StatsResult.builder().count(0).min(0).max(0).avg(0).sum(0).build());
+        int size = input.size() != null ? input.size() : DEFAULT_SIZE;
 
-        return new Output(stats);
+        var result = analyticsQueryService
+            .searchGroupBy(executionContext, input.apiId(), input.field(), size, input.from(), input.to())
+            .orElse(GroupByResult.builder().values(Collections.emptyMap()).build());
+
+        return new Output(result);
     }
 
     private void validateField(String field) {
@@ -90,7 +90,7 @@ public class SearchAnalyticsStatsUseCase {
         }
     }
 
-    public record Input(String apiId, String environmentId, String field, Instant from, Instant to) {}
+    public record Input(String apiId, String environmentId, String field, Integer size, Instant from, Instant to) {}
 
-    public record Output(StatsResult stats) {}
+    public record Output(GroupByResult groupBy) {}
 }

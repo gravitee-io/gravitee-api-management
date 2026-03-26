@@ -63,9 +63,7 @@ class SearchAnalyticsCountUseCaseTest {
     @Test
     void should_throw_if_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment", FROM, TO))
-            )
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment", FROM, TO)))
             .isInstanceOf(ApiNotFoundException.class);
     }
 
