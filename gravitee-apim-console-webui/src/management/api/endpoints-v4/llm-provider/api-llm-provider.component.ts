@@ -18,15 +18,7 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import {
-  AbstractControl,
-  FormControl,
-  FormGroup,
-  UntypedFormControl,
-  UntypedFormGroup,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -37,12 +29,6 @@ import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 export type ProviderMode = 'create-group' | 'edit-group' | 'create-endpoint' | 'edit-endpoint';
-
-interface ProviderForm {
-  name: FormControl<string>;
-  configuration: FormControl<any>;
-  sharedConfigurationOverride: FormControl<any>;
-}
 
 @Component({
   selector: 'api-llm-provider',
@@ -82,6 +68,8 @@ export class ApiLlmProviderComponent implements OnInit {
         return 'New Endpoint';
       case 'edit-endpoint':
         return 'Edit Endpoint';
+      default:
+        return 'Provider';
     }
   }
 
@@ -221,15 +209,12 @@ export class ApiLlmProviderComponent implements OnInit {
         break;
     }
 
-    const defaultNameForUnique =
-      this.mode === 'edit-group' ? this.provider?.name || '' : this.mode === 'edit-endpoint' ? this.endpoint?.name || '' : '';
-
     this.formGroup = new UntypedFormGroup(
       {
         name: new UntypedFormControl({ value: nameValue, disabled: this.isReadOnly }, [
           Validators.required,
           Validators.pattern(/^[^:]*$/),
-          isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, defaultNameForUnique),
+          isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.retrieveDisplayName()),
         ]),
         configuration: new UntypedFormControl({ value: configurationValue, disabled: this.isReadOnly }, [Validators.required]),
         sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigValue, disabled: this.isReadOnly }, [Validators.required]),
@@ -238,6 +223,10 @@ export class ApiLlmProviderComponent implements OnInit {
     );
 
     this.initialFormValue = this.formGroup.getRawValue();
+  }
+
+  private retrieveDisplayName() {
+    return this.mode === 'edit-group' ? this.provider?.name || '' : this.mode === 'edit-endpoint' ? this.endpoint?.name || '' : '';
   }
 
   private loadSchemas(): void {
@@ -369,7 +358,7 @@ export class ApiLlmProviderComponent implements OnInit {
         if (!provider) {
           return null;
         }
-        return provider !== expectedProvider ? { providerMismatch: { expected: expectedProvider, actual: provider } } : null;
+        return provider === expectedProvider ? null : { providerMismatch: { expected: expectedProvider, actual: provider } };
       },
     ];
   }
