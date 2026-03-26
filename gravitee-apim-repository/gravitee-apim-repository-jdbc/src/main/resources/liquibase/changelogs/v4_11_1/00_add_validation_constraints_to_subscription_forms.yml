@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.1_00_add_validation_constraints_to_subscription_forms
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: validation_constraints
+                  type: nclob
+                  constraints:
+                    nullable: true
+        - update:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: validation_constraints
+                  value: '{}'
+            where: validation_constraints IS NULL
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}subscription_forms
+            columnName: validation_constraints
+            columnDataType: nclob
