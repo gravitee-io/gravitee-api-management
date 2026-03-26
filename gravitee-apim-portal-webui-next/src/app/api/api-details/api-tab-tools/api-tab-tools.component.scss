@@ -16,6 +16,17 @@
 :host {
   display: flex;
   flex-direction: column;
-  padding-bottom: 16px;
-  gap: 16px;
+  gap: 28px;
+}
+
+.api-tab-tools {
+  &__header {
+    margin-bottom: 18px;
+  }
+
+  &__tools__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 }
