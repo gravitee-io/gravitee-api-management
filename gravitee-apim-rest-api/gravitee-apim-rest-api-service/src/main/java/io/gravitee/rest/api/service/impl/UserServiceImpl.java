@@ -204,7 +204,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     static {
         try {
             log.trace("Loading class to initialize properly JsonPath Cache provider: {}", Class.forName(JsonPathFunction.class.getName()));
-        } catch (ClassNotFoundException ignored) {
+        } catch (ClassNotFoundException | ExceptionInInitializerError ignored) {
             log.trace("Loading class to initialize properly JsonPath Cache provider : fail");
         }
     }
