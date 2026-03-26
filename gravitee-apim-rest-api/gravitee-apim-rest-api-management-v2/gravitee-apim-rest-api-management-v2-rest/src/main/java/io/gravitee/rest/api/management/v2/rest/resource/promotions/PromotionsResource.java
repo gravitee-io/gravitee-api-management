@@ -53,26 +53,32 @@ public class PromotionsResource extends AbstractResource {
 
         ProcessPromotionUseCase.Input input;
         if (DefinitionVersion.V4.equals(expectedDefinitionVersion)) {
-            ExportApiV4 exportApi = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(promotion.getApiDefinition());
-            ImportDefinition importApi = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApi);
             var authenticatedUser = getAuthenticatedUserDetails();
+            var auditInfo = AuditInfo.builder()
+                .organizationId(GraviteeContext.getCurrentOrganization())
+                .environmentId(promotionContext.targetEnvId())
+                .actor(
+                    AuditActor.builder()
+                        .userId(authenticatedUser.getUsername())
+                        .userSource(authenticatedUser.getSource())
+                        .userSourceId(authenticatedUser.getSourceId())
+                        .build()
+                )
+                .build();
+
+            ImportDefinition importApi = null;
+            if (isAccepted) {
+                ExportApiV4 exportApi = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(promotion.getApiDefinition());
+                importApi = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApi);
+            }
+
             input = new ProcessPromotionUseCase.Input(
                 promotion,
                 expectedDefinitionVersion,
                 isAccepted,
                 existingPromotedApi,
                 importApi,
-                AuditInfo.builder()
-                    .organizationId(GraviteeContext.getCurrentOrganization())
-                    .environmentId(promotionContext.targetEnvId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(authenticatedUser.getUsername())
-                            .userSource(authenticatedUser.getSource())
-                            .userSourceId(authenticatedUser.getSourceId())
-                            .build()
-                    )
-                    .build()
+                auditInfo
             );
         } else {
             input = new ProcessPromotionUseCase.Input(promotion, isAccepted, expectedDefinitionVersion);
