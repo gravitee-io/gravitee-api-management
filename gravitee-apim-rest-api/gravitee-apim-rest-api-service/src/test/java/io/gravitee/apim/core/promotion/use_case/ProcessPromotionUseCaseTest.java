@@ -330,7 +330,7 @@ class ProcessPromotionUseCaseTest {
 
         assertThat(auditCrudService.storage()).anySatisfy(audit -> {
             assertThat(audit.getReferenceId()).isEqualTo(API_ID);
-            assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_CREATED.name());
+            assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_PROCESSED.name());
             assertThat(audit.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
             assertThat(audit.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
             assertThat(audit.getUser()).isEqualTo(USER_NAME);
@@ -362,7 +362,7 @@ class ProcessPromotionUseCaseTest {
             .first()
             .satisfies(audit -> {
                 assertThat(audit.getReferenceId()).isEqualTo(API_ID);
-                assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_CREATED.name());
+                assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_PROCESSED.name());
                 assertThat(audit.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
                 assertThat(audit.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
                 assertThat(audit.getUser()).isEqualTo(USER_NAME);
