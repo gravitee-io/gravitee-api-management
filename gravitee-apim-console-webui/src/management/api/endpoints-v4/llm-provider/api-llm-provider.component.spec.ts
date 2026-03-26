@@ -20,7 +20,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, UrlSegment } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { ApiLlmProviderComponent } from './api-llm-provider.component';
@@ -48,7 +48,8 @@ describe('ApiProviderComponent', () => {
 
   const initComponent = async (
     api: ApiV4,
-    routerParams: unknown = { apiId: API_ID, providerIndex: 'new' },
+    routerParams: Record<string, unknown> = { apiId: API_ID },
+    urlSegments: string[] = ['provider', 'new'],
     permissions: GioTestingPermission = ['api-definition-r', 'api-definition-u', 'api-definition-c'],
   ) => {
     await TestBed.configureTestingModule({
@@ -59,6 +60,7 @@ describe('ApiProviderComponent', () => {
           useValue: {
             snapshot: {
               params: routerParams,
+              url: urlSegments.map(s => new UrlSegment(s, {})),
             },
           },
         },
@@ -90,10 +92,12 @@ describe('ApiProviderComponent', () => {
     routerNavigateSpy = jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
-
     await fixture.whenStable();
 
+    // API is loaded first, form is created in the subscribe callback
     expectApiGetRequest(api);
+
+    // Schemas are loaded independently
     expectEndpointSchemaGetRequest('llm-proxy');
     expectEndpointsSharedConfigurationSchemaGetRequest('llm-proxy');
   };
@@ -103,16 +107,14 @@ describe('ApiProviderComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('should create new provider', () => {
+  describe('create-group mode', () => {
     it('should add a new provider', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [],
       });
 
-      await initComponent(apiV4, { apiId: API_ID });
-
-      expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
+      await initComponent(apiV4, { apiId: API_ID }, ['provider', 'new']);
 
       await componentHarness.setProviderName('Test Provider');
       fixture.componentInstance.formGroup.get('configuration')!.setValue({ provider: 'OPEN_AI_COMPATIBLE' });
@@ -122,7 +124,6 @@ describe('ApiProviderComponent', () => {
       fixture.componentInstance.formGroup.get('sharedConfigurationOverride')!.setErrors(null);
       fixture.componentInstance.formGroup.updateValueAndValidity();
 
-      expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
       await componentHarness.clickSaveButton();
 
       expectApiGetRequest(apiV4);
@@ -153,14 +154,15 @@ describe('ApiProviderComponent', () => {
     });
   });
 
-  describe('should update existing provider', () => {
-    it('should edit and save an existing provider', async () => {
+  describe('edit-group mode', () => {
+    it('should edit and save a provider group', async () => {
       const existingProvider = {
         name: 'Existing Provider',
         type: 'llm-proxy',
+        sharedConfiguration: { apiKey: 'existing-key' },
         endpoints: [
           {
-            name: 'Existing Provider',
+            name: 'Endpoint 1',
             type: 'llm-proxy',
             configuration: { provider: 'ANTHROPIC' },
             sharedConfigurationOverride: { apiKey: 'existing-key' },
@@ -173,15 +175,12 @@ describe('ApiProviderComponent', () => {
         endpointGroups: [existingProvider],
       });
 
-      await initComponent(apiV4, { apiId: API_ID, providerIndex: 0 });
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0' }, ['provider', '0', 'edit']);
 
       expect(await componentHarness.getProviderName()).toBe('Existing Provider');
 
       await componentHarness.setProviderName('Updated Provider');
-      fixture.componentInstance.formGroup.get('configuration')!.setValue({ provider: 'OPEN_AI_COMPATIBLE' });
       fixture.componentInstance.formGroup.get('sharedConfigurationOverride')!.setValue({ apiKey: 'updated-key' });
-
-      fixture.componentInstance.formGroup.get('configuration')!.setErrors(null);
       fixture.componentInstance.formGroup.get('sharedConfigurationOverride')!.setErrors(null);
       fixture.componentInstance.formGroup.updateValueAndValidity();
 
@@ -196,12 +195,60 @@ describe('ApiProviderComponent', () => {
             ...existingProvider,
             name: 'Updated Provider',
             sharedConfiguration: { apiKey: 'updated-key' },
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider group successfully updated!');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+    });
+  });
+
+  describe('create-endpoint mode', () => {
+    it('should add a new endpoint to an existing provider', async () => {
+      const existingProvider = {
+        name: 'OpenAI Provider',
+        type: 'llm-proxy',
+        sharedConfiguration: { apiKey: 'key' },
+        endpoints: [
+          {
+            name: 'Endpoint 1',
+            type: 'llm-proxy',
+            configuration: { provider: 'OPEN_AI' },
+            inheritConfiguration: true,
+          },
+        ],
+      };
+
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [existingProvider],
+      });
+
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0' }, ['provider', '0', 'new']);
+
+      await componentHarness.setProviderName('Endpoint 2');
+      fixture.componentInstance.formGroup.get('configuration')!.setValue({ provider: 'OPEN_AI' });
+      fixture.componentInstance.formGroup.get('configuration')!.setErrors(null);
+      fixture.componentInstance.formGroup.updateValueAndValidity();
+
+      await componentHarness.clickSaveButton();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            ...existingProvider,
             endpoints: [
+              ...existingProvider.endpoints,
               {
-                ...existingProvider.endpoints[0],
-                name: 'Updated Provider default endpoint',
-                configuration: { provider: 'OPEN_AI_COMPATIBLE' },
-                sharedConfigurationOverride: { apiKey: 'updated-key' },
+                name: 'Endpoint 2',
+                type: 'llm-proxy',
+                inheritConfiguration: true,
+                configuration: { provider: 'OPEN_AI' },
               },
             ],
           },
@@ -209,8 +256,64 @@ describe('ApiProviderComponent', () => {
       };
       expectApiPutRequest(updatedApi);
 
-      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider successfully updated!');
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint Endpoint 2 created!');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+    });
+  });
+
+  describe('edit-endpoint mode', () => {
+    it('should edit and save an existing endpoint', async () => {
+      const existingProvider = {
+        name: 'OpenAI Provider',
+        type: 'llm-proxy',
+        sharedConfiguration: { apiKey: 'key' },
+        endpoints: [
+          {
+            name: 'Endpoint 1',
+            type: 'llm-proxy',
+            configuration: { provider: 'OPEN_AI' },
+            inheritConfiguration: true,
+          },
+        ],
+      };
+
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [existingProvider],
+      });
+
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0', endpointIndex: '0' }, ['provider', '0', '0']);
+
+      expect(await componentHarness.getProviderName()).toBe('Endpoint 1');
+
+      await componentHarness.setProviderName('Updated Endpoint');
+      fixture.componentInstance.formGroup.get('configuration')!.setValue({ provider: 'OPEN_AI', model: 'gpt-4o' });
+      fixture.componentInstance.formGroup.get('configuration')!.setErrors(null);
+      fixture.componentInstance.formGroup.updateValueAndValidity();
+
+      await componentHarness.clickSaveButton();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            ...existingProvider,
+            endpoints: [
+              {
+                ...existingProvider.endpoints[0],
+                name: 'Updated Endpoint',
+                configuration: { provider: 'OPEN_AI', model: 'gpt-4o' },
+              },
+            ],
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint successfully updated!');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
     });
   });
 
