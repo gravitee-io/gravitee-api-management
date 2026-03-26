@@ -62,7 +62,7 @@ const executor = {
   },
   openjdk: {
     image: 'cimg/openjdk',
-    version: '21.0.5',
+    version: '21.0.9',
   },
   node: {
     image: 'cimg/node',

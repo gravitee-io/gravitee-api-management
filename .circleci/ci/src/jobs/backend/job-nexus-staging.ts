@@ -15,7 +15,7 @@
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
-import { OpenJdkExecutor } from '../../executors';
+import { OpenJdkNodeExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { CircleCIEnvironment } from '../../pipelines';
 import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
@@ -51,6 +51,6 @@ export class NexusStagingJob {
       new reusable.ReusedCommand(saveMavenCacheCmd, { jobName: NexusStagingJob.jobName }),
     ];
 
-    return new Job(NexusStagingJob.jobName, OpenJdkExecutor.create('xlarge'), steps);
+    return new Job(NexusStagingJob.jobName, OpenJdkNodeExecutor.create('xlarge'), steps);
   }
 }
