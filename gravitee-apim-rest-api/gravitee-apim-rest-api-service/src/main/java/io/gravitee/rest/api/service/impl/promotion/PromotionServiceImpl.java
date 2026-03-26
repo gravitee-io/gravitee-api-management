@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.promotion;
 
 import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
+import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_PROCESSED;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
@@ -325,7 +326,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 targetExecutionContext,
                 updated.getApiId(),
                 emptyMap(),
-                PROMOTION_CREATED,
+                PROMOTION_PROCESSED,
                 updated.getCreatedAt(),
                 null,
                 updated
