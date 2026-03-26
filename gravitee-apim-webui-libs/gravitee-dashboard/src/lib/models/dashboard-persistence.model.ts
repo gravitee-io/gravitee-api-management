@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.widget-container {
-  display: flex;
-  height: 100%;
-  flex-flow: column;
+
+import { InjectionToken } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { Dashboard } from './dashboard.model';
+
+export interface DashboardPersistence {
+  update(dashboard: Dashboard): Observable<Dashboard>;
 }
 
-.widget-title-container {
-  display: flex;
-  height: 50px;
-  flex-shrink: 0;
-  align-items: center;
-  padding: 0 4px 0 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.widget-body-container {
-  overflow: hidden;
-  height: 80%;
-  min-height: 0;
-  flex-grow: 1;
-}
-
-.widget-title-container.is-draggable {
-  cursor: move;
-}
+export const DASHBOARD_PERSISTENCE = new InjectionToken<DashboardPersistence>('DASHBOARD_PERSISTENCE');

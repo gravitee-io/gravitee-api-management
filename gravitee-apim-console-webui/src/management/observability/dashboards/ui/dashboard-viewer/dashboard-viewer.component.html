@@ -15,4 +15,13 @@
     limitations under the License.
 
 -->
-<gd-dashboard [widgetConfigs]="widgets()" [baseURL]="baseURL" [filters]="filters"></gd-dashboard>
+<gd-dashboard
+  [dashboard]="dashboard()"
+  [baseURL]="baseURL"
+  [filters]="filters"
+  [capabilities]="capabilities()"
+  [showTitle]="showTitle()"
+  (deleteRequested)="deleteRequested.emit()"
+  (nameChanged)="nameChanged.emit($event)"
+  (saveStateChange)="saveStateChange.emit($event)"
+/>
