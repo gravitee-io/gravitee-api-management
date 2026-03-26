@@ -100,7 +100,7 @@ public class ProcessPromotionUseCase {
             promotion.setStatus(PromotionStatus.REJECTED);
         }
 
-        var cockpitReplyStatus = cockpitPromotionServiceProvider.requestPromotion(
+        var cockpitReplyStatus = cockpitPromotionServiceProvider.processPromotion(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             promotion
