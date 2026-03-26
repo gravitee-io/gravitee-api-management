@@ -16,7 +16,7 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -51,6 +51,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
 
     GioFormJsonSchemaModule,
     GioGoBackButtonModule,
+    GioSaveBarModule,
   ],
 })
 export class ApiLlmProviderModule {}

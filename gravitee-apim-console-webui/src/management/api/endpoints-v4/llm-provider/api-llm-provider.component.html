@@ -16,55 +16,54 @@
 
 -->
 <div class="back-button">
-  <a mat-button [routerLink]="'../../'">
+  <a mat-button [routerLink]="backPath">
     <mat-icon svgIcon="gio:arrow-left"></mat-icon>
-    <span>{{ 'Go back to your endpoints' }}</span>
+    <span>Go back to your endpoints</span>
   </a>
 </div>
 
-<mat-card class="endpoint-card">
-  <mat-card-content>
-    <div class="endpoint-card__header__group-name">
-      <span class="mat-h3">LLM Proxy</span>
-    </div>
-    @if (formGroup && providerSchema) {
-      <form [formGroup]="formGroup" (ngSubmit)="onSave()">
-        <mat-form-field appearance="outline" class="endpoint-card__form__field">
-          <input id="name" type="text" matInput formControlName="name" required="true" />
-          <mat-label>Name</mat-label>
-          @if (formGroup.controls.name.errors?.required) {
-            <mat-error>
-              {{ 'Provider name is required' }}
-            </mat-error>
-          }
-          @if (formGroup.controls.name.errors?.isUnique) {
-            <mat-error> This name is used by another provider or endpoint group. </mat-error>
-          }
-        </mat-form-field>
-        <div class="endpoint-card__form__field">
-          <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema?.config"></gio-form-json-schema>
-        </div>
-        @if (providerSchema?.sharedConfig) {
-          <div class="endpoint-card__form__field">
-            <gio-form-json-schema
-              formControlName="sharedConfigurationOverride"
-              [jsonSchema]="providerSchema?.sharedConfig"
-            ></gio-form-json-schema>
-          </div>
-        }
+<form *ngIf="formGroup" autocomplete="off" [formGroup]="formGroup">
+  <mat-card class="endpoint-card">
+    <mat-card-content>
+      <div class="endpoint-card__header__group-name">
+        <span class="mat-h3">{{ pageTitle }}</span>
+      </div>
 
-        <button
-          mat-flat-button
-          aria-label="Validate my endpoints"
-          color="primary"
-          type="submit"
-          [disabled]="formGroup.invalid || (isEditMode && !formGroup.dirty) || isReadOnly"
-        >
-          Validate my endpoints
-        </button>
-      </form>
-    } @else {
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    }
-  </mat-card-content>
-</mat-card>
+      <mat-form-field appearance="outline" class="endpoint-card__form__field">
+        <input id="name" type="text" matInput formControlName="name" required="true" />
+        <mat-label>Name</mat-label>
+        @if (formGroup.controls.name.errors?.required) {
+          <mat-error>
+            {{ mode === 'edit-group' || mode === 'create-group' ? 'Provider name is required' : 'Endpoint name is required' }}
+          </mat-error>
+        }
+        @if (formGroup.controls.name.errors?.isUnique) {
+          <mat-error>This name is used by another provider or endpoint group.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (showConfiguration && providerSchema?.config) {
+        <div class="endpoint-card__form__field">
+          <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config"></gio-form-json-schema>
+        </div>
+      }
+
+      @if (showSharedConfiguration && providerSchema?.sharedConfig) {
+        <div class="endpoint-card__form__field">
+          <gio-form-json-schema
+            formControlName="sharedConfigurationOverride"
+            [jsonSchema]="providerSchema.sharedConfig"
+          ></gio-form-json-schema>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar
+    class="save-bar"
+    [creationMode]="mode === 'create-group' || mode === 'create-endpoint'"
+    [form]="formGroup"
+    [formInitialValues]="initialFormValue"
+    (submitted)="onSave()"
+  ></gio-save-bar>
+</form>
