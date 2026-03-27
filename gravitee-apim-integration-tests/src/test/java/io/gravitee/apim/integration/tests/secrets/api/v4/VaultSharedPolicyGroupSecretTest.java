@@ -41,6 +41,9 @@ import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer;
 import io.gravitee.apim.integration.tests.secrets.conf.SSLUtils;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -55,6 +58,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -96,10 +100,7 @@ public class VaultSharedPolicyGroupSecretTest {
         rootVault = vaultContainer.getRootVault();
     }
 
-    @Nested
-    @GatewayTest
-    @DeploySharedPolicyGroups("/sharedpolicygroups/spg-secret-header-on-request.json")
-    class SharedPolicyGroupWithStaticSecretRef extends AbstractGatewayTest {
+    abstract static class AbstractVaultSpgTest extends AbstractGatewayTest {
 
         final String apiKey = UUID.randomUUID().toString();
 
@@ -157,6 +158,12 @@ public class VaultSharedPolicyGroupSecretTest {
             super.configureServices(services);
             services.add(SecretsService.class);
         }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeploySharedPolicyGroups("/sharedpolicygroups/spg-secret-header-on-request.json")
+    class SharedPolicyGroupWithStaticSecretRef extends AbstractVaultSpgTest {
 
         @Test
         @DeployApi("/apis/v4/http/secrets/vault/api-spg-secret.json")
@@ -175,6 +182,93 @@ public class VaultSharedPolicyGroupSecretTest {
                 .assertComplete();
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class SharedPolicyGroupSecretAfterUpdate extends AbstractVaultSpgTest {
+
+        @Test
+        @DeployApi("/apis/v4/http/secrets/vault/api-spg-secret.json")
+        void should_resolve_secret_in_shared_policy_group_after_update(HttpClient httpClient) {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+
+            // Deploy SPG programmatically with version 1
+            ReactableSharedPolicyGroup spgV1 = buildReactableSpg("1");
+            deploySharedPolicyGroup(spgV1);
+
+            // First call: secret is resolved correctly
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
+
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+
+            // Redeploy SPG with version 2 (same secret reference)
+            ReactableSharedPolicyGroup spgV2 = buildReactableSpg("2");
+            redeploySharedPolicyGroup(spgV2);
+
+            wiremock.resetRequests();
+
+            // Second call after update: secret should still be resolved correctly
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
+
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+        }
+
+        private ReactableSharedPolicyGroup buildReactableSpg(String version) {
+            return ReactableSharedPolicyGroup.builder()
+                .id("spg-secret-header-on-request")
+                .environmentId("DEFAULT")
+                .definition(
+                    SharedPolicyGroup.builder()
+                        .id("spg-secret-header-on-request")
+                        .name("spg-secret-header-on-request")
+                        .environmentId("DEFAULT")
+                        .version(version)
+                        .phase(SharedPolicyGroup.Phase.REQUEST)
+                        .policies(
+                            List.of(
+                                Step.builder()
+                                    .name("Transform headers with secret")
+                                    .enabled(true)
+                                    .policy("transform-headers")
+                                    .configuration(
+                                        """
+                                        {
+                                            "scope": "REQUEST",
+                                            "addHeaders": [
+                                              {
+                                                "name": "Authorization",
+                                                "value": "ApiKey {#secrets.get('/vault/secret/test:api-key')}"
+                                              }
+                                            ]
+                                        }
+                                        """
+                                    )
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .build();
         }
     }
 }
