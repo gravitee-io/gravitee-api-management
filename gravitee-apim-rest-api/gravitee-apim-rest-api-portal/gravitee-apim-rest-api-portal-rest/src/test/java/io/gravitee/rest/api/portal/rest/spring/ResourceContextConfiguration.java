@@ -166,6 +166,7 @@ import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorIm
 import io.gravitee.apim.infra.domain_service.logs_engine.definition.LogsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -1273,6 +1274,6 @@ public class ResourceContextConfiguration {
 
     @Bean
     SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator() {
-        return mock(SubscriptionFormSchemaGenerator.class);
+        return new SubscriptionFormSchemaGeneratorImpl();
     }
 }

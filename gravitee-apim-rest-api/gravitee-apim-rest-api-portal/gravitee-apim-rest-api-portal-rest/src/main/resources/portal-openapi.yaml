@@ -154,6 +154,7 @@ paths:
                     description: No page found for the provided context
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    # TODO: Remove this after frontend is updated to use /apis/{apiId}/subscription-form
     /subscription-form:
         get:
             tags:
@@ -163,6 +164,7 @@ paths:
               Returns the subscription form content when the form exists and is enabled.
               Returns 404 when no subscription form exists for the environment or when the form is disabled.
             operationId: getSubscriptionForm
+            deprecated: true
             responses:
                 200:
                     description: The subscription form content (GMD).
@@ -747,6 +749,33 @@ paths:
                                 $ref: "#/components/schemas/ApplicationsResponse"
                 404:
                     $ref: "#/components/responses/APINotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /apis/{apiId}/subscription-form:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the subscription form for an API.
+            description: |
+              Returns the subscription form content when the form exists and is enabled for the environment.
+              EL expressions in option-bearing fields are resolved against the API's metadata.
+              If resolution fails, fallback values are returned instead.
+              Returns 404 when no subscription form exists for the environment or when the form is disabled.
+            operationId: getApiSubscriptionForm
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: The subscription form content with resolved options.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SubscriptionForm"
+                404:
+                    description: Subscription form not found or disabled for the environment.
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /apis/{apiId}/media/{mediaHash}:
@@ -4109,7 +4138,7 @@ components:
                     $ref: "#/components/schemas/Links"
         SubscriptionForm:
             type: object
-            description: Subscription form returned to API consumers when the form is enabled. Contains only the form content (GMD).
+            description: Subscription form returned to API consumers when the form is enabled.
             required:
                 - gmdContent
             properties:
@@ -4118,11 +4147,22 @@ components:
                     description: |-
                       Gravitee Markdown (GMD) content defining the form.
                       Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+                      Option-bearing fields may contain Gravitee EL expressions (e.g. {#api.metadata['key']}:fallback1,fallback2).
                     example: |-
                       # Subscription Information
 
                       <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
                       <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+                resolvedOptions:
+                    type: object
+                    description: |-
+                      Resolved option lists for fields that use EL expressions.
+                      Keys are field keys; values are the effective option lists (resolved from API metadata, or fallback when no API context is available).
+                      Inject these into the corresponding GMD components before rendering.
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
 
         ErrorResponse:
             properties:

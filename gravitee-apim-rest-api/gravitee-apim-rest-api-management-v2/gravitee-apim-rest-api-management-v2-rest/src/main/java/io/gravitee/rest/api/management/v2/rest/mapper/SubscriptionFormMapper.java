@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForEnvironmentUseCase;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -41,7 +42,16 @@ public interface SubscriptionFormMapper {
      */
     @Mapping(target = "id", expression = "java(mapId(entity.getId()))")
     @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
+    @Mapping(target = "resolvedOptions", ignore = true)
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(SubscriptionForm entity);
+
+    default io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(
+        GetSubscriptionFormForEnvironmentUseCase.Output output
+    ) {
+        var model = toResponse(output.subscriptionForm());
+        model.setResolvedOptions(output.resolvedOptions().isEmpty() ? null : output.resolvedOptions());
+        return model;
+    }
 
     /**
      * Converts SubscriptionFormId to UUID.

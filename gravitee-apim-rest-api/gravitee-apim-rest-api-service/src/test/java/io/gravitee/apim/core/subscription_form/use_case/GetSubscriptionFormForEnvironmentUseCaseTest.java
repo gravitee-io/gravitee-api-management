@@ -25,7 +25,6 @@ import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoun
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,10 +50,7 @@ class GetSubscriptionFormForEnvironmentUseCaseTest {
 
         // When
         var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder()
-                .environmentId(expectedForm.getEnvironmentId())
-                .onlyEnabled(false)
-                .build()
+            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(expectedForm.getEnvironmentId()).build()
         );
 
         // Then
@@ -63,69 +59,23 @@ class GetSubscriptionFormForEnvironmentUseCaseTest {
     }
 
     @Test
-    void should_return_disabled_form_when_onlyEnabled_false() {
+    void should_return_disabled_form_for_console_form_builder() {
         SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
         queryService.initWith(List.of(disabledForm));
 
         var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder()
-                .environmentId(disabledForm.getEnvironmentId())
-                .onlyEnabled(false)
-                .build()
+            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(disabledForm.getEnvironmentId()).build()
         );
 
         assertThat(result.subscriptionForm()).isEqualTo(disabledForm);
     }
 
     @Test
-    void should_throw_when_onlyEnabled_true_and_form_disabled() {
-        SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
-        queryService.initWith(List.of(disabledForm));
-
-        var input = GetSubscriptionFormForEnvironmentUseCase.Input.builder()
-            .environmentId(disabledForm.getEnvironmentId())
-            .onlyEnabled(true)
-            .build();
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormNotFoundException.class)
-            .hasMessageContaining(disabledForm.getEnvironmentId());
-    }
-
-    @Test
     void should_throw_exception_when_subscription_form_not_found() {
-        var input = GetSubscriptionFormForEnvironmentUseCase.Input.builder()
-            .environmentId("unknown-environment")
-            .onlyEnabled(false)
-            .build();
+        var input = GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId("unknown-environment").build();
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(SubscriptionFormNotFoundException.class)
             .hasMessageContaining("unknown-environment");
-    }
-
-    @Test
-    void should_return_resolved_options_when_apiId_is_present() {
-        // Given a form with an EL select field
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .gmdContent(
-                io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown.of(
-                    "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"
-                )
-            )
-            .build();
-        queryService.initWith(List.of(form));
-        elResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
-
-        // When retrieving with apiId
-        var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder()
-                .environmentId(form.getEnvironmentId())
-                .onlyEnabled(false)
-                .apiId("my-api-id")
-                .build()
-        );
-
-        // Then resolved options are returned
-        assertThat(result.resolvedOptions()).containsEntry("env", List.of("Dev", "Staging", "Prod"));
     }
 
     @Test
@@ -140,9 +90,8 @@ class GetSubscriptionFormForEnvironmentUseCaseTest {
             .build();
         queryService.initWith(List.of(form));
 
-        // When retrieving without apiId
         var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(form.getEnvironmentId()).onlyEnabled(false).build()
+            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(form.getEnvironmentId()).build()
         );
 
         // Then fallback options from the expression are returned
