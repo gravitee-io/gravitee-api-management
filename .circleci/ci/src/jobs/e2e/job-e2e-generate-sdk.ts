@@ -40,7 +40,10 @@ sh ./scripts/update-management-v2-sdk.sh
 sh ./scripts/update-portal-sdk.sh`,
         working_directory: 'gravitee-apim-e2e',
       }),
-      new reusable.ReusedCommand(webuiInstallCmd, { 'apim-ui-project': 'gravitee-apim-e2e' }),
+      new reusable.ReusedCommand(webuiInstallCmd, {
+        'apim-ui-project': 'gravitee-apim-e2e',
+        'apim-ui-project-workdir': 'gravitee-apim-e2e',
+      }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.workspace.Persist({
         root: '.',

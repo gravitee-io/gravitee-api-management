@@ -52,6 +52,7 @@ import {
   ValidateJob,
   NxFormatCheckJob,
   WebuiLintTestJob,
+  GammaWebuiBuildJob,
 } from '../jobs';
 import { orbs } from '../orbs';
 
@@ -319,7 +320,8 @@ export class PullRequestsWorkflow {
       shouldBuildWebuiLibs(environment.changedFiles) ||
       shouldBuildConsole(environment.changedFiles) ||
       shouldBuildPortalNext(environment.changedFiles) ||
-      shouldBuildPortal(environment.changedFiles)
+      shouldBuildPortal(environment.changedFiles) ||
+      shouldBuildGammaUI(environment.changedFiles)
     ) {
       const formatCheckJob = NxFormatCheckJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(formatCheckJob);
@@ -365,7 +367,7 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Console',
           context: config.jobContext,
-          'apim-ui-project': config.components.console.project,
+          'apim-ui-project-workdir': config.components.console.workdir,
           'nx-project': 'console',
           resource_class: 'xlarge',
           'max-workers': '4',
@@ -387,6 +389,7 @@ export class PullRequestsWorkflow {
             name: `Build APIM Console docker image`,
             requires: ['Build APIM Console'],
             'apim-project': config.components.console.project,
+            'apim-project-workdir': config.components.console.workdir,
             'docker-context': '.',
             'docker-image-name': config.components.console.image,
           }),
@@ -426,7 +429,7 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(webuiLintTestJobNx, {
           name: 'Lint & test APIM Portal Next',
           context: config.jobContext,
-          'apim-ui-project': config.components.portal.next.project,
+          'apim-ui-project-workdir': config.components.portal.next.project,
           'nx-project': 'portal-next',
           'max-workers': '2',
         }),
@@ -453,6 +456,7 @@ export class PullRequestsWorkflow {
           name: 'Lint & test APIM Portal',
           context: config.jobContext,
           'apim-ui-project': config.components.portal.project,
+          'apim-ui-project-workdir': config.components.portal.workdir,
           resource_class: 'large',
         }),
       );
@@ -463,7 +467,7 @@ export class PullRequestsWorkflow {
           name: 'Sonar - gravitee-apim-portal-webui',
           context: config.jobContext,
           requires: ['Lint & test APIM Portal'],
-          working_directory: config.components.portal.project,
+          working_directory: config.components.portal.workdir,
           cache_type: 'frontend',
         }),
       );
@@ -491,11 +495,55 @@ export class PullRequestsWorkflow {
             name: `Build APIM Portal docker image`,
             requires: ['Build APIM Portal'],
             'apim-project': config.components.portal.project,
+            'apim-project-workdir': config.components.portal.workdir,
             'docker-context': '.',
             'docker-image-name': config.components.portal.image,
           }),
         );
         requires.push('Build APIM Portal docker image');
+      }
+    }
+
+    if (!filterJobs || shouldBuildGammaUI(environment.changedFiles)) {
+      const webuiLintTestJob = WebuiLintTestJob.createNx(dynamicConfig, environment);
+      dynamicConfig.addJob(webuiLintTestJob);
+
+      const gammaWebuiBuildJob = GammaWebuiBuildJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(gammaWebuiBuildJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(webuiLintTestJob, {
+          name: 'Lint & test Gamma Console',
+          context: config.jobContext,
+          'apim-ui-project-workdir': config.components.gamma.workdir,
+          'nx-project': 'gravitee-gamma-control-plane-webui',
+          resource_class: 'xlarge',
+          'max-workers': '4',
+        }),
+        new workflow.WorkflowJob(gammaWebuiBuildJob, {
+          name: 'Build Gamma Console',
+          context: config.jobContext,
+        }),
+      );
+
+      requires.push('Lint & test Gamma Console', 'Build Gamma Console');
+
+      if (shouldBuildDockerImages) {
+        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerWebUiImageJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
+            context: config.jobContext,
+            name: `Build Gamma Console docker image`,
+            requires: ['Build Gamma Console'],
+            'apim-project': config.components.gamma.project,
+            'apim-project-workdir': config.components.gamma.workdir,
+            'docker-context': '.',
+            'docker-image-name': config.components.gamma.image,
+          }),
+        );
+        requires.push('Build Gamma Console docker image');
       }
     }
 
@@ -545,6 +593,7 @@ export class PullRequestsWorkflow {
         name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
         'apim-project': config.components.managementApi.project,
+        'apim-project-workdir': config.components.managementApi.workdir,
         'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
@@ -553,6 +602,7 @@ export class PullRequestsWorkflow {
         name: `Build APIM Gateway docker image`,
         requires: ['Build backend'],
         'apim-project': config.components.gateway.project,
+        'apim-project-workdir': config.components.gateway.workdir,
         'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
         'docker-image-name': config.components.gateway.image,
       }),
@@ -707,7 +757,7 @@ function shouldBuildWebuiLibs(changedFiles: string[]): boolean {
 function shouldBuildConsole(changedFiles: string[]): boolean {
   return (
     shouldBuildAllFront(changedFiles) ||
-    changedFiles.some((file) => file.includes(config.components.console.project)) ||
+    changedFiles.some((file) => file.includes(config.components.console.workdir)) ||
     changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
   );
 }
@@ -723,8 +773,12 @@ function shouldBuildPortalNext(changedFiles: string[]): boolean {
 function shouldBuildPortal(changedFiles: string[]): boolean {
   return (
     shouldBuildAllFront(changedFiles) ||
-    changedFiles.some((file) => file.includes(config.components.portal.project) && !file.includes(config.components.portal.next.project))
+    changedFiles.some((file) => file.includes(config.components.portal.workdir) && !file.includes(config.components.portal.next.project))
   );
+}
+
+function shouldBuildGammaUI(changedFiles: string[]): boolean {
+  return shouldBuildAllFront(changedFiles) || changedFiles.some((file) => file.includes(config.components.gamma.workdir));
 }
 
 function shouldBuildBackend(changedFiles: string[]): boolean {

@@ -30,22 +30,31 @@ const components = {
   cacheDir: '/tmp/docker-cache',
   gateway: {
     project: 'gravitee-apim-gateway',
+    workdir: 'gravitee-apim-gateway',
     image: 'apim-gateway',
   },
   managementApi: {
     project: 'gravitee-apim-rest-api',
+    workdir: 'gravitee-apim-rest-api',
     image: 'apim-management-api',
   },
   console: {
     project: 'gravitee-apim-console-webui',
+    workdir: 'gravitee-apim-console-webui',
     image: 'apim-management-ui',
   },
   portal: {
     project: 'gravitee-apim-portal-webui',
+    workdir: 'gravitee-apim-portal-webui',
     image: 'apim-portal-ui',
     next: {
       project: 'gravitee-apim-portal-webui-next',
     },
+  },
+  gamma: {
+    project: 'gravitee-gamma-control-plane-webui',
+    workdir: 'gravitee-gamma/gravitee-gamma-control-plane-webui',
+    image: 'gamma-ui',
   },
 };
 

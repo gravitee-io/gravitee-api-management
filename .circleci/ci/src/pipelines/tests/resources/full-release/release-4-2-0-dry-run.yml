@@ -64,21 +64,25 @@ commands:
         type: string
         default: ""
         description: the name of the UI project to build
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the UI project to build
     steps:
       - restore_cache:
           name: Restore Yarn cache
           keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
             - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
       - run:
           name: Install dependencies
           command: yarn
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: << parameters.apim-ui-project-workdir >>
       - save_cache:
           name: Save Yarn cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
           paths:
-            - ./<< parameters.apim-ui-project >>/node_modules
+            - ./<< parameters.apim-ui-project-workdir >>/node_modules
   cmd-create-docker-context:
     steps:
       - run:
@@ -244,6 +248,7 @@ jobs:
       - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-portal-webui
+          apim-ui-project-workdir: gravitee-apim-portal-webui
       - run:
           name: Update Build version
           command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
@@ -271,6 +276,10 @@ jobs:
         type: string
         default: ""
         description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
       docker-context:
         type: string
         default: ""
@@ -296,7 +305,7 @@ jobs:
             docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 \
             << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
+          working_directory: << parameters.apim-project-workdir >>
       - keeper/env-export:
           secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
           var-name: AQUA_KEY
@@ -329,6 +338,10 @@ jobs:
         type: string
         default: ""
         description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
       docker-context:
         type: string
         default: ""
@@ -374,7 +387,7 @@ jobs:
             docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 \
             << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
+          working_directory: << parameters.apim-project-workdir >>
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
       - aquasec/scan_docker_image:
@@ -386,7 +399,7 @@ jobs:
             docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0-debian -t graviteeio/<< parameters.docker-image-name >>:4.2-debian \
             << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
+          working_directory: << parameters.apim-project-workdir >>
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0-debian
       - aquasec/scan_docker_image:
@@ -807,6 +820,7 @@ workflows:
           requires:
             - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
+          apim-project-workdir: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
       - job-console-webui-build:
@@ -822,6 +836,7 @@ workflows:
           requires:
             - Build APIM Console
           apim-project: gravitee-apim-console-webui
+          apim-project-workdir: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
       - job-backend-build-and-publish-on-download-website:
@@ -837,6 +852,7 @@ workflows:
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-rest-api
+          apim-project-workdir: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
@@ -846,6 +862,7 @@ workflows:
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-gateway
+          apim-project-workdir: gravitee-apim-gateway
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
       - job-release-commit-and-prepare-next-version:

@@ -20,6 +20,7 @@ export class WebuiInstallCommand {
 
   private static customParametersList = new parameters.CustomParametersList([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
+    new parameters.CustomParameter('apim-ui-project-workdir', 'string', '', 'the directory of the UI project to build'),
   ]);
 
   public static get(): reusable.ReusableCommand {
@@ -29,19 +30,19 @@ export class WebuiInstallCommand {
         new commands.cache.Restore({
           name: 'Restore Yarn cache',
           keys: [
-            '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}',
+            '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}',
             '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}',
           ],
         }),
         new commands.Run({
           name: 'Install dependencies',
           command: 'yarn',
-          working_directory: '<< parameters.apim-ui-project >>',
+          working_directory: '<< parameters.apim-ui-project-workdir >>',
         }),
         new commands.cache.Save({
           name: 'Save Yarn cache',
-          key: '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}',
-          paths: ['./<< parameters.apim-ui-project >>/node_modules'],
+          key: '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}',
+          paths: ['./<< parameters.apim-ui-project-workdir >>/node_modules'],
         }),
       ],
       WebuiInstallCommand.customParametersList,

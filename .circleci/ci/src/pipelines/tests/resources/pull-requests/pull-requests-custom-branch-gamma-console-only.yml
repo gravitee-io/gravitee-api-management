@@ -58,60 +58,6 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
-  cmd-restore-maven-job-cache:
-    parameters:
-      jobName:
-        type: string
-        default: ""
-        description: The job name
-    steps:
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-master
-    description: Restore Maven cache for a dedicated job
-  cmd-save-maven-job-cache:
-    parameters:
-      jobName:
-        type: string
-        default: ""
-        description: The job name
-    steps:
-      - run:
-          name: Exclude all APIM artefacts from cache.
-          command: rm -rf ~/.m2/repository/io/gravitee/apim
-      - save_cache:
-          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
-          when: always
-    description: Save Maven cache for a dedicated job
-  cmd-webui-install:
-    parameters:
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-      apim-ui-project-workdir:
-        type: string
-        default: ""
-        description: the directory of the UI project to build
-    steps:
-      - restore_cache:
-          name: Restore Yarn cache
-          keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
-      - run:
-          name: Install dependencies
-          command: yarn
-          working_directory: << parameters.apim-ui-project-workdir >>
-      - save_cache:
-          name: Save Yarn cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
-          paths:
-            - ./<< parameters.apim-ui-project-workdir >>/node_modules
 jobs:
   job-danger-js:
     docker:
@@ -185,44 +131,7 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
-  job-sonarcloud-analysis:
-    parameters:
-      working_directory:
-        type: string
-        default: gravitee-apim-rest-api
-        description: Directory where the Sonarcloud analysis will be run
-      cache_type:
-        type: enum
-        default: backend
-        description: Type of cache to use
-        enum:
-          - backend
-          - frontend
-    docker:
-      - image: sonarsource/sonar-scanner-cli:11.2
-    resource_class: large
-    steps:
-      - checkout:
-          method: full
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
-      - keeper/env-export:
-          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-          var-name: SONAR_TOKEN
-      - run:
-          name: Run Sonarcloud Analysis
-          command: sonar-scanner -Dsonar.projectVersion=4.2.0
-          working_directory: << parameters.working_directory >>
-      - cmd-notify-on-failure
-      - save_cache:
-          paths:
-            - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
-          when: always
-  job-portal-webui-build:
+  job-gamma-webui-build:
     docker:
       - image: cimg/node:22.12.0
     resource_class: large
@@ -233,30 +142,18 @@ jobs:
       - setup_remote_docker:
           version: default
       - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-portal-webui
-          apim-ui-project-workdir: gravitee-apim-portal-webui
-      - run:
-          name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
-      - run:
-          name: Build
-          command: yarn build:prod
-          environment:
-            NODE_OPTIONS: --max_old_space_size=4086
-          working_directory: gravitee-apim-portal-webui
       - cmd-workspace-install
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
       - run:
-          name: Build Portal Next
-          command: NODE_OPTIONS=--max_old_space_size=4086 yarn portal-next:build:prod
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma:build:prod
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - gravitee-apim-portal-webui/dist
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -290,30 +187,23 @@ workflows:
           context:
             - cicd-orchestrator
       - job-nx-webui-lint-test:
-          name: Lint & test APIM Portal Next
+          name: Lint & test Gamma Console
           context:
             - cicd-orchestrator
-          apim-ui-project-workdir: gravitee-apim-portal-webui-next
-          nx-project: portal-next
-          max-workers: "2"
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-portal-webui-next
-          context:
-            - cicd-orchestrator
-          requires:
-            - Lint & test APIM Portal Next
-          working_directory: gravitee-apim-portal-webui-next
-          cache_type: frontend
-      - job-portal-webui-build:
-          name: Build APIM Portal
+          apim-ui-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          nx-project: gravitee-gamma-control-plane-webui
+          resource_class: xlarge
+          max-workers: "4"
+      - job-gamma-webui-build:
+          name: Build Gamma Console
           context:
             - cicd-orchestrator
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
             - Check prettier formatting for nx projects
-            - Lint & test APIM Portal Next
-            - Build APIM Portal
+            - Lint & test Gamma Console
+            - Build Gamma Console
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5

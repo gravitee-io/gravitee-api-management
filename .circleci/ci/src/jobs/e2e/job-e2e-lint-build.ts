@@ -32,7 +32,10 @@ export class E2ELintBuildJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webuiInstallCmd, { 'apim-ui-project': 'gravitee-apim-e2e' }),
+      new reusable.ReusedCommand(webuiInstallCmd, {
+        'apim-ui-project': 'gravitee-apim-e2e',
+        'apim-ui-project-workdir': 'gravitee-apim-e2e',
+      }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check License',

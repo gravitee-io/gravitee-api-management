@@ -22,5 +22,5 @@ export default {
         '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-    coverageDirectory: '../../coverage/gravitee-gamma/gravitee-gamma-control-plane-webui',
+    coverageDirectory: __dirname + '/coverage',
 };
