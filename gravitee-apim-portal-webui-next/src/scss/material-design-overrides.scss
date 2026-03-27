@@ -16,6 +16,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '../scss/theme';
+@use './typography';
 @use './m3-adapter';
 
 nav[mat-tab-nav-bar] {
@@ -45,13 +46,22 @@ mat-chip {
 mat-dialog-container {
   --mat-dialog-container-color: #{theme.$card-background-color};
   --mat-dialog-container-shape: #{theme.$container-shape};
+  --mat-dialog-subhead-font: #{theme.$font-family};
+  --mat-dialog-subhead-size: #{typography.token(h3, font-size)};
+  --mat-dialog-subhead-weight: #{typography.token(h3, font-weight)};
+  --mat-dialog-subhead-line-height: #{typography.token(h3, line-height)};
 }
 
 mat-form-field {
+  --mat-form-field-container-height: #{theme.$form-field-container-height};
+  --mat-form-field-container-vertical-padding: #{theme.$form-field-container-vertical-padding};
+  --mat-form-field-subscript-text-line-height: #{theme.$form-field-subscript-text-line-height};
+  --mat-form-field-subscript-text-size: #{theme.$form-field-subscript-text-size};
   --mat-form-field-filled-container-color: #{m3-adapter.$surface-variant};
   --mat-form-field-filled-disabled-container-color: #{m3-adapter.$surface-variant};
   --mat-form-field-filled-disabled-input-text-color: var(--mat-form-field-filled-input-text-color);
   --mat-form-field-outlined-container-color: #{theme.$card-background-color};
+  --mat-form-field-outlined-outline-color: #{theme.$border-color};
 }
 
 mat-expansion-panel {
@@ -62,8 +72,15 @@ mat-expansion-panel {
   --mat-select-panel-background-color: #{theme.$select-panel-background-color};
 }
 
+.mat-mdc-select-panel .mat-mdc-option {
+  min-height: #{calc(typography.token(body, line-height) * 1.5)};
+  --mat-option-label-text-size: #{typography.token(body, font-size)};
+}
+
 mat-datepicker-content.mat-datepicker-content.mat-primary {
+  border: #{theme.$border-width} solid #{theme.$border-color};
   --mat-datepicker-calendar-container-background-color: #{theme.$calendar-background-color};
+  --mat-datepicker-calendar-container-shape: #{theme.$container-shape};
 }
 
 :root {
@@ -72,15 +89,18 @@ mat-datepicker-content.mat-datepicker-content.mat-primary {
       outlined-container-shape: #{theme.$button-outlined-container-shape},
       outlined-label-text-transform: #{theme.$button-outlined-text-transform},
       outlined-label-text-color: #{theme.$button-outlined-text-color},
+      outlined-label-text-weight: #{typography.token(small-bold, font-weight)},
       outlined-outline-color: #{theme.$button-outlined-border-color},
       outlined-outline-width: #{theme.$button-outlined-border-width},
       filled-container-shape: #{theme.$button-filled-container-shape},
       filled-container-color: #{theme.$button-filled-container-color},
       filled-label-text-transform: #{theme.$button-filled-text-transform},
       filled-label-text-color: #{theme.$button-filled-text-color},
+      filled-label-text-weight: #{typography.token(small-bold, font-weight)},
       text-container-shape: #{theme.$button-text-container-shape},
       text-label-text-transform: #{theme.$button-text-text-transform},
       text-label-text-color: #{theme.$button-text-text-color},
+      text-label-text-weight: #{typography.token(small-bold, font-weight)},
     )
   );
 }
@@ -134,7 +154,9 @@ mat-card {
     (
       outlined-outline-color: transparent,
       outlined-label-text-color: #{theme.$nav-bar-link-color},
+      outlined-label-text-weight: #{typography.token(small-bold, font-weight)},
       filled-label-text-color: #{theme.$nav-bar-link-active-color},
+      filled-label-text-weight: #{typography.token(small-bold, font-weight)},
       filled-container-color: #{theme.$nav-bar-link-active-background-color},
       outlined-hover-state-layer-opacity: 7%,
       filled-horizontal-padding: #{theme.$nav-bar-link-padding},
