@@ -782,6 +782,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId("subscription-id");
+        subscription.setPlan(PLAN_ID);
         subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
         subscription.setReferenceId(productId);
 
@@ -795,7 +796,12 @@ public class ApiKeyServiceTest {
 
         when(subscriptionService.findById(any())).thenReturn(subscription);
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(application);
+        when(application.getId()).thenReturn(APPLICATION_ID);
         when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(subscription));
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(plan);
+        when(subscriptionService.buildSubscriptionConsoleUrl(eq(GraviteeContext.getExecutionContext()), eq(subscription))).thenReturn(
+            Optional.empty()
+        );
 
         apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
 
@@ -804,6 +810,19 @@ public class ApiKeyServiceTest {
         assertTrue("isPaused", existingApiKey.isPaused());
 
         verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_EXPIRED), any(), any());
+        verify(subscriptionService, times(1)).triggerSubscriptionNotificationsForApiProduct(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(productId),
+            eq(APPLICATION_ID),
+            eq(application),
+            eq(plan),
+            eq(subscription),
+            any(),
+            eq(false),
+            eq(ApiHook.APIKEY_EXPIRED),
+            eq(existingApiKey),
+            any()
+        );
         verify(auditService, times(1)).createApiProductAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(productId));
         verify(auditService, never()).createApiAuditLog(any(), any(), any());
     }
@@ -983,11 +1002,41 @@ public class ApiKeyServiceTest {
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
+        when(subscriptionService.buildSubscriptionConsoleUrl(eq(GraviteeContext.getExecutionContext()), eq(subscription))).thenReturn(
+            Optional.empty()
+        );
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription);
 
         verify(apiKeyRepository, times(1)).create(any());
         verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_RENEWED), any(), any());
+        // Expiring the previous key triggers APIKEY_EXPIRED; the new key triggers APIKEY_RENEWED (API Product pipeline).
+        verify(subscriptionService).triggerSubscriptionNotificationsForApiProduct(
+            eq(GraviteeContext.getExecutionContext()),
+            eq("product-1"),
+            eq(APPLICATION_ID),
+            eq(application),
+            eq(plan),
+            eq(subscription),
+            any(),
+            eq(false),
+            eq(ApiHook.APIKEY_EXPIRED),
+            any(),
+            any()
+        );
+        verify(subscriptionService).triggerSubscriptionNotificationsForApiProduct(
+            eq(GraviteeContext.getExecutionContext()),
+            eq("product-1"),
+            eq(APPLICATION_ID),
+            eq(application),
+            eq(plan),
+            eq(subscription),
+            any(),
+            eq(false),
+            eq(ApiHook.APIKEY_RENEWED),
+            any(),
+            any()
+        );
     }
 
     @Test

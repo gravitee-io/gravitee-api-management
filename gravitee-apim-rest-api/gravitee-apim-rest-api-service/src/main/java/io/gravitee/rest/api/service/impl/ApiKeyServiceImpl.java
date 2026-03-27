@@ -70,6 +70,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -709,7 +710,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             .getSubscriptions()
             .forEach(subscription -> {
                 boolean isApiProduct = isApiProductSubscription(subscription);
-                String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApi();
+                String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
                 String applicationId = key.getApplication() != null ? key.getApplication().getId() : null;
 
                 Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
@@ -764,12 +765,26 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         Set<SubscriptionEntity> subscriptions,
         NotificationParamsBuilder paramsBuilder
     ) {
+        Map<String, Object> additionalParams = new HashMap<>(paramsBuilder.build());
         subscriptions.forEach(subscription -> {
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
+            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             if (isApiProductSubscription(subscription)) {
+                String apiProductId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+                subscriptionService.triggerSubscriptionNotificationsForApiProduct(
+                    executionContext,
+                    apiProductId,
+                    application.getId(),
+                    application,
+                    genericPlanEntity,
+                    subscription,
+                    subscriptionService.buildSubscriptionConsoleUrl(executionContext, subscription),
+                    false,
+                    apiHook,
+                    key,
+                    additionalParams
+                );
                 return;
             }
-            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
             PrimaryOwnerEntity owner = application.getPrimaryOwner();
             Map<String, Object> params = paramsBuilder
