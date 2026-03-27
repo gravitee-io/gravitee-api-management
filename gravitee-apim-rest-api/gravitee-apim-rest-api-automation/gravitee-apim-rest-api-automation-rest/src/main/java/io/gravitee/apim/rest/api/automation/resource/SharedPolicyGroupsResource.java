@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
@@ -38,9 +41,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
