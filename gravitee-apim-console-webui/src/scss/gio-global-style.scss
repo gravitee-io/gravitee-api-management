@@ -28,6 +28,10 @@ $snackbar-button: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   white-space: pre-wrap;
 }
 
+.gd-widget-description-tooltip {
+  white-space: pre-line;
+}
+
 .mdc-button__label {
   white-space: nowrap;
 }
