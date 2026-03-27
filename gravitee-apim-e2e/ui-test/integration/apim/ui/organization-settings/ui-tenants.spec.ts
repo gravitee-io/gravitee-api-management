@@ -18,6 +18,7 @@ import { faker } from '@faker-js/faker';
 
 describe('Tenants', () => {
   const name = `${faker.lorem.word(10)} ${faker.lorem.word(10)}`.substring(0, 20);
+  const key = faker.helpers.slugify(name).toLowerCase();
   const description = `${name} datacenter`;
   const expectedId = faker.helpers.slugify(name).toLowerCase();
 
@@ -30,10 +31,12 @@ describe('Tenants', () => {
     cy.getByDataTestId('add-tenant').click();
     cy.contains('Create a tenant');
     cy.getByDataTestId('tenant-name').type(name);
+    cy.getByDataTestId('tenant-key').type(key);
     cy.getByDataTestId('tenant-description').type(description);
     cy.getByDataTestId('save-tenant').click();
 
     cy.contains(name);
+    cy.contains(key);
     cy.contains(description);
     cy.contains(expectedId);
   });
@@ -48,6 +51,7 @@ describe('Tenants', () => {
 
     cy.focusOnDialog().within(() => {
       cy.getByDataTestId('tenant-name').should('have.value', name);
+      cy.getByDataTestId('tenant-key').should('be.disabled');
       cy.getByDataTestId('tenant-description').should('have.value', description);
       cy.getByDataTestId('tenant-name').clear().type(updatedName);
       cy.getByDataTestId('tenant-description').clear().type(updatedDescription);
