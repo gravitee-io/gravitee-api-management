@@ -17,6 +17,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
@@ -152,5 +153,28 @@ describe('ApplicationTabSettingsCertificatesComponent', () => {
       .forEach(req => req.flush({ data: [], metadata: { paginateMetaData: { totalElements: 0 } } }));
 
     expect(fixture.componentInstance.currentPage()).toBe(2);
+  });
+
+  it('should show upload button when user has UPDATE permission', async () => {
+    const harness = await initWithCertificates([fakeCertificate()]);
+    expect(await harness.getUploadButton()).toBeTruthy();
+  });
+
+  it('should not show upload button when user lacks UPDATE permission', async () => {
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['R'] }));
+    const harness = await initWithCertificates([fakeCertificate()]);
+    expect(await harness.getUploadButton()).toBeNull();
+  });
+
+  it('should open upload dialog when upload button is clicked', async () => {
+    const harness = await initWithCertificates([fakeCertificate()]);
+    const dialog = TestBed.inject(MatDialog);
+    const openSpy = jest
+      .spyOn(dialog, 'open')
+      .mockReturnValue({ afterClosed: () => ({ pipe: () => ({ subscribe: () => ({}) }) }) } as never);
+
+    await harness.clickUploadButton();
+
+    expect(openSpy).toHaveBeenCalled();
   });
 });
