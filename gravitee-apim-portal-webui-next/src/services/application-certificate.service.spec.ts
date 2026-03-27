@@ -38,7 +38,7 @@ describe('ApplicationCertificateService', () => {
     httpTestingController.verify();
   });
 
-  it('list() should GET /applications/:id/certificates with pagination', done => {
+  it('should GET application certificates with pagination', done => {
     const response = { data: [fakeClientCertificate()], metadata: { paginateMetaData: { totalElements: 1 } } };
 
     service.list(appId, 1, 10).subscribe(res => {
@@ -51,7 +51,7 @@ describe('ApplicationCertificateService', () => {
     req.flush(response);
   });
 
-  it('create() should POST /applications/:id/certificates', done => {
+  it('should POST a new application certificate', done => {
     const input = { name: 'New Cert', certificate: '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----' };
     const created = fakeClientCertificate({ id: 'cert-new', name: 'New Cert' });
 
@@ -66,7 +66,7 @@ describe('ApplicationCertificateService', () => {
     req.flush(created);
   });
 
-  it('update() should PUT /applications/:id/certificates/:certId', done => {
+  it('should PUT updated application certificate', done => {
     const input = { name: 'Updated Cert' };
     const updated = fakeClientCertificate({ id: certId, name: 'Updated Cert' });
 
@@ -81,7 +81,7 @@ describe('ApplicationCertificateService', () => {
     req.flush(updated);
   });
 
-  it('delete() should DELETE /applications/:id/certificates/:certId', done => {
+  it('should DELETE an application certificate', done => {
     service.delete(appId, certId).subscribe(() => {
       done();
     });
