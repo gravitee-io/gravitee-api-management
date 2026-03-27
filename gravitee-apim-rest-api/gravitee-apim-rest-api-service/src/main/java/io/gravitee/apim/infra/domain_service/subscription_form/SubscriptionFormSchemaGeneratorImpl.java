@@ -20,6 +20,7 @@ import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSc
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.DynamicOptions;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Field;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RadioField;
@@ -28,6 +29,8 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Text
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
@@ -47,6 +50,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSchemaGenerator {
+
+    /**
+     * Matches options values that contain an EL expression: {@code ${expression}:fallback1,fallback2}
+     * Group 1 = the Freemarker expression (inside {@code ${ }}), group 2 = the fallback list (may be empty).
+     */
+    private static final Pattern EL_OPTIONS_PATTERN = Pattern.compile("^\\$\\{(.+)}:(.*)$", Pattern.DOTALL);
 
     private static final Set<String> FORM_FIELD_TAGS = Set.of(
         "gmd-input",
@@ -98,10 +107,19 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
                 parseNullableInt(el, "minlength"),
                 parseNullableInt(el, "maxlength")
             );
-            case "gmd-select" -> new SelectField(fieldKey, required, parseOptions(el));
-            case "gmd-radio" -> new RadioField(fieldKey, required, parseReadonlyValue(el, fieldKey), parseOptions(el));
+            case "gmd-select" -> {
+                var parsed = parseOptions(el, fieldKey);
+                yield new SelectField(fieldKey, required, parsed.staticOptions(), parsed.dynamicOptions());
+            }
+            case "gmd-radio" -> {
+                var parsed = parseOptions(el, fieldKey);
+                yield new RadioField(fieldKey, required, parseReadonlyValue(el, fieldKey), parsed.staticOptions(), parsed.dynamicOptions());
+            }
             case "gmd-checkbox" -> new CheckboxField(fieldKey, required, parseReadonlyValue(el, fieldKey));
-            case "gmd-checkbox-group" -> new CheckboxGroupField(fieldKey, required, parseOptions(el));
+            case "gmd-checkbox-group" -> {
+                var parsed = parseOptions(el, fieldKey);
+                yield new CheckboxGroupField(fieldKey, required, parsed.staticOptions(), parsed.dynamicOptions());
+            }
             default -> throw new IllegalArgumentException("Unknown GMD form field tag: " + el.tagName());
         };
     }
@@ -114,8 +132,31 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
         return readonly ? el.attr("value").trim() : null;
     }
 
-    private List<String> parseOptions(Element el) {
-        return el.hasAttr("options") ? parseCommaList(el.attr("options")) : null;
+    private record ParsedOptions(List<String> staticOptions, DynamicOptions dynamicOptions) {}
+
+    private ParsedOptions parseOptions(Element el, String fieldKey) {
+        if (!el.hasAttr("options")) {
+            return new ParsedOptions(null, null);
+        }
+        String raw = el.attr("options").trim();
+
+        // Check if the whole value starts with ${ — could be EL or a misconfigured EL without fallback
+        if (raw.startsWith("${")) {
+            Matcher m = EL_OPTIONS_PATTERN.matcher(raw);
+            if (!m.matches()) {
+                throw new IllegalArgumentException(
+                    "Field '" +
+                        fieldKey +
+                        "': EL expression in 'options' requires a fallback list. " +
+                        "Use the format: ${expression}:fallback1,fallback2"
+                );
+            }
+            String expression = m.group(1).trim();
+            List<String> fallback = parseCommaList(m.group(2));
+            return new ParsedOptions(null, new DynamicOptions(expression, fallback));
+        }
+
+        return new ParsedOptions(parseCommaList(raw), null);
     }
 
     private Integer parseNullableInt(Element el, String attrName) {

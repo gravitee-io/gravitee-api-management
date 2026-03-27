@@ -75,6 +75,26 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
+    public Map<String, ApiMetadata> findEnvironmentMetadata(String environmentId) {
+        return storage
+            .stream()
+            .filter(
+                metadata ->
+                    Objects.equals(metadata.getReferenceId(), environmentId) &&
+                    Metadata.ReferenceType.ENVIRONMENT.equals(metadata.getReferenceType())
+            )
+            .map(m ->
+                ApiMetadata.builder()
+                    .key(m.getKey())
+                    .name(m.getName())
+                    .defaultValue(m.getValue())
+                    .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                    .build()
+            )
+            .collect(toMap(ApiMetadata::getKey, Function.identity()));
+    }
+
+    @Override
     public void initWith(List<Metadata> items) {
         storage.clear();
         storage.addAll(items);

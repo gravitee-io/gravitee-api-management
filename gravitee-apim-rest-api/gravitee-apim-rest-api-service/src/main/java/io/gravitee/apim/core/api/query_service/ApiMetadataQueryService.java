@@ -21,10 +21,17 @@ import java.util.Map;
 
 public interface ApiMetadataQueryService {
     /**
-     * Find all metadata with their default value for an API.
+     * Find all metadata for an API, merging environment-level defaults with API-level overrides.
      * @param environmentId The environment id.
      * @param apiId The API id.
-     * @return A map of metadata key and metadata.
+     * @return A map of metadata key to metadata (API value takes precedence over env default).
      */
     Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId);
+
+    /**
+     * Find environment-level (global) metadata only, without any API-specific overrides.
+     * @param environmentId The environment id.
+     * @return A map of metadata key to metadata (only {@code defaultValue} is populated).
+     */
+    Map<String, ApiMetadata> findEnvironmentMetadata(String environmentId);
 }

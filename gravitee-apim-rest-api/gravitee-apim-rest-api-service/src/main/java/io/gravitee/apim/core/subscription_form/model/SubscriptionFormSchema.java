@@ -58,6 +58,19 @@ public record SubscriptionFormSchema(List<Field> fields) {
         List<String> options();
     }
 
+    public interface DynamicOptionsAttribute {
+        DynamicOptions dynamicOptions();
+    }
+
+    /**
+     * Holds an EL expression and its fallback option list for option-bearing fields.
+     *
+     * <p>GMD syntax: {@code options="${expression}:fallback1,fallback2"}</p>
+     * <p>When present on a field, the expression is resolved at retrieval time against the
+     * target API's metadata. If resolution fails, {@code fallback} is used instead.</p>
+     */
+    public record DynamicOptions(String expression, List<String> fallback) {}
+
     /**
      * Marker interface for all field types in a subscription form schema.
      * Each implementation captures only the validation attributes relevant to its component type.
@@ -82,16 +95,23 @@ public record SubscriptionFormSchema(List<Field> fields) {
     public record TextareaField(String fieldKey, boolean required, String readonlyValue, Integer minLength, Integer maxLength) implements
         Field, ReadOnlyValueAttribute, MinLengthAttribute, MaxLengthAttribute {}
 
-    /** Single-value dropdown — supports required, options. No readonly (not supported by the GMD component). */
-    public record SelectField(String fieldKey, boolean required, List<String> options) implements Field, OptionsAttribute {}
+    /** Single-value dropdown — supports required, static options, or dynamic EL options. No readonly (not supported by the GMD component). */
+    public record SelectField(String fieldKey, boolean required, List<String> options, DynamicOptions dynamicOptions) implements
+        Field, OptionsAttribute, DynamicOptionsAttribute {}
 
-    /** Single-value radio group — supports required, readonly, options. */
-    public record RadioField(String fieldKey, boolean required, String readonlyValue, List<String> options) implements
-        Field, ReadOnlyValueAttribute, OptionsAttribute {}
+    /** Single-value radio group — supports required, readonly, static options, or dynamic EL options. */
+    public record RadioField(
+        String fieldKey,
+        boolean required,
+        String readonlyValue,
+        List<String> options,
+        DynamicOptions dynamicOptions
+    ) implements Field, ReadOnlyValueAttribute, OptionsAttribute, DynamicOptionsAttribute {}
 
     /** Boolean checkbox — supports required, readonly. Value is "true"/"false". */
     public record CheckboxField(String fieldKey, boolean required, String readonlyValue) implements Field, ReadOnlyValueAttribute {}
 
-    /** Multi-value checkbox group — supports required, options. No readonly (not supported by the GMD component). */
-    public record CheckboxGroupField(String fieldKey, boolean required, List<String> options) implements Field, OptionsAttribute {}
+    /** Multi-value checkbox group — supports required, static options, or dynamic EL options. No readonly (not supported by the GMD component). */
+    public record CheckboxGroupField(String fieldKey, boolean required, List<String> options, DynamicOptions dynamicOptions) implements
+        Field, OptionsAttribute, DynamicOptionsAttribute {}
 }
