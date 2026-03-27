@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -70,6 +72,19 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                 }
 
                 plan.setHrid(k);
+                if (plan.getGeneralConditions() != null && !isUUID(planCRD.getGeneralConditions())) {
+                    input.pages
+                        .stream()
+                        .filter(page -> plan.getGeneralConditions().equalsIgnoreCase(page.getHrid()))
+                        .findAny()
+                        .ifPresent(page -> {
+                            planCRD.setGeneralConditions(page.getId());
+                            planCRD.setGeneralConditionsHrid(page.getHrid());
+                            plan.setGeneralConditions(page.getId());
+                            plan.setGeneralConditionsHrid(page.getHrid());
+                        });
+                }
+
                 if (
                     (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
                     (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())
@@ -103,5 +118,15 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         });
 
         return Result.ofBoth(input.sanitized(sanitizedPlans), errors);
+    }
+
+    public boolean isUUID(String str) {
+        if (str == null) return false;
+        try {
+            UUID.fromString(str);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }
