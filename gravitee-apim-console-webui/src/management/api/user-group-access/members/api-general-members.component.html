@@ -37,7 +37,7 @@
           <button
             class="card__header__actions__button"
             aria-label="Manage groups"
-            *gioPermission="{ anyOf: ['api-member-r', 'api-member-u', 'api-member-d'] }"
+            *gioPermission="{ anyOf: ['api-member-u'] }"
             mat-raised-button
             (click)="updateGroups()"
             [disabled]="groups?.length === 0"

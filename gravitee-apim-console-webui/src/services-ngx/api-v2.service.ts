@@ -39,7 +39,7 @@ import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
 import { MigrateToV4Response } from '../entities/management-api-v2/api/v2/migrateToV4Response';
-import { ApiProduct } from '../entities/management-api-v2/api-product/apiProduct';
+import { ApiProduct } from '../entities/management-api-v2/api-product';
 
 export interface ApiProductsForApiResponse {
   data: ApiProduct[];
@@ -79,6 +79,10 @@ export class ApiV2Service {
         this.lastApiFetch$.next(api);
       }),
     );
+  }
+
+  updateGroups(apiId: string, groups: string[]): Observable<string[]> {
+    return this.http.put<string[]>(`${this.constants.env.v2BaseURL}/apis/${apiId}/groups`, groups);
   }
 
   delete(apiId: string, closePlans = false): Observable<void> {

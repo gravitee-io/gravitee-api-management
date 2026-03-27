@@ -57,7 +57,7 @@ export class ApiGeneralGroupsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.isReadOnly = this.isKubernetesOrigin || !this.permissionService.hasAnyMatching(['api-definition-u']);
+    this.isReadOnly = this.isKubernetesOrigin || !this.permissionService.hasAnyMatching(['api-member-u']);
     this.isV1Api = this.api.definitionVersion === 'V1';
 
     const userGroupList: Group[] = this.groups.filter(group => this.api.groups?.includes(group.id));
