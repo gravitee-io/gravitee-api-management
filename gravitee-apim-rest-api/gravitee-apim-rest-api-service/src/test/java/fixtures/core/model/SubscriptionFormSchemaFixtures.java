@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.query_service;
+package fixtures.core.model;
 
-import io.gravitee.apim.core.api.model.ApiMetadata;
-import java.util.Map;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
+import java.util.List;
 
-public interface ApiMetadataQueryService {
-    /**
-     * Find all metadata for an API, merging environment-level defaults with API-level overrides.
-     * @param environmentId The environment id.
-     * @param apiId The API id.
-     * @return A map of metadata key to metadata (API value takes precedence over env default).
-     */
-    Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId);
+public final class SubscriptionFormSchemaFixtures {
+
+    private SubscriptionFormSchemaFixtures() {}
+
+    public static SubscriptionFormSchema schema(SubscriptionFormSchema.Field... fields) {
+        return new SubscriptionFormSchema(List.of(fields));
+    }
 }
