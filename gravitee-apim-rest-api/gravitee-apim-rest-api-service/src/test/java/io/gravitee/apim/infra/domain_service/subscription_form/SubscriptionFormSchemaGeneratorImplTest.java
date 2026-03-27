@@ -22,6 +22,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.DynamicOptions;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RadioField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.SelectField;
@@ -222,6 +223,43 @@ class SubscriptionFormSchemaGeneratorImplTest {
         assertThat(fields.getFirst().fieldKey()).isEqualTo("name");
     }
 
+    @ParameterizedTest(name = "<{0}> → dynamic options")
+    @MethodSource("optionsBearingComponents")
+    void should_parse_el_expression_with_fallback_as_dynamic_options(
+        String tagName,
+        Class<? extends SubscriptionFormSchema.Field> expectedType
+    ) {
+        String gmd = "<" + tagName + " fieldKey=\"env\" options=\"${api.metadata['envs']}:Prod,Test\"/>";
+
+        SubscriptionFormSchema.Field field = generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
+
+        assertThat(field).isInstanceOf(expectedType);
+        assertThat(dynamicOptionsOf(field)).isNotNull();
+        assertThat(dynamicOptionsOf(field).expression()).isEqualTo("api.metadata['envs']");
+        assertThat(dynamicOptionsOf(field).fallback()).containsExactly("Prod", "Test");
+        assertThat(optionsOf(field)).isNull();
+    }
+
+    @ParameterizedTest(name = "<{0}> → EL without fallback throws")
+    @MethodSource("optionsBearingComponents")
+    void should_throw_when_el_expression_has_no_fallback_separator(
+        String tagName,
+        Class<? extends SubscriptionFormSchema.Field> expectedType
+    ) {
+        String gmd = "<" + tagName + " fieldKey=\"env\" options=\"${api.metadata['envs']}\"/>";
+        assertThatThrownBy(() -> generator.generate(GraviteeMarkdown.of(gmd)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("env")
+            .hasMessageContaining("fallback");
+    }
+
+    @Test
+    void should_parse_el_expression_with_empty_fallback() {
+        String gmd = "<gmd-select fieldKey=\"env\" options=\"${api.metadata['envs']}:\"/>";
+        SubscriptionFormSchema.Field field = generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
+        assertThat(dynamicOptionsOf(field).fallback()).isEmpty();
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private List<String> optionsOf(SubscriptionFormSchema.Field field) {
@@ -230,6 +268,15 @@ class SubscriptionFormSchemaGeneratorImplTest {
             case RadioField f -> f.options();
             case CheckboxGroupField f -> f.options();
             default -> throw new IllegalArgumentException("Field type has no options: " + field.getClass().getSimpleName());
+        };
+    }
+
+    private DynamicOptions dynamicOptionsOf(SubscriptionFormSchema.Field field) {
+        return switch (field) {
+            case SelectField f -> f.dynamicOptions();
+            case RadioField f -> f.dynamicOptions();
+            case CheckboxGroupField f -> f.dynamicOptions();
+            default -> throw new IllegalArgumentException("Field type has no dynamicOptions: " + field.getClass().getSimpleName());
         };
     }
 }

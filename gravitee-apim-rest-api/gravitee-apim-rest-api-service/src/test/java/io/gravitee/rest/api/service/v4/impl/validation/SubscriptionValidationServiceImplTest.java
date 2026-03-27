@@ -22,6 +22,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
@@ -91,6 +92,7 @@ public class SubscriptionValidationServiceImplTest {
             entrypointConnectorPluginService,
             subscriptionMetadataSanitizer,
             subscriptionFormQueryService,
+            new SubscriptionFormElResolverInMemory(),
             clientCertificateCrudService
         );
         lenient()

@@ -98,7 +98,7 @@ class SubscriptionFormSubmissionValidatorTest {
 
         @Test
         void should_throw_when_required_checkbox_group_has_only_separators() {
-            var schema = schema(new CheckboxGroupField("tags", true, List.of("A", "B")));
+            var schema = schema(new CheckboxGroupField("tags", true, List.of("A", "B"), null));
             var values = Map.of("tags", " , , ");
             assertThatThrownBy(() -> validateSubmission(schema, values))
                 .isInstanceOf(SubscriptionFormValidationException.class)
@@ -112,7 +112,7 @@ class SubscriptionFormSubmissionValidatorTest {
 
         @Test
         void should_throw_when_value_not_in_allowed_options() {
-            var schema = schema(new SelectField("plan", true, List.of("Free", "Pro", "Enterprise")));
+            var schema = schema(new SelectField("plan", true, List.of("Free", "Pro", "Enterprise"), null));
             var values = Map.of("plan", "Premium");
             assertThatThrownBy(() -> validateSubmission(schema, values))
                 .isInstanceOf(SubscriptionFormValidationException.class)
@@ -122,14 +122,14 @@ class SubscriptionFormSubmissionValidatorTest {
 
         @Test
         void should_not_throw_when_value_is_in_allowed_options() {
-            var schema = schema(new SelectField("plan", true, List.of("Free", "Pro", "Enterprise")));
+            var schema = schema(new SelectField("plan", true, List.of("Free", "Pro", "Enterprise"), null));
             var values = Map.of("plan", "Pro");
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, values));
         }
 
         @Test
         void should_not_throw_when_optional_select_is_missing() {
-            var schema = schema(new SelectField("plan", false, List.of("Free", "Pro")));
+            var schema = schema(new SelectField("plan", false, List.of("Free", "Pro"), null));
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, Map.of()));
         }
     }
@@ -139,7 +139,7 @@ class SubscriptionFormSubmissionValidatorTest {
 
         @Test
         void should_throw_when_one_value_not_in_options() {
-            var schema = schema(new CheckboxGroupField("tags", false, List.of("Alpha", "Beta", "Gamma")));
+            var schema = schema(new CheckboxGroupField("tags", false, List.of("Alpha", "Beta", "Gamma"), null));
             var values = Map.of("tags", "Alpha,Delta");
             assertThatThrownBy(() -> validateSubmission(schema, values))
                 .isInstanceOf(SubscriptionFormValidationException.class)
@@ -149,14 +149,14 @@ class SubscriptionFormSubmissionValidatorTest {
 
         @Test
         void should_not_throw_when_all_values_are_valid() {
-            var schema = schema(new CheckboxGroupField("tags", false, List.of("Alpha", "Beta", "Gamma")));
+            var schema = schema(new CheckboxGroupField("tags", false, List.of("Alpha", "Beta", "Gamma"), null));
             var values = Map.of("tags", "Alpha,Gamma");
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, values));
         }
 
         @Test
         void should_report_one_error_per_invalid_value() {
-            var schema = schema(new CheckboxGroupField("tags", false, List.of("Alpha", "Beta")));
+            var schema = schema(new CheckboxGroupField("tags", false, List.of("Alpha", "Beta"), null));
             var values = Map.of("tags", "Alpha,Delta,Omega");
             assertThatThrownBy(() -> validateSubmission(schema, values))
                 .isInstanceOf(SubscriptionFormValidationException.class)
@@ -240,7 +240,7 @@ class SubscriptionFormSubmissionValidatorTest {
         void should_collect_errors_from_all_fields_before_throwing() {
             var schema = schema(
                 requiredInput("company"),
-                new SelectField("plan", true, List.of("Free", "Pro")),
+                new SelectField("plan", true, List.of("Free", "Pro"), null),
                 new InputField("code", false, null, null, null, "[A-Z]+")
             );
             var values = Map.of("company", "", "plan", "Enterprise", "code", "123");
@@ -254,8 +254,8 @@ class SubscriptionFormSubmissionValidatorTest {
         void should_not_throw_for_valid_full_submission() {
             var schema = schema(
                 requiredInput("company"),
-                new SelectField("plan", true, List.of("Free", "Pro")),
-                new CheckboxGroupField("tags", false, List.of("A", "B", "C"))
+                new SelectField("plan", true, List.of("Free", "Pro"), null),
+                new CheckboxGroupField("tags", false, List.of("A", "B", "C"), null)
             );
             var values = Map.of("company", "Acme Corp", "plan", "Pro", "tags", "A,C");
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, values));
@@ -284,7 +284,7 @@ class SubscriptionFormSubmissionValidatorTest {
         @Test
         void should_not_apply_other_validations_to_readonly_fields() {
             // readonly RadioField has required=true and options, but readonly check takes precedence
-            var schema = schema(new RadioField("plan", true, "Free", List.of("Free", "Pro")));
+            var schema = schema(new RadioField("plan", true, "Free", List.of("Free", "Pro"), null));
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, Map.of("plan", "Free")));
         }
     }
