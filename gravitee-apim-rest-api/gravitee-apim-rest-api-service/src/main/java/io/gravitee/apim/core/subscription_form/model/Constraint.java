@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 
@@ -50,6 +51,8 @@ import java.util.stream.Stream;
         @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
         @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
         @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
+        @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "dynamicOneOf"),
+        @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "dynamicEachOf"),
     }
 )
 public sealed interface Constraint
@@ -61,8 +64,7 @@ public sealed interface Constraint
         Constraint.MinLength,
         Constraint.MaxLength,
         Constraint.MatchesPattern,
-        Constraint.OneOf,
-        Constraint.EachOf {
+        Constraint.ResolvableOptions {
     /**
      * Whether the submitted value satisfies this constraint. The value is already trimmed; an empty string means absent.
      */
@@ -211,22 +213,52 @@ public sealed interface Constraint
     }
 
     /** Single value must be one of the allowed options (skipped when empty). */
-    record OneOf(List<String> options) implements Constraint {
+    record OneOf(List<String> options, String expression, List<String> fallback) implements ResolvableOptions {
+        public OneOf(List<String> options) {
+            this(options, null, null);
+        }
+
+        public static OneOf dynamic(String expression, List<String> fallback) {
+            return new OneOf(null, expression, fallback);
+        }
+
         @Override
         public boolean check(String value) {
+            if (isDynamic() && options == null) {
+                throw unresolvedConstraintException();
+            }
             return options == null || options.isEmpty() || value.isEmpty() || options.contains(value);
         }
 
         @Override
         public String formatErrorMessage(String fieldKey, String value) {
+            if (isDynamic() && options == null) {
+                throw unresolvedConstraintException();
+            }
             return String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, value);
+        }
+
+        @Override
+        public Constraint withResolvedOptions(List<String> resolvedOptions) {
+            return new OneOf(resolvedOptions);
         }
     }
 
     /** Every value in a comma-separated string must be one of the allowed options (skipped when empty). */
-    record EachOf(List<String> options) implements Constraint {
+    record EachOf(List<String> options, String expression, List<String> fallback) implements ResolvableOptions {
+        public EachOf(List<String> options) {
+            this(options, null, null);
+        }
+
+        public static EachOf dynamic(String expression, List<String> fallback) {
+            return new EachOf(null, expression, fallback);
+        }
+
         @Override
         public boolean check(String value) {
+            if (isDynamic() && options == null) {
+                throw unresolvedConstraintException();
+            }
             if (options == null || options.isEmpty() || value.isEmpty()) {
                 return true;
             }
@@ -236,6 +268,9 @@ public sealed interface Constraint
 
         @Override
         public String formatErrorMessage(String fieldKey, String value) {
+            if (isDynamic() && options == null) {
+                throw unresolvedConstraintException();
+            }
             if (options == null || options.isEmpty() || value.isEmpty()) {
                 return "";
             }
@@ -245,6 +280,42 @@ public sealed interface Constraint
                 .map(item -> String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, item))
                 .toList();
             return String.join("\n", lines);
+        }
+
+        @Override
+        public Constraint withResolvedOptions(List<String> resolvedOptions) {
+            return new EachOf(resolvedOptions);
+        }
+    }
+
+    /**
+     * Contract for option constraints that are resolved at runtime.
+     *
+     * <p>Implementations may store an expression and fallback options.
+     * They must be resolved to effective options via {@link #resolve(BiFunction)} before validation.</p>
+     */
+    non-sealed interface ResolvableOptions extends Constraint {
+        String expression();
+
+        List<String> fallback();
+
+        Constraint withResolvedOptions(List<String> resolvedOptions);
+
+        default boolean isDynamic() {
+            return expression() != null;
+        }
+
+        default Constraint resolve(BiFunction<String, List<String>, List<String>> resolver) {
+            if (!isDynamic()) {
+                return this;
+            }
+            return withResolvedOptions(resolver.apply(expression(), fallback()));
+        }
+
+        default UnsupportedOperationException unresolvedConstraintException() {
+            return new UnsupportedOperationException(
+                getClass().getSimpleName() + " must be resolved before validation — call resolve() first"
+            );
         }
     }
 

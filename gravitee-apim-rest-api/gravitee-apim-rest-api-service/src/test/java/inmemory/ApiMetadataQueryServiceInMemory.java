@@ -21,8 +21,6 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.adapter.MetadataAdapter;
-import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.MetadataFormat;
 import java.util.*;
 import java.util.function.Function;
 
