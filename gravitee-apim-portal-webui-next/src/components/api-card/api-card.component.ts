@@ -17,11 +17,12 @@ import { Component, Input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
 
+import { MatTooltipOnEllipsisDirective } from '../../directives/mat-tooltip-on-ellipsis.directive';
 import { BadgeComponent } from '../badge/badge.component';
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatCardModule, MatTooltip, BadgeComponent],
+  imports: [MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
