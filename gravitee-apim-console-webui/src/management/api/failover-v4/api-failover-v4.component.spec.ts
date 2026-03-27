@@ -69,7 +69,6 @@ describe('ApiV4FailoverComponent', () => {
   it('should enable and set failover config', async () => {
     const api = fakeApiV4({
       id: API_ID,
-      failover: undefined,
     });
     expectApiGetRequest(api);
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -127,7 +126,7 @@ describe('ApiV4FailoverComponent', () => {
       enabled: true,
       forceNextEndpointOnFailure: false,
       maxRetries: 2,
-      failureCondition: undefined,
+      failureCondition: '',
       slowCallDuration: 200,
       openStateDuration: 2000,
       maxFailures: 2,
@@ -221,7 +220,7 @@ describe('ApiV4FailoverComponent', () => {
       enabled: true,
       forceNextEndpointOnFailure: false,
       maxRetries: 3,
-      failureCondition: undefined,
+      failureCondition: '',
       slowCallDuration: 300,
       openStateDuration: 3000,
       maxFailures: 3,

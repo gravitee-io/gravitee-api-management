@@ -198,7 +198,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
               enabled,
               forceNextEndpointOnFailure,
               maxRetries,
-              failureCondition: failureCondition || undefined,
+              failureCondition,
               slowCallDuration,
               openStateDuration,
               maxFailures,
