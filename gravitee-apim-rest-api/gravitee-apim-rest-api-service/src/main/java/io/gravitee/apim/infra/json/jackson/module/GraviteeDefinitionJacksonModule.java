@@ -20,12 +20,18 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.ConnectorFeature;
+import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.io.IOException;
@@ -42,13 +48,19 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
     public GraviteeDefinitionJacksonModule() {
         super();
         addSerializer(ApiType.class, new ApiTypeSerializer(ApiType.class));
+        addSerializer(ChannelSelector.Operation.class, new ChannelSelectorOperationSerializer(ChannelSelector.Operation.class));
+        addSerializer(ConnectorFeature.class, new ConnectorFeatureSerializer(ConnectorFeature.class));
+        addSerializer(ConnectorMode.class, new ConnectorModeSerializer(ConnectorMode.class));
         addSerializer(DefinitionVersion.class, new DefinitionVersionSerializer(DefinitionVersion.class));
+        addSerializer(ExecutionMode.class, new ExecutionModeSerializer(ExecutionMode.class));
         addSerializer(FlowMode.class, new FlowModeSerializer(FlowMode.class));
         addSerializer(ListenerType.class, new ListenerTypeSerializer(ListenerType.class));
         addSerializer(LoadBalancerType.class, new LoadBalancerTypeSerializer(LoadBalancerType.class));
+        addSerializer(NativeApiType.class, new NativeApiTypeSerializer(NativeApiType.class));
         addSerializer(PlanMode.class, new PlanModeSerializer(PlanMode.class));
         addSerializer(PlanStatus.class, new PlanStatusSerializer(PlanStatus.class));
         addSerializer(Qos.class, new QosSerializer(Qos.class));
+        addSerializer(SamplingType.class, new SamplingTypeSerializer(SamplingType.class));
         addSerializer(SelectorType.class, new SelectorTypeSerializer(SelectorType.class));
     }
 
@@ -82,6 +94,42 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
         }
     }
 
+    public static class ChannelSelectorOperationSerializer extends StdScalarSerializer<ChannelSelector.Operation> {
+
+        public ChannelSelectorOperationSerializer(Class<ChannelSelector.Operation> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ChannelSelector.Operation value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name());
+        }
+    }
+
+    public static class ConnectorFeatureSerializer extends StdScalarSerializer<ConnectorFeature> {
+
+        public ConnectorFeatureSerializer(Class<ConnectorFeature> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ConnectorFeature value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name());
+        }
+    }
+
+    public static class ConnectorModeSerializer extends StdScalarSerializer<ConnectorMode> {
+
+        public ConnectorModeSerializer(Class<ConnectorMode> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ConnectorMode value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name());
+        }
+    }
+
     /**
      * Custom serializer for {@link io.gravitee.definition.model.v4.listener.entrypoint.Qos} enum to serialize it as a string using the enum Name.
      */
@@ -93,6 +141,42 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
 
         @Override
         public void serialize(Qos value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name());
+        }
+    }
+
+    public static class ExecutionModeSerializer extends StdScalarSerializer<ExecutionMode> {
+
+        public ExecutionModeSerializer(Class<ExecutionMode> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ExecutionMode value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name());
+        }
+    }
+
+    public static class NativeApiTypeSerializer extends StdScalarSerializer<NativeApiType> {
+
+        public NativeApiTypeSerializer(Class<NativeApiType> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(NativeApiType value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name());
+        }
+    }
+
+    public static class SamplingTypeSerializer extends StdScalarSerializer<SamplingType> {
+
+        public SamplingTypeSerializer(Class<SamplingType> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(SamplingType value, JsonGenerator gen, SerializerProvider provider) throws IOException {
             gen.writeString(value.name());
         }
     }
