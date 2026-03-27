@@ -96,7 +96,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     .size(MAX_RESULT_WINDOW)
                     .query(logQueryString)
                     .build();
-                final String sQuery = this.createSafeElasticsearchJsonQuery(logQuery);
+                final String sQuery = this.createElasticsearchJsonQuery(logQuery);
 
                 Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),
@@ -127,7 +127,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     result = this.client.search(
                         this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                        this.createSafeElasticsearchJsonQuery(requestQueryBuilder.build())
+                        this.createElasticsearchJsonQuery(requestQueryBuilder.build())
                     );
                 }
 
@@ -154,10 +154,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             })
             .map(filter -> {
                 final String filterKey = filter[0];
+                final String escapedValue = escapeValueForLuceneJson(filter[1]);
                 if ("body".equals(filterKey)) {
-                    return "\\\\*.body" + ":" + filter[1];
+                    return "\\\\*.body" + ":" + escapedValue;
                 } else {
-                    return filterKey + ":" + filter[1];
+                    return filterKey + ":" + escapedValue;
                 }
             })
             .collect(joining(filterSeparator));
@@ -252,9 +253,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     /**
-     * Fix APIM-12955: Escapes Lucene special characters in the query string.
-     * Quadruple backslashes are required to survive both Java and JSON parsing levels
-     * so that Lucene finally receives the mandatory single backslash escape (e.g., \( ).
+     * Fix APIM-12955: Escapes Lucene special characters in query filter values.
+     * Only escapes the value portion of each field:value clause, preserving field
+     * patterns like {@code \\*.body} which use backslashes intentionally.
+     * Quadruple backslashes survive both Java and JSON parsing so Lucene receives
+     * the single backslash escape (e.g., \( ).
      */
     private String createSafeElasticsearchJsonQuery(final TabularQuery query) {
         String json = this.createElasticsearchJsonQuery(query);
@@ -263,12 +266,43 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             String filter = query.query().filter();
 
             if (!filter.isEmpty()) {
-                String escaped = filter.replace("\\", "\\\\\\\\").replace("/", "\\\\/").replace("(", "\\\\(").replace(")", "\\\\)");
+                String escaped = escapeFilterValues(filter);
 
                 // Targeted replacement within quotes to protect JSON structure
                 json = json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
             }
         }
         return json;
+    }
+
+    /**
+     * Escapes Lucene special characters only in the value portions of field:value
+     * clauses, preserving field names and patterns (e.g. \\*.body wildcard fields).
+     */
+    private String escapeFilterValues(String filter) {
+        final String andSeparator = " AND ";
+        return stream(filter.split(andSeparator)).map(ElasticLogRepository::escapeClauseValues).collect(joining(andSeparator));
+    }
+
+    private static String escapeClauseValues(String clause) {
+        // Handle OR-separated sub-clauses (e.g. "_id:x OR _id:y")
+        if (clause.contains(" OR ")) {
+            return stream(clause.split(" OR ")).map(ElasticLogRepository::escapeSingleClauseValue).collect(joining(" OR "));
+        }
+        return escapeSingleClauseValue(clause);
+    }
+
+    private static String escapeSingleClauseValue(String clause) {
+        int colonIdx = clause.indexOf(':');
+        if (colonIdx < 0) {
+            return escapeValueForLuceneJson(clause);
+        }
+        String field = clause.substring(0, colonIdx + 1);
+        String value = clause.substring(colonIdx + 1);
+        return field + escapeValueForLuceneJson(value);
+    }
+
+    private static String escapeValueForLuceneJson(String value) {
+        return value.replace("\\", "\\\\\\\\").replace("/", "\\\\/").replace("(", "\\\\(").replace(")", "\\\\)");
     }
 }
