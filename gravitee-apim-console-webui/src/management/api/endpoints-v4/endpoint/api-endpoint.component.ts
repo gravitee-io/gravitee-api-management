@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
@@ -50,6 +50,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private groupIndex: number;
   private endpointIndex: number;
+  private sharedConfigDisplayValue: unknown = null;
   public endpointGroup: EndpointGroupV4;
   public isReadOnly = false;
   public formGroup: UntypedFormGroup;
@@ -76,6 +77,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
     private readonly tenantService: TenantService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   public ngOnInit(): void {
@@ -239,6 +241,17 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     }
   }
 
+  public onSharedConfigSchemaReady(isReady: boolean): void {
+    if (!isReady) return;
+    const ctrl = this.formGroup?.get('sharedConfigurationOverride');
+    if (ctrl?.disabled && this.sharedConfigDisplayValue != null) {
+      setTimeout(() => {
+        ctrl.patchValue(this.sharedConfigDisplayValue, { emitEvent: false });
+        this.changeDetectorRef.detectChanges();
+      }, 0);
+    }
+  }
+
   private initForm() {
     let name = null;
     let isHealthCheckEnabled = false;
@@ -315,6 +328,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           }
         });
     }
+
+    this.sharedConfigDisplayValue = sharedConfigurationOverride;
 
     this.formGroup = new UntypedFormGroup({
       name: new UntypedFormControl({ value: name, disabled: this.isReadOnly }, [
