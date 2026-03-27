@@ -17,6 +17,11 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.mockito.Mockito.reset;
 
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -116,6 +121,21 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Autowired
+    protected GetClientCertificatesUseCase getClientCertificatesUseCase;
+
+    @Autowired
+    protected GetClientCertificateUseCase getClientCertificateUseCase;
+
+    @Autowired
+    protected CreateClientCertificateUseCase createClientCertificateUseCase;
+
+    @Autowired
+    protected UpdateClientCertificateUseCase updateClientCertificateUseCase;
+
+    @Autowired
+    protected DeleteClientCertificateUseCase deleteClientCertificateUseCase;
 
     @Autowired
     protected CustomUserFieldService customUserFieldService;
@@ -342,6 +362,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected void resetAllMocks() {
         reset(
             createSubscriptionUseCase,
+            getClientCertificatesUseCase,
+            getClientCertificateUseCase,
+            createClientCertificateUseCase,
+            updateClientCertificateUseCase,
+            deleteClientCertificateUseCase,
             apiService,
             apiSearchService,
             apiAuthorizationService,

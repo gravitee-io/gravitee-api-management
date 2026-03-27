@@ -24,6 +24,7 @@ import io.gravitee.apim.core.application_certificate.model.ClientCertificateStat
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -72,5 +73,59 @@ class GetClientCertificateUseCaseTest {
         var input = new GetClientCertificateUseCase.Input("non-existent-id");
 
         assertThatThrownBy(() -> getClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+    }
+
+    @Test
+    void should_throw_exception_when_applicationId_does_not_match() {
+        var certId = "cert-id";
+        var certificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            "app-id",
+            "Test Certificate",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        var input = new GetClientCertificateUseCase.Input(Optional.of("other-app-id"), certId);
+
+        assertThatThrownBy(() -> getClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+    }
+
+    @Test
+    void should_return_certificate_when_applicationId_matches() {
+        var certId = "cert-id";
+        var certificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            "app-id",
+            "Test Certificate",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        var result = getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(Optional.of("app-id"), certId));
+
+        assertThat(result.clientCertificate().id()).isEqualTo(certId);
     }
 }

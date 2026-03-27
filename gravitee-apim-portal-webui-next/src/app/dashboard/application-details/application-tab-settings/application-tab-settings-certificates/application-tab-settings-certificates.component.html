@@ -1,0 +1,70 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="certificates">
+  <div class="certificates__header">
+    <div class="certificates__header__info">
+      <span class="next-gen-h5" i18n="@@certificatesSectionTitle">Certificates</span>
+      <p class="next-gen-small certificates__header__subtitle" i18n="@@certificatesSectionDescription">
+        Manage mTLS certificates for this application
+      </p>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <p class="next-gen-small certificates__error" i18n="@@certificatesLoadError">Failed to load certificates. Please try again.</p>
+  } @else if (certificates().length === 0) {
+    <div class="certificates__empty">
+      <span class="material-icons icon-with-background" aria-hidden="true">workspace_premium</span>
+      <span class="next-gen-h5" i18n="@@noCertificatesTitle">No mTLS certificates added</span>
+      <span class="next-gen-small" i18n="@@noCertificatesDescription">
+        Add your first certificate to enable mTLS authentication for this application
+      </span>
+    </div>
+  } @else {
+    <mat-tab-group (selectedTabChange)="onTabChange()">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span i18n="@@activeCertificatesTab">Active certificates</span>
+          <span class="certificates__tab-count next-gen-caption">{{ activeCertificates().length }}</span>
+        </ng-template>
+        <app-paginated-table
+          [columns]="tableColumns"
+          [rows]="activeRows()"
+          [totalElements]="totalElements()"
+          [currentPage]="currentPage()"
+          [pageSize]="pageSize"
+          (pageChange)="onPageChange($event)"
+        />
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span i18n="@@historyCertificatesTab">Certificate history</span>
+          <span class="certificates__tab-count next-gen-caption">{{ historyCertificates().length }}</span>
+        </ng-template>
+        <app-paginated-table
+          [columns]="tableColumns"
+          [rows]="historyRows()"
+          [totalElements]="totalElements()"
+          [currentPage]="currentPage()"
+          [pageSize]="pageSize"
+          (pageChange)="onPageChange($event)"
+        />
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

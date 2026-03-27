@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalExcep
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -129,5 +130,35 @@ class DeleteClientCertificateUseCaseTest {
         var input = new DeleteClientCertificateUseCase.Input("non-existent-id");
 
         assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+    }
+
+    @Test
+    void should_throw_exception_when_applicationId_does_not_match() {
+        var certId = "cert-id";
+        var appId = "app-id";
+        var certificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            appId,
+            "Test Certificate",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        var input = new DeleteClientCertificateUseCase.Input(Optional.of("other-app-id"), certId);
+
+        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+
+        assertThat(clientCertificateCrudService.storage()).hasSize(1);
     }
 }

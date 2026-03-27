@@ -26,6 +26,7 @@ import io.gravitee.apim.core.application_certificate.model.ClientCertificateStat
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,6 +91,34 @@ class UpdateClientCertificateUseCaseTest {
         var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
 
         var input = new UpdateClientCertificateUseCase.Input("non-existent-id", updateRequest);
+
+        assertThatThrownBy(() -> updateClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+    }
+
+    @Test
+    void should_throw_exception_when_applicationId_does_not_match() {
+        var certId = "cert-id";
+        var certificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            "app-id",
+            "Original Name",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
+        clientCertificateCrudService.initWith(List.of(certificate));
+
+        var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
+        var input = new UpdateClientCertificateUseCase.Input(Optional.of("other-app-id"), certId, updateRequest);
 
         assertThatThrownBy(() -> updateClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
     }

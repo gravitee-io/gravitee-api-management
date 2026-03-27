@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../../../scss/theme';
+
+.certificates {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: theme.$background-color;
+  border-radius: 8px;
+  outline: theme.$border-width solid theme.$border-color;
+  padding: 16px;
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid theme.$border-color;
+
+    &__info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    &__subtitle {
+      margin: 0;
+      color: theme.$paragraph-color;
+    }
+  }
+
+  &__error {
+    color: theme.$error-main-color;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 16px;
+    text-align: center;
+  }
+
+  &__tab-count {
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background-color: theme.$chip-background;
+    color: theme.$chip-label-text-color;
+  }
+}
