@@ -2163,7 +2163,6 @@ components:
           default: true
         failureCondition:
           type: string
-          nullable: true
           description: An EL expression evaluated on the response to determine if it should be considered a failure (e.g. "{#response.status >= 500}"). If null, response content is not evaluated.
         forceNextEndpointOnFailure:
           type: boolean
