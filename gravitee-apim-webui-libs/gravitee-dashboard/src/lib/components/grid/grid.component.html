@@ -20,7 +20,7 @@
   @for (item of items()!; track item.id) {
     <gridster-item [item]="item.layout">
       <gd-widget [isDraggable]="editMode()">
-        <gd-widget-title [matTooltip]="item.description">
+        <gd-widget-title [description]="item.description">
           {{ item.title }}
         </gd-widget-title>
 
