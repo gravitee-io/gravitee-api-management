@@ -1,0 +1,199 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* API-style documentation (Shadow DOM). Typography from portal :root via --gio-next-gen-* (see typography.scss). */
+:host {
+  // display: block;
+  // box-sizing: border-box;
+  // color: var(--gio-app-font-color, #1d192b);
+  font-size: var(--gio-next-gen-body-font-size, 16px);
+  font-weight: var(--gio-next-gen-body-font-weight, normal);
+  line-height: var(--gio-next-gen-body-line-height, 24px);
+}
+
+// :host gmd-md {
+//   display: block;
+// }
+
+// :host gmd-md + gmd-md {
+//   margin-top: 0.75rem;
+// }
+
+:host h1 {
+  margin: 0 0 1.25rem;
+  font-size: var(--gio-next-gen-h1-font-size, 36px);
+  font-weight: var(--gio-next-gen-h1-font-weight, bold);
+  line-height: var(--gio-next-gen-h1-line-height, 44px);
+  // color: var(--gio-app-font-color, #000);
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+:host h2 {
+  margin: 2rem 0 1rem;
+  font-size: var(--gio-next-gen-h2-font-size, 30px);
+  font-weight: var(--gio-next-gen-h2-font-weight, bold);
+  line-height: var(--gio-next-gen-h2-line-height, 38px);
+  // color: var(--gio-app-font-color, #000);
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+  padding-top: 1rem;
+}
+
+:host h1 + h2 {
+  margin-top: 1.25rem;
+}
+
+:host h2:first-child {
+  margin-top: 0;
+}
+
+:host h3 {
+  margin: 1.25rem 0 0.75rem;
+  font-size: var(--gio-next-gen-h3-font-size, 24px);
+  font-weight: var(--gio-next-gen-h3-font-weight, bold);
+  line-height: var(--gio-next-gen-h3-line-height, 32px);
+  // color: var(--gio-app-font-color, #000);
+}
+
+:host h4 {
+  margin: 1rem 0 0.5rem;
+  font-size: var(--gio-next-gen-h4-font-size, 20px);
+  font-weight: var(--gio-next-gen-h4-font-weight, bold);
+  line-height: var(--gio-next-gen-h4-line-height, 28px);
+  // color: var(--gio-app-font-color, #000);
+}
+
+:host h5 {
+  margin: 0.85rem 0 0.5rem;
+  font-size: var(--gio-next-gen-h5-font-size, 18px);
+  font-weight: var(--gio-next-gen-h5-font-weight, bold);
+  line-height: var(--gio-next-gen-h5-line-height, 26px);
+  // color: var(--gio-app-font-color, #000);
+}
+
+:host p {
+  margin: 0 0 1rem;
+  font-size: var(--gio-next-gen-body-font-size, 16px);
+  font-weight: var(--gio-next-gen-body-font-weight, normal);
+  line-height: var(--gio-next-gen-body-line-height, 24px);
+  // color: var(--gio-app-font-color, #1a1a1a);
+}
+
+:host ul,
+:host ol {
+  margin: 0 0 1.25rem;
+  padding-left: 1.5rem;
+}
+
+:host li {
+  margin: 0.35rem 0;
+  font-size: var(--gio-next-gen-body-font-size, 16px);
+  line-height: var(--gio-next-gen-body-line-height, 24px);
+}
+
+:host li::marker {
+  // color: var(--gio-app-font-color, #1a1a1a);
+}
+
+:host a {
+  color: inherit;
+  font-weight: var(--gio-next-gen-body-strong-font-weight, bold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:host a:hover {
+  opacity: 0.85;
+}
+
+:host strong {
+  font-size: var(--gio-next-gen-body-strong-font-size, 16px);
+  font-weight: var(--gio-next-gen-body-strong-font-weight, bold);
+  line-height: var(--gio-next-gen-body-strong-line-height, 24px);
+}
+
+:host hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+:host blockquote {
+  margin: 0 0 1rem;
+  padding-left: 1rem;
+  border-left: 4px solid #eee;
+  color: #444;
+}
+
+:host pre {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: ui-monospace, 'SF Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
+  font-size: var(--gio-next-gen-small-font-size, 14px);
+  font-weight: var(--gio-next-gen-small-font-weight, normal);
+  line-height: var(--gio-next-gen-small-line-height, 20px);
+  // color: var(--gio-app-font-color, #1a1a1a);
+}
+
+:host pre code {
+  display: block;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+:host :not(pre) code {
+  padding: 2px 6px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  font-family: ui-monospace, 'SF Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
+  font-size: var(--gio-next-gen-small-font-size, 14px);
+  font-weight: var(--gio-next-gen-small-font-weight, normal);
+  line-height: var(--gio-next-gen-small-line-height, 20px);
+}
+
+:host img {
+  max-width: 100%;
+  height: auto;
+}
+
+:host table {
+  width: 100%;
+  margin: 0 0 1.25rem;
+  border-collapse: collapse;
+  font-size: var(--gio-next-gen-small-font-size, 14px);
+  line-height: var(--gio-next-gen-small-line-height, 20px);
+}
+
+:host th,
+:host td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #eee;
+  text-align: left;
+}
+
+:host th {
+  font-weight: var(--gio-next-gen-small-bold-font-weight, bold);
+  background-color: #f8f9fa;
+}

@@ -22,6 +22,10 @@ app-sidenav-layout {
   height: 100%;
 
   .documentation-folder {
+    &__main-content {
+      flex: 1 1 100%;
+    }
+
     &__sidenav {
       &__tree,
       &__empty-state {

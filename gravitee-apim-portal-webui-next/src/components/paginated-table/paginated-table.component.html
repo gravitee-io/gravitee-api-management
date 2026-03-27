@@ -19,7 +19,8 @@
   <table mat-table [dataSource]="rows()" class="paginated-table">
     @for (column of columns(); track column.id) {
       <ng-container [matColumnDef]="column.id">
-        <th mat-header-cell *matHeaderCellDef class="m3-title-medium">{{ column.label }}</th>
+        <!-- <th mat-header-cell *matHeaderCellDef class="m3-title-medium">{{ column.label }}</th> -->
+        <th mat-header-cell *matHeaderCellDef>{{ column.label }}</th>
         <td mat-cell *matCellDef="let element">
           @switch (column.type) {
             @case ('date') {

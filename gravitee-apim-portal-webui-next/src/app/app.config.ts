@@ -32,6 +32,7 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 import { ThemeService } from '../services/theme.service';
+import {MAT_DIALOG_DEFAULT_OPTIONS} from '@angular/material/dialog';
 
 function initApp(
   authService: AuthService,
@@ -85,6 +86,12 @@ export const appConfig: ApplicationConfig = {
     {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: { dateFormat: 'yyyy-MM-dd HH:mm:ss.SSS' },
+    },
+    {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: {
+        minWidth: '440px',
+      }
     },
     provideCharts(withDefaultRegisterables()),
   ],

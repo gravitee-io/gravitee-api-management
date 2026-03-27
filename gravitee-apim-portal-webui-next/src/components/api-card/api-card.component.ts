@@ -18,10 +18,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
 
 import { BadgeComponent } from '../badge/badge.component';
+import { MatTooltipOnEllipsisDirective } from '../../directives/mat-tooltip-on-ellipsis.directive';
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatCardModule, MatTooltip, BadgeComponent],
+  imports: [MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })

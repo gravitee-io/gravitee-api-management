@@ -19,7 +19,13 @@
   <mat-card-content class="api-card__content">
     <div class="api-card__header">
       <div class="api-card__header__content">
-        <div class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title">{{ title }}</div>
+        <div
+          class="api-card__title next-gen-h5"
+          data-testid="api-card-title"
+          [matTooltip]="title"
+          appMatTooltipOnEllipsis>
+          {{ title }}
+        </div>
       </div>
       @if (isEnabledMcpServer) {
         <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
