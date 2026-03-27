@@ -39,12 +39,16 @@ import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-a
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 import { AnalyticsCount } from '../../../../../entities/management-api-v2/analytics/analyticsCount';
 import { AnalyticsStats } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
+import { AnalyticsGroupBy } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
+import { GioChartPieInput } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
+import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
   requestStats?: AnalyticsRequestStats;
   responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
+  statusPieChart?: { isLoading: boolean; data?: GioChartPieInput[] };
 };
 
 @Component({
@@ -54,6 +58,7 @@ type ApiAnalyticsVM = {
     MatCardModule,
     GioLoaderModule,
     GioCardEmptyStateModule,
+    GioChartPieModule,
     ApiAnalyticsRequestStatsComponent,
     ApiAnalyticsFiltersBarComponent,
     ApiAnalyticsResponseStatusRangesComponent,
@@ -99,6 +104,13 @@ export class ApiAnalyticsProxyComponent {
       startWith({ isLoading: true }),
     );
 
+  private getStatusGroupBy$: Observable<Partial<AnalyticsGroupBy> & { isLoading: boolean }> = this.apiAnalyticsV2Service
+    .getGroupBy(this.activatedRoute.snapshot.params.apiId, 'status')
+    .pipe(
+      map((groupByResult) => ({ isLoading: false, ...groupByResult })),
+      startWith({ isLoading: true }),
+    );
+
   public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
     this.apiAnalyticsV2Service.timeRangeFilter(),
@@ -122,8 +134,9 @@ export class ApiAnalyticsProxyComponent {
     this.getUpstreamResponseTimeStats$.pipe(catchError(() => of({ isLoading: false, avg: undefined }))),
     this.getContentLengthStats$.pipe(catchError(() => of({ isLoading: false, avg: undefined }))),
     this.getResponseStatusRanges$.pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
+    this.getStatusGroupBy$.pipe(catchError(() => of({ isLoading: false, values: undefined }))),
   ]).pipe(
-    map(([countResult, gatewayStats, upstreamStats, contentLengthStats, responseStatuesRanges]) => ({
+    map(([countResult, gatewayStats, upstreamStats, contentLengthStats, responseStatuesRanges, statusGroupBy]) => ({
       requestStats: [
         {
           label: 'Total Requests',
@@ -153,6 +166,18 @@ export class ApiAnalyticsProxyComponent {
         isLoading: responseStatuesRanges.isLoading,
         data: Object.entries(responseStatuesRanges.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
       },
+      statusPieChart: {
+        isLoading: statusGroupBy.isLoading,
+        data: statusGroupBy.values
+          ? Object.entries(statusGroupBy.values)
+              .filter(([, value]) => (value as number) > 0)
+              .map(([label, value]) => ({
+                label: getStatusLabel(label),
+                value: value as number,
+                color: getStatusColor(label),
+              }))
+          : undefined,
+      },
     })),
   );
 
@@ -162,3 +187,21 @@ export class ApiAnalyticsProxyComponent {
     private readonly activatedRoute: ActivatedRoute,
   ) {}
 }
+
+const getStatusColor = (statusCode: string): string => {
+  if (statusCode.startsWith('2')) {
+    return '#30ab61';
+  } else if (statusCode.startsWith('3')) {
+    return '#365bd3';
+  } else if (statusCode.startsWith('4')) {
+    return '#ff9f40';
+  } else if (statusCode.startsWith('5')) {
+    return '#cf3942';
+  } else {
+    return '#bbb';
+  }
+};
+
+const getStatusLabel = (statusCode: string): string => {
+  return statusCode;
+};

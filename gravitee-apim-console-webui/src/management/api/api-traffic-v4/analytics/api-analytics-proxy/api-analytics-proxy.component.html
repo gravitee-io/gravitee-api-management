@@ -33,7 +33,44 @@
     <div class="gridContent">
       <app-api-analytics-request-stats title="Request Stats" [requestsStats]="apiAnalyticsVM.requestStats" />
       <api-analytics-response-status-ranges title="Response Status" [responseStatusRanges]="apiAnalyticsVM.responseStatusRanges" />
-      <api-analytics-response-status-overtime class="full-bleed" />
+    </div>
+    <div class="gridContent">
+      @if (apiAnalyticsVM.statusPieChart?.isLoading) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>HTTP Status Distribution</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <gio-loader></gio-loader>
+          </mat-card-content>
+        </mat-card>
+      } @else if (apiAnalyticsVM.statusPieChart?.data?.length > 0) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>HTTP Status Distribution</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <gio-chart-pie
+              [input]="apiAnalyticsVM.statusPieChart.data"
+              inputDescription="Nb hits"
+              totalInputDescription="Total hits"
+            ></gio-chart-pie>
+          </mat-card-content>
+        </mat-card>
+      } @else {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>HTTP Status Distribution</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <gio-card-empty-state icon="bar-chart" title="No Data" subtitle="No HTTP status data available for the selected time range.">
+            </gio-card-empty-state>
+          </mat-card-content>
+        </mat-card>
+      }
+      <api-analytics-response-status-overtime />
+    </div>
+    <div class="gridContent">
       <api-analytics-response-time-over-time class="full-bleed" />
     </div>
   }
