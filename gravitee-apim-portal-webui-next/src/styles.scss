@@ -50,7 +50,8 @@ html {
 
 body {
   --mat-app-background-color: #{theme.$background-color};
-  --mat-menu-container-color: #{theme.$card-background-color};
+  --mat-menu-container-color: #{theme.$select-panel-background-color};
+  --mat-option-selected-state-layer-color: #{theme.$primary-highlight-color};
 
   margin: 0;
   background-color: theme.$background-color;
