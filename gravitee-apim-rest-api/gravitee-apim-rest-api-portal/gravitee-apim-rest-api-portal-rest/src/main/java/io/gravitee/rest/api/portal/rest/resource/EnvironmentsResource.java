@@ -137,7 +137,9 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
 
+    // TODO: Remove this after frontend is updated to use the new endpoint
     @Path("subscription-form")
+    @Deprecated
     public SubscriptionFormResource getSubscriptionFormResource() {
         return resourceContext.getResource(SubscriptionFormResource.class);
     }
