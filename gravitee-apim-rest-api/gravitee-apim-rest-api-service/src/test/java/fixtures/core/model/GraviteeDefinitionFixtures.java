@@ -35,6 +35,8 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingPhase;
+import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
+import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
@@ -43,11 +45,13 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -66,6 +70,13 @@ import java.util.function.Supplier;
 public class GraviteeDefinitionFixtures {
 
     private GraviteeDefinitionFixtures() {}
+
+    private static Sampling aMessageSampling() {
+        var sampling = new Sampling();
+        sampling.setType(SamplingType.PROBABILITY);
+        sampling.setValue("0.5");
+        return sampling;
+    }
 
     public static final Supplier<GraviteeDefinition.V4.V4Builder> BASE = () ->
         GraviteeDefinition.V4.builder()
@@ -279,6 +290,111 @@ public class GraviteeDefinitionFixtures {
                         .build()
                 )
             )
+            .build();
+    }
+
+    public static GraviteeDefinition.V4 aGraviteeDefinitionMessage() {
+        return BASE.get()
+            .api(
+                ApiDescriptor.ApiDescriptorV4.builder()
+                    .type(ApiType.MESSAGE)
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(new Path(null, "/message-api", true)))
+                                .entrypoints(List.of(Entrypoint.builder().type("http-get").qos(Qos.AUTO).configuration("{}").build()))
+                                .build(),
+                            SubscriptionListener.builder()
+                                .entrypoints(List.of(Entrypoint.builder().type("webhook").qos(Qos.AUTO).configuration("{}").build()))
+                                .build()
+                        )
+                    )
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup.builder()
+                                .name("Default Kafka group")
+                                .type("kafka")
+                                .loadBalancer(LoadBalancer.builder().type(LoadBalancerType.ROUND_ROBIN).build())
+                                .endpoints(
+                                    List.of(
+                                        Endpoint.builder()
+                                            .name("Default Kafka")
+                                            .type("kafka")
+                                            .inheritConfiguration(true)
+                                            .weight(1)
+                                            .configuration("{\"bootstrapServers\":\"localhost:9092\"}")
+                                            .services(new EndpointServices())
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .analytics(Analytics.builder().enabled(true).messageSampling(aMessageSampling()).build())
+                    .flowExecution(new FlowExecution())
+                    .flows(
+                        List.of(
+                            Flow.builder()
+                                .id("flow-message-id")
+                                .name("message flow")
+                                .enabled(true)
+                                .selectors(
+                                    List.of(
+                                        ChannelSelector.builder()
+                                            .channel("/")
+                                            .channelOperator(Operator.STARTS_WITH)
+                                            .operations(Set.of(ChannelSelector.Operation.SUBSCRIBE, ChannelSelector.Operation.PUBLISH))
+                                            .build()
+                                    )
+                                )
+                                .request(List.of())
+                                .response(List.of())
+                                .subscribe(List.of())
+                                .publish(List.of())
+                                .tags(Set.of())
+                                .build()
+                        )
+                    )
+                    .id("message-api-id")
+                    .name("My Message Api")
+                    .description("My Message Api description")
+                    .apiVersion("1.0.0")
+                    .createdAt(Instant.parse("2023-11-07T15:17:44.946Z"))
+                    .deployedAt(Instant.parse("2024-11-08T10:22:17.487Z"))
+                    .updatedAt(Instant.parse("2024-11-13T14:31:05.066Z"))
+                    .state(Lifecycle.State.STARTED)
+                    .visibility(Visibility.PUBLIC)
+                    .lifecycleState(ApiLifecycleState.PUBLISHED)
+                    .tags(Set.of())
+                    .categories(Set.of())
+                    .originContext(new OriginContext.Management())
+                    .properties(List.of())
+                    .resources(List.of())
+                    .build()
+            )
+            .plans(
+                Set.of(
+                    PlanDescriptor.V4.builder()
+                        .id("plan-message-id")
+                        .name("Default Keyless (UNSECURED)")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .description("Default unsecured plan")
+                        .createdAt(Instant.parse("2023-11-07T15:17:46.156Z"))
+                        .publishedAt(Instant.parse("2023-11-07T15:17:46.295Z"))
+                        .updatedAt(Instant.parse("2023-12-05T07:33:32.922Z"))
+                        .type(Plan.PlanType.API)
+                        .mode(PlanMode.STANDARD)
+                        .security(PlanSecurity.builder().type("KEY_LESS").configuration("{}").build())
+                        .status(PlanStatus.PUBLISHED)
+                        .apiId("message-api-id")
+                        .order(1)
+                        .commentRequired(false)
+                        .flows(List.of())
+                        .validation(Plan.PlanValidationType.AUTO)
+                        .build()
+                )
+            )
+            .pages(List.of())
             .build();
     }
 }
