@@ -26,8 +26,8 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
-import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
@@ -115,12 +115,32 @@ class UpdateSubscriptionFormUseCaseTest {
         var input = new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), gmd.toString());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormValidationException.class)
-            .extracting(e -> ((SubscriptionFormValidationException) e).getErrors())
+            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+            .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
             .satisfies(errors ->
                 assertThat(errors).containsExactly(
                     "Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"
                 )
+            );
+    }
+
+    @Test
+    void should_throw_definition_validation_exception_when_schema_generation_fails() {
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
+        crudService.initWith(List.of(existingForm));
+        queryService.initWith(List.of(existingForm));
+
+        var input = new UpdateSubscriptionFormUseCase.Input(
+            existingForm.getEnvironmentId(),
+            existingForm.getId(),
+            "<gmd-input required=\"true\"/>"
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+            .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
+            .satisfies(errors ->
+                assertThat(errors).containsExactly("GMD form field is missing required 'fieldkey' attribute for element: gmd-input")
             );
     }
 

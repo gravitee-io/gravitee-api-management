@@ -16,13 +16,23 @@
 package io.gravitee.apim.core.subscription_form.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormElResolverDomainService;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
+import java.util.List;
+import java.util.Map;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Use case for getting the subscription form for an environment (the default form for that environment).
+ * Use case for getting the subscription form for an environment.
+ *
+ * <p>When {@link Input#apiId()} is non-null, EL expressions in option-bearing fields are resolved
+ * against the target API's metadata and returned in {@link Output#resolvedOptions()}.
+ * When null (e.g. Console Form Builder), resolution is attempted without API/environment metadata,
+ * then falls back to configured options on failure.</p>
  *
  * @author Gravitee.io Team
  */
@@ -31,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 public class GetSubscriptionFormForEnvironmentUseCase {
 
     private final SubscriptionFormQueryService subscriptionFormQueryService;
+    private final SubscriptionFormSchemaGenerator schemaGenerator;
+    private final SubscriptionFormElResolverDomainService elResolver;
 
     public Output execute(Input input) {
         var subscriptionForm = subscriptionFormQueryService
@@ -41,10 +53,25 @@ public class GetSubscriptionFormForEnvironmentUseCase {
             throw new SubscriptionFormNotFoundException(input.environmentId());
         }
 
-        return new Output(subscriptionForm);
+        var schema = schemaGenerator.generate(subscriptionForm.getGmdContent());
+        var resolvedOptions = input.apiId() != null
+            ? elResolver.resolveSchemaOptions(schema, input.environmentId(), input.apiId())
+            : elResolver.resolveSchemaOptions(schema);
+
+        return new Output(subscriptionForm, resolvedOptions);
     }
 
-    public record Input(String environmentId, boolean onlyEnabled) {}
+    @Builder
+    public record Input(String environmentId, boolean onlyEnabled, String apiId) {
+        /**
+         * Backward-compatible constructor for callers that don't provide an API context.
+         * TODO: remove once the resource layer is wired (APIM-12990 resource PR).
+         */
+        @Deprecated
+        public Input(String environmentId, boolean onlyEnabled) {
+            this(environmentId, onlyEnabled, null);
+        }
+    }
 
-    public record Output(SubscriptionForm subscriptionForm) {}
+    public record Output(SubscriptionForm subscriptionForm, Map<String, List<String>> resolvedOptions) {}
 }

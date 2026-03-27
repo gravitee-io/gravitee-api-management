@@ -17,9 +17,11 @@ package io.gravitee.apim.infra.domain_service.subscription_form;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.DynamicOptions;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Field;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RadioField;
@@ -28,6 +30,8 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Text
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
@@ -47,6 +51,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSchemaGenerator {
+
+    /**
+     * Matches options values that contain a Gravitee EL expression: {@code {#expression}:fallback1,fallback2}
+     * Group 1 = the Gravitee EL snippet (for example {@code {#api.metadata['envs']}}),
+     * group 2 = the fallback list (may be empty).
+     */
+    private static final Pattern EL_OPTIONS_PATTERN = Pattern.compile("^(\\{#.+}):(.*)$", Pattern.DOTALL);
 
     private static final Set<String> FORM_FIELD_TAGS = Set.of(
         "gmd-input",
@@ -78,44 +89,134 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
     private Field toFieldSchema(Element el) {
         String fieldKey = el.attr("fieldkey").trim();
         if (fieldKey.isEmpty()) {
-            throw new IllegalArgumentException("GMD form field is missing required 'fieldkey' attribute for element: " + el.tagName());
+            throw invalidDefinition("GMD form field is missing required 'fieldkey' attribute for element: " + el.tagName());
         }
         boolean required = Boolean.parseBoolean(el.attr("required"));
 
         return switch (el.tagName()) {
-            case "gmd-input" -> new InputField(
-                fieldKey,
-                required,
-                parseReadonlyValue(el, fieldKey),
-                parseNullableInt(el, "minlength"),
-                parseNullableInt(el, "maxlength"),
-                el.hasAttr("pattern") ? el.attr("pattern").trim() : null
-            );
-            case "gmd-textarea" -> new TextareaField(
-                fieldKey,
-                required,
-                parseReadonlyValue(el, fieldKey),
-                parseNullableInt(el, "minlength"),
-                parseNullableInt(el, "maxlength")
-            );
-            case "gmd-select" -> new SelectField(fieldKey, required, parseOptions(el));
-            case "gmd-radio" -> new RadioField(fieldKey, required, parseReadonlyValue(el, fieldKey), parseOptions(el));
-            case "gmd-checkbox" -> new CheckboxField(fieldKey, required, parseReadonlyValue(el, fieldKey));
-            case "gmd-checkbox-group" -> new CheckboxGroupField(fieldKey, required, parseOptions(el));
-            default -> throw new IllegalArgumentException("Unknown GMD form field tag: " + el.tagName());
+            case "gmd-input" -> InputField.builder()
+                .fieldKey(fieldKey)
+                .required(required)
+                .readonlyValue(parseReadonlyValue(el, fieldKey))
+                .minLength(parseNullableInt(el, "minlength"))
+                .maxLength(parseNullableInt(el, "maxlength"))
+                .pattern(el.hasAttr("pattern") ? el.attr("pattern").trim() : null)
+                .build();
+            case "gmd-textarea" -> TextareaField.builder()
+                .fieldKey(fieldKey)
+                .required(required)
+                .readonlyValue(parseReadonlyValue(el, fieldKey))
+                .minLength(parseNullableInt(el, "minlength"))
+                .maxLength(parseNullableInt(el, "maxlength"))
+                .build();
+            case "gmd-select" -> {
+                var parsed = parseOptions(el, fieldKey);
+                yield switch (parsed) {
+                    case ParsedOptions.NoOptions ignored -> SelectField.builder().fieldKey(fieldKey).required(required).build();
+                    case ParsedOptions.StaticOptions(var values) -> SelectField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .options(values)
+                        .build();
+                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) -> SelectField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .dynamicOptions(dynamicOptions)
+                        .build();
+                };
+            }
+            case "gmd-radio" -> {
+                var parsed = parseOptions(el, fieldKey);
+                var readonlyValue = parseReadonlyValue(el, fieldKey);
+                yield switch (parsed) {
+                    case ParsedOptions.NoOptions ignored -> RadioField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .readonlyValue(readonlyValue)
+                        .build();
+                    case ParsedOptions.StaticOptions(var values) -> RadioField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .readonlyValue(readonlyValue)
+                        .options(values)
+                        .build();
+                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) -> RadioField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .readonlyValue(readonlyValue)
+                        .dynamicOptions(dynamicOptions)
+                        .build();
+                };
+            }
+            case "gmd-checkbox" -> CheckboxField.builder()
+                .fieldKey(fieldKey)
+                .required(required)
+                .readonlyValue(parseReadonlyValue(el, fieldKey))
+                .build();
+            case "gmd-checkbox-group" -> {
+                var parsed = parseOptions(el, fieldKey);
+                yield switch (parsed) {
+                    case ParsedOptions.NoOptions ignored -> CheckboxGroupField.builder().fieldKey(fieldKey).required(required).build();
+                    case ParsedOptions.StaticOptions(var values) -> CheckboxGroupField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .options(values)
+                        .build();
+                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) -> CheckboxGroupField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .dynamicOptions(dynamicOptions)
+                        .build();
+                };
+            }
+            default -> throw invalidDefinition("Unknown GMD form field tag: " + el.tagName());
         };
     }
 
     private String parseReadonlyValue(Element el, String fieldKey) {
         boolean readonly = Boolean.parseBoolean(el.attr("readonly"));
         if (readonly && !el.hasAttr("value")) {
-            throw new IllegalArgumentException("Readonly field '" + fieldKey + "' (" + el.tagName() + ") must have a 'value' attribute");
+            throw invalidDefinition("Readonly field '" + fieldKey + "' (" + el.tagName() + ") must have a 'value' attribute");
         }
         return readonly ? el.attr("value").trim() : null;
     }
 
-    private List<String> parseOptions(Element el) {
-        return el.hasAttr("options") ? parseCommaList(el.attr("options")) : null;
+    private sealed interface ParsedOptions
+        permits ParsedOptions.NoOptions, ParsedOptions.StaticOptions, ParsedOptions.DynamicOptionsParsed {
+        record NoOptions() implements ParsedOptions {}
+
+        record StaticOptions(List<String> values) implements ParsedOptions {}
+
+        record DynamicOptionsParsed(DynamicOptions value) implements ParsedOptions {}
+    }
+
+    private ParsedOptions parseOptions(Element el, String fieldKey) {
+        if (!el.hasAttr("options")) {
+            return new ParsedOptions.NoOptions();
+        }
+        String raw = el.attr("options").trim();
+
+        // Check if the whole value starts with {# — could be EL or a misconfigured EL without fallback.
+        if (raw.startsWith("{#")) {
+            Matcher m = EL_OPTIONS_PATTERN.matcher(raw);
+            if (!m.matches()) {
+                throw invalidDefinition(
+                    "Field '" +
+                        fieldKey +
+                        "': EL expression in 'options' requires a fallback list. " +
+                        "Use the format: {#expression}:fallback1,fallback2"
+                );
+            }
+            String expression = m.group(1).trim();
+            List<String> fallback = parseCommaList(m.group(2));
+            return new ParsedOptions.DynamicOptionsParsed(new DynamicOptions(expression, fallback));
+        }
+
+        return new ParsedOptions.StaticOptions(parseCommaList(raw));
+    }
+
+    private SubscriptionFormDefinitionValidationException invalidDefinition(String message) {
+        return new SubscriptionFormDefinitionValidationException(List.of(message));
     }
 
     private Integer parseNullableInt(Element el, String attrName) {

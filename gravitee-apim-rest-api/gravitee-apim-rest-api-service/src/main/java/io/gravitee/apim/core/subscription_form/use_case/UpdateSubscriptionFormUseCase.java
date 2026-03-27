@@ -22,8 +22,8 @@ import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrud
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
-import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
@@ -62,7 +62,7 @@ public class UpdateSubscriptionFormUseCase {
             );
 
         var gmd = GraviteeMarkdown.of(input.gmdContent());
-        var schema = schemaGenerator.generate(gmd);
+        SubscriptionFormSchema schema = schemaGenerator.generate(gmd);
         validateFieldCount(schema);
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         existingForm.update(gmd, constraints);
@@ -75,7 +75,7 @@ public class UpdateSubscriptionFormUseCase {
 
     private void validateFieldCount(SubscriptionFormSchema schema) {
         if (schema != null && schema.fields().size() > SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT) {
-            throw new SubscriptionFormValidationException(
+            throw new SubscriptionFormDefinitionValidationException(
                 List.of("Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields")
             );
         }

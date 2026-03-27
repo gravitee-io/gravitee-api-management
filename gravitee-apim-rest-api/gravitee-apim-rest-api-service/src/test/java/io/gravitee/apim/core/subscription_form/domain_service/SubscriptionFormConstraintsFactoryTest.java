@@ -15,14 +15,15 @@
  */
 package io.gravitee.apim.core.subscription_form.domain_service;
 
+import static fixtures.core.model.SubscriptionFormSchemaFixtures.schema;
 import static io.gravitee.apim.core.subscription_form.model.Constraint.MaxLength.INPUT_MAX_LENGTH;
 import static io.gravitee.apim.core.subscription_form.model.Constraint.MaxLength.TEXTAREA_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.subscription_form.model.Constraint;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.DynamicOptions;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RadioField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.SelectField;
@@ -39,27 +40,31 @@ class SubscriptionFormConstraintsFactoryTest {
 
     @Test
     void should_return_empty_when_schema_has_no_fields() {
-        var schema = new SubscriptionFormSchema(List.of());
+        var schema = schema();
         assertThat(SubscriptionFormConstraintsFactory.fromSchema(schema).isEmpty()).isTrue();
     }
 
     @Test
     void should_map_readonly_input_to_single_read_only_constraint() {
-        var schema = new SubscriptionFormSchema(List.of(new InputField("ref", false, "REF-1", 1, 9, ".*")));
+        var schema = schema(
+            InputField.builder().fieldKey("ref").required(false).readonlyValue("REF-1").minLength(1).maxLength(9).pattern(".*").build()
+        );
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("ref")).containsExactly(new Constraint.ReadOnly("REF-1"));
     }
 
     @Test
     void should_ignore_required_and_options_when_radio_is_readonly() {
-        var schema = new SubscriptionFormSchema(List.of(new RadioField("plan", true, "Free", List.of("Free", "Pro"))));
+        var schema = schema(
+            RadioField.builder().fieldKey("plan").required(true).readonlyValue("Free").options(List.of("Free", "Pro")).build()
+        );
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("plan")).containsExactly(new Constraint.ReadOnly("Free"));
     }
 
     @Test
     void should_stack_input_constraints_in_defined_order() {
-        var schema = new SubscriptionFormSchema(List.of(new InputField("code", true, null, 2, 10, "[A-Z]+")));
+        var schema = schema(InputField.builder().fieldKey("code").required(true).minLength(2).maxLength(10).pattern("[A-Z]+").build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("code")).containsExactly(
             new Constraint.Required(),
@@ -71,7 +76,7 @@ class SubscriptionFormConstraintsFactoryTest {
 
     @Test
     void should_map_textarea_without_pattern() {
-        var schema = new SubscriptionFormSchema(List.of(new TextareaField("bio", true, null, 1, 500)));
+        var schema = schema(TextareaField.builder().fieldKey("bio").required(true).minLength(1).maxLength(500).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("bio")).containsExactly(
             new Constraint.Required(),
@@ -82,60 +87,92 @@ class SubscriptionFormConstraintsFactoryTest {
 
     @Test
     void should_map_select_optional_with_one_of_only() {
-        var schema = new SubscriptionFormSchema(List.of(new SelectField("plan", false, List.of("Free", "Pro"))));
+        var schema = schema(SelectField.builder().fieldKey("plan").required(false).options(List.of("Free", "Pro")).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("plan")).containsExactly(new Constraint.OneOf(List.of("Free", "Pro")));
     }
 
     @Test
     void should_map_required_checkbox_to_must_be_true() {
-        var schema = new SubscriptionFormSchema(List.of(new CheckboxField("terms", true, null)));
+        var schema = schema(CheckboxField.builder().fieldKey("terms").required(true).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("terms")).containsExactly(new Constraint.MustBeTrue());
     }
 
     @Test
     void should_apply_system_max_length_to_input_when_no_user_max_defined() {
-        var schema = new SubscriptionFormSchema(List.of(new InputField("name", false, null, null, null, null)));
+        var schema = schema(InputField.builder().fieldKey("name").required(false).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("name")).containsExactly(new Constraint.MaxLength(INPUT_MAX_LENGTH));
     }
 
     @Test
     void should_apply_system_max_length_to_textarea_when_no_user_max_defined() {
-        var schema = new SubscriptionFormSchema(List.of(new TextareaField("bio", false, null, null, null)));
+        var schema = schema(TextareaField.builder().fieldKey("bio").required(false).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("bio")).containsExactly(new Constraint.MaxLength(TEXTAREA_MAX_LENGTH));
     }
 
     @Test
     void should_cap_input_max_length_at_system_limit_when_user_exceeds_it() {
-        var schema = new SubscriptionFormSchema(List.of(new InputField("name", false, null, null, 1000, null)));
+        var schema = schema(InputField.builder().fieldKey("name").required(false).maxLength(1000).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("name")).containsExactly(new Constraint.MaxLength(INPUT_MAX_LENGTH));
     }
 
     @Test
     void should_cap_textarea_max_length_at_system_limit_when_user_exceeds_it() {
-        var schema = new SubscriptionFormSchema(List.of(new TextareaField("notes", false, null, null, 9999)));
+        var schema = schema(TextareaField.builder().fieldKey("notes").required(false).maxLength(9999).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("notes")).containsExactly(new Constraint.MaxLength(TEXTAREA_MAX_LENGTH));
     }
 
     @Test
     void should_preserve_user_max_length_when_within_system_limit() {
-        var schema = new SubscriptionFormSchema(List.of(new InputField("code", false, null, null, 50, null)));
+        var schema = schema(InputField.builder().fieldKey("code").required(false).maxLength(50).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("code")).containsExactly(new Constraint.MaxLength(50));
     }
 
     @Test
     void should_map_checkbox_group_required_with_each_of() {
-        var schema = new SubscriptionFormSchema(List.of(new CheckboxGroupField("tags", true, List.of("A", "B"))));
+        var schema = schema(CheckboxGroupField.builder().fieldKey("tags").required(true).options(List.of("A", "B")).build());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
         assertThat(constraints.byFieldKey().get("tags")).containsExactly(
             new Constraint.NonEmptySelection(),
             new Constraint.EachOf(List.of("A", "B"))
+        );
+    }
+
+    @Test
+    void should_emit_dynamic_one_of_for_select_with_dynamic_options() {
+        var dynamic = new DynamicOptions("{#api.metadata['envs']}", List.of("Prod", "Test"));
+        var schema = schema(SelectField.builder().fieldKey("env").required(false).dynamicOptions(dynamic).build());
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("env")).containsExactly(
+            Constraint.OneOf.dynamic("{#api.metadata['envs']}", List.of("Prod", "Test"))
+        );
+    }
+
+    @Test
+    void should_emit_dynamic_one_of_for_radio_with_dynamic_options() {
+        var dynamic = new DynamicOptions("{#api.metadata['plans']}", List.of("Free"));
+        var schema = schema(RadioField.builder().fieldKey("plan").required(true).dynamicOptions(dynamic).build());
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("plan")).containsExactly(
+            new Constraint.Required(),
+            Constraint.OneOf.dynamic("{#api.metadata['plans']}", List.of("Free"))
+        );
+    }
+
+    @Test
+    void should_emit_dynamic_each_of_for_checkbox_group_with_dynamic_options() {
+        var dynamic = new DynamicOptions("{#api.metadata['tags']}", List.of("Alpha", "Beta"));
+        var schema = schema(CheckboxGroupField.builder().fieldKey("tags").required(true).dynamicOptions(dynamic).build());
+        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
+        assertThat(constraints.byFieldKey().get("tags")).containsExactly(
+            new Constraint.NonEmptySelection(),
+            Constraint.EachOf.dynamic("{#api.metadata['tags']}", List.of("Alpha", "Beta"))
         );
     }
 }
