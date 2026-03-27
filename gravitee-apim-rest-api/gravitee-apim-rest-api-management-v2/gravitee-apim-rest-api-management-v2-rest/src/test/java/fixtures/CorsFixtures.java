@@ -36,7 +36,8 @@ public class CorsFixtures {
             .enabled(true)
             .exposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
             .maxAge(10)
-            .runPolicies(true);
+            .runPolicies(true)
+            .allowPrivateNetwork(true);
 
     public static Cors aCors() {
         return BASE_CORS.get();

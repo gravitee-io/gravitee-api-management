@@ -77,6 +77,10 @@ public class Cors implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private boolean runPolicies;
 
+    @JsonProperty("allowPrivateNetwork")
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private boolean allowPrivateNetwork;
+
     public static int getDefaultErrorStatusCode() {
         return DEFAULT_ERROR_STATUS_CODE;
     }
@@ -163,5 +167,13 @@ public class Cors implements Serializable {
 
     public void setRunPolicies(boolean runPolicies) {
         this.runPolicies = runPolicies;
+    }
+
+    public boolean isAllowPrivateNetwork() {
+        return allowPrivateNetwork;
+    }
+
+    public void setAllowPrivateNetwork(boolean allowPrivateNetwork) {
+        this.allowPrivateNetwork = allowPrivateNetwork;
     }
 }
