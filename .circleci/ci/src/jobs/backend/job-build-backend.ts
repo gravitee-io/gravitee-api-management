@@ -46,7 +46,7 @@ export class BuildBackendJob {
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.cache.Save({
-        paths: ['~/.m2/repository/io/gravitee/apim'],
+        paths: ['~/.m2/repository/io/gravitee/apim', '~/.m2/repository/io/gravitee/gamma'],
         key: `${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`,
         when: 'on_success',
       }),
