@@ -88,3 +88,6 @@ gravitee-apim-e2e/ui-test/screenshots/
 # Claude configurations
 CLAUDE.md
 .claude
+
+.specs
+.c4

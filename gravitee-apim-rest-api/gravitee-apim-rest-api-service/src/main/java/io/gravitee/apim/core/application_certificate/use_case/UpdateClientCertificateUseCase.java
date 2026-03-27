@@ -19,6 +19,8 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -29,12 +31,22 @@ public class UpdateClientCertificateUseCase {
     private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
 
     public Output execute(Input input) {
+        if (input.applicationId().isPresent()) {
+            ClientCertificate existing = clientCertificateCrudService.findById(input.clientCertificateId());
+            if (!input.applicationId().get().equals(existing.applicationId())) {
+                throw new ClientCertificateNotFoundException(input.clientCertificateId());
+            }
+        }
         ClientCertificate certificate = clientCertificateCrudService.update(input.clientCertificateId(), input.toUpdate());
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
         return new Output(certificate);
     }
 
-    public record Input(String clientCertificateId, ClientCertificate toUpdate) {}
+    public record Input(Optional<String> applicationId, String clientCertificateId, ClientCertificate toUpdate) {
+        public Input(String clientCertificateId, ClientCertificate toUpdate) {
+            this(Optional.empty(), clientCertificateId, toUpdate);
+        }
+    }
 
     public record Output(ClientCertificate clientCertificate) {}
 }

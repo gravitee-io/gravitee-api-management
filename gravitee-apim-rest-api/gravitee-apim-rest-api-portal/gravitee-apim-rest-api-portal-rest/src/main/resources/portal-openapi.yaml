@@ -1856,6 +1856,143 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /applications/{applicationId}/certificates:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        get:
+            tags:
+                - Application Client Certificates
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: List client certificates for an application
+            description: |
+                List all client certificates for an application.
+
+                User must have the APPLICATION_DEFINITION[READ] permission.
+            operationId: listApplicationCertificates
+            responses:
+                200:
+                    description: Paginated list of client certificates
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalClientCertificatesResponse"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        post:
+            tags:
+                - Application Client Certificates
+            requestBody:
+                description: Use to create a client certificate.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreatePortalClientCertificateInput"
+            summary: Create a client certificate for an application
+            description: |
+                Create a client certificate for an application.
+
+                User must have the APPLICATION_DEFINITION[UPDATE] permission.
+            operationId: createApplicationCertificate
+            responses:
+                201:
+                    description: Created client certificate
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalClientCertificate"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/certificates/{certId}:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/certIdParam"
+        get:
+            tags:
+                - Application Client Certificates
+            summary: Get a client certificate
+            description: |
+                Get a client certificate by id.
+
+                User must have the APPLICATION_DEFINITION[READ] permission.
+            operationId: getApplicationCertificate
+            responses:
+                200:
+                    description: Client certificate
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalClientCertificate"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        put:
+            tags:
+                - Application Client Certificates
+            requestBody:
+                description: Use to update a client certificate.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdatePortalClientCertificateInput"
+            summary: Update a client certificate
+            description: |
+                Update a client certificate.
+
+                User must have the APPLICATION_DEFINITION[UPDATE] permission.
+            operationId: updateApplicationCertificate
+            responses:
+                200:
+                    description: Updated client certificate
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalClientCertificate"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        delete:
+            tags:
+                - Application Client Certificates
+            summary: Delete a client certificate
+            description: |
+                Delete a client certificate.
+
+                User must have the APPLICATION_DEFINITION[UPDATE] permission.
+            operationId: deleteApplicationCertificate
+            responses:
+                204:
+                    description: No-Content
+                400:
+                    description: Cannot delete last certificate with active mTLS subscriptions
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
     /groups:
         get:
             tags:
@@ -3374,6 +3511,13 @@ components:
             in: path
             required: true
             description: Id of a log.
+            schema:
+                type: string
+        certIdParam:
+            name: certId
+            in: path
+            required: true
+            description: Id of a client certificate.
             schema:
                 type: string
         memberIdParam:
@@ -6623,6 +6767,79 @@ components:
             enum:
                 - GRAVITEE_MARKDOWN
                 - OPENAPI
+
+        PortalClientCertificate:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                status:
+                    $ref: "#/components/schemas/PortalClientCertificateStatus"
+                subject:
+                    type: string
+                issuer:
+                    type: string
+                fingerprint:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                startsAt:
+                    type: string
+                    format: date-time
+                endsAt:
+                    type: string
+                    format: date-time
+        PortalClientCertificateStatus:
+            type: string
+            description: Status of a client certificate.
+            enum:
+                - ACTIVE
+                - ACTIVE_WITH_END
+                - SCHEDULED
+                - REVOKED
+        CreatePortalClientCertificateInput:
+            type: object
+            required:
+                - name
+                - certificate
+            properties:
+                name:
+                    type: string
+                certificate:
+                    type: string
+                    description: PEM-encoded certificate
+                startsAt:
+                    type: string
+                    format: date-time
+                endsAt:
+                    type: string
+                    format: date-time
+        UpdatePortalClientCertificateInput:
+            type: object
+            properties:
+                name:
+                    type: string
+                startsAt:
+                    type: string
+                    format: date-time
+                endsAt:
+                    type: string
+                    format: date-time
+        PortalClientCertificatesResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/PortalClientCertificate"
+                metadata:
+                    type: object
+                    additionalProperties: true
+                links:
+                    $ref: "#/components/schemas/Links"
 
     responses:
         InternalServerError:

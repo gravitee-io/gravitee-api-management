@@ -78,6 +78,15 @@ describe('ApplicationTabSettingsComponent', () => {
     });
   }
 
+  function flushCertificatesRequest() {
+    const certificatesUrl = `${TESTING_BASE_URL}/applications/${applicationId}/certificates`;
+    httpTestingController
+      .match(req => req.url.startsWith(certificatesUrl))
+      .forEach(req => {
+        req.flush({ data: [], metadata: { pagination: { totalCount: 0 } } });
+      });
+  }
+
   async function initRestCalls(application: Application, applicationType: ApplicationType) {
     fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
     fixture.detectChanges();
@@ -93,6 +102,7 @@ describe('ApplicationTabSettingsComponent', () => {
     await fixture.whenStable();
 
     flushGetRequests(application);
+    flushCertificatesRequest();
     await fixture.whenStable();
 
     updateHarness = await loader.getHarness(ApplicationTabSettingsEditHarness);
