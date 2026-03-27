@@ -150,6 +150,7 @@ import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase
 import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -1256,5 +1257,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ClusterConfigurationSchemaService clusterConfigurationSchemaService() {
         return mock(ClusterConfigurationSchemaService.class);
+    }
+
+    @Bean
+    SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator() {
+        return mock(SubscriptionFormSchemaGenerator.class);
     }
 }

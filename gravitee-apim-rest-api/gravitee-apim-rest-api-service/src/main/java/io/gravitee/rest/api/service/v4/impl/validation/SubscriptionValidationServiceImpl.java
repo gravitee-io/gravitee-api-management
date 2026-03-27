@@ -18,6 +18,9 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
@@ -32,6 +35,7 @@ import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissing
 import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +52,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
 
     private final EntrypointConnectorPluginService entrypointService;
     private final SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
+    private final SubscriptionFormQueryService subscriptionFormQueryService;
 
     private final ClientCertificateCrudService clientCertificateCrudService;
 
@@ -57,6 +62,22 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
         if (subscription.getMetadata() != null) {
             subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
         }
+        validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, subscription.getMetadata());
+    }
+
+    private void validateSubscriptionFormMetadataIfApplicable(
+        final GenericPlanEntity genericPlanEntity,
+        final Map<String, String> metadata
+    ) {
+        subscriptionFormQueryService
+            .findDefaultForEnvironmentId(genericPlanEntity.getEnvironmentId())
+            .filter(SubscriptionForm::isEnabled)
+            .map(SubscriptionForm::getValidationConstraints)
+            .filter(constraints -> !constraints.isEmpty())
+            .ifPresent(constraints -> {
+                var submitted = metadata != null ? metadata : Map.<String, String>of();
+                new SubscriptionFormSubmissionValidator(constraints).validate(submitted);
+            });
     }
 
     @Override
@@ -70,6 +91,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
         if (subscription.getMetadata() != null) {
             subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
         }
+        validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, subscription.getMetadata());
     }
 
     private void validateTls(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription, String applicationId) {
@@ -109,6 +131,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
                 subscriptionMetadataSanitizer.sanitizeAndValidate(subscriptionConfiguration.getMetadata())
             );
         }
+        validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, subscriptionConfiguration.getMetadata());
     }
 
     private SubscriptionConfigurationEntity validateAndSanitizeSubscriptionConfiguration(
