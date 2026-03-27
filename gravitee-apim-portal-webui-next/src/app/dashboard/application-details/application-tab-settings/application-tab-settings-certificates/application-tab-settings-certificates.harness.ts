@@ -23,6 +23,12 @@ export class ApplicationTabSettingsCertificatesHarness extends ComponentHarness 
   getErrorMessage = this.locatorForOptional('.certificates__error');
   getTabButtons = this.locatorForAll('.certificates__tabs__tab');
   getActiveTabButton = this.locatorForOptional('.certificates__tabs__tab--active');
+  getUploadButton = this.locatorForOptional('[data-testid="upload-certificate-button"]');
+
+  async clickUploadButton(): Promise<void> {
+    const btn = await this.getUploadButton();
+    await btn?.click();
+  }
 
   async clickTab(label: 'active' | 'history'): Promise<void> {
     const tabs = await this.getTabButtons();
