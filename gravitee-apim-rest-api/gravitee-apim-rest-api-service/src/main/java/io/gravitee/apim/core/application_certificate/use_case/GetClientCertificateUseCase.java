@@ -18,6 +18,8 @@ package io.gravitee.apim.core.application_certificate.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -28,10 +30,17 @@ public class GetClientCertificateUseCase {
 
     public Output execute(Input input) {
         ClientCertificate certificate = clientCertificateCrudService.findById(input.clientCertificateId());
+        if (input.applicationId().isPresent() && !input.applicationId().get().equals(certificate.applicationId())) {
+            throw new ClientCertificateNotFoundException(input.clientCertificateId());
+        }
         return new Output(certificate);
     }
 
-    public record Input(String clientCertificateId) {}
+    public record Input(Optional<String> applicationId, String clientCertificateId) {
+        public Input(String clientCertificateId) {
+            this(Optional.empty(), clientCertificateId);
+        }
+    }
 
     public record Output(ClientCertificate clientCertificate) {}
 }

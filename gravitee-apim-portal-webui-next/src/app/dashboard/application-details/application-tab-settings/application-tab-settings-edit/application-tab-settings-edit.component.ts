@@ -31,7 +31,9 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
+import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
 import { ApplicationService } from '../../../../../services/application.service';
+import { ApplicationTabSettingsCertificatesComponent } from '../application-tab-settings-certificates/application-tab-settings-certificates.component';
 
 interface ApplicationSettingsVM {
   name: string;
@@ -62,6 +64,7 @@ interface ApplicationGrantTypeVM {
 @Component({
   selector: 'app-application-tab-settings-edit',
   imports: [
+    ApplicationTabSettingsCertificatesComponent,
     CopyCodeComponent,
     MatButtonModule,
     MatCardModule,
@@ -80,6 +83,7 @@ interface ApplicationGrantTypeVM {
 export class ApplicationTabSettingsEditComponent implements OnInit {
   applicationId = input.required<string>();
   applicationTypeConfiguration = input.required<ApplicationType>();
+  userApplicationPermissions = input.required<UserApplicationPermissions>();
 
   application$!: Observable<Application>;
 

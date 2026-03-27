@@ -244,4 +244,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationKeysResource getApplicationKeysResource() {
         return resourceContext.getResource(ApplicationKeysResource.class);
     }
+
+    @Path("certificates")
+    public PortalApplicationClientCertificatesResource getApplicationCertificatesResource() {
+        return resourceContext.getResource(PortalApplicationClientCertificatesResource.class);
+    }
 }

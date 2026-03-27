@@ -17,7 +17,11 @@
 -->
 @if (application(); as application) {
   @if (isEditing() && canUpdate()) {
-    <app-application-tab-settings-edit [applicationId]="application.id" [applicationTypeConfiguration]="applicationTypeConfiguration()" />
+    <app-application-tab-settings-edit
+      [applicationId]="application.id"
+      [applicationTypeConfiguration]="applicationTypeConfiguration()"
+      [userApplicationPermissions]="userApplicationPermissions()"
+    />
   } @else {
     <app-application-tab-settings-read
       [applicationId]="application.id"
