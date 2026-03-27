@@ -79,6 +79,7 @@ import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -104,6 +105,7 @@ import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -115,6 +117,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
@@ -3198,6 +3201,194 @@ public class SubscriptionServiceTest {
         assertThat(result.get().getName()).isEqualTo("My Product");
         assertThat(result.get().getOwnerId()).isEqualTo(USER_ID);
         assertThat(result.get().getOwnerDisplayName()).isEmpty();
+    }
+
+    @Test
+    public void buildSubscriptionConsoleUrl_returns_empty_when_subscription_is_null() {
+        assertThat(subscriptionService.buildSubscriptionConsoleUrl(GraviteeContext.getExecutionContext(), null)).isEmpty();
+    }
+
+    @Test
+    public void buildSubscriptionConsoleUrl_returns_empty_when_console_url_is_blank() {
+        when(installationAccessQueryService.getConsoleUrl(anyString())).thenReturn(null);
+        SubscriptionEntity subscription = buildSubscriptionEntityForConsoleUrlApiProduct();
+        assertThat(subscriptionService.buildSubscriptionConsoleUrl(GraviteeContext.getExecutionContext(), subscription)).isEmpty();
+    }
+
+    @Test
+    public void buildSubscriptionConsoleUrl_api_product_contains_expected_path() {
+        when(installationAccessQueryService.getConsoleUrl(anyString())).thenReturn("https://console.example.com");
+        SubscriptionEntity subscription = buildSubscriptionEntityForConsoleUrlApiProduct();
+        assertThat(
+            subscriptionService.buildSubscriptionConsoleUrl(GraviteeContext.getExecutionContext(), subscription).orElseThrow()
+        ).isEqualTo("https://console.example.com/#!/DEFAULT/api-products/console-product-id/subscriptions/console-sub-id");
+    }
+
+    @Test
+    public void buildSubscriptionConsoleUrl_strips_trailing_slash_on_console_base_url() {
+        when(installationAccessQueryService.getConsoleUrl(anyString())).thenReturn("https://console.example.com/");
+        SubscriptionEntity subscription = buildSubscriptionEntityForConsoleUrlApiProduct();
+        assertThat(
+            subscriptionService.buildSubscriptionConsoleUrl(GraviteeContext.getExecutionContext(), subscription).orElseThrow()
+        ).startsWith("https://console.example.com/#!");
+    }
+
+    @Test
+    public void buildSubscriptionConsoleUrl_api_subscription_uses_resolved_api_template_id() throws TechnicalException {
+        when(installationAccessQueryService.getConsoleUrl(anyString())).thenReturn("https://console.example.com");
+        String resolvedApiId = "resolved-api-id";
+        GenericApiModel apiModel = mock(GenericApiModel.class);
+        when(apiModel.getId()).thenReturn(resolvedApiId);
+        when(apiTemplateService.findByIdForTemplates(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(apiModel);
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("console-sub-api");
+        subscription.setReferenceType(SubscriptionReferenceType.API.name());
+        subscription.setApi(API_ID);
+
+        assertThat(
+            subscriptionService.buildSubscriptionConsoleUrl(GraviteeContext.getExecutionContext(), subscription).orElseThrow()
+        ).contains("/apis/" + resolvedApiId + "/subscriptions/console-sub-api");
+    }
+
+    @Test
+    public void triggerSubscriptionNotificationsForApiProduct_notifies_with_api_product_reference() throws TechnicalException {
+        String productId = "notification-product-id";
+        ApiProduct apiProduct = ApiProduct.builder().id(productId).name("Product").version("1.0").build();
+        when(apiProductsRepository.findById(productId)).thenReturn(Optional.of(apiProduct));
+        when(
+            membershipService.getPrimaryOwnerUserId(
+                eq(GraviteeContext.getExecutionContext().getOrganizationId()),
+                eq(MembershipReferenceType.API_PRODUCT),
+                eq(productId)
+            )
+        ).thenReturn(null);
+
+        ApplicationEntity app = new ApplicationEntity();
+        app.setId("notification-app-id");
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity plan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        plan.setId("notification-plan-id");
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("notification-sub-id");
+
+        ExecutionContext ctx = GraviteeContext.getExecutionContext();
+        subscriptionService.triggerSubscriptionNotificationsForApiProduct(
+            ctx,
+            productId,
+            app.getId(),
+            app,
+            plan,
+            subscriptionEntity,
+            Optional.empty(),
+            false,
+            ApiHook.SUBSCRIPTION_PAUSED,
+            null,
+            null
+        );
+
+        verify(notifierService).trigger(
+            eq(ctx),
+            eq(ApiHook.SUBSCRIPTION_PAUSED),
+            eq(NotificationReferenceType.API_PRODUCT),
+            eq(productId),
+            argThat((Map<String, Object> m) -> m != null && m.containsKey(NotificationParamsBuilder.PARAM_API_PRODUCT))
+        );
+        verify(notifierService).trigger(eq(ctx), eq(ApplicationHook.SUBSCRIPTION_PAUSED), eq(app.getId()), anyMap());
+    }
+
+    /**
+     * Ensures {@code additionalParams} are merged into notifier params. Uses {@link ApiHook#SUBSCRIPTION_PAUSED} so both
+     * reference and application notifier hooks exist ({@link ApplicationHook}); API-key-only hooks are covered by production
+     * usage from {@code ApiKeyServiceImpl}, not this merge contract.
+     */
+    @Test
+    public void triggerSubscriptionNotificationsForApiProduct_merges_additional_params() throws TechnicalException {
+        String productId = "notification-product-id-2";
+        ApiProduct apiProduct = ApiProduct.builder().id(productId).name("Product").version("1.0").build();
+        when(apiProductsRepository.findById(productId)).thenReturn(Optional.of(apiProduct));
+        when(
+            membershipService.getPrimaryOwnerUserId(
+                eq(GraviteeContext.getExecutionContext().getOrganizationId()),
+                eq(MembershipReferenceType.API_PRODUCT),
+                eq(productId)
+            )
+        ).thenReturn(null);
+
+        ApplicationEntity app = new ApplicationEntity();
+        app.setId("notification-app-id-2");
+        io.gravitee.rest.api.model.v4.plan.PlanEntity plan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        plan.setId("notification-plan-id-2");
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("notification-sub-id-2");
+
+        Date expiration = new Date();
+        ExecutionContext ctx = GraviteeContext.getExecutionContext();
+        subscriptionService.triggerSubscriptionNotificationsForApiProduct(
+            ctx,
+            productId,
+            app.getId(),
+            app,
+            plan,
+            subscriptionEntity,
+            Optional.empty(),
+            false,
+            ApiHook.SUBSCRIPTION_PAUSED,
+            null,
+            Map.of(NotificationParamsBuilder.PARAM_EXPIRATION_DATE, expiration)
+        );
+
+        verify(notifierService).trigger(
+            eq(ctx),
+            eq(ApiHook.SUBSCRIPTION_PAUSED),
+            eq(NotificationReferenceType.API_PRODUCT),
+            eq(productId),
+            argThat((Map<String, Object> m) -> m != null && expiration.equals(m.get(NotificationParamsBuilder.PARAM_EXPIRATION_DATE)))
+        );
+        verify(notifierService).trigger(
+            eq(ctx),
+            eq(ApplicationHook.SUBSCRIPTION_PAUSED),
+            eq(app.getId()),
+            argThat((Map<String, Object> m) -> m != null && expiration.equals(m.get(NotificationParamsBuilder.PARAM_EXPIRATION_DATE)))
+        );
+    }
+
+    @Test
+    public void triggerSubscriptionNotificationsForApiProduct_does_not_notify_when_product_missing() throws TechnicalException {
+        String productId = "missing-notification-product";
+        when(apiProductsRepository.findById(productId)).thenReturn(Optional.empty());
+
+        ApplicationEntity app = new ApplicationEntity();
+        app.setId("app-missing-product");
+        io.gravitee.rest.api.model.v4.plan.PlanEntity plan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        plan.setId(PLAN_ID);
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+
+        subscriptionService.triggerSubscriptionNotificationsForApiProduct(
+            GraviteeContext.getExecutionContext(),
+            productId,
+            app.getId(),
+            app,
+            plan,
+            subscriptionEntity,
+            Optional.empty(),
+            false,
+            ApiHook.SUBSCRIPTION_PAUSED,
+            null,
+            null
+        );
+
+        verifyNoInteractions(notifierService);
+    }
+
+    private SubscriptionEntity buildSubscriptionEntityForConsoleUrlApiProduct() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("console-sub-id");
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        subscription.setReferenceId("console-product-id");
+        return subscription;
     }
 
     private Map<String, Map<String, Object>> prepareMetadata() {

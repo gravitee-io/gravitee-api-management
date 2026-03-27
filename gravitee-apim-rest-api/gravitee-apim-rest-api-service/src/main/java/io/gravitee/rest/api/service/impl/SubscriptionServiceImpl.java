@@ -791,7 +791,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
 
                 if (isApiProduct) {
-                    triggerSubscriptionNotificationsForApiProduct(
+                    this.triggerSubscriptionNotificationsForApiProduct(
                         executionContext,
                         referenceId,
                         application,
@@ -800,7 +800,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         paramSubscription,
                         Optional.of(subscriptionsUrl),
                         true,
-                        ApiHook.SUBSCRIPTION_NEW
+                        ApiHook.SUBSCRIPTION_NEW,
+                        null,
+                        null
                     );
                 } else {
                     triggerSubscriptionNotificationsForApi(
@@ -918,7 +920,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         GenericPlanEntity genericPlanEntity,
         SubscriptionEntity subscriptionEntity,
         Optional<String> subscriptionsUrl,
-        boolean includeSubscribedByUser
+        boolean includeSubscribedByUser,
+        ApiKey apiKey
     ) throws TechnicalException {
         Optional<ApiProduct> apiProductOpt = apiProductsRepository.findById(apiProductId);
         if (apiProductOpt.isEmpty()) {
@@ -964,10 +967,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
         }
+        if (apiKey != null) {
+            paramsBuilder.apikey(apiKey);
+        }
         return paramsBuilder.build();
     }
 
-    private void triggerSubscriptionNotificationsForApiProduct(
+    @Override
+    public void triggerSubscriptionNotificationsForApiProduct(
         ExecutionContext executionContext,
         String apiProductId,
         String applicationId,
@@ -976,26 +983,36 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         SubscriptionEntity subscriptionEntity,
         Optional<String> subscriptionsUrl,
         boolean includeSubscribedByUser,
-        ApiHook hook
-    ) throws TechnicalException {
-        Map<String, Object> params = buildSubscriptionNotificationParamsForApiProduct(
-            executionContext,
-            apiProductId,
-            applicationEntity,
-            genericPlanEntity,
-            subscriptionEntity,
-            subscriptionsUrl,
-            includeSubscribedByUser
-        );
-        if (!params.isEmpty()) {
-            triggerSubscriptionNotifications(
+        ApiHook hook,
+        ApiKey apiKey,
+        Map<String, Object> additionalParams
+    ) {
+        try {
+            Map<String, Object> params = buildSubscriptionNotificationParamsForApiProduct(
                 executionContext,
-                NotificationReferenceType.API_PRODUCT,
                 apiProductId,
-                applicationId,
-                params,
-                hook
+                applicationEntity,
+                genericPlanEntity,
+                subscriptionEntity,
+                subscriptionsUrl,
+                includeSubscribedByUser,
+                apiKey
             );
+            if (additionalParams != null && !additionalParams.isEmpty()) {
+                params.putAll(additionalParams);
+            }
+            if (!params.isEmpty()) {
+                triggerSubscriptionNotifications(
+                    executionContext,
+                    NotificationReferenceType.API_PRODUCT,
+                    apiProductId,
+                    applicationId,
+                    params,
+                    hook
+                );
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to trigger subscription notifications for API Product", e);
         }
     }
 
@@ -1287,7 +1304,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             if (isApiProduct) {
-                triggerSubscriptionNotificationsForApiProduct(
+                this.triggerSubscriptionNotificationsForApiProduct(
                     executionContext,
                     referenceId,
                     application.getId(),
@@ -1296,7 +1313,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     result,
                     Optional.empty(),
                     false,
-                    ApiHook.SUBSCRIPTION_FAILED
+                    ApiHook.SUBSCRIPTION_FAILED,
+                    null,
+                    null
                 );
             } else if (owner != null) {
                 triggerSubscriptionNotificationsForApi(
@@ -1348,7 +1367,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             if (isApiProduct) {
-                triggerSubscriptionNotificationsForApiProduct(
+                this.triggerSubscriptionNotificationsForApiProduct(
                     executionContext,
                     referenceId,
                     application.getId(),
@@ -1357,7 +1376,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     result,
                     Optional.empty(),
                     false,
-                    ApiHook.SUBSCRIPTION_FAILED
+                    ApiHook.SUBSCRIPTION_FAILED,
+                    null,
+                    null
                 );
             } else if (owner != null) {
                 triggerSubscriptionNotificationsForApi(
@@ -1478,7 +1499,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 if (isApiProduct) {
-                    triggerSubscriptionNotificationsForApiProduct(
+                    this.triggerSubscriptionNotificationsForApiProduct(
                         executionContext,
                         referenceId,
                         application.getId(),
@@ -1487,7 +1508,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         convert(subscription),
                         Optional.empty(),
                         false,
-                        ApiHook.SUBSCRIPTION_PAUSED
+                        ApiHook.SUBSCRIPTION_PAUSED,
+                        null,
+                        null
                     );
                 } else if (owner != null) {
                     triggerSubscriptionNotificationsForApi(
@@ -1690,7 +1713,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 if (isApiProduct) {
-                    triggerSubscriptionNotificationsForApiProduct(
+                    this.triggerSubscriptionNotificationsForApiProduct(
                         executionContext,
                         referenceId,
                         application.getId(),
@@ -1699,7 +1722,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         convert(subscription),
                         Optional.empty(),
                         false,
-                        ApiHook.SUBSCRIPTION_RESUMED
+                        ApiHook.SUBSCRIPTION_RESUMED,
+                        null,
+                        null
                     );
                 } else if (owner != null) {
                     triggerSubscriptionNotificationsForApi(
@@ -2077,7 +2102,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             SubscriptionEntity subscriptionEntity = convert(subscription);
 
             if (isApiProduct) {
-                triggerSubscriptionNotificationsForApiProduct(
+                this.triggerSubscriptionNotificationsForApiProduct(
                     executionContext,
                     referenceId,
                     application.getId(),
@@ -2086,7 +2111,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscriptionEntity,
                     Optional.empty(),
                     false,
-                    ApiHook.SUBSCRIPTION_TRANSFERRED
+                    ApiHook.SUBSCRIPTION_TRANSFERRED,
+                    null,
+                    null
                 );
             } else if (owner != null) {
                 triggerSubscriptionNotificationsForApi(
@@ -2503,5 +2530,40 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .findBySubscription(executionContext, subscriptionId)
             .stream()
             .filter(apiKey -> !apiKey.isRevoked() && !apiKey.isExpired());
+    }
+
+    @Override
+    public Optional<String> buildSubscriptionConsoleUrl(ExecutionContext executionContext, SubscriptionEntity subscription) {
+        if (subscription == null) {
+            return Optional.empty();
+        }
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.name().equals(subscription.getReferenceType());
+        String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+        GenericApiModel api = null;
+        if (!isApiProduct && subscription.getApi() != null) {
+            api = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
+        }
+        String managementURL = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
+        if (StringUtils.isEmpty(managementURL)) {
+            return Optional.empty();
+        }
+        if (managementURL.endsWith("/")) {
+            managementURL = managementURL.substring(0, managementURL.length() - 1);
+        }
+        String resourceType = isApiProduct ? "api-products" : "apis";
+        String resourceId = isApiProduct ? referenceId : (api != null ? api.getId() : null);
+        if (resourceId == null) {
+            return Optional.empty();
+        }
+        return Optional.of(
+            String.format(
+                "%s/#!/%s/%s/%s/subscriptions/%s",
+                managementURL,
+                executionContext.getEnvironmentId(),
+                resourceType,
+                resourceId,
+                subscription.getId()
+            )
+        );
     }
 }

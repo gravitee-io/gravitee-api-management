@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
@@ -29,7 +31,9 @@ import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscribedReference;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -122,4 +126,29 @@ public interface SubscriptionService {
     List<SubscribedReference> getSubscribedReferences(ExecutionContext executionContext, String applicationId);
 
     Optional<ReferenceDisplayInfo> getReferenceDisplayInfo(ExecutionContext executionContext, String referenceType, String referenceId);
+
+    /**
+     * Builds the Console URL to open a subscription in the management UI (API or API Product).
+     */
+    Optional<String> buildSubscriptionConsoleUrl(ExecutionContext executionContext, SubscriptionEntity subscription);
+
+    /**
+     * Sends subscription-related notifications for an API Product subscription (same pipeline as the management API subscription flow).
+     *
+     * @param apiKey optional API key value carrier for hooks such as API key lifecycle events; may be {@code null}
+     * @param additionalParams optional extra notifier parameters (e.g. expiration date); merged into the built params, may be {@code null} or empty
+     */
+    void triggerSubscriptionNotificationsForApiProduct(
+        ExecutionContext executionContext,
+        String apiProductId,
+        String applicationId,
+        ApplicationEntity applicationEntity,
+        GenericPlanEntity genericPlanEntity,
+        SubscriptionEntity subscriptionEntity,
+        Optional<String> subscriptionsUrl,
+        boolean includeSubscribedByUser,
+        ApiHook hook,
+        ApiKey apiKey,
+        Map<String, Object> additionalParams
+    );
 }

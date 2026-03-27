@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_R
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_RENEWED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_PRODUCT;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
@@ -69,6 +70,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -707,21 +709,30 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         key
             .getSubscriptions()
             .forEach(subscription -> {
+                boolean isApiProduct = isApiProductSubscription(subscription);
+                String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+                String applicationId = key.getApplication() != null ? key.getApplication().getId() : null;
+
                 Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
                 properties.put(API_KEY, key.getKey());
-                properties.put(API, subscription.getApi());
-                properties.put(APPLICATION, key.getApplication().getId());
-                auditService.createApiAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(properties)
-                        .event(event)
-                        .createdAt(eventDate)
-                        .oldValue(previousApiKey)
-                        .newValue(key)
-                        .build(),
-                    subscription.getApi()
-                );
+                properties.put(isApiProduct ? API_PRODUCT : API, referenceId);
+                properties.put(APPLICATION, applicationId);
+
+                AuditService.AuditLogData auditLogData = AuditService.AuditLogData.builder()
+                    .properties(properties)
+                    .event(event)
+                    .createdAt(eventDate)
+                    .oldValue(previousApiKey)
+                    .newValue(key)
+                    .build();
+
+                if (isApiProduct) {
+                    auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
+                } else if (referenceId != null) {
+                    auditService.createApiAuditLog(executionContext, auditLogData, referenceId);
+                } else {
+                    auditService.createApplicationAuditLog(executionContext, auditLogData, applicationId);
+                }
             });
     }
 
@@ -754,12 +765,26 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         Set<SubscriptionEntity> subscriptions,
         NotificationParamsBuilder paramsBuilder
     ) {
+        Map<String, Object> additionalParams = new HashMap<>(paramsBuilder.build());
         subscriptions.forEach(subscription -> {
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
+            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             if (isApiProductSubscription(subscription)) {
+                String apiProductId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+                subscriptionService.triggerSubscriptionNotificationsForApiProduct(
+                    executionContext,
+                    apiProductId,
+                    application.getId(),
+                    application,
+                    genericPlanEntity,
+                    subscription,
+                    subscriptionService.buildSubscriptionConsoleUrl(executionContext, subscription),
+                    false,
+                    apiHook,
+                    key,
+                    additionalParams
+                );
                 return;
             }
-            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
             PrimaryOwnerEntity owner = application.getPrimaryOwner();
             Map<String, Object> params = paramsBuilder
@@ -774,7 +799,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private boolean isApiProductSubscription(SubscriptionEntity subscription) {
-        var referenceType = subscription.getReferenceType();
-        return referenceType != null && SubscriptionReferenceType.API_PRODUCT.name().equals(referenceType);
+        return SubscriptionReferenceType.API_PRODUCT.name().equals(subscription.getReferenceType());
     }
 }

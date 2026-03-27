@@ -143,6 +143,7 @@ public class ApiKeyServiceTest {
         // Prepare subscription
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
         // Stub API Key creation
@@ -219,6 +220,7 @@ public class ApiKeyServiceTest {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
         when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
         // Stub API Key creation
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
@@ -737,6 +739,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId("subscription-id");
+        subscription.setApi(API_ID);
 
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setId("api-key-id");
@@ -767,6 +770,61 @@ public class ApiKeyServiceTest {
             argThat(auditLogData -> auditLogData.getEvent().equals(APIKEY_EXPIRED)),
             any()
         );
+    }
+
+    @Test
+    public void shouldAuditApiProductWhenUpdatingExpirationForApiProductSubscription() throws TechnicalException {
+        final String productId = "api-product-id";
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("subscription-id");
+        subscription.setPlan(PLAN_ID);
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        subscription.setReferenceId(productId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setKey("ABC");
+        apiKeyEntity.setPaused(true);
+        apiKeyEntity.setSubscriptions(Set.of(subscription));
+        apiKeyEntity.setExpireAt(new Date());
+
+        when(subscriptionService.findById(any())).thenReturn(subscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(application);
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(subscription));
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(plan);
+        when(subscriptionService.buildSubscriptionConsoleUrl(eq(GraviteeContext.getExecutionContext()), eq(subscription))).thenReturn(
+            Optional.empty()
+        );
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        verify(apiKeyRepository, times(1)).update(existingApiKey);
+        assertFalse("isRevoked", existingApiKey.isRevoked());
+        assertTrue("isPaused", existingApiKey.isPaused());
+
+        verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_EXPIRED), any(), any());
+        verify(subscriptionService, times(1)).triggerSubscriptionNotificationsForApiProduct(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(productId),
+            eq(APPLICATION_ID),
+            eq(application),
+            eq(plan),
+            eq(subscription),
+            any(),
+            eq(false),
+            eq(ApiHook.APIKEY_EXPIRED),
+            eq(existingApiKey),
+            any()
+        );
+        verify(auditService, times(1)).createApiProductAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(productId));
+        verify(auditService, never()).createApiAuditLog(any(), any(), any());
     }
 
     @Test
@@ -944,11 +1002,41 @@ public class ApiKeyServiceTest {
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
+        when(subscriptionService.buildSubscriptionConsoleUrl(eq(GraviteeContext.getExecutionContext()), eq(subscription))).thenReturn(
+            Optional.empty()
+        );
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription);
 
         verify(apiKeyRepository, times(1)).create(any());
         verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_RENEWED), any(), any());
+        // Expiring the previous key triggers APIKEY_EXPIRED; the new key triggers APIKEY_RENEWED (API Product pipeline).
+        verify(subscriptionService).triggerSubscriptionNotificationsForApiProduct(
+            eq(GraviteeContext.getExecutionContext()),
+            eq("product-1"),
+            eq(APPLICATION_ID),
+            eq(application),
+            eq(plan),
+            eq(subscription),
+            any(),
+            eq(false),
+            eq(ApiHook.APIKEY_EXPIRED),
+            any(),
+            any()
+        );
+        verify(subscriptionService).triggerSubscriptionNotificationsForApiProduct(
+            eq(GraviteeContext.getExecutionContext()),
+            eq("product-1"),
+            eq(APPLICATION_ID),
+            eq(application),
+            eq(plan),
+            eq(subscription),
+            any(),
+            eq(false),
+            eq(ApiHook.APIKEY_RENEWED),
+            any(),
+            any()
+        );
     }
 
     @Test
