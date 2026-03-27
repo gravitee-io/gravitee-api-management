@@ -1,5 +1,3 @@
-package io.gravitee.rest.api.portal.rest.resource;
-
 /*
  * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,45 +13,50 @@ package io.gravitee.rest.api.portal.rest.resource;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.rest.api.portal.rest.resource;
+
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
-import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
-import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForEnvironmentUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForApiPortalUseCase;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionFormMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.springframework.stereotype.Component;
 
 /**
+ * Portal endpoint to retrieve the subscription form for a specific API, with EL options resolved
+ * against the API's metadata.
+ *
+ * <p>Path: {@code GET /apis/{apiId}/subscription-form}</p>
+ *
  * @author GraviteeSource Team
  */
 @Component
-public class SubscriptionFormResource extends AbstractResource<Object, Object> {
+public class ApiSubscriptionFormResource extends AbstractResource<Object, Object> {
 
     @Inject
-    private GetSubscriptionFormForEnvironmentUseCase getSubscriptionFormForEnvironmentUseCase;
+    private GetSubscriptionFormForApiPortalUseCase getSubscriptionFormForApiPortalUseCase;
 
     private static final SubscriptionFormMapper subscriptionFormMapper = SubscriptionFormMapper.INSTANCE;
 
-    // TODO: Remove this after frontend is updated to use the new endpoint
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    @Deprecated
-    public Response getSubscriptionForm() {
+    public Response getSubscriptionForm(@PathParam("apiId") String apiId) {
         var executionContext = getExecutionContext();
-        var result = getSubscriptionFormForEnvironmentUseCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(executionContext.getEnvironmentId()).build()
+        var result = getSubscriptionFormForApiPortalUseCase.execute(
+            GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .apiId(apiId)
+                .userId(getAuthenticatedUserOrNull())
+                .build()
         );
 
-        if (!result.subscriptionForm().isEnabled()) {
-            throw new SubscriptionFormNotFoundException(executionContext.getEnvironmentId());
-        }
-
-        return Response.ok(subscriptionFormMapper.map(result.subscriptionForm())).build();
+        return Response.ok(subscriptionFormMapper.map(result)).build();
     }
 }

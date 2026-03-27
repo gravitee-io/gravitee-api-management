@@ -2326,6 +2326,16 @@ components:
           type: boolean
           description: Whether the form is enabled and visible to API consumers in the Developer Portal
           example: false
+        resolvedOptions:
+          type: object
+          description: |-
+            Resolved option lists for fields that use EL expressions.
+            Keys are field keys; values are the effective option lists (fallback values when no API context is available).
+            Present only when at least one field has dynamic options.
+          additionalProperties:
+            type: array
+            items:
+              type: string
       required:
         - id
         - gmdContent
