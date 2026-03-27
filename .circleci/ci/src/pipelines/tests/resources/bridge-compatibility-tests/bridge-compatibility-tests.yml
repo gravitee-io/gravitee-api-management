@@ -77,21 +77,25 @@ commands:
         type: string
         default: ""
         description: the name of the UI project to build
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the UI project to build
     steps:
       - restore_cache:
           name: Restore Yarn cache
           keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
             - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
       - run:
           name: Install dependencies
           command: yarn
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: << parameters.apim-ui-project-workdir >>
       - save_cache:
           name: Save Yarn cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
           paths:
-            - ./<< parameters.apim-ui-project >>/node_modules
+            - ./<< parameters.apim-ui-project-workdir >>/node_modules
   cmd-docker-login:
     steps:
       - keeper/env-export:
@@ -192,6 +196,7 @@ jobs:
           working_directory: gravitee-apim-e2e
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-e2e
+          apim-ui-project-workdir: gravitee-apim-e2e
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -208,6 +213,7 @@ jobs:
       - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-e2e
+          apim-ui-project-workdir: gravitee-apim-e2e
       - attach_workspace:
           at: .
       - run:

@@ -25,12 +25,13 @@ export class WebuiLintTestJob {
   private static jobNameNx = 'job-nx-webui-lint-test';
 
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
-    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the directory name of the UI project'),
+    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project'),
+    new parameters.CustomParameter('apim-ui-project-workdir', 'string', '', 'the directory name of the UI project'),
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
   ]);
 
   private static customParametersListNx = new parameters.CustomParametersList<CommandParameterLiteral>([
-    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the directory name of the UI project'),
+    new parameters.CustomParameter('apim-ui-project-workdir', 'string', '', 'the directory name of the UI project'),
     new parameters.CustomParameter('nx-project', 'string', '', 'the Nx project name'),
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
     new parameters.CustomParameter('max-workers', 'string', '35%', 'Maximum number of workers for Jest tests'),
@@ -49,36 +50,39 @@ export class WebuiLintTestJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': '<< parameters.apim-ui-project >>' }),
+      new reusable.ReusedCommand(webUiInstallCommand, {
+        'apim-ui-project': '<< parameters.apim-ui-project >>',
+        'apim-ui-project-workdir': '<< parameters.apim-ui-project-workdir >>',
+      }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check License',
         command: 'yarn lint:license',
-        working_directory: '<< parameters.apim-ui-project >>',
+        working_directory: '<< parameters.apim-ui-project-workdir >>',
       }),
       new commands.Run({
         name: 'Run Prettier and ESLint',
         command: 'yarn lint',
-        working_directory: '<< parameters.apim-ui-project >>',
+        working_directory: '<< parameters.apim-ui-project-workdir >>',
       }),
       new commands.Run({
         name: 'Run unit tests',
         command: 'yarn test:coverage',
-        working_directory: '<< parameters.apim-ui-project >>',
+        working_directory: '<< parameters.apim-ui-project-workdir >>',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       // For Sonar analysis
       new commands.workspace.Persist({
         root: '.',
-        paths: ['<< parameters.apim-ui-project >>/coverage/lcov.info'],
+        paths: ['<< parameters.apim-ui-project-workdir >>/coverage/lcov.info'],
       }),
       // For direct access in CircleCI UI
       new commands.StoreArtifacts({
-        path: '<< parameters.apim-ui-project >>/coverage/lcov.info',
+        path: '<< parameters.apim-ui-project-workdir >>/coverage/lcov.info',
       }),
       // For Test tab in CircleCI UI
       new commands.StoreTestResults({
-        path: '<< parameters.apim-ui-project >>/coverage/junit.xml',
+        path: '<< parameters.apim-ui-project-workdir >>/coverage/junit.xml',
       }),
     ];
 
@@ -121,15 +125,15 @@ export class WebuiLintTestJob {
       // For Sonar analysis
       new commands.workspace.Persist({
         root: '.',
-        paths: ['<< parameters.apim-ui-project >>/coverage/lcov.info'],
+        paths: ['<< parameters.apim-ui-project-workdir >>/coverage/lcov.info'],
       }),
       // For direct access in CircleCI UI
       new commands.StoreArtifacts({
-        path: '<< parameters.apim-ui-project >>/coverage/lcov.info',
+        path: '<< parameters.apim-ui-project-workdir >>/coverage/lcov.info',
       }),
       // For Test tab in CircleCI UI
       new commands.StoreTestResults({
-        path: '<< parameters.apim-ui-project >>/coverage/junit.xml',
+        path: '<< parameters.apim-ui-project-workdir >>/coverage/junit.xml',
       }),
     ];
 

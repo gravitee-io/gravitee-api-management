@@ -26,6 +26,7 @@ export class BuildDockerWebUiImageJob {
 
   private static customParametersList = new parameters.CustomParametersList([
     new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('apim-project-workdir', 'string', '', 'the directory of the project to build'),
     new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
     new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
   ]);
@@ -58,7 +59,7 @@ export class BuildDockerWebUiImageJob {
         new commands.Run({
           name: 'Build docker image for << parameters.apim-project >>',
           command: `${dockerBuildCommand(environment, dockerTags, isProd)}`,
-          working_directory: '<< parameters.apim-project >>',
+          working_directory: '<< parameters.apim-project-workdir >>',
         }),
         ...(isProd || isSupportBranchOrMaster(environment.branch)
           ? [
@@ -108,6 +109,7 @@ export class BuildDockerBackendImageJob {
 
   private static customParametersList = new parameters.CustomParametersList([
     new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('apim-project-workdir', 'string', '', 'the directory of the project to build'),
     new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
     new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
   ]);
@@ -144,7 +146,7 @@ export class BuildDockerBackendImageJob {
             new commands.Run({
               name: `Build docker image for << parameters.apim-project >>-${variant}`,
               command: `${dockerBuildCommand(environment, dockerTags, isProd, variant)}`,
-              working_directory: '<< parameters.apim-project >>',
+              working_directory: '<< parameters.apim-project-workdir >>',
             }),
             ...(isProd || isSupportBranchOrMaster(environment.branch)
               ? [

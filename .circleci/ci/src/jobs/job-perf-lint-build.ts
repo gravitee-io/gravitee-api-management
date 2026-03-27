@@ -35,7 +35,10 @@ export class PerfLintBuildJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': 'gravitee-apim-perf' }),
+      new reusable.ReusedCommand(webUiInstallCommand, {
+        'apim-ui-project': 'gravitee-apim-perf',
+        'apim-ui-project-workdir': 'gravitee-apim-perf',
+      }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check License',

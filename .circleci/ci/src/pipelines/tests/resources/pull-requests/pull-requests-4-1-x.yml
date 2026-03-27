@@ -117,21 +117,25 @@ commands:
         type: string
         default: ""
         description: the name of the UI project to build
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the UI project to build
     steps:
       - restore_cache:
           name: Restore Yarn cache
           keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
             - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
       - run:
           name: Install dependencies
           command: yarn
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: << parameters.apim-ui-project-workdir >>
       - save_cache:
           name: Save Yarn cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
           paths:
-            - ./<< parameters.apim-ui-project >>/node_modules
+            - ./<< parameters.apim-ui-project-workdir >>/node_modules
 jobs:
   job-danger-js:
     docker:
@@ -566,7 +570,7 @@ jobs:
           path: gravitee-apim-webui-libs/gravitee-dashboard/coverage/junit.xml
   job-nx-webui-lint-test:
     parameters:
-      apim-ui-project:
+      apim-ui-project-workdir:
         type: string
         default: ""
         description: the directory name of the UI project
@@ -604,11 +608,11 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - << parameters.apim-ui-project >>/coverage/lcov.info
+            - << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_artifacts:
-          path: << parameters.apim-ui-project >>/coverage/lcov.info
+          path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
-          path: << parameters.apim-ui-project >>/coverage/junit.xml
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-console-webui-build:
     docker:
       - image: cimg/node:22.12.0
@@ -706,6 +710,10 @@ jobs:
         type: string
         default: ""
         description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
       docker-context:
         type: string
         default: ""
@@ -731,7 +739,7 @@ jobs:
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35 \
             << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
+          working_directory: << parameters.apim-project-workdir >>
       - keeper/env-export:
           secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
           var-name: AQUA_KEY
@@ -763,6 +771,10 @@ jobs:
       apim-ui-project:
         type: string
         default: ""
+        description: the name of the UI project
+      apim-ui-project-workdir:
+        type: string
+        default: ""
         description: the directory name of the UI project
       resource_class:
         type: string
@@ -776,29 +788,30 @@ jobs:
       - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: << parameters.apim-ui-project >>
+          apim-ui-project-workdir: << parameters.apim-ui-project-workdir >>
       - attach_workspace:
           at: .
       - run:
           name: Check License
           command: yarn lint:license
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: << parameters.apim-ui-project-workdir >>
       - run:
           name: Run Prettier and ESLint
           command: yarn lint
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: << parameters.apim-ui-project-workdir >>
       - run:
           name: Run unit tests
           command: yarn test:coverage
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: << parameters.apim-ui-project-workdir >>
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - << parameters.apim-ui-project >>/coverage/lcov.info
+            - << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_artifacts:
-          path: << parameters.apim-ui-project >>/coverage/lcov.info
+          path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
-          path: << parameters.apim-ui-project >>/coverage/junit.xml
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
       - image: cimg/node:22.12.0
@@ -812,6 +825,7 @@ jobs:
       - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-portal-webui
+          apim-ui-project-workdir: gravitee-apim-portal-webui
       - run:
           name: Update Build version
           command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
@@ -833,12 +847,39 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
+  job-gamma-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
+      - run:
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
   job-build-docker-backend-image:
     parameters:
       apim-project:
         type: string
         default: ""
         description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
       docker-context:
         type: string
         default: ""
@@ -884,7 +925,7 @@ jobs:
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35 \
             << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
+          working_directory: << parameters.apim-project-workdir >>
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
       - aquasec/scan_docker_image:
@@ -896,7 +937,7 @@ jobs:
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-debian -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35-debian \
             << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
+          working_directory: << parameters.apim-project-workdir >>
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-debian
       - aquasec/scan_docker_image:
@@ -921,6 +962,7 @@ jobs:
           working_directory: gravitee-apim-e2e
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-e2e
+          apim-ui-project-workdir: gravitee-apim-e2e
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -937,6 +979,7 @@ jobs:
       - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-e2e
+          apim-ui-project-workdir: gravitee-apim-e2e
       - attach_workspace:
           at: .
       - run:
@@ -1046,6 +1089,7 @@ jobs:
       - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-perf
+          apim-ui-project-workdir: gravitee-apim-perf
       - attach_workspace:
           at: .
       - run:
@@ -1400,7 +1444,7 @@ workflows:
           name: Lint & test APIM Console
           context:
             - cicd-orchestrator
-          apim-ui-project: gravitee-apim-console-webui
+          apim-ui-project-workdir: gravitee-apim-console-webui
           nx-project: console
           resource_class: xlarge
           max-workers: "4"
@@ -1415,6 +1459,7 @@ workflows:
           requires:
             - Build APIM Console
           apim-project: gravitee-apim-console-webui
+          apim-project-workdir: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
       - job-console-webui-build-storybook:
@@ -1439,7 +1484,7 @@ workflows:
           name: Lint & test APIM Portal Next
           context:
             - cicd-orchestrator
-          apim-ui-project: gravitee-apim-portal-webui-next
+          apim-ui-project-workdir: gravitee-apim-portal-webui-next
           nx-project: portal-next
           max-workers: "2"
       - job-sonarcloud-analysis:
@@ -1455,6 +1500,7 @@ workflows:
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
+          apim-ui-project-workdir: gravitee-apim-portal-webui
           resource_class: large
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
@@ -1475,8 +1521,31 @@ workflows:
           requires:
             - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
+          apim-project-workdir: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
+      - job-nx-webui-lint-test:
+          name: Lint & test Gamma Console
+          context:
+            - cicd-orchestrator
+          apim-ui-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          nx-project: gravitee-gamma-control-plane-webui
+          resource_class: xlarge
+          max-workers: "4"
+      - job-gamma-webui-build:
+          name: Build Gamma Console
+          context:
+            - cicd-orchestrator
+      - job-build-docker-webui-image:
+          context:
+            - cicd-orchestrator
+          name: Build Gamma Console docker image
+          requires:
+            - Build Gamma Console
+          apim-project: gravitee-gamma-control-plane-webui
+          apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          docker-context: .
+          docker-image-name: gamma-ui
       - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
@@ -1484,6 +1553,7 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-rest-api
+          apim-project-workdir: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
@@ -1493,6 +1563,7 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-gateway
+          apim-project-workdir: gravitee-apim-gateway
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
       - job-e2e-generate-sdk:
