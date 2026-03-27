@@ -16,19 +16,20 @@
 
 -->
 @if (mcpEntrypoint()) {
-  <div class="api-tab-tools__mcp-entrypoint">
-    <div class="m3-title-medium" i18n="@@mcpToolsEntrypoint">MCP entrypoint</div>
-    <app-copy-code class="m3-body-medium" [text]="mcpEntrypoint() ?? ''" />
+  <div class="api-tab-tools__entrypoint">
+    <div class="next-gen-h3 api-tab-tools__header" i18n="@@mcpToolsEntrypoint">MCP entrypoint</div>
+    <app-copy-code class="next-gen-body" [text]="mcpEntrypoint() ?? ''" />
   </div>
 }
-<div class="m3-title-medium" i18n="@@mcpToolDefinitions">Tool Definitions</div>
-@for (mcpTool of mcpTools(); track $index) {
-  <app-mcp-tool [tool]="mcpTool.toolDefinition" />
-} @empty {
-  <div class="api-tab-tools__empty">
-    <div class="m3-body-large" i18n="@@mcpToolsNotAvailable">No tools available</div>
-    <div class="m3-body-medium" i18n="@@mcpToolsNotAvailableExplanation">
-      It seems that there are currently no tools available for this API.
-    </div>
+<div class="api-tab-tools__tools">
+  <div class="next-gen-h3 api-tab-tools__header" i18n="@@mcpToolDefinitions">Tool Definitions</div>
+  <div class="api-tab-tools__tools__content">
+    @for (mcpTool of mcpTools(); track $index) {
+      <app-mcp-tool class="api-tab-tools__tool" [tool]="mcpTool.toolDefinition" />
+    } @empty {
+      <div class="next-gen-body" i18n="@@mcpToolsNotAvailableExplanation">
+        It seems that there are currently no tools available for this API.
+      </div>
+    }
   </div>
-}
+</div>
