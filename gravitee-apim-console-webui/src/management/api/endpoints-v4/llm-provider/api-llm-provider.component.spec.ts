@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
@@ -154,7 +154,7 @@ describe('ApiProviderComponent', () => {
   });
 
   describe('should update existing provider', () => {
-    it('should edit and save an existing provider', async () => {
+    it('should edit and save an existing provider', fakeAsync(async () => {
       const existingProvider = {
         name: 'Existing Provider',
         type: 'llm-proxy',
@@ -211,7 +211,8 @@ describe('ApiProviderComponent', () => {
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider successfully updated!');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
-    });
+      flush();
+    }));
   });
 
   function expectEndpointsSharedConfigurationSchemaGetRequest(id: string) {
