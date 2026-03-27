@@ -54,10 +54,10 @@ public class SubscriptionFormsResource extends AbstractResource {
         var environmentId = GraviteeContext.getCurrentEnvironment();
 
         var output = getSubscriptionFormForEnvironmentUseCase.execute(
-            new GetSubscriptionFormForEnvironmentUseCase.Input(environmentId, false)
+            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(environmentId).onlyEnabled(false).build()
         );
 
-        return Response.ok(SubscriptionFormMapper.INSTANCE.toResponse(output.subscriptionForm())).build();
+        return Response.ok(SubscriptionFormMapper.INSTANCE.toResponse(output)).build();
     }
 
     @Path("{subscriptionFormId}")

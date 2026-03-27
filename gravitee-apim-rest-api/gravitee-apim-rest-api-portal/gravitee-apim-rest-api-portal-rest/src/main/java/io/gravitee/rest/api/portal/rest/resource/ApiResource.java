@@ -314,4 +314,9 @@ public class ApiResource extends AbstractResource {
     public ApiMediaResource getApiMediaResource() {
         return resourceContext.getResource(ApiMediaResource.class);
     }
+
+    @Path("subscription-form")
+    public ApiSubscriptionFormResource getApiSubscriptionFormResource() {
+        return resourceContext.getResource(ApiSubscriptionFormResource.class);
+    }
 }
