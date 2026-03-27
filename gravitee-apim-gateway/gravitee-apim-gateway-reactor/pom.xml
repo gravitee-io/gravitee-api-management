@@ -94,6 +94,14 @@
             <artifactId>gravitee-common</artifactId>
         </dependency>
 
+        <!-- Micrometer for Prometheus percentile metrics (P95/P99) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>1.12.13</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-http</artifactId>
