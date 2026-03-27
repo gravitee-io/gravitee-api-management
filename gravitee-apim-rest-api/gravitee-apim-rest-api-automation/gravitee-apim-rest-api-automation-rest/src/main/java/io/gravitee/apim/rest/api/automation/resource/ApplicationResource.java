@@ -79,12 +79,12 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
+    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("legacyID") boolean legacyID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
                 executionContext,
-                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+                legacyID ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
 
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
@@ -142,11 +142,11 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
+    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("legacyID") boolean legacyID) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            String applicationId = legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId();
+            String applicationId = legacyID ? hrid : IdBuilder.builder(executionContext, hrid).buildId();
             applicationService.archive(executionContext, applicationId);
             removeMetadata(applicationId);
         } catch (ApplicationNotFoundException e) {

@@ -216,12 +216,37 @@ class ApisResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isNull();
                 soft.assertThat(state.getId()).isNull();
+                soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
+        }
+
+        @Test
+        void should_return_state_with_legacy_id() {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("legacyID", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-legacy-id.json")));
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var state = response.readEntity(ApiV4State.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(state.getId()).isEqualTo("api-id");
+                    soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
+                    soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                    soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                });
+            }
         }
 
         @Test
@@ -255,7 +280,7 @@ class ApisResourceTest extends AbstractResourceTest {
         try (
             var response = rootTarget()
                 .queryParam("dryRun", dryRun)
-                .queryParam("legacy", legacy)
+                .queryParam("legacyID", legacy)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(readJSON(spec)))
