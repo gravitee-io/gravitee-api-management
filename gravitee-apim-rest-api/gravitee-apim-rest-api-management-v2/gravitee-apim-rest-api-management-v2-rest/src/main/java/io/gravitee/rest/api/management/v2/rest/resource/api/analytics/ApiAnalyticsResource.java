@@ -52,6 +52,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class ApiAnalyticsResource extends AbstractResource {
@@ -115,13 +117,17 @@ public class ApiAnalyticsResource extends AbstractResource {
         Instant startTime = Instant.ofEpochMilli(from);
         Instant endTime = Instant.ofEpochMilli(to);
 
-        return switch (type.toUpperCase()) {
-            case "COUNT" -> handleCount(startTime, endTime);
-            case "STATS" -> handleStats(field, startTime, endTime);
-            case "GROUP_BY" -> handleGroupBy(field, size, startTime, endTime);
-            case "DATE_HISTO" -> handleDateHisto(field, interval, startTime, endTime);
-            default -> throw new BadRequestException("Unsupported analytics query type: " + type);
-        };
+        try {
+            return switch (type.toUpperCase()) {
+                case "COUNT" -> handleCount(startTime, endTime);
+                case "STATS" -> handleStats(field, startTime, endTime);
+                case "GROUP_BY" -> handleGroupBy(field, size, startTime, endTime);
+                case "DATE_HISTO" -> handleDateHisto(field, interval, startTime, endTime);
+                default -> throw new BadRequestException("Unsupported analytics query type: " + type);
+            };
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     private Response handleCount(Instant from, Instant to) {
@@ -137,24 +143,14 @@ public class ApiAnalyticsResource extends AbstractResource {
         var input = new SearchAnalyticsStatsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), field, from, to);
         var output = searchAnalyticsStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
         var stats = output.stats();
-        return Response
-            .ok(
-                java.util.Map.of(
-                    "type",
-                    "STATS",
-                    "count",
-                    stats.getCount(),
-                    "min",
-                    stats.getMin(),
-                    "max",
-                    stats.getMax(),
-                    "avg",
-                    stats.getAvg(),
-                    "sum",
-                    stats.getSum()
-                )
-            )
-            .build();
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("type", "STATS");
+        response.put("count", stats.getCount());
+        response.put("min", stats.getMin());
+        response.put("max", stats.getMax());
+        response.put("avg", stats.getAvg());
+        response.put("sum", stats.getSum());
+        return Response.ok(response).build();
     }
 
     private Response handleGroupBy(String field, Integer size, Instant from, Instant to) {
@@ -164,16 +160,10 @@ public class ApiAnalyticsResource extends AbstractResource {
         var input = new SearchAnalyticsGroupByUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), field, size, from, to);
         var output = searchAnalyticsGroupByUseCase.execute(GraviteeContext.getExecutionContext(), input);
         var groupBy = output.groupBy();
-        return Response
-            .ok(
-                java.util.Map.of(
-                    "type",
-                    "GROUP_BY",
-                    "values",
-                    groupBy.getValues() != null ? groupBy.getValues() : java.util.Collections.emptyMap()
-                )
-            )
-            .build();
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("type", "GROUP_BY");
+        response.put("values", groupBy.getValues() != null ? groupBy.getValues() : java.util.Collections.emptyMap());
+        return Response.ok(response).build();
     }
 
     private Response handleDateHisto(String field, Long interval, Instant from, Instant to) {
@@ -187,18 +177,11 @@ public class ApiAnalyticsResource extends AbstractResource {
         var input = new SearchAnalyticsDateHistoUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), field, duration, from, to);
         var output = searchAnalyticsDateHistoUseCase.execute(GraviteeContext.getExecutionContext(), input);
         var histo = output.dateHistogram();
-        return Response
-            .ok(
-                java.util.Map.of(
-                    "type",
-                    "DATE_HISTO",
-                    "timestamps",
-                    histo.getTimestamps() != null ? histo.getTimestamps() : java.util.Collections.emptyList(),
-                    "values",
-                    histo.getValues() != null ? histo.getValues() : java.util.Collections.emptyMap()
-                )
-            )
-            .build();
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("type", "DATE_HISTO");
+        response.put("timestamps", histo.getTimestamps() != null ? histo.getTimestamps() : java.util.Collections.emptyList());
+        response.put("values", histo.getValues() != null ? histo.getValues() : java.util.Collections.emptyMap());
+        return Response.ok(response).build();
     }
 
     // ----- Legacy individual endpoints (preserved for backward compatibility) -----

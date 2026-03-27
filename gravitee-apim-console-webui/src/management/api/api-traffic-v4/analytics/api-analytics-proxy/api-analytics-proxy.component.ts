@@ -169,11 +169,11 @@ export class ApiAnalyticsProxyComponent {
       statusPieChart: {
         isLoading: statusGroupBy.isLoading,
         data: statusGroupBy.values
-          ? Object.entries(statusGroupBy.values)
-              .filter(([, value]) => (value as number) > 0)
+          ? Object.entries(statusGroupBy.values as Record<string, number>)
+              .filter(([, value]) => value > 0)
               .map(([label, value]) => ({
-                label: getStatusLabel(label),
-                value: value as number,
+                label,
+                value,
                 color: getStatusColor(label),
               }))
           : undefined,
@@ -200,8 +200,4 @@ const getStatusColor = (statusCode: string): string => {
   } else {
     return '#bbb';
   }
-};
-
-const getStatusLabel = (statusCode: string): string => {
-  return statusCode;
 };

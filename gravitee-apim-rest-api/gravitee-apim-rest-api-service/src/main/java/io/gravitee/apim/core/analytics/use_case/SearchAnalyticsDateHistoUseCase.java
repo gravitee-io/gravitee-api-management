@@ -17,11 +17,6 @@ package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.DateHistogramResult;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
@@ -43,12 +38,12 @@ public class SearchAnalyticsDateHistoUseCase {
     private static final Set<String> ALLOWED_FIELDS = Set.of("status", "mapped-status", "application", "plan", "host", "uri");
 
     private final AnalyticsQueryService analyticsQueryService;
-    private final ApiCrudService apiCrudService;
+    private final AnalyticsApiValidator analyticsApiValidator;
 
     public Output execute(ExecutionContext executionContext, Input input) {
         validateField(input.field());
         validateInterval(input.interval());
-        validateApiRequirements(input);
+        analyticsApiValidator.validate(input.apiId(), input.environmentId());
 
         var result = analyticsQueryService
             .searchDateHistogram(executionContext, input.apiId(), input.field(), input.interval(), input.from(), input.to())
@@ -66,31 +61,6 @@ public class SearchAnalyticsDateHistoUseCase {
     private void validateInterval(Duration interval) {
         if (interval == null || interval.toMillis() <= 0) {
             throw new IllegalArgumentException("Interval must be a positive duration, got: " + interval);
-        }
-    }
-
-    private void validateApiRequirements(Input input) {
-        final Api api = apiCrudService.get(input.apiId);
-        validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
-        validateApiIsNotTcp(api.getApiDefinitionHttpV4());
-        validateApiMultiTenancyAccess(api, input.environmentId);
-    }
-
-    private static void validateApiMultiTenancyAccess(Api api, String environmentId) {
-        if (!api.belongsToEnvironment(environmentId)) {
-            throw new ApiNotFoundException(api.getId());
-        }
-    }
-
-    private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
-        if (!DefinitionVersion.V4.equals(definitionVersion)) {
-            throw new ApiInvalidDefinitionVersionException(apiId);
-        }
-    }
-
-    private void validateApiIsNotTcp(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-        if (apiDefinitionV4 != null && apiDefinitionV4.isTcpProxy()) {
-            throw new IllegalArgumentException("Analytics are not supported for TCP Proxy APIs");
         }
     }
 
