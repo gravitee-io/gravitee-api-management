@@ -57,6 +57,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.InvitationEntity;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -166,6 +167,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -1997,31 +1999,44 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             return Collections.emptySet();
         }
 
-        Set<GroupEntity> groups = new HashSet<>();
+        TemplateEngine templateEngine = TemplateEngine.templateEngine();
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
 
-        for (GroupMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
-
-            boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
-
-            trace(userId, match, mapping.getCondition());
-
-            // Get groups
-            if (match) {
-                for (String groupName : mapping.getGroups()) {
-                    try {
-                        groups.add(groupService.findById(executionContext, groupName));
-                    } catch (GroupNotFoundException gnfe) {
-                        log.warn("Unable to map user groups, missing group in repository: {}", groupName);
-                    }
+        return mappings
+            .stream()
+            .filter(mapping -> {
+                boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
+                trace(userId, match, mapping.getCondition());
+                return match;
+            })
+            .flatMap(mapping -> mapping.getGroups().stream())
+            .flatMap(group -> {
+                if (!group.contains("{#")) {
+                    return Stream.of(group);
                 }
-            }
-        }
 
-        return groups;
+                List<String> templateGroups = templateEngine.evalNow(group, List.class);
+                if (templateGroups == null || templateGroups.isEmpty()) {
+                    return Stream.empty();
+                }
+
+                return groupService
+                    .findAllByOrganization(executionContext.getOrganizationId())
+                    .stream()
+                    .filter(orgGroup -> templateGroups.contains(orgGroup.getName()))
+                    .map(GroupSimpleEntity::getId);
+            })
+            .flatMap(groupId -> {
+                try {
+                    return Stream.of(groupService.findById(executionContext, groupId));
+                } catch (GroupNotFoundException gnfe) {
+                    LOGGER.warn("Unable to map user groups, missing group in repository: {}", groupId);
+                    return Stream.empty();
+                }
+            })
+            .collect(Collectors.toSet());
     }
 
     private List<MembershipService.Membership> refreshUserGroups(
