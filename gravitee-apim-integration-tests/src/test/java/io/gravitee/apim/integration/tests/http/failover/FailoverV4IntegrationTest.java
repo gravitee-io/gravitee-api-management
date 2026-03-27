@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
@@ -63,6 +64,8 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.apikey.ApiKeyPolicy;
 import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
+import io.gravitee.policy.dynamicrouting.DynamicRoutingPolicy;
+import io.gravitee.policy.dynamicrouting.configuration.DynamicRoutingPolicyConfiguration;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Flowable;
@@ -1084,6 +1087,114 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @Test
         void should_success_on_second_retry(HttpClient client) {
             super.should_success_on_second_retry(client);
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class DynamicRoutingGroupCaptureWithFailover extends AbstractGatewayTest {
+
+        protected final int wiremockPort = getAvailablePort();
+
+        @Override
+        protected void configureWireMock(WireMockConfiguration configuration) {
+            configuration.port(wiremockPort);
+        }
+
+        @Override
+        public void configurePolicies(Map<String, PolicyPlugin> policies) {
+            policies.put(
+                "dynamic-routing",
+                PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class)
+            );
+        }
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            if (isLegacyApi(definitionClass)) {
+                throw new IllegalStateException("should be testing a v4 API");
+            }
+            final Api definition = (Api) api.getDefinition();
+            definition
+                .getEndpointGroups()
+                .stream()
+                .filter(group -> group.getName().equals("second"))
+                .flatMap(group -> group.getEndpoints().stream())
+                .forEach(endpoint ->
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
+                );
+            var manager = applicationContext.getBean(ApiManager.class);
+            manager.unregister(api.getId());
+            manager.register(api);
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-failover-dynamic-routing-group-capture.json")
+        void should_route_to_second_group_when_group_capture_produces_double_slash(HttpClient client) {
+            wiremock.stubFor(get("/second-group//hello").willReturn(ok("ok from backend")));
+
+            client
+                .rxRequest(HttpMethod.GET, "/test/plan/hello")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString("ok from backend");
+                    return true;
+                });
+
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group//hello")));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-failover-dynamic-routing-group-capture.json")
+        void should_retry_to_second_group_on_slow_first_call(HttpClient client) {
+            wiremock.stubFor(
+                get("/second-group//hello")
+                    .inScenario("Slow first call")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willReturn(ok("ok from backend").withFixedDelay(750))
+                    .willSetStateTo("First Retry")
+            );
+
+            wiremock.stubFor(
+                get("/second-group//hello")
+                    .inScenario("Slow first call")
+                    .whenScenarioStateIs("First Retry")
+                    .willReturn(ok("ok from backend"))
+            );
+
+            client
+                .rxRequest(HttpMethod.GET, "/test/plan/hello")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString("ok from backend");
+                    return true;
+                });
+
+            wiremock.verify(2, getRequestedFor(urlPathEqualTo("/second-group//hello")));
         }
     }
 
