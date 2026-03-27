@@ -134,6 +134,7 @@ public class SharedPolicyGroup {
             .policies(steps)
             .phase(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.valueOf(phase.name()))
             .name(name)
+            .version(version != null ? String.valueOf(version) : null)
             .deployedAt(Date.from(deployedAt.toInstant()))
             .build();
     }
