@@ -1800,6 +1800,65 @@ class MigrateApiUseCaseTest {
         });
     }
 
+    @Test
+    void should_migrate_endpoint_shared_configuration_override_filtering_extraneous_http_fields() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group ->
+                group
+                    .getEndpoints()
+                    .forEach(e -> {
+                        e.setInherit(false);
+                        // Simulate V2 endpoint configuration with extraneous http fields (clearTextUpgrade, maxHeaderSize, maxChunkSize)
+                        // and proxy with type field not allowed by the V4 schema
+                        e.setConfiguration(
+                            "{\"target\":\"https://api.gravitee.io/echo\",\"http\":{\"version\":\"HTTP_1_1\",\"clearTextUpgrade\":true,\"maxHeaderSize\":8192,\"maxChunkSize\":8192,\"readTimeout\":10000},\"proxy\":{\"enabled\":false,\"useSystemProxy\":false,\"type\":\"HTTP\"}}"
+                        );
+                    })
+            );
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
+        planCrudService.initWith(List.of(plan));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+        assertThat(migratedApi).hasValueSatisfying(api -> {
+            var endpoints = api
+                .getApiDefinitionHttpV4()
+                .getEndpointGroups()
+                .stream()
+                .flatMap(g -> g.getEndpoints().stream())
+                .toList();
+            assertThat(endpoints)
+                .singleElement()
+                .satisfies(endpoint -> {
+                    assertThat(endpoint.isInheritConfiguration()).isFalse();
+                    var override = endpoint.getSharedConfigurationOverride();
+                    assertThat(override).isNotNull();
+                    assertThat(override).contains("\"readTimeout\":10000");
+                    assertThat(override).doesNotContain("clearTextUpgrade", "maxHeaderSize", "maxChunkSize");
+                    assertThat(override).doesNotContain("\"type\"");
+                });
+        });
+    }
+
     @Nested
     class FlowSpecific {
 

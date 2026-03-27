@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SharedConfigurationMigration {
 
-    private static final Set<String> HTTP11_ALLOWED = Set.of(
+    static final Set<String> HTTP11_ALLOWED = Set.of(
         "version",
         "keepAlive",
         "keepAliveTimeout",
@@ -45,7 +45,7 @@ public class SharedConfigurationMigration {
         "maxConcurrentConnections"
     );
 
-    private static final Set<String> HTTP2_ALLOWED = Set.of(
+    static final Set<String> HTTP2_ALLOWED = Set.of(
         "version",
         "clearTextUpgrade",
         "keepAlive",
@@ -79,13 +79,17 @@ public class SharedConfigurationMigration {
         }
         if (source.getHttpProxy() != null) {
             ObjectNode proxyNode = (ObjectNode) objectMapper.valueToTree(source.getHttpProxy());
-            if (source.getHttpProxy().isEnabled() && source.getHttpProxy().isUseSystemProxy()) {
+            boolean enabled = source.getHttpProxy().isEnabled();
+            boolean useSystemProxy = source.getHttpProxy().isUseSystemProxy();
+            if (!enabled || useSystemProxy) {
+                // No proxy or system proxy: V4 schema allows only enabled and useSystemProxy (additionalProperties: false)
+                proxyNode.remove("type");
                 proxyNode.remove("host");
                 proxyNode.remove("port");
-                proxyNode.remove("type");
-                proxyNode.put("useSystemProxy", true);
-                proxyNode.remove("enabled");
+                proxyNode.remove("username");
+                proxyNode.remove("password");
             } else {
+                // Custom proxy: host and port are required by V4 schema
                 String host = source.getHttpProxy().getHost();
                 if (host == null || host.isEmpty()) {
                     proxyNode.put("host", "/");

@@ -165,7 +165,7 @@ class SharedConfigurationMigrationTest {
             assertThat(proxyNode.has("host")).isFalse();
             assertThat(proxyNode.has("port")).isFalse();
             assertThat(proxyNode.has("type")).isFalse();
-            assertThat(proxyNode.has("enabled")).isFalse();
+            assertThat(proxyNode.get("enabled").asBoolean()).isTrue();
             assertThat(proxyNode.get("useSystemProxy").asBoolean()).isTrue();
         }
 
@@ -191,9 +191,8 @@ class SharedConfigurationMigrationTest {
             assertThat(proxyNode.get("host").asText()).isEqualTo("proxy.example.com");
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = { "" })
-        void should_set_host_to_slash_when_host_is_blank(String host) throws JsonProcessingException {
+        @Test
+        void should_not_include_host_port_type_when_proxy_is_disabled() throws JsonProcessingException {
             var group = new EndpointGroup();
             var options = new HttpClientOptions();
             options.setVersion(ProtocolVersion.HTTP_1_1);
@@ -202,7 +201,34 @@ class SharedConfigurationMigrationTest {
             var proxy = new HttpProxy();
             proxy.setEnabled(false);
             proxy.setUseSystemProxy(false);
-            proxy.setHost(host);
+            proxy.setHost("proxy.example.com");
+            proxy.setPort(8080);
+            group.setHttpProxy(proxy);
+
+            var result = sharedConfigurationMigration.convert(group);
+            JsonNode json = objectMapper.readTree(result);
+
+            JsonNode proxyNode = json.get("proxy");
+            assertThat(proxyNode).isNotNull();
+            assertThat(proxyNode.get("enabled").asBoolean()).isFalse();
+            assertThat(proxyNode.get("useSystemProxy").asBoolean()).isFalse();
+            assertThat(proxyNode.has("host")).isFalse();
+            assertThat(proxyNode.has("port")).isFalse();
+            assertThat(proxyNode.has("type")).isFalse();
+        }
+
+        @Test
+        void should_set_host_to_slash_when_custom_proxy_has_blank_host() throws JsonProcessingException {
+            var group = new EndpointGroup();
+            var options = new HttpClientOptions();
+            options.setVersion(ProtocolVersion.HTTP_1_1);
+            group.setHttpClientOptions(options);
+
+            var proxy = new HttpProxy();
+            proxy.setEnabled(true);
+            proxy.setUseSystemProxy(false);
+            proxy.setHost("");
+            proxy.setPort(3128);
             group.setHttpProxy(proxy);
 
             var result = sharedConfigurationMigration.convert(group);
@@ -214,16 +240,17 @@ class SharedConfigurationMigrationTest {
         }
 
         @Test
-        void should_set_host_to_slash_when_host_is_null() throws JsonProcessingException {
+        void should_set_host_to_slash_when_custom_proxy_has_null_host() throws JsonProcessingException {
             var group = new EndpointGroup();
             var options = new HttpClientOptions();
             options.setVersion(ProtocolVersion.HTTP_1_1);
             group.setHttpClientOptions(options);
 
             var proxy = new HttpProxy();
-            proxy.setEnabled(false);
+            proxy.setEnabled(true);
             proxy.setUseSystemProxy(false);
             proxy.setHost(null);
+            proxy.setPort(3128);
             group.setHttpProxy(proxy);
 
             var result = sharedConfigurationMigration.convert(group);
