@@ -23,8 +23,6 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.function.Function;

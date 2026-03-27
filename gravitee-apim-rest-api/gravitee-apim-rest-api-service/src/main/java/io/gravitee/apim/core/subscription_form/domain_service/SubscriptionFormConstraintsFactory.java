@@ -18,14 +18,16 @@ package io.gravitee.apim.core.subscription_form.domain_service;
 import io.gravitee.apim.core.subscription_form.model.Constraint;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxField;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.CheckboxGroupField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Field;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.InputField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.MinLengthAttribute;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.OptionsAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.MultiValueOptionsField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.PatternAttribute;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.ReadOnlyValueAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RequiredSelectionAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RequiredTrueAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.RequiredValueAttribute;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.SingleValueOptionsField;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.TextareaField;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -61,17 +63,27 @@ public final class SubscriptionFormConstraintsFactory {
         }
 
         var out = new ArrayList<Constraint>();
+        addRequiredConstraint(field, out);
+        addLengthConstraints(field, out);
+        addPatternConstraint(field, out);
+        addOptionsConstraint(field, out);
+        return out;
+    }
 
-        if (field.required()) {
-            if (field instanceof CheckboxField) {
-                out.add(new Constraint.MustBeTrue());
-            } else if (field instanceof CheckboxGroupField) {
-                out.add(new Constraint.NonEmptySelection());
-            } else {
-                out.add(new Constraint.Required());
-            }
+    private static void addRequiredConstraint(Field field, List<Constraint> out) {
+        if (!field.required()) {
+            return;
         }
+        if (field instanceof RequiredTrueAttribute) {
+            out.add(new Constraint.MustBeTrue());
+        } else if (field instanceof RequiredSelectionAttribute) {
+            out.add(new Constraint.NonEmptySelection());
+        } else if (field instanceof RequiredValueAttribute) {
+            out.add(new Constraint.Required());
+        }
+    }
 
+    private static void addLengthConstraints(Field field, List<Constraint> out) {
         if (field instanceof MinLengthAttribute min && min.minLength() != null) {
             out.add(new Constraint.MinLength(min.minLength()));
         }
@@ -82,19 +94,42 @@ public final class SubscriptionFormConstraintsFactory {
                 textarea.maxLength() != null ? Constraint.MaxLength.forTextarea(textarea.maxLength()) : Constraint.MaxLength.forTextarea()
             );
         }
+    }
+
+    private static void addPatternConstraint(Field field, List<Constraint> out) {
         if (field instanceof PatternAttribute pat && pat.pattern() != null) {
             out.add(new Constraint.MatchesPattern(pat.pattern()));
         }
+    }
 
-        if (field instanceof OptionsAttribute opt && hasOptions(opt.options())) {
-            if (field instanceof CheckboxGroupField) {
-                out.add(new Constraint.EachOf(opt.options()));
-            } else {
-                out.add(new Constraint.OneOf(opt.options()));
-            }
+    private static void addOptionsConstraint(Field field, List<Constraint> out) {
+        if (field instanceof SingleValueOptionsField single) {
+            addSingleValueOptionsConstraint(single, out);
+        } else if (field instanceof MultiValueOptionsField multi) {
+            addMultiValueOptionsConstraint(multi, out);
         }
+    }
 
-        return out;
+    private static void addSingleValueOptionsConstraint(SingleValueOptionsField field, List<Constraint> out) {
+        var dynamic = field.dynamicOptions();
+        if (dynamic != null) {
+            out.add(Constraint.OneOf.dynamic(dynamic.expression(), dynamic.fallback()));
+            return;
+        }
+        if (hasOptions(field.options())) {
+            out.add(new Constraint.OneOf(field.options()));
+        }
+    }
+
+    private static void addMultiValueOptionsConstraint(MultiValueOptionsField field, List<Constraint> out) {
+        var dynamic = field.dynamicOptions();
+        if (dynamic != null) {
+            out.add(Constraint.EachOf.dynamic(dynamic.expression(), dynamic.fallback()));
+            return;
+        }
+        if (hasOptions(field.options())) {
+            out.add(new Constraint.EachOf(field.options()));
+        }
     }
 
     private static boolean hasOptions(List<String> options) {
