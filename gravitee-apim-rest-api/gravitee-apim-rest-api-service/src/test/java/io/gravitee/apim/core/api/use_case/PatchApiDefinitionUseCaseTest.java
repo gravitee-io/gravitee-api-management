@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.usecase;
+package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,12 +21,14 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
-import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
+import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.JsonPatch;
 import io.gravitee.rest.api.service.JsonPatchService;
@@ -45,22 +47,26 @@ class PatchApiDefinitionUseCaseTest {
     private static final String API_ID = "api-id";
 
     @Mock
-    private ExportApiUseCase exportApiUseCase;
+    private ApiExportDomainService apiExportDomainService;
 
     @Mock
     private JsonPatchService jsonPatchService;
+
+    @Mock
+    private GraviteeDefinitionSerializer graviteeDefinitionSerializer;
 
     private PatchApiDefinitionUseCase useCase;
 
     @BeforeEach
     void set_up() {
-        useCase = new PatchApiDefinitionUseCase(exportApiUseCase, jsonPatchService);
+        useCase = new PatchApiDefinitionUseCase(apiExportDomainService, jsonPatchService, graviteeDefinitionSerializer);
     }
 
     @Test
-    void should_return_dry_run_with_patched_json() {
+    void should_return_dry_run_with_patched_json() throws JsonProcessingException {
         var definition = minimalExport("n1");
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(definition));
+        when(apiExportDomainService.export(any(), any(), any())).thenReturn(definition);
+        when(graviteeDefinitionSerializer.serialize(any())).thenReturn("{}");
         when(jsonPatchService.execute(anyString(), any())).thenReturn("{\"patched\":true}");
 
         var patches = List.<JsonPatch>of();
@@ -71,9 +77,10 @@ class PatchApiDefinitionUseCaseTest {
     }
 
     @Test
-    void should_return_apply_patch_when_not_dry_run() {
+    void should_return_apply_patch_when_not_dry_run() throws JsonProcessingException {
         var definition = minimalExport("n1");
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(definition));
+        when(apiExportDomainService.export(any(), any(), any())).thenReturn(definition);
+        when(graviteeDefinitionSerializer.serialize(any())).thenReturn("{}");
         when(jsonPatchService.execute(anyString(), any())).thenReturn("{\"patched\":true}");
 
         var result = useCase.execute(new PatchApiDefinitionUseCase.Input(API_ID, auditInfo(), List.of(), false));
@@ -83,9 +90,10 @@ class PatchApiDefinitionUseCaseTest {
     }
 
     @Test
-    void should_return_patch_test_failed_when_json_patch_service_throws() {
+    void should_return_patch_test_failed_when_json_patch_service_throws() throws JsonProcessingException {
         var definition = minimalExport("n1");
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(definition));
+        when(apiExportDomainService.export(any(), any(), any())).thenReturn(definition);
+        when(graviteeDefinitionSerializer.serialize(any())).thenReturn("{}");
         var failed = new JsonPatchTestFailedException(new JsonPatch());
         when(jsonPatchService.execute(anyString(), any())).thenThrow(failed);
 
@@ -99,8 +107,8 @@ class PatchApiDefinitionUseCaseTest {
         return new AuditInfo("o", "e", AuditActor.builder().userId("u").userSource("source").userSourceId("sid").build());
     }
 
-    private static GraviteeDefinition minimalExport(String name) {
-        return GraviteeDefinition.from(
+    private static GraviteeDefinition.V4 minimalExport(String name) {
+        return (GraviteeDefinition.V4) GraviteeDefinition.from(
             ApiDescriptor.ApiDescriptorV4.builder().id(API_ID).crossId("c").name(name).apiVersion("1.0").type(ApiType.PROXY).build(),
             Set.of(),
             List.of(),

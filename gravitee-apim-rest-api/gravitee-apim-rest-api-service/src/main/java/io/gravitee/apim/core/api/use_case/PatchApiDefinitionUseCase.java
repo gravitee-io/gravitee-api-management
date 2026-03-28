@@ -13,33 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.usecase;
+package io.gravitee.apim.core.api.use_case;
 
 import static java.util.Collections.emptyList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
-import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
+import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
+import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.rest.api.model.JsonPatch;
 import io.gravitee.rest.api.service.JsonPatchService;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @CustomLog
 @RequiredArgsConstructor
 public class PatchApiDefinitionUseCase {
 
-    private final ExportApiUseCase exportApiUseCase;
+    private final ApiExportDomainService apiExportDomainService;
     private final JsonPatchService jsonPatchService;
+    private final GraviteeDefinitionSerializer graviteeDefinitionSerializer;
 
     public Result execute(Input input) {
-        var export = exportApiUseCase.execute(ExportApiUseCase.Input.of(input.apiId(), input.auditInfo(), emptyList()));
-        String definitionJson = exportDefinitionToJson(export.definition());
+        var exported = apiExportDomainService.export(input.apiId(), input.auditInfo(), emptyList());
+        var definition = switch (exported) {
+            case GraviteeDefinition.V4 v4 -> v4;
+            case GraviteeDefinition.Native nativeV4 -> nativeV4;
+            case null -> throw new ApiNotFoundException(input.apiId());
+            default -> throw new ApiDefinitionVersionNotSupportedException(exported.api().definitionVersion().getLabel());
+        };
+
+        String definitionJson = exportDefinitionToJson(definition);
         try {
             String definitionModified = jsonPatchService.execute(definitionJson, input.patches());
             if (input.dryRun()) {
@@ -52,9 +64,9 @@ public class PatchApiDefinitionUseCase {
         }
     }
 
-    private static String exportDefinitionToJson(GraviteeDefinition definition) {
+    private String exportDefinitionToJson(GraviteeDefinition definition) {
         try {
-            return ImportExportApiMapper.JSON_MAPPER.writeValueAsString(ImportExportApiMapper.INSTANCE.map(definition));
+            return graviteeDefinitionSerializer.serialize(definition);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("Failed to serialize API definition", e);
         }
