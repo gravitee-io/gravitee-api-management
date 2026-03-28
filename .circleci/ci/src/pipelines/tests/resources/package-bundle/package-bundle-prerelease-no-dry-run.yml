@@ -77,6 +77,9 @@ jobs:
             # Console
             cp -r gravitee-apim-console-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0-alpha.1/graviteeio-apim-console-ui-4.1.0-alpha.1
 
+            # Gamma Console
+            cp -r gravitee-gamma/gravitee-gamma-control-plane-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0-alpha.1/graviteeio-gamma-ui-4.1.0-alpha.1
+
             # Portal
             cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0-alpha.1/graviteeio-apim-portal-ui-4.1.0-alpha.1
 

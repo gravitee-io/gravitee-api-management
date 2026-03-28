@@ -19,6 +19,7 @@ import {
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
+  GammaWebuiBuildJob,
   NexusStagingJob,
   PackageBundleJob,
   PortalWebuiBuildJob,
@@ -48,6 +49,9 @@ export class FullReleaseWorkflow {
 
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
+
+    const gammaWebuiBuildJob = GammaWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(gammaWebuiBuildJob);
 
     const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(buildDockerWebUiImageJob);
@@ -119,6 +123,22 @@ export class FullReleaseWorkflow {
         'docker-image-name': config.components.console.image,
       }),
 
+      // Gamma Console
+      new workflow.WorkflowJob(gammaWebuiBuildJob, {
+        context: config.jobContext,
+        name: 'Build Gamma Console',
+        requires: ['Setup'],
+      }),
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
+        context: config.jobContext,
+        name: `Build Gamma Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
+      }),
+
       // APIM Backend
       new workflow.WorkflowJob(backendBuildAndPublishOnDownloadWebsiteJob, {
         context: config.jobContext,
@@ -148,7 +168,7 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(releaseCommitAndPrepareNextVersionJob, {
         context: config.jobContext,
         name: 'Commit and prepare next version',
-        requires: ['Backend build and publish on download website', 'Build APIM Console', 'Build APIM Portal'],
+        requires: ['Backend build and publish on download website', 'Build APIM Console', 'Build APIM Portal', 'Build Gamma Console'],
       }),
 
       // Package bundle
