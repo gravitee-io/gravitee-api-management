@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
+import io.gravitee.apim.core.api.use_case.PatchApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
@@ -41,8 +42,10 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -59,6 +62,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIssuesInner;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
@@ -85,6 +89,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesRe
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.JsonPatch;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -100,7 +105,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -136,7 +140,9 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -154,6 +160,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -201,6 +208,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ExportApiUseCase exportApiUseCase;
+
+    @Inject
+    private PatchApiDefinitionUseCase patchApiDefinitionUseCase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -523,6 +533,47 @@ public class ApiResource extends AbstractResource {
         return Response.ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
             .build();
+    }
+
+    @PATCH
+    @Path("/definition")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(
+        {
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response patchApiDefinition(
+        @Context HttpHeaders headers,
+        @PathParam("apiId") String apiId,
+        @RequestBody(required = true) @Valid @NotNull Collection<JsonPatch> patches,
+        @QueryParam("dryRun") @DefaultValue("false") boolean dryRun
+    ) {
+        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
+        evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
+
+        if (!supportsJsonPatchDefinition(currentEntity)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(apiDefinitionPatchNotSupported(apiId)).build();
+        }
+
+        var patchOutput = patchApiDefinitionUseCase.execute(new PatchApiDefinitionUseCase.Input(apiId, getAuditInfo(), patches, dryRun));
+
+        return switch (patchOutput) {
+            case PatchApiDefinitionUseCase.Result.PatchTestFailed() -> Response.noContent()
+                .tag(Long.toString(currentEntity.getUpdatedAt().getTime()))
+                .lastModified(currentEntity.getUpdatedAt())
+                .build();
+            case PatchApiDefinitionUseCase.Result.DryRun(String json) -> Response.ok(
+                ImportExportApiMapper.INSTANCE.definitionToExportApiV4(json)
+            ).build();
+            case PatchApiDefinitionUseCase.Result.ApplyPatch(String json) -> responseAfterPatchedDefinitionPersist(
+                currentEntity,
+                apiId,
+                json
+            );
+        };
     }
 
     @GET
@@ -1129,6 +1180,35 @@ public class ApiResource extends AbstractResource {
             .message("Api [" + apiId + "] is not valid.")
             .putParametersItem("apiId", apiId)
             .technicalCode("api.invalid");
+    }
+
+    private static boolean supportsJsonPatchDefinition(GenericApiEntity currentEntity) {
+        if (!(currentEntity instanceof ApiEntity api)) {
+            return false;
+        }
+        return currentEntity.getDefinitionVersion() == DefinitionVersion.V4 && api.getType() == ApiType.PROXY;
+    }
+
+    private static Error apiDefinitionPatchNotSupported(String apiId) {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("JSON Patch on the API definition is only available for V4 HTTP Proxy APIs; this API type is not supported.")
+            .putParametersItem("apiId", apiId)
+            .technicalCode("api.definition.patch.unsupported");
+    }
+
+    private Response responseAfterPatchedDefinitionPersist(GenericApiEntity currentEntity, String apiId, String patchedExportJson) {
+        ExportApiV4 patchedExport = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(patchedExportJson);
+        UpdateApiV4 updateApiV4 = ApiMapper.INSTANCE.mapToUpdateApiV4(patchedExport.getApi());
+        GenericApiEntity updatedEntity = updateApiV4(currentEntity, updateApiV4);
+
+        var reExport = exportApiUseCase.execute(ExportApiUseCase.Input.of(apiId, getAuditInfo(), emptyList()));
+        ExportApiV4 updatedDefinition = ImportExportApiMapper.INSTANCE.map(reExport.definition());
+
+        return Response.ok(updatedDefinition)
+            .tag(Long.toString(updatedEntity.getUpdatedAt().getTime()))
+            .lastModified(updatedEntity.getUpdatedAt())
+            .build();
     }
 
     private void checkApiReviewWorkflow(final GenericApiEntity api, final String action) {
