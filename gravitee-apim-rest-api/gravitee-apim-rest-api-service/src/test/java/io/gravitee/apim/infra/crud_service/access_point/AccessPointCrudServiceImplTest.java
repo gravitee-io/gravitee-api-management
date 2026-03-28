@@ -290,7 +290,7 @@ class AccessPointCrudServiceImplTest {
                     assertThat(ap.getUpdatedAt()).isAfter(dateBeforeDeletion).isBefore(dateAfterDeletion);
                 });
 
-            verify(eventManager, times(7)).publishEvent(eq(AccessPointEvent.CREATED), any());
+            verify(eventManager, times(9)).publishEvent(eq(AccessPointEvent.CREATED), any());
         }
 
         @ParameterizedTest

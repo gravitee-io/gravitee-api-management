@@ -21,4 +21,6 @@ public enum AccessPointTarget {
     PORTAL,
     PORTAL_API,
     GATEWAY,
+    GAMMA_CONSOLE,
+    GAMMA_API,
 }

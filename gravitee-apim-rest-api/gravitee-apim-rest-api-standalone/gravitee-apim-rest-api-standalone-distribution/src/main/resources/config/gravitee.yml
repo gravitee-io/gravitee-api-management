@@ -95,6 +95,23 @@ http:
 #        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
 #  Allows to configure the header Access-Control-Expose-Headers
 #        exposed-headers: 'ETag;X-Xsrf-Token'
+#    gamma:
+#      enabled: true
+#      entrypoint: ${http.api.entrypoint}gamma
+#      cors:
+# Allows to configure the header Access-Control-Allow-Origin (default value: *)
+# '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
+#        allow-origin: '*'
+# Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
+#        max-age: 1728000
+# Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
+#        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
+# Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
+#        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
+#  Allows to configure the header Access-Control-Expose-Headers
+#        exposed-headers: 'ETag;X-Xsrf-Token'
+
+
   secureHeaders:
     csrf:
       # Allows to enable or disable the CSRF protection. Enabled by default.
@@ -695,16 +712,20 @@ notifiers:
 #    # Specify the URLs of Management API, mandatory if you want to connect it to Cockpit with a standalone installation
 #    url: http://localhost:8083
 #
-#    Specify the Management API management url of your installation, fallback on installation_api_url if not defined
+#    # Specify the Management API management url of your installation, fallback on installation_api_url if not defined
 #    console:
 #      url: ${installation.api.url}
-#    Specify the Management API portal url of your installation, fallback on installation_api_url if not defined
+#    # Specify the Management API portal url of your installation, fallback on installation_api_url if not defined
 #    portal:
+#      url: ${installation.api.url}
+#    # Specify the Management API portal url of your installation, fallback on installation_api_url if not defined
+#    gamma:
 #      url: ${installation.api.url}
 #
 #    proxyPath:
 #      management: ${http.api.management.entrypoint}
 #      portal: ${http.api.portal.entrypoint}
+#      gamma: ${http.api.gamma.entrypoint}
 #  standalone:
 #    console:
 #      url: http://localhost:3000
@@ -723,6 +744,14 @@ notifiers:
 #           url: http://localhost:4100
 #         - envId: example
 #           url: http:/localhost:4101
+#    gamma:
+#      url: http://localhost:3000
+#      # If you have multi console instances targeting different organizations, you can configure the section as bellow instead:
+#      urls:
+#         - orgId: DEFAULT
+#           url: http://localhost:3000
+#         - orgId: example
+#           url: http:/localhost:3001
 #  multi-tenant:
 #    # Specify the access points of your installation, mandatory if you want to connect it to Cockpit with a multi-tenant installation
 #    # You can use template variable such as {account}, {organization} or {environment}
@@ -733,6 +762,12 @@ notifiers:
 #          secured: true
 #        console-api:
 #          host: '{organization}.{account}.example.com'
+#          secured: true
+#        gamma-console:
+#          host: '{organization}.{account}.gamma.example.com'
+#          secured: true
+#        gamma-api:
+#          host: '{organization}.{account}.api.gamma.example.com'
 #          secured: true
 #      environment:
 #        portal:

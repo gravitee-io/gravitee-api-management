@@ -509,6 +509,7 @@
                 <module>gravitee-apim-repository</module>
                 <module>gravitee-apim-reporter</module>
                 <module>gravitee-apim-rest-api</module>
+                <module>gravitee-gamma</module>
             </modules>
         </profile>
         <profile>
@@ -524,6 +525,7 @@
                 <module>gravitee-apim-definition</module>
                 <module>gravitee-apim-rest-api</module>
                 <module>gravitee-apim-gateway</module>
+                <module>gravitee-gamma</module>
             </modules>
         </profile>
         <profile>
@@ -548,6 +550,7 @@
             </activation>
             <modules>
                 <module>gravitee-apim-rest-api</module>
+                <module>gravitee-gamma</module>
             </modules>
         </profile>
         <profile>

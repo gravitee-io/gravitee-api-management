@@ -62,5 +62,7 @@ public class AccessPoint {
         GATEWAY,
         TCP_GATEWAY,
         KAFKA_GATEWAY,
+        GAMMA_CONSOLE,
+        GAMMA_API,
     }
 }

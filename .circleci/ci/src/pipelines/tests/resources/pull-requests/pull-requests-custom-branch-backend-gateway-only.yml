@@ -103,7 +103,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: medium
     steps:
       - checkout
@@ -119,7 +119,7 @@ jobs:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout
@@ -138,6 +138,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2/repository/io/gravitee/apim
+            - ~/.m2/repository/io/gravitee/gamma
           key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
@@ -150,7 +151,7 @@ jobs:
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-test-gateway:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: medium
     steps:
       - checkout

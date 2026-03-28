@@ -1,0 +1,16 @@
+{
+    "name": "gravitee-gamma-control-plane-webui",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-gamma/gravitee-gamma-control-plane-webui/src",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "gravitee-gamma/gravitee-gamma-control-plane-webui/jest.config.ts"
+            }
+        }
+    }
+}

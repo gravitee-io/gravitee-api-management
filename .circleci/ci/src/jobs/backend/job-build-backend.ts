@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkExecutor } from '../../executors';
+import { OpenJdkNodeExecutor } from '../../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
@@ -46,7 +46,7 @@ export class BuildBackendJob {
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.cache.Save({
-        paths: ['~/.m2/repository/io/gravitee/apim'],
+        paths: ['~/.m2/repository/io/gravitee/apim', '~/.m2/repository/io/gravitee/gamma'],
         key: `${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`,
         when: 'on_success',
       }),
@@ -60,6 +60,6 @@ export class BuildBackendJob {
         ],
       }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(jobName, OpenJdkNodeExecutor.create('large'), steps);
   }
 }

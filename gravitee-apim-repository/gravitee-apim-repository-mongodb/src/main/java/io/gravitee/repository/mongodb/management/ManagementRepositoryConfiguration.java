@@ -25,7 +25,9 @@ import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullR
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -33,10 +35,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -79,9 +83,14 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
 
     @Primary
     @Bean(name = "managementMongoTemplate")
-    public MongoOperations mongoOperations(MongoClient mongo) {
+    public MongoOperations mongoOperations(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter converter) {
         try {
-            return new MongoTemplate(mongo, getDatabaseName());
+            MongoTemplate template = new MongoTemplate(mongoDbFactory, converter);
+            // Register in parent context so sibling plugin contexts can reuse it.
+            DefaultListableBeanFactory beanFactory =
+                (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext.getParent()).getBeanFactory();
+            beanFactory.registerSingleton("managementMongoTemplate", template);
+            return template;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

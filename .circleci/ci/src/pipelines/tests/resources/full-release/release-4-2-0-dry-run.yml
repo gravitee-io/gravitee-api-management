@@ -395,7 +395,7 @@ jobs:
       - cmd-docker-logout
   job-backend-build-and-publish-on-download-website:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: large
     steps:
       - checkout
@@ -740,7 +740,7 @@ jobs:
           working_directory: ./release
   job-nexus-staging:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9-node
     resource_class: xlarge
     steps:
       - checkout

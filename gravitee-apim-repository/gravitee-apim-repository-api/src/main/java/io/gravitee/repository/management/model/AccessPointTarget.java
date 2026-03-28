@@ -27,4 +27,6 @@ public enum AccessPointTarget {
     GATEWAY,
     TCP_GATEWAY,
     KAFKA_GATEWAY,
+    GAMMA_CONSOLE,
+    GAMMA_API,
 }

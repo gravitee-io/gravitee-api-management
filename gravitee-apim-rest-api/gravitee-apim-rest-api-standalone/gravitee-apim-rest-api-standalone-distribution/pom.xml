@@ -281,6 +281,15 @@
             <artifactId>logback-json-core</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Gamma Modules -->
+        <dependency>
+            <groupId>io.gravitee.gamma.module</groupId>
+            <artifactId>gravitee-gamma-module-apim</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.gravitee.gamma</groupId>
+        <artifactId>gravitee-gamma</artifactId>
+        <version>${revision}${sha1}${changelist}</version>
+    </parent>
+
+    <groupId>io.gravitee.gamma.module</groupId>
+    <artifactId>gravitee-gamma-module-apim</artifactId>
+    <name>Gravitee.io Gamma - Module - HTTP API Management</name>
+    <description>HTTP API Management module for Gravitee Gamma</description>
+
+    <properties>
+        <skip.ui.build>false</skip.ui.build>
+        <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.gravitee.apim</groupId>
+                <artifactId>gravitee-apim-bom</artifactId>
+                <version>${project.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.gravitee.gamma.plugin.module</groupId>
+            <artifactId>gravitee-gamma-plugin-module-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-mongodb</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>npm-install</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>yarn</executable>
+                            <workingDirectory>${project.basedir}/../..</workingDirectory>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                            <skip>${skip.ui.build}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>nx-build</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>yarn</executable>
+                            <workingDirectory>${project.basedir}/../..</workingDirectory>
+                            <arguments>
+                                <argument>nx</argument>
+                                <argument>build</argument>
+                                <argument>gravitee-gamma-module-apim</argument>
+                            </arguments>
+                            <skip>${skip.ui.build}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-plugin-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

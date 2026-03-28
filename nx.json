@@ -62,6 +62,18 @@
         },
         "serve": {}
     },
+    "plugins": [
+        {
+            "plugin": "@nx/rspack/plugin",
+            "options": {
+                "buildTargetName": "build",
+                "serveTargetName": "serve",
+                "serveStaticTargetName": "serve-static",
+                "previewTargetName": "preview"
+            },
+            "include": ["gravitee-gamma/**"]
+        }
+    ],
     "generators": {
         "@nx/angular:application": {
             "style": "scss",
