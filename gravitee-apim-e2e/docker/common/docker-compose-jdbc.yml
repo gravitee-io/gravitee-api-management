@@ -48,6 +48,7 @@ services:
       - ./docker/common/tmp/jdbc-driver:/opt/graviteeio-management-api/plugins/ext/repository-jdbc
     environment:
       - gravitee_license_key=${GRAVITEE_LICENSE}
+      - gravitee_gammamodule_apim_enabled=false
       - gravitee_management_type=jdbc
       - gravitee_management_jdbc_url=jdbc:postgresql://database:5432/gravitee
       - gravitee_management_jdbc_username=postgres
