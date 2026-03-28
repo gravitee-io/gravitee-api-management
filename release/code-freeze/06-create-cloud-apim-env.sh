@@ -27,11 +27,25 @@ echo "Setting up new dev environment '${ENV_DIR_NAME}' in cloud-apim..."
 rm -rf "$CLOUD_APIM_REPO/$ENV_DIR_NAME"
 cp -r "$CLOUD_APIM_REPO/$PREV_ENV_DIR_NAME" "$CLOUD_APIM_REPO/$ENV_DIR_NAME"
 
-# Update Chart.yaml: name, description, and apim dependency versions
-sed -i.bak "s|name: ${PREV_ENV_DIR_NAME}|name: ${ENV_DIR_NAME}|" "$CLOUD_APIM_REPO/$ENV_DIR_NAME/Chart.yaml"
-rm -f "$CLOUD_APIM_REPO/$ENV_DIR_NAME/Chart.yaml.bak"
-sed -i.bak "s|description: ${PREV_ENV_DIR_NAME}|description: ${ENV_DIR_NAME}|" "$CLOUD_APIM_REPO/$ENV_DIR_NAME/Chart.yaml"
-rm -f "$CLOUD_APIM_REPO/$ENV_DIR_NAME/Chart.yaml.bak"
+# Replace all references to the previous version with the new one
+# Handles all separator formats: 4-10 -> 4-11, 4.10 -> 4.11, 4_10 -> 4_11
+PREV_DASH="${MAJOR}-${PREV_MINOR}"
+NEW_DASH="${MAJOR}-${MINOR}"
+PREV_DOT="${MAJOR}.${PREV_MINOR}"
+NEW_DOT="${MAJOR}.${MINOR}"
+PREV_UNDERSCORE="${MAJOR}_${PREV_MINOR}"
+NEW_UNDERSCORE="${MAJOR}_${MINOR}"
+
+for FILE in "$CLOUD_APIM_REPO/$ENV_DIR_NAME"/*.yaml; do
+    sed -i.bak "s|${PREV_DASH}|${NEW_DASH}|g" "$FILE"
+    rm -f "$FILE.bak"
+    sed -i.bak "s|${PREV_DOT}|${NEW_DOT}|g" "$FILE"
+    rm -f "$FILE.bak"
+    sed -i.bak "s|${PREV_UNDERSCORE}|${NEW_UNDERSCORE}|g" "$FILE"
+    rm -f "$FILE.bak"
+done
+
+# Update Chart.yaml: apim dependency versions
 sed -i.bak "s|version: ${MAJOR}\.${PREV_MINOR}\.\*|version: ${ALPHA_VERSION}|g" "$CLOUD_APIM_REPO/$ENV_DIR_NAME/Chart.yaml"
 rm -f "$CLOUD_APIM_REPO/$ENV_DIR_NAME/Chart.yaml.bak"
 
