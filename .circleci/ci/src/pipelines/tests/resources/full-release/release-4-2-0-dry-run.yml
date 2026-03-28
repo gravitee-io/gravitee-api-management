@@ -270,6 +270,29 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
+  job-gamma-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
+      - run:
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
   job-build-docker-webui-image:
     parameters:
       apim-project:
@@ -546,6 +569,9 @@ jobs:
             mkdir -p ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0
             # Console
             cp -r gravitee-apim-console-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-apim-console-ui-4.2.0
+
+            # Gamma Console
+            cp -r gravitee-gamma/gravitee-gamma-control-plane-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-gamma-ui-4.2.0
 
             # Portal
             cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-apim-portal-ui-4.2.0
@@ -839,6 +865,22 @@ workflows:
           apim-project-workdir: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
+      - job-gamma-webui-build:
+          context:
+            - cicd-orchestrator
+          name: Build Gamma Console
+          requires:
+            - Setup
+      - job-build-docker-webui-image:
+          context:
+            - cicd-orchestrator
+          name: Build Gamma Console docker image for APIM 4.2.0 - Dry Run
+          requires:
+            - Build Gamma Console
+          apim-project: gravitee-gamma-control-plane-webui
+          apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          docker-context: .
+          docker-image-name: gamma-ui
       - job-backend-build-and-publish-on-download-website:
           context:
             - cicd-orchestrator
@@ -873,6 +915,7 @@ workflows:
             - Backend build and publish on download website
             - Build APIM Console
             - Build APIM Portal
+            - Build Gamma Console
       - job-package-bundle:
           context:
             - cicd-orchestrator

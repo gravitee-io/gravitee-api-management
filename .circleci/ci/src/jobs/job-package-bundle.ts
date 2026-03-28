@@ -38,6 +38,9 @@ export class PackageBundleJob {
 # Console
 cp -r gravitee-apim-console-webui/dist ${fullDistributionDir}/graviteeio-apim-console-ui-${graviteeioVersion}
 
+# Gamma Console
+cp -r gravitee-gamma/gravitee-gamma-control-plane-webui/dist ${fullDistributionDir}/graviteeio-gamma-ui-${graviteeioVersion}
+
 # Portal
 cp -r gravitee-apim-portal-webui/dist ${fullDistributionDir}/graviteeio-apim-portal-ui-${graviteeioVersion}
 
