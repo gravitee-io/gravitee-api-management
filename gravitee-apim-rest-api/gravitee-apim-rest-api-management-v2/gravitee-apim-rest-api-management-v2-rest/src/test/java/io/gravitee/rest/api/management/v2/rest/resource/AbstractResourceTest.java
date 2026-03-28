@@ -26,6 +26,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
@@ -39,8 +40,11 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
+import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionUseCase;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -126,6 +130,15 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ExportApiUseCase exportApiUseCase;
 
     @Autowired
+    protected UpdateApiDefinitionUseCase updateApiDefinitionUseCase;
+
+    @Autowired
+    protected OAIDomainService oaiDomainService;
+
+    @Autowired
+    protected OAIToUpdateApiUseCase oaiToUpdateApiUseCase;
+
+    @Autowired
     protected PermissionService permissionService;
 
     @Autowired
@@ -199,6 +212,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApiCrudServiceInMemory apiCrudService;
+
+    @Autowired
+    protected FlowCrudServiceInMemory flowCrudService;
 
     @Autowired
     protected PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService;

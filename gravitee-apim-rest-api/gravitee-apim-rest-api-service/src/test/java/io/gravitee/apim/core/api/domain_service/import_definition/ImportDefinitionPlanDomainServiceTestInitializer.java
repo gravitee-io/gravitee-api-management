@@ -127,7 +127,8 @@ public class ImportDefinitionPlanDomainServiceTestInitializer {
             createPlanDomainService,
             updatePlanDomainService,
             deletePlanDomainService,
-            planCrudServiceInMemory
+            planCrudServiceInMemory,
+            flowCrudServiceInMemory
         );
     }
 
