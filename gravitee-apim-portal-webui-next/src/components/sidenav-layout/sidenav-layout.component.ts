@@ -16,18 +16,20 @@
 import { Component, input, signal } from '@angular/core';
 
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
+import { BreadcrumbSkeletonComponent } from '../breadcrumb-skeleton/breadcrumb-skeleton.component';
 import { Breadcrumb, BreadcrumbsComponent } from '../breadcrumbs/breadcrumbs.component';
 import { SidenavToggleButtonComponent } from '../sidenav-toggle-button/sidenav-toggle-button.component';
 
 @Component({
   selector: 'app-sidenav-layout',
-  imports: [MobileClassDirective, SidenavToggleButtonComponent, BreadcrumbsComponent],
+  imports: [MobileClassDirective, SidenavToggleButtonComponent, BreadcrumbsComponent, BreadcrumbSkeletonComponent],
   standalone: true,
   templateUrl: './sidenav-layout.component.html',
   styleUrl: './sidenav-layout.component.scss',
 })
 export class SidenavLayoutComponent {
   breadcrumbs = input<Breadcrumb[]>([]);
+  breadcrumbsLoading = input(false);
   sidenavCollapsed = signal(false);
 
   onToggleSidenav() {

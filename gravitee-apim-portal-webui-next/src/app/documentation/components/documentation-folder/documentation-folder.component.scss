@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+@use '../../../../scss/skeletons' as skeleton;
 @use '../../../../scss/theme' as app-theme;
 
 $mcp-overlay-duration: 400ms;
@@ -31,6 +32,18 @@ app-sidenav-layout {
 .documentation-folder {
   &__main-content {
     flex: 1 1 100%;
+
+    &-enter {
+      @include skeleton.content-reveal-fade-in;
+    }
+
+    &__skeleton {
+      position: absolute;
+
+      &--leave {
+        @include skeleton.skeleton-fade-out;
+      }
+    }
   }
 
   &__sidenav {
@@ -38,6 +51,18 @@ app-sidenav-layout {
     &__empty-state {
       min-width: 250px;
       height: 100%;
+
+      &-enter {
+        @include skeleton.content-reveal-fade-in;
+      }
+    }
+
+    &__skeleton {
+      position: absolute;
+
+      &--leave {
+        @include skeleton.skeleton-fade-out;
+      }
     }
   }
 
@@ -94,45 +119,5 @@ app-sidenav-layout {
       top: 20px;
       right: 20px;
     }
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes slide-in {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-out {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(100%);
   }
 }

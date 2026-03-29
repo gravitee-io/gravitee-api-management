@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/skeletons' as skeleton;
+@use '../../scss/theme' as app-theme;
+
+$breadcrumb-skeleton-segment-default-width: 96px;
+$breadcrumb-skeleton-segment-short-width: 72px;
+$breadcrumb-skeleton-segment-medium-width: 120px;
+
+:host {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  opacity: 1;
+}
+
+.breadcrumb-skeleton__segment {
+  height: 12px;
+  flex-shrink: 0;
+
+  @include skeleton.skeleton-pulse;
+
+  &[data-size='default'] {
+    width: $breadcrumb-skeleton-segment-default-width;
+  }
+
+  &[data-size='short'] {
+    width: $breadcrumb-skeleton-segment-short-width;
+  }
+
+  &[data-size='medium'] {
+    width: $breadcrumb-skeleton-segment-medium-width;
+  }
+}
+
+.breadcrumb-skeleton__separator {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.35;
+  background: app-theme.$paragraph-color;
+}

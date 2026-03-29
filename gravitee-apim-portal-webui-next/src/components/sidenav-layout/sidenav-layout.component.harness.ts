@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 
 import { DivHarness } from '../../testing/div.harness';
+import { BreadcrumbSkeletonComponentHarness } from '../breadcrumb-skeleton/breadcrumb-skeleton.component.harness';
 import { BreadcrumbsComponentHarness } from '../breadcrumbs/breadcrumbs.component.harness';
 import { SidenavToggleButtonComponentHarness } from '../sidenav-toggle-button/sidenav-toggle-button.component.harness';
 
@@ -24,6 +25,7 @@ export class SidenavLayoutComponentHarness extends ComponentHarness {
 
   private readonly getSidenavHarness = this.locatorFor(DivHarness.with({ selector: '.sidenav-layout__sidenav' }));
   private readonly getSidenavToggleButtonHarness = this.locatorFor(SidenavToggleButtonComponentHarness);
+  private readonly getBreadcrumbSkeletonHarness = this.locatorForOptional(BreadcrumbSkeletonComponentHarness);
   private readonly getBreadcrumbsHarness = this.locatorForOptional(BreadcrumbsComponentHarness);
   private readonly getBreadcrumbActionsHarness = this.locatorForOptional(
     DivHarness.with({ selector: '.sidenav-layout__container__breadcrumbs__actions' }),
@@ -31,6 +33,10 @@ export class SidenavLayoutComponentHarness extends ComponentHarness {
 
   public async getBreadcrumbs(): Promise<BreadcrumbsComponentHarness | null> {
     return this.getBreadcrumbsHarness();
+  }
+
+  public async getBreadcrumbSkeleton(): Promise<BreadcrumbSkeletonComponentHarness | null> {
+    return this.getBreadcrumbSkeletonHarness();
   }
 
   public async getSidenav(): Promise<DivHarness | null> {
