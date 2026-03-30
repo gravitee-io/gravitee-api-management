@@ -1,0 +1,108 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../../../../scss/theme' as app-theme;
+
+.add-certificate-dialog {
+  &__content {
+    min-width: 480px;
+  }
+
+  &__step {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  &__field {
+    width: 100%;
+  }
+
+  &__certificate-input {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__section-title {
+    color: app-theme.$paragraph-color;
+  }
+
+  &__file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: app-theme.$primary-main-color;
+    padding: 8px 12px;
+    border: app-theme.$border-width solid app-theme.$border-color;
+    border-radius: app-theme.$container-shape;
+    width: fit-content;
+
+    &:hover {
+      background-color: color-mix(in srgb, app-theme.$primary-main-color 8%, transparent);
+    }
+  }
+
+  &__file-input {
+    display: none;
+  }
+
+  &__grace-period-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: color-mix(in srgb, app-theme.$primary-main-color 8%, app-theme.$background-color);
+    border-radius: app-theme.$container-shape;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: app-theme.$background-color;
+    border-radius: app-theme.$container-shape;
+    border: app-theme.$border-width solid app-theme.$border-color;
+  }
+
+  &__summary-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__summary-label {
+    color: app-theme.$paragraph-color;
+    min-width: 100px;
+  }
+
+  &__summary-value {
+    color: app-theme.$default-text-color;
+  }
+
+  &__error {
+    color: app-theme.$error-main-color;
+    margin: 0;
+  }
+}
