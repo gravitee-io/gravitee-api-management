@@ -72,6 +72,38 @@ Scope: V4 API Analytics Dashboard (M1)
 
 ---
 
+### Story 2 (B1b) — Elasticsearch adapters & repository implementation for unified analytics
+
+**Summary:** Implemented Elasticsearch query adapters + response adapters for unified analytics COUNT/STATS/GROUP_BY/DATE_HISTO and wired `AnalyticsElasticsearchRepository` to execute them against `Type.V4_METRICS`.
+
+**Implemented (high-signal files):**
+
+- **ES adapters (new)**
+  - `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/main/java/io/gravitee/repository/elasticsearch/v4/analytics/adapter/SearchApiAnalyticsCountQueryAdapter.java`
+  - `.../SearchApiAnalyticsCountResponseAdapter.java` (uses `response.getSearchHits().getTotal().getValue()`)
+  - `.../SearchApiAnalyticsStatsQueryAdapter.java` (min/max/avg/sum/value_count aggs)
+  - `.../SearchApiAnalyticsStatsResponseAdapter.java` (reads `Aggregation.getValue()` per agg)
+  - `.../SearchApiAnalyticsGroupByQueryAdapter.java` (terms + size/order)
+  - `.../SearchApiAnalyticsGroupByResponseAdapter.java`
+  - `.../SearchApiAnalyticsDateHistoQueryAdapter.java` (**min_doc_count=0** + **extended_bounds**)
+  - `.../SearchApiAnalyticsDateHistoResponseAdapter.java` (builds aligned series buckets)
+
+- **Repository wiring**
+  - `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/main/java/io/gravitee/repository/elasticsearch/v4/analytics/AnalyticsElasticsearchRepository.java`
+    - Removed stubs; now calls `client.search(...).map(...Adapter::adapt).blockingGet()` for each unified method.
+
+- **Tests added (adapter-level)**
+  - `.../src/test/java/io/gravitee/repository/elasticsearch/v4/analytics/adapter/SearchApiAnalyticsStatsQueryAdapterTest.java`
+  - `.../SearchApiAnalyticsGroupByQueryAdapterTest.java`
+  - `.../SearchApiAnalyticsDateHistoQueryAdapterTest.java`
+
+**Verification:**
+
+- `mvn -pl gravitee-apim-repository/gravitee-apim-repository-elasticsearch -am -q test -Dtest="SearchApiAnalytics*AdapterTest" -Dsurefire.failIfNoSpecifiedTests=false` ✅
+- `mvn test -pl gravitee-apim-rest-api -q` ✅ (legacy REST API tests still pass)
+
+**Note:** Full `gravitee-apim-repository-elasticsearch` test suite is not runnable in this environment due to pre-existing Spring/Mockito/Testcontainers-style integration tests failing to initialize. We keep our verification scoped to adapter unit tests + REST API module tests (per workshop workflow).
+
 ## Current blockers / open questions
 
 - **ES field names & types**: `ApiAnalyticsField` currently maps PRD names directly to same-named ES fields with a numeric/keyword hint. When implementing B1b, we must confirm actual v4 metrics index mappings (and any `.keyword` requirements).\n

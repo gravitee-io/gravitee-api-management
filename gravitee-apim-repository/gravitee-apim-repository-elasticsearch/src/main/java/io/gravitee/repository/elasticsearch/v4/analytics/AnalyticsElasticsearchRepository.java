@@ -23,6 +23,14 @@ import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguratio
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.AggregateValueCountByFieldAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.ResponseTimeRangeQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsCountQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsCountResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsDateHistoQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsDateHistoResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsGroupByQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsGroupByResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsStatsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchApiAnalyticsStatsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestQueryAdapter;
@@ -84,17 +92,26 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<ApiAnalyticsCountAggregate> searchApiAnalyticsCount(QueryContext queryContext, ApiAnalyticsCountQuery query) {
-        return Optional.empty();
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchApiAnalyticsCountQueryAdapter.adapt(query))
+            .map(SearchApiAnalyticsCountResponseAdapter::adapt)
+            .blockingGet();
     }
 
     @Override
     public Optional<ApiAnalyticsStatsAggregate> searchApiAnalyticsStats(QueryContext queryContext, ApiAnalyticsStatsQuery query) {
-        return Optional.empty();
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchApiAnalyticsStatsQueryAdapter.adapt(query))
+            .map(SearchApiAnalyticsStatsResponseAdapter::adapt)
+            .blockingGet();
     }
 
     @Override
     public Optional<ApiAnalyticsGroupByAggregate> searchApiAnalyticsGroupBy(QueryContext queryContext, ApiAnalyticsGroupByQuery query) {
-        return Optional.empty();
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchApiAnalyticsGroupByQueryAdapter.adapt(query))
+            .map(SearchApiAnalyticsGroupByResponseAdapter::adapt)
+            .blockingGet();
     }
 
     @Override
@@ -102,7 +119,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         QueryContext queryContext,
         ApiAnalyticsDateHistoQuery query
     ) {
-        return Optional.empty();
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchApiAnalyticsDateHistoQueryAdapter.adapt(query))
+            .map(SearchApiAnalyticsDateHistoResponseAdapter::adapt)
+            .blockingGet();
     }
 
     @Override
