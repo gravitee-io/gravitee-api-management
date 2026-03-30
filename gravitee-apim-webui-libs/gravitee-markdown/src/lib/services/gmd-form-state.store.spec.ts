@@ -294,6 +294,23 @@ describe('GmdFormStateStore', () => {
         const errors = store.allConfigErrors();
         expect(errors.length).toBe(2);
       });
+
+      it('should add tooManyFields error when field count exceeds limit', () => {
+        for (let i = 0; i < 26; i++) {
+          store.updateField({
+            id: `comp-${i}`,
+            fieldKey: `k${i}`,
+            value: '',
+            valid: true,
+            required: false,
+            touched: false,
+            validationErrors: [],
+          });
+        }
+
+        const errors = store.allConfigErrors();
+        expect(errors.some(e => e.code === 'tooManyFields' && e.severity === 'error')).toBe(true);
+      });
     });
 
     describe('criticalConfigErrors', () => {

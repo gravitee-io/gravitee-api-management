@@ -172,6 +172,11 @@ describe('GmdInputComponent', () => {
       expect(inputComponent.validationErrors()).toContain('maxLength');
     });
 
+    it('should set maxlength to backend default when maxLength is not set', async () => {
+      fixture.detectChanges();
+      expect(await harness.getMaxLength()).toBe('256');
+    });
+
     it('should validate pattern', async () => {
       fixture.componentRef.setInput('pattern', '^[0-9]+$');
       fixture.detectChanges();

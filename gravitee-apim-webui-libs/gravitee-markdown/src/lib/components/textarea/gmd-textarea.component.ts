@@ -18,7 +18,14 @@ import { Component, computed, effect, input, signal } from '@angular/core';
 
 import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
 import { GmdFormFieldBase } from '../form-field-base/gmd-form-field-base.component';
-import { normalizedRowsInput, normalizedValueWarning, parseBoolean, useLengthValidation, emptyFieldKeyErrors } from '../form-helpers';
+import {
+  emptyFieldKeyErrors,
+  GMD_TEXTAREA_HARD_MAX_LENGTH,
+  normalizedRowsInput,
+  normalizedValueWarning,
+  parseBoolean,
+  useLengthValidation,
+} from '../form-helpers';
 
 @Component({
   selector: 'gmd-textarea',
@@ -48,7 +55,9 @@ export class GmdTextareaComponent extends GmdFormFieldBase {
   // Computed
   private readonly rowsInput = normalizedRowsInput(this.rows);
   protected readonly rowsVM = this.rowsInput.value;
-  private readonly lengthValidation = useLengthValidation(this.minLength, this.maxLength, this.internalValue);
+  private readonly lengthValidation = useLengthValidation(this.minLength, this.maxLength, this.internalValue, {
+    hardMaxLength: GMD_TEXTAREA_HARD_MAX_LENGTH,
+  });
   protected readonly minLengthVM = this.lengthValidation.minLength;
   protected readonly maxLengthVM = this.lengthValidation.maxLength;
 

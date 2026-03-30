@@ -16,6 +16,7 @@
 import { computed, Injectable, InjectionToken, Provider, signal } from '@angular/core';
 import { isEqual } from 'lodash';
 
+import { GMD_SUBSCRIPTION_FORM_MAX_FIELDS } from '../components/form-helpers';
 import { GmdConfigError, GmdFieldState } from '../models/formField';
 
 /**
@@ -124,6 +125,16 @@ export class GmdFormStateStore {
   readonly allConfigErrors = computed(() => {
     const fields = this.fieldsMap();
     const errors: Array<GmdConfigError & { fieldKey?: string }> = [];
+
+    const fieldCount = fields.size;
+    if (fieldCount > GMD_SUBSCRIPTION_FORM_MAX_FIELDS) {
+      errors.push({
+        code: 'tooManyFields',
+        message: `Subscription form must not exceed ${GMD_SUBSCRIPTION_FORM_MAX_FIELDS} fields (currently ${fieldCount}).`,
+        severity: 'error',
+        field: 'form',
+      });
+    }
 
     // Add duplicate key errors
     const duplicates = this.duplicateFieldKeys();

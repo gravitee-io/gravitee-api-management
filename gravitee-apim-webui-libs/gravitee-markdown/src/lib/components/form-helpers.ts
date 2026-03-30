@@ -54,7 +54,11 @@ export function parseElFallback(options: string): string[] {
 }
 
 const DEFAULT_MIN_LENGTH = 0;
-const DEFAULT_MAX_LENGTH = 10000;
+
+export const GMD_INPUT_HARD_MAX_LENGTH = 256;
+export const GMD_TEXTAREA_HARD_MAX_LENGTH = 1024;
+export const GMD_SUBSCRIPTION_FORM_MAX_FIELDS = 25;
+
 const DEFAULT_ROWS = 4;
 const MIN_ROWS = 1;
 const MAX_ROWS = 100;
@@ -96,19 +100,19 @@ export function parseBoolean(v: boolean | string | undefined): boolean {
  * Returns value and optional warning if adjustment was made.
  *
  * @param v - Value to normalize (number, string, or undefined)
- * @param min - Minimum allowed value (default: 0)
- * @param max - Maximum allowed value (default: 10000)
+ * @param max - Upper bound (required; e.g. {@link GMD_INPUT_HARD_MAX_LENGTH})
+ * @param min - Lower bound (default: 0)
  * @param propertyName - Property name for warning messages (default: 'value')
  * @returns NormalizeResult with normalized value and optional warning
  *
  * @example
- * normalizeLength(-5, 0, 100, 'minLength')
+ * normalizeLength(-5, 100, 0, 'minLength')
  * // → { value: 0, warning: { message: 'minLength adjusted from -5 to 0', originalValue: -5 } }
  */
 export function normalizeLength(
   v: number | string | undefined,
+  max: number,
   min: number = DEFAULT_MIN_LENGTH,
-  max: number = DEFAULT_MAX_LENGTH,
   propertyName: string = 'value',
 ): NormalizeResult<number | undefined> {
   if (v === undefined || v === null) {
@@ -140,14 +144,16 @@ export function normalizeLength(
 
 /**
  * Creates normalized signals for numeric length inputs.
+ *
+ * @param max - Upper bound for the parsed attribute (field-type hard cap)
  */
 export function normalizedLengthInput(
   value: () => number | string | undefined,
+  max: number,
   min: number = DEFAULT_MIN_LENGTH,
-  max: number = DEFAULT_MAX_LENGTH,
   name: string = 'value',
 ): { result: Signal<NormalizeResult<number | undefined>>; value: Signal<number | undefined> } {
-  const result = computed(() => normalizeLength(value(), min, max, name));
+  const result = computed(() => normalizeLength(value(), max, min, name));
   const normalizedValue = computed(() => result().value);
   return { result, value: normalizedValue };
 }
@@ -286,16 +292,20 @@ export function normalizedRowsInput(value: () => number | string | undefined): {
  * @param minLength - Signal for minimum length input
  * @param maxLength - Signal for maximum length input
  * @param value - Signal for current field value
+ * @param options.hardMaxLength - Backend cap for this field type (input vs textarea); also used when maxLength attr is omitted
  */
 export function useLengthValidation(
   minLength: Signal<number | string | undefined>,
   maxLength: Signal<number | string | undefined>,
   value: Signal<string>,
+  options: { hardMaxLength: number },
 ) {
-  const minLengthInput = normalizedLengthInput(minLength, DEFAULT_MIN_LENGTH, DEFAULT_MAX_LENGTH, 'minLength');
+  const { hardMaxLength } = options;
+
+  const minLengthInput = normalizedLengthInput(minLength, hardMaxLength, DEFAULT_MIN_LENGTH, 'minLength');
   const minLengthVM = minLengthInput.value;
 
-  const maxLengthInput = normalizedLengthInput(maxLength, DEFAULT_MIN_LENGTH, DEFAULT_MAX_LENGTH, 'maxLength');
+  const maxLengthInput = normalizedLengthInput(maxLength, hardMaxLength, DEFAULT_MIN_LENGTH, 'maxLength');
   const maxLengthVM = computed(() => {
     const result = maxLengthInput.result();
     let v = result.value;
@@ -304,6 +314,11 @@ export function useLengthValidation(
     const min = minLengthVM();
     if (v !== undefined && min !== undefined && v < min) {
       v = min;
+    }
+
+    // Backend always enforces a max (forInput / forTextarea); when the author omits maxLength, use the hard cap
+    if (v === undefined) {
+      return hardMaxLength;
     }
 
     return v;

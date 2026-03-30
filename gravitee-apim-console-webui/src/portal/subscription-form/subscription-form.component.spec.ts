@@ -158,7 +158,7 @@ describe('SubscriptionFormComponent', () => {
     expect(await saveButton.isDisabled()).toBeTruthy();
   });
 
-  it('should disable save button when config errors exist', async () => {
+  it('should disable save button when critical config errors exist', async () => {
     await init(true);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -170,11 +170,26 @@ describe('SubscriptionFormComponent', () => {
     const saveButton = await getSaveButton();
     expect(await saveButton.isDisabled()).toBeFalsy();
 
-    // Simulate config error by adding a field with a config error
-    store.updateField(fieldStateWithConfigError('warning'));
+    store.updateField(fieldStateWithConfigError('error'));
     fixture.detectChanges();
 
     expect(await saveButton.isDisabled()).toBeTruthy();
+  });
+
+  it('should not disable save button when only config warnings exist', async () => {
+    await init(true);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const store = getGmdFormStore();
+
+    fixture.componentInstance.contentControl.setValue('Updated form content');
+    fixture.detectChanges();
+
+    const saveButton = await getSaveButton();
+    store.updateField(fieldStateWithConfigError('warning'));
+    fixture.detectChanges();
+
+    expect(await saveButton.isDisabled()).toBeFalsy();
   });
 
   describe('enable/disable toggle functionality', () => {
