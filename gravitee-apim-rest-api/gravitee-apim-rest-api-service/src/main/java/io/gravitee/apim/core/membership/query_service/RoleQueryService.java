@@ -33,4 +33,8 @@ public interface RoleQueryService {
     default Role getApiRole(String name, ReferenceContext referenceContext) {
         return findApiRole(name, referenceContext).orElseThrow(() -> new RoleNotFoundException(name, referenceContext));
     }
+
+    default Role getApiProductRole(String name, ReferenceContext referenceContext) {
+        return findApiProductRole(name, referenceContext).orElseThrow(() -> new RoleNotFoundException(name, referenceContext));
+    }
 }

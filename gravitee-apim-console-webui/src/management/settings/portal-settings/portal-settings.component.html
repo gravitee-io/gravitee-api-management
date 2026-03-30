@@ -166,6 +166,15 @@
           </mat-radio-button>
         </mat-radio-group>
       </mat-card-content>
+
+      <mat-card-content formGroupName="apiProduct">
+        <h3 class="portal__form__card__title">API Product Primary Owner mode</h3>
+        <mat-radio-group formControlName="primaryOwnerMode" class="portal__form__card__radio-group">
+          <mat-radio-button *ngFor="let mode of apiProductPrimaryOwnerModeList" [value]="mode.id">
+            {{ mode.label }}
+          </mat-radio-button>
+        </mat-radio-group>
+      </mat-card-content>
     </mat-card>
 
     <h2>Portal</h2>

@@ -23,8 +23,13 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
+import io.gravitee.apim.core.parameters.model.ParameterContext;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -34,13 +39,22 @@ import lombok.AllArgsConstructor;
 public class ApiProductPrimaryOwnerFactory {
 
     private final MembershipQueryService membershipQueryService;
+    private final ParametersQueryService parametersQueryService;
     private final RoleQueryService roleQueryService;
     private final UserCrudService userCrudService;
     private final GroupQueryService groupQueryService;
 
     public PrimaryOwnerEntity createForNewApiProduct(String organizationId, String environmentId, String userId) {
-        // TODO: Introduce Key.API_PRODUCT_PRIMARY_OWNER_MODE with HYBRID, USER, GROUP support
-        return initUserPrimaryOwner(userId);
+        var mode = ApiPrimaryOwnerMode.valueOf(
+            parametersQueryService.findAsString(
+                Key.API_PRODUCT_PRIMARY_OWNER_MODE,
+                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
+            )
+        );
+        return switch (mode) {
+            case HYBRID, USER -> initUserPrimaryOwner(userId);
+            case GROUP -> initWithFirstGroupWhereUserIsPrimaryOwner(userId, organizationId);
+        };
     }
 
     private PrimaryOwnerEntity initUserPrimaryOwner(String userId) {
@@ -63,7 +77,11 @@ public class ApiProductPrimaryOwnerFactory {
         return group
             .flatMap(g ->
                 membershipQueryService
-                    .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, g.getId(), getApiPrimaryOwnerRole(organizationId).getId())
+                    .findByReferenceAndRoleId(
+                        Membership.ReferenceType.GROUP,
+                        g.getId(),
+                        getApiProductPrimaryOwnerRole(organizationId).getId()
+                    )
                     .stream()
                     .findFirst()
                     .map(membership -> userCrudService.getBaseUser(membership.getMemberId()))
@@ -72,8 +90,8 @@ public class ApiProductPrimaryOwnerFactory {
             .orElseThrow(() -> new NoPrimaryOwnerGroupForUserException(userId));
     }
 
-    private Role getApiPrimaryOwnerRole(String organizationId) {
-        return roleQueryService.getApiRole(
+    private Role getApiProductPrimaryOwnerRole(String organizationId) {
+        return roleQueryService.getApiProductRole(
             SystemRole.PRIMARY_OWNER.name(),
             ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
         );

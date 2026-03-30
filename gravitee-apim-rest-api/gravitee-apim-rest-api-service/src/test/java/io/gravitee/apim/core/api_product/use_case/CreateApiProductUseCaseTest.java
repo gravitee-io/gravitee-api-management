@@ -104,13 +104,19 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         parametersQueryService.initWith(
             List.of(
-                new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENV_ID, ParameterReferenceType.ENVIRONMENT, ApiPrimaryOwnerMode.USER.name())
+                new Parameter(
+                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name()
+                )
             )
         );
 
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiProductPrimaryOwnerFactory = new ApiProductPrimaryOwnerFactory(
             membershipQueryService,
+            parametersQueryService,
             roleQueryService,
             userCrudService,
             groupQueryService

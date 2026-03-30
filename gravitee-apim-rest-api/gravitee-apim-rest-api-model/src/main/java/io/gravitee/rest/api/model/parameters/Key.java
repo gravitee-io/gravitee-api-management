@@ -374,6 +374,11 @@ public enum Key {
         ApiPrimaryOwnerMode.HYBRID.name(),
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
+    API_PRODUCT_PRIMARY_OWNER_MODE(
+        "api.product.primary.owner.mode",
+        ApiPrimaryOwnerMode.HYBRID.name(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
 
     CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED(
         "console.authentication.localLogin.enabled",

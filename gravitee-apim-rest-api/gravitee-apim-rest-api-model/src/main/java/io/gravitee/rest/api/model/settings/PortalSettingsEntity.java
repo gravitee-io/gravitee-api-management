@@ -33,6 +33,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
 
     private Analytics analytics;
     private Api api;
+    private ApiProduct apiProduct;
     private ApiScore apiScore;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
@@ -59,6 +60,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         super();
         analytics = new Analytics();
         api = new Api();
+        apiProduct = new ApiProduct();
         apiScore = new ApiScore();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();

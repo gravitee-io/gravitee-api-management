@@ -31,6 +31,7 @@ export interface PortalConfiguration {
   company?: PortalSettingsCompany;
   plan?: PortalSettingsPlan;
   api?: PortalSettingsApi;
+  apiProduct?: PortalSettingsApiProduct;
   dashboards?: PortalSettingsDashboards;
   scheduler?: PortalSettingsScheduler;
   documentation?: PortalSettingsDocumentation;
@@ -185,6 +186,10 @@ export interface PortalSettingsPlan {
 export interface PortalSettingsApi {
   labelsDictionary: string[];
   primaryOwnerMode: string;
+}
+
+export interface PortalSettingsApiProduct {
+  primaryOwnerMode?: string;
 }
 
 export interface PortalSettingsDashboards {

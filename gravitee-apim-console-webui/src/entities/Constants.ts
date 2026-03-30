@@ -58,6 +58,9 @@ export interface EnvSettings {
     labelsDictionary: string[];
     primaryOwnerMode: string;
   };
+  apiProduct: {
+    primaryOwnerMode: string;
+  };
   apiScore: {
     enabled: boolean;
   };
