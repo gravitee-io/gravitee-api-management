@@ -45,6 +45,12 @@ Scope: V4 API Analytics Dashboard (M1)
 **Verification:**
 
 - `mvn test -pl gravitee-apim-repository/gravitee-apim-repository-api -q` ✅
+- `mvn clean compile -pl gravitee-apim-repository/gravitee-apim-repository-elasticsearch,gravitee-apim-repository/gravitee-apim-repository-noop -am -q` ✅
+- `mvn test -pl gravitee-apim-rest-api -q` ✅ (full REST API module tests after wiring)
+
+**Repository implementations (stubs until B1b):**
+
+- `AnalyticsElasticsearchRepository` and `NoOpAnalyticsRepository` implement the new methods by returning `Optional.empty()` so clean builds succeed. Real ES queries land in Story 2 (B1b).
 
 ---
 
@@ -61,6 +67,8 @@ Scope: V4 API Analytics Dashboard (M1)
 
 - **Prettier formatting gate** in `gravitee-apim-repository-api`: the module fails builds on formatting check.\n
   - Fixed by running `mvn -pl gravitee-apim-repository/gravitee-apim-repository-api -q prettier:write`.
+- **Interface-only change breaks `clean compile`** until all `AnalyticsRepository` implementations add the new methods.\n
+  - Fixed with stub overrides in `AnalyticsElasticsearchRepository` and `NoOpAnalyticsRepository`.
 
 ---
 
