@@ -15,9 +15,11 @@
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { SubscriptionInfoComponent } from './subscription-info.component';
 import { SubscriptionInfoHarness } from './subscription-info.harness';
+import { Api } from '../../entities/api/api';
 import { Subscription } from '../../entities/subscription';
 
 describe('SubscriptionInfoComponent', () => {
@@ -25,17 +27,29 @@ describe('SubscriptionInfoComponent', () => {
   let fixture: ComponentFixture<SubscriptionInfoComponent>;
   let harness: SubscriptionInfoHarness;
 
-  const init = async (subscription: Subscription) => {
+  const init = async (
+    subscription: Subscription,
+    options?: {
+      api?: Api;
+      apiName?: string;
+    },
+  ) => {
     await TestBed.configureTestingModule({
       imports: [SubscriptionInfoComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SubscriptionInfoComponent);
     component = fixture.componentInstance;
     component.subscription = subscription;
+    component.api = options?.api;
+    component.apiName = options?.apiName;
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionInfoHarness);
     fixture.detectChanges();
   };
+
+  const getApiLink = (): HTMLAnchorElement | null => fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]');
+  const getApiLabel = (): HTMLSpanElement | null => fixture.nativeElement.querySelector('[data-testid="subscription-api-label"]');
 
   it('should create', async () => {
     await init({ status: 'ACCEPTED' } as Subscription);
@@ -80,6 +94,34 @@ describe('SubscriptionInfoComponent', () => {
       await init({ status: 'CLOSED' } as Subscription);
 
       expect(await harness.getCloseButton()).toBeFalsy();
+    });
+  });
+
+  describe('api link visibility', () => {
+    const api: Api = { id: 'api-id', name: 'My API' } as Api;
+
+    it('should render API as clickable link when API details are available', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api });
+
+      expect(getApiLink()).toBeTruthy();
+      expect(getApiLink()?.textContent?.trim()).toStrictEqual('My API');
+      expect(getApiLabel()).toBeNull();
+    });
+
+    it('should render API metadata name as plain text when api details are missing', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { apiName: 'API from metadata' });
+
+      expect(getApiLink()).toBeNull();
+      expect(getApiLabel()).toBeTruthy();
+      expect(getApiLabel()?.textContent?.trim()).toStrictEqual('API from metadata');
+    });
+
+    it('should prefer api.name over apiName fallback', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api, apiName: 'API from metadata' });
+
+      expect(getApiLink()).toBeTruthy();
+      expect(getApiLink()?.textContent?.trim()).toStrictEqual('My API');
+      expect(getApiLabel()).toBeNull();
     });
   });
 });

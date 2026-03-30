@@ -32,7 +32,10 @@ export class PermissionsService {
 
   getApiPermissions(apiId: string): Observable<UserApiPermissions> {
     return this.http.get<UserApiPermissions>(`${this.configService.baseURL}/permissions`, {
-      params: { apiId, [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION },
+      params: {
+        apiId,
+        [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION,
+      },
     });
   }
 
