@@ -26,6 +26,16 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsField;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByOrder;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
@@ -259,6 +269,69 @@ class AnalyticsQueryServiceImplTest {
                             TopHitsApps.TopHitApp.builder().id("app-id-3").count(17L).build()
                         )
                 );
+        }
+    }
+
+    @Nested
+    class SearchApiAnalyticsUnified {
+
+        private static final String API_ID = "api#1";
+        private static final Instant FROM = Instant.parse("2023-10-22T09:00:00Z");
+        private static final Instant TO = Instant.parse("2023-10-22T10:00:00Z");
+
+        @Test
+        void should_delegate_search_api_analytics_count() {
+            when(analyticsRepository.searchApiAnalyticsCount(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(ApiAnalyticsCountAggregate.builder().count(7L).build()));
+            assertThat(cut.searchApiAnalyticsCount(GraviteeContext.getExecutionContext(), new ApiAnalyticsCountQuery(API_ID, FROM, TO)))
+                .hasValueSatisfying(agg -> assertThat(agg.getCount()).isEqualTo(7L));
+            verify(analyticsRepository).searchApiAnalyticsCount(queryContextCaptor.capture(), any(ApiAnalyticsCountQuery.class));
+            assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+        }
+
+        @Test
+        void should_delegate_search_api_analytics_stats() {
+            when(analyticsRepository.searchApiAnalyticsStats(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(ApiAnalyticsStatsAggregate.builder().count(2).min(1.0).max(3.0).avg(2.0).sum(4.0).build()));
+            assertThat(
+                cut.searchApiAnalyticsStats(
+                    GraviteeContext.getExecutionContext(),
+                    new ApiAnalyticsStatsQuery(API_ID, FROM, TO, ApiAnalyticsField.STATUS)
+                )
+            )
+                .hasValueSatisfying(agg -> assertThat(agg.getCount()).isEqualTo(2));
+            verify(analyticsRepository).searchApiAnalyticsStats(queryContextCaptor.capture(), any(ApiAnalyticsStatsQuery.class));
+            assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+        }
+
+        @Test
+        void should_delegate_search_api_analytics_group_by() {
+            when(analyticsRepository.searchApiAnalyticsGroupBy(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(ApiAnalyticsGroupByAggregate.builder().values(Map.of("a", 1L)).build()));
+            assertThat(
+                cut.searchApiAnalyticsGroupBy(
+                    GraviteeContext.getExecutionContext(),
+                    new ApiAnalyticsGroupByQuery(API_ID, FROM, TO, ApiAnalyticsField.STATUS, 10, ApiAnalyticsGroupByOrder.COUNT_DESC)
+                )
+            )
+                .hasValueSatisfying(agg -> assertThat(agg.getValues()).containsEntry("a", 1L));
+            verify(analyticsRepository).searchApiAnalyticsGroupBy(queryContextCaptor.capture(), any(ApiAnalyticsGroupByQuery.class));
+            assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+        }
+
+        @Test
+        void should_delegate_search_api_analytics_date_histo() {
+            when(analyticsRepository.searchApiAnalyticsDateHisto(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(ApiAnalyticsDateHistoAggregate.builder().timestamps(List.of(1L, 2L)).values(List.of()).build()));
+            assertThat(
+                cut.searchApiAnalyticsDateHisto(
+                    GraviteeContext.getExecutionContext(),
+                    new ApiAnalyticsDateHistoQuery(API_ID, FROM, TO, ApiAnalyticsField.STATUS, Duration.ofMinutes(5))
+                )
+            )
+                .isPresent();
+            verify(analyticsRepository).searchApiAnalyticsDateHisto(queryContextCaptor.capture(), any(ApiAnalyticsDateHistoQuery.class));
+            assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
         }
     }
 

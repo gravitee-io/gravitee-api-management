@@ -104,6 +104,16 @@ Scope: V4 API Analytics Dashboard (M1)
 
 **Note:** Full `gravitee-apim-repository-elasticsearch` test suite is not runnable in this environment due to pre-existing Spring/Mockito/Testcontainers-style integration tests failing to initialize. We keep our verification scoped to adapter unit tests + REST API module tests (per workshop workflow).
 
+---
+
+### Story 3 (B2) — Core: `AnalyticsQueryService` + per-type use cases
+
+**Summary:** Extended `AnalyticsQueryService` with four methods that delegate to `AnalyticsRepository` (same pattern as `searchRequestsCount`). Added one use case per query type with the same V4 validation as `SearchRequestsCountAnalyticsUseCase`, plus **empty results when `analytics.enabled` is false** (no repository call). Shared validation lives in package-private `ApiAnalyticsV4ApiValidation`. Test fixture `ApiFixtures.aMessageApiV4WithAnalyticsEnabled()` enables analytics for happy-path tests (fixtures default to disabled).
+
+**Verification:**
+
+- `mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-service -am -q test -Dtest="SearchApiAnalytics*UseCaseTest,AnalyticsQueryServiceImplTest" -Dsurefire.failIfNoSpecifiedTests=false` ✅
+
 ## Current blockers / open questions
 
 - **ES field names & types**: `ApiAnalyticsField` currently maps PRD names directly to same-named ES fields with a numeric/keyword hint. When implementing B1b, we must confirm actual v4 metrics index mappings (and any `.keyword` requirements).\n

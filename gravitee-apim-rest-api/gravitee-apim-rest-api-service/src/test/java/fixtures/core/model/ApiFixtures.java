@@ -223,6 +223,17 @@ public class ApiFixtures {
             .build();
     }
 
+    /**
+     * Same as {@link #aMessageApiV4()} but with analytics enabled (fixture defaults to disabled).
+     */
+    public static Api aMessageApiV4WithAnalyticsEnabled() {
+        final Api api = aMessageApiV4();
+        return api
+            .toBuilder()
+            .apiDefinitionHttpV4(api.getApiDefinitionHttpV4().toBuilder().analytics(Analytics.builder().enabled(true).build()).build())
+            .build();
+    }
+
     public static Api aTcpApiV4() {
         return aTcpApiV4(null);
     }

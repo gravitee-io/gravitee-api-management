@@ -18,6 +18,14 @@ package io.gravitee.apim.core.analytics.query_service;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -34,9 +42,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.checkerframework.checker.units.qual.A;
 
 public interface AnalyticsQueryService {
+    Optional<ApiAnalyticsCountAggregate> searchApiAnalyticsCount(ExecutionContext executionContext, ApiAnalyticsCountQuery query);
+
+    Optional<ApiAnalyticsStatsAggregate> searchApiAnalyticsStats(ExecutionContext executionContext, ApiAnalyticsStatsQuery query);
+
+    Optional<ApiAnalyticsGroupByAggregate> searchApiAnalyticsGroupBy(ExecutionContext executionContext, ApiAnalyticsGroupByQuery query);
+
+    Optional<ApiAnalyticsDateHistoAggregate> searchApiAnalyticsDateHisto(
+        ExecutionContext executionContext,
+        ApiAnalyticsDateHistoQuery query
+    );
+
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(

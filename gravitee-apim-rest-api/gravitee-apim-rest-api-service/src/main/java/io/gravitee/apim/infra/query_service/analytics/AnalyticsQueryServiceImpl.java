@@ -21,6 +21,14 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -63,6 +71,32 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
 
     public AnalyticsQueryServiceImpl(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
+    }
+
+    @Override
+    public Optional<ApiAnalyticsCountAggregate> searchApiAnalyticsCount(ExecutionContext executionContext, ApiAnalyticsCountQuery query) {
+        return analyticsRepository.searchApiAnalyticsCount(executionContext.getQueryContext(), query);
+    }
+
+    @Override
+    public Optional<ApiAnalyticsStatsAggregate> searchApiAnalyticsStats(ExecutionContext executionContext, ApiAnalyticsStatsQuery query) {
+        return analyticsRepository.searchApiAnalyticsStats(executionContext.getQueryContext(), query);
+    }
+
+    @Override
+    public Optional<ApiAnalyticsGroupByAggregate> searchApiAnalyticsGroupBy(
+        ExecutionContext executionContext,
+        ApiAnalyticsGroupByQuery query
+    ) {
+        return analyticsRepository.searchApiAnalyticsGroupBy(executionContext.getQueryContext(), query);
+    }
+
+    @Override
+    public Optional<ApiAnalyticsDateHistoAggregate> searchApiAnalyticsDateHisto(
+        ExecutionContext executionContext,
+        ApiAnalyticsDateHistoQuery query
+    ) {
+        return analyticsRepository.searchApiAnalyticsDateHisto(executionContext.getQueryContext(), query);
     }
 
     @Override
