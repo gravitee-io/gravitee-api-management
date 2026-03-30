@@ -58,11 +58,21 @@ export interface MembershipApiDS {
   environmentId: string;
 }
 
+export interface MembershipApiProductDS {
+  id: string;
+  name: string;
+  version: string;
+  visibility?: string;
+  environmentId: string;
+}
+
 export interface MembershipApplicationDS {
   id: string;
   name: string;
   environmentId: string;
 }
+
+const DEFAULT_RESOURCE_TABLE_COLUMNS = ['name', 'version', 'visibility'];
 
 @Component({
   selector: 'org-settings-user-detail-memberships',
@@ -94,27 +104,32 @@ export class OrgSettingsUserDetailMembershipsComponent {
 
   groupsRolesFormGroup: UntypedFormGroup;
   groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'applicationRole', 'integrationRole', 'delete'];
-  apisTableDisplayedColumns = ['name', 'version', 'visibility'];
+  apisTableDisplayedColumns = [...DEFAULT_RESOURCE_TABLE_COLUMNS];
+  apiProductsTableDisplayedColumns = [...DEFAULT_RESOURCE_TABLE_COLUMNS];
   applicationsTableDisplayedColumns = ['name'];
 
   selectedEnvironmentId: string;
 
   // Filtered (paginated/searched) data for display
   membershipApis = signal<MembershipApiDS[]>([]);
+  membershipApiProducts = signal<MembershipApiProductDS[]>([]);
   membershipApplications = signal<MembershipApplicationDS[]>([]);
   membershipGroups = signal<MembershipGroupDS[]>([]);
 
   membershipApisLoaded = signal(false);
+  membershipApiProductsLoaded = signal(false);
   membershipApplicationsLoaded = signal(false);
   membershipGroupsLoaded = signal(false);
 
   // Unpaginated lengths for gio-table-wrapper
   apisUnpaginatedLength = signal(0);
+  apiProductsUnpaginatedLength = signal(0);
   applicationsUnpaginatedLength = signal(0);
   groupsUnpaginatedLength = signal(0);
 
   // Store initial (unfiltered) data for client-side filtering
   private initialApis: MembershipApiDS[] = [];
+  private initialApiProducts: MembershipApiProductDS[] = [];
   private initialApplications: MembershipApplicationDS[] = [];
   private initialGroups: MembershipGroupDS[] = [];
 
@@ -159,6 +174,14 @@ export class OrgSettingsUserDetailMembershipsComponent {
     });
     this.membershipApis.set(filtered.filteredCollection as MembershipApiDS[]);
     this.apisUnpaginatedLength.set(filtered.unpaginatedLength);
+  }
+
+  onApiProductsFiltersChanged(filters: GioTableWrapperFilters) {
+    const filtered = gioTableFilterCollection(this.initialApiProducts, filters, {
+      searchTermIgnoreKeys: ['id', 'visibility'],
+    });
+    this.membershipApiProducts.set(filtered.filteredCollection as MembershipApiProductDS[]);
+    this.apiProductsUnpaginatedLength.set(filtered.unpaginatedLength);
   }
 
   onApplicationsFiltersChanged(filters: GioTableWrapperFilters) {
@@ -301,6 +324,27 @@ export class OrgSettingsUserDetailMembershipsComponent {
         this.membershipApis.set(this.initialApis);
         this.apisUnpaginatedLength.set(this.initialApis.length);
         this.membershipApisLoaded.set(true);
+      });
+
+    // Load API Products via v2 endpoint
+    this.membershipApiProductsLoaded.set(false);
+    this.usersV2Service
+      .getUserApiProducts(this.userId(), environmentId, 1, 9999)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of({ data: [], pagination: { page: 1, perPage: 9999, pageCount: 0, pageItemsCount: 0, totalCount: 0 } })),
+      )
+      .subscribe(response => {
+        this.initialApiProducts = response.data.map(userApiProduct => ({
+          id: userApiProduct.id,
+          name: userApiProduct.name,
+          version: userApiProduct.version,
+          visibility: userApiProduct.visibility,
+          environmentId: userApiProduct.environmentId,
+        }));
+        this.membershipApiProducts.set(this.initialApiProducts);
+        this.apiProductsUnpaginatedLength.set(this.initialApiProducts.length);
+        this.membershipApiProductsLoaded.set(true);
       });
 
     // Load Applications via v2 endpoint

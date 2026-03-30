@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.user;
 
+import io.gravitee.apim.core.user.use_case.GetUserApiProductsUseCase;
 import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
 import io.gravitee.apim.core.user.use_case.GetUserApplicationsUseCase;
 import io.gravitee.apim.core.user.use_case.GetUserGroupsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.model.UserApi;
+import io.gravitee.rest.api.management.v2.rest.model.UserApiProduct;
+import io.gravitee.rest.api.management.v2.rest.model.UserApiProductsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UserApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UserApplication;
 import io.gravitee.rest.api.management.v2.rest.model.UserApplicationsResponse;
@@ -46,6 +49,9 @@ public class UserResource extends AbstractResource {
 
     @Inject
     private GetUserApisUseCase getUserApisUseCase;
+
+    @Inject
+    private GetUserApiProductsUseCase getUserApiProductsUseCase;
 
     @Inject
     private GetUserApplicationsUseCase getUserApplicationsUseCase;
@@ -82,6 +88,41 @@ public class UserResource extends AbstractResource {
 
         return Response.ok(
             new UserApisResponse()
+                .data(data)
+                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                .links(computePaginationLinks(output.totalCount(), paginationParam))
+        ).build();
+    }
+
+    @GET
+    @Path("/api-products")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    public Response getUserApiProducts(
+        @PathParam("userId") String userId,
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("environmentId") String environmentId
+    ) {
+        var output = getUserApiProductsUseCase.execute(
+            new GetUserApiProductsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+        );
+
+        List<UserApiProduct> data = output
+            .data()
+            .stream()
+            .map(userApiProduct ->
+                new UserApiProduct()
+                    .id(userApiProduct.getId())
+                    .name(userApiProduct.getName())
+                    .version(userApiProduct.getVersion())
+                    .visibility(userApiProduct.getVisibility())
+                    .environmentId(userApiProduct.getEnvironmentId())
+                    .environmentName(userApiProduct.getEnvironmentName())
+            )
+            .toList();
+
+        return Response.ok(
+            new UserApiProductsResponse()
                 .data(data)
                 .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
                 .links(computePaginationLinks(output.totalCount(), paginationParam))

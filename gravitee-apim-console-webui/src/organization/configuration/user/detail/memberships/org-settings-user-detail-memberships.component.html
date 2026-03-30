@@ -204,6 +204,63 @@
           }
         </div>
 
+        <!-- API Products section -->
+        <div class="memberships__section">
+          <h3>API Products</h3>
+
+          @if (membershipApiProductsLoaded()) {
+            <gio-table-wrapper [length]="apiProductsUnpaginatedLength()" (filtersChange)="onApiProductsFiltersChanged($event)">
+              <table mat-table [dataSource]="membershipApiProducts()" aria-label="API Products table">
+                <!-- Name Column -->
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef id="api-product-name">Name</th>
+                  <td mat-cell *matCellDef="let membershipApiProduct">
+                    @if (membershipApiProduct.environmentId && membershipApiProduct.id) {
+                      <a [routerLink]="['/', membershipApiProduct.environmentId, 'api-products', membershipApiProduct.id]">
+                        {{ membershipApiProduct.name }}
+                      </a>
+                    } @else {
+                      {{ membershipApiProduct.name }}
+                    }
+                  </td>
+                </ng-container>
+
+                <!-- Version Column -->
+                <ng-container matColumnDef="version">
+                  <th mat-header-cell *matHeaderCellDef id="api-product-version">Version</th>
+                  <td mat-cell *matCellDef="let membershipApiProduct">
+                    {{ membershipApiProduct.version }}
+                  </td>
+                </ng-container>
+
+                <!-- Visibility Column -->
+                <ng-container matColumnDef="visibility">
+                  <th mat-header-cell *matHeaderCellDef id="api-product-visibility">Visibility</th>
+                  <td mat-cell *matCellDef="let membershipApiProduct">
+                    @if (membershipApiProduct.visibility) {
+                      <span class="gio-badge">
+                        <mat-icon class="gio-left">{{ membershipApiProduct.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon>
+                        {{ membershipApiProduct.visibility | titlecase }}
+                      </span>
+                    } @else {
+                      —
+                    }
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="apiProductsTableDisplayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: apiProductsTableDisplayedColumns"></tr>
+
+                <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+                  <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="apiProductsTableDisplayedColumns.length">No API Product</td>
+                </tr>
+              </table>
+            </gio-table-wrapper>
+          } @else {
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          }
+        </div>
+
         <!-- Applications section -->
         <div class="memberships__section">
           <h3>Applications</h3>

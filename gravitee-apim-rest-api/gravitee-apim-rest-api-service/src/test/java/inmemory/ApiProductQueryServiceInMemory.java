@@ -17,8 +17,12 @@ package inmemory;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -72,6 +76,23 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
             }
         }
         return result;
+    }
+
+    @Override
+    public Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable) {
+        var matches = storage
+            .stream()
+            .filter(p -> ids.contains(p.getId()))
+            .filter(p -> environmentId == null || Objects.equals(environmentId, p.getEnvironmentId()))
+            .sorted(Comparator.comparing(ApiProduct::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+            .toList();
+
+        int pageNumber = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+        int startIndex = (pageNumber - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, matches.size());
+        List<ApiProduct> pageContent = startIndex >= matches.size() ? List.of() : matches.subList(startIndex, endIndex);
+        return new Page<>(pageContent, pageNumber, pageSize, matches.size());
     }
 
     @Override

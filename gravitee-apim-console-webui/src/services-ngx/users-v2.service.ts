@@ -28,6 +28,15 @@ export interface UserApi {
   environmentName: string;
 }
 
+export interface UserApiProduct {
+  id: string;
+  name: string;
+  version: string;
+  visibility?: string;
+  environmentId: string;
+  environmentName: string;
+}
+
 export interface UserApplication {
   id: string;
   name: string;
@@ -66,6 +75,12 @@ export class UsersV2Service {
 
   getUserApis(userId: string, environmentId: string, page = 1, perPage = 10): Observable<PaginatedResponse<UserApi>> {
     return this.http.get<PaginatedResponse<UserApi>>(`${this.constants.org.v2BaseURL}/users/${userId}/apis`, {
+      params: { environmentId, page: page.toString(), perPage: perPage.toString() },
+    });
+  }
+
+  getUserApiProducts(userId: string, environmentId: string, page = 1, perPage = 10): Observable<PaginatedResponse<UserApiProduct>> {
+    return this.http.get<PaginatedResponse<UserApiProduct>>(`${this.constants.org.v2BaseURL}/users/${userId}/api-products`, {
       params: { environmentId, page: page.toString(), perPage: perPage.toString() },
     });
   }
