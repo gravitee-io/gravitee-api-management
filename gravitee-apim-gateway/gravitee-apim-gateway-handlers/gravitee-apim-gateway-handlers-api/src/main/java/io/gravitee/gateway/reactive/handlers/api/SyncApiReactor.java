@@ -265,6 +265,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             .compose(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed
             .andThen(executeFlowChain(ctx, organizationFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
+            .onErrorResumeNext(error -> processOrganizationFlowError(ctx, error))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
@@ -401,6 +402,15 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             log.error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
+    }
+
+    private Completable processOrganizationFlowError(final MutableExecutionContext ctx, final Throwable throwable) {
+        if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
+            return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
+        } else if (InterruptionHelper.isInterruption(throwable)) {
+            return Completable.complete();
+        }
+        return Completable.error(throwable);
     }
 
     private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
