@@ -5,6 +5,8 @@
     "projectType": "application",
     "tags": [],
     "targets": {
+        "lint": {},
+        "lint-license": {},
         "test": {
             "executor": "@nx/jest:jest",
             "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
