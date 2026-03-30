@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.api_product.query_service;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +28,6 @@ public interface ApiProductQueryService {
     Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids);
     Optional<ApiProduct> findById(String apiProductId);
     Set<ApiProduct> findByApiId(String apiId);
-
     Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
+    Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable);
 }

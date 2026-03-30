@@ -18,14 +18,17 @@ package io.gravitee.apim.infra.query_service.api_product;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
@@ -282,6 +285,110 @@ class ApiProductQueryServiceImplTest {
         void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
             when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID))).thenThrow(new TechnicalException("Database error"));
             var throwable = catchThrowable(() -> service.findProductsByApiIds(Set.of(API_ID)));
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
+    class SearchByIds {
+
+        @Test
+        void should_return_empty_page_when_ids_null() {
+            var result = service.searchByIds(null, ENV_ID, new PageableImpl(1, 10));
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
+
+        @Test
+        void should_return_empty_page_when_ids_empty() {
+            var result = service.searchByIds(Set.of(), ENV_ID, new PageableImpl(1, 10));
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
+
+        @Test
+        void should_return_empty_page_when_searchIds_returns_no_results() throws TechnicalException {
+            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(), 1, 0, 0));
+
+            Page<ApiProduct> result = service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10));
+
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
+
+        @Test
+        void should_return_products_for_current_page() throws TechnicalException {
+            var repoApiProduct = buildRepositoryApiProduct();
+            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(API_PRODUCT_ID), 1, 1, 1));
+            when(apiProductRepository.findByIds(List.of(API_PRODUCT_ID))).thenReturn(Set.of(repoApiProduct));
+
+            Page<ApiProduct> result = service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10));
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+        }
+
+        @Test
+        void should_respect_db_sort_order_from_searchIds() throws TechnicalException {
+            var productA = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("p-a")
+                .environmentId(ENV_ID)
+                .name("Alpha Product")
+                .version("1.0.0")
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            var productZ = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("p-z")
+                .environmentId(ENV_ID)
+                .name("Zebra Product")
+                .version("1.0.0")
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            // DB returns IDs already sorted by name ASC
+            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of("p-a", "p-z"), 1, 2, 2));
+            when(apiProductRepository.findByIds(List.of("p-a", "p-z"))).thenReturn(Set.of(productA, productZ));
+
+            Page<ApiProduct> result = service.searchByIds(Set.of("p-a", "p-z"), ENV_ID, new PageableImpl(1, 10));
+
+            assertThat(result.getContent()).extracting(ApiProduct::getName).containsExactly("Alpha Product", "Zebra Product");
+        }
+
+        @Test
+        void should_return_only_current_page_with_correct_total() throws TechnicalException {
+            var product3 = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("p-3")
+                .environmentId(ENV_ID)
+                .name("Product C")
+                .version("1.0.0")
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            // DB handles pagination: page 2, size 2 → only "p-3", total 3
+            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of("p-3"), 2, 1, 3));
+            when(apiProductRepository.findByIds(List.of("p-3"))).thenReturn(Set.of(product3));
+
+            Page<ApiProduct> result = service.searchByIds(Set.of("p-1", "p-2", "p-3"), ENV_ID, new PageableImpl(2, 2));
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getName()).isEqualTo("Product C");
+            assertThat(result.getTotalElements()).isEqualTo(3);
+        }
+
+        @Test
+        void should_throw_technical_exception_when_searchIds_fails() throws TechnicalException {
+            when(apiProductRepository.searchIds(any(), any(), any())).thenThrow(new TechnicalException("Database error"));
+            var throwable = catchThrowable(() -> service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10)));
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+
+        @Test
+        void should_throw_technical_exception_when_findByIds_fails() throws TechnicalException {
+            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(API_PRODUCT_ID), 1, 1, 1));
+            when(apiProductRepository.findByIds(List.of(API_PRODUCT_ID))).thenThrow(new TechnicalException("Database error"));
+            var throwable = catchThrowable(() -> service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10)));
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
     }

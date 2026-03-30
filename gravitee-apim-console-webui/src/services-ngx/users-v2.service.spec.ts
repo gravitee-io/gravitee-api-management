@@ -95,6 +95,35 @@ describe('UsersV2Service', () => {
     });
   });
 
+  describe('getUserApiProducts', () => {
+    it('should call API with default pagination', done => {
+      const fakeResponse = {
+        data: [{ id: 'ap1', name: 'Product 1', version: '1.0', environmentId: 'env1', environmentName: 'Env 1' }],
+        pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+      };
+
+      service.getUserApiProducts('userId', 'envId').subscribe(response => {
+        expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.v2BaseURL}/users/userId/api-products?environmentId=envId&page=1&perPage=10`,
+      );
+      expect(req.request.method).toEqual('GET');
+      req.flush(fakeResponse);
+    });
+
+    it('should allow custom pagination', done => {
+      service.getUserApiProducts('userId', 'envId', 2, 20).subscribe(() => done());
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.v2BaseURL}/users/userId/api-products?environmentId=envId&page=2&perPage=20`,
+      );
+      req.flush({ data: [], pagination: { page: 2, perPage: 20, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+  });
+
   describe('getUserGroups', () => {
     it('should call API with default pagination', done => {
       const fakeResponse = {

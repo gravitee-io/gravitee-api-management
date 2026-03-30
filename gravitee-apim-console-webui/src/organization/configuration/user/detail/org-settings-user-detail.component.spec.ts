@@ -394,6 +394,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       },
     ]);
     expectUserApplicationsV2Request('userId', 'envBetaId', []);
+    expectUserApiProductsV2Request('userId', 'envBetaId', []);
 
     fixture.detectChanges();
 
@@ -556,6 +557,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     ]);
     expectUserApisV2Request(user.id, 'envAlphaId');
     expectUserApplicationsV2Request(user.id, 'envAlphaId');
+    expectUserApiProductsV2Request(user.id, 'envAlphaId');
 
     const membershipsCardAfterAdd = await loader.getHarness(
       MatCardHarness.with({ selector: '.org-settings-user-detail__memberships-card' }),
@@ -717,7 +719,7 @@ describe('OrgSettingsUserDetailComponent', () => {
   function expectInitRequests(
     user: User = fakeUser({ id: 'userId' }),
     environments: Environment[] = defaultEnvironments,
-    v2MembershipsPerEnv: Record<string, { groups?: any[]; apis?: any[]; applications?: any[] }> = {},
+    v2MembershipsPerEnv: Record<string, { groups?: any[]; apis?: any[]; applications?: any[]; apiProducts?: any[] }> = {},
     tokens: Token[] = [],
     roles: {
       organization?: Role[];
@@ -738,6 +740,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       expectUserGroupsV2Request(user.id, firstEnvId, firstEnvData.groups || []);
       expectUserApisV2Request(user.id, firstEnvId, firstEnvData.apis || []);
       expectUserApplicationsV2Request(user.id, firstEnvId, firstEnvData.applications || []);
+      expectUserApiProductsV2Request(user.id, firstEnvId, firstEnvData.apiProducts || []);
     }
 
     // Flush role requests always fired by toSignal() in memberships component and parent template
@@ -858,6 +861,26 @@ describe('OrgSettingsUserDetailComponent', () => {
         totalCount: applications.length,
         pageCount: applications.length > 0 ? 1 : 0,
         pageItemsCount: applications.length,
+      },
+    });
+    fixture.detectChanges();
+  }
+
+  function expectUserApiProductsV2Request(userId: string, environmentId: string, apiProducts: any[] = []) {
+    const req = httpTestingController.expectOne(
+      request =>
+        request.method === 'GET' &&
+        request.url === `${CONSTANTS_TESTING.org.v2BaseURL}/users/${userId}/api-products` &&
+        request.params.get('environmentId') === environmentId,
+    );
+    req.flush({
+      data: apiProducts,
+      pagination: {
+        page: 1,
+        perPage: 9999,
+        totalCount: apiProducts.length,
+        pageCount: apiProducts.length > 0 ? 1 : 0,
+        pageItemsCount: apiProducts.length,
       },
     });
     fixture.detectChanges();

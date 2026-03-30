@@ -19,11 +19,18 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiProductAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -35,7 +42,7 @@ import org.springframework.util.CollectionUtils;
 
 @Service
 @CustomLog
-public class ApiProductQueryServiceImpl implements ApiProductQueryService {
+public class ApiProductQueryServiceImpl extends AbstractService implements ApiProductQueryService {
 
     private final ApiProductsRepository apiProductRepository;
 
@@ -116,6 +123,38 @@ public class ApiProductQueryServiceImpl implements ApiProductQueryService {
             return repoApiProducts.stream().map(ApiProductAdapter.INSTANCE::toModel).collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to find API Products by API ID", e);
+        }
+    }
+
+    @Override
+    public Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable) {
+        if (ids == null || ids.isEmpty()) {
+            return new Page<>(List.of(), pageable.getPageNumber(), pageable.getPageSize(), 0);
+        }
+        try {
+            log.debug("Searching API Products by ids: {} and environmentId: {}", ids, environmentId);
+            var criteria = new ApiProductCriteria.Builder().ids(ids).environmentId(environmentId).build();
+            var sortable = new SortableBuilder().field("name").setAsc(true).build();
+
+            Page<String> idPage = apiProductRepository.searchIds(List.of(criteria), convert(pageable), sortable);
+            if (idPage.getContent().isEmpty()) {
+                return new Page<>(List.of(), pageable.getPageNumber(), pageable.getPageSize(), idPage.getTotalElements());
+            }
+
+            Map<String, io.gravitee.repository.management.model.ApiProduct> apiProductsById = new LinkedHashMap<>();
+            apiProductRepository
+                .findByIds(idPage.getContent())
+                .forEach(repoApiProduct -> apiProductsById.put(repoApiProduct.getId(), repoApiProduct));
+            List<ApiProduct> pageContent = idPage
+                .getContent()
+                .stream()
+                .filter(apiProductsById::containsKey)
+                .map(apiProductId -> ApiProductAdapter.INSTANCE.toModel(apiProductsById.get(apiProductId)))
+                .toList();
+
+            return new Page<>(pageContent, pageable.getPageNumber(), pageContent.size(), idPage.getTotalElements());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to search API Products by ids", e);
         }
     }
 
