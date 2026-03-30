@@ -15,7 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { catchError, map, Observable, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
@@ -27,11 +27,17 @@ import {
 import { PortalNavigationApi, PortalNavigationItem, PortalArea } from '../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
+export interface ApiDocumentationNavigationTarget {
+  rootId: string;
+  navItemId: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class PortalNavigationItemsService {
   public topNavbarItems: WritableSignal<PortalNavigationItem[]> = signal([]);
+  private readonly apiNavigationTargetCache = new Map<string, ApiDocumentationNavigationTarget>();
 
   constructor(
     private readonly http: HttpClient,
@@ -79,6 +85,66 @@ export class PortalNavigationItemsService {
     return this.http
       .get<PortalNavigationItemsSearchResponse>(`${this.configService.baseURL}/portal-navigation-items/_search`, { params })
       .pipe(map(res => this.mapToSearchResponse(res)));
+  }
+
+  resolveApiNavigationTarget(apiId: string): Observable<ApiDocumentationNavigationTarget | null> {
+    const cachedTarget = this.apiNavigationTargetCache.get(apiId);
+    if (cachedTarget) {
+      return of(cachedTarget);
+    }
+
+    return this.getTopNavbarRoots$().pipe(switchMap(roots => this.resolveApiNavigationTargetFromRoots$(apiId, roots)));
+  }
+
+  private getTopNavbarRoots$(): Observable<PortalNavigationItem[]> {
+    const topNavbarItems = this.topNavbarItems();
+    if (topNavbarItems.length > 0) {
+      return of(topNavbarItems);
+    }
+
+    return this.loadTopNavBarItems().pipe(map(() => this.topNavbarItems()));
+  }
+
+  private resolveApiNavigationTargetFromRoots$(
+    apiId: string,
+    roots: PortalNavigationItem[],
+  ): Observable<ApiDocumentationNavigationTarget | null> {
+    if (roots.length === 0) {
+      return of(null);
+    }
+
+    return forkJoin(this.sortByOrder(roots).map(root => this.loadTopNavbarDescendants$(root))).pipe(
+      map(descendantsByRoot => this.findAndCacheApiNavigationTarget(apiId, descendantsByRoot)),
+    );
+  }
+
+  private loadTopNavbarDescendants$(root: PortalNavigationItem): Observable<{ rootId: string; items: PortalNavigationItem[] }> {
+    return this.getNavigationItems('TOP_NAVBAR', true, root.id).pipe(
+      map(items => ({
+        rootId: root.id,
+        items: this.sortByOrder(items),
+      })),
+    );
+  }
+
+  private findAndCacheApiNavigationTarget(
+    apiId: string,
+    descendantsByRoot: Array<{ rootId: string; items: PortalNavigationItem[] }>,
+  ): ApiDocumentationNavigationTarget | null {
+    for (const { rootId, items } of descendantsByRoot) {
+      const apiItem = items.find((item): item is PortalNavigationApi => item.type === 'API' && item.apiId === apiId);
+      if (apiItem) {
+        const target = { rootId, navItemId: apiItem.id };
+        this.apiNavigationTargetCache.set(apiId, target);
+        return target;
+      }
+    }
+
+    return null;
+  }
+
+  private sortByOrder<T extends { order: number }>(items: T[]): T[] {
+    return [...items].sort((a, b) => a.order - b.order);
   }
 
   private mapToSearchResponse(res: PortalNavigationItemsSearchResponse): PortalNavigationApisSearchResponse {

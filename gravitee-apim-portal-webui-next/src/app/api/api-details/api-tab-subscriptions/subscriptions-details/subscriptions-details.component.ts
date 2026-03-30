@@ -45,6 +45,7 @@ import { ApiService } from '../../../../../services/api.service';
 import { ApplicationService } from '../../../../../services/application.service';
 import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
+import { ApiDocumentationNavigationTarget, PortalNavigationItemsService } from '../../../../../services/portal-navigation-items.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 
 interface SubscriptionDetailsVM {
@@ -70,6 +71,7 @@ interface SubscriptionDetailsData {
   api?: Api;
   apiName?: string;
   hasDocumentationAccess: boolean;
+  documentationNavigationTarget?: ApiDocumentationNavigationTarget;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
@@ -110,6 +112,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     private apiService: ApiService,
     private applicationService: ApplicationService,
     private permissionsService: PermissionsService,
+    private portalNavigationItemsService: PortalNavigationItemsService,
     private destroyRef: DestroyRef,
     private planService: PlanService,
     public dialog: MatDialog,
@@ -188,9 +191,12 @@ export class SubscriptionsDetailsComponent implements OnInit {
           api: hasDocumentationAccess ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
           application: this.applicationService.get(subscription.application),
           hasDocumentationAccess: of(hasDocumentationAccess),
+          documentationNavigationTarget: hasDocumentationAccess
+            ? this.portalNavigationItemsService.resolveApiNavigationTarget(this.apiId).pipe(catchError(() => of(null)))
+            : of(null),
         }),
       ),
-      map(({ subscription, plan, api, application, hasDocumentationAccess }) => {
+      map(({ subscription, plan, api, application, hasDocumentationAccess, documentationNavigationTarget }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
           application,
           subscription,
@@ -205,6 +211,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           updatedAt: subscription.updated_at,
           entrypointUrls: api?.entrypoints ?? [],
           hasDocumentationAccess,
+          documentationNavigationTarget: documentationNavigationTarget ?? undefined,
         };
 
         if (subscription.status === 'ACCEPTED') {

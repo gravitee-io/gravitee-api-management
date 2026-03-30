@@ -21,6 +21,7 @@ import { SubscriptionInfoComponent } from './subscription-info.component';
 import { SubscriptionInfoHarness } from './subscription-info.harness';
 import { Api } from '../../entities/api/api';
 import { Subscription } from '../../entities/subscription';
+import { ApiDocumentationNavigationTarget } from '../../services/portal-navigation-items.service';
 
 describe('SubscriptionInfoComponent', () => {
   let component: SubscriptionInfoComponent;
@@ -32,6 +33,7 @@ describe('SubscriptionInfoComponent', () => {
     options?: {
       api?: Api;
       apiName?: string;
+      documentationNavigationTarget?: ApiDocumentationNavigationTarget;
     },
   ) => {
     await TestBed.configureTestingModule({
@@ -44,6 +46,7 @@ describe('SubscriptionInfoComponent', () => {
     component.subscription = subscription;
     component.api = options?.api;
     component.apiName = options?.apiName;
+    component.documentationNavigationTarget = options?.documentationNavigationTarget;
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionInfoHarness);
     fixture.detectChanges();
   };
@@ -99,13 +102,24 @@ describe('SubscriptionInfoComponent', () => {
 
   describe('api link visibility', () => {
     const api: Api = { id: 'api-id', name: 'My API' } as Api;
+    const documentationNavigationTarget: ApiDocumentationNavigationTarget = { rootId: 'root-id', navItemId: 'nav-item-id' };
 
-    it('should render API as clickable link when API details are available', async () => {
-      await init({ status: 'ACCEPTED' } as Subscription, { api });
+    it('should render API as clickable link when API details and documentation target are available', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api, documentationNavigationTarget });
 
       expect(getApiLink()).toBeTruthy();
       expect(getApiLink()?.textContent?.trim()).toStrictEqual('My API');
+      expect(getApiLink()?.getAttribute('href')).toContain('/documentation/root-id');
+      expect(getApiLink()?.getAttribute('href')).toContain('selectedId=nav-item-id');
       expect(getApiLabel()).toBeNull();
+    });
+
+    it('should render API metadata name as plain text when documentation target is missing', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api });
+
+      expect(getApiLink()).toBeNull();
+      expect(getApiLabel()).toBeTruthy();
+      expect(getApiLabel()?.textContent?.trim()).toStrictEqual('My API');
     });
 
     it('should render API metadata name as plain text when api details are missing', async () => {
@@ -117,7 +131,7 @@ describe('SubscriptionInfoComponent', () => {
     });
 
     it('should prefer api.name over apiName fallback', async () => {
-      await init({ status: 'ACCEPTED' } as Subscription, { api, apiName: 'API from metadata' });
+      await init({ status: 'ACCEPTED' } as Subscription, { api, apiName: 'API from metadata', documentationNavigationTarget });
 
       expect(getApiLink()).toBeTruthy();
       expect(getApiLink()?.textContent?.trim()).toStrictEqual('My API');
