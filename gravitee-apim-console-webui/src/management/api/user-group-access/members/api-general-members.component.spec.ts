@@ -34,7 +34,7 @@ import { RoleService } from '../../../../services-ngx/role.service';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 import { fakeSearchableUser } from '../../../../entities/user/searchableUser.fixture';
-import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralMembersComponent', () => {
@@ -330,35 +330,6 @@ describe('ApiGeneralMembersComponent', () => {
       await harness.clickOnSave();
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members`, method: 'POST' });
       expect(req.request.body).toEqual({ userId: undefined, externalReference: memberToAdd.reference, roleName: 'USER' });
-    });
-  });
-
-  describe('V1 API', () => {
-    it('should be in readonly mode', async () => {
-      const api = fakeApiV1({ id: apiId });
-      const members: MembersResponse = {
-        data: [
-          {
-            id: '1',
-            displayName: 'Existing User',
-            roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }],
-          },
-          {
-            id: '2',
-            displayName: 'User',
-            roles: [{ name: 'USER', scope: 'API' }],
-          },
-        ],
-      };
-      expectRequests(api, members);
-
-      // Cannot add member
-      expect(await harness.canAddMember()).toBeFalsy();
-
-      // Expect member to be added
-      expect(await harness.getMembersName()).toEqual(['Existing User', 'User']);
-      // Expect default role to be selected
-      expect(await harness.canSelectMemberRole(1)).toBeFalsy();
     });
   });
 

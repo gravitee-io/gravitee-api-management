@@ -15,7 +15,7 @@
  */
 import { flatMap } from 'lodash';
 
-import { ApiV1, ApiV2 } from '../../../entities/management-api-v2';
+import { ApiV2 } from '../../../entities/management-api-v2';
 
 export type ResponseTemplate = {
   id: string;
@@ -27,7 +27,7 @@ export type ResponseTemplate = {
   propagateErrorKeyToLogs?: boolean;
 };
 
-export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['responseTemplates']): ResponseTemplate[] => {
+export const toResponseTemplates = (responseTemplates: ApiV2['responseTemplates']): ResponseTemplate[] => {
   if (!responseTemplates) {
     return [];
   }
@@ -47,7 +47,7 @@ export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['response
   });
 };
 
-export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): (ApiV1 | ApiV2)['responseTemplates'] => {
+export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): ApiV2['responseTemplates'] => {
   return responseTemplates.reduce(
     (acc, responseTemplate) => {
       const { key, contentType, statusCode, body, headers, propagateErrorKeyToLogs } = responseTemplate;
@@ -62,6 +62,6 @@ export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): (A
       };
       return acc;
     },
-    {} as (ApiV1 | ApiV2)['responseTemplates'],
+    {} as ApiV2['responseTemplates'],
   );
 };

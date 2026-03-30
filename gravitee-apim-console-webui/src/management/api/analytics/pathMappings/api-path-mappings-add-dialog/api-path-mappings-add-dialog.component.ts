@@ -24,14 +24,14 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { isUnique } from '../../../../../shared/utils';
 import { Page } from '../../../../../entities/page';
-import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { mapDefinitionVersionToLabel } from '../../../../../shared/utils/api.util';
 
 export interface ApiPathMappingsAddDialogData {
-  api: ApiV1 | ApiV2;
+  api: ApiV2;
   swaggerDocs: Page[];
 }
 
@@ -49,7 +49,7 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
   public pathFormGroup: UntypedFormGroup;
   public swaggerDocs: Page[];
   public selectedSwaggerDoc: string;
-  private api: ApiV1 | ApiV2;
+  private api: ApiV2;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
@@ -78,9 +78,7 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap(api => {
-          const currentVersion = api.definitionVersion as unknown as string;
-          const isV1OrMissing = currentVersion === 'V1' || !currentVersion;
-          const targetVersion = isV1OrMissing ? 'V2' : api.definitionVersion;
+          const targetVersion = api.definitionVersion ?? 'V2';
           const defVersionLabel = mapDefinitionVersionToLabel(targetVersion);
           if (this.selectedSwaggerDoc) {
             return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, defVersionLabel);

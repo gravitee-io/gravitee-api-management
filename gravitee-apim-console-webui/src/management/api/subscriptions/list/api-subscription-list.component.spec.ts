@@ -37,7 +37,6 @@ import {
   ApiKeyMode,
   ApiPlansResponse,
   ApiSubscriptionsResponse,
-  fakeApiV1,
   fakeApiV4,
   fakePlanV4,
   fakeSubscription,
@@ -669,16 +668,6 @@ describe('ApiSubscriptionListComponent', () => {
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
-    }));
-
-    it('V1 API should not be able to create subscription', fakeAsync(async () => {
-      await init();
-      await initComponent([], fakeApiV1({ id: API_ID }));
-
-      const harness = await loader.getHarness(ApiSubscriptionListHarness);
-      const createSubBtn = await harness.getCreateSubscriptionButton();
-      expect(await createSubBtn).toBeDefined();
-      expect(await createSubBtn.isDisabled()).toEqual(true);
     }));
 
     it('should not display custom api key nor API Key mode for federated API', fakeAsync(async () => {

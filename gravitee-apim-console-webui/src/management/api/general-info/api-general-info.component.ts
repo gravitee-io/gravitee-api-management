@@ -172,8 +172,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             this.canDisplayAllowInApiProduct = this.apiType === 'PROXY';
           }
 
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin;
 
           this.api = api;
 
@@ -206,9 +205,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           };
           this.canDisplayV4EmulationEngineToggle = (api.definitionVersion != null && api.definitionVersion === 'V2') ?? false;
           this.cannotPromote =
-            !(this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED') ||
-            this.isKubernetesOrigin ||
-            this.api.definitionVersion === 'V1';
+            !(this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED') || this.isKubernetesOrigin;
 
           this.apiDetailsForm = new UntypedFormGroup({
             name: new UntypedFormControl(
@@ -262,7 +259,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           });
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
-          this.isQualitySupported = this.api.definitionVersion === 'V2' || this.api.definitionVersion === 'V1';
+          this.isQualitySupported = this.api.definitionVersion === 'V2';
 
           this.loadApiProductsUsageAndUpdateControl();
         }),

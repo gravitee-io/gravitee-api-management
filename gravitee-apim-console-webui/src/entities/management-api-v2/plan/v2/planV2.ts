@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { BasePlan } from '../basePlan';
-import { Rule } from '../../api/v1';
 import { FlowV2 } from '../../api/v2';
 
 export interface PlanV2 extends BasePlan {
@@ -29,5 +28,4 @@ export interface PlanV2 extends BasePlan {
    */
   tags?: string[];
   flows?: FlowV2[];
-  paths?: Record<string, Rule[] | undefined>;
 }

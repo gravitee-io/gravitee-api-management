@@ -30,7 +30,7 @@ import { isUniq } from '../../edit/api-proxy-group-edit.validator';
 import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
-import { ApiV1, ApiV2, EndpointV2, HealthCheckService } from '../../../../../../entities/management-api-v2';
+import { ApiV2, EndpointV2, HealthCheckService } from '../../../../../../entities/management-api-v2';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../../util/apiFilter.operator';
 import { ApiHealthCheckFormComponent } from '../../../../component/health-check-form/api-health-check-form.component';
 
@@ -42,7 +42,7 @@ import { ApiHealthCheckFormComponent } from '../../../../component/health-check-
 })
 export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: ApiV1 | ApiV2;
+  private api: ApiV2;
   private connectors: ConnectorListItem[];
 
   public mode: 'edit' | 'new';

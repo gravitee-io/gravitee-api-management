@@ -24,7 +24,7 @@ import { CONTENT_MODES, DEFAULT_LOGGING, LOGGING_MODES, SCOPE_MODES } from './ap
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
@@ -44,7 +44,7 @@ interface LoggingConfiguration {
 })
 export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: ApiV1 | ApiV2;
+  private api: ApiV2;
   private defaultLogging = DEFAULT_LOGGING;
   private defaultConfiguration: LoggingConfiguration;
 
@@ -150,7 +150,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private initForm(api: ApiV2 | ApiV1) {
+  private initForm(api: ApiV2) {
     const { mode, content, scope } = { ...this.defaultLogging, ...this.api.proxy.logging };
     const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definitionContext?.origin === 'KUBERNETES';
     const enabled = !!api.proxy.logging && api.proxy.logging.mode !== 'NONE';

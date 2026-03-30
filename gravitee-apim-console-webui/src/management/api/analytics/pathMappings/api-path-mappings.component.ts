@@ -33,7 +33,7 @@ import {
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { DocumentationService } from '../../../../services-ngx/documentation.service';
 import { Page } from '../../../../entities/page';
-import { ApiV1, ApiV2 } from '../../../../entities/management-api-v2';
+import { ApiV2 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
@@ -49,7 +49,7 @@ export interface PathMappingDS {
 })
 export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: ApiV1 | ApiV2;
+  private api: ApiV2;
   public displayedColumns = ['path', 'actions'];
   public pathMappingsDS: PathMappingDS[] = [];
   public isLoadingData = true;
@@ -125,7 +125,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private toPathMappingDS(api: ApiV1 | ApiV2): PathMappingDS[] {
+  private toPathMappingDS(api: ApiV2): PathMappingDS[] {
     return sortBy(api.pathMappings).map(path => ({ path }));
   }
 

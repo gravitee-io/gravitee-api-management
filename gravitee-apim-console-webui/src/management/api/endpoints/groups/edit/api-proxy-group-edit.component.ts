@@ -30,7 +30,7 @@ import { ServiceDiscoveryService } from '../../../../../services-ngx/service-dis
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
-import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -43,7 +43,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
 
   public mode: 'new' | 'edit';
   public apiId: string;
-  public api: ApiV1 | ApiV2;
+  public api: ApiV2;
   public isReadOnly: boolean;
   public generalForm: UntypedFormGroup;
   public groupForm: UntypedFormGroup;

@@ -73,7 +73,6 @@ export const toApiPlansDefinition = (plans: PlanV2[]): ApiDefinition['plans'] =>
     name: plan.name,
     security: plan.security.type,
     securityDefinition: JSON.stringify(plan.security.configuration),
-    paths: plan.paths,
     api: plan.apiId,
     tags: plan.tags,
     selectionRule: plan.selectionRule,

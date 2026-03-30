@@ -27,7 +27,7 @@ import { ApiDeploymentConfigurationModule } from './api-deployment-configuration
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
+import { Api, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { fakeTag } from '../../../entities/tag/tag.fixture';
 import { Tag } from '../../../entities/tag/tag';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -123,8 +123,6 @@ describe('ApiDeploymentConfigurationComponent', () => {
     api                                          | permission
     ${fakeApiV2({ id: API_ID, tags: ['tag2'] })} | ${'api-definition-r'}
     ${fakeApiV4({ id: API_ID, tags: ['tag2'] })} | ${'api-definition-r'}
-    ${fakeApiV1({ id: API_ID, tags: ['tag2'] })} | ${'api-definition-r'}
-    ${fakeApiV1({ id: API_ID, tags: ['tag2'] })} | ${'api-definition-u'}
   `('With API $api.definitionVersion and $permission permission', ({ api, permission }) => {
     beforeEach(() => {
       TestBed.configureTestingModule({

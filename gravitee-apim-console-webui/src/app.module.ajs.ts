@@ -30,13 +30,7 @@ import AutofocusDirective from './components/autofocus/autofocus.directive';
 import GvModelDirective from './libraries/gv-model.directive';
 import { ApiService } from './services/api.service';
 import CorsService from './services/cors.service';
-import { ApiV1PoliciesComponentAjs } from './management/api/policy-studio-v1/policies/policies.component.ajs';
-import AddPoliciesPathController from './management/api/policy-studio-v1/policies/addPoliciesPath.controller';
-import { ApiV1ResourcesComponentAjs } from './management/api/resources-v1/resources.component.ajs';
-import { ApiV1PropertiesComponentAjs } from './management/api/properties-v1/properties.component.ajs';
 import { ApiHistoryComponentAjs } from './management/api/audit/history/apiHistory.component.ajs';
-import DialogAddPropertyController from './management/api/properties-v1/add-property.dialog.controller';
-import DialogEditPolicyController from './management/api/policy-studio-v1/policies/dialog/policyDialog.controller';
 import FileContentDirective from './components/filecontent/filecontent.directive';
 import FileLoaderDirective from './components/dialog/fileloader/fileloader.directive';
 
@@ -119,7 +113,6 @@ import ChartDirective from './management/api/health-check-dashboard/chart/chart.
 import FileChooserDialogController from './components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from './components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from './components/dialog/confirmAndValidateDialog.controller';
-import DialogDynamicProviderHttpController from './management/api/properties-v1/dynamic-provider-http-dialog.controller';
 import TenantService from './services/tenant.service';
 
 import RoleService from './services/role.service';
@@ -483,19 +476,13 @@ graviteeManagementModule.config(themeConfig);
 // New Navigation components
 
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
-graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
-graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.directive('apiHealthcheckDashboardChart', () => new ChartDirective());
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
-graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
 graviteeManagementModule.directive('apiHistoryDiff', () => DiffDirective);
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
-graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesComponentAjs);
-graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
 graviteeManagementModule.controller('UserController', UserController);
-graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
 graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDashboardComponentAjs);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.component('alertsActivityComponentAjs', AlertsActivityComponentAjs);
@@ -503,7 +490,6 @@ graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDa
 graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
 graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
-graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
 graviteeManagementModule.controller('SelectFolderDialogController', SelectFolderDialogController);

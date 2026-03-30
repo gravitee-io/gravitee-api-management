@@ -36,7 +36,6 @@ import {
   CreatePlanV2,
   CreatePlanV4,
   fakeApiFederated,
-  fakeApiV1,
   fakeApiV2,
   fakeApiV4,
   fakePlanFederated,
@@ -542,46 +541,6 @@ describe('ApiPlanEditComponent', () => {
         expect(req.request.body).toEqual(expect.objectContaining({ name: 'My plan edited' }));
         req.flush({});
         expect(routerNavigationSpy).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('With a V1 API', () => {
-    describe('Plan should be readonly', () => {
-      const TAG_1_ID = 'tag-1';
-      const PLAN = fakePlanV2({ apiId: API_ID, security: { type: 'KEY_LESS' } });
-
-      beforeEach(async () => {
-        configureTestingModule(PLAN.id);
-        fixture.detectChanges();
-        expectApiGetRequest(fakeApiV1({ id: API_ID }));
-        expectPlanGetRequest(API_ID, PLAN);
-      });
-
-      it('should access plan in read only', async () => {
-        expect(await loader.getAllHarnesses(GioSaveBarHarness)).toHaveLength(0);
-
-        const planForm = await loader.getHarness(ApiPlanFormHarness);
-
-        planForm
-          .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupListRequest([
-          fakeGroup({
-            id: 'group-a',
-            name: 'Group A',
-          }),
-        ]);
-        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
-          {
-            id: 'doc-1',
-            name: 'Doc 1',
-          },
-        ]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-
-        const nameInput = await planForm.getNameInput();
-        expect(await nameInput.isDisabled()).toEqual(true);
       });
     });
   });

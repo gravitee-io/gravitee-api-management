@@ -33,7 +33,6 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import {
   fakeApiFederated,
   fakeApiFederatedAgent,
-  fakeApiV1,
   fakeApiV2,
   fakeApiV4,
   fakePortalNavigationFolder,
@@ -100,13 +99,12 @@ describe('ApiSectionEditorDialogComponent', () => {
 
     req.flush({
       data: [
-        fakeApiV1({ id: 'api-v1', name: 'API V1' }),
         fakeApiV2({ id: 'api-v2', name: 'API V2' }),
         fakeApiV4({ id: 'api-v4', name: 'API V4' }),
         fakeApiFederated({ id: 'api-fed', name: 'API Federated', definitionVersion: 'FEDERATED' }),
         fakeApiFederatedAgent({ id: 'api-fed-agent', name: 'API Federated Agent' }),
       ],
-      pagination: { totalCount: 5 },
+      pagination: { totalCount: 4 },
     });
   }
 
@@ -165,7 +163,7 @@ describe('ApiSectionEditorDialogComponent', () => {
 
     const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
     const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
-    expect(checkboxes.length).toBe(4);
+    expect(checkboxes.length).toBe(3);
     const checkboxIds = await Promise.all(
       checkboxes.map(async checkbox => {
         const element = await checkbox.host();
@@ -191,7 +189,7 @@ describe('ApiSectionEditorDialogComponent', () => {
 
     const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
     const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
-    expect(checkboxes.length).toBe(5);
+    expect(checkboxes.length).toBe(4);
 
     const alreadyAddedLabels = await dialog.getAlreadyAddedLabels();
     expect(alreadyAddedLabels.length).toBe(0);

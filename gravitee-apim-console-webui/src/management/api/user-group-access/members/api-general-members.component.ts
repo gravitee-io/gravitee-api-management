@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -248,9 +248,7 @@ export class ApiGeneralMembersComponent implements OnInit {
           return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
         }),
         switchMap(([apiDialogResult, api]) => {
-          return api.definitionVersion === 'V1'
-            ? throwError({ message: `You cannot modify a ${api.definitionVersion} API.` })
-            : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
+          return this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -305,7 +303,7 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   private initForm(api: Api) {
     this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || this.isKubernetesOrigin;
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || this.isKubernetesOrigin;
     this.form = new UntypedFormGroup({
       isNotificationsEnabled: new UntypedFormControl({
         value: !api.disableMembershipNotifications,
@@ -396,16 +394,11 @@ export class ApiGeneralMembersComponent implements OnInit {
   private getSaveChangeOnApiNotificationsQuery$(): Observable<Api> {
     return this.apiService.get(this.apiId).pipe(
       switchMap(api => {
-        if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
-          const updatedApi = {
-            ...api,
-            disableMembershipNotifications: !this.form.value.isNotificationsEnabled,
-          };
-          return this.apiService.update(api.id, updatedApi);
-        } else {
-          // Update V1 API is not supported
-          return EMPTY;
-        }
+        const updatedApi = {
+          ...api,
+          disableMembershipNotifications: !this.form.value.isNotificationsEnabled,
+        };
+        return this.apiService.update(api.id, updatedApi);
       }),
     );
   }
