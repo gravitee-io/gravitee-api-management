@@ -27,6 +27,13 @@
       title="Enable Analytics"
       subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
     ></gio-card-empty-state>
+  } @else if (apiAnalyticsVM.noAnalyticsData) {
+    <api-analytics-filters-bar></api-analytics-filters-bar>
+    <gio-card-empty-state
+      icon="bar_chart"
+      title="No analytics data"
+      subtitle="There are no requests in the selected time range. Try a different period or wait for traffic."
+    ></gio-card-empty-state>
   } @else {
     <api-analytics-filters-bar></api-analytics-filters-bar>
     <h2>Entrypoint</h2>
