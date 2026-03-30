@@ -28,12 +28,6 @@ const requiredSelect: ComponentSuggestion = {
   detail: 'Required dropdown select field',
 };
 
-const selectWithJson: ComponentSuggestion = {
-  label: 'Select - JSON Options',
-  insertText: `<gmd-select name="$1" label="$2" options='["Option 1","Option 2","Option 3"]'></gmd-select>`,
-  detail: 'Select with options defined as JSON array',
-};
-
 const formSelect: ComponentSuggestion = {
   label: 'Select - Form Field',
   insertText: `<gmd-select name="$1" label="$2" fieldKey="$3" required="true" options="Option 1,Option 2"></gmd-select>`,
@@ -41,7 +35,7 @@ const formSelect: ComponentSuggestion = {
 };
 
 export const selectConfiguration: ComponentSuggestionConfiguration = {
-  suggestions: [basicSelect, requiredSelect, selectWithJson, formSelect],
+  suggestions: [basicSelect, requiredSelect, formSelect],
   attributeSuggestions: [
     {
       label: 'name="fieldName"',
@@ -56,12 +50,7 @@ export const selectConfiguration: ComponentSuggestionConfiguration = {
     {
       label: 'options="Option 1,Option 2,Option 3"',
       insertText: 'options="$1"',
-      detail: 'Comma-separated list of options or JSON array string',
-    },
-    {
-      label: 'options=\'["Option 1","Option 2"]\'',
-      insertText: 'options=\'["$1"]\'',
-      detail: 'JSON array string format for options',
+      detail: 'Comma-separated list of options',
     },
     {
       label: 'required="true"',
@@ -87,13 +76,12 @@ export const selectConfiguration: ComponentSuggestionConfiguration = {
   hoverDocumentation: {
     label: 'Select',
     description:
-      'A dropdown select component that allows users to choose from a list of options. Options can be provided as a comma-separated string or JSON array.',
+      'A dropdown select component that allows users to choose from a list of options. Options are provided as a comma-separated string.',
   },
   attributeHoverDocumentation: {
     name: 'HTML name/id attribute for label association and accessibility',
     label: 'Display label shown above the select field',
-    options:
-      'List of options as comma-separated string (e.g., "Option 1,Option 2") or JSON array string (e.g., \'["Option 1","Option 2"]\')',
+    options: 'Comma-separated list of options (e.g., "Option 1,Option 2")',
     required: 'Whether the field is required (true/false)',
     fieldKey: 'Field key used for validation and data collection',
     value: 'Initial selected value',
