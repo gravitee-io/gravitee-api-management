@@ -25,12 +25,15 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.rxjava3.circuitbreaker.operator.CircuitBreakerOperator;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
@@ -111,30 +114,33 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         final AtomicInteger totalAttempts = new AtomicInteger(0);
         final AtomicReference<List<String>> endpointRotation = new AtomicReference<>();
         final AtomicReference<String> firstFailedEndpoint = new AtomicReference<>();
+        final AtomicReference<RequestSnapshot> snapshotRef = new AtomicReference<>();
 
-        return Completable.defer(() -> {
-            int attempt = totalAttempts.getAndIncrement();
+        return captureRequestState(ctx, snapshotRef).andThen(
+            Completable.defer(() -> {
+                int attempt = totalAttempts.getAndIncrement();
 
-            // On retry, capture the endpoint that failed in the previous attempt
-            if (attempt > 0) {
-                firstFailedEndpoint.compareAndSet(null, resolveCurrentEndpointName(ctx));
-            }
+                // On retry, capture the endpoint that failed in the previous attempt and restore the request to its initial state
+                if (attempt > 0) {
+                    firstFailedEndpoint.compareAndSet(null, resolveCurrentEndpointName(ctx));
+                    restoreRequestState(ctx, snapshotRef.get());
+                }
 
-            // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
-            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
-            // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
-            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+                // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
+                ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
+                // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
+                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
-            forceNextEndpoint(ctx, attempt, endpointRotation);
+                forceNextEndpoint(ctx, attempt, endpointRotation);
 
-            // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
-            return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx)).andThen(evaluateFailureCondition(ctx));
-        })
-            .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
-            .retry(failoverConfiguration.getMaxRetries())
-            .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
-            .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)))
-            .doFinally(() -> recordFailoverMetrics(ctx, totalAttempts.get(), firstFailedEndpoint.get()));
+                return delegate.invoke(ctx).andThen(evaluateFailureCondition(ctx));
+            })
+                .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
+                .retry(failoverConfiguration.getMaxRetries())
+                .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
+                .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)))
+                .doFinally(() -> recordFailoverMetrics(ctx, totalAttempts.get(), firstFailedEndpoint.get()))
+        );
     }
 
     /**
@@ -290,6 +296,53 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             return circuitBreakerRegistry.circuitBreaker(subscription);
         } else {
             return circuitBreaker;
+        }
+    }
+
+    /**
+     * Captures the current request state (path, headers, body) so it can be restored on retry.
+     * Calling {@code body()} also activates internal chunk caching, which is mandatory to replay the request.
+     */
+    private Completable captureRequestState(HttpExecutionContext ctx, AtomicReference<RequestSnapshot> snapshotRef) {
+        return ctx
+            .request()
+            .body()
+            // Body present: capture path, headers, and body for full replay
+            .doOnSuccess(body -> snapshotRef.compareAndSet(null, RequestSnapshot.withBody(ctx, body)))
+            // No body (e.g. GET): capture path and headers only
+            .doOnComplete(() -> snapshotRef.compareAndSet(null, RequestSnapshot.headersOnly(ctx)))
+            .ignoreElement();
+    }
+
+    /**
+     * Restores the request to its initial state captured by {@link #captureRequestState}.
+     */
+    private void restoreRequestState(HttpExecutionContext ctx, RequestSnapshot snapshot) {
+        if (ctx.request() instanceof HttpRequestInternal httpRequestInternal) {
+            httpRequestInternal.pathInfo(snapshot.pathInfo());
+        }
+
+        HttpHeaders currentHeaders = ctx.request().headers();
+        currentHeaders.clear();
+        for (var entry : snapshot.headers()) {
+            currentHeaders.add(entry.getKey(), entry.getValue());
+        }
+
+        if (snapshot.body() != null) {
+            ctx.request().body(snapshot.body());
+        }
+    }
+
+    @VisibleForTesting
+    record RequestSnapshot(String pathInfo, HttpHeaders headers, Buffer body) {
+        /** Captures request state including the body content for replay on retry. */
+        static RequestSnapshot withBody(HttpExecutionContext ctx, Buffer body) {
+            return new RequestSnapshot(ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), body);
+        }
+
+        /** Captures request state when no body is present (e.g. GET requests). */
+        static RequestSnapshot headersOnly(HttpExecutionContext ctx) {
+            return new RequestSnapshot(ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), null);
         }
     }
 }
