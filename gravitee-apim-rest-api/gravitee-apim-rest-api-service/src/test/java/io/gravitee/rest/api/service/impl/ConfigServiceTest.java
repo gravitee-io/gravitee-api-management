@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.parameters.Key.ALERT_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.API_LABELS_DICTIONARY;
+import static io.gravitee.rest.api.model.parameters.Key.API_PRODUCT_PRIMARY_OWNER_MODE;
 import static io.gravitee.rest.api.model.parameters.Key.COMPANY_NAME;
 import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_SCHEDULER_NOTIFICATIONS;
@@ -143,6 +144,7 @@ class ConfigServiceTest {
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1", "label2"));
+        params.put(Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(), singletonList("GROUP"));
         params.put(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), singletonList("100"));
         params.put(LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), singletonList("10"));
         params.put(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), singletonList("0.5"));
@@ -177,6 +179,7 @@ class ConfigServiceTest {
             .as("open api swagger default")
             .isEqualTo("Swagger");
         assertThat(portalSettings.getApi().getLabelsDictionary().size()).as("api labels").isEqualTo(2);
+        assertThat(portalSettings.getApiProduct().getPrimaryOwnerMode()).as("api product primary owner mode").isEqualTo("GROUP");
         assertThat(portalSettings.getCors().getExposedHeaders().size()).as("cors exposed headers").isEqualTo(2);
         assertThat(portalSettings.getApi().getLabelsDictionary()).as("api labels").hasSize(2);
         assertThat(portalSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);

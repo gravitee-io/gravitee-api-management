@@ -121,6 +121,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       labelsDictionary: ['test'],
       primaryOwnerMode: 'USER',
     },
+    apiProduct: {
+      primaryOwnerMode: 'HYBRID',
+    },
     apiQualityMetrics: {
       enabled: false,
       functionalDocumentationWeight: 1041,

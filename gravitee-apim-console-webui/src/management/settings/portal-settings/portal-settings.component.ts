@@ -63,6 +63,9 @@ interface PortalForm {
     labelsDictionary: FormControl<string[]>;
     primaryOwnerMode: FormControl<string>;
   }>;
+  apiProduct: FormGroup<{
+    primaryOwnerMode: FormControl<string>;
+  }>;
   dashboards: FormGroup<{
     apiStatus: FormGroup<{
       enabled: FormControl<boolean>;
@@ -181,6 +184,20 @@ export class PortalSettingsComponent implements OnInit {
       label: 'GROUP: an API primary owner can only be a group',
     },
   ];
+  apiProductPrimaryOwnerModeList = [
+    {
+      id: 'HYBRID',
+      label: 'HYBRID: an API Product primary owner can be either a user or a group (Default)',
+    },
+    {
+      id: 'USER',
+      label: 'USER: an API Product primary owner can only be a user',
+    },
+    {
+      id: 'GROUP',
+      label: 'GROUP: an API Product primary owner can only be a group',
+    },
+  ];
   hasEnterpriseLicense$: Observable<boolean> = of(false);
   portalUrl: string = undefined;
   environmentRootRouterLink: string;
@@ -292,6 +309,12 @@ export class PortalSettingsComponent implements OnInit {
         primaryOwnerMode: new FormControl({
           value: this.settings.api.primaryOwnerMode,
           disabled: this.isReadonly('api.primaryOwnerMode'),
+        }),
+      }),
+      apiProduct: new FormGroup({
+        primaryOwnerMode: new FormControl({
+          value: this.settings.apiProduct?.primaryOwnerMode ?? 'HYBRID',
+          disabled: this.isReadonly('apiProduct.primaryOwnerMode'),
         }),
       }),
       dashboards: new FormGroup({
@@ -595,6 +618,10 @@ export class PortalSettingsComponent implements OnInit {
       api: {
         ...this.settings.api,
         ...this.portalForm.get('api').value,
+      },
+      apiProduct: {
+        ...this.settings.apiProduct,
+        ...this.portalForm.get('apiProduct').value,
       },
       dashboards: {
         ...this.settings.dashboards,
