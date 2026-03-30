@@ -276,7 +276,7 @@ This document breaks workshop stories into concrete subtasks with **files**, **t
 
 ### Documentation
 
-- **Update** this `STORIES.md` or add `docs/workshop/README.md` noting PRD vs legacy time presets if both coexist behind feature flags.
+- **Note:** PRD presets for the v4 analytics dashboard live in `api-analytics-filters-bar.configuration.ts` (`v4AnalyticsTimeFrames`). Other Console screens keep using `shared/utils/timeFrameRanges.ts` `timeFrames` (1 m / 1 h / 1 d / …).
 
 ### References
 

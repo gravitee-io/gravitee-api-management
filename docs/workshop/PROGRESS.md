@@ -132,6 +132,14 @@ Scope: V4 API Analytics Dashboard (M1)
 
 - `cd gravitee-apim-console-webui && npm test -- --testPathPattern=api-analytics-v2.service.spec` ✅
 
+### Story 6 (F2) — V4 analytics filters bar: PRD timeframe presets
+
+**Summary:** Route-scoped `v4AnalyticsTimeFrames` in `api-analytics-filters-bar.configuration.ts` (5 min, 1 h, 24 h, 7 d, 30 d) without changing global `shared/utils/timeFrameRanges.ts` `timeFrames`. The filters bar uses only those presets plus **Refresh data**; custom date range UI is removed for M1. `ApiAnalyticsV2Service.defaultFilters.period` is **`24h`** (Last 24 hours). Harness and component tests assert `TimeRangeParams` / preset behavior; proxy and message specs updated for PRD labels and query param `30d`.
+
+**Verification:**
+
+- `cd gravitee-apim-console-webui && npm test -- --testPathPattern="api-analytics-filters-bar.component.spec|api-analytics-proxy.component.spec|api-analytics-message.component.spec"` ✅
+
 ## Current blockers / open questions
 
 - **ES field names & types**: `ApiAnalyticsField` currently maps PRD names directly to same-named ES fields with a numeric/keyword hint. When implementing B1b, we must confirm actual v4 metrics index mappings (and any `.keyword` requirements).\n

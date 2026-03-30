@@ -377,7 +377,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
 
-    it('should select custom date range', async () => {
+    it('should reload analytics when a different PRD preset is selected', async () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
 
       expectApiAnalyticsRequestsCountGetReq(fakeAnalyticsRequestsCount());
@@ -387,53 +387,23 @@ describe('ApiAnalyticsMessageComponent', () => {
 
       const filtersBarHarness = await componentHarness.getFiltersBarHarness();
       const matSelect = await filtersBarHarness.getMatSelect();
-      await matSelect.clickOptions({ text: 'Custom' });
+      await matSelect.open();
+      const options = await matSelect.getOptions({ text: 'Last 7 days' });
+      await options[0].click();
 
-      const applyButton = await filtersBarHarness.getApplyButton();
-
-      expect(await applyButton.isDisabled()).toEqual(true);
-
-      const fromDate = '2023-10-09 15:21:00';
-      const toDate = '2023-10-24 15:21:00';
-      const fromDateInMilliSeconds = new Date(fromDate).getTime();
-      const toDateInMilliseconds = new Date(toDate).getTime();
-
-      await filtersBarHarness.setFromDate(fromDate);
-      await filtersBarHarness.setToDate(toDate);
-
-      expect(await applyButton.isDisabled()).toEqual(false);
-
-      await filtersBarHarness.apply();
-
-      httpTestingController
-        .expectOne(
-          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
-        )
-        .flush(fakeAnalyticsRequestsCount());
-      httpTestingController
-        .expectOne(
-          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
-        )
-        .flush(fakeAnalyticsAverageConnectionDuration());
-      httpTestingController
-        .expectOne(
-          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-messages-per-request?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
-        )
-        .flush(fakeAnalyticsAverageMessagesPerRequest());
-      httpTestingController
-        .expectOne(
-          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
-        )
-        .flush(fakeAnalyticsResponseStatusRanges());
+      expectApiAnalyticsRequestsCountGetReq(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
   });
 
   describe('Query parameters for enabled analytics', () => {
     [
-      { input: {}, expected: 'Last day' },
-      { input: { period: '1M' }, expected: 'Last month' },
-      { input: { period: 'incorrect' }, expected: 'Last day' },
-      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
+      { input: {}, expected: 'Last 24 hours' },
+      { input: { period: '30d' }, expected: 'Last 30 days' },
+      { input: { period: 'incorrect' }, expected: 'Last 24 hours' },
+      { input: { otherParameter: 'otherParameter' }, expected: 'Last 24 hours' },
     ].forEach((testParams) => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);

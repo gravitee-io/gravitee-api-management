@@ -235,10 +235,10 @@ describe('ApiAnalyticsProxyComponent', () => {
 
   describe('Query parameters for enabled analytics', () => {
     [
-      { input: {}, expected: 'Last day' },
-      { input: { period: '1M' }, expected: 'Last month' },
-      { input: { period: 'incorrect' }, expected: 'Last day' },
-      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
+      { input: {}, expected: 'Last 24 hours' },
+      { input: { period: '30d' }, expected: 'Last 30 days' },
+      { input: { period: 'incorrect' }, expected: 'Last 24 hours' },
+      { input: { otherParameter: 'otherParameter' }, expected: 'Last 24 hours' },
     ].forEach((testParams) => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);

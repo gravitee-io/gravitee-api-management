@@ -34,7 +34,7 @@ import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/
   providedIn: 'root',
 })
 export class ApiAnalyticsV2Service {
-  public readonly defaultFilters: ApiAnalyticsFilters = { period: '1d', from: null, to: null };
+  public readonly defaultFilters: ApiAnalyticsFilters = { period: '24h', from: null, to: null };
   private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(null);
 
   constructor(
