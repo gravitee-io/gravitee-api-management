@@ -100,7 +100,7 @@ describe('form-helpers', () => {
 
   describe('normalizeLength', () => {
     it('should return valid value unchanged', () => {
-      const result = normalizeLength(50, 0, 100);
+      const result = normalizeLength(50, 100, 0);
       expect(result.value).toBe(50);
       expect(result.warning).toBeUndefined();
     });
@@ -110,7 +110,7 @@ describe('form-helpers', () => {
       { input: 200, expected: 100, warningValue: 200 },
     ].forEach(({ input, expected, warningValue }) => {
       it(`should clamp ${input} to ${expected}`, () => {
-        const result = normalizeLength(input, 0, 100);
+        const result = normalizeLength(input, 100, 0);
         expect(result.value).toBe(expected);
         expect(result.warning).toBeDefined();
         expect(result.warning?.originalValue).toBe(warningValue);
@@ -118,25 +118,25 @@ describe('form-helpers', () => {
     });
 
     it('should parse string numbers', () => {
-      const result = normalizeLength('25', 0, 100);
+      const result = normalizeLength('25', 100, 0);
       expect(result.value).toBe(25);
       expect(result.warning).toBeUndefined();
     });
 
     it('should return undefined for invalid input', () => {
-      const result = normalizeLength('abc', 0, 100);
+      const result = normalizeLength('abc', 100, 0);
       expect(result.value).toBeUndefined();
       expect(result.warning).toBeDefined();
     });
 
     it('should return undefined for undefined input', () => {
-      const result = normalizeLength(undefined, 0, 100);
+      const result = normalizeLength(undefined, 100, 0);
       expect(result.value).toBeUndefined();
       expect(result.warning).toBeUndefined();
     });
 
     it('should use custom name in warning message', () => {
-      const result = normalizeLength(-5, 0, 100, 'minLength');
+      const result = normalizeLength(-5, 100, 0, 'minLength');
       expect(result.warning?.message).toContain('minLength');
     });
   });
@@ -235,7 +235,9 @@ describe('form-helpers', () => {
       const maxLength = signal<number | string | undefined>(undefined);
       const value = signal<string>('ab');
 
-      const { validationErrors: errors, minLength: minL } = useLengthValidation(minLength, maxLength, value);
+      const { validationErrors: errors, minLength: minL } = useLengthValidation(minLength, maxLength, value, {
+        hardMaxLength: 10_000,
+      });
 
       expect(minL()).toBe(3);
       expect(errors()).toContain('minLength');
@@ -249,7 +251,9 @@ describe('form-helpers', () => {
       const maxLength = signal<number | string | undefined>(5);
       const value = signal<string>('123456');
 
-      const { validationErrors: errors, maxLength: maxL } = useLengthValidation(minLength, maxLength, value);
+      const { validationErrors: errors, maxLength: maxL } = useLengthValidation(minLength, maxLength, value, {
+        hardMaxLength: 10_000,
+      });
 
       expect(maxL()).toBe(5);
       expect(errors()).toContain('maxLength');
@@ -263,7 +267,7 @@ describe('form-helpers', () => {
       const maxLength = signal<number | string | undefined>(3);
       const value = signal<string>('');
 
-      const { configErrors, maxLength: maxL } = useLengthValidation(minLength, maxLength, value);
+      const { configErrors, maxLength: maxL } = useLengthValidation(minLength, maxLength, value, { hardMaxLength: 10_000 });
 
       // Should automatically adjust maxLength to be >= minLength
       expect(maxL()).toBe(5);
@@ -280,11 +284,35 @@ describe('form-helpers', () => {
       const maxLength = signal<number | string | undefined>(undefined);
       const value = signal<string>('');
 
-      const { configErrors, minLength: minL } = useLengthValidation(minLength, maxLength, value);
+      const { configErrors, minLength: minL } = useLengthValidation(minLength, maxLength, value, { hardMaxLength: 10_000 });
 
       expect(minL()).toBe(0); // Normalized
       // Should have warning
       expect(configErrors().some(e => e.code === 'normalizedValue')).toBe(true);
+    });
+
+    it('should use hard max when maxLength attribute is omitted (input-style cap)', () => {
+      const minLength = signal<number | string | undefined>(undefined);
+      const maxLength = signal<number | string | undefined>(undefined);
+      const value = signal<string>('x'.repeat(300));
+
+      const { validationErrors: errors, maxLength: maxL } = useLengthValidation(minLength, maxLength, value, {
+        hardMaxLength: 256,
+      });
+
+      expect(maxL()).toBe(256);
+      expect(errors()).toContain('maxLength');
+    });
+
+    it('should clamp author maxLength above hard max with warning', () => {
+      const minLength = signal<number | string | undefined>(undefined);
+      const maxLength = signal<number | string | undefined>(500);
+      const value = signal<string>('');
+
+      const { configErrors, maxLength: maxL } = useLengthValidation(minLength, maxLength, value, { hardMaxLength: 256 });
+
+      expect(maxL()).toBe(256);
+      expect(configErrors().some(e => e.code === 'normalizedValue' && e.field === 'maxLength')).toBe(true);
     });
   });
 });

@@ -26,6 +26,7 @@ export type GmdConfigErrorCode =
   | 'invalidRegex' // Pattern string is not a valid RegExp
   | 'emptyFieldKey' // fieldKey is empty or whitespace
   | 'duplicateKey' // Multiple fields share the same fieldKey (detected in the editor)
+  | 'tooManyFields' // More subscription form fields than the backend allows
   | 'normalizedValue' // Value was auto-adjusted (warning)
   | 'invalidElSyntax' // EL-like options use invalid syntax (must be {#...}:fallback)
   | 'missingElFallback'; // EL expression in options without a fallback list
