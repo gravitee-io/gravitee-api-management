@@ -18,6 +18,8 @@ package io.gravitee.gateway.reactor.processor.reporter;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,7 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         try {
+            translateErrorToDiagnosticFailure(context.request().metrics());
             reporterService.report(context.request().metrics());
 
             if (context.request().metrics().getLog() != null) {
@@ -50,5 +53,21 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
         }
 
         next.handle(context);
+    }
+
+    /**
+     * Translates error key and error message to Diagnostic failure if failure is null and error information exists.
+     * Mirrors the reactive ReporterProcessor's translateErrorToDiagnosticFailure() for the legacy engine path.
+     * Component fields are left null since the legacy engine has no component tracking.
+     */
+    private void translateErrorToDiagnosticFailure(Metrics metrics) {
+        if (metrics != null && metrics.getFailure() == null) {
+            String errorKey = metrics.getErrorKey();
+            String errorMessage = metrics.getMessage();
+
+            if (errorMessage != null && !errorMessage.isBlank()) {
+                metrics.setFailure(new Diagnostic(errorKey != null ? errorKey : "internal_error", errorMessage, null, null));
+            }
+        }
     }
 }
