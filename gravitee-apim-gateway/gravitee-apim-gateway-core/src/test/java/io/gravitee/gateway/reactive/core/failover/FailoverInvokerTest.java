@@ -151,9 +151,7 @@ class FailoverInvokerTest {
             .test()
             .awaitDone(2, TimeUnit.SECONDS)
             .assertError(
-                t ->
-                    t instanceof InterruptionFailureException &&
-                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+                t -> t instanceof InterruptionFailureException interruption && interruption.getExecutionFailure().statusCode() == 502
             );
 
         ArgumentCaptor<HttpExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(HttpExecutionContext.class);

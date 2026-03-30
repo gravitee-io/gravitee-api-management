@@ -123,7 +123,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
                 // On retry, capture the endpoint that failed in the previous attempt and restore the request to its initial state
                 if (attempt > 0) {
                     firstFailedEndpoint.compareAndSet(null, resolveCurrentEndpointName(ctx));
-                    restoreRequestState(ctx, snapshotRef.get());
+                    restoreContextState(ctx, snapshotRef.get());
                 }
 
                 // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
@@ -316,8 +316,9 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
 
     /**
      * Restores the request to its initial state captured by {@link #captureRequestState}.
+     * Removes response headers to avoid interference with subsequent response processing.
      */
-    private void restoreRequestState(HttpExecutionContext ctx, RequestSnapshot snapshot) {
+    private void restoreContextState(HttpExecutionContext ctx, RequestSnapshot snapshot) {
         if (ctx.request() instanceof HttpRequestInternal httpRequestInternal) {
             httpRequestInternal.pathInfo(snapshot.pathInfo());
         }
@@ -330,6 +331,10 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
 
         if (snapshot.body() != null) {
             ctx.request().body(snapshot.body());
+        }
+
+        if (ctx.response() != null && ctx.response().headers() != null) {
+            ctx.response().headers().clear();
         }
     }
 
