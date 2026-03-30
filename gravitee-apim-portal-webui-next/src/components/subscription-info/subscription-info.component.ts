@@ -25,6 +25,7 @@ import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration, Pla
 import { Subscription, SubscriptionConsumerStatusEnum } from '../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../pipe/capitalize-first.pipe';
 import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
+import { ApiDocumentationNavigationTarget } from '../../services/portal-navigation-items.service';
 import { BannerComponent } from '../banner/banner.component';
 import { LoaderComponent } from '../loader/loader.component';
 
@@ -64,6 +65,9 @@ export class SubscriptionInfoComponent implements OnInit {
 
   @Input()
   apiName?: string;
+
+  @Input()
+  documentationNavigationTarget?: ApiDocumentationNavigationTarget;
 
   @Input()
   subscription?: Subscription;
