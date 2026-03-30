@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @use '../../scss/theme' as theme;
+@use '../../scss/layout' as layout;
 
 // Full width so Redoc viewer can use full width
 :host {
@@ -24,6 +25,7 @@
 gmd-viewer {
   display: block;
   max-width: theme.$inner-content-width;
+  padding: 0 layout.$container-content-padding-horizontal;
 }
 
 // TODO: Remove this when we have a better way to center the content
