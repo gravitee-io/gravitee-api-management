@@ -30,6 +30,7 @@
         [subscription]="detailsVM.result.subscription"
         [planUsageConfiguration]="detailsVM.result.planUsageConfiguration"
         [api]="detailsVM.result.api"
+        [apiName]="detailsVM.result.apiName"
         [consumerStatus]="detailsVM.result.consumerStatus"
         [failureCause]="detailsVM.result.failureCause"
         [createdAt]="detailsVM.result.createdAt"
@@ -38,16 +39,18 @@
         (resumeConsumerStatus)="resumeConsumerStatus()"
         (closeSubscription)="closeSubscription()"
       />
-      <app-api-access
-        [planSecurity]="detailsVM.result.planSecurity"
-        [subscription]="detailsVM.result.subscription"
-        [entrypointUrls]="detailsVM.result.entrypointUrls"
-        [apiKey]="detailsVM.result.apiKey"
-        [clientId]="detailsVM.result.clientId"
-        [clientSecret]="detailsVM.result.clientSecret"
-        [apiType]="detailsVM.result.api?.type"
-        [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
-      />
+      @if (detailsVM.result.api) {
+        <app-api-access
+          [planSecurity]="detailsVM.result.planSecurity"
+          [subscription]="detailsVM.result.subscription"
+          [entrypointUrls]="detailsVM.result.entrypointUrls"
+          [apiKey]="detailsVM.result.apiKey"
+          [clientId]="detailsVM.result.clientId"
+          [clientSecret]="detailsVM.result.clientSecret"
+          [apiType]="detailsVM.result.api.type"
+          [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
+        />
+      }
     </div>
   }
 
