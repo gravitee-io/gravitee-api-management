@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.processor.reporter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.ExecutionContext;
@@ -23,7 +24,9 @@ import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class ReporterProcessorTest {
@@ -45,7 +48,7 @@ class ReporterProcessorTest {
 
         context = mock(ExecutionContext.class);
         request = mock(Request.class);
-        metrics = mock(Metrics.class);
+        metrics = spy(Metrics.on(System.currentTimeMillis()).build());
 
         when(context.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
@@ -114,6 +117,83 @@ class ReporterProcessorTest {
 
         processor.handle(context);
 
+        verify(next).handle(context);
+    }
+
+    @Test
+    @DisplayName("Should create Diagnostic when errorKey and message are present")
+    void shouldCreateDiagnosticWhenErrorKeyAndMessagePresent() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("Unauthorized");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNotNull();
+        assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_PLAN_UNRESOLVABLE");
+        assertThat(metrics.getFailure().getMessage()).isEqualTo("Unauthorized");
+        assertThat(metrics.getFailure().getComponentType()).isNull();
+        assertThat(metrics.getFailure().getComponentName()).isNull();
+        verify(reporterService).report(metrics);
+        verify(next).handle(context);
+    }
+
+    @Test
+    @DisplayName("Should use internal_error as default key when errorKey is null")
+    void shouldUseDefaultKeyWhenErrorKeyNull() {
+        metrics.setMessage("Some error");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNotNull();
+        assertThat(metrics.getFailure().getKey()).isEqualTo("internal_error");
+        assertThat(metrics.getFailure().getMessage()).isEqualTo("Some error");
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should not create Diagnostic when message is null")
+    void shouldNotCreateDiagnosticWhenMessageNull() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNull();
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should not create Diagnostic when message is blank")
+    void shouldNotCreateDiagnosticWhenMessageBlank() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("   ");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNull();
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should not override existing Diagnostic failure")
+    void shouldNotOverrideExistingFailure() {
+        Diagnostic existing = new Diagnostic("existing_key", "existing_message", "comp_type", "comp_name");
+        metrics.setFailure(existing);
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("Unauthorized");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isSameAs(existing);
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should report metrics even without error information")
+    void shouldReportMetricsWithoutErrors() {
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNull();
+        verify(reporterService).report(metrics);
         verify(next).handle(context);
     }
 }

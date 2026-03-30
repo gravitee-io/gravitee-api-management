@@ -99,6 +99,7 @@ class SimpleFailureProcessorTest {
         cut.handle(executionContext);
 
         assertThat(metrics.getErrorKey()).isEqualTo(FAILURE_KEY);
+        assertThat(metrics.getMessage()).isNull();
         verify(response).status(FAILURE_CODE);
         verify(response).reason("Bad Request");
         verify(responseHeaders).set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
@@ -115,6 +116,7 @@ class SimpleFailureProcessorTest {
         cut.handle(executionContext);
 
         assertThat(metrics.getErrorKey()).isEqualTo(FAILURE_KEY);
+        assertThat(metrics.getMessage()).isEqualTo(failureMessage);
         verify(response).status(FAILURE_CODE);
         verify(response).reason("Bad Request");
         verify(responseHeaders).set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
@@ -168,5 +170,37 @@ class SimpleFailureProcessorTest {
         verify(responseHeaders).set(HttpHeaderNames.CONTENT_LENGTH, "44");
         verify(responseHeaders).set(HttpHeaderNames.CONTENT_TYPE, expectedContentType);
         verify(response).write(any());
+    }
+
+    @Test
+    @DisplayName("Should combine generic failure message with detailed policy message")
+    void shouldCombineGenericAndDetailedMessages() {
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        final String policyDetailedMessage = "Signed JWT rejected: Invalid signature";
+        final String genericFailureMessage = "Unauthorized";
+        // Simulate JWT policy setting detailed message before SimpleFailureProcessor runs
+        metrics.setMessage(policyDetailedMessage);
+        when(processorFailure.message()).thenReturn(genericFailureMessage);
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getErrorKey()).isEqualTo(FAILURE_KEY);
+        // Should combine: "Unauthorized (Signed JWT rejected: Invalid signature)"
+        assertThat(metrics.getMessage()).isEqualTo("Unauthorized (Signed JWT rejected: Invalid signature)");
+        verify(processorNext).handle(executionContext);
+    }
+
+    @Test
+    @DisplayName("Should not duplicate message when failure message equals existing message")
+    void shouldNotDuplicateWhenMessagesMatch() {
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        final String sameMessage = "Unauthorized";
+        metrics.setMessage(sameMessage);
+        when(processorFailure.message()).thenReturn(sameMessage);
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getMessage()).isEqualTo("Unauthorized");
+        verify(processorNext).handle(executionContext);
     }
 }
