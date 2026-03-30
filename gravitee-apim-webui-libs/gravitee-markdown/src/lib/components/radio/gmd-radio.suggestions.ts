@@ -28,12 +28,6 @@ const requiredRadio: ComponentSuggestion = {
   detail: 'Required radio button group',
 };
 
-const radioWithJson: ComponentSuggestion = {
-  label: 'Radio - JSON Options',
-  insertText: `<gmd-radio name="$1" label="$2" options='["Option 1","Option 2","Option 3"]'></gmd-radio>`,
-  detail: 'Radio group with options defined as JSON array',
-};
-
 const formRadio: ComponentSuggestion = {
   label: 'Radio - Form Field',
   insertText: `<gmd-radio name="$1" label="$2" fieldKey="$3" required="true" options="Option 1,Option 2"></gmd-radio>`,
@@ -41,7 +35,7 @@ const formRadio: ComponentSuggestion = {
 };
 
 export const radioConfiguration: ComponentSuggestionConfiguration = {
-  suggestions: [basicRadio, requiredRadio, radioWithJson, formRadio],
+  suggestions: [basicRadio, requiredRadio, formRadio],
   attributeSuggestions: [
     {
       label: 'name="fieldName"',
@@ -56,12 +50,7 @@ export const radioConfiguration: ComponentSuggestionConfiguration = {
     {
       label: 'options="Option 1,Option 2,Option 3"',
       insertText: 'options="$1"',
-      detail: 'Comma-separated list of options or JSON array string',
-    },
-    {
-      label: 'options=\'["Option 1","Option 2"]\'',
-      insertText: 'options=\'["$1"]\'',
-      detail: 'JSON array string format for options',
+      detail: 'Comma-separated list of options',
     },
     {
       label: 'required="true"',
@@ -87,13 +76,12 @@ export const radioConfiguration: ComponentSuggestionConfiguration = {
   hoverDocumentation: {
     label: 'Radio',
     description:
-      'A radio button group component that allows users to select a single option from a list. All radio buttons with the same name are grouped together. Options can be provided as a comma-separated string or JSON array.',
+      'A radio button group component that allows users to select a single option from a list. All radio buttons with the same name are grouped together. Options are provided as a comma-separated string.',
   },
   attributeHoverDocumentation: {
     name: 'HTML name/id attribute for label association and grouping radio buttons',
     label: 'Display label shown above the radio button group',
-    options:
-      'List of options as comma-separated string (e.g., "Option 1,Option 2") or JSON array string (e.g., \'["Option 1","Option 2"]\')',
+    options: 'Comma-separated list of options (e.g., "Option 1,Option 2")',
     required: 'Whether one option must be selected (true/false)',
     fieldKey: 'Field key used for validation and data collection',
     value: 'Initial/default selected value',

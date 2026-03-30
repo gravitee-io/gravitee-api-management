@@ -59,11 +59,11 @@ export const Required: StoryObj<GmdRadioComponent> = {
   }),
 };
 
-export const WithJsonOptions: StoryObj<GmdRadioComponent> = {
+export const WithOptions: StoryObj<GmdRadioComponent> = {
   render: () => ({
     template: `
       <div style="width: 400px;">
-        <gmd-radio name="json" label="Radio with JSON Options" options='["Small","Medium","Large","Extra Large"]'></gmd-radio>
+        <gmd-radio name="size" label="Radio with Options" options="Small,Medium,Large,Extra Large"></gmd-radio>
       </div>
     `,
   }),
@@ -116,7 +116,7 @@ export const CommonUseCases: StoryObj<GmdRadioComponent> = {
     template: `
       <div style="width: 400px; display: flex; flex-direction: column; gap: 24px;">
         <gmd-radio name="plan" label="Plan" required="true" options="Basic,Professional,Enterprise"></gmd-radio>
-        <gmd-radio name="size" label="Size" required="true" options='["Small","Medium","Large"]'></gmd-radio>
+        <gmd-radio name="size" label="Size" required="true" options="Small,Medium,Large"></gmd-radio>
         <gmd-radio name="frequency" label="Billing Frequency" required="true" options="Monthly,Quarterly,Yearly"></gmd-radio>
       </div>
     `,
@@ -139,7 +139,7 @@ export const WithFieldKey: StoryObj<GmdRadioComponent> = {
           label="Billing Frequency"
           fieldKey="billingFrequency"
           required="true"
-          options='["Monthly","Quarterly","Yearly"]'>
+          options="Monthly,Quarterly,Yearly">
         </gmd-radio>
       </div>
     `,
@@ -237,7 +237,7 @@ export const InMarkdownViewer: StoryObj = {
 
 <gmd-radio name="plan" label="Plan" required="true" options="Basic,Professional,Enterprise"></gmd-radio>
 
-<gmd-radio name="size" label="Size" options='["Small","Medium","Large"]'></gmd-radio>
+<gmd-radio name="size" label="Size" options="Small,Medium,Large"></gmd-radio>
 
 <gmd-radio name="frequency" label="Billing Frequency" required="true" options="Monthly,Quarterly,Yearly"></gmd-radio>
 `,
