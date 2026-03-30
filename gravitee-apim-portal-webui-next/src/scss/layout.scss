@@ -18,7 +18,8 @@
 
 $container-padding-vertical-legacy: 2rem;
 $container-padding-horizontal: 16px;
-$container-padding-vertical: 16px;
+$container-content-padding-horizontal: 32px;
+$container-content-padding-vertical: 32px;
 
 /**
   * Mixins for containers
@@ -45,7 +46,6 @@ $container-padding-vertical: 16px;
 @mixin -container($max-width) {
   display: block;
   width: 100%;
-  padding: 0 $container-padding-horizontal;
   overflow-y: scroll;
   scrollbar-gutter: stable;
 
