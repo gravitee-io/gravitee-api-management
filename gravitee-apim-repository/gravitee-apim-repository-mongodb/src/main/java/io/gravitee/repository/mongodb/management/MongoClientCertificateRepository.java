@@ -125,6 +125,20 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
+    public Page<ClientCertificate> findByApplicationIds(Collection<String> applicationIds, Pageable pageable) throws TechnicalException {
+        log.debug("Find client certificates by application IDs [{}]", applicationIds);
+
+        org.springframework.data.domain.Page<ClientCertificateMongo> mongoPage = internalRepository.findByApplicationIds(
+            applicationIds,
+            PageRequest.of(pageable.pageNumber(), pageable.pageSize())
+        );
+
+        List<ClientCertificate> content = mongoPage.getContent().stream().map(mapper::map).toList();
+
+        return new Page<>(content, pageable.pageNumber(), pageable.pageSize(), mongoPage.getTotalElements());
+    }
+
+    @Override
     public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
         log.debug("Find client certificates by application ID [{}] and statuses [{}]", applicationId, statuses);

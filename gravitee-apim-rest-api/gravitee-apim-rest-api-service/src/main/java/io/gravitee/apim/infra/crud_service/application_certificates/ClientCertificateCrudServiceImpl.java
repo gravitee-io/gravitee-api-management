@@ -168,6 +168,26 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
+    public Page<ClientCertificate> findByApplicationIds(Collection<String> applicationIds, Pageable pageable) {
+        try {
+            log.debug("Find client certificates by application IDs: {}", applicationIds);
+
+            var repoPageable = new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
+
+            var page = clientCertificateRepository.findByApplicationIds(applicationIds, repoPageable);
+
+            return new Page<>(
+                page.getContent().stream().map(ClientCertificateAdapter.INSTANCE::toDomain).toList(),
+                page.getPageNumber(),
+                (int) page.getPageElements(),
+                page.getTotalElements()
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find client certificates by application IDs", e);
+        }
+    }
+
+    @Override
     public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
         try {
             log.debug("Find client certificates by application ID {} and statuses {}", applicationId, Arrays.toString(statuses));

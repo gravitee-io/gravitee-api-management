@@ -152,6 +152,25 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     }
 
     @Override
+    public Page<ClientCertificate> findByApplicationIds(Collection<String> applicationIds, Pageable pageable) {
+        List<ClientCertificate> filtered = storage
+            .stream()
+            .filter(cert -> applicationIds.contains(cert.applicationId()))
+            .toList();
+
+        int pageNumber = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+        int fromIndex = Math.max(0, (pageNumber - 1) * pageSize);
+        int toIndex = Math.min(fromIndex + pageSize, filtered.size());
+
+        List<ClientCertificate> pageContent = fromIndex < filtered.size()
+            ? filtered.subList(fromIndex, toIndex).stream().map(ClientCertificate::new).toList()
+            : Collections.emptyList();
+
+        return new Page<>(pageContent, pageNumber, pageSize, filtered.size());
+    }
+
+    @Override
     public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         if (statuses == null || statuses.length == 0) {
             return List.of();

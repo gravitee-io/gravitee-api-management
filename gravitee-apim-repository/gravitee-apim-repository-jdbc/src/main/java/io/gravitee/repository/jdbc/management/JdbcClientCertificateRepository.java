@@ -89,6 +89,28 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
+    public Page<ClientCertificate> findByApplicationIds(Collection<String> applicationIds, Pageable pageable) throws TechnicalException {
+        log.debug("JdbcClientCertificateRepository.findByApplicationIds({})", applicationIds);
+
+        if (applicationIds == null || applicationIds.isEmpty()) {
+            return getResultAsPage(pageable, List.of());
+        }
+
+        try {
+            List<String> applicationIdList = new ArrayList<>(applicationIds);
+            String sql = getOrm().getSelectAllSql() + " WHERE application_id IN (" + getOrm().buildInClause(applicationIdList) + ")";
+            List<ClientCertificate> clientCertificates = jdbcTemplate.query(
+                sql,
+                ps -> getOrm().setArguments(ps, applicationIdList, 1),
+                getOrm().getRowMapper()
+            );
+            return getResultAsPage(pageable, clientCertificates);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find client certificates by application ids", ex);
+        }
+    }
+
+    @Override
     public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
         log.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, Arrays.toString(statuses));

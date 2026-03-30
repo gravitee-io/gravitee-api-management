@@ -90,6 +90,15 @@ public interface ClientCertificateCrudService {
     List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses);
 
     /**
+     * Find all client certificates for a given set of applications with pagination.
+     *
+     * @param applicationIds application IDs
+     * @param pageable pagination information
+     * @return a page of client certificates
+     */
+    Page<ClientCertificate> findByApplicationIds(Collection<String> applicationIds, Pageable pageable);
+
+    /**
      * Find all client certificates matching the given statuses, regardless of application.
      * Returns an empty set if {@code statuses} is null or empty.
      *

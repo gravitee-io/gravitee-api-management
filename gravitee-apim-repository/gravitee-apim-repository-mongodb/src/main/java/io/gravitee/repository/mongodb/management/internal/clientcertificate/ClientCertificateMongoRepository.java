@@ -34,6 +34,9 @@ public interface ClientCertificateMongoRepository extends MongoRepository<Client
     @Query("{ applicationId: ?0 }")
     Page<ClientCertificateMongo> findByApplicationId(String applicationId, Pageable pageable);
 
+    @Query("{ applicationId: { $in: ?0 } }")
+    Page<ClientCertificateMongo> findByApplicationIds(Collection<String> applicationIds, Pageable pageable);
+
     @Query("{ applicationId: ?0, status: { $in: ?1 } }")
     List<ClientCertificateMongo> findByApplicationIdAndStatuses(String applicationId, Collection<String> statuses);
 

@@ -159,6 +159,42 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
+    public void should_find_by_application_ids_with_pagination() throws Exception {
+        Page<ClientCertificate> page = clientCertificateRepository.findByApplicationIds(
+            List.of("app-1", "app-2"),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        assertThat(page).isNotNull();
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-2", "cert-3");
+    }
+
+    @Test
+    public void should_find_by_application_ids_with_pagination_page_size() throws Exception {
+        Page<ClientCertificate> page = clientCertificateRepository.findByApplicationIds(
+            List.of("app-1", "app-2"),
+            new PageableBuilder().pageNumber(0).pageSize(2).build()
+        );
+
+        assertThat(page).isNotNull();
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).hasSize(2);
+    }
+
+    @Test
+    public void should_return_empty_page_when_no_matching_application_ids() throws Exception {
+        Page<ClientCertificate> page = clientCertificateRepository.findByApplicationIds(
+            List.of("non-existent-app"),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        assertThat(page).isNotNull();
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(page.getContent()).isEmpty();
+    }
+
+    @Test
     public void should_find_by_application_id_and_statuses() throws Exception {
         List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
             "app-1",

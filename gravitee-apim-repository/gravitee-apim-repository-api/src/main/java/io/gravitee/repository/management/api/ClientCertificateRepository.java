@@ -63,6 +63,16 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
         throws TechnicalException;
 
     /**
+     * Find all client certificates for a given set of applications with pagination.
+     *
+     * @param applicationIds the collection of application IDs
+     * @param pageable pagination information
+     * @return a page of client certificates
+     * @throws TechnicalException if an error occurs
+     */
+    Page<ClientCertificate> findByApplicationIds(Collection<String> applicationIds, Pageable pageable) throws TechnicalException;
+
+    /**
      * Find all client certificates matching the given statuses, regardless of application.
      * Returns an empty set if {@code statuses} is null or empty.
      *

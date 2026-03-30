@@ -366,6 +366,76 @@ class ClientCertificateCrudServiceImplTest {
     }
 
     @Test
+    void should_find_by_application_ids() throws TechnicalException {
+        String applicationId2 = "app-id-2";
+        String certificateId2 = "cert-id-2";
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate1 = buildRepositoryClientCertificate(
+            CERTIFICATE_ID,
+            APPLICATION_ID,
+            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
+        );
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate2 = buildRepositoryClientCertificate(
+            certificateId2,
+            applicationId2,
+            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
+        );
+        Page<io.gravitee.repository.management.model.ClientCertificate> repositoryPage = new Page<>(
+            List.of(repositoryCertificate1, repositoryCertificate2),
+            0,
+            2,
+            2
+        );
+        when(clientCertificateRepository.findByApplicationIds(eq(List.of(APPLICATION_ID, applicationId2)), any(Pageable.class))).thenReturn(
+            repositoryPage
+        );
+
+        io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.Pageable() {
+            @Override
+            public int getPageNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getPageSize() {
+                return 10;
+            }
+        };
+
+        Page<ClientCertificate> result = clientCertificateCrudService.findByApplicationIds(
+            List.of(APPLICATION_ID, applicationId2),
+            pageable
+        );
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2).extracting("id").containsExactlyInAnyOrder(CERTIFICATE_ID, certificateId2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void should_throw_technical_management_exception_when_find_by_application_ids_fails() throws TechnicalException {
+        when(clientCertificateRepository.findByApplicationIds(any(), any(Pageable.class))).thenThrow(
+            new TechnicalException("Database error")
+        );
+
+        io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.Pageable() {
+            @Override
+            public int getPageNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getPageSize() {
+                return 10;
+            }
+        };
+
+        List<String> applicationIds = List.of(APPLICATION_ID);
+        assertThatThrownBy(() -> clientCertificateCrudService.findByApplicationIds(applicationIds, pageable))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("An error occurs while trying to find client certificates by application IDs");
+    }
+
+    @Test
     void should_find_by_application_id_and_statuses() throws TechnicalException {
         io.gravitee.repository.management.model.ClientCertificate repositoryCertificate = buildRepositoryClientCertificate(
             CERTIFICATE_ID,
