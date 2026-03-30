@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<span mat-dialog-title i18n="@@addCertificateDialogTitle">Add certificate</span>
+<h2 mat-dialog-title i18n="@@addCertificateDialogTitle">Add certificate</h2>
 
 <mat-dialog-content class="add-certificate-dialog__content">
   <mat-stepper [linear]="false" animationDuration="0" #stepper>
@@ -164,8 +164,10 @@
           }
         </div>
 
-        @if (submitError) {
-          <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-submit-error" role="alert">{{ submitError }}</p>
+        @if (submitError(); as submitError) {
+          <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-submit-error" role="alert">
+            {{ submitError }}
+          </p>
         }
       </div>
     </mat-step>
@@ -198,7 +200,7 @@
       mat-flat-button
       color="primary"
       type="button"
-      (click)="onContinueUpload()"
+      (click)="continueStep(uploadForm)"
       data-testid="certificate-continue-upload-button"
       i18n="@@addCertificateContinueButton"
     >
@@ -209,7 +211,7 @@
       mat-flat-button
       color="primary"
       type="button"
-      (click)="onContinueConfigure()"
+      (click)="continueStep(configureForm)"
       data-testid="certificate-continue-configure-button"
       i18n="@@addCertificateContinueButton"
     >
@@ -220,7 +222,7 @@
       mat-flat-button
       color="primary"
       type="button"
-      [disabled]="isSubmitting"
+      [disabled]="isSubmitting()"
       (click)="onSubmit()"
       data-testid="certificate-submit-button"
       i18n="@@addCertificateSubmitButton"

@@ -102,10 +102,11 @@ export class ApplicationTabSettingsCertificatesComponent implements OnInit {
   }
 
   openUploadDialog(): void {
-    const activeCert = this.activeCertificates()[0];
+    const activeCerts = this.activeCertificates();
+    const activeCert = activeCerts[0];
     const data: AddCertificateDialogData = {
       applicationId: this.applicationId(),
-      hasActiveCertificates: this.activeCertificates().length > 0,
+      hasActiveCertificates: activeCerts.length > 0,
       activeCertificateId: activeCert?.id,
       activeCertificateExpiration: activeCert?.endsAt,
     };

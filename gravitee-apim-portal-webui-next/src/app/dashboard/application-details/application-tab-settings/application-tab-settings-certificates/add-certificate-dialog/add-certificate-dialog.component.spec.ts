@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -20,6 +21,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { AddCertificateDialogComponent, AddCertificateDialogData } from './add-certificate-dialog.component';
+import { AddCertificateDialogHarness } from './add-certificate-dialog.component.harness';
 import { ConfigService } from '../../../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../../testing/app-testing.module';
 
@@ -35,6 +37,7 @@ function makeData(overrides: Partial<AddCertificateDialogData> = {}): AddCertifi
 
 describe('AddCertificateDialogComponent', () => {
   let fixture: ComponentFixture<AddCertificateDialogComponent>;
+  let harness: AddCertificateDialogHarness;
   let httpTestingController: HttpTestingController;
   let dialogRef: { close: jest.Mock };
 
@@ -54,6 +57,7 @@ describe('AddCertificateDialogComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddCertificateDialogComponent);
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, AddCertificateDialogHarness);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -64,13 +68,13 @@ describe('AddCertificateDialogComponent', () => {
 
   it('should show upload step initially', async () => {
     await init();
-    expect(fixture.nativeElement.querySelector('[data-testid="certificate-name-input"]')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('[data-testid="certificate-pem-input"]')).toBeTruthy();
+    expect(await harness.nameInput()).toBeTruthy();
+    expect(await harness.pemInput()).toBeTruthy();
   });
 
   it('should show validation errors when continuing with empty upload form', async () => {
     await init();
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.uploadForm.touched).toBe(true);
@@ -83,7 +87,7 @@ describe('AddCertificateDialogComponent', () => {
     fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -95,41 +99,41 @@ describe('AddCertificateDialogComponent', () => {
     await init(makeData({ hasActiveCertificates: false }));
 
     fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="certificate-grace-period-input"]')).toBeNull();
+    expect(await harness.gracePeriodInput()).toBeNull();
   });
 
   it('should show grace period field when hasActiveCertificates is true', async () => {
     await init(makeData({ hasActiveCertificates: true, activeCertificateId: 'old-cert' }));
 
     fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="certificate-grace-period-input"]')).toBeTruthy();
+    expect(await harness.gracePeriodInput()).toBeTruthy();
   });
 
   it('should call create and close dialog on successful submit', async () => {
     await init();
 
     fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-configure-button"]').click();
+    await harness.clickContinueConfigure();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="certificate-submit-button"]').click();
+    await harness.clickSubmit();
     fixture.detectChanges();
 
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`);
@@ -147,19 +151,19 @@ describe('AddCertificateDialogComponent', () => {
     await init(makeData({ hasActiveCertificates: true, activeCertificateId }));
 
     fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
     const graceDate = new Date('2026-12-31');
     fixture.componentInstance.configureForm.controls.gracePeriodEnd.setValue(graceDate);
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-configure-button"]').click();
+    await harness.clickContinueConfigure();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="certificate-submit-button"]').click();
+    await harness.clickSubmit();
     fixture.detectChanges();
 
     const createReq = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`);
@@ -182,17 +186,17 @@ describe('AddCertificateDialogComponent', () => {
     await init();
 
     fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: 'INVALID PEM' });
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-upload-button"]').click();
+    await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="certificate-continue-configure-button"]').click();
+    await harness.clickContinueConfigure();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="certificate-submit-button"]').click();
+    await harness.clickSubmit();
     fixture.detectChanges();
 
     httpTestingController
@@ -202,7 +206,7 @@ describe('AddCertificateDialogComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="certificate-submit-error"]')).toBeTruthy();
+    expect(await harness.submitErrorText()).toBeTruthy();
     expect(dialogRef.close).not.toHaveBeenCalled();
   });
 });

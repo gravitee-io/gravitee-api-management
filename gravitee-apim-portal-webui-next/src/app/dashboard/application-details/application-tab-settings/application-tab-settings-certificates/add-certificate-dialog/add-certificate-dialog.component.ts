@@ -15,7 +15,7 @@
  */
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, viewChild } from '@angular/core';
+import { Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -67,8 +67,8 @@ export class AddCertificateDialogComponent {
     ? new Date(this.data.activeCertificateExpiration)
     : undefined;
 
-  isSubmitting = false;
-  submitError: string | undefined;
+  isSubmitting = signal(false);
+  submitError = signal<string | null>(null);
 
   readonly uploadForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -80,15 +80,9 @@ export class AddCertificateDialogComponent {
     gracePeriodEnd: new FormControl<Date | null>(null, this.data.hasActiveCertificates ? [Validators.required] : []),
   });
 
-  onContinueUpload(): void {
-    this.uploadForm.markAllAsTouched();
-    if (this.uploadForm.invalid) return;
-    this.stepper().next();
-  }
-
-  onContinueConfigure(): void {
-    this.configureForm.markAllAsTouched();
-    if (this.configureForm.invalid) return;
+  continueStep(group: FormGroup): void {
+    group.markAllAsTouched();
+    if (group.invalid) return;
     this.stepper().next();
   }
 
@@ -104,16 +98,16 @@ export class AddCertificateDialogComponent {
   onSubmit(): void {
     if (this.uploadForm.invalid || this.configureForm.invalid) return;
 
-    const { name, certificate } = this.uploadForm.getRawValue();
-    const { endsAt, gracePeriodEnd } = this.configureForm.getRawValue();
+    const { name, certificate } = this.uploadForm.value;
+    const { endsAt, gracePeriodEnd } = this.configureForm.value;
 
-    this.isSubmitting = true;
-    this.submitError = undefined;
+    this.isSubmitting.set(true);
+    this.submitError.set(null);
 
     this.certService
       .create(this.data.applicationId, {
-        name,
-        certificate,
+        name: name!,
+        certificate: certificate!,
         ...(endsAt ? { endsAt: endsAt.toISOString() } : {}),
       })
       .pipe(
@@ -129,15 +123,15 @@ export class AddCertificateDialogComponent {
       )
       .subscribe({
         next: () => {
-          this.isSubmitting = false;
+          this.isSubmitting.set(false);
           this.dialogRef.close(true);
         },
         error: (err: HttpErrorResponse) => {
-          this.isSubmitting = false;
+          this.isSubmitting.set(false);
           if (err.status === 400) {
-            this.submitError = $localize`:@@addCertificateValidationError:Validation failed for Certificate uploaded. Please try again`;
+            this.submitError.set($localize`:@@addCertificateValidationError:Validation failed for Certificate uploaded. Please try again`);
           } else {
-            this.submitError = $localize`:@@addCertificateSubmitError:An error occurred. Please try again`;
+            this.submitError.set($localize`:@@addCertificateSubmitError:An error occurred. Please try again`);
           }
         },
       });
