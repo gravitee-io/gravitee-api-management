@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.processor.reporter;
 
+<<<<<<< HEAD
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.ExecutionContext;
@@ -33,10 +34,48 @@ class ReporterProcessorTest {
     private Processor<ExecutionContext> next;
     private ExecutionContext context;
     private Request request;
+=======
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.processor.AbstractProcessor;
+import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class ReporterProcessorTest {
+
+    private ReporterProcessor cut;
+
+    @Mock
+    private ReporterService reporterService;
+
+    @Mock
+    private AbstractProcessor<ExecutionContext> processorNext;
+
+    @Mock
+    private ExecutionContext executionContext;
+
+    @Mock
+    private Request request;
+
+>>>>>>> ff653a0deb (fix(gateway): restore error fields in legacy engine logs (APIM-12654))
     private Metrics metrics;
 
     @BeforeEach
     void setUp() {
+<<<<<<< HEAD
         reporterService = mock(ReporterService.class);
         next = mock(Processor.class);
 
@@ -48,10 +87,17 @@ class ReporterProcessorTest {
         metrics = mock(Metrics.class);
 
         when(context.request()).thenReturn(request);
+=======
+        cut = new ReporterProcessor(reporterService);
+        cut.handler(processorNext);
+        metrics = Metrics.on(System.currentTimeMillis()).build();
+        when(executionContext.request()).thenReturn(request);
+>>>>>>> ff653a0deb (fix(gateway): restore error fields in legacy engine logs (APIM-12654))
         when(request.metrics()).thenReturn(metrics);
     }
 
     @Test
+<<<<<<< HEAD
     void should_report_metrics() {
         processor.handle(context);
 
@@ -115,5 +161,81 @@ class ReporterProcessorTest {
         processor.handle(context);
 
         verify(next).handle(context);
+=======
+    @DisplayName("Should create Diagnostic when errorKey and message are present")
+    void shouldCreateDiagnosticWhenErrorKeyAndMessagePresent() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("Unauthorized");
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getFailure()).isNotNull();
+        assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_PLAN_UNRESOLVABLE");
+        assertThat(metrics.getFailure().getMessage()).isEqualTo("Unauthorized");
+        assertThat(metrics.getFailure().getComponentType()).isNull();
+        assertThat(metrics.getFailure().getComponentName()).isNull();
+        verify(reporterService).report(metrics);
+        verify(processorNext).handle(executionContext);
+    }
+
+    @Test
+    @DisplayName("Should use internal_error as default key when errorKey is null")
+    void shouldUseDefaultKeyWhenErrorKeyNull() {
+        metrics.setMessage("Some error");
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getFailure()).isNotNull();
+        assertThat(metrics.getFailure().getKey()).isEqualTo("internal_error");
+        assertThat(metrics.getFailure().getMessage()).isEqualTo("Some error");
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should not create Diagnostic when message is null")
+    void shouldNotCreateDiagnosticWhenMessageNull() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getFailure()).isNull();
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should not create Diagnostic when message is blank")
+    void shouldNotCreateDiagnosticWhenMessageBlank() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("   ");
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getFailure()).isNull();
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should not override existing Diagnostic failure")
+    void shouldNotOverrideExistingFailure() {
+        Diagnostic existing = new Diagnostic("existing_key", "existing_message", "comp_type", "comp_name");
+        metrics.setFailure(existing);
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("Unauthorized");
+
+        cut.handle(executionContext);
+
+        assertThat(metrics.getFailure()).isSameAs(existing);
+        verify(reporterService).report(metrics);
+    }
+
+    @Test
+    @DisplayName("Should report metrics even without error information")
+    void shouldReportMetricsWithoutErrors() {
+        cut.handle(executionContext);
+
+        assertThat(metrics.getFailure()).isNull();
+        verify(reporterService).report(metrics);
+        verify(processorNext).handle(executionContext);
+>>>>>>> ff653a0deb (fix(gateway): restore error fields in legacy engine logs (APIM-12654))
     }
 }
