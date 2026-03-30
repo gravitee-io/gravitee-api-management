@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
 import { loadRemote } from '@module-federation/runtime';
+import React from 'react';
+
 import { GammaModule } from './gamma-module';
 
 const lazyComponentCache = new Map<string, React.LazyExoticComponent<React.ComponentType>>();

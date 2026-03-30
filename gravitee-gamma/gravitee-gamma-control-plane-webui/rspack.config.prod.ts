@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { join } from 'path';
+
+import { ModuleFederationConfig } from '@nx/module-federation';
+import { NxModuleFederationPlugin, NxModuleFederationDevServerPlugin } from '@nx/module-federation/rspack.js';
 import { NxAppRspackPlugin } from '@nx/rspack/app-plugin.js';
 import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
-import { NxModuleFederationPlugin, NxModuleFederationDevServerPlugin } from '@nx/module-federation/rspack.js';
-import { ModuleFederationConfig } from '@nx/module-federation';
-import { join } from 'path';
 
 import baseConfig from './module-federation.config';
 

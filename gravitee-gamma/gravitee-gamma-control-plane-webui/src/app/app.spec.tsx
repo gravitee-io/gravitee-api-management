@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
 import { act, render, screen } from '@testing-library/react';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../auth/auth-context';
-import { BootstrapProvider } from '../bootstrap/bootstrap-context';
 
 import App from './app';
+import { AuthProvider } from '../auth/auth-context';
+import { BootstrapProvider } from '../bootstrap/bootstrap-context';
 
 async function renderApp() {
     await act(async () => {

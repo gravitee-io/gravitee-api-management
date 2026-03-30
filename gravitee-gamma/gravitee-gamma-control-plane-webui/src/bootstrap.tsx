@@ -18,8 +18,8 @@ import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from './app/app';
-import { BootstrapProvider } from './bootstrap/bootstrap-context';
 import { AuthProvider } from './auth/auth-context';
+import { BootstrapProvider } from './bootstrap/bootstrap-context';
 import { EnvironmentProvider } from './bootstrap/environment-context';
 import { ErrorBoundary } from './error-boundary';
 
