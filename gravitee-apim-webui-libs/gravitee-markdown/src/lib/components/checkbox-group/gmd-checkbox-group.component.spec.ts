@@ -104,6 +104,14 @@ describe('GmdCheckboxGroupComponent', () => {
   });
 
   describe('Options parsing', () => {
+    it('should parse EL fallback options for preview', () => {
+      fixture.componentRef.setInput('options', "{#api.metadata['countries']}:France,Spain");
+      fixture.detectChanges();
+
+      const options = checkboxGroupComponent.optionsVM();
+      expect(options).toEqual(['France', 'Spain']);
+    });
+
     it('should parse comma-separated options', () => {
       fixture.componentRef.setInput('options', 'option1,option2,option3');
       fixture.detectChanges();
@@ -134,6 +142,22 @@ describe('GmdCheckboxGroupComponent', () => {
 
       const options = await harness.getOptions();
       expect(options).toHaveLength(3);
+    });
+  });
+
+  describe('Config errors', () => {
+    it('should return missingElFallback when EL options have no fallback values', () => {
+      fixture.componentRef.setInput('fieldKey', 'country');
+      fixture.componentRef.setInput('options', "{#api.metadata['countries']}");
+      fixture.detectChanges();
+
+      expect(checkboxGroupComponent.configErrors()).toContainEqual(
+        expect.objectContaining({
+          code: 'missingElFallback',
+          severity: 'error',
+          field: 'options',
+        }),
+      );
     });
   });
 

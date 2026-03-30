@@ -18,7 +18,7 @@ import { Component, computed, effect, input, signal } from '@angular/core';
 
 import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
 import { GmdFormFieldBase } from '../form-field-base/gmd-form-field-base.component';
-import { emptyFieldKeyErrors, parseBoolean } from '../form-helpers';
+import { elFallbackErrors, emptyFieldKeyErrors, isElExpression, parseBoolean, parseElFallback } from '../form-helpers';
 
 @Component({
   selector: 'gmd-radio',
@@ -43,13 +43,7 @@ export class GmdRadioComponent extends GmdFormFieldBase {
   protected readonly touched = signal<boolean>(false);
 
   // Computed
-  configErrors = computed<GmdConfigError[]>(() => {
-    const errors: GmdConfigError[] = [];
-
-    errors.push(...emptyFieldKeyErrors(this.fieldKey()));
-
-    return errors;
-  });
+  configErrors = computed<GmdConfigError[]>(() => [...emptyFieldKeyErrors(this.fieldKey()), ...elFallbackErrors(this.options())]);
 
   validationErrors = computed<GmdFieldErrorCode[]>(() => {
     const v = this.internalValue();
@@ -79,6 +73,11 @@ export class GmdRadioComponent extends GmdFormFieldBase {
   optionsVM = computed(() => {
     const opts = this.options();
     if (!opts) return [];
+
+    // EL expression: show only fallback values in form builder preview
+    if (isElExpression(opts)) {
+      return parseElFallback(opts);
+    }
 
     // Try to parse as JSON array first
     try {

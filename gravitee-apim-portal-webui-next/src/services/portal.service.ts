@@ -59,8 +59,8 @@ export class PortalService {
       .pipe(map(resp => resp?.pages ?? []));
   }
 
-  public getSubscriptionForm(): Observable<SubscriptionForm | null> {
-    return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/subscription-form`).pipe(
+  public getSubscriptionForm(apiId: string): Observable<SubscriptionForm | null> {
+    return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/apis/${apiId}/subscription-form`).pipe(
       catchError(err => {
         if (err.status === 404) {
           return of(null);
