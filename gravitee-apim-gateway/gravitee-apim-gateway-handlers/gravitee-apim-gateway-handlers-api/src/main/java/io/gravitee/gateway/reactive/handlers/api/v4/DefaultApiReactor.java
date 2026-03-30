@@ -296,6 +296,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(
                 new CompletableReactorChain(organizationFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx))
             )
+            .chainWithOnError(error -> processOrganizationFlowError(ctx, error))
             // Before entrypoint response
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))
@@ -454,6 +455,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
             log.error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
+    }
+
+    private Completable processOrganizationFlowError(final MutableExecutionContext ctx, final Throwable throwable) {
+        if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
+            return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
+        } else if (InterruptionHelper.isInterruption(throwable)) {
+            return Completable.complete();
+        }
+        return Completable.error(throwable);
     }
 
     protected Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
