@@ -24,6 +24,8 @@
   justify-content: space-between;
   padding: 0 layout.$container-padding-horizontal;
   border-top: 1px solid app-theme.$footer-border-color;
+  z-index: 1;
+  background: app-theme.$background-color;
 }
 
 .footer {

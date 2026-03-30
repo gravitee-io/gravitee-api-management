@@ -3,20 +3,15 @@
 
 :host {
   @include layout.medium-container();
-  padding-top: layout.$container-padding-vertical;
-}
-
-.content {
-  flex-direction: column;
-  gap: 24px;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
+  gap: 24px;
+  padding: layout.$container-content-padding-vertical layout.$container-content-padding-horizontal;
   max-width: app-theme.$inner-content-width;
+  margin: 0 auto;
 }
 
 .documentation-subscribe__back-link {
