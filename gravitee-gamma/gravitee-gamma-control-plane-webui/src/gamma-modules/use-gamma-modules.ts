@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
 import { registerRemotes } from '@module-federation/runtime';
-import { useBootstrap } from '../bootstrap/bootstrap-context';
+import React from 'react';
+
 import { GammaModule, GammaModuleResponse, parseModule } from './gamma-module';
+import { useBootstrap } from '../bootstrap/bootstrap-context';
 
 export function useGammaModules(): { modules: GammaModule[]; loading: boolean; error: Error | null } {
     const { gammaBaseURL, organizationId } = useBootstrap();

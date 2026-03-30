@@ -6,6 +6,11 @@
     "tags": [],
     "targets": {
         "lint": {},
+        "lint-eslint": {
+            "options": {
+                "lintFilePatterns": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.tsx"]
+            }
+        },
         "lint-license": {},
         "test": {
             "executor": "@nx/jest:jest",
