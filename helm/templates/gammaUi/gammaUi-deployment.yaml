@@ -1,0 +1,181 @@
+{{- if and (.Values.gamma.enabled) (.Values.gammaUi.enabled) (not .Values.apim.dbLess) -}}
+{{- $base_href_defined := include "gammaUi.base_href.defined" . -}}
+{{- $serviceAccount := include "apim.serviceAccount" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "gravitee.gammaUi.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gammaUi.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.gammaUi.deployment.labels }}
+    {{- range $key, $value := .Values.gammaUi.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- else }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.gammaUi.deployment.annotations}}
+    {{- range $key, $value := .Values.gammaUi.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if .Values.gammaUi.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.gammaUi.deployment.revisionHistoryLimit }}
+  {{- end }}
+  {{- if not .Values.gammaUi.autoscaling.enabled }}
+  replicas: {{ .Values.gammaUi.replicaCount }}
+  {{- end }}
+  strategy: {{ toYaml .Values.gammaUi.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "gravitee.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+  template:
+    metadata:
+      annotations:
+        chaos.alpha.kubernetes.io/enabled: "{{ .Values.chaos.enabled }}"
+        {{- if not (include "gammaUi.externalConfig" .) }}
+        checksum/config: {{ include (print $.Template.BasePath "/gammaUi/gammaUi-configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- range $key, $value := .Values.gammaUi.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- if and .Values.common .Values.common.annotations }}
+        {{- range $key, $value := .Values.common.annotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ template "gravitee.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ default .Chart.AppVersion .Values.gammaUi.image.tag  | quote }}
+        app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        {{- if .Values.gammaUi.deployment.labels }}
+        {{- range $key, $value := .Values.gammaUi.deployment.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+    spec:
+      securityContext: {{ toYaml .Values.gammaUi.deployment.podSecurityContext | nindent 8 }}
+      {{- if not (eq .Values.gammaUi.deployment.serviceAccount "") }}
+      serviceAccountName: {{ .Values.gammaUi.deployment.serviceAccount }}
+      {{- else if $serviceAccount }}
+      serviceAccountName: {{ $serviceAccount }}
+      {{- end }}
+      affinity: {{ toYaml .Values.gammaUi.deployment.affinity | nindent 8 }}
+      nodeSelector: {{ toYaml .Values.gammaUi.deployment.nodeSelector | nindent 8 }}
+      topologySpreadConstraints: {{ toYaml .Values.gammaUi.deployment.topologySpreadConstraints | nindent 8 }}
+      tolerations: {{ toYaml .Values.gammaUi.deployment.tolerations | nindent 8 }}
+      {{- if .Values.gammaUi.priorityClassName }}
+      priorityClassName: {{ .Values.gammaUi.priorityClassName  }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.gammaUi.terminationGracePeriod }}
+      {{- if .Values.gammaUi.deployment.hostAliases }}
+      hostAliases: {{ toYaml .Values.gammaUi.deployment.hostAliases | nindent 6 }}
+      {{- end }}
+
+    {{- if or .Values.gammaUi.extraInitContainers }}
+      initContainers:
+      {{- with .Values.gammaUi.extraInitContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+    {{- end }}
+      containers:
+        - name: {{ template "gravitee.gammaUi.fullname" . }}
+          image: "{{ .Values.gammaUi.image.repository }}:{{ default .Chart.AppVersion .Values.gammaUi.image.tag }}"
+          imagePullPolicy: {{ .Values.gammaUi.image.pullPolicy }}
+          securityContext: {{ toYaml .Values.gammaUi.deployment.securityContext | nindent 12 }}
+          env:
+            - name: GAMMA_API_URL
+              value: "{{ .Values.api.ingress.gamma.scheme }}://{{index .Values.api.ingress.gamma.hosts 0 }}{{ .Values.api.ingress.gamma.path }}/"
+            {{- if not (eq $base_href_defined "true") }}
+            - name: GAMMA_BASE_HREF
+              value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.gammaUi.ingress.path) "/" }}
+            {{- end }}
+{{- if .Values.gammaUi.env | default .Values.gammaUi.deployment.extraEnvs }}
+{{ toYaml ( .Values.gammaUi.env | default .Values.gammaUi.deployment.extraEnvs ) | indent 12 }}
+{{- end }}
+          envFrom: {{ toYaml .Values.gammaUi.deployment.envFrom | nindent 12 }}
+          ports:
+            - name: {{ .Values.gammaUi.service.internalPortName }}
+              containerPort: {{ .Values.gammaUi.service.internalPort }}
+          {{- if .Values.gammaUi.lifecycle }}
+          lifecycle:
+            {{- if .Values.gammaUi.lifecycle.postStart }}
+            postStart:
+              exec:
+                command: {{ .Values.gammaUi.lifecycle.postStart }}
+            {{- end }}
+            {{- if .Values.gammaUi.lifecycle.preStop }}
+            preStop:
+              exec:
+                command: {{ .Values.gammaUi.lifecycle.preStop }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.gammaUi.deployment.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.gammaUi.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.gammaUi.deployment.customLivenessProbe }}
+          livenessProbe: {{ toYaml .Values.gammaUi.deployment.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.gammaUi.deployment.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.gammaUi.deployment.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.gammaUi.deployment.customReadinessProbe }}
+          readinessProbe: {{ toYaml .Values.gammaUi.deployment.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if and (.Values.gammaUi.deployment.startupProbe.enabled) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{- omit .Values.gammaUi.deployment.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if and (.Values.gammaUi.deployment.customStartupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{ toYaml .Values.gammaUi.deployment.customStartupProbe | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.gammaUi.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/nginx/html/constants.json
+              subPath: constants.json
+            {{- with .Values.gammaUi.extraVolumeMounts }}
+            {{- tpl . $ | nindent 12 }}
+            {{- end }}
+        {{- if .Values.gammaUi.extraContainers }}
+        {{- with .Values.gammaUi.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.gammaUi.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.gammaUi.image.pullSecrets }}
+      {{- end }}
+      volumes:
+        {{- if not (include "gammaUi.externalConfig" .) }}
+        - name: config
+          configMap:
+            name: {{ template "gravitee.gammaUi.fullname" . }}
+        {{- end }}
+      {{- with .Values.gammaUi.extraVolumes }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+{{- end -}}

@@ -1,0 +1,36 @@
+{{- if and (.Values.gamma.enabled) (and (.Values.gammaUi.enabled) (not .Values.apim.dbLess)) (not (include "gammaUi.externalConfig" .)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "gravitee.gammaUi.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gammaUi.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+data:
+  use-gzip: "true"
+  gzip-level: "5"
+  gzip-types: "*"
+  constants.json: |
+    {
+      {{- if and .Values.gammaUi.app .Values.gammaUi.app.gammaBaseURL }}
+      "gammaBaseURL": "{{ .Values.gammaUi.app.gammaBaseURL }}"
+      {{- else }}
+      "gammaBaseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.gamma.hosts 0 }}{{ .Values.api.ingress.gamma.path }}"
+      {{- end }}
+    }
+{{- end -}}

@@ -1,0 +1,43 @@
+suite: Test Gamma configmap
+templates:
+  - "gammaUi/gammaUi-configmap.yaml"
+set:
+  gamma:
+    enabled: true
+  gammaUi:
+    enabled: true
+tests:
+  - it: should set gammaBaseURL from default ingress path
+    template: gammaUi/gammaUi-configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: data["constants.json"]
+          value: |-
+            {
+              "gammaBaseURL": "https://apim.example.com/gamma"
+            }
+
+  - it: should set gammaBaseURL from custom ingress path
+    template: gammaUi/gammaUi-configmap.yaml
+    set:
+      api:
+        ingress:
+          gamma:
+            hosts:
+              - gamma.example.com
+            path: /custom-gamma
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: data["constants.json"]
+          value: |-
+            {
+              "gammaBaseURL": "https://gamma.example.com/custom-gamma"
+            }

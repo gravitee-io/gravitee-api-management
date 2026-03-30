@@ -1,0 +1,302 @@
+suite: Test gamma deployment
+templates:
+  - "gammaUi/gammaUi-deployment.yaml"
+  - "gammaUi/gammaUi-configmap.yaml"
+set:
+  gamma:
+    enabled: true
+  gammaUi:
+    enabled: true
+tests:
+  - it: Should set template labels
+    template: gammaUi/gammaUi-deployment.yaml
+    chart:
+      version: test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.metadata.labels['helm.sh/chart']
+          value: apim-test
+
+  - it: Should generate a GAMMA_API_URL environment variable with default values
+    template: gammaUi/gammaUi-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "GAMMA_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "https://apim.example.com/gamma/"
+
+  - it: Should generate a GAMMA_API_URL environment variable with custom values
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      api:
+        ingress:
+          gamma:
+            scheme: http
+            hosts:
+              - custom.example.com
+            path: /custom-gamma
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "GAMMA_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "http://custom.example.com/custom-gamma/"
+
+  - it: Should generate a GAMMA_BASE_HREF environment variable
+    template: gammaUi/gammaUi-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GAMMA_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/gamma-console/"
+
+  - it: Should generate a GAMMA_BASE_HREF environment variable when modifying ingress path
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        ingress:
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GAMMA_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/"
+
+  - it: Should generate a GAMMA_BASE_HREF environment variable when modifying ingress path with subpath
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        ingress:
+          path: /4pi-test/gamma-console(/.*)?
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GAMMA_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/4pi-test/gamma-console/"
+
+  - it: Should generate a GAMMA_BASE_HREF environment variable and add "/" when modifying ingress path
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        ingress:
+          path: /test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GAMMA_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/test/"
+
+  - it: Should override generated GAMMA_BASE_HREF environment variable
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        env:
+          - name: GAMMA_BASE_HREF
+            value: /test/
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GAMMA_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/test/"
+
+  - it: Should have default resources
+    template: gammaUi/gammaUi-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: "100m"
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Deploy with podSecurityContext
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+
+  - it: Generate the default preStop
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']
+
+  - it: Override the default preStop
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        lifecycle:
+          preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s override']"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s override']
+
+  - it: Default SecurityContext
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 101
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Override SecurityContext
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        deployment:
+          securityContext:
+            runAsUser: 102
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 102
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Deploy with managed ServiceAccount
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: ""
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "RELEASE-NAME-apim"
+
+  - it: Deploy with custom ServiceAccount
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy without ServiceAccount
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isEmpty:
+          path: spec.template.spec.serviceAccountName
+
+  - it: Deploy with custom managed ServiceAccount
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy with component specific ServiceAccount
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+      gammaUi:
+        deployment:
+          serviceAccount: "apim-gamma"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "apim-gamma"

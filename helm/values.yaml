@@ -34,7 +34,12 @@ installation:
 #          url: https://4-2-x-multi-console.portal1.team-apim.gravitee.dev
 #        - envId: 808a51a9-48f5-4517-8a51-a948f5e517b3
 #          url: https://4-2-x-multi-console.portal2.team-apim.gravitee.dev
-
+    gamma-console:
+      urls:
+#        - orgId: DEFAULT
+#          url: https://4-2-x-multi-gamma-console1.team-apim.gravitee.dev
+#        - orgId: 808a51a9-48f5-4517-8a51-a948f5e517b3
+#          url: https://4-2-x-multi-gamma-console2.team-apim.gravitee.dev
 # Create NetworkPolicy objects
 # https://kubernetes.io/docs/concepts/services-networking/network-policies/
 networkPolicy:
@@ -51,6 +56,9 @@ networkPolicy:
 #            cidr: 0.0.0.0/0
 #            except:
 #              - 169.254.169.254/32
+
+gamma:
+  enabled: false
 
 apim:
   name: apim
@@ -948,6 +956,20 @@ api:
         - hosts:
             - apim.example.com
           secretName: apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
+    gamma:
+      enabled: false
+      scheme: https # should be https or http
+      path: /gamma
+      ingressClassName: ""
+      pathType: Prefix
+      hosts:
+        - apim.example.com
+      #tls:
+      #  - hosts:
+      #      - apim.example.com
+      #    secretName: apim.example.com
       annotations:
         kubernetes.io/ingress.class: nginx
   resources:
@@ -2306,6 +2328,184 @@ ui:
     #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee UI" ]'
     #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee UI" ]'
     ## Additional gravitee ui volume mounts
+    # Defines additional volume mounts.
+    # extraVolumeMounts: |
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
+  # If you want to use your own constants.json you have to provide your configmap or secret in extraVolume part.
+  # the name of the volume MUST be "config".
+  # In this case, values configuration related to constants.json defined in this file will be ignored
+  #extraVolumes: |
+  #  - name: config
+  #    configMap:
+  #      name: gravitee-config-configmap-name
+  #  - name: config
+  #    secret:
+  #      secretName: gravitee-config-secret-name
+
+gammaUi:
+  enabled: false
+  app:
+#    gammaBaseURL: "http://localhost:8005"
+
+  name: gamma
+  replicaCount: 1
+  image:
+    repository: graviteeio/gamma-ui
+    # tag: 4.12.0
+    pullPolicy: Always
+    # pullSecrets: gravitee_secrets
+
+  lifecycle:
+    preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
+  deployment:
+    # Annotations to apply to the deployment
+    annotations: {}
+    # additionals labels
+    labels: {}
+    affinity: {}
+    hostAliases: []
+    #- ip: "127.0.0.1"
+    #  hostnames:
+    #  - "foo.local"
+    #  - "bar.local"
+    nodeSelector: {}
+    tolerations: []
+    envFrom: []
+    # - configMapRef:
+    #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
+    securityContext:
+      runAsUser: 101
+      runAsGroup: 101
+      runAsNonRoot: true
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+    topologySpreadConstraints: []
+    # revisionHistoryLimit: 10
+
+    livenessProbe:
+      enabled: true
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customLivenessProbe: {}
+
+    readinessProbe:
+      enabled: true
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customReadinessProbe: {}
+
+    startupProbe:
+      enabled: false
+
+    customStartupProbe: { }
+
+  pdb:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: "50%"
+
+  podAnnotations: {}
+    # iam.amazonaws.com/role: es-cluster
+
+  # How long to wait for Gamma Console pods to stop gracefully
+  terminationGracePeriod: 30
+
+  # This is the PriorityClass settings as defined in
+  # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
+  priorityClassName: ""
+
+  env: []
+  #   - name: ENV_VARIABLE
+  #     value: ENV_VARIABLE_VALUE
+  #   - name: ENV_VARIABLE_WITH_FROM
+  #     valueFrom:
+  #       configMapKeyRef:
+  #         name: special-config
+  #         key: SPECIAL_LEVEL
+  autoscaling:
+    # When gamma.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    # warning: these two target utilization will be overwritten if gamma.autoscaling.metrics is defined.
+    targetAverageUtilization: 50
+    targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
+  service:
+    name: nginx
+    type: ClusterIP
+    # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
+    externalTrafficPolicy: Cluster
+    externalPort: 8005
+    internalPort: 8080
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30005
+    internalPortName: http
+#    appProtocol: http
+  # annotations:
+  ingress:
+    enabled: true
+    pathType: ImplementationSpecific
+    path: /gamma-console(/.*)?
+    ingressClassName: ""
+    # Used to create an Ingress record.
+    hosts:
+      - apim.example.com
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # tls:
+      # Secrets must be manually created in the namespace.
+    #  - hosts:
+    #      - apim.example.com
+    #    secretName: api-custom-cert
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    #  lifecycle:
+    #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gamma Console" ]'
+    #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gamma Console" ]'
+    ## Additional gravitee gamma volume mounts
     # Defines additional volume mounts.
     # extraVolumeMounts: |
     # - name: extra-volume

@@ -1,0 +1,53 @@
+{{- if and (.Values.gamma.enabled) (.Values.gammaUi.enabled) (not .Values.apim.dbLess) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "gravitee.gammaUi.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gammaUi.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- range $key, $value := .Values.gammaUi.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  type: "{{ .Values.gammaUi.service.type }}"
+  {{- if eq .Values.gammaUi.service.type "NodePort" "LoadBalancer" }}
+  externalTrafficPolicy: {{ .Values.gammaUi.service.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.gammaUi.service.externalPort }}
+      targetPort: {{ .Values.gammaUi.service.internalPort }}
+      {{- if eq .Values.gammaUi.service.type "NodePort" }}
+      {{- if .Values.gammaUi.service.nodePort }}
+      nodePort: {{ .Values.gammaUi.service.nodePort }}
+      {{- end }}
+      {{- end }}
+      protocol: TCP
+      {{- if (include "common.service.supportsAppProtocol" .) }}
+      {{ if .Values.gammaUi.service.appProtocol }}
+      appProtocol: {{ .Values.gammaUi.service.appProtocol }}
+      {{ else }}
+      appProtocol: http
+      {{ end }}
+      {{- end }}
+      name: {{ .Values.gammaUi.name | trunc 63 | trimSuffix "-" }}
+  selector:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+{{- end -}}

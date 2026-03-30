@@ -1,0 +1,134 @@
+suite: Test Gamma default Service
+templates:
+  - "gammaUi/gammaUi-service.yaml"
+  - "gammaUi/gammaUi-configmap.yaml"
+set:
+  gamma:
+    enabled: true
+  gammaUi:
+    enabled: true
+tests:
+  - it: Check default service
+    template: gammaUi/gammaUi-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - isNull:
+          path: spec.externalTrafficPolicy
+      - contains:
+          path: spec.ports
+          content:
+            port: 8005
+            targetPort: 8080
+            protocol: TCP
+            name: gamma
+            appProtocol: http
+
+  - it: Check service with custom appProtocol
+    template: gammaUi/gammaUi-service.yaml
+    set:
+      gammaUi:
+        service:
+          appProtocol: http
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 8005
+            targetPort: 8080
+            protocol: TCP
+            name: gamma
+            appProtocol: http
+
+  - it: Deploy with long gamma name
+    template: gammaUi/gammaUi-service.yaml
+    set:
+      gammaUi:
+        name: "I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsum-quia-dolor-sit"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.ports
+          value:
+            - appProtocol: http
+              name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsu
+              port: 8005
+              protocol: TCP
+              targetPort: 8080
+
+  - it: Deploy with NodePort and externalTrafficPolicy
+    template: gammaUi/gammaUi-service.yaml
+    set:
+      gammaUi:
+        service:
+          type: NodePort
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Deploy with NodePort and fixed port
+    template: gammaUi/gammaUi-service.yaml
+    set:
+      gammaUi:
+        service:
+          type: NodePort
+          nodePort: 30005
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.ports
+          content:
+            port: 8005
+            targetPort: 8080
+            nodePort: 30005
+            protocol: TCP
+            name: gamma
+            appProtocol: http
+
+  - it: Deploy with LoadBalancer and externalTrafficPolicy
+    template: gammaUi/gammaUi-service.yaml
+    set:
+      gammaUi:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0
