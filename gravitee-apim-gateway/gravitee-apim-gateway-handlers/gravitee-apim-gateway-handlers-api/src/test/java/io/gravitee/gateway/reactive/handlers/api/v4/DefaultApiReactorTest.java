@@ -1032,6 +1032,48 @@ class DefaultApiReactorTest {
         verify(apiService).stop();
     }
 
+    @Test
+    void shouldExecuteErrorChainWhenOrganizationResponseFlowThrowsInterruptionFailureException() {
+        // Simulate the organization response flow chain throwing an InterruptionFailureException
+        // (e.g., Groovy policy at ORG level setting State.FAILURE)
+        ExecutionFailure executionFailure = new ExecutionFailure(500).key("INTERNAL_SYSTEM_ERROR").message("Custom error from org policy");
+        spyResponsePlatformFlowChain = spy(Completable.error(new InterruptionFailureException(executionFailure)));
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+
+        cut.handle(ctx).test().assertComplete();
+
+        // The onErrorProcessors should be invoked to properly handle the failure
+        verify(spyOnErrorProcessors, times(1)).subscribe(any(CompletableObserver.class));
+
+        // The response should NOT be set to a generic 500 by handleUnexpectedError
+        verify(response, never()).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        verify(response, never()).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+    }
+
+    @Test
+    void shouldCompleteNormallyWhenOrganizationResponseFlowThrowsInterruptionException() {
+        spyResponsePlatformFlowChain = spy(Completable.error(new InterruptionException()));
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+
+        cut.handle(ctx).test().assertComplete();
+
+        // Plain interruption from org flow should NOT trigger error processors or generic 500
+        verify(spyOnErrorProcessors, never()).subscribe(any(CompletableObserver.class));
+        verify(response, never()).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+    }
+
+    @Test
+    void shouldFallbackToUnexpectedErrorWhenOrganizationResponseFlowThrowsRuntimeException() {
+        spyResponsePlatformFlowChain = spy(Completable.error(new RuntimeException("Unexpected org flow error")));
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+
+        cut.handle(ctx).test().assertComplete();
+
+        // Unexpected errors should fall through to handleUnexpectedError
+        verify(response).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        verify(response).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+    }
+
     private InOrder getInOrder() {
         return inOrder(
             spyRequestPlatformFlowChain,
