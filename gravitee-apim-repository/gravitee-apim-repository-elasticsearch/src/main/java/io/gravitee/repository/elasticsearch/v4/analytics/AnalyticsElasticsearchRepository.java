@@ -34,6 +34,14 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseS
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -72,6 +80,29 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+    }
+
+    @Override
+    public Optional<ApiAnalyticsCountAggregate> searchApiAnalyticsCount(QueryContext queryContext, ApiAnalyticsCountQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiAnalyticsStatsAggregate> searchApiAnalyticsStats(QueryContext queryContext, ApiAnalyticsStatsQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiAnalyticsGroupByAggregate> searchApiAnalyticsGroupBy(QueryContext queryContext, ApiAnalyticsGroupByQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiAnalyticsDateHistoAggregate> searchApiAnalyticsDateHisto(
+        QueryContext queryContext,
+        ApiAnalyticsDateHistoQuery query
+    ) {
+        return Optional.empty();
     }
 
     @Override

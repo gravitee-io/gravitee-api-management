@@ -16,6 +16,14 @@
 package io.gravitee.repository.log.v4.api;
 
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -37,6 +45,14 @@ import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 
 public interface AnalyticsRepository {
+    Optional<ApiAnalyticsCountAggregate> searchApiAnalyticsCount(QueryContext queryContext, ApiAnalyticsCountQuery query);
+
+    Optional<ApiAnalyticsStatsAggregate> searchApiAnalyticsStats(QueryContext queryContext, ApiAnalyticsStatsQuery query);
+
+    Optional<ApiAnalyticsGroupByAggregate> searchApiAnalyticsGroupBy(QueryContext queryContext, ApiAnalyticsGroupByQuery query);
+
+    Optional<ApiAnalyticsDateHistoAggregate> searchApiAnalyticsDateHisto(QueryContext queryContext, ApiAnalyticsDateHistoQuery query);
+
     Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
 
     Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query);

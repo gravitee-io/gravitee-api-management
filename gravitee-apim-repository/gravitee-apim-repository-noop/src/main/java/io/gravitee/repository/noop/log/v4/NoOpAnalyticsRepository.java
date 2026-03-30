@@ -25,6 +25,29 @@ import java.util.Optional;
 public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
+    public Optional<ApiAnalyticsCountAggregate> searchApiAnalyticsCount(QueryContext queryContext, ApiAnalyticsCountQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiAnalyticsStatsAggregate> searchApiAnalyticsStats(QueryContext queryContext, ApiAnalyticsStatsQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiAnalyticsGroupByAggregate> searchApiAnalyticsGroupBy(QueryContext queryContext, ApiAnalyticsGroupByQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiAnalyticsDateHistoAggregate> searchApiAnalyticsDateHisto(
+        QueryContext queryContext,
+        ApiAnalyticsDateHistoQuery query
+    ) {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery) {
         return Optional.empty();
     }
