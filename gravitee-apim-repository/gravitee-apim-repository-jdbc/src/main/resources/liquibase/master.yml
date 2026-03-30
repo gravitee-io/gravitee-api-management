@@ -296,6 +296,7 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_9_5/01_change_dictionary_property_value_datatype.yml
     - include:
+<<<<<<< HEAD
         - file: liquibase/changelogs/v4_11_0/00_add_api_products_table.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/01_add_api_product_apis_table.yml
@@ -324,3 +325,6 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
+=======
+        - file: liquibase/changelogs/v4_9_17/00_change_flow_selectors_path_length.yml
+>>>>>>> d39cf373f7 (fix: increase flow_selectors path limit to 2048 for JDBC (APIM-12488))
