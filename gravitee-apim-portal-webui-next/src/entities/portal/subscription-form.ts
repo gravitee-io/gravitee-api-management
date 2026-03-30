@@ -21,4 +21,5 @@
  */
 export interface SubscriptionForm {
   gmdContent: string;
+  resolvedOptions?: Record<string, string[]>;
 }

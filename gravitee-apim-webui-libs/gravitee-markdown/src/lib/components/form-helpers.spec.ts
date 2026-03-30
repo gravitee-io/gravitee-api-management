@@ -16,15 +16,69 @@
 import { signal } from '@angular/core';
 
 import {
+  elFallbackErrors,
   emptyFieldKeyErrors,
+  isElExpression,
   normalizedValueWarning,
   normalizeLength,
+  parseElFallback,
   parseBoolean,
   safePattern,
   useLengthValidation,
 } from './form-helpers';
 
 describe('form-helpers', () => {
+  describe('EL options helpers', () => {
+    describe('isElExpression', () => {
+      it('should detect EL expressions with optional leading whitespace', () => {
+        expect(isElExpression("{#api.metadata['key']}:A,B")).toBe(true);
+        expect(isElExpression("   {#api.metadata['key']}:A,B")).toBe(true);
+      });
+
+      it('should return false for static options', () => {
+        expect(isElExpression('A,B,C')).toBe(false);
+        expect(isElExpression("#{api.metadata['key']}:A,B")).toBe(false);
+      });
+    });
+
+    describe('parseElFallback', () => {
+      it('should parse fallback values from EL options', () => {
+        expect(parseElFallback("{#api.metadata['country']}:France,Spain")).toEqual(['France', 'Spain']);
+      });
+
+      it('should return empty array when fallback is missing', () => {
+        expect(parseElFallback("{#api.metadata['country']}")).toEqual([]);
+      });
+    });
+
+    describe('elFallbackErrors', () => {
+      it('should return invalidElSyntax error for malformed EL options syntax', () => {
+        expect(elFallbackErrors("#{api.metadata['country']}:France,Spain")).toEqual([
+          expect.objectContaining({
+            code: 'invalidElSyntax',
+            severity: 'error',
+            field: 'options',
+          }),
+        ]);
+      });
+
+      it('should return missingElFallback error when EL options have no fallback', () => {
+        expect(elFallbackErrors("{#api.metadata['country']}")).toEqual([
+          expect.objectContaining({
+            code: 'missingElFallback',
+            severity: 'error',
+            field: 'options',
+          }),
+        ]);
+      });
+
+      it('should return no errors for EL options with fallback and for static options', () => {
+        expect(elFallbackErrors("{#api.metadata['country']}:France,Spain")).toEqual([]);
+        expect(elFallbackErrors('France,Spain')).toEqual([]);
+      });
+    });
+  });
+
   describe('parseBoolean', () => {
     [
       { input: true, expected: true },
