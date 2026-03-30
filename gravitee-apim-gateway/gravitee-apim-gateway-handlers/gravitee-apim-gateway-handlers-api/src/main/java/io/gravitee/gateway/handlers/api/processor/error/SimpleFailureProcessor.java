@@ -61,6 +61,15 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         final Response response = context.response();
 
         context.request().metrics().setErrorKey(failure.key());
+        String existingMessage = context.request().metrics().getMessage();
+        if (existingMessage == null) {
+            context.request().metrics().setMessage(failure.message());
+        } else if (failure.message() != null && !failure.message().equals(existingMessage)) {
+            // Combine generic failure message with detailed reason from policy,
+            // e.g. "Unauthorized" + "Signed JWT rejected: Invalid signature"
+            //    -> "Unauthorized (Signed JWT rejected: Invalid signature)"
+            context.request().metrics().setMessage(failure.message() + " (" + existingMessage + ")");
+        }
 
         response.status(failure.statusCode());
         response.reason(HttpResponseStatus.valueOf(response.status()).reasonPhrase());

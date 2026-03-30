@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.processor.reporter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.ExecutionContext;
@@ -23,6 +24,7 @@ import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +47,7 @@ class ReporterProcessorTest {
 
         context = mock(ExecutionContext.class);
         request = mock(Request.class);
-        metrics = mock(Metrics.class);
+        metrics = spy(Metrics.on(System.currentTimeMillis()).build());
 
         when(context.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
@@ -115,5 +117,60 @@ class ReporterProcessorTest {
         processor.handle(context);
 
         verify(next).handle(context);
+    }
+
+    @Test
+    void should_create_diagnostic_when_error_key_and_message_present() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("Unauthorized");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNotNull();
+        assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_PLAN_UNRESOLVABLE");
+        assertThat(metrics.getFailure().getMessage()).isEqualTo("Unauthorized");
+        assertThat(metrics.getFailure().getComponentType()).isNull();
+        assertThat(metrics.getFailure().getComponentName()).isNull();
+    }
+
+    @Test
+    void should_use_internal_error_key_when_error_key_is_null() {
+        metrics.setMessage("Some error");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNotNull();
+        assertThat(metrics.getFailure().getKey()).isEqualTo("internal_error");
+    }
+
+    @Test
+    void should_not_create_diagnostic_when_message_is_null() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNull();
+    }
+
+    @Test
+    void should_not_create_diagnostic_when_message_is_blank() {
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("   ");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isNull();
+    }
+
+    @Test
+    void should_not_override_existing_diagnostic_failure() {
+        Diagnostic existing = new Diagnostic("existing_key", "existing_message", "comp_type", "comp_name");
+        metrics.setFailure(existing);
+        metrics.setErrorKey("GATEWAY_PLAN_UNRESOLVABLE");
+        metrics.setMessage("Unauthorized");
+
+        processor.handle(context);
+
+        assertThat(metrics.getFailure()).isSameAs(existing);
     }
 }
