@@ -29,7 +29,7 @@ import { ResourceListItem } from '../../../../../entities/resource/resourceListI
 import { ServiceDiscoveryService } from '../../../../../services-ngx/service-discovery.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 import { ApiV2 } from '../../../../../entities/management-api-v2';
 
 @Component({
@@ -68,7 +68,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.apiId)
       .pipe(
-        onlyApiV1V2Filter(this.snackBarService),
+        onlyApiV2Filter(this.snackBarService),
         switchMap(api => {
           this.api = api;
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';

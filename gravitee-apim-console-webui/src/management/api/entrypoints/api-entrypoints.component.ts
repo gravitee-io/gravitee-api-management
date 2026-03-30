@@ -26,7 +26,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../entities/management-api-v2';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
+import { onlyApiV2Filter } from '../../../util/apiFilter.operator';
 import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 
 @Component({
@@ -60,7 +60,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     combineLatest([
-      this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV2Filter(this.snackBarService)),
       this.restrictedDomainService.get(),
     ])
       .pipe(

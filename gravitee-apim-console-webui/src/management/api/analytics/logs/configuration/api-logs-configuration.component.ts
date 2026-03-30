@@ -26,7 +26,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 interface LoggingConfiguration {
   enabled: boolean;
@@ -73,7 +73,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        onlyApiV1V2Filter(this.snackBarService),
+        onlyApiV2Filter(this.snackBarService),
         tap(api => {
           this.api = api;
           this.initForm(api);

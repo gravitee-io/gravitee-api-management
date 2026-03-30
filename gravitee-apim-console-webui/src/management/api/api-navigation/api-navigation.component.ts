@@ -30,7 +30,7 @@ import {
 import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } from './api-review-dialog/api-review-dialog.component';
 import { MenuGroupItem, MenuItem, MenuItemHeader } from './MenuGroupItem';
 import { ApiV4MenuService } from './api-v4-menu.service';
-import { ApiV1V2MenuService } from './api-v1-v2-menu.service';
+import { ApiV2MenuService } from './api-v2-menu.service';
 import { ApiFederatedMenuService } from './api-federated-menu.service';
 import { ApiMenuService } from './ApiMenuService';
 
@@ -57,7 +57,7 @@ type TopBanner = {
   selector: 'api-navigation',
   templateUrl: './api-navigation.component.html',
   styleUrls: ['./api-navigation.component.scss'],
-  providers: [ApiV1V2MenuService, ApiV4MenuService, ApiFederatedMenuService],
+  providers: [ApiV2MenuService, ApiV4MenuService, ApiFederatedMenuService],
   standalone: false,
 })
 export class ApiNavigationComponent implements OnInit, OnDestroy {
@@ -266,7 +266,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     private readonly apiV2Service: ApiV2Service,
     private readonly legacyApiService: ApiService,
     private readonly matDialog: MatDialog,
-    private readonly apiNgV1V2MenuService: ApiV1V2MenuService,
+    private readonly apiV2MenuService: ApiV2MenuService,
     private readonly apiNgV4MenuService: ApiV4MenuService,
     private readonly apiFederatedMenuService: ApiFederatedMenuService,
     private readonly snackBarService: SnackBarService,
@@ -421,6 +421,6 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
       return this.apiFederatedMenuService;
     }
-    return this.apiNgV1V2MenuService;
+    return this.apiV2MenuService;
   }
 }

@@ -31,7 +31,7 @@ import { ConnectorListItem } from '../../../../../../entities/connector/connecto
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { ApiV2, EndpointV2, HealthCheckService } from '../../../../../../entities/management-api-v2';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../../util/apiFilter.operator';
+import { onlyApiV2Filter } from '../../../../../../util/apiFilter.operator';
 import { ApiHealthCheckFormComponent } from '../../../../component/health-check-form/api-health-check-form.component';
 
 @Component({
@@ -73,7 +73,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     this.mode = !this.activatedRoute.snapshot.params.groupName || !this.activatedRoute.snapshot.params.endpointName ? 'new' : 'edit';
 
     combineLatest([
-      this.apiService.get(this.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
+      this.apiService.get(this.apiId).pipe(onlyApiV2Filter(this.snackBarService)),
       this.connectorService.list(),
       this.tenantService.list(),
     ])
