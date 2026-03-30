@@ -18,6 +18,7 @@ package io.gravitee.apim.core.membership.domain_service;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.application.domain_service.UserApplicationDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -32,6 +33,7 @@ public class ApiPortalMembershipDomainService {
 
     private final MembershipQueryService membershipQueryService;
     private final SubscriptionQueryService subscriptionQueryService;
+    private final UserApplicationDomainService userApplicationDomainService;
 
     public Set<String> filterApiIdsByUserMembership(String userId, Set<String> candidateApiIds) {
         if (candidateApiIds.isEmpty()) {
@@ -69,11 +71,7 @@ public class ApiPortalMembershipDomainService {
             return Set.of();
         }
 
-        Set<String> userApplicationIds = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(toSet());
+        Set<String> userApplicationIds = userApplicationDomainService.findApplicationIdsByUserId(userId);
 
         if (userApplicationIds.isEmpty()) {
             return Set.of();

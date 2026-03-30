@@ -22,6 +22,7 @@ import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.application.domain_service.UserApplicationDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
@@ -59,7 +60,12 @@ class GetVisiblePortalNavigationApisUseCaseTest {
         membershipQueryService = new MembershipQueryServiceInMemory();
         apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        var userApplicationDomainService = new UserApplicationDomainService(membershipQueryService);
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            userApplicationDomainService
+        );
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
         useCase = new GetVisiblePortalNavigationApisUseCase(visibilityDomainService, apiSearchQueryService);
     }

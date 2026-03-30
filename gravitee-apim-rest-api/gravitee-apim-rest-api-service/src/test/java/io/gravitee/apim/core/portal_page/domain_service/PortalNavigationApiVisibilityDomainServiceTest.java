@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.application.domain_service.UserApplicationDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -54,7 +55,12 @@ class PortalNavigationApiVisibilityDomainServiceTest {
         navQueryService = new PortalNavigationItemsQueryServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
         subscriptionQueryService = new SubscriptionQueryServiceInMemory();
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        var userApplicationDomainService = new UserApplicationDomainService(membershipQueryService);
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            userApplicationDomainService
+        );
         domainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
     }
 

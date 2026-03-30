@@ -60,4 +60,14 @@ public class MembershipFixtures {
             .roleId(applicationPrimaryOwnerRoleId(organizationId))
             .build();
     }
+
+    public static Membership anApplicationMembership(String userId, String applicationId) {
+        return BASE.get()
+            .id("m-" + userId + "-" + applicationId)
+            .memberId(userId)
+            .memberType(Membership.Type.USER)
+            .referenceType(Membership.ReferenceType.APPLICATION)
+            .referenceId(applicationId)
+            .build();
+    }
 }
