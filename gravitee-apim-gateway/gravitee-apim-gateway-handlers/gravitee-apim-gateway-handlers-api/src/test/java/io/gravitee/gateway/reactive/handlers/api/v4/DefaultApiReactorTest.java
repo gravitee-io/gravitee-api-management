@@ -1074,6 +1074,18 @@ class DefaultApiReactorTest {
         verify(response).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
     }
 
+    @Test
+    void shouldAlwaysExecuteAfterHandleProcessorsWhenOrganizationResponseFlowFails() {
+        ExecutionFailure executionFailure = new ExecutionFailure(502).key("CUSTOM_ERROR");
+        spyResponsePlatformFlowChain = spy(Completable.error(new InterruptionFailureException(executionFailure)));
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+
+        cut.handle(ctx).test().assertComplete();
+
+        // afterHandleProcessors must always execute (metrics, logging, etc.) even after org flow errors
+        verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
+    }
+
     private InOrder getInOrder() {
         return inOrder(
             spyRequestPlatformFlowChain,
