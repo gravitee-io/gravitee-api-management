@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -84,6 +85,7 @@ class FailoverInvokerTest {
         executionContext = new DefaultExecutionContext(request, response);
         ((DefaultExecutionContext) executionContext).metrics(metrics);
         lenient().when(request.body()).thenReturn(Maybe.just(Buffer.buffer("body")));
+        lenient().when(request.headers()).thenReturn(HttpHeaders.create());
     }
 
     @Test
