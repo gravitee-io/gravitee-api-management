@@ -1,0 +1,69 @@
+{{- if and (.Values.gamma.enabled) (and (.Values.gammaUi.enabled) (not .Values.apim.dbLess)) (.Values.gammaUi.autoscaling.enabled) -}}
+{{- $apiVersion := include "common.capabilities.autoscaling.apiVersion" . -}}
+apiVersion: {{ $apiVersion }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "gravitee.gammaUi.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gammaUi.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.gammaUi.autoscaling.annotations }}
+    {{- range $key, $value := .Values.gammaUi.autoscaling.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "gravitee.gammaUi.fullname" . }}
+  minReplicas: {{ .Values.gammaUi.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.gammaUi.autoscaling.maxReplicas }}
+{{- if not .Values.gammaUi.autoscaling.metrics }}
+  metrics:
+{{- if .Values.gammaUi.autoscaling.targetMemoryAverageUtilization }}
+  - type: Resource
+    resource:
+      name: memory
+      {{- if (ne $apiVersion "autoscaling/v2beta1") }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.gammaUi.autoscaling.targetMemoryAverageUtilization }}
+      {{ else }}
+      targetAverageUtilization: {{ .Values.gammaUi.autoscaling.targetMemoryAverageUtilization }}
+      {{- end -}}
+{{- end }}
+  - type: Resource
+    resource:
+      name: cpu
+      {{- if (ne $apiVersion "autoscaling/v2beta1") }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.gammaUi.autoscaling.targetAverageUtilization }}
+      {{ else }}
+      targetAverageUtilization: {{ .Values.gammaUi.autoscaling.targetAverageUtilization }}
+      {{- end -}}
+{{ else }}
+  metrics:
+    {{ toYaml .Values.gammaUi.autoscaling.metrics | indent 4 | trim }}
+{{- end -}}
+{{- if .Values.gammaUi.autoscaling.behavior }}
+  behavior:
+    {{ toYaml .Values.gammaUi.autoscaling.behavior | indent 4 | trim }}
+{{- end -}}
+{{- end -}}

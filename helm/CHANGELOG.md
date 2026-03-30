@@ -3,6 +3,14 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.12.0
+- Add Gamma API ingress
+- Add Gamma UI component: new management console
+    - New templates: deployment, service, ingress, configmap, autoscaler, PDB
+    - Disabled by default (`gamma.enabled: false`)
+    - Service port: 8005
+    - Ingress path: `/gamma-console(/.*)?`
+
 ### 4.10.0
 - Allow to configure Expression Language whitelist.
 - Improve redis rate limit configuration to allow username for acl configuration [issues/10966](https://github.com/gravitee-io/issues/issues/10966).

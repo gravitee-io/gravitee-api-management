@@ -61,6 +61,21 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
+Create a default fully qualified gammaUi name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "gravitee.gammaUi.fullname" -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if .Values.fullnameOverride -}}
+{{- printf "%s-%s" .Values.fullnameOverride .Values.gammaUi.name | trunc 63 | trimSuffix "-" -}}
+{{- else if contains $name .Release.Name -}}
+{{- printf "%s-%s" .Release.Name .Values.gammaUi.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-%s" .Release.Name $name .Values.gammaUi.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Create a default fully qualified portal name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
@@ -350,6 +365,27 @@ Usage:
 
 {{- define "ui.base_href.defined" -}}
 {{- if contains "CONSOLE_BASE_HREF" (.Values.ui.env | toString) -}}
+{{- print "true" -}}
+{{ else }}
+{{- print "false" -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Returns true if an extraVolumes named config is defined
+Usage:
+{{ include "gamma.externalConfig" . }}
+*/}}
+{{- define "gammaUi.externalConfig" -}}
+{{- if hasKey .Values.gammaUi "extraVolumes" }}
+{{- if contains "- name: config" .Values.gammaUi.extraVolumes  }}
+{{- print "true" -}}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "gammaUi.base_href.defined" -}}
+{{- if contains "GAMMA_BASE_HREF" (.Values.gammaUi.env | toString) -}}
 {{- print "true" -}}
 {{ else }}
 {{- print "false" -}}

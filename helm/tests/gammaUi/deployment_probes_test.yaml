@@ -1,0 +1,74 @@
+suite: Test gamma default deployment
+templates:
+  - "gammaUi/gammaUi-deployment.yaml"
+  - "gammaUi/gammaUi-configmap.yaml"
+set:
+  gamma:
+    enabled: true
+  gammaUi:
+    enabled: true
+tests:
+  - it: Check default readinessProbe
+    template: gammaUi/gammaUi-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: Check default livenessProbe
+    template: gammaUi/gammaUi-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: Check custom readinessProbe
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        deployment:
+          readinessProbe:
+            enabled: false
+          customReadinessProbe:
+            httpGet:
+              path: /_node/health?probes=sync-process
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: Check custom livenessProbe
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        deployment:
+          livenessProbe:
+            enabled: false
+          customLivenessProbe:
+            httpGet:
+              path: /_node/health?probes=sync-process
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check custom startupProbe
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        deployment:
+          startupProbe:
+            enabled: false
+          customStartupProbe:
+            httpGet:
+              path: /_node/health?probes=sync-process
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - notExists:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket

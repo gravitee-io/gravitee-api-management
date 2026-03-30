@@ -1,0 +1,37 @@
+suite: Test gamma.enabled master switch for gammaUi
+tests:
+  - it: should generate nothing for deployment when gamma.enabled is false (default)
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate nothing for service when gamma.enabled is false (default)
+    template: gammaUi/gammaUi-service.yaml
+    set:
+      gammaUi:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate nothing for ingress when gamma.enabled is false (default)
+    template: gammaUi/gammaUi-ingress.yaml
+    set:
+      gammaUi:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate nothing for configmap when gamma.enabled is false (default)
+    template: gammaUi/gammaUi-configmap.yaml
+    set:
+      gammaUi:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
