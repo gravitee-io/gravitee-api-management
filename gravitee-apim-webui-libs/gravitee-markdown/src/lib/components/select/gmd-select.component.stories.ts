@@ -59,11 +59,11 @@ export const Required: StoryObj<GmdSelectComponent> = {
   }),
 };
 
-export const WithJsonOptions: StoryObj<GmdSelectComponent> = {
+export const WithOptions: StoryObj<GmdSelectComponent> = {
   render: () => ({
     template: `
       <div style="width: 400px;">
-        <gmd-select name="json" label="Select with JSON Options" options='["United States","Canada","Mexico","United Kingdom"]'></gmd-select>
+        <gmd-select name="country" label="Select with Options" options="United States,Canada,Mexico,United Kingdom"></gmd-select>
       </div>
     `,
   }),
@@ -119,7 +119,7 @@ export const WithFieldKey: StoryObj<GmdSelectComponent> = {
           label="Plan"
           fieldKey="plan"
           required="true"
-          options='["Basic","Professional","Enterprise"]'>
+          options="Basic,Professional,Enterprise">
         </gmd-select>
       </div>
     `,
@@ -213,7 +213,7 @@ export const InMarkdownViewer: StoryObj = {
 
 <gmd-select name="country" label="Country" required="true" options="United States,Canada,Mexico"></gmd-select>
 
-<gmd-select name="plan" label="Plan" options='["Basic","Professional","Enterprise"]'></gmd-select>
+<gmd-select name="plan" label="Plan" options="Basic,Professional,Enterprise"></gmd-select>
 
 <gmd-select name="region" label="Region" options="North America,Europe,Asia"></gmd-select>
 `,

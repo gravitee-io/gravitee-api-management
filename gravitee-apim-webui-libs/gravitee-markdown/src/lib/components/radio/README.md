@@ -37,14 +37,13 @@ Radio group input with label, options, validation, and error display. It is desi
 | `label`    | `string \| undefined` | `undefined` | Label shown above the group.                                  |
 | `value`    | `string \| undefined` | `undefined` | Initial value.                                                |
 | `required` | `boolean`             | `false`     | Marks the field as required.                                  |
-| `options`  | `string`              | `''`        | Comma-separated values or JSON array string.                  |
+| `options`  | `string`              | `''`        | Comma-separated list of options.                              |
 | `readonly` | `boolean`             | `false`     | Makes the radio group read-only (focusable, value submitted). |
 | `disabled` | `boolean`             | `false`     | Disables the group.                                           |
 
 ## Options format
 
 - Comma-separated: `"Basic,Pro,Enterprise"`
-- JSON array: `'["Basic","Pro","Enterprise"]'`
 - EL expression with fallback: `"{#api.metadata['plans']}:Basic,Pro,Enterprise"`
 
 When options use EL, the fallback list is used for preview/editing contexts where runtime values cannot be resolved.

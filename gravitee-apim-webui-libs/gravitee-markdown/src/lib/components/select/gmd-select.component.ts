@@ -87,17 +87,6 @@ export class GmdSelectComponent extends GmdFormFieldBase {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>');
 
-    // Try to parse as JSON array first
-    try {
-      const parsed = JSON.parse(decodedOpts);
-      if (Array.isArray(parsed)) {
-        return parsed.map(opt => (typeof opt === 'string' ? opt : String(opt)));
-      }
-    } catch {
-      // Not JSON, try comma-separated
-    }
-
-    // Parse as comma-separated values
     return decodedOpts
       .split(',')
       .map(opt => opt.trim())
