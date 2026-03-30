@@ -45,7 +45,9 @@ export class ApiService {
 
   details(apiId: string): Observable<Api> {
     return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}`, {
-      params: { [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION },
+      params: {
+        [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION,
+      },
     });
   }
 }

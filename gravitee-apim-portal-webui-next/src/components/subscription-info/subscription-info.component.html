@@ -48,14 +48,26 @@
             }
           </div>
         }
-
-        @if (api) {
+        @if (resolvedApiName) {
           <div class="subscription-info__content-row">
             <span class="next-gen-body">
               <span class="material-icons icon-small">api</span>
               <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
             </span>
-            <a class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">{{ api.name }}</a>
+            @if (api && api.id) {
+              <a data-testid="subscription-api-link" class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">
+                {{ resolvedApiName }}
+              </a>
+            } @else {
+              <span
+                data-testid="subscription-api-label"
+                class="next-gen-body"
+                i18n-matTooltip="@@subscriptionApiUnpublishedTooltip"
+                matTooltip="The API has been unpublished from the Developer Portal"
+                matTooltipPosition="above"
+                >{{ resolvedApiName }}</span
+              >
+            }
           </div>
         }
 
@@ -105,27 +117,29 @@
           </span>
           <span class="next-gen-body">{{ planName }}</span>
         </div>
-        <div class="subscription-info__content-row">
-          <span class="next-gen-body">
-            <span class="material-icons icon-small">lock</span>
-            <span i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
-          </span>
-          @if (api?.type === 'NATIVE') {
-            @if (planSecurity === 'API_KEY') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
-                >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
-              >
-            } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
-                >SASL/SSL with SASL mechanism OAUTHBEARER</span
-              >
-            } @else if (planSecurity === 'KEY_LESS') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
+        @if (api) {
+          <div class="subscription-info__content-row">
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">lock</span>
+              <span i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
+            </span>
+            @if (api.type === 'NATIVE') {
+              @if (planSecurity === 'API_KEY') {
+                <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
+                  >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
+                >
+              } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
+                <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
+                  >SASL/SSL with SASL mechanism OAUTHBEARER</span
+                >
+              } @else if (planSecurity === 'KEY_LESS') {
+                <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
+              }
+            } @else {
+              <span class="next-gen-body">{{ authentication }}</span>
             }
-          } @else {
-            <span class="next-gen-body">{{ authentication }}</span>
-          }
-        </div>
+          </div>
+        }
         @if (!!planUsageConfiguration?.quota?.limit) {
           <div class="subscription-info__content-row">
             <span class="next-gen-body">
