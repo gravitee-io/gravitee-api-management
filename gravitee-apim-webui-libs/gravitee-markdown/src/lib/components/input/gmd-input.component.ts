@@ -18,7 +18,7 @@ import { Component, computed, effect, input, signal } from '@angular/core';
 
 import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
 import { GmdFormFieldBase } from '../form-field-base/gmd-form-field-base.component';
-import { emptyFieldKeyErrors, parseBoolean, safePattern, useLengthValidation } from '../form-helpers';
+import { emptyFieldKeyErrors, GMD_INPUT_HARD_MAX_LENGTH, parseBoolean, safePattern, useLengthValidation } from '../form-helpers';
 
 @Component({
   selector: 'gmd-input',
@@ -46,7 +46,9 @@ export class GmdInputComponent extends GmdFormFieldBase {
   protected readonly touched = signal<boolean>(false);
 
   // Computed
-  private readonly lengthValidation = useLengthValidation(this.minLength, this.maxLength, this.internalValue);
+  private readonly lengthValidation = useLengthValidation(this.minLength, this.maxLength, this.internalValue, {
+    hardMaxLength: GMD_INPUT_HARD_MAX_LENGTH,
+  });
   protected readonly minLengthVM = this.lengthValidation.minLength;
   protected readonly maxLengthVM = this.lengthValidation.maxLength;
   private readonly patternResult = computed(() => safePattern(this.pattern()));

@@ -83,7 +83,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     initialValue: undefined,
   });
 
-  protected readonly hasConfigErrors = computed(() => this.store.allConfigErrors().length > 0);
+  /** Only severity `error` blocks save; `warning` (e.g. normalized lengths) does not. */
+  protected readonly hasConfigErrors = computed(() => this.store.criticalConfigErrors().length > 0);
   readonly configErrorsTooltip = 'Fix configuration errors before continuing.';
   readonly subscriptionFormEnabled = computed(() => this.subscriptionForm()?.enabled ?? false);
 

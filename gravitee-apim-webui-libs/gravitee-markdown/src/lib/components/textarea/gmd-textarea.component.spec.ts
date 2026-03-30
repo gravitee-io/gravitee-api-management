@@ -215,6 +215,11 @@ describe('GmdTextareaComponent', () => {
       expect(textareaComponent.validationErrors()).toContain('maxLength');
     });
 
+    it('should set maxlength to backend default when maxLength is not set', async () => {
+      fixture.detectChanges();
+      expect(await harness.getMaxLength()).toBe('1024');
+    });
+
     it('should show error messages when touched and invalid', async () => {
       fixture.componentRef.setInput('required', true);
       fixture.detectChanges();
