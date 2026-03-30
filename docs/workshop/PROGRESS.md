@@ -114,6 +114,16 @@ Scope: V4 API Analytics Dashboard (M1)
 
 - `mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-service -am -q test -Dtest="SearchApiAnalytics*UseCaseTest,AnalyticsQueryServiceImplTest" -Dsurefire.failIfNoSpecifiedTests=false` ✅
 
+---
+
+### Story 4 (B3) — REST: `GET .../apis/{apiId}/analytics` + OpenAPI
+
+**Summary:** Added `GET /environments/{envId}/apis/{apiId}/analytics` with query params `type`, `from`, `to`, optional `field`, `interval`, `size`, `order`. OpenAPI defines `ApiUnifiedAnalyticsResponse` and related schemas; implementation is `ApiAnalyticsResource.getApiUnifiedAnalytics` plus `ApiUnifiedAnalyticsSupport` for validation (400 via `BadRequestException`) and mapping from repository aggregates. `GROUP_BY` defaults `size` to 10; `DATE_HISTO` caps histogram buckets at 500. Legacy sub-paths (`/requests-count`, etc.) unchanged.
+
+**Verification:**
+
+- `mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest -am -q test -Dtest=ApiAnalyticsResourceTest -Dsurefire.failIfNoSpecifiedTests=false` ✅
+
 ## Current blockers / open questions
 
 - **ES field names & types**: `ApiAnalyticsField` currently maps PRD names directly to same-named ES fields with a numeric/keyword hint. When implementing B1b, we must confirm actual v4 metrics index mappings (and any `.keyword` requirements).\n

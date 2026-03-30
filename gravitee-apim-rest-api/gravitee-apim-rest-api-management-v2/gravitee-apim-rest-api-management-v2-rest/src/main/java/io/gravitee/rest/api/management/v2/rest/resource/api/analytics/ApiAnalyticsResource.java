@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsCountUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsDateHistoUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsGroupByUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsStatsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -29,6 +33,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodRespo
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiUnifiedAnalyticsQueryType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiUnifiedAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -69,6 +75,96 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @Inject
+    private SearchApiAnalyticsCountUseCase searchApiAnalyticsCountUseCase;
+
+    @Inject
+    private SearchApiAnalyticsStatsUseCase searchApiAnalyticsStatsUseCase;
+
+    @Inject
+    private SearchApiAnalyticsGroupByUseCase searchApiAnalyticsGroupByUseCase;
+
+    @Inject
+    private SearchApiAnalyticsDateHistoUseCase searchApiAnalyticsDateHistoUseCase;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiUnifiedAnalyticsResponse getApiUnifiedAnalytics(
+        @QueryParam("type") String typeParam,
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to,
+        @QueryParam("field") String field,
+        @QueryParam("interval") Long interval,
+        @QueryParam("size") Integer size,
+        @QueryParam("order") String order
+    ) {
+        final ApiUnifiedAnalyticsQueryType queryType = ApiUnifiedAnalyticsSupport.parseQueryType(typeParam);
+        ApiUnifiedAnalyticsSupport.validateTimeRangeMillis(from, to);
+        final Instant start = Instant.ofEpochMilli(from);
+        final Instant end = Instant.ofEpochMilli(to);
+        final String env = GraviteeContext.getCurrentEnvironment();
+
+        return switch (queryType) {
+            case COUNT -> ApiUnifiedAnalyticsSupport.toCountResponse(
+                searchApiAnalyticsCountUseCase
+                    .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchApiAnalyticsCountUseCase.Input(apiId, env, Optional.of(start), Optional.of(end))
+                    )
+                    .aggregate()
+            );
+            case STATS -> ApiUnifiedAnalyticsSupport.toStatsResponse(
+                searchApiAnalyticsStatsUseCase
+                    .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchApiAnalyticsStatsUseCase.Input(
+                            apiId,
+                            env,
+                            Optional.of(start),
+                            Optional.of(end),
+                            Optional.of(ApiUnifiedAnalyticsSupport.requireField(field, "STATS"))
+                        )
+                    )
+                    .aggregate()
+            );
+            case GROUP_BY -> ApiUnifiedAnalyticsSupport.toGroupByResponse(
+                searchApiAnalyticsGroupByUseCase
+                    .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchApiAnalyticsGroupByUseCase.Input(
+                            apiId,
+                            env,
+                            Optional.of(start),
+                            Optional.of(end),
+                            Optional.of(ApiUnifiedAnalyticsSupport.requireField(field, "GROUP_BY")),
+                            Optional.of(ApiUnifiedAnalyticsSupport.resolveGroupBySize(size)),
+                            ApiUnifiedAnalyticsSupport.parseGroupByOrder(order)
+                        )
+                    )
+                    .aggregate()
+            );
+            case DATE_HISTO -> {
+                ApiUnifiedAnalyticsSupport.validateDateHistogram(from, to, interval);
+                yield ApiUnifiedAnalyticsSupport.toDateHistoResponse(
+                    searchApiAnalyticsDateHistoUseCase
+                        .execute(
+                            GraviteeContext.getExecutionContext(),
+                            new SearchApiAnalyticsDateHistoUseCase.Input(
+                                apiId,
+                                env,
+                                Optional.of(start),
+                                Optional.of(end),
+                                ApiUnifiedAnalyticsSupport.optionalField(field),
+                                Optional.of(Duration.ofMillis(interval))
+                            )
+                        )
+                        .aggregate()
+                );
+            }
+        };
+    }
 
     @Path("/requests-count")
     @GET

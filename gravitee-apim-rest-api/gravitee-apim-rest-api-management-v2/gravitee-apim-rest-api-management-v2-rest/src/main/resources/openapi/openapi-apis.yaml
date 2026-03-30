@@ -2015,6 +2015,60 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Analytics
+    /environments/{envId}/apis/{apiId}/analytics:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - name: type
+              in: query
+              required: true
+              description: Unified analytics query type.
+              schema:
+                  $ref: "#/components/schemas/ApiUnifiedAnalyticsQueryType"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+            - name: field
+              in: query
+              required: false
+              description: Field to aggregate (PRD name). Required for STATS and GROUP_BY.
+              schema:
+                  type: string
+            - name: interval
+              in: query
+              required: false
+              description: Histogram bucket width in milliseconds. Required for DATE_HISTO.
+              schema:
+                  type: integer
+                  format: int64
+            - name: size
+              in: query
+              required: false
+              description: Max buckets for GROUP_BY (defaults to 10).
+              schema:
+                  type: integer
+                  format: int32
+                  minimum: 1
+            - name: order
+              in: query
+              required: false
+              description: Sort order for GROUP_BY terms.
+              schema:
+                  $ref: "#/components/schemas/ApiUnifiedAnalyticsGroupByOrderParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get unified API analytics (V4 metrics)
+            description: |-
+                Query V4 metrics analytics with a single endpoint. TCP Proxy APIs are not supported.
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getApiUnifiedAnalytics
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiUnifiedAnalyticsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2775,6 +2829,95 @@ components:
                     $ref: "#/components/schemas/LoggingV4"
                 tracing:
                     $ref: "#/components/schemas/TracingV4"
+        ApiUnifiedAnalyticsQueryType:
+            type: string
+            enum:
+                - COUNT
+                - STATS
+                - GROUP_BY
+                - DATE_HISTO
+            description: Unified analytics query discriminator.
+        ApiUnifiedAnalyticsGroupByOrderParam:
+            type: string
+            enum:
+                - COUNT_DESC
+                - COUNT_ASC
+        ApiUnifiedAnalyticsItemMetadata:
+            type: object
+            properties:
+                name:
+                    type: string
+        ApiUnifiedAnalyticsStatsPayload:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    format: int64
+                min:
+                    type: number
+                    format: double
+                max:
+                    type: number
+                    format: double
+                avg:
+                    type: number
+                    format: double
+                sum:
+                    type: number
+                    format: double
+        ApiUnifiedAnalyticsGroupByPayload:
+            type: object
+            properties:
+                values:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int64
+                metadata:
+                    type: object
+                    additionalProperties:
+                        $ref: "#/components/schemas/ApiUnifiedAnalyticsItemMetadata"
+        ApiUnifiedAnalyticsDateHistoSeries:
+            type: object
+            properties:
+                field:
+                    type: string
+                buckets:
+                    type: array
+                    items:
+                        type: integer
+                        format: int64
+                metadata:
+                    $ref: "#/components/schemas/ApiUnifiedAnalyticsItemMetadata"
+        ApiUnifiedAnalyticsDateHistoPayload:
+            type: object
+            properties:
+                timestamps:
+                    type: array
+                    items:
+                        type: integer
+                        format: int64
+                series:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiUnifiedAnalyticsDateHistoSeries"
+        ApiUnifiedAnalyticsResponse:
+            type: object
+            required:
+                - type
+            properties:
+                type:
+                    $ref: "#/components/schemas/ApiUnifiedAnalyticsQueryType"
+                total:
+                    type: integer
+                    format: int64
+                    description: Total document count when type is COUNT.
+                stats:
+                    $ref: "#/components/schemas/ApiUnifiedAnalyticsStatsPayload"
+                groupBy:
+                    $ref: "#/components/schemas/ApiUnifiedAnalyticsGroupByPayload"
+                dateHistogram:
+                    $ref: "#/components/schemas/ApiUnifiedAnalyticsDateHistoPayload"
         Api:
             oneOf:
                 - $ref: "#/components/schemas/ApiV1"
@@ -8229,6 +8372,12 @@ components:
                             $ref: "#/components/schemas/ExposedEntrypoint"
 
         # Analytics
+        ApiUnifiedAnalyticsResponse:
+            description: Unified V4 metrics analytics response
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ApiUnifiedAnalyticsResponse"
         ApiAnalyticsRequestsCountResponse:
             description: Analytics for requests count by entrypoint
             content:

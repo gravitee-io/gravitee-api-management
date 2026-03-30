@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +26,16 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsCountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsAggregate;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiUnifiedAnalyticsQueryType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiUnifiedAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -93,6 +98,122 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
         fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
+    }
+
+    @Nested
+    class UnifiedAnalytics {
+
+        private static final long T0 = 1_000L;
+        private static final long T1 = 2_000L;
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("from", T0).queryParam("to", T1).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_400_when_type_missing() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            final Response response = rootTarget().queryParam("from", T0).queryParam("to", T1).request().get();
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_type_unsupported() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            final Response response = rootTarget()
+                .queryParam("type", "UNKNOWN")
+                .queryParam("from", T0)
+                .queryParam("to", T1)
+                .request()
+                .get();
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_from_after_to() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("from", T1).queryParam("to", T0).request().get();
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_stats_missing_field() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            final Response response = rootTarget().queryParam("type", "STATS").queryParam("from", T0).queryParam("to", T1).request().get();
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_date_histo_missing_interval() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", T0)
+                .queryParam("to", T1)
+                .request()
+                .get();
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_unified_count() {
+            apiCrudServiceInMemory.initWith(
+                List.of(ApiFixtures.aMessageApiV4WithAnalyticsEnabled().toBuilder().environmentId(ENVIRONMENT).build())
+            );
+            fakeAnalyticsQueryService.apiAnalyticsCount = ApiAnalyticsCountAggregate.builder().count(42L).build();
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("from", T0).queryParam("to", T1).request().get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiUnifiedAnalyticsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getType()).isEqualTo(ApiUnifiedAnalyticsQueryType.COUNT);
+                    assertThat(r.getTotal()).isEqualTo(42L);
+                });
+        }
+
+        @Test
+        void should_return_unified_stats() {
+            apiCrudServiceInMemory.initWith(
+                List.of(ApiFixtures.aMessageApiV4WithAnalyticsEnabled().toBuilder().environmentId(ENVIRONMENT).build())
+            );
+            fakeAnalyticsQueryService.apiAnalyticsStats =
+                ApiAnalyticsStatsAggregate.builder().count(3L).min(1.0).max(3.0).avg(2.0).sum(6.0).build();
+            final Response response = rootTarget()
+                .queryParam("type", "STATS")
+                .queryParam("from", T0)
+                .queryParam("to", T1)
+                .queryParam("field", "gateway-response-time-ms")
+                .request()
+                .get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiUnifiedAnalyticsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getType()).isEqualTo(ApiUnifiedAnalyticsQueryType.STATS);
+                    assertThat(r.getStats().getCount()).isEqualTo(3L);
+                    assertThat(r.getStats().getAvg()).isEqualTo(2.0);
+                });
+        }
     }
 
     @Nested
