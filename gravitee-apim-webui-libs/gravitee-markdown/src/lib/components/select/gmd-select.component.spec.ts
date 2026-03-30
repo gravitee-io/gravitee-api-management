@@ -120,14 +120,6 @@ describe('GmdSelectComponent', () => {
       expect(options).toEqual(['option1', 'option2', 'option3']);
     });
 
-    it('should parse JSON array options', () => {
-      fixture.componentRef.setInput('options', '["option1","option2","option3"]');
-      fixture.detectChanges();
-
-      const options = selectComponent.optionsVM();
-      expect(options).toEqual(['option1', 'option2', 'option3']);
-    });
-
     it('should decode HTML entities in options', () => {
       // Test with HTML entities in comma-separated format (as they would appear after DOMParser encoding)
       fixture.componentRef.setInput('options', 'option &quot;one&quot;,option &#39;two&#39;');

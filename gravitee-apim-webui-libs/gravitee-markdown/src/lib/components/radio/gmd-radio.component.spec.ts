@@ -123,14 +123,6 @@ describe('GmdRadioComponent', () => {
       expect(options).toEqual(['option1', 'option2', 'option3']);
     });
 
-    it('should parse JSON array options', () => {
-      fixture.componentRef.setInput('options', '["option1","option2","option3"]');
-      fixture.detectChanges();
-
-      const options = radioComponent.optionsVM();
-      expect(options).toEqual(['option1', 'option2', 'option3']);
-    });
-
     it('should handle empty options', () => {
       fixture.componentRef.setInput('options', '');
       fixture.detectChanges();

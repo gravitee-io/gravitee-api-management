@@ -79,17 +79,6 @@ export class GmdRadioComponent extends GmdFormFieldBase {
       return parseElFallback(opts);
     }
 
-    // Try to parse as JSON array first
-    try {
-      const parsed = JSON.parse(opts);
-      if (Array.isArray(parsed)) {
-        return parsed.map(opt => (typeof opt === 'string' ? opt : String(opt)));
-      }
-    } catch {
-      // Not JSON, try comma-separated
-    }
-
-    // Parse as comma-separated values
     return opts
       .split(',')
       .map(opt => opt.trim())

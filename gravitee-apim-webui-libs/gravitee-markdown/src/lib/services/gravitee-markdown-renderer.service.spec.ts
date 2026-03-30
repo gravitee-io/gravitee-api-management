@@ -336,12 +336,12 @@ This markdown editor demonstrates the **button component** integration.
       {
         description: 'should normalize self-closing GMD form components to opening/closing format',
         input: `<gmd-input name="test" label="Test Input" type="text" required="true" />
-<gmd-select name="test-select" label="Test Select" options='["Option 1", "Option 2"]' />
+<gmd-select name="test-select" label="Test Select" options="Option 1,Option 2" />
 <gmd-textarea name="test-textarea" label="Test Textarea" placeholder="Enter text" />
 <gmd-checkbox name="test-checkbox" label="Test Checkbox" required="true" />
 <gmd-radio name="test-radio" label="Test Radio" options="option1,option2" />`,
         expected: `<gmd-input name="test" label="Test Input" type="text" required="true"></gmd-input>
-<gmd-select name="test-select" label="Test Select" options="[&quot;Option 1&quot;, &quot;Option 2&quot;]"></gmd-select>
+<gmd-select name="test-select" label="Test Select" options="Option 1,Option 2"></gmd-select>
 <gmd-textarea name="test-textarea" label="Test Textarea" placeholder="Enter text"></gmd-textarea>
 <gmd-checkbox name="test-checkbox" label="Test Checkbox" required="true"></gmd-checkbox>
 <gmd-radio name="test-radio" label="Test Radio" options="option1,option2"></gmd-radio>`,
@@ -431,7 +431,7 @@ console.log(special);
 
     it('should preserve attributes when normalizing self-closing components', () => {
       const input = `<gmd-input name="email" label="Email" placeholder="Enter email" required="true" fieldKey="consumer_email" />
-<gmd-select name="env" label="Environment" options='["dev", "prod"]' fieldKey="environment" />`;
+<gmd-select name="env" label="Environment" options="dev,prod" fieldKey="environment" />`;
 
       const result = service.render(input);
 

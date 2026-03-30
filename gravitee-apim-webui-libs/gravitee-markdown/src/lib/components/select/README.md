@@ -24,20 +24,19 @@ Dropdown select input with label, validation, and error display. It is designed 
 
 ## Properties
 
-| Property   | Type                  | Default     | Description                                  |
-| ---------- | --------------------- | ----------- | -------------------------------------------- |
-| `fieldKey` | `string \| undefined` | `undefined` | Key used to emit form state events.          |
-| `name`     | `string`              | `''`        | Select name and id.                          |
-| `label`    | `string \| undefined` | `undefined` | Label shown above the select.                |
-| `value`    | `string \| undefined` | `undefined` | Initial value.                               |
-| `required` | `boolean`             | `false`     | Marks the field as required.                 |
-| `options`  | `string`              | `''`        | Comma-separated values or JSON array string. |
-| `disabled` | `boolean`             | `false`     | Disables the select.                         |
+| Property   | Type                  | Default     | Description                         |
+| ---------- | --------------------- | ----------- | ----------------------------------- |
+| `fieldKey` | `string \| undefined` | `undefined` | Key used to emit form state events. |
+| `name`     | `string`              | `''`        | Select name and id.                 |
+| `label`    | `string \| undefined` | `undefined` | Label shown above the select.       |
+| `value`    | `string \| undefined` | `undefined` | Initial value.                      |
+| `required` | `boolean`             | `false`     | Marks the field as required.        |
+| `options`  | `string`              | `''`        | Comma-separated list of options.    |
+| `disabled` | `boolean`             | `false`     | Disables the select.                |
 
 ## Options format
 
 - Comma-separated: `"Basic,Pro,Enterprise"`
-- JSON array: `'["Basic","Pro","Enterprise"]'`
 - EL expression with fallback: `"{#api.metadata['plans']}:Basic,Pro,Enterprise"`
 
 When options use EL, the fallback list is used for preview/editing contexts where runtime values cannot be resolved.
