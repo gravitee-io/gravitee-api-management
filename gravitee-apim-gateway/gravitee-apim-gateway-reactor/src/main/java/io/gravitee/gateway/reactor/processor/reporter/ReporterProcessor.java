@@ -19,7 +19,13 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
+<<<<<<< HEAD
 import lombok.CustomLog;
+=======
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+>>>>>>> ff653a0deb (fix(gateway): restore error fields in legacy engine logs (APIM-12654))
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,8 +43,12 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         try {
+<<<<<<< HEAD
             setQuota(context, context.request().metrics());
 
+=======
+            translateErrorToDiagnosticFailure(context.request().metrics());
+>>>>>>> ff653a0deb (fix(gateway): restore error fields in legacy engine logs (APIM-12654))
             reporterService.report(context.request().metrics());
 
             if (context.request().metrics().getLog() != null) {
@@ -53,6 +63,7 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
         next.handle(context);
     }
 
+<<<<<<< HEAD
     private static void setQuota(ExecutionContext ctx, Metrics metrics) {
         addLongMetric(metrics, ExecutionContext.ATTR_QUOTA_COUNT, ctx);
         addLongMetric(metrics, ExecutionContext.ATTR_QUOTA_LIMIT, ctx);
@@ -69,4 +80,21 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
         Object value = ctx.getAttribute(key);
         return (value instanceof Number) ? ((Number) value).longValue() : null;
     }
+=======
+    /**
+     * Translates error key and error message to Diagnostic failure if failure is null and error information exists.
+     * Mirrors the reactive ReporterProcessor's translateErrorToDiagnosticFailure() for the legacy engine path.
+     * Component fields are left null since the legacy engine has no component tracking.
+     */
+    private void translateErrorToDiagnosticFailure(Metrics metrics) {
+        if (metrics != null && metrics.getFailure() == null) {
+            String errorKey = metrics.getErrorKey();
+            String errorMessage = metrics.getMessage();
+
+            if (errorMessage != null && !errorMessage.isBlank()) {
+                metrics.setFailure(new Diagnostic(errorKey != null ? errorKey : "internal_error", errorMessage, null, null));
+            }
+        }
+    }
+>>>>>>> ff653a0deb (fix(gateway): restore error fields in legacy engine logs (APIM-12654))
 }
