@@ -23,6 +23,8 @@ import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analyt
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
+import { AnalyticsUnifiedQueryType } from '../entities/management-api-v2/analytics/analyticsUnifiedQuery';
+import { fakeAnalyticsUnifiedResponse } from '../entities/management-api-v2/analytics/analyticsUnifiedResponse.fixture';
 import { timeFrameRangesParams } from '../shared/utils/timeFrameRanges';
 
 describe('ApiAnalyticsV2Service', () => {
@@ -74,6 +76,55 @@ describe('ApiAnalyticsV2Service', () => {
       });
 
       expectAverageMessagesPerRequestGetRequest();
+    });
+  });
+
+  describe('getUnifiedAnalytics', () => {
+    it('should call unified analytics with type, time range, and optional params', (done) => {
+      const response = fakeAnalyticsUnifiedResponse({
+        type: AnalyticsUnifiedQueryType.STATS,
+        stats: { count: 3, avg: 2 },
+      });
+
+      service.getUnifiedAnalytics(apiId, {
+        type: AnalyticsUnifiedQueryType.STATS,
+        field: 'gateway-response-time-ms',
+      }).subscribe((result) => {
+        expect(result).toEqual(response);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        (r) => r.method === 'GET' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`,
+      );
+      expect(req.request.params.get('type')).toEqual('STATS');
+      expect(req.request.params.get('field')).toEqual('gateway-response-time-ms');
+      expect(req.request.params.get('from')).toBeTruthy();
+      expect(req.request.params.get('to')).toBeTruthy();
+      req.flush(response);
+    });
+
+    it('should pass interval and field for DATE_HISTO', (done) => {
+      const response = fakeAnalyticsUnifiedResponse({ type: AnalyticsUnifiedQueryType.DATE_HISTO });
+
+      service
+        .getUnifiedAnalytics(apiId, {
+          type: AnalyticsUnifiedQueryType.DATE_HISTO,
+          interval: 300_000,
+          field: 'status',
+        })
+        .subscribe((result) => {
+          expect(result).toEqual(response);
+          done();
+        });
+
+      const req = httpTestingController.expectOne(
+        (r) => r.method === 'GET' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`,
+      );
+      expect(req.request.params.get('type')).toEqual('DATE_HISTO');
+      expect(req.request.params.get('interval')).toEqual('300000');
+      expect(req.request.params.get('field')).toEqual('status');
+      req.flush(response);
     });
   });
 

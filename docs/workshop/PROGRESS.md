@@ -124,6 +124,14 @@ Scope: V4 API Analytics Dashboard (M1)
 
 - `mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest -am -q test -Dtest=ApiAnalyticsResourceTest -Dsurefire.failIfNoSpecifiedTests=false` ✅
 
+### Story 5 (F1) — Console: entities + `ApiAnalyticsV2Service` unified analytics
+
+**Summary:** Added `analyticsUnifiedQuery.ts`, `analyticsUnifiedResponse.ts`, `analyticsUnifiedResponse.fixture.ts`, and `getUnifiedAnalytics(apiId, params)` on `ApiAnalyticsV2Service` using `HttpParams` against `GET .../v2/.../apis/{apiId}/analytics` with the shared `timeRangeFilter` / `setTimeRangeFilter` behavior.
+
+**Verification:**
+
+- `cd gravitee-apim-console-webui && npm test -- --testPathPattern=api-analytics-v2.service.spec` ✅
+
 ## Current blockers / open questions
 
 - **ES field names & types**: `ApiAnalyticsField` currently maps PRD names directly to same-named ES fields with a numeric/keyword hint. When implementing B1b, we must confirm actual v4 metrics index mappings (and any `.keyword` requirements).\n

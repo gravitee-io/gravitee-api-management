@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -25,6 +25,8 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
+import { AnalyticsUnifiedRequestParams } from '../entities/management-api-v2/analytics/analyticsUnifiedQuery';
+import { AnalyticsUnifiedResponse } from '../entities/management-api-v2/analytics/analyticsUnifiedResponse';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
@@ -105,5 +107,37 @@ export class ApiAnalyticsV2Service {
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
       }),
     );
+  }
+
+  /**
+   * Unified V4 metrics analytics (`GET .../apis/{apiId}/analytics`). `from` / `to` are taken from the
+   * time range set via `setTimeRangeFilter` (same as other analytics methods).
+   */
+  getUnifiedAnalytics(apiId: string, params: AnalyticsUnifiedRequestParams): Observable<AnalyticsUnifiedResponse> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const httpParams = this.buildUnifiedAnalyticsHttpParams(from, to, params);
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`;
+        return this.http.get<AnalyticsUnifiedResponse>(url, { params: httpParams });
+      }),
+    );
+  }
+
+  private buildUnifiedAnalyticsHttpParams(from: number, to: number, params: AnalyticsUnifiedRequestParams): HttpParams {
+    let httpParams = new HttpParams().set('type', params.type).set('from', String(from)).set('to', String(to));
+    if (params.field != null && params.field !== '') {
+      httpParams = httpParams.set('field', params.field);
+    }
+    if (params.interval != null) {
+      httpParams = httpParams.set('interval', String(params.interval));
+    }
+    if (params.size != null) {
+      httpParams = httpParams.set('size', String(params.size));
+    }
+    if (params.order != null) {
+      httpParams = httpParams.set('order', params.order);
+    }
+    return httpParams;
   }
 }
