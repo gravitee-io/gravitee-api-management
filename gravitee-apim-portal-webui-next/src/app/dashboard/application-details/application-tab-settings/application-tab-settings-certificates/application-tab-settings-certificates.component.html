@@ -23,6 +23,20 @@
         Manage mTLS certificates for this application
       </p>
     </div>
+    @if (canManage()) {
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="openUploadDialog()"
+        data-testid="upload-certificate-button"
+        aria-label="Upload certificate"
+        i18n-aria-label="@@uploadCertificateAriaLabel"
+      >
+        <mat-icon aria-hidden="true">upload</mat-icon>
+        <span i18n="@@uploadCertificateButton">Upload certificate</span>
+      </button>
+    }
   </div>
 
   @if (loadError()) {

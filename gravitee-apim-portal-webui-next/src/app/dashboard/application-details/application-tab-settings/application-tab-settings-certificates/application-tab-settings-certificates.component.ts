@@ -15,9 +15,13 @@
  */
 import { Component, computed, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { differenceInCalendarDays } from 'date-fns';
 
+import { AddCertificateDialogComponent, AddCertificateDialogData } from './add-certificate-dialog/add-certificate-dialog.component';
 import { PaginatedTableComponent, TableColumn } from '../../../../../components/paginated-table/paginated-table.component';
 import { ClientCertificate } from '../../../../../entities/application/client-certificate';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
@@ -25,12 +29,13 @@ import { ApplicationCertificateService } from '../../../../../services/applicati
 
 @Component({
   selector: 'app-application-tab-settings-certificates',
-  imports: [MatTabsModule, PaginatedTableComponent],
+  imports: [MatTabsModule, MatButtonModule, MatIconModule, PaginatedTableComponent],
   templateUrl: './application-tab-settings-certificates.component.html',
   styleUrl: './application-tab-settings-certificates.component.scss',
 })
 export class ApplicationTabSettingsCertificatesComponent implements OnInit {
   private readonly certService = inject(ApplicationCertificateService);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
   applicationId = input.required<string>();
@@ -94,6 +99,24 @@ export class ApplicationTabSettingsCertificatesComponent implements OnInit {
     if (!endsAt) return '—';
     const days = differenceInCalendarDays(new Date(endsAt), new Date());
     return days <= 0 ? 'Expired' : String(days);
+  }
+
+  openUploadDialog(): void {
+    const activeCerts = this.activeCertificates();
+    const activeCert = activeCerts[0];
+    const data: AddCertificateDialogData = {
+      applicationId: this.applicationId(),
+      hasActiveCertificates: activeCerts.length > 0,
+      activeCertificateId: activeCert?.id,
+      activeCertificateExpiration: activeCert?.endsAt,
+    };
+    this.dialog
+      .open(AddCertificateDialogComponent, { data, width: '560px' })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(needsRefresh => {
+        if (needsRefresh) this.loadCertificates();
+      });
   }
 
   private toRows(certs: ClientCertificate[]) {
