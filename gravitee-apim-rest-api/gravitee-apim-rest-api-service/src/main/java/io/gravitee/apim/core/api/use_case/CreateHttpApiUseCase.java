@@ -110,6 +110,9 @@ public class CreateHttpApiUseCase {
                 )
             ),
             new Flow().withSelectors(
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/responses").methods(Set.of(HttpMethod.POST)).build())
+            ),
+            new Flow().withSelectors(
                 List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/models").methods(Set.of(HttpMethod.GET)).build())
             ),
             new Flow().withSelectors(
