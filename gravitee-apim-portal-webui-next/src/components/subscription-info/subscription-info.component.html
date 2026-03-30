@@ -54,8 +54,13 @@
               <span class="material-icons icon-small">api</span>
               <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
             </span>
-            @if (api && api.id) {
-              <a data-testid="subscription-api-link" class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">
+            @if (api && api.id && documentationNavigationTarget) {
+              <a
+                data-testid="subscription-api-link"
+                class="internal-link next-gen-body"
+                [routerLink]="['/documentation', documentationNavigationTarget.rootId]"
+                [queryParams]="{ selectedId: documentationNavigationTarget.navItemId }"
+              >
                 {{ resolvedApiName }}
               </a>
             } @else {
