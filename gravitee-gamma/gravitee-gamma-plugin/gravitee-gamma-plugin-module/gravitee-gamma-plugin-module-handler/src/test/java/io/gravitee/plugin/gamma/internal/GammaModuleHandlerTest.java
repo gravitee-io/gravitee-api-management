@@ -54,6 +54,7 @@ class GammaModuleHandlerTest {
     @SuppressWarnings("unchecked")
     void setUp() throws Exception {
         handler = new GammaModulePluginHandler();
+        handler.gammaEnabled = true;
 
         // Create a fresh manager instance for each test to avoid singleton state leaking
         Constructor<GammaModuleManager> ctor = GammaModuleManager.class.getDeclaredConstructor();

@@ -63,6 +63,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.management.enabled:true}")
     private boolean startManagementAPI;
 
+    @Value("${gamma.enabled:false}")
+    private boolean gammaEnabled;
+
     @Value("${http.gamma.enabled:true}")
     private boolean startGamma;
 
@@ -137,7 +140,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             contexts.add(managementV2ContextHandler);
         }
 
-        if (startGamma) {
+        if (gammaEnabled && startGamma) {
             // Configuration for Gamma modules. For now, inherit security from Management API V2, but it could be different in the future if needed.
             contexts.add(configureAPI("/gamma", GammaModuleApplication.class.getName(), SecurityManagementV2Configuration.class));
         }

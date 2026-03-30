@@ -817,3 +817,6 @@ api:
 # Scoring
 scoring:
   enabled: false
+
+gamma:
+  enabled: false

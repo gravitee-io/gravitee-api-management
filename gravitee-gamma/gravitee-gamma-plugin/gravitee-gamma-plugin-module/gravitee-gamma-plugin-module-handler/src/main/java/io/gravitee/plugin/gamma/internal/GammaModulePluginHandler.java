@@ -25,6 +25,7 @@ import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import io.gravitee.plugin.gamma.spring.GammaModuleConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.GenericApplicationContext;
@@ -38,6 +39,9 @@ import org.springframework.context.support.GenericApplicationContext;
  */
 @Import(GammaModuleConfiguration.class)
 public class GammaModulePluginHandler extends AbstractPluginHandler {
+
+    @Value("${gamma.enabled:false}")
+    protected boolean gammaEnabled = false;
 
     @Autowired
     protected PluginClassLoaderFactory<Plugin> pluginClassLoaderFactory;
@@ -57,6 +61,15 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
             plugin,
             applicationContext.getBean("managementMongoTemplate").getClass().getClassLoader()
         );
+    }
+
+    @Override
+    public void handle(Plugin plugin) {
+        if (!gammaEnabled) {
+            logger.warn("Gamma is disabled. Plugin {} not loaded", plugin.id());
+            return;
+        }
+        super.handle(plugin);
     }
 
     @Override
