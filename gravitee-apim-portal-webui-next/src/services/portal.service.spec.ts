@@ -20,6 +20,7 @@ import { ConfigService } from './config.service';
 import { PortalService } from './portal.service';
 import { ApiInformation } from '../entities/api/api-information';
 import { PortalPage } from '../entities/portal/portal-page';
+import { SubscriptionForm } from '../entities/portal/subscription-form';
 
 describe('PortalService', () => {
   let service: PortalService;
@@ -92,5 +93,35 @@ describe('PortalService', () => {
     const req = httpMock.expectOne(`${baseURL}/portal-pages?type=HOMEPAGE`);
     expect(req.request.method).toBe('GET');
     req.flush({ pages: mockPages });
+  });
+
+  it('should GET subscription form for an API id', () => {
+    const apiId = 'api-123';
+    const mockForm: SubscriptionForm = {
+      gmdContent: '<gmd-select fieldkey="country" options="France,Spain"></gmd-select>',
+      resolvedOptions: {
+        country: ['France', 'Spain'],
+      },
+    };
+
+    service.getSubscriptionForm(apiId).subscribe(form => {
+      expect(form).toEqual(mockForm);
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockForm);
+  });
+
+  it('should return null when subscription form endpoint responds 404', () => {
+    const apiId = 'api-404';
+
+    service.getSubscriptionForm(apiId).subscribe(form => {
+      expect(form).toBeNull();
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
+    expect(req.request.method).toBe('GET');
+    req.flush(null, { status: 404, statusText: 'Not Found' });
   });
 });

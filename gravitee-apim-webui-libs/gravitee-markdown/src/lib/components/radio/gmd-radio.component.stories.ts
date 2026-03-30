@@ -69,6 +69,28 @@ export const WithJsonOptions: StoryObj<GmdRadioComponent> = {
   }),
 };
 
+export const WithDynamicOptionsFallback: StoryObj<GmdRadioComponent> = {
+  render: () => ({
+    template: `
+      <div style="width: 400px;">
+        <gmd-radio
+          name="dynamic"
+          label="Deployment environment (EL fallback preview)"
+          options="{#api.metadata['environments']}:Dev,Staging,Prod">
+        </gmd-radio>
+      </div>
+    `,
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Example of EL options with fallback. In preview contexts, fallback values are displayed. Runtime-resolved options are injected separately.',
+      },
+    },
+  },
+};
+
 export const ReadonlyAndDisabled: StoryObj<GmdRadioComponent> = {
   render: () => ({
     template: `

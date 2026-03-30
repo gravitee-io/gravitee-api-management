@@ -17,6 +17,42 @@ import { computed, Signal } from '@angular/core';
 
 import type { GmdConfigError, GmdFieldErrorCode } from '../models/formField';
 
+const EL_SEPARATOR = '}:';
+const EL_OPTIONS_CANDIDATE_PATTERN = /^\s*\{#.+}(?::.*)?$/;
+const INVALID_EL_OPTIONS_PREFIX_PATTERN = /^\s*(?:#\{|\{(?!#))/;
+const INVALID_EL_SYNTAX_MESSAGE = 'Invalid EL syntax in options. Use {#...}:option1,option2.';
+const MISSING_EL_FALLBACK_MESSAGE =
+  "EL expression in options requires fallback options as a comma-separated list (CSV) after ':', e.g. {#api.metadata['key']}:option1,option2";
+
+/**
+ * Returns true if the options string is an EL expression (starts with `{#`).
+ *
+ * @example
+ * isElExpression("{#api.metadata['key']}:A,B") → true
+ * isElExpression("A,B,C") → false
+ */
+export function isElExpression(options: string): boolean {
+  return EL_OPTIONS_CANDIDATE_PATTERN.test(options);
+}
+
+/**
+ * Parses the fallback option list from an EL options string.
+ * Returns the comma-split values after `}:`, or an empty array if no separator is found.
+ *
+ * @example
+ * parseElFallback("{#api.metadata['key']}:A,B,C") → ["A", "B", "C"]
+ * parseElFallback("{#api.metadata['key']}") → []
+ */
+export function parseElFallback(options: string): string[] {
+  const sepIdx = options.indexOf(EL_SEPARATOR);
+  if (sepIdx === -1) return [];
+  return options
+    .slice(sepIdx + EL_SEPARATOR.length)
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+}
+
 const DEFAULT_MIN_LENGTH = 0;
 const DEFAULT_MAX_LENGTH = 10000;
 const DEFAULT_ROWS = 4;
@@ -114,6 +150,40 @@ export function normalizedLengthInput(
   const result = computed(() => normalizeLength(value(), min, max, name));
   const normalizedValue = computed(() => result().value);
   return { result, value: normalizedValue };
+}
+
+/**
+ * Builds a config error when an EL expression in options is missing its required fallback list.
+ */
+export function elFallbackErrors(options: string | undefined): GmdConfigError[] {
+  if (!options) {
+    return [];
+  }
+
+  if (INVALID_EL_OPTIONS_PREFIX_PATTERN.test(options)) {
+    return [
+      {
+        code: 'invalidElSyntax',
+        message: INVALID_EL_SYNTAX_MESSAGE,
+        severity: 'error',
+        field: 'options',
+        value: options,
+      },
+    ];
+  }
+
+  if (isElExpression(options) && parseElFallback(options).length === 0) {
+    return [
+      {
+        code: 'missingElFallback',
+        message: MISSING_EL_FALLBACK_MESSAGE,
+        severity: 'error',
+        field: 'options',
+        value: options,
+      },
+    ];
+  }
+  return [];
 }
 
 /**

@@ -91,6 +91,28 @@ export const PreSelectedValues: StoryObj<GmdCheckboxGroupComponent> = {
   },
 };
 
+export const WithDynamicOptionsFallback: StoryObj<GmdCheckboxGroupComponent> = {
+  render: () => ({
+    template: `
+      <div style="width: 400px;">
+        <gmd-checkbox-group
+          name="dynamic"
+          label="Enabled capabilities (EL fallback preview)"
+          options="{#api.metadata['capabilities']}:Analytics,Rate Limiting,Caching">
+        </gmd-checkbox-group>
+      </div>
+    `,
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Example of EL options with fallback. In preview contexts, fallback values are displayed. Runtime-resolved options are injected separately.',
+      },
+    },
+  },
+};
+
 export const ManyOptions: StoryObj<GmdCheckboxGroupComponent> = {
   render: () => ({
     template: `

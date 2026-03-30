@@ -38,6 +38,10 @@ Dropdown select input with label, validation, and error display. It is designed 
 
 - Comma-separated: `"Basic,Pro,Enterprise"`
 - JSON array: `'["Basic","Pro","Enterprise"]'`
+- EL expression with fallback: `"{#api.metadata['plans']}:Basic,Pro,Enterprise"`
+
+When options use EL, the fallback list is used for preview/editing contexts where runtime values cannot be resolved.
+If no fallback is provided for an EL expression, the component reports a `missingElFallback` config error.
 
 ## Theming
 

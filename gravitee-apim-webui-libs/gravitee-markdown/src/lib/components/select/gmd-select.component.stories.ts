@@ -69,6 +69,28 @@ export const WithJsonOptions: StoryObj<GmdSelectComponent> = {
   }),
 };
 
+export const WithDynamicOptionsFallback: StoryObj<GmdSelectComponent> = {
+  render: () => ({
+    template: `
+      <div style="width: 400px;">
+        <gmd-select
+          name="dynamic"
+          label="Country (EL fallback preview)"
+          options="{#api.metadata['countries']}:France,Spain,Poland">
+        </gmd-select>
+      </div>
+    `,
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Example of EL options with fallback. In preview contexts, fallback values are displayed. Runtime-resolved options are injected separately.',
+      },
+    },
+  },
+};
+
 export const CommonUseCases: StoryObj<GmdSelectComponent> = {
   render: () => ({
     template: `
