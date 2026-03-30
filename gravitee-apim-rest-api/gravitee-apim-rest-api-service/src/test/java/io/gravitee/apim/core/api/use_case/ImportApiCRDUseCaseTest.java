@@ -177,6 +177,7 @@ import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Clock;
@@ -202,8 +203,7 @@ import org.junit.jupiter.api.Test;
 class ImportApiCRDUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
-    private static final String API_ID = "my-api";
-    private static final String API_CROSS_ID = "my-api-cross-id";
+    private static final String API_HRID_ID = "my-api-hrid-id";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -220,6 +220,10 @@ class ImportApiCRDUseCaseTest {
     private static final String MY_MEMBER_ID = "my-member-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
+    private static final String API_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).buildId();
+    private static final String API_CROSS_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).buildCrossId();
+    private static final String KEYLESS_PLAN_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).withExtraId("keyless-key").buildId();
+    private static final String APIKEY_PLAN_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).withExtraId("apikey-key").buildId();
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -274,13 +278,11 @@ class ImportApiCRDUseCaseTest {
 
     @BeforeAll
     static void beforeAll() {
-        UuidString.overrideGenerator(() -> "generated-id");
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
     }
 
     @AfterAll
     static void afterAll() {
-        UuidString.reset();
         TimeProvider.overrideClock(Clock.systemDefaultZone());
     }
 
@@ -628,9 +630,8 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_create_and_index_a_new_api() {
-            var expected = expectedApiV4Proxy();
+            var expected = expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build();
             expected.getApiDefinitionHttpV4().setPlans(List.of());
-            expected.setHrid(expected.getCrossId());
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
 
@@ -680,7 +681,7 @@ class ImportApiCRDUseCaseTest {
             assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
-                .containsExactly(tuple("keyless-id", "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
+                .containsExactly(tuple(KEYLESS_PLAN_ID, "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("plan-flow");
         }
 
@@ -695,7 +696,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -717,7 +718,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -739,7 +740,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -768,7 +769,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1080,16 +1081,16 @@ class ImportApiCRDUseCaseTest {
             .crossId(API_CROSS_ID)
             .build();
 
-        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder().referenceId(API_ID).build().setPlanTags(Set.of(TAG));
         private static final Plan NATIVE_KEYLESS = PlanFixtures.NativeV4.aKeyless()
             .toBuilder()
-            .apiId(API_ID)
+            .referenceId(API_ID)
             .build()
             .setPlanTags(Set.of(TAG));
-        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder().referenceId(API_ID).build().setPlanTags(Set.of(TAG));
         private static final Plan NATIVE_API_KEY = PlanFixtures.NativeV4.anApiKey()
             .toBuilder()
-            .apiId(API_ID)
+            .referenceId(API_ID)
             .build()
             .setPlanTags(Set.of(TAG));
 
@@ -1145,7 +1146,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1204,7 +1205,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1261,7 +1262,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1326,7 +1327,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1364,7 +1365,7 @@ class ImportApiCRDUseCaseTest {
                                     .type(KEYLESS.getType())
                                     .flows(List.of((Flow) FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
-                                "api-key",
+                                "apikey-key",
                                 PlanCRD.builder()
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
@@ -1384,7 +1385,7 @@ class ImportApiCRDUseCaseTest {
             assertThat(planCrudService.storage())
                 .hasSize(2)
                 .extracting(Plan::getId, Plan::getName)
-                .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
+                .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
 
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
         }
@@ -1414,7 +1415,7 @@ class ImportApiCRDUseCaseTest {
                                     .type(NATIVE_KEYLESS.getType())
                                     .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
-                                "api-key",
+                                "apikey-key",
                                 PlanCRD.builder()
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
@@ -1434,7 +1435,7 @@ class ImportApiCRDUseCaseTest {
             assertThat(planCrudService.storage())
                 .hasSize(2)
                 .extracting(Plan::getId, Plan::getName)
-                .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
+                .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
 
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
         }
@@ -1739,7 +1740,9 @@ class ImportApiCRDUseCaseTest {
     void should_not_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1778,7 +1781,9 @@ class ImportApiCRDUseCaseTest {
     void should_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1823,7 +1828,9 @@ class ImportApiCRDUseCaseTest {
     void should_stop_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1866,7 +1873,9 @@ class ImportApiCRDUseCaseTest {
     void should_start_the_api() {
         apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1885,7 +1894,7 @@ class ImportApiCRDUseCaseTest {
 
     @Test
     void should_start_the_native_api() {
-        apiQueryService.initWith(List.of(Update.NATIVE_API.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
+        apiQueryService.initWith(List.of(Update.NATIVE_API.toBuilder().id(API_ID).lifecycleState(Api.LifecycleState.STOPPED).build()));
         when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
             invocation.getArgument(0)
         );
@@ -1965,7 +1974,7 @@ class ImportApiCRDUseCaseTest {
     private static ApiCRDSpec.ApiCRDSpecBuilder aCRD() {
         return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
-            .crossId(API_CROSS_ID)
+            .hrid(API_HRID_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
             .endpointGroups(
@@ -1988,7 +1997,6 @@ class ImportApiCRDUseCaseTest {
                 )
             )
             .flows(List.of())
-            .id(API_ID)
             .labels(Set.of("label-1"))
             .lifecycleState("CREATED")
             .listeners(
@@ -2004,7 +2012,6 @@ class ImportApiCRDUseCaseTest {
                 Map.of(
                     "keyless-key",
                     PlanCRD.builder()
-                        .id("keyless-id")
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
@@ -2029,7 +2036,9 @@ class ImportApiCRDUseCaseTest {
     private static ApiCRDSpec.ApiCRDSpecBuilder aNativeApiCRD() {
         return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
-            .crossId(API_CROSS_ID)
+            //                .id(API_ID)
+            //                .crossId(API_CROSS_ID)
+            .hrid(API_HRID_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
             .endpointGroups(
@@ -2052,7 +2061,6 @@ class ImportApiCRDUseCaseTest {
                 )
             )
             .flows(List.of())
-            .id(API_ID)
             .labels(Set.of("label-1"))
             .lifecycleState("CREATED")
             .listeners(
@@ -2070,7 +2078,6 @@ class ImportApiCRDUseCaseTest {
                 Map.of(
                     "keyless-key",
                     PlanCRD.builder()
-                        .id("keyless-id")
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
@@ -2098,9 +2105,8 @@ class ImportApiCRDUseCaseTest {
             .originContext(
                 new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
             )
-            .id(API_ID)
+            .hrid(API_HRID_ID)
             .environmentId(ENVIRONMENT_ID)
-            .crossId(API_CROSS_ID)
             .visibility(Api.Visibility.PRIVATE)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -2111,7 +2117,7 @@ class ImportApiCRDUseCaseTest {
             .background(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionHttpV4(
-                ApiDefinitionFixtures.aHttpProxyApiV4(API_ID)
+                ApiDefinitionFixtures.aHttpProxyApiV4(null)
                     .toBuilder()
                     .id(API_ID)
                     .name("My Api")
@@ -2144,9 +2150,8 @@ class ImportApiCRDUseCaseTest {
             .originContext(
                 new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
             )
-            .id(API_ID)
+            .hrid(API_ID)
             .environmentId(ENVIRONMENT_ID)
-            .crossId(API_CROSS_ID)
             .visibility(Api.Visibility.PRIVATE)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -2157,7 +2162,7 @@ class ImportApiCRDUseCaseTest {
             .background(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionNativeV4(
-                ApiDefinitionFixtures.aNativeApiV4(API_ID)
+                ApiDefinitionFixtures.aNativeApiV4(null)
                     .toBuilder()
                     .id(API_ID)
                     .name("My Api")
@@ -2197,7 +2202,7 @@ class ImportApiCRDUseCaseTest {
                         Map.of(
                             "keyless-key",
                             NativePlan.builder()
-                                .id("keyless-id")
+                                .id(IdBuilder.builder(AUDIT_INFO, API_HRID_ID).withExtraId("keyless-key").buildId())
                                 .name("Keyless")
                                 .security(PlanSecurity.builder().type("KEY_LESS").build())
                                 .mode(PlanMode.STANDARD)
@@ -2233,9 +2238,8 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownPage(PageCRD folder) {
         return PageCRD.builder()
-            .id(UUID.randomUUID().toString())
-            .crossId(UUID.randomUUID().toString())
             .parentId(folder.getId())
+            .name("hrid")
             .name("hello-markdown")
             .type(PageCRD.Type.MARKDOWN)
             .parentId("markdowns-folder")
@@ -2246,8 +2250,7 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownsFolderPage() {
         return PageCRD.builder()
-            .id(UUID.randomUUID().toString())
-            .crossId(UUID.randomUUID().toString())
+            .hrid("markdowns-folder")
             .name("markdowns")
             .type(PageCRD.Type.FOLDER)
             .visibility(PageCRD.Visibility.PUBLIC)

@@ -70,9 +70,12 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
 
+        // Keep existing IDs to allow take over of an existing API
+        IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.spec.getHrid());
         if (input.spec.getId() == null) {
-            IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.spec.getHrid());
             input.spec.setId(idBuilder.buildId());
+        }
+        if (input.spec.getCrossId() == null) {
             input.spec.setCrossId(idBuilder.buildCrossId());
         }
 

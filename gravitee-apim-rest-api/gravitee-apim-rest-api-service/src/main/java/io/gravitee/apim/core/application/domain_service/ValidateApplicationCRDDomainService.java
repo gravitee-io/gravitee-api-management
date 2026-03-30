@@ -48,7 +48,8 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.spec().toBuilder();
 
-        if (input.spec.getHrid() != null) {
+        // Keep existing ID
+        if (input.spec.getId() == null) {
             sanitizedBuilder.id(IdBuilder.builder(input.auditInfo, input.spec.getHrid()).buildId());
         }
 

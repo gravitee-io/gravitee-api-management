@@ -42,16 +42,13 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
 
+        IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getHrid());
+        if (input.crd().getSharedPolicyGroupId() == null) {
+            input.crd().setSharedPolicyGroupId(idBuilder.buildId());
+        }
+
         if (input.crd().getCrossId() == null) {
-            IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getHrid());
             input.crd().setCrossId(idBuilder.buildCrossId());
-            input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-        } else {
-            IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getCrossId());
-            input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-            // ID are sent by GKO upgraded resources, so HRID does not make sense
-            // to avoid confusion when looking into the database, we remove it
-            input.crd().setHrid(null);
         }
 
         var sanitizedBuilder = input.crd.toBuilder();

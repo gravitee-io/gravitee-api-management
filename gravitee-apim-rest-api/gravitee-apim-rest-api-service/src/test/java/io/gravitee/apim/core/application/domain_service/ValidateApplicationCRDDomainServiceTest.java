@@ -55,24 +55,6 @@ class ValidateApplicationCRDDomainServiceTest {
     );
 
     @Test
-    void should_give_error_for_application_with_no_id_and_hrid() {
-        ApplicationCRDSpec crd = anApplicationCRD();
-        crd.setId(null);
-
-        cut
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(crd.toBuilder().build()),
-                errors -> {
-                    Assertions.assertThat(errors).isNotEmpty();
-                    Assertions.assertThat(errors.getFirst().getMessage()).isEqualTo(
-                        "when no hrid is set in the payload an ID should be passed to identify the resource"
-                    );
-                }
-            );
-    }
-
-    @Test
     void should_set_id_when_application_hrid_but_no_id() {
         when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))

@@ -85,17 +85,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_legacy_id() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call -> {
-                ImportApiCRDUseCase.Input input = call.getArgument(0, ImportApiCRDUseCase.Input.class);
-                return new ImportApiCRDUseCase.Output(
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call ->
+                new ImportApiCRDUseCase.Output(
                     ApiCRDStatus.builder()
-                        .id(input.spec().getHrid())
+                        .id("api-hrid")
                         .crossId("api-cross-id")
                         .organizationId(ORGANIZATION)
                         .environmentId(ENVIRONMENT)
                         .build()
-                );
-            });
+                )
+            );
 
             var state = expectEntity("api-with-hrid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {

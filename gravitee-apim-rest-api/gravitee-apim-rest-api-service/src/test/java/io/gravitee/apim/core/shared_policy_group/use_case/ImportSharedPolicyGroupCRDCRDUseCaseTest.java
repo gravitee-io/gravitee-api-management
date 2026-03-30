@@ -52,10 +52,9 @@ import org.junit.jupiter.api.Test;
  */
 class ImportSharedPolicyGroupCRDCRDUseCaseTest {
 
-    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
-    private final String ORG_ID = "org-id";
-    private final String ENV_ID = "env-id";
-    private final String USER_ID = "user-id";
+    private static final String ORG_ID = "org-id";
+    private static final String ENV_ID = "env-id";
+    private static final String USER_ID = "user-id";
     private final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
@@ -219,12 +218,14 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
         void should_update_and_deploy() {
             // Given
             var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
-            crd.setSharedPolicyGroupId(UUID.randomUUID().toString());
-            SharedPolicyGroup sharedPolicyGroup = crd.toSharedPolicyGroup();
-            sharedPolicyGroup.setEnvironmentId(ENV_ID);
-            sharedPolicyGroup.setHrid(sharedPolicyGroup.getCrossId());
-
-            sharedPolicyGroupCrudService.create(sharedPolicyGroup);
+            validateSharedPolicyGroupCRDDomainService
+                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, crd))
+                .peek(
+                    sanitized -> {
+                        sharedPolicyGroupCrudService.create(sanitized.crd().toSharedPolicyGroup());
+                    },
+                    errors -> Assertions.fail("Should not fail to validate", errors)
+                );
 
             // When
             var output = cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd));

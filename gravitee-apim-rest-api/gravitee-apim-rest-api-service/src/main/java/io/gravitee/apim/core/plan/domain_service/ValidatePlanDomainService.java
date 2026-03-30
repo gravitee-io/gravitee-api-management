@@ -96,6 +96,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
 
                 sanitizedPlans.put(k, planCRD);
             } catch (Exception e) {
+                e.printStackTrace();
                 errors.add(Error.severe("invalid plan [%s]. Error: %s", k, e.getMessage()));
             }
         });

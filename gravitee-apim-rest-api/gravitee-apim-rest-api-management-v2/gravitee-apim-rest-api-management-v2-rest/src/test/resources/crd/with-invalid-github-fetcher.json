@@ -11,11 +11,13 @@
   "type": "PROXY",
   "pages": {
     "docs-folder": {
+      "id": "docs-folder",
       "name": "specifications",
       "type": "FOLDER",
       "visibility": "PUBLIC"
     },
     "swagger": {
+      "id": "swagger",
       "name": "pet-store",
       "type": "ROOT",
       "parent": "docs-folder",

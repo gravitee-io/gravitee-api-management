@@ -44,6 +44,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,30 +95,13 @@ class ValidateApiCRDDomainServiceTest {
         consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
     }
 
-    @Test
-    void should_return_input_with_cross_id_error() {
-        var spec = ApiCRDFixtures.newBaseSpec().crossId(null).hrid(null).build();
-        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
-
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(spec.toBuilder().build()),
-                errors -> {
-                    Assertions.assertThat(errors).isNotEmpty();
-                    Assertions.assertThat(errors.getFirst().getMessage()).isEqualTo(
-                        "when no hrid is set in the payload a cross ID should be passed to identify the resource"
-                    );
-                }
-            );
-    }
-
-    @Test
-    void should_return_input_with_id_cross_id_generated_from_hrid() {
+    @ParameterizedTest
+    @CsvSource({ "null,null", "test-id,null", "null,test-cross-id" })
+    void should_return_input_with_id_cross_id_generated_from_hrid(String id, String crossId) {
         String hrid = "test-hrid";
         var spec = ApiCRDFixtures.newBaseSpec()
-            .id(null)
-            .crossId(null)
+            .id(id)
+            .crossId(crossId)
             .hrid(hrid)
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();
@@ -160,7 +145,18 @@ class ValidateApiCRDDomainServiceTest {
         cut
             .validateAndSanitize(input)
             .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
+                sanitized -> {
+                    if (id == null) {
+                        Assertions.assertThat(sanitized.spec().getId()).isEqualTo(expected.getId());
+                    } else {
+                        Assertions.assertThat(sanitized.spec().getId()).isEqualTo(id);
+                    }
+                    if (crossId == null) {
+                        Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo(expected.getCrossId());
+                    } else {
+                        Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo(crossId);
+                    }
+                },
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
     }
