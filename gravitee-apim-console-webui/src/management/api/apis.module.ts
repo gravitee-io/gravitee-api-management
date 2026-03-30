@@ -60,7 +60,6 @@ import { DocumentationModule } from '../../components/documentation/documentatio
 import { AlertsModule } from '../../components/alerts/alerts.module';
 
 @NgModule({
-  declarations: [],
   imports: [
     CommonModule,
 

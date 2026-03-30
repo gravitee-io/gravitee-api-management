@@ -28,7 +28,7 @@ import { GioRoleService } from '../../../shared/components/gio-role/gio-role.ser
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 
 @Injectable()
-export class ApiV1V2MenuService implements ApiMenuService {
+export class ApiV2MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly roleService: GioRoleService,

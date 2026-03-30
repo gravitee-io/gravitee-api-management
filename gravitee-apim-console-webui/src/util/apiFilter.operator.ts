@@ -20,43 +20,10 @@ import { Api } from '../entities/management-api-v2';
 import { SnackBarService } from '../services-ngx/snack-bar.service';
 
 /**
- * Filter API V1 and V4 to define
- * - V4 as not supported
- * - V1 as deprecated
+ * Filter to only allow V2 APIs.
+ * Rejects V4, FEDERATED, and FEDERATED_AGENT APIs.
  */
 export const onlyApiV2Filter = (snackBarService?: SnackBarService) =>
-  switchMap((api: Api) => {
-    if (api.definitionVersion === 'V4') {
-      if (snackBarService) {
-        snackBarService.error('API V4 not supported.');
-        return EMPTY;
-      }
-      throw new Error('API V4 not supported.');
-    }
-
-    if (api.definitionVersion === 'FEDERATED') {
-      if (snackBarService) {
-        snackBarService.error('API FEDERATED not supported.');
-        return EMPTY;
-      }
-      throw new Error('API FEDERATED not supported.');
-    }
-
-    if (api.definitionVersion === 'FEDERATED_AGENT') {
-      if (snackBarService) {
-        snackBarService.error('API FEDERATED_AGENT not supported.');
-        return EMPTY;
-      }
-      throw new Error('API FEDERATED_AGENT not supported.');
-    }
-
-    return of(api);
-  });
-
-/**
- * Filter API V4 to define V4 as not supported
- */
-export const onlyApiV1V2Filter = (snackBarService?: SnackBarService) =>
   switchMap((api: Api) => {
     if (api.definitionVersion === 'V4') {
       if (snackBarService) {
