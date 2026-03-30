@@ -1,6 +1,6 @@
 # `gmd-checkbox-group`
 
-A checkbox group component that allows users to select multiple options from a list. Structurally modeled after `gmd-radio` — same fieldset/legend layout, same `GmdFormFieldBase` extension. Options are parsed from a comma-separated string. The selected value is serialized as a sorted, comma-separated string.
+A checkbox group component that allows users to select multiple options from a list. Structurally modeled after `gmd-radio` — same fieldset/legend layout, same `GmdFormFieldBase` extension. Options are parsed from a comma-separated string or from EL fallback values. The selected value is serialized as a sorted, comma-separated string.
 
 ## Usage
 
@@ -26,6 +26,14 @@ A checkbox group component that allows users to select multiple options from a l
 | `required` | boolean | `false` | Whether at least one option must be selected                           |
 | `options`  | string  | `''`    | Comma-separated list of options (e.g., `"Option 1,Option 2,Option 3"`) |
 | `disabled` | boolean | `false` | Disables all checkboxes and removes field from form state              |
+
+## Options format
+
+- Comma-separated: `"Option 1,Option 2,Option 3"`
+- EL expression with fallback: `"{#api.metadata['features']}:Authentication,Rate Limiting,Analytics"`
+
+When options use EL, the fallback list is used for preview/editing contexts where runtime values cannot be resolved.
+If no fallback is provided for an EL expression, the component reports a `missingElFallback` config error.
 
 ## Value serialization
 

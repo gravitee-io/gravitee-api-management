@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, input, Input, OnInit, Signal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, OnInit, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
@@ -46,6 +46,7 @@ import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
 import { Page } from '../../../entities/page/page';
 import { Plan } from '../../../entities/plan/plan';
+import { SubscriptionForm } from '../../../entities/portal/subscription-form';
 import { SubscriptionConsumerConfiguration } from '../../../entities/subscription';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
@@ -113,7 +114,7 @@ export class SubscribeToApiComponent implements OnInit {
   private readonly currentApplicationsPage = new BehaviorSubject(1);
   private readonly currentApplicationsPageSize = new BehaviorSubject(DEFAULT_APPLICATIONS_PAGE_SIZE);
 
-  @Input() api!: Api;
+  api = input.required<Api>();
   cancelFn = input<() => void>();
 
   readonly SubscribeStep = SubscribeStep;
@@ -142,7 +143,9 @@ export class SubscribeToApiComponent implements OnInit {
   subscriptionInProgress = signal<boolean>(false);
   showApiKeyModeSelection = signal<boolean>(false);
   subscriptionForm = toSignal(
-    this.portalService.getSubscriptionForm().pipe(
+    toObservable(this.api).pipe(
+      switchMap(api => this.portalService.getSubscriptionForm(api.id)),
+      map(form => (form ? this.applyResolvedOptions(form) : null)),
       tap(form => {
         if (!form) {
           this.store.reset();
@@ -184,12 +187,12 @@ export class SubscribeToApiComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.plans$ = this.planService.list(this.api.id).pipe(
+    this.plans$ = this.planService.list(this.api().id).pipe(
       map(({ data }) => data ?? []),
       catchError(_ => of([])),
     );
 
-    this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api.id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
+    this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api().id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
       combineLatestWith(this.currentApplicationsPage, this.currentApplicationsPageSize),
       switchMap(([subscriptions, page, pageSize]) => this.getApplicationsData$(page, pageSize, subscriptions)),
       catchError(_ =>
@@ -197,11 +200,11 @@ export class SubscribeToApiComponent implements OnInit {
       ),
     );
 
-    this.checkoutData$ = this.handleCheckoutData$(this.api).pipe(
+    this.checkoutData$ = this.handleCheckoutData$(this.api()).pipe(
       tap(({ applicationApiKeySubscriptions }) => {
         this.showApiKeyModeSelection.set(
           this.configuration.plan?.security?.sharedApiKey?.enabled === true &&
-            this.api.definitionVersion !== 'FEDERATED' &&
+            this.api().definitionVersion !== 'FEDERATED' &&
             applicationApiKeySubscriptions.length === 1,
         );
       }),
@@ -330,8 +333,8 @@ export class SubscribeToApiComponent implements OnInit {
     const generalConditionsPageId = this.currentPlan()?.general_conditions;
     if (generalConditionsPageId) {
       return this.pageService
-        .getByApiIdAndId(this.api.id, generalConditionsPageId, true)
-        .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.api.id, page, createSubscription)));
+        .getByApiIdAndId(this.api().id, generalConditionsPageId, true)
+        .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.api().id, page, createSubscription)));
     }
     return of(createSubscription);
   }
@@ -491,5 +494,28 @@ export class SubscribeToApiComponent implements OnInit {
         return { applicationApiKeySubscriptions };
       }),
     );
+  }
+
+  /**
+   * Merges API-resolved option lists into `gmdContent` by parsing HTML and setting
+   * `options` on elements matched by `fieldkey`.
+   *
+   * Security note: this method does not sanitize HTML. The merged content must only
+   * be rendered by `gmd-viewer`, which sanitizes content before display.
+   * Do not bind this output to raw `innerHTML` or other unsanitized sinks.
+   */
+  private applyResolvedOptions(form: SubscriptionForm): SubscriptionForm {
+    const resolved = form.resolvedOptions ?? {};
+    if (Object.keys(resolved).length === 0) return form;
+
+    const doc = new DOMParser().parseFromString(`<body>${form.gmdContent}</body>`, 'text/html');
+    for (const [fieldKey, options] of Object.entries(resolved)) {
+      const optionsValue = options.join(',');
+      const matchingElements = doc.querySelectorAll(`[fieldkey="${fieldKey}"]`);
+      matchingElements.forEach(element => {
+        element.setAttribute('options', optionsValue);
+      });
+    }
+    return { ...form, gmdContent: doc.body.innerHTML };
   }
 }

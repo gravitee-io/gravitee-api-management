@@ -51,7 +51,6 @@ import { ConfigService } from '../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
 describe('SubscribeToApiComponent', () => {
-  let component: SubscribeToApiComponent;
   let fixture: ComponentFixture<SubscribeToApiComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
@@ -103,8 +102,7 @@ describe('SubscribeToApiComponent', () => {
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    component = fixture.componentInstance;
-    component.api = api;
+    fixture.componentRef.setInput('api', api);
     fixture.detectChanges();
 
     expectGetSubscriptionForm(subscriptionForm);
@@ -515,7 +513,14 @@ describe('SubscribeToApiComponent', () => {
       });
       describe('When a subscription form is enabled', () => {
         const subscriptionForm: SubscriptionForm = {
-          gmdContent: '# Subscription form',
+          gmdContent:
+            '<gmd-select fieldkey="country" options="{#api.metadata[\'countries\']}:Fallback Country"></gmd-select>' +
+            '<gmd-radio fieldkey="color" options="{#api.metadata[\'colors\']}:Fallback Color"></gmd-radio>' +
+            '<gmd-select fieldkey="unchanged" options="{#api.metadata[\'teams\']}:Fallback Team"></gmd-select>',
+          resolvedOptions: {
+            country: ['France', 'Spain'],
+            color: ['Blue', 'Green'],
+          },
         };
         beforeEach(async () => {
           await init(true, API, subscriptionForm);
@@ -543,6 +548,16 @@ describe('SubscribeToApiComponent', () => {
 
           const subscribeButton = await getSubscribeButton();
           expect(await subscribeButton?.isDisabled()).toEqual(true);
+        });
+
+        it('should merge resolved options into gmdContent by fieldkey', async () => {
+          const mergedContent = fixture.componentInstance.subscriptionForm()?.gmdContent;
+
+          expect(mergedContent).toContain('<gmd-select fieldkey="country" options="France,Spain"></gmd-select>');
+          expect(mergedContent).toContain('<gmd-radio fieldkey="color" options="Blue,Green"></gmd-radio>');
+          expect(mergedContent).toContain(
+            '<gmd-select fieldkey="unchanged" options="{#api.metadata[\'teams\']}:Fallback Team"></gmd-select>',
+          );
         });
       });
       describe('API Key Management', () => {
@@ -1226,7 +1241,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function expectGetSubscriptionForm(subscriptionForm: SubscriptionForm | null) {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscription-form`);
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/subscription-form`);
     if (subscriptionForm) {
       req.flush(subscriptionForm);
     } else {

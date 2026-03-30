@@ -30,7 +30,7 @@
             <app-subscribe-to-api-choose-plan
               [plans]="plans"
               [selectedPlan]="currentPlan"
-              [api]="api"
+              [api]="api()"
               (selectPlan)="currentPlan.set($event)"
             />
           }
@@ -83,7 +83,7 @@
         @if (currentPlan(); as plan) {
           @if (checkoutData$ | async; as checkoutData) {
             <app-subscribe-to-api-checkout
-              [api]="api"
+              [api]="api()"
               [application]="currentApplication()"
               [plan]="plan"
               [message]="message"
