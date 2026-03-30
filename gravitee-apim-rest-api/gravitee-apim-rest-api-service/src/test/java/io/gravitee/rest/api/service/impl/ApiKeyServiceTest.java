@@ -35,8 +35,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -47,6 +50,7 @@ import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiService;
@@ -63,6 +67,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
@@ -134,6 +139,9 @@ public class ApiKeyServiceTest {
 
     @Mock
     private NotifierService notifierService;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
 
     @Test
     public void shouldGenerate() throws TechnicalException {
@@ -1225,6 +1233,158 @@ public class ApiKeyServiceTest {
         assertEquals("Subscription count should remain unchanged", 2, updatedSubscriptions.size());
 
         assertTrue("updatedAt should be updated to a later time", resultApiKey.getUpdatedAt().after(existingApiKey.getUpdatedAt()));
+    }
+
+    @Test
+    public void shouldIncludeExpirationDateInNotificationParamsForApiProductSubscriptionWithFutureExpiry() throws TechnicalException {
+        String apiProductId = "my-api-product";
+        Date futureExpiry = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
+        apiProductSubscription.setId(SUBSCRIPTION_ID);
+        apiProductSubscription.setPlan(PLAN_ID);
+        apiProductSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        apiProductSubscription.setReferenceId(apiProductId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("test-key");
+        apiKeyEntity.setExpireAt(futureExpiry);
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(apiProductSubscription));
+
+        when(subscriptionService.findById(any())).thenReturn(apiProductSubscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(apiProductSubscription));
+
+        GenericPlanEntity mockedPlan = mock(GenericPlanEntity.class);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mockedPlan);
+
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("My API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.APIKEY_EXPIRED),
+            eq(NotificationReferenceType.API_PRODUCT),
+            eq(apiProductId),
+            paramsCaptor.capture()
+        );
+        assertTrue(
+            "expirationDate must be present so template renders 'will expire on <date>'",
+            paramsCaptor.getValue().containsKey(NotificationParamsBuilder.PARAM_EXPIRATION_DATE)
+        );
+        assertEquals(futureExpiry, paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_EXPIRATION_DATE));
+    }
+
+    /**
+     * When an API key whose expiry is already in the past is updated, 'expirationDate' must NOT
+     * be present in the notification params. The template should render "has expired" in that case.
+     */
+    @Test
+    public void shouldNotIncludeExpirationDateInNotificationParamsForApiProductSubscriptionWhenKeyAlreadyExpired()
+        throws TechnicalException {
+        String apiProductId = "my-api-product";
+        Date pastExpiry = Date.from(Instant.now().minus(1, ChronoUnit.HOURS));
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
+        apiProductSubscription.setId(SUBSCRIPTION_ID);
+        apiProductSubscription.setPlan(PLAN_ID);
+        apiProductSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        apiProductSubscription.setReferenceId(apiProductId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("test-key");
+        apiKeyEntity.setExpireAt(pastExpiry);
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(apiProductSubscription));
+
+        when(subscriptionService.findById(any())).thenReturn(apiProductSubscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(apiProductSubscription));
+
+        GenericPlanEntity mockedPlan = mock(GenericPlanEntity.class);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mockedPlan);
+
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("My API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.APIKEY_EXPIRED),
+            eq(NotificationReferenceType.API_PRODUCT),
+            eq(apiProductId),
+            paramsCaptor.capture()
+        );
+        assertFalse(
+            "expirationDate must be absent so template renders 'has expired'",
+            paramsCaptor.getValue().containsKey(NotificationParamsBuilder.PARAM_EXPIRATION_DATE)
+        );
+    }
+
+    /**
+     * When the API product referenced by the subscription cannot be found in the repository,
+     * no notification should be sent.
+     */
+    @Test
+    public void shouldNotTriggerNotificationForApiProductSubscriptionWhenApiProductNotFound() throws TechnicalException {
+        String apiProductId = "non-existent-product";
+        Date futureExpiry = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
+        apiProductSubscription.setId(SUBSCRIPTION_ID);
+        apiProductSubscription.setPlan(PLAN_ID);
+        apiProductSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        apiProductSubscription.setReferenceId(apiProductId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("test-key");
+        apiKeyEntity.setExpireAt(futureExpiry);
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(apiProductSubscription));
+
+        when(subscriptionService.findById(any())).thenReturn(apiProductSubscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(apiProductSubscription));
+
+        GenericPlanEntity mockedPlan = mock(GenericPlanEntity.class);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mockedPlan);
+
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.empty());
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        verify(notifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.APIKEY_EXPIRED),
+            eq(NotificationReferenceType.API_PRODUCT),
+            eq(apiProductId),
+            any()
+        );
     }
 
     private ApiKey buildTestApiKey(String id) {
