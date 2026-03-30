@@ -44,7 +44,7 @@
 
       @if (showConfiguration && providerSchema?.config) {
         <div class="endpoint-card__form__field">
-          @if (formGroup.errors?.providerMismatch; as mismatch) {
+          @if (formGroup.dirty && formGroup.errors?.providerMismatch; as mismatch) {
             <gio-banner-error> All endpoints in this group must use the same provider ({{ mismatch.expected }}). </gio-banner-error>
           }
           <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config"></gio-form-json-schema>
