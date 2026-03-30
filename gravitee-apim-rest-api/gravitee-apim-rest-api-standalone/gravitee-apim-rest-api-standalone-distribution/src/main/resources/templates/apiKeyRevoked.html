@@ -6,9 +6,9 @@
 		<div style="margin-top: 50px; color: #424e5a;">
 			<h3>Hi,</h3>
 			<p>
-				Your API Key <b><code>${apiKey}</code></b> used by subscription to plan <b>${plan.name}</b> for API
-				<b>${api.name}</b> and application <b>${application.name}</b> has been revoked and cannot be used
-				anymore to consume API.
+			Your API Key <b><code>${apiKey}</code></b> used by subscription to plan <b>${plan.name}</b> for ${(api??)?then("API","API Product")}
+			<b>${(api.name)!(apiProduct.name)!''}</b> and application <b>${application.name}</b> has been revoked and cannot be used
+			anymore to consume ${(api??)?then("API","API Product")}.
 			</p>
 		</div>
 	</body>

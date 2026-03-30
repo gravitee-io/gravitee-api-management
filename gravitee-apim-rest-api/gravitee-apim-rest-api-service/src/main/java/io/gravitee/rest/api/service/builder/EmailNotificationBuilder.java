@@ -81,9 +81,9 @@ public class EmailNotificationBuilder {
     }
 
     public enum EmailTemplate {
-        API_APIKEY_REVOKED(ApiHook.APIKEY_REVOKED, "apiKeyRevoked.html", "API Key revoked for API ${api.name}"),
-        API_APIKEY_RENEWED(ApiHook.APIKEY_RENEWED, "apiKeyRenewed.html", "API Key renewed"),
-        API_APIKEY_EXPIRED(ApiHook.APIKEY_EXPIRED, "apiKeyExpired.html", "API Key expiration!"),
+        API_APIKEY_REVOKED(ApiHook.APIKEY_REVOKED, "apiKeyRevoked.html", "API Key revoked for ${(api.name)!(apiProduct.name)!''}"),
+        API_APIKEY_RENEWED(ApiHook.APIKEY_RENEWED, "apiKeyRenewed.html", "API Key renewed for ${(api.name)!(apiProduct.name)!''}"),
+        API_APIKEY_EXPIRED(ApiHook.APIKEY_EXPIRED, "apiKeyExpired.html", "API Key expiration for ${(api.name)!(apiProduct.name)!''}"),
         API_SUBSCRIPTION_NEW(
             ApiHook.SUBSCRIPTION_NEW,
             "subscriptionReceived.html",

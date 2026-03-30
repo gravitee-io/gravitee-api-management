@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_R
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_RENEWED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_PRODUCT;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
@@ -31,9 +32,12 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -61,6 +65,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -73,6 +78,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,6 +119,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Autowired
     private ApiTemplateService apiTemplateService;
+
+    @Lazy
+    @Autowired
+    private ApiProductsRepository apiProductsRepository;
 
     @Override
     public ApiKeyEntity generate(
@@ -707,21 +717,28 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         key
             .getSubscriptions()
             .forEach(subscription -> {
+                boolean isApiProduct = isApiProductSubscription(subscription);
+                String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+                String applicationId = key.getApplication() != null ? key.getApplication().getId() : null;
+
                 Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
                 properties.put(API_KEY, key.getKey());
-                properties.put(API, subscription.getApi());
-                properties.put(APPLICATION, key.getApplication().getId());
-                auditService.createApiAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(properties)
-                        .event(event)
-                        .createdAt(eventDate)
-                        .oldValue(previousApiKey)
-                        .newValue(key)
-                        .build(),
-                    subscription.getApi()
-                );
+                properties.put(isApiProduct ? API_PRODUCT : API, referenceId);
+                properties.put(APPLICATION, applicationId);
+
+                AuditService.AuditLogData auditLogData = AuditService.AuditLogData.builder()
+                    .properties(properties)
+                    .event(event)
+                    .createdAt(eventDate)
+                    .oldValue(previousApiKey)
+                    .newValue(key)
+                    .build();
+
+                if (isApiProduct) {
+                    auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
+                } else {
+                    auditService.createApiAuditLog(executionContext, auditLogData, referenceId);
+                }
             });
     }
 
@@ -755,8 +772,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         NotificationParamsBuilder paramsBuilder
     ) {
         subscriptions.forEach(subscription -> {
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
             if (isApiProductSubscription(subscription)) {
+                triggerNotifierServiceForApiProductSubscription(executionContext, apiHook, key, application, subscription);
                 return;
             }
             GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
@@ -771,6 +788,49 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .build();
             notifierService.trigger(executionContext, apiHook, genericApiModel.getId(), params);
         });
+    }
+
+    private void triggerNotifierServiceForApiProductSubscription(
+        ExecutionContext executionContext,
+        ApiHook apiHook,
+        ApiKey key,
+        ApplicationEntity application,
+        SubscriptionEntity subscription
+    ) {
+        String apiProductId = subscription.getReferenceId();
+        try {
+            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+            Optional<ApiProduct> apiProductOpt = apiProductsRepository.findById(apiProductId);
+            if (apiProductOpt.isEmpty()) {
+                log.debug("API Product [{}] not found, skipping API key notification", apiProductId);
+                return;
+            }
+            ApiProduct apiProduct = apiProductOpt.get();
+            PrimaryOwnerEntity applicationOwner = application.getPrimaryOwner();
+            ApiProductTemplateModel apiProductModel = ApiProductTemplateModel.builder()
+                .id(apiProduct.getId())
+                .name(apiProduct.getName())
+                .version(apiProduct.getVersion() != null ? apiProduct.getVersion() : "")
+                .primaryOwner(applicationOwner)
+                .build();
+            NotificationParamsBuilder freshBuilder = new NotificationParamsBuilder()
+                .apiProduct(apiProductModel)
+                .plan(genericPlanEntity)
+                .application(application)
+                .owner(applicationOwner)
+                .apikey(key);
+
+            // Only include expirationDate when the key expires in the future.
+            // The email template renders "will expire on <date>" when present,
+            // and "has expired" when absent.
+            final Date now = new Date();
+            if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
+                freshBuilder.expirationDate(key.getExpireAt());
+            }
+            notifierService.trigger(executionContext, apiHook, NotificationReferenceType.API_PRODUCT, apiProductId, freshBuilder.build());
+        } catch (TechnicalException e) {
+            log.error("Error triggering API key notification for API Product subscription {}", subscription.getId(), e);
+        }
     }
 
     private boolean isApiProductSubscription(SubscriptionEntity subscription) {
