@@ -13,10 +13,9 @@
 /**
  * API\'s gravitee definition version.
  */
-export type DefinitionVersion = 'V1' | 'V2' | 'V4' | 'FEDERATED';
+export type DefinitionVersion = 'V2' | 'V4' | 'FEDERATED';
 
 export const DefinitionVersion = {
-    V1: 'V1' as DefinitionVersion,
     V2: 'V2' as DefinitionVersion,
     V4: 'V4' as DefinitionVersion,
     FEDERATED: 'FEDERATED' as DefinitionVersion

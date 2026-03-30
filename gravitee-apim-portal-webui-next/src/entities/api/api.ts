@@ -37,7 +37,7 @@ export interface Api {
 
   type?: ApiType;
 
-  definitionVersion: 'V1' | 'V2' | 'V4' | 'FEDERATED';
+  definitionVersion: 'V2' | 'V4' | 'FEDERATED';
   /**
    * Description of the API.
    */
