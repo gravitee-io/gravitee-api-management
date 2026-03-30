@@ -74,10 +74,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
         tap(api => {
           this.api = api;
           this.isV2Api = api && api.definitionVersion === 'V2';
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-plan-u']) ||
-            api.definitionContext?.origin === 'KUBERNETES' ||
-            api.definitionVersion === 'V1';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           this.computePlanOptions();
         }),

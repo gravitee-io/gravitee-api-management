@@ -25,7 +25,7 @@ import { ActivatedRoute } from '@angular/router';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { ApiV1, ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../entities/management-api-v2';
+import { ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../entities/management-api-v2';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
 import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 
@@ -45,7 +45,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
 
   public apiProxy: Proxy;
   public isReadOnly = false;
-  public api: ApiV1 | ApiV2;
+  public api: ApiV2;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -150,7 +150,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
     this.initForm(this.api);
   }
 
-  private getApiPaths(api: ApiV1 | ApiV2): PathV4[] {
+  private getApiPaths(api: ApiV2): PathV4[] {
     if (api.proxy.virtualHosts.length > 0) {
       return api.proxy.virtualHosts.map(p => {
         const path: PathV4 = { path: p.path, host: p.host, overrideAccess: p.overrideEntrypoint };
@@ -160,14 +160,13 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
     return [{ path: api.contextPath }];
   }
 
-  private initForm(api: ApiV1 | ApiV2) {
+  private initForm(api: ApiV2) {
     this.apiProxy = api.proxy;
     this.formGroup = new UntypedFormGroup({});
 
     this.isReadOnly =
       !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']) ||
-      api.definitionContext?.origin === 'KUBERNETES' ||
-      api.definitionVersion === 'V1';
+      api.definitionContext?.origin === 'KUBERNETES';
 
     const paths: PathV4[] = this.getApiPaths(api);
     this.pathsFormControl = this.formBuilder.control({ value: paths, disabled: this.isReadOnly }, Validators.required);

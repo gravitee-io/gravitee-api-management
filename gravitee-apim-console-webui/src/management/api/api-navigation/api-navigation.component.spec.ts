@@ -25,7 +25,7 @@ import { ApiNavigationModule } from './api-navigation.module';
 import { ApiNavigationComponent } from './api-navigation.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
+import { Api, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants, EnvSettings } from '../../../entities/Constants';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
@@ -91,34 +91,6 @@ describe('ApiNavigationComponent', () => {
             fakeApiV4({
               id: API_ID,
               deploymentState: 'NEED_REDEPLOY',
-            }),
-          );
-
-        httpTestingController
-          .expectOne({
-            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/deployments/_verify`,
-            method: 'GET',
-          })
-          .flush({ ok: true });
-      });
-      it('should display "API version out-of-date" banner', done => {
-        apiNgNavigationComponent.banners$.subscribe(banners => {
-          expect(banners.length).toEqual(1);
-          expect(banners[0]).toMatchObject({
-            title: 'API version out-of-date',
-            type: 'warning',
-          });
-          done();
-        });
-
-        httpTestingController
-          .expectOne({
-            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
-            method: 'GET',
-          })
-          .flush(
-            fakeApiV1({
-              id: API_ID,
             }),
           );
 

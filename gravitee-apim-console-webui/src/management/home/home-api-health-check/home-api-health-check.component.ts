@@ -262,8 +262,6 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
       switch (api.definitionVersion) {
         case 'FEDERATED':
           return [];
-        case 'V1':
-          return [];
         case 'V2':
           return [this.v2toApisTableDS(api)];
         case 'V4':

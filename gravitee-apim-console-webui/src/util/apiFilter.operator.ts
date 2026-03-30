@@ -50,13 +50,6 @@ export const onlyApiV2Filter = (snackBarService?: SnackBarService) =>
       throw new Error('API FEDERATED_AGENT not supported.');
     }
 
-    if (api.definitionVersion === 'V1') {
-      if (snackBarService) {
-        snackBarService.error('API V1 are deprecated. Please upgrade your API to V2.');
-        return EMPTY;
-      }
-      throw new Error('API V1 are deprecated. Please upgrade your API to V2.');
-    }
     return of(api);
   });
 
@@ -110,14 +103,6 @@ export const onlyApiV4Filter = (snackBarService?: SnackBarService) =>
 
 export const onlyApiV2V4Filter = (snackBarService?: SnackBarService) =>
   switchMap((api: Api) => {
-    if (api.definitionVersion === 'V1') {
-      if (snackBarService) {
-        snackBarService.error('API V1 not supported.');
-        return EMPTY;
-      }
-      throw new Error('API V1 not supported.');
-    }
-
     if (api.definitionVersion === 'FEDERATED') {
       if (snackBarService) {
         snackBarService.error('API FEDERATED not supported.');

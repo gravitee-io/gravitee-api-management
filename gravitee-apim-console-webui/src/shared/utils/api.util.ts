@@ -16,8 +16,6 @@
 
 export const mapDefinitionVersionToLabel = (definitionVersion: string): string => {
   switch (definitionVersion) {
-    case 'V1':
-      return '1.0.0';
     case 'V2':
       return '2.0.0';
     case 'V4':

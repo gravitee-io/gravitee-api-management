@@ -58,10 +58,7 @@ export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([api, shardingTags]) => {
           this.shardingTags = shardingTags;
-          const isReadOnly =
-            api.definitionVersion === 'V1' ||
-            !this.permissionService.hasAnyMatching(['api-definition-u']) ||
-            api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           this.deploymentsForm = new FormGroup({
             tags: new FormControl({

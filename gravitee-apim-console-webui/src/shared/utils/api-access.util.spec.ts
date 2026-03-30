@@ -136,7 +136,7 @@ describe('getApiContextPath', () => {
   });
 
   it('should return null for unsupported definition version', () => {
-    const api = { definitionVersion: 'V1' } as Parameters<typeof getApiContextPath>[0];
+    const api = { definitionVersion: 'FEDERATED' } as Parameters<typeof getApiContextPath>[0];
     expect(getApiContextPath(api)).toBe(null);
   });
 });

@@ -413,7 +413,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
       case 'FEDERATED_AGENT':
         return { label: 'Federated A2A Agent' };
       default:
-        return { icon: 'gio:alert-circle', label: 'V1' };
+        return { icon: 'gio:alert-circle', label: 'Unknown' };
     }
   }
 

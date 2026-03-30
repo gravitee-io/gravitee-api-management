@@ -24,11 +24,11 @@ import { remove } from 'lodash';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { isUnique } from '../../../../../shared/utils';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
 import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 export interface ApiPathMappingsEditDialogData {
-  api: ApiV1 | ApiV2;
+  api: ApiV2;
   path: string;
 }
 
@@ -39,7 +39,7 @@ export interface ApiPathMappingsEditDialogData {
   standalone: false,
 })
 export class ApiPathMappingsEditDialogComponent {
-  private api: ApiV1 | ApiV2;
+  private api: ApiV2;
   private readonly pathToUpdate: string;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 

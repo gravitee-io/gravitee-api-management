@@ -29,7 +29,7 @@ import { ApiEntrypointsComponent } from './api-entrypoints.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
-import { ApiV1, ApiV2, fakeApiV1, fakeApiV2 } from '../../../entities/management-api-v2';
+import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
 import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
@@ -134,20 +134,6 @@ describe('ApiProxyEntrypointsComponent', () => {
       expectVerifyContextPath();
     });
 
-    it('should disable field when API definition version is V1', async () => {
-      const api = fakeApiV1({ id: API_ID, proxy: { virtualHosts: [{ path: '/path' }] } });
-      expectApiGetRequest(api);
-      expectApiGetPortalSettings();
-
-      const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
-      expect(await saveButton.length).toEqual(0);
-
-      const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
-      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then(row => row.pathInput);
-      expect(await contextPathInput.isDisabled()).toEqual(true);
-      expectVerifyContextPath();
-    });
-
     it('should switch to virtual-host mode', async () => {
       const api = fakeApiV2({ id: API_ID });
       expectApiGetRequest(api);
@@ -228,37 +214,6 @@ describe('ApiProxyEntrypointsComponent', () => {
           ],
         },
         definitionContext: { origin: 'KUBERNETES' },
-      });
-      expectApiGetRequest(api);
-      expectApiGetPortalSettings();
-      expectVerifyContextPath();
-
-      const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
-      expect(saveButton.length).toBe(0);
-
-      const formListenersContextPathHarness = await loader.getHarness(GioFormListenersVirtualHostHarness);
-      const row = (await formListenersContextPathHarness.getListenerRows())[0];
-      const vhTableFirstRowHostInput = row.hostSubDomainInput;
-      expect(await vhTableFirstRowHostInput.isDisabled()).toEqual(true);
-
-      const vhTableFirstRowPathInput = row.pathInput;
-      expect(await vhTableFirstRowPathInput.isDisabled()).toEqual(true);
-
-      const vhTableFirstRowOverrideCheckbox = row.overrideAccessInput;
-      expect(await vhTableFirstRowOverrideCheckbox.isDisabled()).toEqual(true);
-
-      const vhTableFirstRowButtons = row.removeButton;
-      expect(vhTableFirstRowButtons).toBeNull();
-
-      expect((await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add virtual-host' }))).length).toEqual(0);
-    });
-
-    it('should disable when API definition version is V1', async () => {
-      const api = fakeApiV1({
-        id: API_ID,
-        proxy: {
-          virtualHosts: [{ path: '/path-foo', host: 'host.io' }],
-        },
       });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
@@ -481,7 +436,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiGetRequest(api: ApiV2 | ApiV1) {
+  function expectApiGetRequest(api: ApiV2) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }

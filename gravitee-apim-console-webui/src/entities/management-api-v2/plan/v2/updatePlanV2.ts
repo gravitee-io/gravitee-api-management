@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FlowV2, Rule } from '../../api';
+import { FlowV2 } from '../../api';
 import { UpdateBasePlan } from '../updateBasePlan';
 
 export interface UpdatePlanV2 extends UpdateBasePlan {
@@ -29,5 +29,4 @@ export interface UpdatePlanV2 extends UpdateBasePlan {
    */
   tags?: string[];
   flows?: FlowV2[];
-  paths?: Record<string, Rule[] | undefined>;
 }

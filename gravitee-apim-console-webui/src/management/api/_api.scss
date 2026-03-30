@@ -2,10 +2,7 @@
 @use './analytics/overview/analytics';
 @use './creation-v2/steps/api-creation';
 @use './audit/history/apiHistory';
-@use './policy-studio-v1/policies/policy';
-@use './properties-v1/properties';
 @use './health-check-dashboard/healthcheck';
-@use './resources-v1/resources';
 
 @use '../../constants' as constants;
 

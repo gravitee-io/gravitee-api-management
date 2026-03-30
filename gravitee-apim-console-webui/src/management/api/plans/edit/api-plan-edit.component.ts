@@ -71,10 +71,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
           this.api = api;
           this.hasTcpListeners = isApiV4(api) && api.listeners.find(listener => listener.type === 'TCP') != null;
           this.isNative = (this.api as ApiV4).type === 'NATIVE';
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-plan-u']) ||
-            this.api.definitionContext?.origin === 'KUBERNETES' ||
-            this.api.definitionVersion === 'V1';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || this.api.definitionContext?.origin === 'KUBERNETES';
         }),
         switchMap(() =>
           this.mode === 'edit'

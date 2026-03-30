@@ -77,33 +77,6 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     map(([api, verifyDeploymentResponse]) => {
       const banners: TopBanner[] = [];
 
-      if (api.definitionVersion == null || api.definitionVersion === 'V1') {
-        banners.push({
-          title: 'API version out-of-date',
-          type: 'warning',
-          body:
-            '<div>We no longer support path-based APIs. To continue using all features, you will need to update your API.</div>\n' +
-            '<a href="https://www.gravitee.io/blog/gravitee-api-definitions" target="_blank" rel="noopener">Learn more</a>\n',
-          action: {
-            btnText: 'Update API version',
-            onClick: () => {
-              this.isActionDisabled = true;
-              this.legacyApiService
-                .migrateApiToPolicyStudio(this.currentApi.id)
-                .pipe(
-                  tap(() => (this.isActionDisabled = false)),
-                  takeUntil(this.unsubscribe$),
-                )
-                .subscribe({
-                  error: ({ error }) => {
-                    this.snackBarService.error(error.message);
-                  },
-                });
-            },
-          },
-        });
-      }
-
       const isApiReviewer = this.permissionService.hasAnyMatching(['api-reviews-u']);
       // Only for API reviewer
       if (isApiReviewer && this.constants.env.settings?.apiReview?.enabled && api.workflowState === 'IN_REVIEW') {

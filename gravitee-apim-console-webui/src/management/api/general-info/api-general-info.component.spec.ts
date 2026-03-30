@@ -42,15 +42,7 @@ import { ApiGeneralInfoQualityHarness } from './api-general-info-quality/api-gen
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Category } from '../../../entities/category/Category';
-import {
-  Api,
-  DefinitionVersion,
-  fakeApiV1,
-  fakeApiV2,
-  fakeApiV4,
-  fakeProxyTcpApiV4,
-  fakeApiFederated,
-} from '../../../entities/management-api-v2';
+import { Api, DefinitionVersion, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4, fakeApiFederated } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { Promotion, PromotionTarget } from '../../../entities/promotion';
@@ -135,95 +127,6 @@ describe('ApiGeneralInfoComponent', () => {
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });
     jest.resetAllMocks();
-  });
-
-  describe('API V1', () => {
-    beforeEach(() => initComponent());
-
-    it('should not be editable', async () => {
-      const api = fakeApiV1({
-        id: API_ID,
-        name: '👴🏻 Old API',
-        apiVersion: '1.0.0',
-        labels: ['label1', 'label2'],
-        categories: ['category1'],
-      });
-      expectApiGetRequest(api);
-      expectCategoriesGetRequest([
-        { id: 'category1', name: 'Category 1', key: 'category1' },
-        { id: 'category2', name: 'Category 2', key: 'category2' },
-      ]);
-
-      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-      await waitImageCheck();
-      expectApiProductsRequest();
-
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await saveBar.isVisible()).toBe(false);
-
-      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
-      expect(await nameInput.isDisabled()).toEqual(true);
-
-      const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
-      expect(await versionInput.isDisabled()).toEqual(true);
-
-      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
-      expect(await descriptionInput.isDisabled()).toEqual(true);
-
-      const picturePicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="picture"]' }));
-      expect(await picturePicker.isDisabled()).toEqual(true);
-
-      const backgroundPicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
-      expect(await backgroundPicker.isDisabled()).toEqual(true);
-
-      const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
-      expect(await labelsInput.isDisabled()).toEqual(true);
-
-      const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
-      expect(await categoriesInput.isDisabled()).toEqual(true);
-
-      await Promise.all(
-        [/Import/, /Duplicate/, /Promote/].map(async btnText => {
-          const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
-          expect(await button.isDisabled()).toEqual(true);
-        }),
-      );
-
-      await Promise.all(
-        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async btnText => {
-          const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
-          expect(await button.isDisabled()).toEqual(true);
-        }),
-      );
-    });
-
-    it('should display quality info when enabled', async () => {
-      fixture.componentInstance.isQualityEnabled = true;
-      const api = fakeApiV1({
-        id: API_ID,
-        name: '👴🏻 Old API',
-        apiVersion: '1.0.0',
-        labels: ['label1', 'label2'],
-        categories: ['category1'],
-      });
-
-      expectApiGetRequest(api);
-      expectCategoriesGetRequest([
-        { id: 'category1', name: 'Category 1', key: 'category1' },
-        { id: 'category2', name: 'Category 2', key: 'category2' },
-      ]);
-
-      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-      await waitImageCheck();
-      fixture.detectChanges();
-
-      expectQualityRulesRequest();
-      expectQualityRequest(api.id);
-      expectApiProductsRequest();
-
-      const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
-      expect(apiQualityInfo).toBeTruthy();
-    });
   });
 
   describe('API V2', () => {

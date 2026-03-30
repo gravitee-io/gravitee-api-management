@@ -22,7 +22,7 @@ import { ApiMenuService } from './ApiMenuService';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
-import { ApiV1, ApiV2, DefinitionVersion } from '../../../entities/management-api-v2';
+import { ApiV2, DefinitionVersion } from '../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
@@ -37,24 +37,15 @@ export class ApiV1V2MenuService implements ApiMenuService {
     private readonly gioLicenseService: GioLicenseService,
   ) {}
 
-  public getMenu(api: ApiV1 | ApiV2): {
+  public getMenu(api: ApiV2): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
     const subMenuItems: MenuItem[] = [
-      ...(api.definitionVersion === 'V1'
-        ? [
-            {
-              displayName: 'Policy Studio',
-              routerLink: 'v1/policies',
-            },
-          ]
-        : [
-            {
-              displayName: 'Policy Studio',
-              routerLink: 'v2/policy-studio',
-            },
-          ]),
+      {
+        displayName: 'Policy Studio',
+        routerLink: 'v2/policy-studio',
+      },
       {
         displayName: 'Messages',
         routerLink: 'messages',
@@ -63,7 +54,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
 
     const groupItems: MenuGroupItem[] = [
       this.getPortalGroup(api.definitionVersion),
-      this.getProxyGroup(api.definitionVersion),
+      this.getProxyGroup(),
       this.getBackendServicesGroup(),
       this.getAnalyticsGroup(),
       this.getAuditGroup(),
@@ -149,7 +140,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     return portalGroup;
   }
 
-  private getProxyGroup(definitionVersion: DefinitionVersion): MenuGroupItem {
+  private getProxyGroup(): MenuGroupItem {
     const proxyGroup: MenuGroupItem = {
       title: 'Proxy',
       items: [],
@@ -180,30 +171,17 @@ export class ApiV1V2MenuService implements ApiMenuService {
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      if (definitionVersion === 'V1') {
-        proxyGroup.items.push(
-          {
-            displayName: 'Properties',
-            routerLink: 'v1/properties',
-          },
-          {
-            displayName: 'Resources',
-            routerLink: 'v1/resources',
-          },
-        );
-      } else {
-        proxyGroup.items.push(
-          {
-            displayName: 'Properties',
-            routerLink: 'properties',
-            tabs: [],
-          },
-          {
-            displayName: 'Resources',
-            routerLink: 'resources',
-          },
-        );
-      }
+      proxyGroup.items.push(
+        {
+          displayName: 'Properties',
+          routerLink: 'properties',
+          tabs: [],
+        },
+        {
+          displayName: 'Resources',
+          routerLink: 'resources',
+        },
+      );
     }
 
     if (proxyGroup.items.length > 0) {

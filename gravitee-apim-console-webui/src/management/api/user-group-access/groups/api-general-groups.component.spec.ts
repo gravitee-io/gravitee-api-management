@@ -27,7 +27,7 @@ import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
-import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiGeneralMembersComponent } from '../members/api-general-members.component';
 import { ApiGeneralMembersHarness } from '../members/api-general-members.harness';
@@ -134,20 +134,6 @@ describe('ApiGeneralGroupsComponent', () => {
       mockedReturnedGroups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
       fixture.detectChanges();
       expect(matDialogSpy.open).toHaveBeenCalled();
-    });
-
-    it('should be read-only for V1 API', async () => {
-      const api = fakeApiV1({ id: apiId, groups: [groupId1] });
-      await expectGetRequests(api, [groupId1]);
-      expectGetGroupMembersRequest(fakeGroup({ id: groupId1 }));
-
-      await harness.manageGroupsClick();
-
-      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
-      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(true);
-      expect(await groupsHarness.getReadOnlyGroupsText()).toContain(`${groupId1}-name`);
-      expect(await groupsHarness.isFillFormPresent()).toEqual(false);
-      expect(await groupsHarness.isSaveButtonVisible()).toEqual(false);
     });
 
     it('should not apply group changes if dialog is closed without saving', async () => {

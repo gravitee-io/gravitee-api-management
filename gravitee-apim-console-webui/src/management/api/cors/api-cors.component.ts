@@ -187,9 +187,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap(api => {
           let apiToUpdate;
-          if (api.definitionVersion === 'V1') {
-            this.snackBarService.error('API V1 are deprecated. Please upgrade your API to V2.');
-          } else if (api.definitionVersion === 'V2') {
+          if (api.definitionVersion === 'V2') {
             apiToUpdate = {
               ...api,
               definitionVersion: 'V2',

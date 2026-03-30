@@ -26,7 +26,6 @@ import { ApiEndpointsV4Module } from './endpoints-v4/api-endpoints-v4.module';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
 import { ApiAuditModule } from './audit/api-audit.module';
-import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
 import { ApiCreationV2Module } from './creation-v2/api-creation-v2.module';
 import { ApiCreationGetStartedModule } from './creation-get-started/api-creation-get-started.module';
 import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
@@ -61,7 +60,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
 import { AlertsModule } from '../../components/alerts/alerts.module';
 
 @NgModule({
-  declarations: [ApiV1PoliciesComponent],
+  declarations: [],
   imports: [
     CommonModule,
 

@@ -23,7 +23,7 @@
 
   <form *ngIf="form" [formGroup]="form">
     <div class="api-portal-access-groups__body">
-      <mat-form-field *ngIf="!isReadOnly && !isV1Api; else readOnlyGroups">
+      <mat-form-field *ngIf="!isReadOnly; else readOnlyGroups">
         <mat-label>Groups</mat-label>
         <mat-select formControlName="selectedGroups" multiple>
           <mat-option *ngFor="let availableGroup of groups" [value]="availableGroup.id">{{ availableGroup.name }}</mat-option>
@@ -39,14 +39,7 @@
     </div>
 
     <div class="api-portal-access-groups__actions">
-      <button
-        *ngIf="!isReadOnly && !isV1Api"
-        color="primary"
-        aria-label="Save api groups"
-        mat-raised-button
-        [disabled]="form.invalid"
-        (click)="save()"
-      >
+      <button *ngIf="!isReadOnly" color="primary" aria-label="Save api groups" mat-raised-button [disabled]="form.invalid" (click)="save()">
         Save
       </button>
     </div>
