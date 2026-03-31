@@ -162,11 +162,42 @@ other
 {{- end -}}
 
 {{/*
+Configured JDBC driver source.
+*/}}
+{{- define "apim.jdbcDriverSource" -}}
+{{- lower (default "auto" .Values.jdbc.driverSource) -}}
+{{- end -}}
+
+{{/*
 Whether the JDBC driver should be downloaded at startup.
 */}}
 {{- define "apim.shouldDownloadJdbcDriver" -}}
 {{- $family := include "apim.jdbcDriverFamily" . -}}
-{{- if and (eq .Values.management.type "jdbc") .Values.jdbc.driver (not (or (eq $family "postgresql") (eq $family "mariadb") (eq $family "sqlserver"))) -}}
+{{- $source := include "apim.jdbcDriverSource" . -}}
+{{- if eq .Values.management.type "jdbc" -}}
+{{- if and (eq $source "download") .Values.jdbc.driver -}}
+true
+{{- else if and (eq $source "auto") .Values.jdbc.driver (not (or (eq $family "postgresql") (eq $family "mariadb") (eq $family "sqlserver"))) -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC driver should be copied from a dedicated image.
+*/}}
+{{- define "apim.shouldCopyJdbcDriverFromImage" -}}
+{{- $source := include "apim.jdbcDriverSource" . -}}
+{{- if and (eq .Values.management.type "jdbc") (eq $source "image") -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC volume and mount should be provisioned.
+*/}}
+{{- define "apim.shouldProvisionJdbcDriver" -}}
+{{- if or (eq (include "apim.shouldDownloadJdbcDriver" .) "true") (eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true") -}}
 true
 {{- end -}}
 {{- end -}}

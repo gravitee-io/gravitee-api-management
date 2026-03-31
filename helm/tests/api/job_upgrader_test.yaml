@@ -76,6 +76,33 @@ tests:
       - notExists:
           path: spec.template.spec.volumes[1]
 
+  - it: Should copy MySQL JDBC driver from dedicated image
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "image"
+        url: "jdbc:mysql://db:3306/gravitee"
+        image:
+          repository: "customer/mysql-jdbc"
+          tag: "9.3.0"
+          pullPolicy: "IfNotPresent"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: copy-repository-jdbc-ext
+            image: "customer/mysql-jdbc:9.3.0"
+            imagePullPolicy: IfNotPresent
+            command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/" ]
+      - notContains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-repository-jdbc-ext
+
   - it: Check that cockpit has been disabled
     template: api/api-upgrader-job.yaml
     set:

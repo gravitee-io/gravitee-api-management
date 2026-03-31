@@ -76,6 +76,33 @@ tests:
       - notExists:
           path: spec.template.spec.volumes[1]
 
+  - it: Check deployment with MySQL JDBC image support
+    template: api/api-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "image"
+        url: "jdbc:mysql://db:3306/gravitee"
+        image:
+          repository: "customer/mysql-jdbc"
+          tag: "9.3.0"
+          pullPolicy: "IfNotPresent"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: copy-repository-jdbc-ext
+            image: "customer/mysql-jdbc:9.3.0"
+            imagePullPolicy: IfNotPresent
+            command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/" ]
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-repository-jdbc-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-repository-jdbc-ext
+
   - it: Set containerPort with custom port if core service is enabled
     template: api/api-deployment.yaml
     set:
