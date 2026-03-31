@@ -636,16 +636,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Check that there is no existing subscription based on an OAuth2 or JWT plan,
                 // unless the API allows multiple JWT/OAuth2 subscriptions (V4 only).
                 if (planSecurityType == PlanSecurityType.OAUTH2 || planSecurityType == PlanSecurityType.JWT) {
-                    GenericApiEntity apiEntity = apiSearchService.findGenericById(
-                        executionContext,
-                        genericPlanEntity.getApiId(),
-                        false,
-                        false,
-                        false
-                    );
-                    boolean allowMulti =
-                        apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4 &&
-                        apiEntity.isAllowMultiJwtOauth2Subscriptions();
+                    boolean allowMulti = false;
+                    if (GenericPlanEntity.ReferenceType.API == genericPlanEntity.getReferenceType()) {
+                        GenericApiEntity apiEntity = apiSearchService.findGenericById(
+                            executionContext,
+                            genericPlanEntity.getReferenceId(),
+                            false,
+                            false,
+                            false
+                        );
+                        allowMulti =
+                            apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4 &&
+                            apiEntity.isAllowMultiJwtOauth2Subscriptions();
+                    }
                     if (!allowMulti) {
                         long count = countSubscriptionMatchingPredicate(
                             executionContext,
