@@ -18,6 +18,9 @@ export class ConfigurationPortalNext {
   access?: {
     enabled?: boolean;
   };
+  mtls?: {
+    enabled?: boolean;
+  };
   banner?: {
     enabled?: boolean;
     title?: string;
