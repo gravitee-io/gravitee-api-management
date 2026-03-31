@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -59,11 +60,14 @@ public class DashboardsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.READ }) })
     public Response listDashboards(@BeanParam @Valid PaginationParam paginationParam) {
+        if (!canReadDashboards()) {
+            throw new ForbiddenAccessException();
+        }
+
         var auditInfo = getAuditInfo();
 
-        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(auditInfo.organizationId()));
+        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(auditInfo.environmentId()));
 
         var allData = output.dashboards();
 
@@ -80,7 +84,7 @@ public class DashboardsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
     public Response createDashboard(@Valid @NotNull CreateUpdateDashboard createDashboard) {
         var auditInfo = getAuditInfo();
 

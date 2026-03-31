@@ -1,7 +1,7 @@
 [
   {
     "id": "cd-1",
-    "organizationId": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "Performance Overview",
     "createdBy": "user-1",
     "createdAt": 1000000000000,
@@ -51,7 +51,7 @@
   },
   {
     "id": "cd-2",
-    "organizationId": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "API Metrics",
     "createdBy": "user-2",
     "createdAt": 1000000000000,
@@ -82,7 +82,7 @@
   },
   {
     "id": "cd-3",
-    "organizationId": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "Dashboard To Delete",
     "createdBy": "user-1",
     "createdAt": 1000000000000,
@@ -92,13 +92,13 @@
   },
   {
     "id": "cd-4",
-    "organizationId": "OTHER_ORG",
-    "name": "Other Org Dashboard",
+    "environmentId": "OTHER_ENV",
+    "name": "Other Env Dashboard",
     "createdBy": "user-3",
     "createdAt": 1000000000000,
     "lastModified": 1111111111111,
     "labels": {
-      "org": "other"
+      "env": "other"
     },
     "widgets": []
   }

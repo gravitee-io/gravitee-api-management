@@ -26,7 +26,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CustomDashboardMongoRepository extends MongoRepository<CustomDashboardMongo, String> {
-    List<CustomDashboardMongo> findByOrganizationId(String organizationId);
+    List<CustomDashboardMongo> findByEnvironmentId(String environmentId);
 
-    void deleteByOrganizationId(String organizationId);
+    void deleteByEnvironmentId(String environmentId);
 }

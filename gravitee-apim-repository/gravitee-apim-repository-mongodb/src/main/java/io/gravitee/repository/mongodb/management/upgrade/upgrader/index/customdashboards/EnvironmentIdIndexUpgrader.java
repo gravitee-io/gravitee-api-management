@@ -20,18 +20,17 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpg
 import org.springframework.stereotype.Component;
 
 /**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("CustomDashboardsOrganizationIdIndexUpgrader")
-public class OrganizationIdIndexUpgrader extends IndexUpgrader {
+@Component("CustomDashboardsEnvironmentIdIndexUpgrader")
+public class EnvironmentIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
             .collection("custom_dashboards")
-            .name("oi1")
-            .key("organizationId", ascending())
+            .name("ei1")
+            .key("environmentId", ascending())
             .build();
     }
 }

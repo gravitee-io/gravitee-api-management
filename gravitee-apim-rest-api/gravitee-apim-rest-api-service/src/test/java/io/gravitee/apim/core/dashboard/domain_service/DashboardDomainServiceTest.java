@@ -70,16 +70,16 @@ class DashboardDomainServiceTest {
     }
 
     @Nested
-    class FindByOrganizationId {
+    class FindByEnvironmentId {
 
         @Test
-        void should_return_dashboards_for_organization() {
-            var dashboard1 = Dashboard.builder().id("d1").organizationId("org-1").name("D1").build();
-            var dashboard2 = Dashboard.builder().id("d2").organizationId("org-1").name("D2").build();
-            var dashboard3 = Dashboard.builder().id("d3").organizationId("other-org").name("D3").build();
+        void should_return_dashboards_for_environment() {
+            var dashboard1 = Dashboard.builder().id("d1").environmentId("env-1").name("D1").build();
+            var dashboard2 = Dashboard.builder().id("d2").environmentId("env-1").name("D2").build();
+            var dashboard3 = Dashboard.builder().id("d3").environmentId("other-env").name("D3").build();
             dashboardCrudServiceInMemory.initWith(List.of(dashboard1, dashboard2, dashboard3));
 
-            var result = domainService.findByOrganizationId("org-1");
+            var result = domainService.findByEnvironmentId("env-1");
 
             assertThat(result).containsExactly(dashboard1, dashboard2);
         }

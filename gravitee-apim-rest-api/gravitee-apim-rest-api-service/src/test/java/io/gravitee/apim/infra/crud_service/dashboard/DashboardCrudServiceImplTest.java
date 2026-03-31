@@ -50,7 +50,7 @@ public class DashboardCrudServiceImplTest {
     DashboardCrudServiceImpl service;
 
     private static final String DASHBOARD_ID = "dashboard-id";
-    private static final String ORGANIZATION_ID = "org-id";
+    private static final String ENVIRONMENT_ID = "env-id";
     private static final String DASHBOARD_NAME = "llm-proxy";
     private static final String CREATED_BY = "user-id";
     private static final Instant CREATED_AT = Instant.parse("2025-10-07T06:50:30Z");
@@ -140,6 +140,42 @@ public class DashboardCrudServiceImplTest {
     }
 
     @Nested
+    class FindByEnvironmentId {
+
+        @Test
+        @SneakyThrows
+        void should_find_dashboards_by_environment_id() {
+            when(customDashboardRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(aRepositoryDashboard()));
+
+            var result = service.findByEnvironmentId(ENVIRONMENT_ID);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).usingRecursiveComparison().isEqualTo(aDashboard());
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_when_no_dashboards() {
+            when(customDashboardRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of());
+
+            var result = service.findByEnvironmentId(ENVIRONMENT_ID);
+
+            assertThat(result).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(customDashboardRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenThrow(TechnicalException.class);
+
+            var throwable = catchThrowable(() -> service.findByEnvironmentId(ENVIRONMENT_ID));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to find dashboards for environment: " + ENVIRONMENT_ID);
+        }
+    }
+
+    @Nested
     class Update {
 
         @BeforeEach
@@ -206,7 +242,7 @@ public class DashboardCrudServiceImplTest {
     private static Dashboard aDashboard() {
         return Dashboard.builder()
             .id(DASHBOARD_ID)
-            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
             .name(DASHBOARD_NAME)
             .createdBy(CREATED_BY)
             .createdAt(CREATED_AT.atZone(ZoneId.systemDefault()))
@@ -244,7 +280,7 @@ public class DashboardCrudServiceImplTest {
     private static CustomDashboard aRepositoryDashboard() {
         return CustomDashboard.builder()
             .id(DASHBOARD_ID)
-            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
             .name(DASHBOARD_NAME)
             .createdBy(CREATED_BY)
             .createdAt(Date.from(CREATED_AT))

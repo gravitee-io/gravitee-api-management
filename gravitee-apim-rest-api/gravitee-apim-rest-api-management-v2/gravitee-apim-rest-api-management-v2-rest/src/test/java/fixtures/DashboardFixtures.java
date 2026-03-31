@@ -151,10 +151,10 @@ public class DashboardFixtures {
         return updatePayload;
     }
 
-    public static Dashboard aDashboard(String id, String organizationId, String createdBy) {
+    public static Dashboard aDashboard(String id, String environmentId, String createdBy) {
         return Dashboard.builder()
             .id(id)
-            .organizationId(organizationId)
+            .environmentId(environmentId)
             .name("My Dashboard")
             .createdBy(createdBy)
             .createdAt(ZonedDateTime.now())
@@ -236,13 +236,13 @@ public class DashboardFixtures {
             .build();
     }
 
-    public static List<Dashboard> dashboardsForOrganization(String organizationId, int count) {
+    public static List<Dashboard> dashboardsForEnvironment(String environmentId, int count) {
         var list = new ArrayList<Dashboard>();
         for (int i = 0; i < count; i++) {
             list.add(
                 Dashboard.builder()
                     .id("dashboard-" + (i + 1))
-                    .organizationId(organizationId)
+                    .environmentId(environmentId)
                     .name("Dashboard " + (i + 1))
                     .createdBy("user-1")
                     .createdAt(ZonedDateTime.now())
@@ -300,10 +300,10 @@ public class DashboardFixtures {
         return createDashboard;
     }
 
-    public static Dashboard aDashboardWithFilters(String id, String organizationId, String createdBy) {
+    public static Dashboard aDashboardWithFilters(String id, String environmentId, String createdBy) {
         return Dashboard.builder()
             .id(id)
-            .organizationId(organizationId)
+            .environmentId(environmentId)
             .name("Dashboard With Filters")
             .createdBy(createdBy)
             .createdAt(ZonedDateTime.now())
