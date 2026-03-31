@@ -32,7 +32,6 @@ import fixtures.ApiFixtures;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
-import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -68,7 +67,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         Date fixedDate = new Date(1_700_000_000_000L);
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(fixedDate).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("original-name")));
+        when(apiExportDomainService.export(eq(API), any(), any())).thenReturn(minimalProxyExport("original-name"));
 
         Response response = rootTarget(API + "/definition")
             .queryParam("dryRun", true)
@@ -89,7 +88,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         ApiEntity updated = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name("tes-api-key-patched").updatedAt(after).build();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(current);
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("before")));
+        when(apiExportDomainService.export(eq(API), any(), any())).thenReturn(minimalProxyExport("before"));
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenReturn(updated);
@@ -109,7 +108,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
             eq(false),
             eq(USER_NAME)
         );
-        verify(exportApiUseCase, times(1)).execute(any());
+        verify(apiExportDomainService, times(1)).export(eq(API), any(), any());
     }
 
     @Test
@@ -117,7 +116,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         Date updated = new Date(1_700_000_000_002L);
         ApiEntity current = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(updated).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(current);
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("api-name")));
+        when(apiExportDomainService.export(eq(API), any(), any())).thenReturn(minimalProxyExport("api-name"));
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenReturn(current);
@@ -134,7 +133,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
             eq(false),
             eq(USER_NAME)
         );
-        verify(exportApiUseCase, times(1)).execute(any());
+        verify(apiExportDomainService, times(1)).export(eq(API), any(), any());
     }
 
     @Test
@@ -142,7 +141,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         Date currentRevision = new Date(1_700_000_000_000L);
         ApiEntity current = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(currentRevision).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(current);
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("x")));
+        when(apiExportDomainService.export(eq(API), any(), any())).thenReturn(minimalProxyExport("x"));
 
         Response response = rootTarget(API + "/definition")
             .request(MediaType.APPLICATION_JSON)
@@ -206,7 +205,7 @@ class ApiResource_PatchApiDefinitionTest extends ApiResourceTest {
         Date fixedDate = new Date(1_700_000_000_000L);
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name("actual-name").updatedAt(fixedDate).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(minimalProxyExport("actual-name")));
+        when(apiExportDomainService.export(eq(API), any(), any())).thenReturn(minimalProxyExport("actual-name"));
 
         Response response = rootTarget(API + "/definition")
             .request(MediaType.APPLICATION_JSON)

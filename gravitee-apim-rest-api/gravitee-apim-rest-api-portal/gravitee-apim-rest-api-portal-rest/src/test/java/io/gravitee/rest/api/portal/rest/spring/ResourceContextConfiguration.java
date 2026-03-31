@@ -43,6 +43,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.domain_service.ApiDefinitionJsonPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -208,6 +209,7 @@ import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.IdentityService;
+import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -235,6 +237,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
+import io.gravitee.rest.api.service.impl.ApiDefinitionJsonPatchDomainServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
@@ -941,6 +944,16 @@ public class ResourceContextConfiguration {
     @Bean
     public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
         return new HtmlSanitizerImpl(delegate);
+    }
+
+    @Bean
+    public JsonPatchService jsonPatchService() {
+        return mock(JsonPatchService.class);
+    }
+
+    @Bean
+    public ApiDefinitionJsonPatchDomainService apiDefinitionJsonPatchDomainService(JsonPatchService jsonPatchService) {
+        return new ApiDefinitionJsonPatchDomainServiceImpl(jsonPatchService);
     }
 
     @Bean

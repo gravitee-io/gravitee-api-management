@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.domain_service.ApiDefinitionJsonPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
@@ -31,7 +32,6 @@ import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.JsonPatch;
-import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +50,7 @@ class PatchApiDefinitionUseCaseTest {
     private ApiExportDomainService apiExportDomainService;
 
     @Mock
-    private JsonPatchService jsonPatchService;
+    private ApiDefinitionJsonPatchDomainService apiDefinitionJsonPatchDomainService;
 
     @Mock
     private GraviteeDefinitionSerializer graviteeDefinitionSerializer;
@@ -59,7 +59,7 @@ class PatchApiDefinitionUseCaseTest {
 
     @BeforeEach
     void set_up() {
-        useCase = new PatchApiDefinitionUseCase(apiExportDomainService, jsonPatchService, graviteeDefinitionSerializer);
+        useCase = new PatchApiDefinitionUseCase(apiExportDomainService, apiDefinitionJsonPatchDomainService, graviteeDefinitionSerializer);
     }
 
     @Test
@@ -67,7 +67,7 @@ class PatchApiDefinitionUseCaseTest {
         var definition = minimalExport("n1");
         when(apiExportDomainService.export(any(), any(), any())).thenReturn(definition);
         when(graviteeDefinitionSerializer.serialize(any())).thenReturn("{}");
-        when(jsonPatchService.execute(anyString(), any())).thenReturn("{\"patched\":true}");
+        when(apiDefinitionJsonPatchDomainService.apply(anyString(), any())).thenReturn("{\"patched\":true}");
 
         var patches = List.<JsonPatch>of();
         var result = useCase.execute(new PatchApiDefinitionUseCase.Input(API_ID, auditInfo(), patches, true));
@@ -81,7 +81,7 @@ class PatchApiDefinitionUseCaseTest {
         var definition = minimalExport("n1");
         when(apiExportDomainService.export(any(), any(), any())).thenReturn(definition);
         when(graviteeDefinitionSerializer.serialize(any())).thenReturn("{}");
-        when(jsonPatchService.execute(anyString(), any())).thenReturn("{\"patched\":true}");
+        when(apiDefinitionJsonPatchDomainService.apply(anyString(), any())).thenReturn("{\"patched\":true}");
 
         var result = useCase.execute(new PatchApiDefinitionUseCase.Input(API_ID, auditInfo(), List.of(), false));
 
@@ -95,12 +95,12 @@ class PatchApiDefinitionUseCaseTest {
         when(apiExportDomainService.export(any(), any(), any())).thenReturn(definition);
         when(graviteeDefinitionSerializer.serialize(any())).thenReturn("{}");
         var failed = new JsonPatchTestFailedException(new JsonPatch());
-        when(jsonPatchService.execute(anyString(), any())).thenThrow(failed);
+        when(apiDefinitionJsonPatchDomainService.apply(anyString(), any())).thenThrow(failed);
 
         var result = useCase.execute(new PatchApiDefinitionUseCase.Input(API_ID, auditInfo(), List.of(), false));
 
         assertThat(result).isInstanceOf(PatchApiDefinitionUseCase.Result.PatchTestFailed.class);
-        verify(jsonPatchService).execute(anyString(), any());
+        verify(apiDefinitionJsonPatchDomainService).apply(anyString(), any());
     }
 
     private static AuditInfo auditInfo() {

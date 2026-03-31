@@ -47,6 +47,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.domain_service.ApiDefinitionJsonPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -188,6 +189,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -199,6 +201,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.impl.ApiDefinitionJsonPatchDomainServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -829,6 +832,16 @@ public class ResourceContextConfiguration {
     @Bean
     public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
         return new HtmlSanitizerImpl(delegate);
+    }
+
+    @Bean
+    public JsonPatchService jsonPatchService() {
+        return mock(JsonPatchService.class);
+    }
+
+    @Bean
+    public ApiDefinitionJsonPatchDomainService apiDefinitionJsonPatchDomainService(JsonPatchService jsonPatchService) {
+        return new ApiDefinitionJsonPatchDomainServiceImpl(jsonPatchService);
     }
 
     @Bean

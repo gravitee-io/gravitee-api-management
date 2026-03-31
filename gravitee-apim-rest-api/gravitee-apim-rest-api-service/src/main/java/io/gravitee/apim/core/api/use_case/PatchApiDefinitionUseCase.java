@@ -18,13 +18,13 @@ package io.gravitee.apim.core.api.use_case;
 import static java.util.Collections.emptyList;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.domain_service.ApiDefinitionJsonPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.rest.api.model.JsonPatch;
-import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class PatchApiDefinitionUseCase {
 
     private final ApiExportDomainService apiExportDomainService;
-    private final JsonPatchService jsonPatchService;
+    private final ApiDefinitionJsonPatchDomainService apiDefinitionJsonPatchDomainService;
     private final GraviteeDefinitionSerializer graviteeDefinitionSerializer;
 
     public Result execute(Input input) {
@@ -47,7 +47,7 @@ public class PatchApiDefinitionUseCase {
         if (exported instanceof GraviteeDefinition.V4 definition) {
             String definitionJson = exportDefinitionToJson(definition);
             try {
-                String definitionModified = jsonPatchService.execute(definitionJson, input.patches());
+                String definitionModified = apiDefinitionJsonPatchDomainService.apply(definitionJson, input.patches());
                 if (input.dryRun()) {
                     return new Result.DryRun(definitionModified);
                 }

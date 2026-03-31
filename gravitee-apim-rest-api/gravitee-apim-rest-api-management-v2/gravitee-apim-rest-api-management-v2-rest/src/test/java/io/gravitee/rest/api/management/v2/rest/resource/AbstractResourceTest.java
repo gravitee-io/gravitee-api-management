@@ -38,6 +38,7 @@ import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
@@ -124,6 +125,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ExportApiUseCase exportApiUseCase;
+
+    @Autowired
+    protected ApiExportDomainService apiExportDomainService;
 
     @Autowired
     protected PermissionService permissionService;
