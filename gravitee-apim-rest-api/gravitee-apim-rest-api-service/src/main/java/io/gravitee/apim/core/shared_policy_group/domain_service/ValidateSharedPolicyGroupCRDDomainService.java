@@ -20,7 +20,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 
@@ -41,16 +40,6 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
-
-        IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getHrid());
-        if (input.crd().getSharedPolicyGroupId() == null) {
-            input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-        }
-
-        if (input.crd().getCrossId() == null) {
-            input.crd().setCrossId(idBuilder.buildCrossId());
-        }
-
         var sanitizedBuilder = input.crd.toBuilder();
 
         sharedPolicyGroupCrudService

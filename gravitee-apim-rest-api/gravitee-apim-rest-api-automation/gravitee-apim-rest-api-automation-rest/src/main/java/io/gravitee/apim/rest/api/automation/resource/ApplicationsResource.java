@@ -24,6 +24,7 @@ import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApplicationMapper;
 import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
 import io.gravitee.common.http.MediaType;
@@ -98,6 +99,8 @@ public class ApplicationsResource extends AbstractResource {
             // HRID is removed as it does not make sense here, besides
             // it avoids confusion in the database
             applicationCRDSpec.setHrid(null);
+        } else {
+            CrdIdHelper.generateApplicationId(applicationCRDSpec, auditInfo);
         }
 
         if (dryRun) {

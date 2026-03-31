@@ -37,10 +37,7 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -55,7 +52,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
     private static final String ORG_ID = "org-id";
     private static final String ENV_ID = "env-id";
     private static final String USER_ID = "user-id";
-    private final AuditInfo AUDIT_INFO = AuditInfo.builder()
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId(USER_ID).build())
@@ -125,7 +122,11 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
         @Test
         void should_create_and_deploy() {
             // Given
-            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
+                .toBuilder()
+                .sharedPolicyGroupId("test-spg-id")
+                .crossId("test-spg-cross-id")
+                .build();
 
             // When
             var output = cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd));
@@ -217,7 +218,11 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
         @Test
         void should_update_and_deploy() {
             // Given
-            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
+                .toBuilder()
+                .sharedPolicyGroupId("test-spg-id")
+                .crossId("test-spg-cross-id")
+                .build();
             validateSharedPolicyGroupCRDDomainService
                 .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, crd))
                 .peek(

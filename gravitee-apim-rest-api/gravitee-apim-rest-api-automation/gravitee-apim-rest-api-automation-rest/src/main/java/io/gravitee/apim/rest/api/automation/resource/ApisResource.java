@@ -26,6 +26,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
 import io.gravitee.apim.rest.api.automation.model.LegacyAPIV4Spec;
@@ -108,6 +109,10 @@ public class ApisResource extends AbstractResource {
             // HRID is removed as it does not make sense here, besides
             // it avoids confusion in the database
             apiCRDSpec.setHrid(null);
+        } else {
+            CrdIdHelper.generateApiIds(apiCRDSpec, audit);
+            CrdIdHelper.generatePlanIds(apiCRDSpec.getPlans(), apiCRDSpec.getHrid(), audit);
+            CrdIdHelper.generatePageIds(apiCRDSpec.getPages(), apiCRDSpec.getHrid(), audit);
         }
 
         if (dryRun) {

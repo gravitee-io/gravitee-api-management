@@ -26,7 +26,6 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Date;
 import org.assertj.core.api.Assertions;
@@ -55,7 +54,7 @@ class ValidateApplicationCRDDomainServiceTest {
     );
 
     @Test
-    void should_set_id_when_application_hrid_but_no_id() {
+    void should_preserve_pre_set_id() {
         when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
         );
@@ -68,15 +67,11 @@ class ValidateApplicationCRDDomainServiceTest {
 
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(HRID);
-        crd.setId(null);
 
         cut
             .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
             .peek(
-                sanitized ->
-                    Assertions.assertThat(sanitized.spec()).isEqualTo(
-                        crd.toBuilder().id(IdBuilder.builder(AUDIT_INFO, HRID).buildId()).build()
-                    ),
+                sanitized -> Assertions.assertThat(sanitized.spec().getId()).isEqualTo(APP_ID),
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
     }

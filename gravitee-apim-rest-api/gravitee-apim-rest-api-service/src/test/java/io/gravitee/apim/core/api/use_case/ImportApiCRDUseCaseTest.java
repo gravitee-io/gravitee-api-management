@@ -109,6 +109,7 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
@@ -177,7 +178,6 @@ import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Clock;
@@ -220,10 +220,10 @@ class ImportApiCRDUseCaseTest {
     private static final String MY_MEMBER_ID = "my-member-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
-    private static final String API_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).buildId();
-    private static final String API_CROSS_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).buildCrossId();
-    private static final String KEYLESS_PLAN_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).withExtraId("keyless-key").buildId();
-    private static final String APIKEY_PLAN_ID = IdBuilder.builder(AUDIT_INFO, API_HRID_ID).withExtraId("apikey-key").buildId();
+    private static final String API_ID = "test-api-id";
+    private static final String API_CROSS_ID = "test-api-cross-id";
+    private static final String KEYLESS_PLAN_ID = "test-keyless-plan-id";
+    private static final String APIKEY_PLAN_ID = "test-apikey-plan-id";
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -876,6 +876,54 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_throw_when_page_parent_is_not_a_folder() {
+            var markdownParent = PageCRD.builder()
+                .id("markdown-parent-id")
+                .hrid("markdown-parent")
+                .name("markdown-parent")
+                .type(PageCRD.Type.MARKDOWN)
+                .content("I am not a folder")
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
+
+            var child = PageCRD.builder()
+                .id("child-page-id")
+                .hrid("child-page")
+                .name("child-page")
+                .type(PageCRD.Type.MARKDOWN)
+                .parentId("markdown-parent-id")
+                .content("I have a bad parent")
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
+
+            var pages = new HashMap<String, PageCRD>();
+            pages.put("markdown-parent", markdownParent);
+            pages.put("child-page", child);
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+
+            assertThat(throwable).isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @Test
+        void should_handle_null_pages() {
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
+
+            assertThat(pageCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_handle_empty_members() {
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of()).build()));
+
+            assertThat(crdMembersDomainService.getApiMembers(API_ID)).isEmpty();
+        }
+
+        @Test
         void should_create_notification() {
             when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
                 call.getArgument(0)
@@ -1125,6 +1173,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1184,6 +1233,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1241,6 +1291,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1306,6 +1357,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1367,6 +1419,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1417,6 +1470,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1664,6 +1718,72 @@ class ImportApiCRDUseCaseTest {
                     tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
                     tuple(folder.getId(), folder.getCrossId(), folder.getName())
                 );
+        }
+
+        @Test
+        void should_delete_pages_not_present_in_crd_anymore() {
+            givenExistingApi();
+
+            var existingFolder = Page.builder()
+                .id("folder-id")
+                .name("markdowns")
+                .type(Page.Type.FOLDER)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
+            var existingMarkdown = Page.builder()
+                .id("markdown-id")
+                .name("hello-markdown")
+                .type(Page.Type.MARKDOWN)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
+
+            pageQueryService.initWith(List.of(existingFolder, existingMarkdown));
+            pageCrudService.initWith(List.of(existingFolder, existingMarkdown));
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
+
+            // Only keep the folder in the CRD, markdown should be deleted
+            var folderCRD = PageCRD.builder()
+                .id("folder-id")
+                .hrid("markdowns-folder")
+                .name("markdowns")
+                .type(PageCRD.Type.FOLDER)
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
+
+            var pages = new HashMap<String, PageCRD>();
+            pages.put("markdowns-folder", folderCRD);
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+
+            assertThat(pageCrudService.storage()).extracting(Page::getId).contains("folder-id").doesNotContain("markdown-id");
+        }
+
+        @Test
+        void should_delete_all_pages_when_crd_has_no_pages() {
+            givenExistingApi();
+
+            var existingPage = Page.builder()
+                .id("existing-page-id")
+                .name("existing-page")
+                .type(Page.Type.MARKDOWN)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
+
+            pageQueryService.initWith(List.of(existingPage));
+            pageCrudService.initWith(List.of(existingPage));
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
+
+            assertThat(pageCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -1917,6 +2037,65 @@ class ImportApiCRDUseCaseTest {
     }
 
     @Test
+    void should_not_deploy_when_no_plan_is_published_or_deprecated() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
+
+        useCase.execute(
+            new ImportApiCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STARTED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                    .plans(
+                        Map.of(
+                            "staging-plan",
+                            PlanCRD.builder()
+                                .id("staging-plan-id")
+                                .name("Staging Plan")
+                                .security(PlanSecurity.builder().type("KEY_LESS").build())
+                                .mode(PlanMode.STANDARD)
+                                .validation(Plan.PlanValidationType.AUTO)
+                                .status(PlanStatus.STAGING)
+                                .type(Plan.PlanType.API)
+                                .flows(List.of())
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_not_change_lifecycle_when_state_is_unchanged() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
+
+        useCase.execute(
+            new ImportApiCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STARTED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+    }
+
+    @Test
     void should_add_category_to_the_api() {
         categoryQueryService.reset();
         categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
@@ -1974,6 +2153,8 @@ class ImportApiCRDUseCaseTest {
     private static ApiCRDSpec.ApiCRDSpecBuilder aCRD() {
         return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
+            .id(API_ID)
+            .crossId(API_CROSS_ID)
             .hrid(API_HRID_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
@@ -2012,6 +2193,7 @@ class ImportApiCRDUseCaseTest {
                 Map.of(
                     "keyless-key",
                     PlanCRD.builder()
+                        .id(KEYLESS_PLAN_ID)
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
@@ -2036,8 +2218,8 @@ class ImportApiCRDUseCaseTest {
     private static ApiCRDSpec.ApiCRDSpecBuilder aNativeApiCRD() {
         return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
-            //                .id(API_ID)
-            //                .crossId(API_CROSS_ID)
+            .id(API_ID)
+            .crossId(API_CROSS_ID)
             .hrid(API_HRID_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
@@ -2078,6 +2260,7 @@ class ImportApiCRDUseCaseTest {
                 Map.of(
                     "keyless-key",
                     PlanCRD.builder()
+                        .id(KEYLESS_PLAN_ID)
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
@@ -2202,7 +2385,7 @@ class ImportApiCRDUseCaseTest {
                         Map.of(
                             "keyless-key",
                             NativePlan.builder()
-                                .id(IdBuilder.builder(AUDIT_INFO, API_HRID_ID).withExtraId("keyless-key").buildId())
+                                .id(KEYLESS_PLAN_ID)
                                 .name("Keyless")
                                 .security(PlanSecurity.builder().type("KEY_LESS").build())
                                 .mode(PlanMode.STANDARD)
@@ -2238,11 +2421,11 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownPage(PageCRD folder) {
         return PageCRD.builder()
+            .id("markdown-page-id")
             .parentId(folder.getId())
-            .name("hrid")
             .name("hello-markdown")
             .type(PageCRD.Type.MARKDOWN)
-            .parentId("markdowns-folder")
+            .parentId("markdowns-folder-id")
             .content("Hello world!")
             .visibility(PageCRD.Visibility.PUBLIC)
             .build();
@@ -2250,6 +2433,7 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownsFolderPage() {
         return PageCRD.builder()
+            .id("markdowns-folder-id")
             .hrid("markdowns-folder")
             .name("markdowns")
             .type(PageCRD.Type.FOLDER)

@@ -76,16 +76,20 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     class Create {
 
         @Test
-        void should_generate_ids() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+        void should_preserve_pre_set_ids() {
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
+                .toBuilder()
+                .sharedPolicyGroupId("pre-set-id")
+                .crossId("pre-set-cross-id")
+                .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
                 sanitized -> {
                     assertThat(sanitized.crd()).isNotSameAs(aCRD);
-                    assertThat(sanitized.crd().getSharedPolicyGroupId()).isNotBlank();
-                    assertThat(sanitized.crd().getCrossId()).isNotBlank();
+                    assertThat(sanitized.crd().getSharedPolicyGroupId()).isEqualTo("pre-set-id");
+                    assertThat(sanitized.crd().getCrossId()).isEqualTo("pre-set-cross-id");
                     assertThat(sanitized.crd().getHrid()).isEqualTo(aCRD.getHrid());
                 },
                 errors -> assertThat(errors).isNotNull()

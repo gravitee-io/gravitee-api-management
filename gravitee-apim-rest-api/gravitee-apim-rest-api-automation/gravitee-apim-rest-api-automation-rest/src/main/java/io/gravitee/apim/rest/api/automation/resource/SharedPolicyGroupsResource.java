@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
+import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.SharedPolicyGroupMapper;
 import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
 import io.gravitee.common.http.MediaType;
@@ -90,6 +91,8 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             // HRID is removed as it does not make sense here, besides
             // it avoids confusion in the database
             sharedPolicyGroupCRD.setHrid(null);
+        } else {
+            CrdIdHelper.generateSharedPolicyGroupIds(sharedPolicyGroupCRD, audit);
         }
 
         if (dryRun) {

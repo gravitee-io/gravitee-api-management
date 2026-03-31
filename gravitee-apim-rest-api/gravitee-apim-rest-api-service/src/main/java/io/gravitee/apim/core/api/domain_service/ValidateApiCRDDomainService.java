@@ -31,7 +31,6 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -69,15 +68,6 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
-
-        // Keep existing IDs to allow take over of an existing API
-        IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.spec.getHrid());
-        if (input.spec.getId() == null) {
-            input.spec.setId(idBuilder.buildId());
-        }
-        if (input.spec.getCrossId() == null) {
-            input.spec.setCrossId(idBuilder.buildCrossId());
-        }
 
         var sanitizedBuilder = input.spec().toBuilder();
 

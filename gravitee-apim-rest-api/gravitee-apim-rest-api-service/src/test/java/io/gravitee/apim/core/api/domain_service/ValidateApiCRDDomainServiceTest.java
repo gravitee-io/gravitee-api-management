@@ -36,7 +36,6 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +43,6 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,14 +92,11 @@ class ValidateApiCRDDomainServiceTest {
         consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
     }
 
-    @ParameterizedTest
-    @CsvSource({ "null,null", "test-id,null", "null,test-cross-id" })
-    void should_return_input_with_id_cross_id_generated_from_hrid(String id, String crossId) {
-        String hrid = "test-hrid";
+    @Test
+    void should_preserve_pre_set_ids() {
         var spec = ApiCRDFixtures.newBaseSpec()
-            .id(id)
-            .crossId(crossId)
-            .hrid(hrid)
+            .id("pre-set-id")
+            .crossId("pre-set-cross-id")
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();
         var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build(), spec);
@@ -139,23 +133,12 @@ class ValidateApiCRDDomainServiceTest {
             )
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        var idBuilder = IdBuilder.builder(input.auditInfo(), input.spec().getHrid());
-        var expected = spec.toBuilder().id(idBuilder.buildId()).hrid(hrid).crossId(idBuilder.buildCrossId()).build();
-
         cut
             .validateAndSanitize(input)
             .peek(
                 sanitized -> {
-                    if (id == null) {
-                        Assertions.assertThat(sanitized.spec().getId()).isEqualTo(expected.getId());
-                    } else {
-                        Assertions.assertThat(sanitized.spec().getId()).isEqualTo(id);
-                    }
-                    if (crossId == null) {
-                        Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo(expected.getCrossId());
-                    } else {
-                        Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo(crossId);
-                    }
+                    Assertions.assertThat(sanitized.spec().getId()).isEqualTo("pre-set-id");
+                    Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo("pre-set-cross-id");
                 },
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
