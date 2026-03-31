@@ -198,6 +198,9 @@ describe('PortalSettingsComponent', () => {
           access: {
             enabled: false,
           },
+          mtls: {
+            enabled: false,
+          },
           banner: {
             ...portalSettingsMock.portalNext.banner,
             enabled: true,

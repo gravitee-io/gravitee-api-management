@@ -447,6 +447,15 @@
                 aria-label="New Portal Enabled"
               ></mat-slide-toggle>
             </gio-form-slide-toggle>
+            <gio-form-slide-toggle formGroupName="mtls" class="portal__form__card__form-field">
+              <gio-form-label>Enable mTLS Certificate Management</gio-form-label>
+              <mat-slide-toggle
+                id="enable-portal-next-mtls"
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="mTLS Certificate Management Enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
             @if (!!settings.portalNext?.access?.enabled) {
               <div class="new-developer-portal-actions">
                 @if (portalUrl) {
