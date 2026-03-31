@@ -33,6 +33,7 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.core.context.FailoverRequestAdapter;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
@@ -304,8 +305,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      * Calling {@code body()} also activates internal chunk caching, which is mandatory to replay the request.
      */
     private Completable captureRequestState(HttpExecutionContext ctx, AtomicReference<RequestSnapshot> snapshotRef) {
-        return ctx
-            .request()
+        return FailoverRequestAdapter.forRequest(ctx.request())
             .body()
             // Body present: capture path, headers, and body for full replay
             .doOnSuccess(body -> snapshotRef.compareAndSet(null, RequestSnapshot.withBody(ctx, body)))
