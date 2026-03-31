@@ -106,6 +106,7 @@ public class ApiSubscriptionResource extends AbstractResource {
             subscriptionState.setEndingAt(
                 subscriptionEntity.getEndingAt() != null ? subscriptionEntity.getEndingAt().toOffsetDateTime() : null
             );
+            subscriptionState.setMetadata(subscriptionEntity.getMetadata());
             return Response.ok(subscriptionState).build();
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: get", hrid, apiHrid);
