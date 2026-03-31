@@ -574,14 +574,6 @@ public class ApiResource extends AbstractResource {
         GenericApiEntity duplicate;
 
         return switch (currentEntity.getDefinitionVersion()) {
-            case V1 -> Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new Error()
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                        .message("Duplicating V1 API is not supported")
-                        .technicalCode("api.duplicate.v1")
-                )
-                .build();
             case FEDERATED -> Response.status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
@@ -612,6 +604,14 @@ public class ApiResource extends AbstractResource {
                         .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
                         .message("Duplicating FEDERATED Agent is not supported")
                         .technicalCode("api.duplicate.federated")
+                )
+                .build();
+            default -> Response.status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message("Duplicating this API definition version is not supported")
+                        .technicalCode("api.duplicate.unsupported")
                 )
                 .build();
         };

@@ -101,19 +101,6 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @Test
-    void should_return_400_when_duplicate_v1_api() {
-        var apiEntity = ApiFixtures.aModelApiV1().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
-
-        final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
-        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-
-        var error = response.readEntity(Error.class);
-        assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
-        assertThat(error.getMessage()).isEqualTo("Duplicating V1 API is not supported");
-    }
-
-    @Test
     void should_return_400_when_duplicate_exception_is_thrown() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);

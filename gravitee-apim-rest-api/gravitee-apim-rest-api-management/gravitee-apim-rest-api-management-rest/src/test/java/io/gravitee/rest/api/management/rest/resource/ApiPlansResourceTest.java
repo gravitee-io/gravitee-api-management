@@ -84,7 +84,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCloseApiPlan() {
-        ApiEntity api = getApi(DefinitionVersion.V1);
+        ApiEntity api = getApi(DefinitionVersion.V2);
 
         PlanEntity existingPlan = new PlanEntity();
         existingPlan.setName(PLAN);
@@ -106,7 +106,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteApiPlan() {
-        ApiEntity api = getApi(DefinitionVersion.V1);
+        ApiEntity api = getApi(DefinitionVersion.V2);
 
         PlanEntity existingPlan = new PlanEntity();
         existingPlan.setName(PLAN);

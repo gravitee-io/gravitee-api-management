@@ -425,13 +425,6 @@ public class ApisResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, apiDefinitionOrUrl);
 
-        if (
-            DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&
-            DefinitionVersion.V1.getLabel().equals(imported.getGraviteeDefinitionVersion())
-        ) {
-            return Response.ok(apiService.migrate(executionContext, imported.getId())).build();
-        }
-
         return Response.ok(imported).build();
     }
 

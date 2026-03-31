@@ -17,7 +17,6 @@ package fixtures;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -46,8 +45,7 @@ public class ApiModelFixtures {
             .services(new Services())
             .resources(List.of(ResourceModelFixtures.aResourceEntityV2()))
             .responseTemplates(Map.of("key", new HashMap<>()))
-            .updatedAt(new Date())
-            .paths(Map.of("path", List.of(new Rule())));
+            .updatedAt(new Date());
 
     private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V2 =
         io.gravitee.rest.api.model.api.ApiEntity.builder()

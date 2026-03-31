@@ -3124,7 +3124,6 @@ components:
                     $ref: "#/components/schemas/TracingV4"
         Api:
             oneOf:
-                - $ref: "#/components/schemas/ApiV1"
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
                 - $ref: "#/components/schemas/ApiFederated"
@@ -3132,7 +3131,6 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V1: "#/components/schemas/ApiV1"
                     V2: "#/components/schemas/ApiV2"
                     V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
@@ -3287,49 +3285,10 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V1: "#/components/schemas/ApiV1"
                     V2: "#/components/schemas/ApiV2"
                     V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
                     FEDERATED_AGENT: "#/components/schemas/ApiFederatedAgent"
-        ApiV1:
-            type: object
-            title: "ApiV1"
-            allOf:
-                - $ref: "#/components/schemas/GenericApi"
-                - properties:
-                      environmentId:
-                          type: string
-                          description: The environment's uuid.
-                          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                      executionMode:
-                          $ref: "#/components/schemas/ExecutionMode"
-                      contextPath:
-                          type: string
-                          description: The context path of the API.
-                          example: /my-api
-                      proxy:
-                          $ref: "#/components/schemas/Proxy"
-                      paths:
-                          type: object
-                          additionalProperties:
-                              type: array
-                              description: a map where you can associate a path to a configuration (the
-                                  policies configuration)
-                              items:
-                                  $ref: "#/components/schemas/Rule"
-                      services:
-                          $ref: "#/components/schemas/ApiServicesV2"
-                      pathMappings:
-                          type: array
-                          description: The list of path mappings associated with this API.
-                          items:
-                              type: string
-                      entrypoints:
-                          type: array
-                          description: The list of entrypoints associated with this API.
-                          items:
-                              $ref: "#/components/schemas/ApiEntrypoint"
         ApiV2:
             type: object
             title: "ApiV2"
@@ -4318,7 +4277,6 @@ components:
             description: API's gravitee definition version.
             example: V4
             enum:
-                - V1
                 - V2
                 - V4
                 - FEDERATED
@@ -5374,12 +5332,6 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV2"
-                      paths:
-                          type: object
-                          additionalProperties:
-                              type: array
-                              items:
-                                  $ref: "#/components/schemas/Rule"
 
         UpdatePlanV4:
             type: object
@@ -6776,12 +6728,6 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV2"
-                      paths:
-                          type: object
-                          additionalProperties:
-                              type: array
-                              items:
-                                  $ref: "#/components/schemas/Rule"
         ProtocolVersion:
             type: string
             description: The protocol version.
@@ -7944,29 +7890,6 @@ components:
                 - DATE
                 - MAIL
                 - URL
-
-        Rule:
-            type: object
-            properties:
-                methods:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/HttpMethod"
-                description:
-                    type: string
-                    description: The description of the rule
-                enabled:
-                    type: boolean
-                    description: Is the rule enabled or not.
-                    default: true
-                operation:
-                    type: string
-                    description: The operation of the rule
-                configuration:
-                    type: object
-                    description: The configuration of the rule
-            additionalProperties:
-                type: object
 
         CreateIntegration:
             type: object

@@ -93,10 +93,10 @@ import org.slf4j.Logger;
         PropertiesMapper.class,
         ResourceMapper.class,
         ResponseTemplateMapper.class,
-        RuleMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
         ConfigurationSerializationMapper.class,
+        DefinitionVersionMapper.class,
     }
 )
 public interface ApiMapper {
@@ -134,10 +134,9 @@ public interface ApiMapper {
             );
             case ApiEntity asApiEntity -> new Api(mapToV4(asApiEntity, uriInfo, state));
             case NativeApiEntity asNativeApiEntity -> new Api(mapToV4(asNativeApiEntity, uriInfo, state));
-            case io.gravitee.rest.api.model.api.ApiEntity legacy -> legacy.getDefinitionVersion() ==
-                io.gravitee.definition.model.DefinitionVersion.V1
-                ? new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV1(legacy, uriInfo, state))
-                : new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV2(legacy, uriInfo, state));
+            case io.gravitee.rest.api.model.api.ApiEntity legacy -> new io.gravitee.rest.api.management.v2.rest.model.Api(
+                mapToV2(legacy, uriInfo, state)
+            );
             case null, default -> null;
         };
     }
@@ -249,13 +248,6 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
-
-    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapToV1(
-        io.gravitee.rest.api.model.api.ApiEntity apiEntity,
-        UriInfo uriInfo,
-        GenericApi.DeploymentStateEnum deploymentState
-    );
 
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", ignore = true)
