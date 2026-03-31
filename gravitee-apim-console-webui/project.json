@@ -184,8 +184,7 @@
       "outputs": ["{workspaceRoot}/gravitee-apim-console-webui/coverage"],
       "configurations": {
         "ci": {
-          "ci": true,
-          "runInBand": true
+          "ci": true
         }
       }
     },
