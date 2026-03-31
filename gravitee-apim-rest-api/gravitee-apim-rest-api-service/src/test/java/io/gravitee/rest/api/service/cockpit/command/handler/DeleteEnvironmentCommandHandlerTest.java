@@ -44,6 +44,7 @@ import io.gravitee.repository.management.api.ClientCertificateRepository;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -236,6 +237,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private CustomDashboardRepository customDashboardRepository;
 
     @Mock
     private DashboardRepository dashboardRepository;
@@ -436,6 +440,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             clientCertificateRepository,
             clientRegistrationProviderRepository,
             commandRepository,
+            customDashboardRepository,
             customUserFieldsRepository,
             dashboardRepository,
             dictionaryRepository,
@@ -551,6 +556,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(roleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, RoleReferenceType.ENVIRONMENT);
         verify(categoryRepository).deleteByEnvironmentId(ENV_ID);
         verify(dashboardRepository).deleteByReferenceIdAndReferenceType(ENV_ID, DashboardReferenceType.ENVIRONMENT);
+        verify(customDashboardRepository).deleteByEnvironmentId(ENV_ID);
         verify(dictionaryRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);

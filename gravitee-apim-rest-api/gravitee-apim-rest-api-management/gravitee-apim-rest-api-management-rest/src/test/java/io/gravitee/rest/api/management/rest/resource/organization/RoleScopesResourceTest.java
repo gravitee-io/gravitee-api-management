@@ -32,7 +32,6 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         List.of(
             "AUDIT",
             "CUSTOM_USER_FIELDS",
-            "DASHBOARD",
             "ENTRYPOINT",
             "ENVIRONMENT",
             "IDENTITY_PROVIDER",

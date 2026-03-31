@@ -24,7 +24,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface CustomDashboardRepository extends CrudRepository<CustomDashboard, String> {
-    List<CustomDashboard> findByOrganizationId(String organizationId) throws TechnicalException;
+    List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException;
 
-    void deleteByOrganizationId(String organizationId) throws TechnicalException;
+    void deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopApps
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopFailedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.computation.AnalyticsComputationResource;
+import io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards.DashboardsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.definition.AnalyticsDefinitionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.param.TimeRangeParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -218,5 +219,10 @@ public class EnvironmentAnalyticsResource {
     @Path("/definition")
     public AnalyticsDefinitionResource getAnalyticsDefinitionApisResource() {
         return resourceContext.getResource(AnalyticsDefinitionResource.class);
+    }
+
+    @Path("/dashboards")
+    public DashboardsResource getDashboardsResource() {
+        return resourceContext.getResource(DashboardsResource.class);
     }
 }

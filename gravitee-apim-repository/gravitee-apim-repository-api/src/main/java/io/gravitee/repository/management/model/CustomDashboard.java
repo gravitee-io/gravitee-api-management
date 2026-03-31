@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 public class CustomDashboard {
 
     private String id;
-    private String organizationId;
+    private String environmentId;
     private String name;
     private String createdBy;
     private Date createdAt;

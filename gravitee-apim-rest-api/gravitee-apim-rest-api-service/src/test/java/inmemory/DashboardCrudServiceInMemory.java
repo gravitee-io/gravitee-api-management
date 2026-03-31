@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 public class DashboardCrudServiceInMemory implements DashboardCrudService, InMemoryAlternative<Dashboard> {
 
@@ -42,10 +41,10 @@ public class DashboardCrudServiceInMemory implements DashboardCrudService, InMem
     }
 
     @Override
-    public List<Dashboard> findByOrganizationId(String organizationId) {
+    public List<Dashboard> findByEnvironmentId(String environmentId) {
         return storage
             .stream()
-            .filter(d -> organizationId.equals(d.getOrganizationId()))
+            .filter(d -> environmentId.equals(d.getEnvironmentId()))
             .toList();
     }
 

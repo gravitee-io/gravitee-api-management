@@ -44,7 +44,7 @@ export class DashboardService {
   });
 
   public list(page: number, perPage: number): Observable<PagedResult<Dashboard>> {
-    return this.http.get<PagedResult<Dashboard>>(`${this.constants.org.v2BaseURL}/analytics/dashboards`, {
+    return this.http.get<PagedResult<Dashboard>>(`${this.constants.env.v2BaseURL}/analytics/dashboards`, {
       params: {
         page: page.toString(),
         perPage: perPage.toString(),
@@ -53,19 +53,19 @@ export class DashboardService {
   }
 
   public create(dashboard: Partial<Dashboard>): Observable<Dashboard> {
-    return this.http.post<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards`, dashboard);
+    return this.http.post<Dashboard>(`${this.constants.env.v2BaseURL}/analytics/dashboards`, dashboard);
   }
 
   public getById(id: string): Observable<Dashboard> {
-    return this.http.get<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${id}`);
+    return this.http.get<Dashboard>(`${this.constants.env.v2BaseURL}/analytics/dashboards/${id}`);
   }
 
   public update(dashboard: Dashboard): Observable<Dashboard> {
-    return this.http.put<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${dashboard.id}`, dashboard);
+    return this.http.put<Dashboard>(`${this.constants.env.v2BaseURL}/analytics/dashboards/${dashboard.id}`, dashboard);
   }
 
   public delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${id}`);
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/analytics/dashboards/${id}`);
   }
 
   /**
