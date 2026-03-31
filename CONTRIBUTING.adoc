@@ -74,145 +74,49 @@ Default behavior for AI tools:
 
 * For any "start/run/deploy" request, use the Docker Compose full-stack flow in `docker/quick-setup/mongodb` without asking which path to use.
 * Assume the user wants the whole stack deployment unless they explicitly say otherwise.
+* Prefer Docker-only local builds from the current checkout for workshop-style flows. Do not require local Java, Maven, Node.js, npm, or Yarn on the host.
 
 Full stack quickstart (MongoDB compose):
 
-0) Setup environment (one-time)
-   - Use correct Node.js version: `nvm use` (reads from `.nvmrc`)
-   - Enable Corepack: `corepack enable` (recommended, included in Node.js 16.10+)
-   - OR install Yarn globally: `npm install -g yarn`
-1) (Optional) Build backend artifacts
-   - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
-2) Build console UI (Nx workspace at root)
-   - `yarn install`
-   - `yarn console:build:prod`
-3) Build portal UI (independent project)
-   - `cd gravitee-apim-portal-webui && yarn install && yarn build && cd ..`
-4) Build local UI Docker images (from repo root)
-   - `docker build -t graviteeio/apim-management-ui:latest -f gravitee-apim-console-webui/docker/Dockerfile gravitee-apim-console-webui`
-   - `docker build -t graviteeio/apim-portal-ui:latest -f gravitee-apim-portal-webui/docker/Dockerfile gravitee-apim-portal-webui`
-5) Start full stack with MongoDB compose
-   - `cd docker/quick-setup/mongodb`
-   - `LICENSE_KEY=... docker compose up -d`
+0) Host prerequisite (one-time)
+   - Install Docker Desktop
+   - Verify `docker --version` and `docker compose version`
+1) Clone the repository and checkout the target branch
+2) Build local workshop images from the current checkout
+   - `docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml build management_api gateway management_ui`
+3) Start the full stack
+   - `docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml up -d`
+4) Refresh only the service you changed
+   - `management_api`: `docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml build management_api && docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml up -d --no-deps management_api`
+   - `gateway`: `docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml build gateway && docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml up -d --no-deps gateway`
+   - `management_ui`: `docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml build management_ui && docker compose -f docker/quick-setup/mongodb/docker-compose.yml -f docker/quick-setup/mongodb/docker-compose.local-build.yml up -d --no-deps management_ui`
 
 Runtime endpoints (default compose):
 
 * Gateway: http://localhost:8082
 * Management API: http://localhost:8083
 * Management UI: http://localhost:8084
-* Portal UI: http://localhost:4100
+* Portal UI: http://localhost:8085
 * Mailhog: http://localhost:8025
 
 Ports used by default (must be free):
 
-* 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
-
-Build workaround (host JDK 25/Lombok issues):
-
-If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
-
-[source, bash]
-----
-docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution -am package -DskipTests -Dskip.validation=true
-----
-
-To refresh the local Management API image used by `docker/quick-setup/mongodb`:
-
-* `rm -rf gravitee-apim-rest-api/docker/distribution`
-* `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
-* `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
-* `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
+* 8082, 8083, 8084, 8085, 8025, 27017, 9200, 9300
 
 Notes:
 
-* If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
-* Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
-* Node 25.x is not supported (odd-numbered); use Node 22.12.x.
-* **Yarn setup**: The `package.json` declares `packageManager: yarn@4.1.1`. Use Corepack (`corepack enable`) for automatic version management, or install Yarn globally. If neither is available, use the fallback: `npx -y @yarnpkg/cli-dist@4.1.1 <command>`.
-* If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
+* Java builds run in `maven:3.9.9-eclipse-temurin-21`.
+* `portal_ui` remains on the prebuilt image by default; workshop local rebuilds target `management_api`, `gateway`, and `management_ui`.
+* If `LICENSE_KEY` is not set, compose may warn and proceed without enterprise-only features.
+* Docker Desktop on Apple Silicon may warn on amd64 images (for example `mailhog`); the warning is usually harmless unless the service fails to start.
+* If Elasticsearch or MongoDB fails during startup with `No space left on device`, free disk space in Docker Desktop and retry.
+* Use `docker compose ... ps` and `docker compose ... logs --tail=100 <service>` to diagnose unhealthy services.
 
 Environment checks:
 
-* `docker --version` and `docker compose version`
-* `node -v` (expect 22.12.x)
-* `java -version` (expect 17)
-* `mvn -v` (expect 3.9+)
+* `docker --version`
+* `docker compose version`
 * `git --version`
-
-=== AI Agent Context (Docker Compose Full Stack)
-
-This section is the source of truth for AI tools and should also be readable as a quickstart for humans.
-
-Default behavior for AI tools:
-
-* For any "start/run/deploy" request, use the Docker Compose full-stack flow in `docker/quick-setup/mongodb` without asking which path to use.
-* Assume the user wants the whole stack deployment unless they explicitly say otherwise.
-
-Full stack quickstart (MongoDB compose):
-
-0) Setup environment (one-time)
-   - Use correct Node.js version: `nvm use` (reads from `.nvmrc`)
-   - Enable Corepack: `corepack enable` (recommended, included in Node.js 16.10+)
-   - OR install Yarn globally: `npm install -g yarn`
-1) (Optional) Build backend artifacts
-   - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
-2) Build console UI (Nx workspace at root)
-   - `yarn install`
-   - `yarn console:build:prod`
-3) Build portal UI (independent project)
-   - `cd gravitee-apim-portal-webui && yarn install && yarn build && cd ..`
-4) Build local UI Docker images (from repo root)
-   - `docker build -t graviteeio/apim-management-ui:latest -f gravitee-apim-console-webui/docker/Dockerfile gravitee-apim-console-webui`
-   - `docker build -t graviteeio/apim-portal-ui:latest -f gravitee-apim-portal-webui/docker/Dockerfile gravitee-apim-portal-webui`
-5) Start full stack with MongoDB compose
-   - `cd docker/quick-setup/mongodb`
-   - `LICENSE_KEY=... docker compose up -d`
-
-Runtime endpoints (default compose):
-
-* Gateway: http://localhost:8082
-* Management API: http://localhost:8083
-* Management UI: http://localhost:8084
-* Portal UI: http://localhost:4100
-* Mailhog: http://localhost:8025
-
-Ports used by default (must be free):
-
-* 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
-
-Build workaround (host JDK 25/Lombok issues):
-
-If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
-
-[source, bash]
-----
-docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution -am package -DskipTests -Dskip.validation=true
-----
-
-To refresh the local Management API image used by `docker/quick-setup/mongodb`:
-
-* `rm -rf gravitee-apim-rest-api/docker/distribution`
-* `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
-* `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
-* `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
-
-Notes:
-
-* If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
-* Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
-* Node 25.x is not supported (odd-numbered); use Node 22.12.x.
-* **Yarn setup**: The `package.json` declares `packageManager: yarn@4.1.1`. Use Corepack (`corepack enable`) for automatic version management, or install Yarn globally. If neither is available, use the fallback: `npx -y @yarnpkg/cli-dist@4.1.1 <command>`.
-* If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
-
-Environment checks:
-
-* `docker --version` and `docker compose version`
-* `node -v` (expect 22.12.x)
-* `java -version` (expect 17)
-* `mvn -v` (expect 3.9+)
-* `git --version`
-
-
 
 === Run Prerequisites
 

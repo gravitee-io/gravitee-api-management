@@ -1,0 +1,18 @@
+services:
+  gateway:
+    image: graviteeio/apim-gateway:local
+    build:
+      context: ../../..
+      dockerfile: docker/local-build/Dockerfile.gateway
+
+  management_api:
+    image: graviteeio/apim-management-api:local
+    build:
+      context: ../../..
+      dockerfile: docker/local-build/Dockerfile.management-api
+
+  management_ui:
+    image: graviteeio/apim-management-ui:local
+    build:
+      context: ../../..
+      dockerfile: docker/local-build/Dockerfile.management-ui

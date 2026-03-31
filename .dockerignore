@@ -1,0 +1,16 @@
+.git
+.github
+.circleci
+.idea
+.run
+**/.DS_Store
+**/node_modules
+**/dist
+**/dist-lib
+**/target
+**/.cache
+**/.angular
+**/.gradle
+**/*.log
+docker/quick-setup/*/.logs
+docker/quick-setup/*/.license

@@ -1,0 +1,27 @@
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
+WORKDIR /workspace
+COPY . .
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -pl gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution \
+    -am package -DskipTests -Dskip.validation=true -Dbundle=dev
+
+FROM graviteeio/java:21-alpine AS base
+ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
+
+USER root
+RUN apk update \
+    && apk add --no-cache libc6-compat jemalloc \
+    && if [ "$(apk --print-arch)" = "aarch64" ]; then ln -s /lib/libc.musl-aarch64.so.1 /lib/ld-linux-aarch64.so.2; fi
+
+FROM base AS builder-runtime
+COPY --from=builder /workspace/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ${GRAVITEEIO_HOME}/
+RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
+    chmod -R g=u ${GRAVITEEIO_HOME}
+
+FROM base
+LABEL maintainer="contact@graviteesource.com"
+COPY --from=builder-runtime ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
+WORKDIR ${GRAVITEEIO_HOME}
+EXPOSE 8082
+ENTRYPOINT ["./bin/gravitee"]
+USER graviteeio
