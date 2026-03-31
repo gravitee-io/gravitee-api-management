@@ -177,6 +177,13 @@ tests:
             image: "alpine:latest"
             imagePullPolicy: Always
             command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  https://url/where/to/download/driver"]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+            -  name: graviteeio-apim-repository-jdbc-ext
+               mountPath: /tmp/plugins-ext
 
   - it: Should keep startup download for custom JDBC drivers
     template: gateway/gateway-deployment.yaml

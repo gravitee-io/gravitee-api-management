@@ -26,8 +26,8 @@ tests:
           content:
             name: GRAVITEE_UPGRADE_MODE
             value: "true"
-      - exists:
-          # It need hazelcast plugin
+      - notExists:
+          # It should not contain init containers by default
           path: spec.template.spec.initContainers
 
 
@@ -98,6 +98,13 @@ tests:
             image: "customer/mysql-jdbc:9.3.0"
             imagePullPolicy: IfNotPresent
             command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/" ]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
       - notContains:
           path: spec.template.spec.initContainers
           content:

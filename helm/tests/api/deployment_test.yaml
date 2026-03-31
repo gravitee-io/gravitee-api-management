@@ -96,6 +96,13 @@ tests:
             image: "customer/mysql-jdbc:9.3.0"
             imagePullPolicy: IfNotPresent
             command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/" ]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
       - equal:
           path: spec.template.spec.containers[0].volumeMounts[1].name
           value: graviteeio-apim-repository-jdbc-ext
