@@ -258,8 +258,15 @@ mongo:
     password:
 
 jdbc:
+  # The jdbc.url scheme decides whether APIM uses a bundled JDBC driver or downloads jdbc.driver at startup.
   url: jdbc:mysql://localhost:3306/gravitee
-  # the URL to download the driver
+  # APIM bundles PostgreSQL, MariaDB, and SQL Server JDBC drivers in the official images.
+  # MySQL is intentionally not bundled and is still downloaded at pod startup.
+  # Startup download behavior is derived from the jdbc.url scheme:
+  # - jdbc:postgresql:, jdbc:mariadb:, jdbc:sqlserver: -> bundled driver, no startup download
+  # - jdbc:mysql: -> startup download using jdbc.driver
+  # - any other jdbc:* scheme -> startup download using jdbc.driver
+  # Set this URL for MySQL or any other non-bundled/custom JDBC driver.
   driver: https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.22/mysql-connector-java-8.0.22.jar
   # the version of the gravitee-repository-jdbc (only required for apim versions < 3.5.0)
 #  repositoryVersion: 3.3.0

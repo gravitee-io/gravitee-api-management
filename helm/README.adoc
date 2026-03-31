@@ -264,14 +264,68 @@ postgres-apim-postgresql-0                1/1     Running      0           98s
 ----
 
 
-For PostgrestSQL, use the information below in `values.yml` and replace the `username`, `password`,
+Official APIM images bundle the PostgreSQL, MariaDB, and Microsoft SQL Server JDBC drivers.
+MySQL is intentionally not bundled and is still downloaded at pod startup from `jdbc.driver`.
+
+The startup behavior is derived from the scheme in `jdbc.url`:
+
+* `jdbc:postgresql:`, `jdbc:mariadb:`, `jdbc:sqlserver:` use the bundled driver and do not download anything at startup
+* `jdbc:mysql:` downloads the driver from `jdbc.driver` at startup
+* any other `jdbc:*` scheme also uses `jdbc.driver` as a startup download fallback
+
+For PostgreSQL, use the information below in `values.yml` and replace the `username`, `password`,
 `URL` and `database name` with details for your specific instance.
 
 ----
 jdbc:
-  driver: https://jdbc.postgresql.org/download/postgresql-42.2.23.jar
   url: jdbc:postgresql://postgres-apim-postgresql:5432/graviteeapim
   username: postgres
+  password: P@ssw0rd
+management:
+  type: jdbc
+----
+
+For MariaDB:
+
+----
+jdbc:
+  url: jdbc:mariadb://mariadb-apim-mariadb:3306/graviteeapim
+  username: gravitee
+  password: P@ssw0rd
+management:
+  type: jdbc
+----
+
+For Microsoft SQL Server:
+
+----
+jdbc:
+  url: jdbc:sqlserver://sqlserver-apim-mssql:1433;databaseName=graviteeapim
+  username: sa
+  password: P@ssw0rd
+management:
+  type: jdbc
+----
+
+For MySQL:
+
+----
+jdbc:
+  url: jdbc:mysql://mysql-apim-mysql:3306/graviteeapim
+  driver: https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.3.0/mysql-connector-j-9.3.0.jar
+  username: gravitee
+  password: P@ssw0rd
+management:
+  type: jdbc
+----
+
+For any other JDBC driver, keep `jdbc.driver` set to a URL that can be downloaded at startup:
+
+----
+jdbc:
+  url: jdbc:customdb://customdb:1234/graviteeapim
+  driver: https://artifacts.example.com/jdbc/customdb-driver.jar
+  username: gravitee
   password: P@ssw0rd
 management:
   type: jdbc
