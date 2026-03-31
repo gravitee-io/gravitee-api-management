@@ -53,6 +53,9 @@ public class ConfigurationMapper {
         configuration.setAccess(convert(portalNext.getAccess()));
         configuration.setBanner(convert(portalNext.getBanner()));
         configuration.setCatalog(convert(portalNext.getCatalog()));
+        if (portalNext.getMtlsEnabled() != null) {
+            configuration.setMtls(convert(portalNext.getMtlsEnabled()));
+        }
         return configuration;
     }
 

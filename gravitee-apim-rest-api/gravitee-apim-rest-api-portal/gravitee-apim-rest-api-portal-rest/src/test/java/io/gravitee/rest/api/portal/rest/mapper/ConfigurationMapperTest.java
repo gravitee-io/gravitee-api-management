@@ -190,4 +190,24 @@ public class ConfigurationMapperTest {
         String configurationAsJSON = mapper.writeValueAsString(configuration);
         assertEquals(mapper.readTree(expected), mapper.readTree(configurationAsJSON));
     }
+
+    @Test
+    public void convertPortalNextShouldMapMtlsEnabled() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setMtlsEnabled(true);
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getMtls());
+        Assertions.assertEquals(Boolean.TRUE, result.getMtls().getEnabled());
+
+        portalNext.setMtlsEnabled(false);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getMtls());
+        Assertions.assertEquals(Boolean.FALSE, result.getMtls().getEnabled());
+
+        portalNext.setMtlsEnabled(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getMtls());
+    }
 }
