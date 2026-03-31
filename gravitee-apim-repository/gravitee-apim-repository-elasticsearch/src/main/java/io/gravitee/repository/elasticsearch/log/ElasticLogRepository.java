@@ -96,7 +96,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     .size(MAX_RESULT_WINDOW)
                     .query(logQueryString)
                     .build();
-                final String sQuery = this.createSafeElasticsearchJsonQuery(logQuery);
+                final String sQuery = this.createElasticsearchJsonQuery(logQuery);
 
                 Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),
@@ -127,7 +127,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     result = this.client.search(
                         this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                        this.createSafeElasticsearchJsonQuery(requestQueryBuilder.build())
+                        this.createElasticsearchJsonQuery(requestQueryBuilder.build())
                     );
                 }
 
@@ -140,25 +140,31 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         }
     }
 
-    private String getQuery(final QueryFilter query, final boolean log) {
+    String getQuery(final QueryFilter query, final boolean log) {
         if (query == null) {
             return null;
         }
         final String filterSeparator = " AND ";
         final String[] filters = query.filter().split(filterSeparator);
         return stream(filters)
-            .map(f -> f.split(":"))
-            .filter(filter -> {
-                final String filterKey = filter[0];
-                return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
+            .filter(f -> {
+                int colonIdx = f.indexOf(':');
+                String key = colonIdx >= 0 ? f.substring(0, colonIdx) : f;
+                return (log && key.contains("body")) || (!log && !key.contains("body"));
             })
-            .map(filter -> {
-                final String filterKey = filter[0];
-                if ("body".equals(filterKey)) {
-                    return "\\\\*.body" + ":" + filter[1];
-                } else {
-                    return filterKey + ":" + filter[1];
+            .map(f -> {
+                int colonIdx = f.indexOf(':');
+                if (colonIdx < 0) {
+                    logger.warn("Log query filter segment has no field:value separator: {}", f);
+                    return escapeValueForLuceneJson(f);
                 }
+                String field = f.substring(0, colonIdx);
+                String value = f.substring(colonIdx + 1);
+                String escapedValue = escapeValueForLuceneJson(value);
+                if ("body".equals(field)) {
+                    return "\\\\*.body:" + escapedValue;
+                }
+                return field + ":" + escapedValue;
             })
             .collect(joining(filterSeparator));
     }
@@ -252,9 +258,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     /**
-     * Fix APIM-12955: Escapes Lucene special characters in the query string.
-     * Quadruple backslashes are required to survive both Java and JSON parsing levels
-     * so that Lucene finally receives the mandatory single backslash escape (e.g., \( ).
+     * Fix APIM-12955: Escapes Lucene special characters in query filter values.
+     * Only escapes the value portion of each field:value clause, preserving field
+     * patterns like {@code \\*.body} which use backslashes intentionally.
+     * Quadruple backslashes survive both Java and JSON parsing so Lucene receives
+     * the single backslash escape (e.g., \( ).
      */
     private String createSafeElasticsearchJsonQuery(final TabularQuery query) {
         String json = this.createElasticsearchJsonQuery(query);
@@ -263,12 +271,93 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             String filter = query.query().filter();
 
             if (!filter.isEmpty()) {
-                String escaped = filter.replace("\\", "\\\\\\\\").replace("/", "\\\\/").replace("(", "\\\\(").replace(")", "\\\\)");
+                String escaped = escapeFilterValues(filter);
 
                 // Targeted replacement within quotes to protect JSON structure
                 json = json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
             }
         }
         return json;
+    }
+
+    /**
+     * Escapes Lucene special characters only in the value portions of field:value
+     * clauses, preserving field names and patterns (e.g. \\*.body wildcard fields).
+     */
+    private String escapeFilterValues(String filter) {
+        final String andSeparator = " AND ";
+        return stream(filter.split(andSeparator)).map(ElasticLogRepository::escapeClauseValues).collect(joining(andSeparator));
+    }
+
+    private static String escapeClauseValues(String clause) {
+        // Handle OR-separated sub-clauses (e.g. "_id:x OR _id:y")
+        if (clause.contains(" OR ")) {
+            return stream(clause.split(" OR ")).map(ElasticLogRepository::escapeSingleClauseValue).collect(joining(" OR "));
+        }
+        return escapeSingleClauseValue(clause);
+    }
+
+    private static String escapeSingleClauseValue(String clause) {
+        int colonIdx = clause.indexOf(':');
+        if (colonIdx < 0) {
+            return escapeValueForLuceneJson(clause);
+        }
+        String field = clause.substring(0, colonIdx + 1);
+        String value = clause.substring(colonIdx + 1);
+        return field + escapeValueForLuceneJson(value);
+    }
+
+    // Lucene special characters that must be escaped in query values (backslash handled separately).
+    // * and ? are intentionally absent — they serve as wildcards in body searches.
+    private static final String LUCENE_SPECIAL = "+-!(){}[]^~:/&|=\"";
+
+    /**
+     * Idempotent Lucene escaping that handles two pre-escape conventions:
+     *
+     * <ul>
+     *   <li>The console uses a 2-backslash convention: each special char X is sent as {@code \\X}
+     *       (two backslashes + X). Detected by looking 3 chars ahead for the pattern
+     *       {@code \} {@code \} {@code X} — passed through as-is.</li>
+     *   <li>Raw API clients may use a 1-backslash convention ({@code \X}) or no escaping at all.
+     *       Both are normalised to {@code \\X}.</li>
+     * </ul>
+     *
+     * In all cases the output is {@code \\X} in the Java string, which FreeMarker places verbatim
+     * into the JSON query body. After JSON parsing Elasticsearch/Lucene receives {@code \X},
+     * the standard Lucene escape for a literal {@code X}.
+     */
+    private static String escapeValueForLuceneJson(String value) {
+        StringBuilder sb = new StringBuilder(value.length() * 2);
+        int i = 0;
+        final int n = value.length();
+        while (i < n) {
+            char c = value.charAt(i);
+            if (c == '\\') {
+                if (i + 2 < n && value.charAt(i + 1) == '\\' && LUCENE_SPECIAL.indexOf(value.charAt(i + 2)) >= 0) {
+                    // \\X — console pre-escaped special char (2-backslash convention). Pass through.
+                    sb.append("\\\\").append(value.charAt(i + 2));
+                    i += 3;
+                } else if (i + 1 < n && value.charAt(i + 1) == '\\') {
+                    // \\ — escaped backslash (console encodes literal \ as \\). Output \\\\.
+                    sb.append("\\\\\\\\");
+                    i += 2;
+                } else if (i + 1 < n && LUCENE_SPECIAL.indexOf(value.charAt(i + 1)) >= 0) {
+                    // \X — single-backslash pre-escape (raw client). Normalise to \\X.
+                    sb.append("\\\\").append(value.charAt(i + 1));
+                    i += 2;
+                } else {
+                    // Lone \ — literal backslash. Output \\\\.
+                    sb.append("\\\\\\\\");
+                    i++;
+                }
+            } else if (LUCENE_SPECIAL.indexOf(c) >= 0) {
+                sb.append("\\\\").append(c); // unescaped special char → \\X
+                i++;
+            } else {
+                sb.append(c);
+                i++;
+            }
+        }
+        return sb.toString();
     }
 }
