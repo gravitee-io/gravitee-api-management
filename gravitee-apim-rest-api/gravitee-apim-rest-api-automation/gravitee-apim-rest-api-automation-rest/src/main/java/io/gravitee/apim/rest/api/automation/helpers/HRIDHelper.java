@@ -17,8 +17,6 @@ package io.gravitee.apim.rest.api.automation.helpers;
 
 import java.security.SecureRandom;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
@@ -34,28 +32,65 @@ public class HRIDHelper {
 
     static final String HRID_PREFIX = "hrid-";
     private static final Random RANDOM = new SecureRandom();
-    private static final String NON_LETTERS_AND_DIGITS_START = "^[^a-zA-Z0-9]+";
-    private static final String NON_LETTERS_AND_DIGITS_END = "[^a-zA-Z0-9]+$";
-    private static final String NON_LETTERS_AND_DIGITS = "[^a-zA-Z0-9]+";
-    private static final Pattern HRID_ONLY_GROUP = Pattern.compile("([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
     public static final String HEADER_X_GRAVITEE_SET_HRID = "X-Gravitee-Set-Hrid";
+
+    /**
+     * Converts a given name to a Human-Readable Identifier (HRID).
+     * If the provided name is null or blank, a random HRID is generated instead.
+     * Non-alphanumeric leading and trailing characters are removed,
+     * and internal non-alphanumeric characters are replaced with dashes.
+     * The resulting HRID is converted to lowercase.
+     *
+     * @param name The name to be converted to a HRID. Can be null or blank.
+     * @return A human-readable identifier (HRID) generated from the provided name,
+     *         or a randomly generated HRID if the name is blank or null.
+     */
 
     public static String nameToHRID(String name) {
         if (name == null || name.isBlank()) {
             log.warn("Generating random HRID for name={} as it is blank", name);
             return randomHRID();
         }
-        String sanitized = name
-            .replaceAll(NON_LETTERS_AND_DIGITS_START, "")
-            .replaceAll(NON_LETTERS_AND_DIGITS_END, "")
-            .replaceAll(NON_LETTERS_AND_DIGITS, "-")
-            .toLowerCase();
-        Matcher matcher = HRID_ONLY_GROUP.matcher(sanitized);
-        if (!matcher.matches()) {
-            log.warn("Generating random HRID for name={} as it does not match the HRID pattern", name);
+        String stripped = stripTrailingNonAlphanumeric(stripLeadingNonAlphanumeric(name));
+        if (stripped.isEmpty()) {
+            log.warn("Generating random HRID for name={} as it is blank after trimming", name);
             return randomHRID();
         }
-        return matcher.group(1);
+        return lowercaseAndReplaceNonAlphanumericWithDash(stripped);
+    }
+
+    static String stripLeadingNonAlphanumeric(String input) {
+        for (int i = 0; i < input.length(); i++) {
+            if (Character.isLetterOrDigit(input.charAt(i))) {
+                return input.substring(i);
+            }
+        }
+        return "";
+    }
+
+    static String stripTrailingNonAlphanumeric(String input) {
+        for (int i = input.length() - 1; i >= 0; i--) {
+            if (Character.isLetterOrDigit(input.charAt(i))) {
+                return input.substring(0, i + 1);
+            }
+        }
+        return "";
+    }
+
+    private static String lowercaseAndReplaceNonAlphanumericWithDash(String input) {
+        var sb = new StringBuilder(input.length());
+        boolean lastWasDash = false;
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (Character.isLetterOrDigit(c)) {
+                sb.append(Character.toLowerCase(c));
+                lastWasDash = false;
+            } else if (!lastWasDash) {
+                sb.append('-');
+                lastWasDash = true;
+            }
+        }
+        return sb.toString();
     }
 
     private static @NotNull String randomHRID() {
