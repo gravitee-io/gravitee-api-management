@@ -153,6 +153,7 @@ public class ApisResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam, @QueryParam("ids") final List<String> ids) {
         return getApis(apisParam, ids, null).getData();
     }
@@ -171,6 +172,7 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiListItemPagedResult.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public ApiListItemPagedResult getApis(
         @BeanParam final ApisParam apisParam,
         @QueryParam("ids") final List<String> ids,
@@ -513,6 +515,7 @@ public class ApisResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response searchApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
             return Response.ok().entity(this.searchPagedApis(query, new ApisOrderParam("name"), true, null).getData()).build();
@@ -531,6 +534,7 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiListItem.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public PagedResult<ApiListItem> searchPagedApis(
         @Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query,
         @Parameter(
