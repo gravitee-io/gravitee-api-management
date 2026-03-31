@@ -265,19 +265,39 @@ postgres-apim-postgresql-0                1/1     Running      0           98s
 
 
 Official APIM images bundle the PostgreSQL, MariaDB, and Microsoft SQL Server JDBC drivers.
-MySQL is intentionally not bundled and is still downloaded at pod startup from `jdbc.driver`.
+MySQL is intentionally not bundled in official images.
 
-The startup behavior is derived from the scheme in `jdbc.url`:
+The startup behavior is derived from `jdbc.url` and `jdbc.driverSource`:
 
-* `jdbc:postgresql:`, `jdbc:mariadb:`, `jdbc:sqlserver:` use the bundled driver and do not download anything at startup
-* `jdbc:mysql:` downloads the driver from `jdbc.driver` at startup
-* any other `jdbc:*` scheme also uses `jdbc.driver` as a startup download fallback
+* `jdbc.driverSource=auto` uses bundled PostgreSQL, MariaDB, and SQL Server drivers, and uses startup download for MySQL and any other custom JDBC family
+* `jdbc.driverSource=download` always downloads the driver from `jdbc.driver` at startup
+* `jdbc.driverSource=image` copies the driver at startup from a dedicated customer-provided JDBC image
+
+When `jdbc.driverSource=auto`:
+
+* MySQL still requires `jdbc.driver`
+* PostgreSQL, MariaDB, and SQL Server do not use `jdbc.driver`
+
+For MySQL, the recommended path is a minimal JDBC image.
+This avoids outbound downloads at startup without requiring custom API or Gateway application images.
+The dedicated image must contain the MySQL driver at `/drivers/mysql-connector-j.jar`.
+
+Minimal MySQL JDBC image example:
+
+----
+FROM busybox:1.36
+COPY mysql-connector-j-<version>.jar /drivers/mysql-connector-j.jar
+----
+
+The copied file must be readable by UID `1001`.
+Pod image pull secrets already apply to initContainers, so private registries for this JDBC image use the existing API and Gateway image pull secret configuration.
 
 For PostgreSQL, use the information below in `values.yml` and replace the `username`, `password`,
 `URL` and `database name` with details for your specific instance.
 
 ----
 jdbc:
+  driverSource: auto
   url: jdbc:postgresql://postgres-apim-postgresql:5432/graviteeapim
   username: postgres
   password: P@ssw0rd
@@ -289,6 +309,7 @@ For MariaDB:
 
 ----
 jdbc:
+  driverSource: auto
   url: jdbc:mariadb://mariadb-apim-mariadb:3306/graviteeapim
   username: gravitee
   password: P@ssw0rd
@@ -300,6 +321,7 @@ For Microsoft SQL Server:
 
 ----
 jdbc:
+  driverSource: auto
   url: jdbc:sqlserver://sqlserver-apim-mssql:1433;databaseName=graviteeapim
   username: sa
   password: P@ssw0rd
@@ -307,10 +329,29 @@ management:
   type: jdbc
 ----
 
-For MySQL:
+For MySQL, the recommended path is a minimal JDBC image:
 
 ----
 jdbc:
+  driverSource: image
+  url: jdbc:mysql://mysql-apim-mysql:3306/graviteeapim
+  username: gravitee
+  password: P@ssw0rd
+  image:
+    repository: customer/mysql-jdbc
+    tag: 9.3.0
+    pullPolicy: IfNotPresent
+management:
+  type: jdbc
+----
+
+The API upgrader follows the same JDBC behavior automatically.
+
+For MySQL fallback mode, keep the current startup download path:
+
+----
+jdbc:
+  driverSource: download
   url: jdbc:mysql://mysql-apim-mysql:3306/graviteeapim
   driver: https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.3.0/mysql-connector-j-9.3.0.jar
   username: gravitee
@@ -323,6 +364,7 @@ For any other JDBC driver, keep `jdbc.driver` set to a URL that can be downloade
 
 ----
 jdbc:
+  driverSource: auto
   url: jdbc:customdb://customdb:1234/graviteeapim
   driver: https://artifacts.example.com/jdbc/customdb-driver.jar
   username: gravitee
