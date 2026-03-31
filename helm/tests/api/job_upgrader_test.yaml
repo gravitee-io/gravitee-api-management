@@ -59,6 +59,23 @@ tests:
             name: GRAVITEE_ALERTS_ALERT-ENGINE_ENABLED
             value: "false"
 
+  - it: Should not download bundled PostgreSQL JDBC driver
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:postgresql://db:5432/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+      - notExists:
+          path: spec.template.spec.volumes[1]
+
   - it: Check that cockpit has been disabled
     template: api/api-upgrader-job.yaml
     set:

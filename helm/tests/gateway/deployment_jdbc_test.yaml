@@ -4,7 +4,7 @@ templates:
   - "gateway/gateway-configmap.yaml"
 
 tests:
-  - it: Check that volumes are defined
+  - it: Check that MySQL volumes are defined
     template: gateway/gateway-deployment.yaml
     chart:
       version: 1.0.0-chart
@@ -47,12 +47,94 @@ tests:
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /tmp/plugins-ext
 
-  - it: Should run init container to download JDBC driver
+  - it: Should run init container to download MySQL JDBC driver
     template: gateway/gateway-deployment.yaml
     set:
       management:
         type: "jdbc"
       jdbc:
+        url: "jdbc:mysql://db:3306/gravitee"
+        driver: "https://url/where/to/download/driver"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-repository-jdbc-ext
+            image: "alpine:latest"
+            imagePullPolicy: Always
+            command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  https://url/where/to/download/driver"]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+            -  name: graviteeio-apim-repository-jdbc-ext
+               mountPath: /tmp/plugins-ext
+
+  - it: Should not download bundled PostgreSQL JDBC driver
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:postgresql://db:5432/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+
+  - it: Should not download bundled MariaDB JDBC driver
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:mariadb://db:3306/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+
+  - it: Should not download bundled SQL Server JDBC driver
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:sqlserver://db:1433;databaseName=gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+
+  - it: Should keep startup download for custom JDBC drivers
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:customdb://db:4242/gravitee"
         driver: "https://url/where/to/download/driver"
     asserts:
       - contains:
@@ -76,6 +158,7 @@ tests:
       management:
         type: "jdbc"
       jdbc:
+        url: "jdbc:mysql://db:3306/gravitee"
         driver: "https://url/where/to/download/driver"
       initContainers:
         image: "some.harbor.local/dockerhub-cache/library/alpine:latest"
