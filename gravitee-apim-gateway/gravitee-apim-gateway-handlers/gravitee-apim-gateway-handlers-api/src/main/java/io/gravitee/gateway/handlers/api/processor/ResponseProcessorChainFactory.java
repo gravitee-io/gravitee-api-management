@@ -32,10 +32,6 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.handlers.api.processor.shutdown.ShutdownProcessor;
@@ -89,10 +85,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
             new ExpressionLanguageFlowConditionEvaluator()
         );
 
-        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-            add(new ApiPolicyChainProvider(StreamType.ON_RESPONSE, new ApiPolicyResolver(), policyChainFactory));
-            add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), policyChainFactory));
-        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             if (api.getDefinition().getFlowMode() == null || api.getDefinition().getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new SimpleFlowPolicyChainProvider(

@@ -22,7 +22,6 @@ import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUT
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -71,13 +70,6 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.Api> 
 
     private Set<Policy> policies() {
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
-        // Load policies from the API
-        if (definition.getPaths() != null) {
-            definition
-                .getPaths()
-                .values()
-                .forEach(rules -> policies.addAll(rules.stream().filter(Rule::isEnabled).map(Rule::getPolicy).collect(Collectors.toSet())));
-        }
 
         // Load policies from Plans
         definition
@@ -88,15 +80,6 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.Api> 
 
                 if (secPolicy.getName() != null) {
                     policies.add(secPolicy);
-                }
-
-                if (plan.getPaths() != null) {
-                    plan
-                        .getPaths()
-                        .values()
-                        .forEach(rules ->
-                            policies.addAll(rules.stream().filter(Rule::isEnabled).map(Rule::getPolicy).collect(Collectors.toSet()))
-                        );
                 }
 
                 if (plan.getFlows() != null) {

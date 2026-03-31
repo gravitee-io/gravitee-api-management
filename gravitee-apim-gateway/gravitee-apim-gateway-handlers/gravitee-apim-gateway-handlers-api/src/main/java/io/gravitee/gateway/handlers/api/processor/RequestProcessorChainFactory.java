@@ -36,17 +36,11 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
-import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
-import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersIndexProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
@@ -134,11 +128,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(XForwardedPrefixProcessor::new);
         }
 
-        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-            add(() -> new PathParametersIndexProcessor(new ApiPathResolverImpl(api.getDefinition())));
-            add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), policyChainFactory));
-            add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), policyChainFactory));
-        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             final PathParametersExtractor extractor = new PathParametersExtractor(api.getDefinition());
             if (extractor.canExtractPathParams()) {
                 add(() -> new PathParametersProcessor(extractor));
