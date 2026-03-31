@@ -20,6 +20,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { isEqual } from 'lodash';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4, EndpointGroupV4, EndpointV4, EndpointV4Default, UpdateApiV4 } from '../../../../entities/management-api-v2';
@@ -348,10 +349,15 @@ export class ApiLlmProviderComponent implements OnInit {
     if (existingEndpoints.length === 0) {
       return [];
     }
+    // Skip consistency checks when editing the only endpoint in a group
+    if (this.mode === 'edit-endpoint' && existingEndpoints.length < 2) {
+      return [];
+    }
     const expectedProvider = existingEndpoints[0]?.configuration?.provider;
     if (!expectedProvider) {
       return [];
     }
+    const expectedAliases = this.collectAliases(existingEndpoints[0]?.configuration?.models);
     return [
       (control: AbstractControl): ValidationErrors | null => {
         const provider = control.value?.configuration?.provider;
@@ -360,7 +366,32 @@ export class ApiLlmProviderComponent implements OnInit {
         }
         return provider === expectedProvider ? null : { providerMismatch: { expected: expectedProvider, actual: provider } };
       },
+      (control: AbstractControl): ValidationErrors | null => {
+        const aliases = this.collectAliases(control.value?.configuration?.models);
+        if (
+          !isEqual(
+            Array.from(aliases).sort((a, b) => a.localeCompare(b)),
+            Array.from(expectedAliases).sort((a, b) => a.localeCompare(b)),
+          )
+        ) {
+          return { aliasesMismatch: { expected: Array.from(expectedAliases), actual: Array.from(aliases) } };
+        }
+        return null;
+      },
     ];
+  }
+
+  private collectAliases(models: any[]): Set<string> {
+    const aliases = new Set<string>();
+    models?.forEach(model => {
+      model?.aliases?.forEach(alias => {
+        const normalizedAlias = String(alias).trim();
+        if (normalizedAlias) {
+          aliases.add(normalizedAlias);
+        }
+      });
+    });
+    return aliases;
   }
 
   private getSuccessMessage(name: string): string {
