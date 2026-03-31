@@ -1297,6 +1297,7 @@ components:
             type: string
       required:
         - type
+        - name
     EndpointGroupV4:
       description: API Endpoint Group
       type: object
