@@ -368,7 +368,7 @@ export class PullRequestsWorkflow {
           'apim-ui-project': config.components.console.project,
           'nx-project': 'console',
           resource_class: 'xlarge',
-          'max-workers': '4',
+          'max-workers': '7',
         }),
         new workflow.WorkflowJob(consoleWebuiBuildJob, {
           name: 'Build APIM Console',

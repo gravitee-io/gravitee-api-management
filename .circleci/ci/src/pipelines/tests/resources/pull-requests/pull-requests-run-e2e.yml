@@ -600,7 +600,7 @@ jobs:
           command: yarn nx lint << parameters.nx-project >>
       - run:
           name: Run unit tests
-          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >> --configuration=ci
+          command: yarn << parameters.nx-project >>:test:ci
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -1180,7 +1180,7 @@ workflows:
           apim-ui-project: gravitee-apim-console-webui
           nx-project: console
           resource_class: xlarge
-          max-workers: "4"
+          max-workers: "7"
       - job-console-webui-build:
           name: Build APIM Console
           context:
