@@ -133,10 +133,12 @@
           }
         </div>
 
-        <app-application-tab-settings-certificates
-          [applicationId]="applicationId()"
-          [userApplicationPermissions]="userApplicationPermissions()"
-        />
+        @if (showCertificates()) {
+          <app-application-tab-settings-certificates
+            [applicationId]="applicationId()"
+            [userApplicationPermissions]="userApplicationPermissions()"
+          />
+        }
 
         <div class="settings-edit__form__actions">
           <button

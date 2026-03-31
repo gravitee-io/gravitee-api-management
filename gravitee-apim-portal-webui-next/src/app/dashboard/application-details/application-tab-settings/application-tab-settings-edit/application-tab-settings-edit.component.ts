@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, input, OnInit } from '@angular/core';
+import { Component, computed, inject, input, OnInit } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -26,13 +27,15 @@ import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { map, Observable, startWith, Subject, take, takeUntil, tap } from 'rxjs';
+import { catchError, map, Observable, startWith, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
+import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
 import { ApplicationService } from '../../../../../services/application.service';
+import { ConfigService } from '../../../../../services/config.service';
 import { ApplicationTabSettingsCertificatesComponent } from '../application-tab-settings-certificates/application-tab-settings-certificates.component';
 
 interface ApplicationSettingsVM {
@@ -81,9 +84,25 @@ interface ApplicationGrantTypeVM {
   styleUrl: './application-tab-settings-edit.component.scss',
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
+  private readonly configService = inject(ConfigService);
+  private readonly certService = inject(ApplicationCertificateService);
+
   applicationId = input.required<string>();
   applicationTypeConfiguration = input.required<ApplicationType>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
+
+  private readonly certificateCount = toSignal(
+    toObservable(this.applicationId).pipe(
+      switchMap(appId => (this.configService.mtlsEnabled ? this.certService.list(appId, 1, 1).pipe(catchError(() => of(null))) : of(null))),
+    ),
+    { initialValue: null },
+  );
+
+  showCertificates = computed(() => {
+    if (!this.configService.mtlsEnabled) return false;
+    const count = this.certificateCount();
+    return count !== null && (count.metadata?.paginateMetaData?.totalElements ?? 0) > 0;
+  });
 
   application$!: Observable<Application>;
 

@@ -67,6 +67,10 @@ export class ConfigServiceStub {
   set configuration(configuration: Configuration) {
     this._configuration = configuration;
   }
+
+  get mtlsEnabled(): boolean {
+    return this._configuration?.portalNext?.mtls?.enabled === true;
+  }
 }
 
 @Injectable()

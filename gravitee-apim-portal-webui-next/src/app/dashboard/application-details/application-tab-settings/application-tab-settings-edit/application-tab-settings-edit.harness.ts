@@ -23,6 +23,7 @@ import { CopyCodeHarness } from '../../../../../components/copy-code/copy-code.h
 
 export class ApplicationTabSettingsEditHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-application-tab-settings-edit';
+  getCertificatesSection = this.locatorForOptional('app-application-tab-settings-certificates');
   protected locateAppName = this.getHarness(MatInputHarness.with({ selector: '[data-testId="name"]' }));
   protected locateAppDescription = this.getHarness(MatInputHarness.with({ selector: '[data-testId="description"]' }));
   protected locateAppDomain = this.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testId="domain"]' }));

@@ -123,6 +123,32 @@ describe('ConfigService', () => {
       });
     });
 
+    describe('mtlsEnabled', () => {
+      it('should return true when mtls.enabled is true', done => {
+        service.loadConfiguration().subscribe(() => {
+          expect(service.mtlsEnabled).toBe(true);
+          done();
+        });
+        httpTestingController.expectOne(`/configuration`).flush({ portalNext: { mtls: { enabled: true } } });
+      });
+
+      it('should return false when mtls.enabled is false', done => {
+        service.loadConfiguration().subscribe(() => {
+          expect(service.mtlsEnabled).toBe(false);
+          done();
+        });
+        httpTestingController.expectOne(`/configuration`).flush({ portalNext: { mtls: { enabled: false } } });
+      });
+
+      it('should return false when mtls is absent', done => {
+        service.loadConfiguration().subscribe(() => {
+          expect(service.mtlsEnabled).toBe(false);
+          done();
+        });
+        httpTestingController.expectOne(`/configuration`).flush({ portalNext: {} });
+      });
+    });
+
     describe('load portal configuration', () => {
       it('should load portal configuration', done => {
         const portal: ConfigurationPortal = {
