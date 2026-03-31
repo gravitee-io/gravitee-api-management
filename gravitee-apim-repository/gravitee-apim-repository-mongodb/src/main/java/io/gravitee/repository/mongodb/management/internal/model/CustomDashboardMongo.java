@@ -39,7 +39,7 @@ public class CustomDashboardMongo {
     @Id
     private String id;
 
-    private String organizationId;
+    private String environmentId;
     private String name;
     private String createdBy;
     private Date createdAt;

@@ -75,7 +75,7 @@ describe('DashboardService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards?page=1&perPage=10`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/analytics/dashboards?page=1&perPage=10`);
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
@@ -88,7 +88,7 @@ describe('DashboardService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards?page=3&perPage=5`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/analytics/dashboards?page=3&perPage=5`);
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
@@ -112,7 +112,7 @@ describe('DashboardService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/analytics/dashboards`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(payload);
       req.flush(mockResponse);
@@ -136,7 +136,7 @@ describe('DashboardService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards/abc-123`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/analytics/dashboards/abc-123`);
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });

@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ListDashboardsUseCaseTest {
 
-    private static final String ORGANIZATION_ID = "org-1";
+    private static final String ENVIRONMENT_ID = "env-1";
 
     private final DashboardCrudServiceInMemory dashboardCrudServiceInMemory = new DashboardCrudServiceInMemory();
     private ListDashboardsUseCase listDashboardsUseCase;
@@ -50,30 +50,30 @@ class ListDashboardsUseCaseTest {
     }
 
     @Test
-    void should_return_dashboards_for_organization() {
-        var dashboard1 = Dashboard.builder().id("d1").organizationId(ORGANIZATION_ID).name("Dashboard 1").build();
-        var dashboard2 = Dashboard.builder().id("d2").organizationId(ORGANIZATION_ID).name("Dashboard 2").build();
+    void should_return_dashboards_for_environment() {
+        var dashboard1 = Dashboard.builder().id("d1").environmentId(ENVIRONMENT_ID).name("Dashboard 1").build();
+        var dashboard2 = Dashboard.builder().id("d2").environmentId(ENVIRONMENT_ID).name("Dashboard 2").build();
         dashboardCrudServiceInMemory.initWith(List.of(dashboard1, dashboard2));
 
-        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ORGANIZATION_ID));
+        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ENVIRONMENT_ID));
 
         assertThat(output.dashboards()).containsExactly(dashboard1, dashboard2);
     }
 
     @Test
     void should_return_empty_list_when_no_dashboards() {
-        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ORGANIZATION_ID));
+        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ENVIRONMENT_ID));
 
         assertThat(output.dashboards()).isEmpty();
     }
 
     @Test
-    void should_only_return_dashboards_for_requested_organization() {
-        var dashboard1 = Dashboard.builder().id("d1").organizationId(ORGANIZATION_ID).name("Dashboard 1").build();
-        var dashboard2 = Dashboard.builder().id("d2").organizationId("other-org").name("Dashboard 2").build();
+    void should_only_return_dashboards_for_requested_environment() {
+        var dashboard1 = Dashboard.builder().id("d1").environmentId(ENVIRONMENT_ID).name("Dashboard 1").build();
+        var dashboard2 = Dashboard.builder().id("d2").environmentId("other-env").name("Dashboard 2").build();
         dashboardCrudServiceInMemory.initWith(List.of(dashboard1, dashboard2));
 
-        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ORGANIZATION_ID));
+        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ENVIRONMENT_ID));
 
         assertThat(output.dashboards()).containsExactly(dashboard1);
     }

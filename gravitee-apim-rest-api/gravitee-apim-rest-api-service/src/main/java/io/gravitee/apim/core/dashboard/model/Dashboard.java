@@ -34,7 +34,7 @@ import lombok.NoArgsConstructor;
 public class Dashboard {
 
     private String id;
-    private String organizationId;
+    private String environmentId;
     private String name;
     private String createdBy;
     private ZonedDateTime createdAt;

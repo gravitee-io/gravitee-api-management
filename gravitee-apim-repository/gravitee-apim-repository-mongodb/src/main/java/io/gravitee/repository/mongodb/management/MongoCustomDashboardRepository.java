@@ -101,23 +101,21 @@ public class MongoCustomDashboardRepository implements CustomDashboardRepository
     }
 
     @Override
-    public List<CustomDashboard> findByOrganizationId(String organizationId) throws TechnicalException {
-        log.debug("Find custom dashboards by organization ID [{}]", organizationId);
-        var dashboards = internalCustomDashboardRepo.findByOrganizationId(organizationId);
-        log.debug("Find custom dashboards by organization ID [{}] - Done", organizationId);
+    public List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find custom dashboards by environment ID [{}]", environmentId);
+        var dashboards = internalCustomDashboardRepo.findByEnvironmentId(environmentId);
+        log.debug("Find custom dashboards by environment ID [{}] - Done", environmentId);
         return dashboards.stream().map(mapper::map).toList();
     }
 
     @Override
-    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
-        log.debug("Delete custom dashboards by organization ID [{}]", organizationId);
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete custom dashboards by environment ID [{}]", environmentId);
         try {
-            internalCustomDashboardRepo.deleteByOrganizationId(organizationId);
-            log.debug("Delete custom dashboards by organization ID [{}] - Done", organizationId);
+            internalCustomDashboardRepo.deleteByEnvironmentId(environmentId);
+            log.debug("Delete custom dashboards by environment ID [{}] - Done", environmentId);
         } catch (Exception e) {
-            var error = "An error occurred when deleting custom dashboards by organization id " + organizationId;
-            log.error(error, e);
-            throw new TechnicalException(error, e);
+            throw new TechnicalException("An error occurred when deleting custom dashboards by environment id " + environmentId, e);
         }
     }
 }

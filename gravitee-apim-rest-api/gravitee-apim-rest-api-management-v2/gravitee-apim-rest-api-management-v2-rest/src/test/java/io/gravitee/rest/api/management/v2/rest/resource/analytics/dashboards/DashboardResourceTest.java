@@ -16,12 +16,15 @@
 package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
@@ -35,16 +38,22 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilt
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.SecurityContext;
+import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -53,10 +62,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DashboardResourceTest extends AbstractResourceTest {
 
+    private static final String ENVIRONMENT = "my-env";
     private static final String DASHBOARD_ID = "dashboard-123";
     private static final String NON_EXISTENT_ID = "non-existent-id";
 
@@ -65,7 +76,55 @@ class DashboardResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/analytics/dashboards";
+        return "/environments/" + ENVIRONMENT + "/analytics/dashboards";
+    }
+
+    @Override
+    protected void decorate(ResourceConfig resourceConfig) {
+        resourceConfig.register(
+            (ContainerRequestFilter) requestContext ->
+                requestContext.setSecurityContext(
+                    new SecurityContext() {
+                        @Override
+                        public Principal getUserPrincipal() {
+                            var userDetails = new io.gravitee.rest.api.management.v2.rest.UserDetails(USER_NAME, "", List.of());
+                            userDetails.setOrganizationId(ORGANIZATION);
+                            var principal = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                new Object()
+                            );
+                            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(principal);
+                            return principal;
+                        }
+
+                        @Override
+                        public boolean isUserInRole(String string) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean isSecure() {
+                            return true;
+                        }
+
+                        @Override
+                        public String getAuthenticationScheme() {
+                            return "BASIC";
+                        }
+                    }
+                ),
+            5
+        );
+        resourceConfig.register(GraviteeContextRequestFilter.class);
+        var mockResponse = Mockito.mock(HttpServletResponse.class);
+        resourceConfig.register(
+            new org.glassfish.hk2.utilities.binding.AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(mockResponse).to(HttpServletResponse.class);
+                }
+            }
+        );
     }
 
     private WebTarget target;
@@ -74,11 +133,16 @@ class DashboardResourceTest extends AbstractResourceTest {
     void init() {
         super.setUp();
         GraviteeContext.cleanContext();
-        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
+
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         target = rootTarget().path(DASHBOARD_ID);
 
-        dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboard(DASHBOARD_ID, ORGANIZATION, USER_NAME)));
+        dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboard(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
     }
 
     @AfterEach
@@ -155,7 +219,7 @@ class DashboardResourceTest extends AbstractResourceTest {
         @Test
         void should_get_dashboard_with_filters() {
             dashboardCrudServiceInMemory.reset();
-            dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboardWithFilters(DASHBOARD_ID, ORGANIZATION, USER_NAME)));
+            dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboardWithFilters(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
 
             var response = target.request().get();
 
@@ -166,7 +230,7 @@ class DashboardResourceTest extends AbstractResourceTest {
             var requestFilters = widget.getRequest().getFilters();
             assertThat(requestFilters).hasSize(2);
 
-            var stringFilter = (StringFilter) requestFilters.get(0).getActualInstance();
+            var stringFilter = (StringFilter) requestFilters.getFirst().getActualInstance();
             assertAll(
                 () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
                 () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
@@ -200,7 +264,27 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.READ, () -> target.request().get());
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DASHBOARD,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
+
+            var response = target.request().get();
+
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
         }
     }
 
@@ -221,7 +305,7 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(result.getWidgets()).hasSize(2)
             );
 
-            var statsWidget = result.getWidgets().get(0);
+            var statsWidget = result.getWidgets().getFirst();
             assertAll(
                 () -> assertThat(statsWidget.getId()).isEqualTo("10"),
                 () -> assertThat(statsWidget.getTitle()).isEqualTo("Error Rate"),
@@ -267,7 +351,7 @@ class DashboardResourceTest extends AbstractResourceTest {
             var requestFilters = widget.getRequest().getFilters();
             assertThat(requestFilters).hasSize(2);
 
-            var stringFilter = (StringFilter) requestFilters.get(0).getActualInstance();
+            var stringFilter = (StringFilter) requestFilters.getFirst().getActualInstance();
             assertAll(
                 () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
                 () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
@@ -295,9 +379,9 @@ class DashboardResourceTest extends AbstractResourceTest {
             var storedRequest = stored.getWidgets().getFirst().getRequest();
 
             assertThat(storedRequest.getFilters()).hasSize(2);
-            assertThat(storedRequest.getFilters().get(0).getName()).isEqualTo("API");
-            assertThat(storedRequest.getFilters().get(0).getOperator()).isEqualTo("EQ");
-            assertThat(storedRequest.getFilters().get(0).getValue()).isEqualTo("my-api");
+            assertThat(storedRequest.getFilters().getFirst().getName()).isEqualTo("API");
+            assertThat(storedRequest.getFilters().getFirst().getOperator()).isEqualTo("EQ");
+            assertThat(storedRequest.getFilters().getFirst().getValue()).isEqualTo("my-api");
             assertThat(storedRequest.getFilters().get(1).getName()).isEqualTo("HTTP_STATUS_CODE_GROUP");
             assertThat(storedRequest.getFilters().get(1).getOperator()).isEqualTo("IN");
             assertThat(storedRequest.getFilters().get(1).getValue()).isEqualTo(List.of("2xx", "4xx"));
@@ -344,7 +428,7 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.UPDATE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
                 target.request().put(json(DashboardFixtures.anUpdateDashboardMinimal()))
             );
         }
@@ -371,7 +455,7 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.DELETE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT, RolePermissionAction.DELETE, () ->
                 target.request().delete()
             );
         }

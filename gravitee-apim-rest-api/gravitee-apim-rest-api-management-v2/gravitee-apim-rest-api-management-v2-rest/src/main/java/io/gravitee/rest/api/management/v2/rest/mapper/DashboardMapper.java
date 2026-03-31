@@ -46,7 +46,7 @@ public interface DashboardMapper {
     DashboardMapper INSTANCE = Mappers.getMapper(DashboardMapper.class);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModified", ignore = true)

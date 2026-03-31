@@ -65,7 +65,7 @@ public class JdbcCustomDashboardRepository
     protected JdbcObjectMapper<CustomDashboard> buildOrm() {
         return JdbcObjectMapper.builder(CustomDashboard.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("created_by", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -111,24 +111,22 @@ public class JdbcCustomDashboardRepository
     }
 
     @Override
-    public List<CustomDashboard> findByOrganizationId(String organizationId) throws TechnicalException {
-        log.debug("JdbcCustomDashboardRepository.findByOrganizationId({})", organizationId);
+    public List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcCustomDashboardRepository.findByEnvironmentId({})", environmentId);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where organization_id = ?", getRowMapper(), organizationId);
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?", getRowMapper(), environmentId);
         } catch (Exception ex) {
-            log.error("Failed to find custom dashboards by organization id:", ex);
-            throw new TechnicalException("Failed to find custom dashboards by organization id", ex);
+            throw new TechnicalException("Failed to find custom dashboards by environment id: " + environmentId, ex);
         }
     }
 
     @Override
-    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
-        log.debug("JdbcCustomDashboardRepository.deleteByOrganizationId({})", organizationId);
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcCustomDashboardRepository.deleteByEnvironmentId({})", environmentId);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
+            jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (Exception ex) {
-            log.error("Failed to delete custom dashboards by organization id:", ex);
-            throw new TechnicalException("Failed to delete custom dashboards by organization id", ex);
+            throw new TechnicalException("Failed to delete custom dashboards by environment id: " + environmentId, ex);
         }
     }
 

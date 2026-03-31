@@ -225,6 +225,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           displayName: 'Dashboards',
           routerLink: './observability/dashboards',
           category: 'Analytics',
+          permissions: ['environment-dashboard-r', 'environment-api-r'],
         },
         {
           displayName: 'Logs',

@@ -29,12 +29,12 @@ public class NoOpCustomDashboardRepository
     implements CustomDashboardRepository {
 
     @Override
-    public List<CustomDashboard> findByOrganizationId(String organizationId) throws TechnicalException {
+    public List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException {
         return List.of();
     }
 
     @Override
-    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         // No-op
     }
 }

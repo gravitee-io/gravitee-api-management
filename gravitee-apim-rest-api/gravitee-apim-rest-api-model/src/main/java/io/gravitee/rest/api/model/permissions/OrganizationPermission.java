@@ -38,8 +38,7 @@ public enum OrganizationPermission implements Permission {
     POLICIES("POLICIES", 2200),
     AUDIT("AUDIT", 2300),
     LICENSE_MANAGEMENT("LICENSE_MANAGEMENT", 2400),
-    USER_TOKEN("USER_TOKEN", 2500),
-    DASHBOARD("DASHBOARD", 2600);
+    USER_TOKEN("USER_TOKEN", 2500);
 
     String name;
     int mask;

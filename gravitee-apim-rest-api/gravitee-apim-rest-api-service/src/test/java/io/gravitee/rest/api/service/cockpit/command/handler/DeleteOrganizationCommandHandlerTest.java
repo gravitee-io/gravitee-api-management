@@ -35,7 +35,6 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
-import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.EntrypointRepository;
@@ -148,9 +147,6 @@ public class DeleteOrganizationCommandHandlerTest {
     private CommandRepository commandRepository;
 
     @Mock
-    private CustomDashboardRepository customDashboardRepository;
-
-    @Mock
     private OrganizationService organizationService;
 
     @Mock
@@ -203,7 +199,6 @@ public class DeleteOrganizationCommandHandlerTest {
             accessPointRepository,
             auditRepository,
             commandRepository,
-            customDashboardRepository,
             customUserFieldsRepository,
             entrypointRepository,
             flowRepository,
@@ -365,7 +360,6 @@ public class DeleteOrganizationCommandHandlerTest {
             EntrypointReferenceType.ORGANIZATION
         );
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
-        verify(customDashboardRepository).deleteByOrganizationId(executionContext.getOrganizationId());
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {
