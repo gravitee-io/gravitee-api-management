@@ -44,19 +44,25 @@
 
       @if (showConfiguration && providerSchema?.config) {
         <div class="endpoint-card__form__field">
-          @if (formGroup.dirty && formGroup.errors?.providerMismatch; as mismatch) {
-            <gio-banner-error> All endpoints in this group must use the same provider ({{ mismatch.expected }}). </gio-banner-error>
+          @if (formGroup.dirty && (formGroup.errors?.providerMismatch || formGroup.errors?.aliasesMismatch)) {
+            <gio-banner-error>
+              <ul>
+                @if (formGroup.errors?.providerMismatch; as mismatch) {
+                  <li>All endpoints in this group must use the same provider ({{ mismatch.expected }}).</li>
+                }
+                @if (formGroup.errors?.aliasesMismatch; as mismatch) {
+                  <li>All endpoints in this group must use the same list of aliases ({{ mismatch.expected.join(', ') }}).</li>
+                }
+              </ul>
+            </gio-banner-error>
           }
-          <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config"></gio-form-json-schema>
+          <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config" />
         </div>
       }
 
       @if (showSharedConfiguration && providerSchema?.sharedConfig) {
         <div class="endpoint-card__form__field">
-          <gio-form-json-schema
-            formControlName="sharedConfigurationOverride"
-            [jsonSchema]="providerSchema.sharedConfig"
-          ></gio-form-json-schema>
+          <gio-form-json-schema formControlName="sharedConfigurationOverride" [jsonSchema]="providerSchema.sharedConfig" />
         </div>
       }
     </mat-card-content>
