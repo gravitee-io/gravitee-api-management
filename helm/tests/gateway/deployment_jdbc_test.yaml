@@ -71,6 +71,38 @@ tests:
             -  name: graviteeio-apim-repository-jdbc-ext
                mountPath: /tmp/plugins-ext
 
+  - it: Should copy MySQL JDBC driver from dedicated image
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "image"
+        url: "jdbc:mysql://db:3306/gravitee"
+        image:
+          repository: "customer/mysql-jdbc"
+          tag: "9.3.0"
+          pullPolicy: "IfNotPresent"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: copy-repository-jdbc-ext
+            image: "customer/mysql-jdbc:9.3.0"
+            imagePullPolicy: IfNotPresent
+            command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/"]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
+      - notContains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-repository-jdbc-ext
+
   - it: Should not download bundled PostgreSQL JDBC driver
     template: gateway/gateway-deployment.yaml
     set:
@@ -127,6 +159,24 @@ tests:
           path: spec.template.spec.volumes
           content:
             name: graviteeio-apim-repository-jdbc-ext
+
+  - it: Should force PostgreSQL JDBC driver download when configured
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "download"
+        url: "jdbc:postgresql://db:5432/gravitee"
+        driver: "https://url/where/to/download/driver"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-repository-jdbc-ext
+            image: "alpine:latest"
+            imagePullPolicy: Always
+            command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  https://url/where/to/download/driver"]
 
   - it: Should keep startup download for custom JDBC drivers
     template: gateway/gateway-deployment.yaml
