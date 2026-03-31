@@ -343,10 +343,10 @@ node:
     # Configure the patterns for the most common appenders
     # Nothing prevents the user from modifying logback.xml
     pattern:
-      overrideLogbackXml: true # when enabled, use the following patterns instead of those from logback.xml
+      overrideLogbackXml: false # when enabled, use the following patterns instead of those from logback.xml
       # Use a custom keyword to use MDC formatting and filtering: %mdcList. This list is built from the previous 'mdc.include' list
-      console: "%d{HH:mm:ss.SSS} %-5level %logger{36} [%mdcList] - %msg%n" # Override default STDOUT appender pattern
-      file: "%d{HH:mm:ss.SSS} %-5level %logger{36} [%mdcList] - %msg%n" # Override default FILE appender pattern
+      console: "%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n" # Override default STDOUT appender pattern
+      file: "%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n%n" # Override default FILE appender pattern
 
 ## Logging settings
 #logging:
