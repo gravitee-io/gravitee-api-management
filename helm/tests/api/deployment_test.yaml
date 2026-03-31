@@ -61,6 +61,21 @@ tests:
           path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
 
+  - it: Check deployment with bundled PostgreSQL JDBC support
+    template: api/api-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:postgresql://db:5432/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+      - notExists:
+          path: spec.template.spec.volumes[1]
+
   - it: Set containerPort with custom port if core service is enabled
     template: api/api-deployment.yaml
     set:

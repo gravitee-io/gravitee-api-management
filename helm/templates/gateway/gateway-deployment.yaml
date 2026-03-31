@@ -109,9 +109,10 @@ spec:
       {{- end -}}
 
       {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-gateway" "initContainers" $initContainers -}}
-      {{- if or .Values.gateway.extraInitContainers $plugins .Values.jdbc.driver }}
+      {{- $shouldDownloadJdbcDriver := eq (include "apim.shouldDownloadJdbcDriver" .) "true" -}}
+      {{- if or .Values.gateway.extraInitContainers $plugins $shouldDownloadJdbcDriver }}
       initContainers:
-        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        {{- if $shouldDownloadJdbcDriver }}
         - name: get-repository-jdbc-ext
           {{- toYaml .Values.initContainers | nindent 10 }}
           command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  {{ .Values.jdbc.driver }}"]
@@ -254,7 +255,7 @@ spec:
               mountPath: /opt/graviteeio-gateway/config/logback.xml
               subPath: logback.xml
           {{- end }}
-          {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+          {{- if $shouldDownloadJdbcDriver }}
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /opt/graviteeio-gateway/plugins/ext/repository-jdbc
           {{- end }}
@@ -304,7 +305,7 @@ spec:
           configMap:
             name: {{ template "gravitee.gateway.fullname" . }}
         {{- end }}
-        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        {{- if $shouldDownloadJdbcDriver }}
         - name: graviteeio-apim-repository-jdbc-ext
           emptyDir: {}
         {{- end }}

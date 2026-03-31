@@ -144,6 +144,34 @@ Create volumes for plugins
 {{- end -}}
 
 {{/*
+Classify the configured JDBC URL family.
+*/}}
+{{- define "apim.jdbcDriverFamily" -}}
+{{- $url := lower (default "" .Values.jdbc.url) -}}
+{{- if hasPrefix "jdbc:postgresql:" $url -}}
+postgresql
+{{- else if hasPrefix "jdbc:mariadb:" $url -}}
+mariadb
+{{- else if hasPrefix "jdbc:sqlserver:" $url -}}
+sqlserver
+{{- else if hasPrefix "jdbc:mysql:" $url -}}
+mysql
+{{- else -}}
+other
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC driver should be downloaded at startup.
+*/}}
+{{- define "apim.shouldDownloadJdbcDriver" -}}
+{{- $family := include "apim.jdbcDriverFamily" . -}}
+{{- if and (eq .Values.management.type "jdbc") .Values.jdbc.driver (not (or (eq $family "postgresql") (eq $family "mariadb") (eq $family "sqlserver"))) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 Use the fullname if the serviceAccount value is not set
 */}}
 {{- define "apim.serviceAccount" -}}
