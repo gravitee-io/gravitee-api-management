@@ -5601,6 +5601,8 @@ components:
                     $ref: "#/components/schemas/Enabled"
                 catalog:
                     $ref: "#/components/schemas/ConfigurationPortalNextCatalog"
+                mtls:
+                    $ref: "#/components/schemas/Enabled"
         ConfigurationPortalNextBanner:
             type: object
             description: Configuration of the banner for Portal Next
