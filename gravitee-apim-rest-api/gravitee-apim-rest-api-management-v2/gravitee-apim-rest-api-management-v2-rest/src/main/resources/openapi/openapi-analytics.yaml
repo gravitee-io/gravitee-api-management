@@ -718,12 +718,14 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
-    /analytics/dashboards:
+    /environments/{envId}/analytics/dashboards:
+        parameters:
+            - $ref: "#/components/parameters/EnvId"
         get:
             operationId: listDashboards
             summary: List custom analytics dashboards
             description: |
-                Retrieves a paginated list of all custom analytics dashboards for the current organization.
+                Retrieves a paginated list of all custom analytics dashboards for the current environment.
             tags:
                 - dashboards
             parameters:
@@ -745,7 +747,7 @@ paths:
                       default: 10
             responses:
                 "200":
-                    description: List of dashboards for the current organization.
+                    description: List of dashboards for the current environment.
                     content:
                         application/json:
                             schema:
@@ -786,7 +788,7 @@ paths:
                                             pageItemsCount: 1
                                             totalCount: 1
                                         links:
-                                            self: "/analytics/dashboards?page=1&perPage=10"
+                                            self: "/environments/{envId}/analytics/dashboards?page=1&perPage=10"
                 "403":
                     description: Forbidden - Insufficient permissions to list dashboards.
                     content:
@@ -923,7 +925,7 @@ paths:
                             schema:
                                 type: string
                                 format: uri
-                                example: "/analytics/dashboards/d0152e36-ad24-4f74-a4df-443074d5a796"
+                                example: "/environments/{envId}/analytics/dashboards/d0152e36-ad24-4f74-a4df-443074d5a796"
                 "400":
                     description: Bad request - Invalid dashboard definition.
                     content:
@@ -943,8 +945,9 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
-    /analytics/dashboards/{dashboardId}:
+    /environments/{envId}/analytics/dashboards/{dashboardId}:
         parameters:
+            - $ref: "#/components/parameters/EnvId"
             - $ref: "#/components/parameters/dashboardId"
         get:
             operationId: getDashboard
@@ -1782,8 +1785,9 @@ components:
                     example: "llm-proxy"
                 createdBy:
                     type: string
-                    description: The identifier of the user who created the dashboard
+                    description: The identifier of the user who created the dashboard. Deprecated — this field currently returns a raw user ID. In a future version it will be replaced by a structured object with display name and other user metadata.
                     example: "e2b573b4-30c8-4c7b-a67b-ad4ab15502d1"
+                    deprecated: true
                 createdAt:
                     type: string
                     format: date-time
@@ -1882,7 +1886,7 @@ components:
                     pageItemsCount: 1
                     totalCount: 1
                 links:
-                    self: "/analytics/dashboards?page=1&perPage=10"
+                    self: "/environments/{envId}/analytics/dashboards?page=1&perPage=10"
 
         Pagination:
             description: Generic object to handle pagination data.

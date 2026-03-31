@@ -22,20 +22,12 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
-import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.audit.model.AuditProperties;
-import io.gravitee.apim.core.audit.model.DashboardAuditLogEntity;
-import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.dashboard.crud_service.DashboardCrudService;
-import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.apim.core.dashboard.model.DashboardWidgetRequestMapper;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.utils.StringUtils;
-import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,8 +48,8 @@ public class DashboardDomainService {
         return dashboardCrudService.findById(dashboardId);
     }
 
-    public List<Dashboard> findByOrganizationId(String organizationId) {
-        return dashboardCrudService.findByOrganizationId(organizationId);
+    public List<Dashboard> findByEnvironmentId(String environmentId) {
+        return dashboardCrudService.findByEnvironmentId(environmentId);
     }
 
     public Dashboard create(Dashboard dashboard) {

@@ -28,7 +28,7 @@ public interface DashboardCrudService {
 
     Optional<Dashboard> findById(String id);
 
-    List<Dashboard> findByOrganizationId(String organizationId);
+    List<Dashboard> findByEnvironmentId(String environmentId);
 
     Dashboard update(Dashboard dashboard);
 

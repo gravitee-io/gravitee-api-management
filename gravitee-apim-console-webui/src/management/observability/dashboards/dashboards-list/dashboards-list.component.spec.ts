@@ -65,7 +65,6 @@ describe('DashboardsListComponent', () => {
     const dashboards = Array.from({ length: 8 }, (_, i) => ({
       id: `id-${i}`,
       name: `Dashboard ${i}`,
-      createdBy: undefined,
       createdAt: '2024-01-01',
       lastModified: '2024-01-01',
       labels: {},

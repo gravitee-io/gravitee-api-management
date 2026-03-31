@@ -32,21 +32,21 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
     }
 
     @Test
-    public void shouldFindByOrganizationId() throws Exception {
-        var dashboards = customDashboardRepository.findByOrganizationId("DEFAULT");
+    public void shouldFindByEnvironmentId() throws Exception {
+        var dashboards = customDashboardRepository.findByEnvironmentId("DEFAULT");
         assertThat(dashboards).hasSize(3);
     }
 
     @Test
-    public void shouldFindByOrganizationId_otherOrg() throws Exception {
-        var dashboards = customDashboardRepository.findByOrganizationId("OTHER_ORG");
+    public void shouldFindByEnvironmentId_otherEnv() throws Exception {
+        var dashboards = customDashboardRepository.findByEnvironmentId("OTHER_ENV");
         assertThat(dashboards).hasSize(1);
-        assertThat(dashboards.get(0).getName()).isEqualTo("Other Org Dashboard");
+        assertThat(dashboards.get(0).getName()).isEqualTo("Other Env Dashboard");
     }
 
     @Test
-    public void shouldReturnEmptyListForUnknownOrganizationId() throws Exception {
-        var dashboards = customDashboardRepository.findByOrganizationId("UNKNOWN");
+    public void shouldReturnEmptyListForUnknownEnvironmentId() throws Exception {
+        var dashboards = customDashboardRepository.findByEnvironmentId("UNKNOWN");
         assertThat(dashboards).isEmpty();
     }
 
@@ -56,7 +56,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
         assertThat(dashboard).hasValueSatisfying(result -> {
             assertThat(result.getName()).isEqualTo("Performance Overview");
             assertThat(result.getCreatedBy()).isEqualTo("user-1");
-            assertThat(result.getOrganizationId()).isEqualTo("DEFAULT");
+            assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
             assertThat(result.getLabels()).containsEntry("team", "backend").containsEntry("category", "performance");
             assertThat(result.getWidgets()).hasSize(2);
 
@@ -115,7 +115,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
 
         var dashboard = CustomDashboard.builder()
             .id("new-cd")
-            .organizationId("DEFAULT")
+            .environmentId("DEFAULT")
             .name("New Dashboard")
             .createdBy("user-new")
             .createdAt(new Date(1000000000000L))
@@ -124,16 +124,16 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             .widgets(List.of(widget))
             .build();
 
-        var nbBefore = customDashboardRepository.findByOrganizationId("DEFAULT").size();
+        var nbBefore = customDashboardRepository.findByEnvironmentId("DEFAULT").size();
         customDashboardRepository.create(dashboard);
-        var nbAfter = customDashboardRepository.findByOrganizationId("DEFAULT").size();
+        var nbAfter = customDashboardRepository.findByEnvironmentId("DEFAULT").size();
 
         assertThat(nbAfter).isEqualTo(nbBefore + 1);
 
         var saved = customDashboardRepository.findById("new-cd");
         assertThat(saved).hasValueSatisfying(result -> {
             assertThat(result.getId()).isEqualTo("new-cd");
-            assertThat(result.getOrganizationId()).isEqualTo("DEFAULT");
+            assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
             assertThat(result.getName()).isEqualTo("New Dashboard");
             assertThat(result.getCreatedBy()).isEqualTo("user-new");
             assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
@@ -167,7 +167,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
     public void shouldCreateWithNullOrEmptyLabelsAndWidgets() throws Exception {
         var withNull = CustomDashboard.builder()
             .id("new-cd-null")
-            .organizationId("DEFAULT")
+            .environmentId("DEFAULT")
             .name("Dashboard With Null")
             .createdBy("user-new")
             .createdAt(new Date(1000000000000L))
@@ -185,7 +185,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
 
         var withEmpty = CustomDashboard.builder()
             .id("new-cd-empty")
-            .organizationId("DEFAULT")
+            .environmentId("DEFAULT")
             .name("Dashboard With Empty")
             .createdBy("user-new")
             .createdAt(new Date(1000000000000L))
@@ -219,7 +219,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
         var updated = customDashboardRepository.findById("cd-2");
         assertThat(updated).hasValueSatisfying(result -> {
             assertThat(result.getId()).isEqualTo("cd-2");
-            assertThat(result.getOrganizationId()).isEqualTo("DEFAULT");
+            assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
             assertThat(result.getName()).isEqualTo("Updated Dashboard");
             assertThat(result.getCreatedBy()).isEqualTo("user-2");
             assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
@@ -273,22 +273,22 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
 
     @Test
     public void shouldDelete() throws Exception {
-        var nbBefore = customDashboardRepository.findByOrganizationId("DEFAULT").size();
+        var nbBefore = customDashboardRepository.findByEnvironmentId("DEFAULT").size();
         customDashboardRepository.delete("cd-3");
-        var nbAfter = customDashboardRepository.findByOrganizationId("DEFAULT").size();
+        var nbAfter = customDashboardRepository.findByEnvironmentId("DEFAULT").size();
 
         assertThat(nbAfter).isEqualTo(nbBefore - 1);
     }
 
     @Test
-    public void shouldDeleteByOrganizationId() throws Exception {
-        assertThat(customDashboardRepository.findByOrganizationId("OTHER_ORG")).hasSize(1);
-        assertThat(customDashboardRepository.findByOrganizationId("DEFAULT")).hasSize(3);
+    public void shouldDeleteByEnvironmentId() throws Exception {
+        assertThat(customDashboardRepository.findByEnvironmentId("OTHER_ENV")).hasSize(1);
+        assertThat(customDashboardRepository.findByEnvironmentId("DEFAULT")).hasSize(3);
 
-        customDashboardRepository.deleteByOrganizationId("OTHER_ORG");
+        customDashboardRepository.deleteByEnvironmentId("OTHER_ENV");
 
-        assertThat(customDashboardRepository.findByOrganizationId("OTHER_ORG")).isEmpty();
-        assertThat(customDashboardRepository.findByOrganizationId("DEFAULT")).hasSize(3);
+        assertThat(customDashboardRepository.findByEnvironmentId("OTHER_ENV")).isEmpty();
+        assertThat(customDashboardRepository.findByEnvironmentId("DEFAULT")).hasSize(3);
         assertThat(customDashboardRepository.findById("cd-4")).isEmpty();
     }
 

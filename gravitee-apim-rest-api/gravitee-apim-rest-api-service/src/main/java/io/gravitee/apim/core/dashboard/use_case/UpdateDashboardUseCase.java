@@ -69,7 +69,8 @@ public class UpdateDashboardUseCase {
         auditService.createDashboardAuditLog(
             DashboardAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
-                .event(DashboardAuditEvent.DASHBOARD_CREATED)
+                .environmentId(auditInfo.environmentId())
+                .event(DashboardAuditEvent.DASHBOARD_UPDATED)
                 .actor(auditInfo.actor())
                 .dashboardId(newDashboard.getId())
                 .oldValue(oldDashboard)

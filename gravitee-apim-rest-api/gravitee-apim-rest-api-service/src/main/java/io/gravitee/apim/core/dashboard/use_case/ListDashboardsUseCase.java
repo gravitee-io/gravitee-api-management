@@ -31,11 +31,11 @@ public class ListDashboardsUseCase {
 
     private final DashboardDomainService dashboardDomainService;
 
-    public record Input(String organizationId) {}
+    public record Input(String environmentId) {}
 
     public record Output(List<Dashboard> dashboards) {}
 
     public Output execute(Input input) {
-        return new Output(dashboardDomainService.findByOrganizationId(input.organizationId()));
+        return new Output(dashboardDomainService.findByEnvironmentId(input.environmentId()));
     }
 }

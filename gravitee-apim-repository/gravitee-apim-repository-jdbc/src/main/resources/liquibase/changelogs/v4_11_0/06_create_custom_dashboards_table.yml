@@ -7,7 +7,7 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}custom_dashboards
             columns:
               - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: name, type: nvarchar(512), constraints: { nullable: false } }
               - column: { name: created_by, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
@@ -20,7 +20,7 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}custom_dashboards
         - createIndex:
             tableName: ${gravitee_prefix}custom_dashboards
-            indexName: idx_${gravitee_prefix}custom_dashboards_organization_id
+            indexName: idx_${gravitee_prefix}custom_dashboards_environment_id
             columns:
               - column:
-                  name: organization_id
+                  name: environment_id

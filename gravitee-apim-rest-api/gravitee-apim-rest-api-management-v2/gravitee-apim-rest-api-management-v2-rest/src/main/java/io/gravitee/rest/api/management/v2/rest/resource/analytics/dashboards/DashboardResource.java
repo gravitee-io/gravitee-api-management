@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -58,8 +59,11 @@ public class DashboardResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.READ }) })
     public Response getDashboard() {
+        if (!canReadDashboards()) {
+            throw new ForbiddenAccessException();
+        }
+
         var output = getDashboardUseCase.execute(new GetDashboardUseCase.Input(dashboardId));
 
         return Response.ok(DashboardMapper.INSTANCE.map(output.dashboard())).build();
@@ -68,7 +72,7 @@ public class DashboardResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.UPDATE }) })
     public Response updateDashboard(@Valid @NotNull CreateUpdateDashboard updateDashboard) {
         var auditInfo = getAuditInfo();
 
@@ -80,7 +84,7 @@ public class DashboardResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.DELETE }) })
     public Response deleteDashboard() {
         var auditInfo = getAuditInfo();
 

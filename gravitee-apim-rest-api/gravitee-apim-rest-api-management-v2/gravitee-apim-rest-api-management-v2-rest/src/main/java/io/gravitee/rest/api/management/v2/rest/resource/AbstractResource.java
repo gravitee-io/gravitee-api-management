@@ -148,6 +148,25 @@ public abstract class AbstractResource {
         return true;
     }
 
+    protected boolean canReadDashboards() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        return (
+            hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_DASHBOARD,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            ) ||
+            hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_API,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            ) ||
+            canReadAPIConfiguration()
+        );
+    }
+
     /**
      * @return The list of API Membership for the authenticated user (direct membership or through groups)
      */

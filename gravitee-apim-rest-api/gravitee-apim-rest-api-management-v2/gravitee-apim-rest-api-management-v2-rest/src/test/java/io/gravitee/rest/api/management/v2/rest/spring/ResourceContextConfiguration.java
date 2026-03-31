@@ -219,6 +219,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -271,6 +272,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationRepository applicationRepository() {
         return mock(ApplicationRepository.class);
+    }
+
+    @Bean
+    public CustomDashboardRepository customDashboardRepository() {
+        return mock(CustomDashboardRepository.class);
     }
 
     @Bean
