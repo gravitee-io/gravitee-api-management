@@ -196,17 +196,17 @@ public class ConfigurationMapperTest {
         PortalNext portalNext = new PortalNext();
         portalNext.setAccess(new Enabled(false));
 
-        portalNext.setMtlsEnabled(true);
+        portalNext.setMtls(new Enabled(true));
         ConfigurationPortalNext result = configurationMapper.convert(portalNext);
         Assertions.assertNotNull(result.getMtls());
         Assertions.assertEquals(Boolean.TRUE, result.getMtls().getEnabled());
 
-        portalNext.setMtlsEnabled(false);
+        portalNext.setMtls(new Enabled(false));
         result = configurationMapper.convert(portalNext);
         Assertions.assertNotNull(result.getMtls());
         Assertions.assertEquals(Boolean.FALSE, result.getMtls().getEnabled());
 
-        portalNext.setMtlsEnabled(null);
+        portalNext.setMtls(null);
         result = configurationMapper.convert(portalNext);
         Assertions.assertNull(result.getMtls());
     }

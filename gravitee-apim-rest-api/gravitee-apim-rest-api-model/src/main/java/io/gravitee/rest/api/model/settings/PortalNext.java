@@ -38,7 +38,7 @@ public class PortalNext {
     private Enabled access;
 
     @ParameterKey(Key.PORTAL_NEXT_MTLS_ENABLED)
-    private Boolean mtlsEnabled;
+    private Enabled mtls;
 
     private Banner banner;
 
