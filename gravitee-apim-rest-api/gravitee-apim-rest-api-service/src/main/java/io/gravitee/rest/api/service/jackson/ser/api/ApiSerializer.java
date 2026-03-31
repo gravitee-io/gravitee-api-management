@@ -99,18 +99,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             jsonGenerator.writeObjectField("picture", apiEntity.getPicture());
         }
 
-        if (DefinitionVersion.V1.getLabel().equals(apiEntity.getGraviteeDefinitionVersion())) {
-            if (apiEntity.getPaths() != null) {
-                jsonGenerator.writeObjectFieldStart("paths");
-                for (Map.Entry<String, List<Rule>> entry : apiEntity.getPaths().entrySet()) {
-                    jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
-                }
-                jsonGenerator.writeEndObject();
-            }
-        } else {
-            if (apiEntity.getFlows() != null) {
-                jsonGenerator.writeObjectField("flows", apiEntity.getFlows());
-            }
+        if (apiEntity.getFlows() != null) {
+            jsonGenerator.writeObjectField("flows", apiEntity.getFlows());
         }
 
         if (apiEntity.getGraviteeDefinitionVersion() != null) {
@@ -205,19 +195,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                     .getBean(PageService.class)
                     .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiEntity.getId()).build(), true);
 
-                if (this.version().getVersion().startsWith("1.")) {
-                    pages = pages
-                        .stream()
-                        .filter(
-                            pageEntity ->
-                                !pageEntity.getType().equals(PageType.LINK.name()) &&
-                                !pageEntity.getType().equals(PageType.TRANSLATION.name()) &&
-                                !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name()) &&
-                                !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
-                                !pageEntity.getType().equals(PageType.ASCIIDOC.name())
-                        )
-                        .collect(Collectors.toList());
-                } else if (this.version().getVersion().equals("3.0")) {
+                if (this.version().getVersion().equals("3.0")) {
                     pages = pages
                         .stream()
                         .filter(

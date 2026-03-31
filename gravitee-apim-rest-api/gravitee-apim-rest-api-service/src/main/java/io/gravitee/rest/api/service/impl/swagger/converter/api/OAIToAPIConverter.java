@@ -15,16 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
-import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.definition.model.*;
-import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
@@ -54,7 +51,7 @@ import org.springframework.util.CollectionUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, OAIDescriptorVisitor<SwaggerApiEntity> {
+public abstract class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, OAIDescriptorVisitor<SwaggerApiEntity> {
 
     public static final String X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION = "x-graviteeio-definition";
 
@@ -278,75 +275,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         return apiEntity;
     }
 
-    protected SwaggerApiEntity fill(final SwaggerApiEntity apiEntity, OpenAPI oai) {
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
-
-        Map<String, List<Rule>> paths = new HashMap<>();
-        Set<String> pathMappings = new HashSet();
-
-        if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
-            oai
-                .getPaths()
-                .entrySet()
-                .forEach(entry -> {
-                    String path = PATH_PARAMS_PATTERN.matcher(entry.getKey()).replaceAll(":$1");
-                    if (swaggerDescriptor.isWithPathMapping()) {
-                        pathMappings.add(path);
-                    }
-
-                    if (swaggerDescriptor.isWithPolicyPaths()) {
-                        Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
-                        List<Rule> rules = new ArrayList<>();
-
-                        operations.forEach((httpMethod, operation) ->
-                            getVisitors().forEach(
-                                (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                    // Consider only policy visitor for now
-                                    Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-
-                                    if (policy.isPresent()) {
-                                        final Rule rule = new Rule();
-                                        rule.setEnabled(true);
-                                        rule.setDescription(
-                                            operation.getSummary() == null
-                                                ? (operation.getOperationId() == null
-                                                        ? operation.getDescription()
-                                                        : operation.getOperationId())
-                                                : operation.getSummary()
-                                        );
-                                        rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
-
-                                        io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
-                                        defPolicy.setName(policy.get().getName());
-                                        defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
-                                        rule.setPolicy(defPolicy);
-                                        rules.add(rule);
-                                    }
-                                }
-                            )
-                        );
-                        paths.put(path, rules);
-                    }
-                });
-        }
-
-        final String defaultDeclaredPath = "/";
-
-        // Path
-        if (paths.isEmpty()) {
-            paths.put(defaultDeclaredPath, new ArrayList<>());
-        }
-
-        // Path Mappings
-        if (pathMappings.isEmpty()) {
-            pathMappings.add(defaultDeclaredPath);
-        }
-
-        apiEntity.setPaths(paths);
-        apiEntity.setPathMappings(pathMappings);
-
-        return apiEntity;
-    }
+    protected abstract SwaggerApiEntity fill(SwaggerApiEntity apiEntity, OpenAPI oai);
 
     private String findTagKeyByName(Map<String, String> tagMap, String tag) {
         for (Map.Entry<String, String> entry : tagMap.entrySet()) {

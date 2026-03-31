@@ -195,7 +195,6 @@ import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
-import io.gravitee.rest.api.service.migration.APIV1toAPIV2Converter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -369,9 +368,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private EmailService emailService;
-
-    @Autowired
-    private APIV1toAPIV2Converter apiv1toAPIV2Converter;
 
     @Autowired
     private DataEncryptor dataEncryptor;
@@ -2159,13 +2155,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity migrate(ExecutionContext executionContext, String apiId) {
-        final ApiEntity apiEntity = findById(executionContext, apiId);
-        final Set<PolicyEntity> policies = policyService.findAll();
-        Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
-
-        ApiEntity migratedApi = apiv1toAPIV2Converter.migrateToV2(apiEntity, policies, plans);
-
-        return this.update(executionContext, apiId, apiConverter.toUpdateApiEntity(migratedApi));
+        throw new UnsupportedOperationException("V1 to V2 migration is no longer supported");
     }
 
     @Override
