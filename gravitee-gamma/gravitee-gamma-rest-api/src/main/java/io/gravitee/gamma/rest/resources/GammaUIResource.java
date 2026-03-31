@@ -64,23 +64,27 @@ public class GammaUIResource {
                 ? GraviteeContext.getCurrentOrganization()
                 : GraviteeContext.getDefaultOrganization();
         }
+        ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
 
         String gammaApiUrl = installationAccessQueryService.getGammaAPIUrl(organizationId);
-        if (gammaApiUrl != null) {
-            return Response.ok(ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(gammaApiUrl).build()).build();
+        if (gammaApiUrl == null) {
+            gammaApiUrl = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
+                .replacePath(installationAccessQueryService.getGammaApiPath())
+                .replaceQuery(null)
+                .build()
+                .toUriString();
         }
 
-        ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
-        UriComponents gammaApi = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
-            .replacePath(installationAccessQueryService.getGammaApiPath())
-            .replaceQuery(null)
-            .build();
-        UriComponents consoleApi = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
-            .replacePath(installationAccessQueryService.getConsoleApiPath())
-            .replaceQuery(null)
-            .build();
+        String managementApiUrl = installationAccessQueryService.getConsoleAPIUrl(organizationId);
+        if (managementApiUrl == null) {
+            managementApiUrl = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
+                .replacePath(installationAccessQueryService.getConsoleApiPath())
+                .replaceQuery(null)
+                .build()
+                .toUriString();
+        }
 
-        return Response.ok(new GammaBootstrap(gammaApi.toUriString(), consoleApi.toUriString(), organizationId)).build();
+        return Response.ok(new GammaBootstrap(gammaApiUrl, managementApiUrl, organizationId)).build();
     }
 
     public record GammaBootstrap(String gammaBaseURL, String managementBaseURL, String organizationId) {}
