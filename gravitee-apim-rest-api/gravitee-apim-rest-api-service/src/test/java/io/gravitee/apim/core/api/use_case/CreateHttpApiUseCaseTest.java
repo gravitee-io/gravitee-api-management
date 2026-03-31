@@ -95,10 +95,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateHttpApiUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
@@ -321,6 +324,9 @@ class CreateHttpApiUseCaseTest {
                 List.of(
                     HttpSelector.builder().pathOperator(Operator.EQUALS).path("/chat/completions").methods(Set.of(HttpMethod.POST)).build()
                 )
+            ),
+            new Flow().withSelectors(
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/responses").methods(Set.of(HttpMethod.POST)).build())
             ),
             new Flow().withSelectors(
                 List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/models").methods(Set.of(HttpMethod.GET)).build())
