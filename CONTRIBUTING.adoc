@@ -17,7 +17,10 @@ You will need the following tools installed on your computer:
 * Java (JDK >= 17)
 * Maven
 * Docker
+* Node.js 22.12.x
 * Yarn 4.1.1 (preferably with NVM)
+
+TIP: The UI projects declare `node: ^22.12` and `packageManager: yarn@4.1.1` in their `package.json` files.
 
 === Get the project and prepare your workspace
 
@@ -57,9 +60,159 @@ Prepare APIM Console UI and Portal UI::
 First, be sure to have the correct version of node installed, there are .nvmrc files in the UI projects.
 If you've `nvm` installed, you can use `nvm use` to switch to the appropriate version of node.
 
-Then run `yarn` in the following directories:
- - `gravitee-api-management/gravitee-apim-console-webui`
- - `gravitee-api-management/gravitee-apim-portal-webui`
+NOTE: Console and Portal Next are part of an Nx workspace at the root. Portal remains independent.
+
+Then run `yarn`:
+ - At the **repository root** for Console and Portal Next (Nx workspace)
+ - In `gravitee-api-management/gravitee-apim-portal-webui` for Portal (independent project)
+
+=== AI Agent Context (Docker Compose Full Stack)
+
+This section is the source of truth for AI tools and should also be readable as a quickstart for humans.
+
+Default behavior for AI tools:
+
+* For any "start/run/deploy" request, use the Docker Compose full-stack flow in `docker/quick-setup/mongodb` without asking which path to use.
+* Assume the user wants the whole stack deployment unless they explicitly say otherwise.
+
+Full stack quickstart (MongoDB compose):
+
+0) Setup environment (one-time)
+   - Use correct Node.js version: `nvm use` (reads from `.nvmrc`)
+   - Enable Corepack: `corepack enable` (recommended, included in Node.js 16.10+)
+   - OR install Yarn globally: `npm install -g yarn`
+1) (Optional) Build backend artifacts
+   - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
+2) Build console UI (Nx workspace at root)
+   - `yarn install`
+   - `yarn console:build:prod`
+3) Build portal UI (independent project)
+   - `cd gravitee-apim-portal-webui && yarn install && yarn build && cd ..`
+4) Build local UI Docker images (from repo root)
+   - `docker build -t graviteeio/apim-management-ui:latest -f gravitee-apim-console-webui/docker/Dockerfile gravitee-apim-console-webui`
+   - `docker build -t graviteeio/apim-portal-ui:latest -f gravitee-apim-portal-webui/docker/Dockerfile gravitee-apim-portal-webui`
+5) Start full stack with MongoDB compose
+   - `cd docker/quick-setup/mongodb`
+   - `LICENSE_KEY=... docker compose up -d`
+
+Runtime endpoints (default compose):
+
+* Gateway: http://localhost:8082
+* Management API: http://localhost:8083
+* Management UI: http://localhost:8084
+* Portal UI: http://localhost:4100
+* Mailhog: http://localhost:8025
+
+Ports used by default (must be free):
+
+* 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
+
+Build workaround (host JDK 25/Lombok issues):
+
+If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
+
+[source, bash]
+----
+docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution -am package -DskipTests -Dskip.validation=true
+----
+
+To refresh the local Management API image used by `docker/quick-setup/mongodb`:
+
+* `rm -rf gravitee-apim-rest-api/docker/distribution`
+* `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
+* `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
+* `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
+
+Notes:
+
+* If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
+* Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
+* Node 25.x is not supported (odd-numbered); use Node 22.12.x.
+* **Yarn setup**: The `package.json` declares `packageManager: yarn@4.1.1`. Use Corepack (`corepack enable`) for automatic version management, or install Yarn globally. If neither is available, use the fallback: `npx -y @yarnpkg/cli-dist@4.1.1 <command>`.
+* If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
+
+Environment checks:
+
+* `docker --version` and `docker compose version`
+* `node -v` (expect 22.12.x)
+* `java -version` (expect 17)
+* `mvn -v` (expect 3.9+)
+* `git --version`
+
+=== AI Agent Context (Docker Compose Full Stack)
+
+This section is the source of truth for AI tools and should also be readable as a quickstart for humans.
+
+Default behavior for AI tools:
+
+* For any "start/run/deploy" request, use the Docker Compose full-stack flow in `docker/quick-setup/mongodb` without asking which path to use.
+* Assume the user wants the whole stack deployment unless they explicitly say otherwise.
+
+Full stack quickstart (MongoDB compose):
+
+0) Setup environment (one-time)
+   - Use correct Node.js version: `nvm use` (reads from `.nvmrc`)
+   - Enable Corepack: `corepack enable` (recommended, included in Node.js 16.10+)
+   - OR install Yarn globally: `npm install -g yarn`
+1) (Optional) Build backend artifacts
+   - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
+2) Build console UI (Nx workspace at root)
+   - `yarn install`
+   - `yarn console:build:prod`
+3) Build portal UI (independent project)
+   - `cd gravitee-apim-portal-webui && yarn install && yarn build && cd ..`
+4) Build local UI Docker images (from repo root)
+   - `docker build -t graviteeio/apim-management-ui:latest -f gravitee-apim-console-webui/docker/Dockerfile gravitee-apim-console-webui`
+   - `docker build -t graviteeio/apim-portal-ui:latest -f gravitee-apim-portal-webui/docker/Dockerfile gravitee-apim-portal-webui`
+5) Start full stack with MongoDB compose
+   - `cd docker/quick-setup/mongodb`
+   - `LICENSE_KEY=... docker compose up -d`
+
+Runtime endpoints (default compose):
+
+* Gateway: http://localhost:8082
+* Management API: http://localhost:8083
+* Management UI: http://localhost:8084
+* Portal UI: http://localhost:4100
+* Mailhog: http://localhost:8025
+
+Ports used by default (must be free):
+
+* 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
+
+Build workaround (host JDK 25/Lombok issues):
+
+If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
+
+[source, bash]
+----
+docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution -am package -DskipTests -Dskip.validation=true
+----
+
+To refresh the local Management API image used by `docker/quick-setup/mongodb`:
+
+* `rm -rf gravitee-apim-rest-api/docker/distribution`
+* `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
+* `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
+* `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
+
+Notes:
+
+* If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
+* Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
+* Node 25.x is not supported (odd-numbered); use Node 22.12.x.
+* **Yarn setup**: The `package.json` declares `packageManager: yarn@4.1.1`. Use Corepack (`corepack enable`) for automatic version management, or install Yarn globally. If neither is available, use the fallback: `npx -y @yarnpkg/cli-dist@4.1.1 <command>`.
+* If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
+
+Environment checks:
+
+* `docker --version` and `docker compose version`
+* `node -v` (expect 22.12.x)
+* `java -version` (expect 17)
+* `mvn -v` (expect 3.9+)
+* `git --version`
+
+
 
 === Run Prerequisites
 
@@ -104,20 +257,26 @@ NOTE:  `${GRAVITEE_HOME}` refers to the `target/distribution` folder created bef
 
 ==== APIM Console (gravitee-apim-console-webui)
 
+NOTE: Console is part of an Nx workspace at the repository root.
+
 IntelliJ configuration::
 
 Create a new Run configuration in IntelliJ:
 
 . Click *Run -> Edit configurations -> ✚ -> npm*.
 . Name it as required.
-. Choose *package.json: gravitee-api-management/gravitee-apim-console-webui/package.json*.
+. Choose *package.json: gravitee-api-management/package.json* (root workspace).
 . Select *Command: run*.
-. Select *Script: serve*.
+. Select *Script: console:serve*.
 
 TIP: To run `yarn` from IntelliJ, you can duplicate this configuration and choose *Command > Install*.
 
 CLI Version::
-Run `yarn serve` from the `gravitee-api-management/gravitee-apim-console-webui` directory to start the UI.
+Run `yarn console:serve` from the **repository root** to start the Console UI.
+
+Alternative backends::
+- `yarn console:serve:apim-master` - Connect to apim-master backend
+- `yarn console:serve:apim-gko` - Connect to apim-gko backend
 
 
 ==== APIM Portal (gravitee-apim-portal-webui)
