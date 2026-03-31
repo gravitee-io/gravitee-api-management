@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
@@ -65,9 +66,6 @@ class FailoverInvokerTest {
     private HttpEndpointInvoker endpointInvoker;
 
     @Mock
-    private MutableRequest request;
-
-    @Mock
     private MutableResponse response;
 
     @Mock
@@ -76,16 +74,27 @@ class FailoverInvokerTest {
     @Mock
     private EndpointManager endpointManager;
 
+    private MutableRequest request;
+
     private HttpExecutionContext executionContext;
 
     private FailoverInvoker cut;
 
+    private static MutableRequest fakeRequest(Buffer body) {
+        var request = new AbstractRequest() {
+            {
+                this.headers = HttpHeaders.create();
+            }
+        };
+        request.body(body);
+        return request;
+    }
+
     @BeforeEach
     void setUp() {
+        request = fakeRequest(Buffer.buffer("body"));
         executionContext = new DefaultExecutionContext(request, response);
         ((DefaultExecutionContext) executionContext).metrics(metrics);
-        lenient().when(request.body()).thenReturn(Maybe.just(Buffer.buffer("body")));
-        lenient().when(request.headers()).thenReturn(HttpHeaders.create());
     }
 
     @Test
@@ -229,7 +238,7 @@ class FailoverInvokerTest {
         @BeforeEach
         void setUpConditionTests() {
             lenient().when(mockCtx.getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).thenReturn("endpoint-name");
-            lenient().when(mockCtx.request()).thenReturn(request);
+            lenient().when(mockCtx.request()).thenReturn(fakeRequest(Buffer.buffer("body")));
             lenient().when(mockCtx.getTemplateEngine()).thenReturn(templateEngine);
             lenient()
                 .when(mockCtx.interruptWith(any()))
