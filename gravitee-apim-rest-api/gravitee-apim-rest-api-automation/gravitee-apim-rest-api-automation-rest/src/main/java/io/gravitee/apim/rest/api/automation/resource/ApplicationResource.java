@@ -36,7 +36,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -84,7 +84,7 @@ public class ApplicationResource extends AbstractResource {
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
                 executionContext,
-                legacyID ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+                legacyID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id()
             );
 
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
@@ -146,7 +146,7 @@ public class ApplicationResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            String applicationId = legacyID ? hrid : IdBuilder.builder(executionContext, hrid).buildId();
+            String applicationId = legacyID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id();
             applicationService.archive(executionContext, applicationId);
             removeMetadata(applicationId);
         } catch (ApplicationNotFoundException e) {

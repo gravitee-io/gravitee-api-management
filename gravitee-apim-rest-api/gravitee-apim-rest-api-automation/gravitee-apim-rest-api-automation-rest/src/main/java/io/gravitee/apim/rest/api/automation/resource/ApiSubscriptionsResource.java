@@ -31,7 +31,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -91,11 +91,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
         // Legacy mode means 'Hrid' fields contains GUID from GKO Status
         // that were preexisting in the kube cluster
         SubscriptionCRDSpec subscriptionCRDSpec = SubscriptionCRDSpec.builder()
-            .id(legacyID ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId())
-            .applicationId(legacyAppID ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId())
-            .referenceId(legacyApiID ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId())
+            .id(legacyID ? spec.getHrid() : HRIDToUUID.subscription().context(auditInfo).api(apiHrid).subscription(spec.getHrid()).id())
+            .applicationId(
+                legacyAppID ? spec.getApplicationHrid() : HRIDToUUID.application().context(auditInfo).hrid(spec.getApplicationHrid()).id()
+            )
+            .referenceId(legacyApiID ? apiHrid : HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
             .referenceType(SubscriptionReferenceType.API)
-            .planId(legacyApiID ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId())
+            .planId(legacyApiID ? spec.getPlanHrid() : HRIDToUUID.plan().context(auditInfo).api(apiHrid).plan(spec.getPlanHrid()).id())
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
             .metadata(spec.getMetadata())
             .build();

@@ -21,7 +21,7 @@ import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -37,12 +37,12 @@ import lombok.NoArgsConstructor;
 public class CrdIdHelper {
 
     public static void generateApiIds(ApiCRDSpec spec, AuditInfo audit) {
-        var idBuilder = IdBuilder.builder(audit, spec.getHrid());
+        var api = HRIDToUUID.api().context(audit).hrid(spec.getHrid());
         if (spec.getId() == null) {
-            spec.setId(idBuilder.buildId());
+            spec.setId(api.id());
         }
         if (spec.getCrossId() == null) {
-            spec.setCrossId(idBuilder.buildCrossId());
+            spec.setCrossId(api.crossId());
         }
     }
 
@@ -52,13 +52,13 @@ public class CrdIdHelper {
         }
         plans.forEach((key, planCRD) -> {
             if (planCRD.getId() == null) {
-                planCRD.setId(IdBuilder.builder(audit, apiHrid).withExtraId(key).buildId());
+                planCRD.setId(HRIDToUUID.plan().context(audit).api(apiHrid).plan(key).id());
             }
             if (
                 (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
                 (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())
             ) {
-                planCRD.setGeneralConditions(IdBuilder.builder(audit, apiHrid).withExtraId(planCRD.getGeneralConditionsHrid()).buildId());
+                planCRD.setGeneralConditions(HRIDToUUID.page().context(audit).api(apiHrid).page(planCRD.getGeneralConditionsHrid()).id());
             }
         });
     }
@@ -69,27 +69,27 @@ public class CrdIdHelper {
         }
         pages.forEach((key, pageCRD) -> {
             if (pageCRD.getId() == null) {
-                pageCRD.setId(IdBuilder.builder(audit, apiHrid).withExtraId(key).buildId());
+                pageCRD.setId(HRIDToUUID.page().context(audit).api(apiHrid).page(key).id());
             }
             if (pageCRD.getParentId() == null && pageCRD.getParentHrid() != null) {
-                pageCRD.setParentId(IdBuilder.builder(audit, apiHrid).withExtraId(pageCRD.getParentHrid()).buildId());
+                pageCRD.setParentId(HRIDToUUID.page().context(audit).api(apiHrid).page(pageCRD.getParentHrid()).id());
             }
         });
     }
 
     public static void generateApplicationId(ApplicationCRDSpec spec, AuditInfo audit) {
         if (spec.getId() == null) {
-            spec.setId(IdBuilder.builder(audit, spec.getHrid()).buildId());
+            spec.setId(HRIDToUUID.application().context(audit).hrid(spec.getHrid()).id());
         }
     }
 
     public static void generateSharedPolicyGroupIds(SharedPolicyGroupCRD crd, AuditInfo audit) {
-        var idBuilder = IdBuilder.builder(audit, crd.getHrid());
+        var spg = HRIDToUUID.sharedPolicyGroup().context(audit).hrid(crd.getHrid());
         if (crd.getSharedPolicyGroupId() == null) {
-            crd.setSharedPolicyGroupId(idBuilder.buildId());
+            crd.setSharedPolicyGroupId(spg.id());
         }
         if (crd.getCrossId() == null) {
-            crd.setCrossId(idBuilder.buildCrossId());
+            crd.setCrossId(spg.crossId());
         }
     }
 }

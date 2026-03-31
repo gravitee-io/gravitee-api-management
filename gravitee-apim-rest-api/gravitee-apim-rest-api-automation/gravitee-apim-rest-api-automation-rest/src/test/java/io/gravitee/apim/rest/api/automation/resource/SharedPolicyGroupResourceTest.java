@@ -26,7 +26,7 @@ import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import java.util.List;
@@ -70,12 +70,12 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
     }
 
     private void givenExistingSharedPolicyGroup(List<Step> steps) {
-        IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
+        var spg = HRIDToUUID.sharedPolicyGroup().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(HRID);
         sharedPolicyGroupCrudService.initWith(
             List.of(
                 SharedPolicyGroup.builder()
-                    .id(builder.buildId())
-                    .crossId(builder.buildCrossId())
+                    .id(spg.id())
+                    .crossId(spg.crossId())
                     .hrid(HRID)
                     .environmentId(ENVIRONMENT)
                     .organizationId(ORGANIZATION)
@@ -230,10 +230,10 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
             @Test
             void should_return_state_from_hrid() {
                 var state = putAndReadEntity("shared-policy-group.json", false);
-                IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
+                var spg = HRIDToUUID.sharedPolicyGroup().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(HRID);
                 SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(state.getCrossId()).isEqualTo(builder.buildCrossId());
-                    soft.assertThat(state.getId()).isEqualTo(builder.buildId());
+                    soft.assertThat(state.getCrossId()).isEqualTo(spg.crossId());
+                    soft.assertThat(state.getId()).isEqualTo(spg.id());
                     soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                     soft.assertThat(state.getHrid()).isEqualTo("spg-foo");

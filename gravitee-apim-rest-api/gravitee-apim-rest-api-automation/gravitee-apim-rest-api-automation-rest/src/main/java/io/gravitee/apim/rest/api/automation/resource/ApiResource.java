@@ -36,7 +36,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -90,7 +90,7 @@ public class ApiResource extends AbstractResource {
 
         boolean hridContainsUUID = legacyID || setHRID;
         var input = new ExportApiCRDUseCase.Input(
-            hridContainsUUID ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
+            hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
             IDExportStrategy.ALL,
             buildAuditInfo(executionContext, userDetails)
         );
@@ -143,7 +143,7 @@ public class ApiResource extends AbstractResource {
         try {
             apiServiceV4.delete(
                 GraviteeContext.getExecutionContext(),
-                legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
+                legacy ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
                 true
             );
         } catch (ApiNotFoundException e) {

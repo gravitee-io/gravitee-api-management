@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -57,7 +57,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                legacyID ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+                legacyID ? hrid : HRIDToUUID.sharedPolicyGroup().context(executionContext).hrid(hrid).id()
             );
             return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
         } catch (SharedPolicyGroupNotFoundException e) {
@@ -87,7 +87,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                legacyID ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+                legacyID ? hrid : HRIDToUUID.sharedPolicyGroup().context(executionContext).hrid(hrid).id()
             );
             if (!dryRun) {
                 deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), auditInfo));

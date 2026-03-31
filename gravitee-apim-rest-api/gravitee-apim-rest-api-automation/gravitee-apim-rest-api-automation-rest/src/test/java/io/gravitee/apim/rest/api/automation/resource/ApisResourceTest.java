@@ -29,7 +29,7 @@ import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -203,10 +203,10 @@ class ApisResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft
                     .assertThat(state.getCrossId())
-                    .isEqualTo(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), "api-hrid").buildCrossId());
+                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").crossId());
                 soft
                     .assertThat(state.getId())
-                    .isEqualTo(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), "api-hrid").buildId());
+                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
@@ -223,7 +223,7 @@ class ApisResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft
                     .assertThat(state.getId())
-                    .isEqualTo(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), "api-hrid").buildId());
+                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
                 soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);

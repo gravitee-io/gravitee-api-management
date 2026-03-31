@@ -33,7 +33,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -75,7 +75,9 @@ public class ApiSubscriptionResource extends AbstractResource {
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String subscriptionId = legacyID ? hrid : IdBuilder.builder(executionContext, apiHrid).withExtraId(hrid).buildId();
+            String subscriptionId = legacyID
+                ? hrid
+                : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
             if (legacyID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
@@ -121,7 +123,9 @@ public class ApiSubscriptionResource extends AbstractResource {
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String subscriptionId = legacyID ? hrid : IdBuilder.builder(executionContext, apiHrid).withExtraId(hrid).buildId();
+            String subscriptionId = legacyID
+                ? hrid
+                : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
             if (legacyApiID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
