@@ -18,12 +18,10 @@ package io.gravitee.apim.rest.api.automation.spring;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_DEFINITION;
-import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,13 +35,11 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriInfo;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -136,7 +132,7 @@ public class PermissionsFilterTest {
                 permissionService.hasPermission(
                     any(),
                     eq(API_DEFINITION),
-                    eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
+                    eq(HRIDToUUID.api().context(GraviteeContext.getExecutionContext()).hrid(HRID).id()),
                     eq(READ)
                 )
             ).thenReturn(true);
@@ -144,7 +140,7 @@ public class PermissionsFilterTest {
             verify(permissionService, times(1)).hasPermission(
                 any(),
                 eq(API_DEFINITION),
-                eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
+                eq(HRIDToUUID.api().context(GraviteeContext.getExecutionContext()).hrid(HRID).id()),
                 eq(READ)
             );
         }
@@ -196,7 +192,7 @@ public class PermissionsFilterTest {
                 permissionService.hasPermission(
                     any(),
                     eq(API_SUBSCRIPTION),
-                    eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), API_HRID).buildId()),
+                    eq(HRIDToUUID.api().context(GraviteeContext.getExecutionContext()).hrid(API_HRID).id()),
                     eq(READ)
                 )
             ).thenReturn(true);
@@ -204,7 +200,7 @@ public class PermissionsFilterTest {
             verify(permissionService, times(1)).hasPermission(
                 any(),
                 eq(API_SUBSCRIPTION),
-                eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), API_HRID).buildId()),
+                eq(HRIDToUUID.api().context(GraviteeContext.getExecutionContext()).hrid(API_HRID).id()),
                 eq(READ)
             );
         }
@@ -257,7 +253,7 @@ public class PermissionsFilterTest {
                 permissionService.hasPermission(
                     any(),
                     eq(APPLICATION_DEFINITION),
-                    eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
+                    eq(HRIDToUUID.api().context(GraviteeContext.getExecutionContext()).hrid(HRID).id()),
                     eq(READ)
                 )
             ).thenReturn(true);
@@ -267,7 +263,7 @@ public class PermissionsFilterTest {
             verify(permissionService, times(1)).hasPermission(
                 any(),
                 eq(APPLICATION_DEFINITION),
-                eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
+                eq(HRIDToUUID.api().context(GraviteeContext.getExecutionContext()).hrid(HRID).id()),
                 eq(READ)
             );
         }
