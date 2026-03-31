@@ -96,20 +96,13 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
 
         if (descriptor != null) {
-            if (DefinitionVersion.V2.equals(definitionVersion)) {
-                return new OAIToAPIV2Converter(
-                    swaggerDescriptor,
-                    policyOperationVisitorManager,
-                    groupService,
-                    tagService,
-                    policyPluginService
-                ).convert(executionContext, (OAIDescriptor) descriptor);
-            } else {
-                return new OAIToAPIConverter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService).convert(
-                    executionContext,
-                    (OAIDescriptor) descriptor
-                );
-            }
+            return new OAIToAPIV2Converter(
+                swaggerDescriptor,
+                policyOperationVisitorManager,
+                groupService,
+                tagService,
+                policyPluginService
+            ).convert(executionContext, (OAIDescriptor) descriptor);
         }
 
         throw new SwaggerDescriptorException();
