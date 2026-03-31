@@ -58,7 +58,6 @@ import org.mapstruct.factory.Mappers;
         PropertiesMapper.class,
         ResourceMapper.class,
         ResponseTemplateMapper.class,
-        RuleMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
     }

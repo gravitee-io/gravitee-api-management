@@ -42,8 +42,6 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
@@ -270,12 +268,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .id("plan-1")
                 .order(1)
                 .status(io.gravitee.rest.api.model.PlanStatus.DEPRECATED)
-                .paths(
-                    Map.of(
-                        "path",
-                        List.of(Rule.builder().methods(Set.of(HttpMethod.GET)).description("description of a rule").enabled(true).build())
-                    )
-                )
                 .build();
             io.gravitee.rest.api.model.PlanEntity plan3 = PlanFixtures.aPlanEntityV2()
                 .toBuilder()

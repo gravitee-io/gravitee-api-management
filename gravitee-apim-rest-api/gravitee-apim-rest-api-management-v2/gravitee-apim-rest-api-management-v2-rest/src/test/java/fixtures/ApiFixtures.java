@@ -171,10 +171,6 @@ public class ApiFixtures {
         return BASE_UPDATE_API_FEDERATED.get();
     }
 
-    public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
-        return ApiModelFixtures.aModelApiV1();
-    }
-
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV2() {
         return ApiModelFixtures.aModelApiV2();
     }

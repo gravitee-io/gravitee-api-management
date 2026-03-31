@@ -39,7 +39,7 @@ import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class, RuleMapper.class },
+    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class, DefinitionVersionMapper.class },
     nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
 )
 public interface ApiProductPlanMapper {
