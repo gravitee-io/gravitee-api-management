@@ -67,6 +67,14 @@ public class BufferFlow implements OnBuffersInterceptor {
         );
     }
 
+    public Maybe<Buffer> bodyIgnoringInterceptors() {
+        if (Boolean.FALSE.equals(isStreaming.get())) {
+            this.chunks = chunksFromCache(() -> chunksOrEmpty().compose(chunksToCache()));
+            return chunks.firstElement();
+        }
+        return Maybe.empty();
+    }
+
     public void body(Buffer buffer) {
         if (Boolean.FALSE.equals(isStreaming.get())) {
             cachedBuffer = Maybe.just(buffer);
