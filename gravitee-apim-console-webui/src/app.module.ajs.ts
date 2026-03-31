@@ -272,7 +272,6 @@ require('angular-material-icons');
 require('angular-material-data-table');
 require('angular-messages');
 
-require('dragular');
 require('v-accordion');
 
 require('angular-schema-form');
@@ -383,7 +382,6 @@ angular.module('gravitee-management', [
   'ngMdIcons',
   'ui.codemirror',
   'md.data.table',
-  'dragularModule',
   'ngMessages',
   'vAccordion',
   'schemaForm',
