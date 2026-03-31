@@ -22,7 +22,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, switchMap, tap, throwError } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
@@ -46,6 +46,7 @@ import { ApplicationService } from '../../../../../services/application.service'
 import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 interface SubscriptionDetailsVM {
   result?: SubscriptionDetailsData;
@@ -68,6 +69,7 @@ interface SubscriptionDetailsData {
   clientId?: string;
   clientSecret?: string;
   api?: Api;
+  hasDocumentationAccess: boolean;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
@@ -158,27 +160,46 @@ export class SubscriptionsDetailsComponent implements OnInit {
       });
   }
 
+  // states of endpoiont
+  // we have nav item and we display it
+  // we have nav item and we don't display it
+  // we don't have nav item
+
+  private getDocumentationAccess$(): Observable<boolean> {
+    return this.permissionsService.getApiPermissions(this.apiId).pipe(
+      map(() => true),
+      catchError(error => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          return of(false);
+        }
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
   private loadDetails() {
     return this._subscriptionDetails.pipe(
       switchMap(() =>
         forkJoin({
           subscription: this.subscriptionService.get(this.subscriptionId),
-          permissions: this.permissionsService.getApiPermissions(this.apiId),
+          hasDocumentationAccess: this.getDocumentationAccess$(),
         }),
       ),
-      switchMap(({ subscription, permissions }) =>
+      switchMap(({ subscription, hasDocumentationAccess }) =>
         forkJoin({
           subscription: of(subscription),
-          plan: this.getPlanData$(subscription.plan, permissions),
-          api: this.apiService.details(this.apiId),
+          plan: this.getPlanData$(subscription.plan),
+          api: this.apiService.details(this.apiId).pipe(catchError(() => of(null))),
           application: this.applicationService.get(subscription.application),
+          hasDocumentationAccess: of(hasDocumentationAccess),
         }),
       ),
-      map(({ subscription, plan, api, application }) => {
+      map(({ subscription, plan, api, application, hasDocumentationAccess }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
           application,
           subscription,
-          api,
+          api: api ?? undefined,
           planName: plan.name,
           planSecurity: plan.securityType,
           planUsageConfiguration: plan.usageConfiguration,
@@ -186,7 +207,8 @@ export class SubscriptionsDetailsComponent implements OnInit {
           failureCause: subscription.failureCause,
           createdAt: subscription.created_at,
           updatedAt: subscription.updated_at,
-          entrypointUrls: api?.entrypoints,
+          entrypointUrls: api?.entrypoints ?? [],
+          hasDocumentationAccess,
         };
 
         if (subscription.status === 'ACCEPTED') {
@@ -239,15 +261,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
   private getPlanData$(
     planId: string,
-    permissions: UserApiPermissions,
   ): Observable<{
     name: string;
     securityType: PlanSecurityEnum;
     usageConfiguration: PlanUsageConfiguration;
     planMode: PlanMode;
   }> {
-    return of(permissions.PLAN?.includes('R') === true).pipe(
-      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId) : this.getPlanDataFromMetadata$(planId))),
+    return this.getPlanDataFromMetadata$(planId).pipe(
       map(plan => ({
         name: plan.name ?? '',
         securityType: plan.securityType ?? 'KEY_LESS',
@@ -257,6 +277,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     );
   }
 
+  // TODO check if this is still relevant
   private getPlanDataFromList$(planId: string): Observable<{
     name?: string;
     securityType?: PlanSecurityEnum;

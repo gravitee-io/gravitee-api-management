@@ -53,6 +53,9 @@ export class SubscriptionInfoComponent implements OnInit {
   api?: Api;
 
   @Input()
+  hasDocumentationAccess?: boolean;
+
+  @Input()
   subscription?: Subscription;
 
   @Input()

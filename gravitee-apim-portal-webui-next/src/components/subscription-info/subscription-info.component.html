@@ -55,7 +55,13 @@
               <span class="material-icons icon-small">api</span>
               <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
             </span>
-            <a class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">{{ api.name }}</a>
+            @if (hasDocumentationAccess) {
+              <a data-testid="subscription-api-link" class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">
+                {{ api.name }}
+              </a>
+            } @else {
+              <span data-testid="subscription-api-label" class="next-gen-body">{{ api.name }}</span>
+            }
           </div>
         }
 
