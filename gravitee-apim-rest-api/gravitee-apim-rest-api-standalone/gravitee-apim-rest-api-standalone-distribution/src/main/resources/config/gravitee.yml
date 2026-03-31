@@ -744,7 +744,7 @@ notifiers:
 #           url: http://localhost:4100
 #         - envId: example
 #           url: http:/localhost:4101
-#    gamma:
+#    gamma-console:
 #      url: http://localhost:4200
 #      # If you have multi console instances targeting different organizations, you can configure the section as bellow instead:
 #      urls:
