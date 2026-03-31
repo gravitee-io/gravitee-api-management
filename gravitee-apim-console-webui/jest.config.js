@@ -2,6 +2,7 @@ process.env.TZ = 'UTC';
 
 module.exports = {
   testTimeout: 30000,
+  workerIdleMemoryLimit: '1024MB',
   preset: 'jest-preset-angular',
   roots: [__dirname + '/src'],
   setupFilesAfterEnv: [__dirname + '/src/setup-jest.ts'],
@@ -33,6 +34,7 @@ module.exports = {
       {
         outputDirectory: __dirname + '/coverage',
         outputName: 'junit.xml',
+        addFileAttribute: 'true',
       },
     ],
   ],
