@@ -48,14 +48,7 @@ public class ApiMapper {
         this.apiKeyMapper = apiKeyMapper;
 
         parsers = List.of(
-            payload ->
-                parseAndAssert(
-                    payload,
-                    Api.class,
-                    reactableApi ->
-                        reactableApi.getDefinitionVersion() == DefinitionVersion.V1 ||
-                        reactableApi.getDefinitionVersion() == DefinitionVersion.V2
-                ),
+            payload -> parseAndAssert(payload, Api.class, reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V2),
             payload ->
                 parseAndAssert(
                     payload,
