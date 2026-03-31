@@ -47,7 +47,11 @@ describe('ApiService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=ALL&size=9&q=`);
+      const req = httpTestingController.expectOne(
+        r =>
+          r.url === `${TESTING_BASE_URL}/apis/_search` &&
+          r.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+      );
       expect(req.request.method).toEqual('POST');
 
       req.flush(apisResponse);
@@ -61,7 +65,11 @@ describe('ApiService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=2&category=ALL&size=99&q=`);
+      const req = httpTestingController.expectOne(
+        r =>
+          r.url === `${TESTING_BASE_URL}/apis/_search` &&
+          r.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+      );
       expect(req.request.method).toEqual('POST');
 
       req.flush(apisResponse);

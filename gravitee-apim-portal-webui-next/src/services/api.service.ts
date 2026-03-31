@@ -38,6 +38,7 @@ export class ApiService {
         category: category !== 'all' && category !== undefined ? category : '',
         size,
         q: q,
+        [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION,
       },
     });
   }

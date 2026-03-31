@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -26,12 +27,18 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCategoryOrderQueryServiceInMemory;
+import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -82,6 +89,12 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Autowired
     private ValidateResourceDomainServiceInMemory validateResourceDomainServiceInMemory;
+
+    @Autowired
+    private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryServiceInMemory;
+
+    @Autowired
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -196,6 +209,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiCategoryOrderQueryServiceInMemory.reset();
         apiAuthorizationDomainServiceInMemory.reset();
         apiQueryServiceInMemory.reset();
+        apiPortalSearchQueryServiceInMemory.reset();
+        portalNavigationItemsQueryServiceInMemory.reset();
 
         final Category myCat = Category.builder().id("myCat").build();
         categoryQueryServiceInMemory.initWith(List.of(myCat));
@@ -722,6 +737,47 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
         assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    void shouldSearchApisWithDocumentationViewUsingNgPortalRules() {
+        String envId = GraviteeContext.getExecutionContext().getEnvironmentId();
+        String orgId = GraviteeContext.getExecutionContext().getOrganizationId();
+
+        portalNavigationItemsQueryServiceInMemory.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId(orgId)
+                    .environmentId(envId)
+                    .title("Nav for ng-api")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId("ng-api")
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build()
+            )
+        );
+        apiPortalSearchQueryServiceInMemory.initWith(List.of(Api.builder().id("ng-api").name("ng-api").environmentId(envId).build()));
+
+        ApiEntity ngApiEntity = new ApiEntity();
+        ngApiEntity.setId("ng-api");
+        ngApiEntity.setName("ng-api");
+        ngApiEntity.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
+
+        doReturn(List.of(ngApiEntity)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        // When
+        final Response response = target("/_search")
+            .queryParam("q", "ng-api")
+            .queryParam("view", "documentation")
+            .request()
+            .post(Entity.json(null));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        assertThat(apiResponse.getData()).hasSize(1).extracting("id").containsExactly("ng-api");
     }
 
     private int getmaxLabelsListSize(ApisResponse apiResponse) {
