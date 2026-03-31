@@ -21,7 +21,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.annotation.Priority;
@@ -103,7 +103,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
             return null;
         }
 
-        return isLegacy ? pathParams.getFirst() : IdBuilder.builder(executionContext, pathParams.getFirst()).buildId();
+        return isLegacy ? pathParams.getFirst() : HRIDToUUID.api().context(executionContext).hrid(pathParams.getFirst()).id();
     }
 
     private String getApiHrid(ContainerRequestContext requestContext) {
