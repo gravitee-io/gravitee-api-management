@@ -16,14 +16,15 @@
 package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.v2.rest.exceptionMapper.AbstractExceptionMapper;
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import jakarta.annotation.Priority;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Provider
 @Priority(1)
@@ -31,9 +32,44 @@ public class JsonMappingExceptionMapper extends AbstractExceptionMapper<JsonMapp
 
     @Override
     public Response toResponse(JsonMappingException exception) {
-        return Response.status(Response.Status.BAD_REQUEST)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message(exception.getOriginalMessage()))
-            .build();
+        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(buildError(exception)).build();
+    }
+
+    private Error buildError(JsonMappingException exception) {
+        var error = new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .technicalCode("invalidValue")
+            .message(sanitizeMessage(exception));
+
+        var location = buildFieldLocation(exception);
+        if (location != null) {
+            error.details(List.of(new ErrorDetailsInner().message(sanitizeMessage(exception)).location(location)));
+        }
+
+        return error;
+    }
+
+    /**
+     * When JSON deserialization fails on an invalid enum value, the exception message
+     * includes the fully-qualified Java class name. We extract just the cause's message
+     * to avoid exposing internal implementation details in API responses.
+     */
+    private String sanitizeMessage(JsonMappingException exception) {
+        if (exception instanceof ValueInstantiationException && exception.getCause() != null) {
+            return exception.getCause().getMessage();
+        }
+        return exception.getOriginalMessage();
+    }
+
+    private String buildFieldLocation(JsonMappingException exception) {
+        var path = exception.getPath();
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+        return path
+            .stream()
+            .map(ref -> ref.getFieldName() != null ? ref.getFieldName() : "[" + ref.getIndex() + "]")
+            .collect(Collectors.joining("."))
+            .replace(".[", "[");
     }
 }

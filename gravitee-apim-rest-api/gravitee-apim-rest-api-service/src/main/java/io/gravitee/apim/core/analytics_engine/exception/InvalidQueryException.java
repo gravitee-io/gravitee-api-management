@@ -27,6 +27,10 @@ public class InvalidQueryException extends ValidationDomainException {
         super(message);
     }
 
+    public InvalidQueryException(String message, String technicalCode) {
+        super(message, technicalCode);
+    }
+
     public static InvalidQueryException forMaximumFacetsExceeded(int allowed, int actual) {
         return new InvalidQueryException("Cannot query for more than " + allowed + " facets, got " + actual);
     }
@@ -64,6 +68,6 @@ public class InvalidQueryException extends ValidationDomainException {
     }
 
     public static InvalidQueryException forUnknownAPIType(String apiType) {
-        return new InvalidQueryException("Unknown API type '" + apiType + "'");
+        return new InvalidQueryException("Unknown API type '" + apiType + "'", "analytics.filter.invalidValue");
     }
 }
