@@ -135,25 +135,26 @@ public class Plan implements GenericPlanEntity {
     public PlanSecurity getPlanSecurity() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getSecurity();
-            case V1, V2 -> new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition());
+            case V2 -> new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition());
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.getSecurity();
+            default -> null;
         };
     }
 
     @Override
     public PlanStatus getPlanStatus() {
         return switch (definitionVersion) {
-            // null
             case V4 -> getPlanDefinitionV4().getStatus();
-            case V1, V2 -> PlanStatus.valueOf(planDefinitionV2.getStatus());
+            case V2 -> PlanStatus.valueOf(planDefinitionV2.getStatus());
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.getStatus();
+            default -> null;
         };
     }
 
     public Plan setPlanStatus(PlanStatus planStatus) {
         switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().setStatus(planStatus);
-            case V1, V2 -> planDefinitionV2.setStatus(planStatus.name());
+            case V2 -> planDefinitionV2.setStatus(planStatus.name());
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.setStatus(planStatus);
         }
         return this;
@@ -163,8 +164,9 @@ public class Plan implements GenericPlanEntity {
     public PlanMode getPlanMode() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getMode();
-            case V1, V2 -> PlanMode.STANDARD;
+            case V2 -> PlanMode.STANDARD;
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.getMode();
+            default -> null;
         };
     }
 
@@ -179,7 +181,7 @@ public class Plan implements GenericPlanEntity {
         this.id = id;
         switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().setId(id);
-            case V1, V2 -> planDefinitionV2.setId(id);
+            case V2 -> planDefinitionV2.setId(id);
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.setId(id);
         }
         return this;
@@ -193,7 +195,7 @@ public class Plan implements GenericPlanEntity {
     public Plan setPlanTags(Set<String> tags) {
         switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().setTags(tags);
-            case V1, V2 -> planDefinitionV2.setTags(tags);
+            case V2 -> planDefinitionV2.setTags(tags);
             case FEDERATED, FEDERATED_AGENT -> {
                 // do nothing
             }
@@ -210,16 +212,18 @@ public class Plan implements GenericPlanEntity {
     public Set<String> getPlanTags() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getTags();
-            case V1, V2 -> planDefinitionV2.getTags();
+            case V2 -> planDefinitionV2.getTags();
             case FEDERATED, FEDERATED_AGENT -> Set.of();
+            default -> Set.of();
         };
     }
 
     public String getSelectionRule() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getSelectionRule();
-            case V1, V2 -> planDefinitionV2.getSelectionRule();
+            case V2 -> planDefinitionV2.getSelectionRule();
             case FEDERATED, FEDERATED_AGENT -> "";
+            default -> "";
         };
     }
 
@@ -271,8 +275,9 @@ public class Plan implements GenericPlanEntity {
     public Set<String> getTags() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getTags();
-            case V1, V2 -> planDefinitionV2.getTags();
+            case V2 -> planDefinitionV2.getTags();
             case FEDERATED, FEDERATED_AGENT -> Set.of();
+            default -> Set.of();
         };
     }
 
@@ -336,8 +341,9 @@ public class Plan implements GenericPlanEntity {
                 }
                 yield builder.build();
             }
-            case V1, V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
+            case V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
             case FEDERATED, FEDERATED_AGENT -> toBuilder().federatedPlanDefinition(federatedPlanDefinition.toBuilder().build()).build();
+            default -> toBuilder().build();
         };
     }
 

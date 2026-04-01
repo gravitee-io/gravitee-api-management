@@ -74,9 +74,11 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
                         .getPlugins();
                 };
-                case V1, V2 -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
+                case V2 -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
                 case FEDERATED, FEDERATED_AGENT -> List.of();
-                case null -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
+                case null, default -> objectMapper
+                    .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class)
+                    .getPlugins();
             };
         } catch (Exception e) {
             throw new TechnicalManagementException(e.getMessage());

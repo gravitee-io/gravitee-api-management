@@ -71,8 +71,7 @@ public class CreatePlanDomainService {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
             case FEDERATED, FEDERATED_AGENT -> createFederatedApiPlan(plan, auditInfo);
             case V2 -> createV2ApiPlan(plan, flows, api, auditInfo);
-            case V1 -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
-            case null -> throw new IllegalStateException("null definition version is not supported");
+            case null, default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
     }
 

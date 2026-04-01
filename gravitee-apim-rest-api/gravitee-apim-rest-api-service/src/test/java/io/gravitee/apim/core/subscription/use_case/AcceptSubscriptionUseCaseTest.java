@@ -614,7 +614,7 @@ class AcceptSubscriptionUseCaseTest {
 
     private Api anApi(DefinitionVersion definitionVersion, ApiType apiType) {
         return switch (definitionVersion) {
-            case V1, V2 -> ApiFixtures.aProxyApiV2().setId(API_ID);
+            case V2 -> ApiFixtures.aProxyApiV2().setId(API_ID);
             case V4 -> switch (apiType) {
                 case A2A_PROXY -> ApiFixtures.anA2AProxyApiV4().setId(API_ID);
                 case LLM_PROXY -> ApiFixtures.aLLMProxyApiV4().setId(API_ID);
@@ -641,7 +641,7 @@ class AcceptSubscriptionUseCaseTest {
 
     private Plan aPublishedPlan(Api api) {
         return switch (api.getDefinitionVersion()) {
-            case V1, V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
+            case V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
             case V4 -> switch (api.getType()) {
                 case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
                 case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
