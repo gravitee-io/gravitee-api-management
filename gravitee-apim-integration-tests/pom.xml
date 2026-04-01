@@ -555,6 +555,18 @@
             <version>${gravitee-reactor-llm-proxy.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-mcp-proxy</artifactId>
+            <version>${gravitee-reactor-mcp-proxy.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.endpoint</groupId>
+            <artifactId>gravitee-endpoint-mcp-proxy</artifactId>
+            <version>${gravitee-reactor-mcp-proxy.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Entrypoints -->
         <dependency>
             <groupId>com.graviteesource.entrypoint</groupId>
