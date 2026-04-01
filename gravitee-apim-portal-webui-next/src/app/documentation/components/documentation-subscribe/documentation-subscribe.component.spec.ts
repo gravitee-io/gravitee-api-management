@@ -29,7 +29,7 @@ describe('DocumentationSubscribeComponent', () => {
 
   const MOCK_API = fakeApi({ id: 'api-1', name: 'Test API' });
 
-  const init = async () => {
+  const init = async (selectedId?: string) => {
     routerSpy = { navigate: jest.fn().mockReturnValue(Promise.resolve(true)) } as unknown as jest.Mocked<Router>;
 
     await TestBed.configureTestingModule({
@@ -46,11 +46,37 @@ describe('DocumentationSubscribeComponent', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('api', MOCK_API);
     fixture.componentRef.setInput('navId', 'nav-1');
+    if (selectedId) {
+      fixture.componentRef.setInput('selectedId', selectedId);
+    }
     fixture.detectChanges();
   };
 
   it('should create', async () => {
     await init();
     expect(component).toBeTruthy();
+  });
+
+  describe('cancel()', () => {
+    it('navigates to the documentation folder with selectedId', async () => {
+      await init('page-42');
+
+      component.cancel();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/documentation', 'nav-1'], {
+        queryParams: { selectedId: 'page-42' },
+      });
+    });
+
+    it('navigates to the documentation folder without a concrete selectedId when not provided', async () => {
+      await init();
+
+      component.cancel();
+
+      expect(routerSpy.navigate).toHaveBeenCalledTimes(1);
+      expect(routerSpy.navigate.mock.calls[0][0]).toEqual(['/documentation', 'nav-1']);
+      const extras = routerSpy.navigate.mock.calls[0][1] as { queryParams?: { selectedId?: string } };
+      expect(extras?.queryParams?.selectedId).toBeUndefined();
+    });
   });
 });
