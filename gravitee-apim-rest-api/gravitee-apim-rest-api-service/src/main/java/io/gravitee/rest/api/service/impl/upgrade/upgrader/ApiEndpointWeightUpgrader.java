@@ -81,7 +81,6 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
             .forEach(api -> {
                 try {
                     DefinitionVersion defVersion = api.getDefinitionVersion();
-                    if (defVersion == DefinitionVersion.V1) return;
                     if (defVersion == null) defVersion = DefinitionVersion.V2;
 
                     String definition = api.getDefinition();
@@ -148,8 +147,6 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
     }
 
     private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
-        return new ApiCriteria.Builder().definitionVersion(
-            Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2, DefinitionVersion.V4)
-        );
+        return new ApiCriteria.Builder().definitionVersion(Arrays.asList(null, DefinitionVersion.V2, DefinitionVersion.V4));
     }
 }

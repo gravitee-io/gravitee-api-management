@@ -228,7 +228,6 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         if (excludeDefinitionV4) {
             List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
             allowedDefinitionVersion.add(null);
-            allowedDefinitionVersion.add(DefinitionVersion.V1);
             allowedDefinitionVersion.add(DefinitionVersion.V2);
             queryToCriteria.definitionVersion(allowedDefinitionVersion);
         }

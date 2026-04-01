@@ -145,7 +145,7 @@ public class CreateApiDomainService {
     private void createDefaultMailNotification(Api api) {
         switch (api.getDefinitionVersion()) {
             case V4 -> notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(api.getId()));
-            case V1, V2, FEDERATED, FEDERATED_AGENT -> {
+            case V2, FEDERATED, FEDERATED_AGENT -> {
                 // nothing to do
             }
         }
@@ -154,7 +154,7 @@ public class CreateApiDomainService {
     private void createDefaultMetadata(Api api, AuditInfo auditInfo) {
         switch (api.getDefinitionVersion()) {
             case V4 -> apiMetadataDomainService.createDefaultApiMetadata(api.getId(), auditInfo);
-            case V1, V2, FEDERATED, FEDERATED_AGENT -> {
+            case V2, FEDERATED, FEDERATED_AGENT -> {
                 // nothing to do
             }
         }
@@ -171,11 +171,12 @@ public class CreateApiDomainService {
 
     private boolean isApiReviewEnabled(Api api, String organizationId, String environmentId) {
         return switch (api.getDefinitionVersion()) {
-            case V1, V2, V4 -> parametersQueryService.findAsBoolean(
+            case V2, V4 -> parametersQueryService.findAsBoolean(
                 Key.API_REVIEW_ENABLED,
                 new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
             );
             case FEDERATED, FEDERATED_AGENT -> false;
+            default -> false;
         };
     }
 }

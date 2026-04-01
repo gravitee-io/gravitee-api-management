@@ -540,10 +540,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                         return false;
                     }
 
-                    if (
-                        genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2 ||
-                        genericApiEntity.getDefinitionVersion() == DefinitionVersion.V1
-                    ) {
+                    if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
                         io.gravitee.rest.api.model.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
 
                         io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(payloadEntity, null, false);

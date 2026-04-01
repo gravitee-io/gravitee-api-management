@@ -19,7 +19,6 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.debug.DebugApiV4;
 import io.gravitee.definition.model.flow.Flow;
@@ -45,7 +44,6 @@ public class ApiPolicyValidatorDomainService {
         if (debugApiProxy instanceof Api api) {
             var plans = new HashSet<Plan>(api.getPlans());
             switch (api.getDefinitionVersion()) {
-                case V1 -> validatePathConfigurations(api, plans);
                 case V2 -> validateFlowConfigurations(api, plans);
                 case V4 -> throw new IllegalStateException("Cannot validate V4 api");
             }
@@ -54,41 +52,6 @@ public class ApiPolicyValidatorDomainService {
         if (debugApiProxy instanceof DebugApiV4 debugApiV4) {
             validateFlowV4Configurations(debugApiV4.getApiDefinition());
         }
-    }
-
-    private void validatePathConfigurations(Api api, Set<Plan> plans) {
-        final Stream<Rule> pathsStream = getRulesStream(api, plans);
-
-        if (pathsStream == null) {
-            return;
-        }
-
-        pathsStream
-            .filter(Rule::isEnabled)
-            .map(Rule::getPolicy)
-            .forEach(policy ->
-                policy.setConfiguration(
-                    policyValidationDomainService.validateAndSanitizeConfiguration(policy.getName(), policy.getConfiguration())
-                )
-            );
-    }
-
-    private static Stream<Rule> getRulesStream(Api api, Set<Plan> plans) {
-        Stream<Rule> pathsStream = null;
-        if (api.getPaths() != null) {
-            pathsStream = api.getPaths().values().stream().flatMap(Collection::stream);
-        }
-        if (plans != null && pathsStream != null) {
-            pathsStream = Stream.concat(
-                pathsStream,
-                plans
-                    .stream()
-                    .flatMap(plan ->
-                        plan.getPaths() != null ? plan.getPaths().values().stream().flatMap(Collection::stream) : Stream.empty()
-                    )
-            );
-        }
-        return pathsStream;
     }
 
     private void validateFlowConfigurations(Api api, Set<Plan> plans) {

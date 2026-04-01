@@ -173,7 +173,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         if (api.getDefinitionVersion() != null) {
             return switch (api.getDefinitionVersion()) {
                 case V4, FEDERATED, FEDERATED_AGENT, V2 -> true;
-                case V1 -> false;
+                default -> false;
             };
         }
         return true;
