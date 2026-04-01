@@ -72,7 +72,6 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
@@ -230,10 +229,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
 
-            if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(importedApi.getGraviteeDefinitionVersion()))) {
-                throw new ApiDefinitionVersionNotSupportedException(importedApi.getGraviteeDefinitionVersion());
-            }
-
             // ensure user has required permission to update target API
             if (
                 !isAuthenticated() ||
@@ -324,14 +319,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             // because definition could contains other values than the api itself (pages, members)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(apiDefinition, UpdateApiEntity.class);
-
-        // Initialize with a default path
-        if (
-            Objects.equals(importedApi.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
-            (importedApi.getPaths() == null || importedApi.getPaths().isEmpty())
-        ) {
-            importedApi.setPaths(Collections.singletonMap("/", new ArrayList<>()));
-        }
 
         //create group if not exist & replace groupName by groupId
         if (importedApi.getGroups() != null) {
