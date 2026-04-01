@@ -493,10 +493,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity create(ExecutionContext executionContext, final NewApiEntity newApiEntity, final String userId)
         throws ApiAlreadyExistsException, ApiDefinitionVersionNotSupportedException {
-        if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(newApiEntity.getGraviteeDefinitionVersion()))) {
-            throw new ApiDefinitionVersionNotSupportedException(newApiEntity.getGraviteeDefinitionVersion());
-        }
-
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -551,10 +547,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity createWithApiDefinition(ExecutionContext executionContext, UpdateApiEntity api, String userId, JsonNode apiDefinition)
         throws ApiAlreadyExistsException {
-        if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-            throw new ApiDefinitionVersionNotSupportedException(api.getGraviteeDefinitionVersion());
-        }
-
         try {
             log.debug("Create {} for user {}", api, userId);
 
@@ -1010,10 +1002,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ImportSwaggerDescriptorEntity swaggerDescriptor
     ) {
         final ApiEntity apiEntityToUpdate = this.findById(executionContext, apiId);
-        if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(apiEntityToUpdate.getGraviteeDefinitionVersion()))) {
-            throw new ApiDefinitionVersionNotSupportedException(apiEntityToUpdate.getGraviteeDefinitionVersion());
-        }
-
         final UpdateApiEntity updateApiEntity = apiConverter.toUpdateApiEntity(apiEntityToUpdate);
 
         // Overwrite from swagger
@@ -1163,10 +1151,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             log.debug("Update API {}", apiId);
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            if (DefinitionVersion.V1.equals(apiToUpdate.getDefinitionVersion())) {
-                throw new ApiDefinitionVersionNotSupportedException(apiToUpdate.getDefinitionVersion().getLabel());
-            }
-
             var validationResult = verifyApiPathDomainService.validateAndSanitize(
                 new VerifyApiPathDomainService.Input(
                     executionContext.getEnvironmentId(),
@@ -1259,14 +1243,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     updateApiEntity.setGroups(new HashSet<>());
                 }
                 updateApiEntity.getGroups().add(primaryOwner.getId());
-            }
-
-            // add a default path, if version is v1
-            if (
-                Objects.equals(updateApiEntity.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
-                (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())
-            ) {
-                updateApiEntity.setPaths(singletonMap("/", new ArrayList<>()));
             }
 
             if (updateApiEntity.getPlans() == null) {
@@ -2890,7 +2866,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static List<DefinitionVersion> getAllowedDefinitionVersion() {
         List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
         allowedDefinitionVersion.add(null);
-        allowedDefinitionVersion.add(DefinitionVersion.V1);
         allowedDefinitionVersion.add(DefinitionVersion.V2);
         return allowedDefinitionVersion;
     }
