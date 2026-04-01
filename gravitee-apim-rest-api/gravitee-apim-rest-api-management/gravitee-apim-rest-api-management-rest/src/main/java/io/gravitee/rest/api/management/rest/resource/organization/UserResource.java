@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.ResetPasswordUserEntity;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateServiceAccountEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.UserGroupEntity;
@@ -53,6 +54,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -220,6 +222,26 @@ public class UserResource extends AbstractResource {
     @Path("resetPassword")
     public Response resetUserPassword() {
         userService.resetPassword(GraviteeContext.getExecutionContext(), userId);
+        return Response.noContent().build();
+    }
+
+    @PATCH
+    @Consumes(APPLICATION_JSON)
+    @Operation(
+        summary = "Update user service account status",
+        description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service"
+    )
+    @ApiResponse(responseCode = "204", description = "User service account status updated")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
+    @Path("serviceAccount")
+    public Response updateServiceAccountStatus(@Valid @NotNull UpdateServiceAccountEntity updateServiceAccountEntity) {
+        userService.updateServiceAccountStatus(
+            GraviteeContext.getExecutionContext(),
+            userId,
+            updateServiceAccountEntity.isServiceAccount()
+        );
         return Response.noContent().build();
     }
 
