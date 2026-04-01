@@ -5,7 +5,7 @@
   "visibility": "PRIVATE",
   "lifecycle_state": "CREATED",
   "tags": [],
-  "gravitee": "1.0.0",
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/test",
     "endpoints": [

@@ -449,7 +449,6 @@ public class ApiSearchServiceImplTest {
 
         var definitionList = new ArrayList<DefinitionVersion>();
         definitionList.add(null);
-        definitionList.add(DefinitionVersion.V1);
         definitionList.add(DefinitionVersion.V2);
 
         when(
@@ -489,7 +488,6 @@ public class ApiSearchServiceImplTest {
 
         var definitionList = new ArrayList<DefinitionVersion>();
         definitionList.add(null);
-        definitionList.add(DefinitionVersion.V1);
         definitionList.add(DefinitionVersion.V2);
 
         when(

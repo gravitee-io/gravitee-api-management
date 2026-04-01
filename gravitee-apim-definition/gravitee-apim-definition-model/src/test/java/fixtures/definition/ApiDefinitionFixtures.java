@@ -149,10 +149,6 @@ public class ApiDefinitionFixtures {
         return BASE_V2.get().definitionVersion(DefinitionVersion.V2).plans(new HashMap<>()).build();
     }
 
-    public static io.gravitee.definition.model.Api anApiV1() {
-        return BASE_V2.get().definitionVersion(DefinitionVersion.V1).build();
-    }
-
     public static FederatedApi aFederatedApi() {
         return FederatedApi.builder().name("federated-api").providerId("api-provider-id").build();
     }

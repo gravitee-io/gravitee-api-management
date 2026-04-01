@@ -588,7 +588,7 @@ public class SearchEngineServiceTest {
         Map<String, Object> filters = new HashMap<>();
         filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
         Map<String, Collection<String>> excludedFilters = new HashMap<>();
-        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V1.getLabel(), DefinitionVersion.V4.getLabel()));
+        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V2.getLabel(), DefinitionVersion.V4.getLabel()));
         QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class)
             .setFilters(filters)
             .setExcludedFilters(excludedFilters);
@@ -608,7 +608,7 @@ public class SearchEngineServiceTest {
         filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
         Map<String, Collection<String>> excludedFilters = new HashMap<>();
         excludedFilters.put(FIELD_NAME, List.of("My Awesome api / 1"));
-        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V1.getLabel(), DefinitionVersion.V4.getLabel()));
+        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V2.getLabel(), DefinitionVersion.V4.getLabel()));
         QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class)
             .setFilters(filters)
             .setExcludedFilters(excludedFilters);
@@ -673,7 +673,7 @@ public class SearchEngineServiceTest {
         if (index % 2 == 0) {
             // Actually we index hrid categories...
             apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
-            apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+            apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         } else {
             apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         }

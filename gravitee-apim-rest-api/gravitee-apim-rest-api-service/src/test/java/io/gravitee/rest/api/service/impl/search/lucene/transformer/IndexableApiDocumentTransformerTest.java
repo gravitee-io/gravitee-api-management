@@ -223,7 +223,7 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_throw_when_not_V4_api() {
         // Given
-        var apiV1 = Api.builder().id(API_ID).lifecycleState(Api.LifecycleState.STARTED).definitionVersion(DefinitionVersion.V1).build();
+        var apiV1 = Api.builder().id(API_ID).lifecycleState(Api.LifecycleState.STARTED).definitionVersion(DefinitionVersion.V2).build();
         var indexable = new IndexableApi(apiV1, PRIMARY_OWNER, Map.of(), Set.of());
 
         // When

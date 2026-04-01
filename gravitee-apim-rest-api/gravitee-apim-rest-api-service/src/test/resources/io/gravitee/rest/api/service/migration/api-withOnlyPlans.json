@@ -8,7 +8,7 @@
   "context_path" : "/api1",
   "flow_mode" : "default",
   "paths" : { },
-  "gravitee" : "1.0.0",
+  "gravitee" : "2.0.0",
   "path_mappings" : [ ],
   "response_templates" : { },
   "lifecycle_state" : "created",

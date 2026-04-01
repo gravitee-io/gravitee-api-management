@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.definition.model.DefinitionVersion.V1;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
 import static java.util.Arrays.asList;
@@ -226,12 +225,12 @@ public class PlanService_UpdateTest {
 
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_PublishPlan() throws Exception {
-        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, V1);
+        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, V2);
     }
 
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_DeprecatedPlan() throws Exception {
-        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, V1);
+        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, V2);
     }
 
     @Test(expected = PlanGeneralConditionStatusException.class)

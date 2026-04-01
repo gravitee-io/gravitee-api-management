@@ -1,7 +1,7 @@
 {
   "crossId": "test-api-cross-id",
   "description": "Gravitee.io",
-  "gravitee": "1.0.0",
+  "gravitee": "2.0.0",
   "execution_mode": "v4-emulation-engine",
   "resources": [],
   "properties": [],

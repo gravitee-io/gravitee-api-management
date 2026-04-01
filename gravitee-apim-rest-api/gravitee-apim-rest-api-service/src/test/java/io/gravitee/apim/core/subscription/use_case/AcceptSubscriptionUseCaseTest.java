@@ -625,6 +625,7 @@ class AcceptSubscriptionUseCaseTest {
             };
             case FEDERATED -> ApiFixtures.aFederatedApi().setId(API_ID);
             case FEDERATED_AGENT -> ApiFixtures.aFederatedAgent().setId(API_ID);
+            default -> throw new IllegalStateException("Unsupported definition version: " + definitionVersion);
         };
     }
 
@@ -648,6 +649,7 @@ class AcceptSubscriptionUseCaseTest {
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
             };
             case FEDERATED, FEDERATED_AGENT -> PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED);
+            default -> throw new IllegalStateException("Unsupported definition version");
         };
     }
 

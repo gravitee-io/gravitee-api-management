@@ -2,7 +2,7 @@
   "id": "my-api",
   "name": "my-api",
   "version": "1",
-  "gravitee": "1.0.0",
+  "gravitee": "2.0.0",
   "request": {
     "path": "/",
     "method": "GET",

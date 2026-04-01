@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.model.Api;
@@ -167,7 +166,6 @@ public class ApiServiceImplTest {
         event.setPayload(objectMapper.writeValueAsString(api));
 
         List<ApiEntrypointEntity> entrypointEntityList = new ArrayList<>();
-        Map<String, List<Rule>> paths = new HashMap<>();
 
         when(apiRepository.findById("api-id")).thenReturn(Optional.of(api));
         when(currentApi.getDefinitionContext()).thenReturn(new DefinitionContext());
@@ -179,7 +177,6 @@ public class ApiServiceImplTest {
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(true);
         when(currentApi.getId()).thenReturn("api-id");
         when(planService.findByApi(executionContext, "api-id")).thenReturn(Set.of());
-        when(currentApi.getPaths()).thenReturn(paths);
 
         boolean result = apiService.isSynchronized(executionContext, "api-id");
 

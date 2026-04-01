@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
@@ -114,26 +113,5 @@ public class ApiSerializerTest extends AbstractTest {
 
         // Use the basic object mapper to compare that both the json strings are the same.
         assertEquals(mapper.writeValueAsString(originalJsonNode), mapper.writeValueAsString(fromSerializedJsonNode));
-    }
-
-    @Test
-    public void testSerializeRule() throws Exception {
-        Rule rule = new Rule();
-        Policy policy = new Policy();
-        policy.setName("test");
-        policy.setConfiguration("{\"foo\":\"bar\"}");
-        rule.setPolicy(policy);
-        String generatedJsonDefinition = objectMapper().writeValueAsString(rule);
-        JSONAssert.assertEquals(
-            "{\n" +
-                "  \"methods\" : [ \"CONNECT\", \"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\", \"TRACE\", \"OTHER\" ],\n" +
-                "  \"enabled\" : true,\n" +
-                "  \"test\" : {\n" +
-                "     \"foo\":\"bar\"\n" +
-                "  }\n" +
-                "}",
-            generatedJsonDefinition,
-            JSONCompareMode.STRICT
-        );
     }
 }

@@ -149,10 +149,6 @@ public class ApiDeployerStatement extends Statement {
         try {
             final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
 
-            if (DefinitionVersion.V1.equals(apiToRegister.getDefinitionVersion())) {
-                throw new RuntimeException("API Definition version should be >= 2.0.0");
-            }
-
             final String v2EmulateV4EngineDefault = environment.getProperty("api.v2.emulateV4Engine.default", String.class, "yes");
             if (v2EmulateV4EngineDefault.equalsIgnoreCase("yes") || v2EmulateV4EngineDefault.equalsIgnoreCase("creation_only")) {
                 // Force the execution mode to V4 EMULATION ENGINE as required by the environment variable.

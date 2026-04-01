@@ -261,7 +261,6 @@ public class ApiService_SearchTest {
         // By default in this service, we do not care for V4 APIs.
         List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
         allowedDefinitionVersion.add(null);
-        allowedDefinitionVersion.add(DefinitionVersion.V1);
         allowedDefinitionVersion.add(DefinitionVersion.V2);
 
         return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);

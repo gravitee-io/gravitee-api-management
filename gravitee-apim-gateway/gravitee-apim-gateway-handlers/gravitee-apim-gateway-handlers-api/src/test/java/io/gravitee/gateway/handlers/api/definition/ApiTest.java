@@ -119,7 +119,6 @@ public class ApiTest {
 
     private Plan aPlan(List<Flow> flowList) {
         Plan plan = new Plan();
-        plan.setPaths(null);
         plan.setSecurity("KEY_LESS");
         plan.setFlows(flowList);
         return plan;

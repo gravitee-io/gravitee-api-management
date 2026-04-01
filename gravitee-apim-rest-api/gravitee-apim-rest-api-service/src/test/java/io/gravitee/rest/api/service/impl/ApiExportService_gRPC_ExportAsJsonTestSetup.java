@@ -144,7 +144,7 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
         // set proxy
         Proxy proxy = new Proxy();
@@ -182,7 +182,6 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         responseTemplate.setPropagateErrorKeyToLogs(false);
         apiEntity.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
 
-        apiEntity.setPaths(null);
         apiEntity.setProxy(proxy);
 
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
@@ -283,31 +282,6 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         publishedPlan.setValidation(PlanValidationType.AUTO);
         publishedPlan.setStatus(PlanStatus.PUBLISHED);
         publishedPlan.setExcludedGroups(List.of("my-group"));
-        Map<String, List<Rule>> paths = new HashMap<>();
-        Rule rule = new Rule();
-        rule.setEnabled(true);
-        rule.setMethods(Sets.newSet(HttpMethod.GET));
-        Policy policy = new Policy();
-        policy.setName("rate-limit");
-        String ls = System.lineSeparator();
-        policy.setConfiguration(
-            "{" +
-                ls +
-                "          \"rate\": {" +
-                ls +
-                "            \"limit\": 1," +
-                ls +
-                "            \"periodTime\": 1," +
-                ls +
-                "            \"periodTimeUnit\": \"SECONDS\"" +
-                ls +
-                "          }" +
-                ls +
-                "        }"
-        );
-        rule.setPolicy(policy);
-        paths.put("/", Collections.singletonList(rule));
-        publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
         closedPlan.setApi(API_ID);
@@ -316,7 +290,6 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         closedPlan.setSecurity(PlanSecurityType.API_KEY);
         closedPlan.setValidation(PlanValidationType.AUTO);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        closedPlan.setPaths(paths);
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
         set.add(closedPlan);

@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -188,7 +187,6 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(plan.getPlanDefinitionV2().getPaths()).isEqualTo(Map.of("/", List.of()));
                 soft.assertThat(plan.getPlanDefinitionV2().getSelectionRule()).isEqualTo("selection-rule");
                 soft.assertThat(plan.getPlanDefinitionV2().getTags()).isEqualTo(Set.of("tag-1"));
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -262,7 +260,6 @@ class PlanAdapterTest {
                         .securityDefinition("{\"nice\": \"config\"}")
                         .selectionRule("{#request.attribute['selectionRule'] != null}")
                         .tags(Set.of("tag1", "tag2"))
-                        .paths(Map.of("/", List.of()))
                         .status("PUBLISHED")
                         .build()
                 )
@@ -566,22 +563,6 @@ class PlanAdapterTest {
             assertThat(PlanAdapter.INSTANCE.computeBasePlanEntitySecurityV4(plan)).isEqualTo(
                 PlanSecurity.builder().type("api-key").configuration("{\"nice\":\"config\"}").build()
             );
-        }
-
-        @Test
-        void computeBasePlanEntityPaths_should_return_null_when_definition_is_invalid_json() {
-            var plan = Plan.builder().definition("{not-json").build();
-
-            Map<String, List<Rule>> paths = PlanAdapter.INSTANCE.computeBasePlanEntityPaths(plan);
-
-            assertThat(paths).isNull();
-        }
-
-        @Test
-        void serializeV2PlanPaths_should_return_null_when_paths_empty() {
-            var v2 = io.gravitee.definition.model.Plan.builder().paths(Map.of()).build();
-
-            assertThat(PlanAdapter.INSTANCE.serializeV2PlanPaths(v2)).isNull();
         }
     }
 

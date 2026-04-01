@@ -1822,7 +1822,7 @@ class IngestFederatedApisUseCaseTest {
             .description("input")
             .version("input")
             .originContext(new OriginContext.Integration("input"))
-            .definitionVersion(DefinitionVersion.V1)
+            .definitionVersion(DefinitionVersion.V2)
             .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().build())
             .apiDefinition(io.gravitee.definition.model.Api.builder().build())
             .federatedApiDefinition(FederatedApi.builder().id("input").build())

@@ -2,7 +2,7 @@
   "id" : "my-api",
   "name" : "my-api2",
   "version" : "v1",
-  "gravitee" : "1.0.0",
+  "gravitee" : "2.0.0",
   "flow_mode" : "DEFAULT",
   "proxy" : {
     "virtual_hosts" : [ {

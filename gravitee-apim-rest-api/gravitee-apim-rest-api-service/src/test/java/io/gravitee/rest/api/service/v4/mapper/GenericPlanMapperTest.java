@@ -115,21 +115,6 @@ public class GenericPlanMapperTest {
     }
 
     @Test
-    public void shouldCallV2ApiMapperWhenV1DefinitionVersion() {
-        Api api = new Api();
-        api.setDefinitionVersion(DefinitionVersion.V1);
-
-        Plan plan = new Plan();
-        plan.setId("plan-id");
-
-        List<io.gravitee.definition.model.flow.Flow> v2Flows = List.of(new io.gravitee.definition.model.flow.Flow());
-        when(flowCrudService.getPlanV2Flows(anySet())).thenReturn(Map.of("plan-id", v2Flows));
-
-        genericPlanMapper.toGenericPlanWithFlow(api, plan);
-        verify(planConverter).toPlanEntity(plan, v2Flows);
-    }
-
-    @Test
     public void shouldCallV2ApiMapperWhenNoDefinitionVersion() {
         Api api = new Api();
 

@@ -308,7 +308,6 @@ public class ApiAuthorizationServiceImplTest {
 
         var allowedDefinitionVersion = new ArrayList<DefinitionVersion>();
         allowedDefinitionVersion.add(null);
-        allowedDefinitionVersion.add(DefinitionVersion.V1);
         allowedDefinitionVersion.add(DefinitionVersion.V2);
 
         when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(List.of("api-1")));

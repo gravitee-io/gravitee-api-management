@@ -123,15 +123,6 @@ public class PlanFixtures {
         return BASE_V2.get().id(API_KEY_PLAN_ID).name(API_KEY_PLAN_NAME).security(API_KEY_PLAN_SECURITY_TYPE).build();
     }
 
-    public static io.gravitee.definition.model.Plan aKeylessV1() {
-        return BASE_V2.get()
-            .id(KEYLESS_PLAN_ID)
-            .name(KEYLESS_PLAN_NAME)
-            .security(KEYLESS_PLAN_SECURITY_TYPE)
-            .paths(Map.of("/", List.of()))
-            .build();
-    }
-
     public static FederatedPlan aFederatedPlan() {
         return FederatedPlan.builder()
             .id(PLAN_ID)

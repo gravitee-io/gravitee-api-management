@@ -21,7 +21,6 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -617,18 +616,6 @@ public class PlanMapperTest {
         planEntityV2.setName(PLAN_NAME);
         planEntityV2.setNeedRedeployAt(nowDate);
         planEntityV2.setOrder(1);
-
-        Policy policy = new Policy();
-        policy.setConfiguration(PLAN_RULE_POLICY_CONFIGURATION);
-        policy.setName(PLAN_RULE_POLICY_NAME);
-        Rule rule = new Rule();
-        rule.setDescription(PLAN_RULE_DESCRIPTION);
-        rule.setEnabled(true);
-        rule.setMethods(new HashSet<HttpMethod>(Arrays.asList(HttpMethod.GET)));
-        rule.setPolicy(policy);
-        Map<String, List<Rule>> paths = new HashMap<>();
-        paths.put(PLAN_PATH, Arrays.asList(rule));
-        planEntityV2.setPaths(paths);
 
         planEntityV2.setPublishedAt(nowDate);
         planEntityV2.setSecurity(PlanSecurityType.API_KEY);

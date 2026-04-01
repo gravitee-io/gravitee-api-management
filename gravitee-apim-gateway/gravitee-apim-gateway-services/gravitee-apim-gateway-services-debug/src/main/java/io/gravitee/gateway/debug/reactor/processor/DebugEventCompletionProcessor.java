@@ -195,7 +195,6 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
                 .filter(plan -> !PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
                 .collect(Collectors.toList())
         );
-        debugAPI.setPaths(content.getDefinition().getPaths());
         debugAPI.setServices(content.getDefinition().getServices());
         debugAPI.setProxy(content.getDefinition().getProxy());
         debugAPI.setProperties(content.getDefinition().getProperties());
