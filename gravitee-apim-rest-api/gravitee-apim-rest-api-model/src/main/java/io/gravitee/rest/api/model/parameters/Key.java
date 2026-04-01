@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
@@ -144,7 +143,7 @@ public enum Key {
     PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_FONT_FAMILY("portal.next.theme.font.family", "\"Roboto\", sans-serif", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_VIEW_MODE("portal.next.catalog.viewMode", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_MTLS_ENABLED("portal.next.feature.mtlsEnabled", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_MTLS_ENABLED("portal.next.mtls.enabled", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

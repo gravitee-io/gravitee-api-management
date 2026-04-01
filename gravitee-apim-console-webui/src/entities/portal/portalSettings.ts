@@ -242,6 +242,9 @@ export interface PortalSettingsPortalNext {
   access: {
     enabled: boolean;
   };
+  mtls?: {
+    enabled?: boolean;
+  };
   banner?: {
     title?: string;
     subtitle?: string;
