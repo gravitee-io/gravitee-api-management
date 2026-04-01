@@ -704,6 +704,16 @@ api:
     subscription:
       enabled: false
 #      pre-expiration-notification-schedule: 15,10,5
+    events:
+      enabled: false
+#      cron: "0 0 12 * * *"
+#      keep: 5
+#      timeToLive: 30
+    audit:
+      enabled: false
+#      cron: "0 1 * * * *"
+#      retention:
+#        days: 365
   http:
     services:
       core:
