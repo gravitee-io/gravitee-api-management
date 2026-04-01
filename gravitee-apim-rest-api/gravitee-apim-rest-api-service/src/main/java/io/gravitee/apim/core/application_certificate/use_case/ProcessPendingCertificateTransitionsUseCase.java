@@ -17,7 +17,7 @@ package io.gravitee.apim.core.application_certificate.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -50,18 +50,18 @@ public class ProcessPendingCertificateTransitionsUseCase {
     private final ClientCertificateCrudService clientCertificateCrudService;
     private final EnvironmentCrudService environmentCrudService;
     private final AuditDomainService auditDomainService;
-    private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
 
     public ProcessPendingCertificateTransitionsUseCase(
         ClientCertificateCrudService clientCertificateCrudService,
         EnvironmentCrudService environmentCrudService,
         AuditDomainService auditDomainService,
-        ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService
+        MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService
     ) {
         this.clientCertificateCrudService = clientCertificateCrudService;
         this.environmentCrudService = environmentCrudService;
         this.auditDomainService = auditDomainService;
-        this.applicationCertificatesUpdateDomainService = applicationCertificatesUpdateDomainService;
+        this.mtlsSubscriptionSyncDomainService = mtlsSubscriptionSyncDomainService;
     }
 
     public Output execute(Input input) {
@@ -99,7 +99,7 @@ public class ProcessPendingCertificateTransitionsUseCase {
         int failedMtlsUpdateCount = 0;
         for (var applicationId : affectedApplicationIds) {
             try {
-                applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(applicationId);
+                mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(applicationId);
             } catch (Exception e) {
                 failedMtlsUpdateCount++;
                 log.error("Failed to update mTLS subscriptions for application [{}]: {}", applicationId, e.getMessage(), e);

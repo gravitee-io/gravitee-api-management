@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -86,7 +86,7 @@ public class ApplicationResource extends AbstractResource {
     private ApplicationTypeService applicationTypeService;
 
     @Inject
-    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
 
     @PathParam("application")
     @Parameter(name = "application", required = true)
@@ -152,7 +152,7 @@ public class ApplicationResource extends AbstractResource {
 
         var result = applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
         if (updatedApplication.getSettings() != null && updatedApplication.getSettings().getTls() != null) {
-            applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(application);
+            mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(application);
         }
         return result;
     }

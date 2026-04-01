@@ -48,7 +48,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ApplicationCertificatesUpdateDomainServiceImplTest {
+class MtlsSubscriptionSyncDomainServiceImplTest {
 
     private static final String APPLICATION_ID = "app-id";
     private static final String PLAN_ID = "plan-id";
@@ -104,7 +104,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     private SubscriptionCrudServiceInMemory subscriptionCrudService;
     private SubscriptionQueryServiceInMemory subscriptionQueryService;
     private PlanCrudServiceInMemory planCrudService;
-    private ApplicationCertificatesUpdateDomainServiceImpl service;
+    private MtlsSubscriptionSyncDomainServiceImpl service;
 
     @BeforeEach
     void setUp() {
@@ -113,7 +113,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         planCrudService = new PlanCrudServiceInMemory();
         subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService, planCrudService);
 
-        service = new ApplicationCertificatesUpdateDomainServiceImpl(
+        service = new MtlsSubscriptionSyncDomainServiceImpl(
             subscriptionQueryService,
             subscriptionCrudService,
             clientCertificateCrudService
