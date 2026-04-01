@@ -24,7 +24,6 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Base64;
@@ -48,33 +47,6 @@ public class MtlsSubscriptionSyncDomainServiceImpl implements MtlsSubscriptionSy
     private final SubscriptionQueryService subscriptionQueryService;
     private final SubscriptionCrudService subscriptionCrudService;
     private final ClientCertificateCrudService clientCertificateCrudService;
-
-    @Override
-    public void validateCertificateRemoval(String applicationId, String certificateId) {
-        List<SubscriptionEntity> mtlsSubscriptions = subscriptionQueryService.findActiveByApplicationIdAndPlanSecurityTypes(
-            applicationId,
-            List.of(PlanSecurityType.MTLS.name())
-        );
-
-        if (mtlsSubscriptions.isEmpty()) {
-            return;
-        }
-
-        var activeCertificates = clientCertificateCrudService.findByApplicationIdAndStatuses(
-            applicationId,
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
-
-        long remainingAfterRemoval = activeCertificates
-            .stream()
-            .filter(c -> !c.id().equals(certificateId))
-            .count();
-
-        if (remainingAfterRemoval == 0) {
-            throw new ClientCertificateLastRemovalException(applicationId);
-        }
-    }
 
     @Override
     public void updateActiveMTLSSubscriptions(String applicationId) {

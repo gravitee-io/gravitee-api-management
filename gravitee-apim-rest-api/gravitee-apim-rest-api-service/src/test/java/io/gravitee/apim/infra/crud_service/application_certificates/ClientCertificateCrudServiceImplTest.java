@@ -18,7 +18,6 @@ package io.gravitee.apim.infra.crud_service.application_certificates;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -31,7 +30,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientCertificateRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateDateBoundsInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
@@ -39,16 +37,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -537,34 +531,17 @@ class ClientCertificateCrudServiceImplTest {
         assertThat(result).isEmpty();
     }
 
-    public static Stream<Arguments> datesBounds() {
-        return Stream.of(
-            arguments(null, null, true),
-            arguments(null, new Date(), true),
-            arguments(new Date(), null, true),
-            arguments(new Date(), Date.from(Instant.now().plus(1, ChronoUnit.MILLIS)), true),
-            arguments(new Date(), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), true),
-            arguments(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), new Date(), true),
-            arguments(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), true),
-            arguments(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), new Date(), false),
-            arguments(new Date(), Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), false)
-        );
-    }
-
-    @MethodSource("datesBounds")
-    @ParameterizedTest
-    void should_validate_date_boundaries_on_update(Date startDate, Date endDate, boolean valid) throws TechnicalException {
+    @Test
+    void should_update_certificate_without_date_validation() throws TechnicalException {
+        // Date-bounds validation is now the responsibility of ClientCertificateValidationDomainService,
+        // not the crud service. The crud service should accept any date combination.
         when(clientCertificateRepository.findById(any())).thenReturn(
             Optional.of(io.gravitee.repository.management.model.ClientCertificate.builder().build())
         );
-        ClientCertificate clientCertificate = new ClientCertificate("With dates", startDate, endDate);
-        if (valid) {
-            assertThatCode(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate)).doesNotThrowAnyException();
-        } else {
-            assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate)).isInstanceOf(
-                ClientCertificateDateBoundsInvalidException.class
-            );
-        }
+        when(clientCertificateRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var startsAtAfterEndsAt = new ClientCertificate("With dates", Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), new Date());
+        assertThatCode(() -> clientCertificateCrudService.update(CERTIFICATE_ID, startsAtAfterEndsAt)).doesNotThrowAnyException();
     }
 
     private io.gravitee.repository.management.model.ClientCertificate buildRepositoryClientCertificate(

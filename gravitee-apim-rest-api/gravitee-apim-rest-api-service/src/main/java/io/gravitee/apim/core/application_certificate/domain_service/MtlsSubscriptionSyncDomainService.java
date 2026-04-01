@@ -38,15 +38,4 @@ public interface MtlsSubscriptionSyncDomainService {
      * @param applicationId the application ID
      */
     void updateActiveMTLSSubscriptions(String applicationId);
-
-    /**
-     * Validates that the given certificate can be safely removed from the application.
-     * <p>
-     * Throws {@link io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalException}
-     * if the certificate is the last active one and the application has active mTLS subscriptions.
-     *
-     * @param applicationId the application ID
-     * @param certificateId the certificate ID being removed
-     */
-    void validateCertificateRemoval(String applicationId, String certificateId);
 }

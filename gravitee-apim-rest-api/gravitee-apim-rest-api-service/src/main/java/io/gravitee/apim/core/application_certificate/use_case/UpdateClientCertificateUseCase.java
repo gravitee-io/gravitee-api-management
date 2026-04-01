@@ -16,10 +16,9 @@
 package io.gravitee.apim.core.application_certificate.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -27,17 +26,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UpdateClientCertificateUseCase {
 
-    private final ClientCertificateCrudService clientCertificateCrudService;
     private final ClientCertificateDomainService clientCertificateDomainService;
+    private final ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
     public Output execute(Input input) {
-        if (input.applicationId().isPresent()) {
-            ClientCertificate existing = clientCertificateCrudService.findById(input.clientCertificateId());
-            if (!input.applicationId().get().equals(existing.applicationId())) {
-                throw new ClientCertificateNotFoundException(input.clientCertificateId());
-            }
-        }
-        var certificate = clientCertificateDomainService.update(input.clientCertificateId(), input.toUpdate());
+        clientCertificateValidationDomainService.validateForUpdate(input.toUpdate());
+        var certificate = clientCertificateDomainService.update(
+            input.applicationId().orElse(null),
+            input.clientCertificateId(),
+            input.toUpdate()
+        );
         return new Output(certificate);
     }
 

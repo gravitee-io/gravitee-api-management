@@ -42,5 +42,13 @@ public interface ClientCertificateValidationDomainService {
      */
     CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId);
 
+    /**
+     * Validates a certificate for update: date bounds check.
+     *
+     * @param clientCertificate the certificate data to validate
+     * @throws ClientCertificateDateBoundsInvalidException if startsAt is not before endsAt
+     */
+    void validateForUpdate(ClientCertificate clientCertificate);
+
     record CertificateInfo(Date certificateExpiration, String subject, String issuer, String fingerprint) {}
 }

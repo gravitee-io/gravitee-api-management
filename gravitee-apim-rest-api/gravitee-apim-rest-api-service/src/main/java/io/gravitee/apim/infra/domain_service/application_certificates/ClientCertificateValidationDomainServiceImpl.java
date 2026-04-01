@@ -75,6 +75,11 @@ public class ClientCertificateValidationDomainServiceImpl implements ClientCerti
         return info;
     }
 
+    @Override
+    public void validateForUpdate(ClientCertificate clientCertificate) {
+        validateDateBounds(clientCertificate);
+    }
+
     private X509Certificate parseCertificate(String pemCertificate) {
         Certificate[] certificates;
         try {
