@@ -17,8 +17,11 @@ package io.gravitee.rest.api.services.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.use_case.RemoveOldAuditDataUseCase;
@@ -38,6 +41,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 
 @ExtendWith(MockitoExtension.class)
 class ScheduledAuditCleanerServiceTest {
@@ -79,6 +83,9 @@ class ScheduledAuditCleanerServiceTest {
     @Test
     void run_cleaning_on_all_environments() {
         // given
+        Member mockMember = mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
         OrganizationEntity org = new OrganizationEntity();
         org.setId("oId");
         when(organizationService.findAll()).thenReturn(List.of(org));
@@ -97,5 +104,40 @@ class ScheduledAuditCleanerServiceTest {
         assertThat(inputArgumentCaptor.getAllValues())
             .map(RemoveOldAuditDataUseCase.Input::maxAge)
             .containsOnly(Duration.ofDays(1), Duration.ofDays(1));
+    }
+
+    @Test
+    void should_schedule_even_when_not_primary_at_startup() throws Exception {
+        // Given - simulate the cluster race: primary not yet elected at doStart() time
+        var service = new ScheduledAuditCleanerService(
+            scheduler,
+            "@daily",
+            true,
+            1,
+            removeOldAuditDataUseCase,
+            organizationService,
+            environmentService,
+            clusterManager
+        );
+
+        // When
+        service.doStart();
+
+        // Then - scheduler is registered regardless; primary check happens in run()
+        verify(scheduler).schedule(eq(service), any(CronTrigger.class));
+    }
+
+    @Test
+    void should_skip_cleanup_when_not_primary() {
+        // Given
+        Member mockMember = mock(Member.class);
+        when(mockMember.primary()).thenReturn(false);
+        when(clusterManager.self()).thenReturn(mockMember);
+
+        // When
+        sut.run();
+
+        // Then
+        verifyNoInteractions(organizationService);
     }
 }

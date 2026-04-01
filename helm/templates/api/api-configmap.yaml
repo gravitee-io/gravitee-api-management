@@ -203,6 +203,14 @@ data:
       subscription:
         {{- toYaml .Values.api.services.subscription | nindent 8 }}
       {{- end }}
+      {{- if .Values.api.services.events.enabled }}
+      events:
+        {{- toYaml .Values.api.services.events | nindent 8 }}
+      {{- end }}
+      {{- if .Values.api.services.audit.enabled }}
+      audit:
+        {{- toYaml .Values.api.services.audit | nindent 8 }}
+      {{- end }}
 
     {{- if and .Values.api.http .Values.api.http.client }}
     httpClient:
