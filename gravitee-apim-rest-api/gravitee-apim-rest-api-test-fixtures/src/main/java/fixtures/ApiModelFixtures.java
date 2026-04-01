@@ -35,18 +35,6 @@ public class ApiModelFixtures {
 
     private ApiModelFixtures() {}
 
-    private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V1 =
-        io.gravitee.rest.api.model.api.ApiEntity.builder()
-            .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V1.getLabel())
-            .id("my-id")
-            .name("my-name")
-            .version("v1.0")
-            .properties(PropertyModelFixtures.aModelPropertiesV2())
-            .services(new Services())
-            .resources(List.of(ResourceModelFixtures.aResourceEntityV2()))
-            .responseTemplates(Map.of("key", new HashMap<>()))
-            .updatedAt(new Date());
-
     private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V2 =
         io.gravitee.rest.api.model.api.ApiEntity.builder()
             .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V2.getLabel())
@@ -140,10 +128,6 @@ public class ApiModelFixtures {
         .createdAt(new Date())
         .updatedAt(new Date());
 
-    public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
-        return BASE_MODEL_API_V1.build();
-    }
-
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV2() {
         return BASE_MODEL_API_V2.build();
     }
@@ -158,11 +142,11 @@ public class ApiModelFixtures {
 
     public static GenericApiEntity aGenericApiEntity(final io.gravitee.definition.model.DefinitionVersion definitionVersion) {
         return switch (definitionVersion) {
-            case V1 -> aModelApiV1();
             case V2 -> aModelApiV2();
             case V4 -> aModelHttpApiV4();
             case FEDERATED -> BASE_MODEL_API_FEDERATED.build();
             case FEDERATED_AGENT -> null; // TODO
+            default -> null;
         };
     }
 }

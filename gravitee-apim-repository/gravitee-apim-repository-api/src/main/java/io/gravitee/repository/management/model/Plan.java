@@ -122,8 +122,7 @@ public class Plan {
      * The JSON payload containing plan definition.
      *
      * <ul>
-     * <li>For V1, it contains all policies to apply for this plan</li>
-     * <li>For V2/V4, it null</li>
+     * <li>For V2/V4, it is null</li>
      * <li>For FEDERATED, it contains the serialized definition</li>
      * </ul>
      */
