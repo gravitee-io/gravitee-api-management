@@ -133,8 +133,9 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
     private String readContent(Fetcher fetcher, PageSource source) {
         try {
             var resource = fetcher.fetch();
-            var content = resource.getContent();
-            return new String(content.readAllBytes(), Charset.defaultCharset());
+            try (var content = resource.getContent()) {
+                return new String(content.readAllBytes(), Charset.defaultCharset());
+            }
         } catch (FetcherException | IOException e) {
             throw new TechnicalDomainException("unable to fetch content with configuration " + source.getConfiguration());
         }
