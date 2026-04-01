@@ -133,11 +133,15 @@
           }
         </div>
 
-        @if (showCertificates()) {
-          <app-application-tab-settings-certificates
-            [applicationId]="applicationId()"
-            [userApplicationPermissions]="userApplicationPermissions()"
-          />
+        @if (configService.mtlsEnabled) {
+          @if (isCertificateCountLoading()) {
+            <app-loader />
+          } @else if (showCertificates()) {
+            <app-application-tab-settings-certificates
+              [applicationId]="applicationId()"
+              [userApplicationPermissions]="userApplicationPermissions()"
+            />
+          }
         }
 
         <div class="settings-edit__form__actions">

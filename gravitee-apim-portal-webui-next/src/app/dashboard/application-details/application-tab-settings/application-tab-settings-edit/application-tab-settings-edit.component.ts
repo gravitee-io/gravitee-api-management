@@ -27,10 +27,10 @@ import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { catchError, map, Observable, startWith, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
-import { of } from 'rxjs/internal/observable/of';
+import { catchError, map, Observable, of, startWith, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
+import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
 import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
@@ -64,11 +64,14 @@ interface ApplicationGrantTypeVM {
   isDisabled: boolean;
 }
 
+type CertificateCountState = { status: 'loading' } | { status: 'loaded'; hasItems: boolean } | { status: 'error' } | { status: 'skipped' };
+
 @Component({
   selector: 'app-application-tab-settings-edit',
   imports: [
     ApplicationTabSettingsCertificatesComponent,
     CopyCodeComponent,
+    LoaderComponent,
     MatButtonModule,
     MatCardModule,
     MatDivider,
@@ -84,24 +87,34 @@ interface ApplicationGrantTypeVM {
   styleUrl: './application-tab-settings-edit.component.scss',
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
-  private readonly configService = inject(ConfigService);
+  protected readonly configService = inject(ConfigService);
   private readonly certService = inject(ApplicationCertificateService);
 
   applicationId = input.required<string>();
   applicationTypeConfiguration = input.required<ApplicationType>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
 
-  private readonly certificateCount = toSignal(
+  private readonly certificateCountResult = toSignal(
     toObservable(this.applicationId).pipe(
-      switchMap(appId => (this.configService.mtlsEnabled ? this.certService.list(appId, 1, 1).pipe(catchError(() => of(null))) : of(null))),
+      switchMap(appId => {
+        if (!this.configService.mtlsEnabled) return of<CertificateCountState>({ status: 'skipped' });
+        return this.certService.list(appId, 1, 1).pipe(
+          map(res => ({ status: 'loaded' as const, hasItems: (res.metadata?.paginateMetaData?.totalElements ?? 0) > 0 })),
+          startWith<CertificateCountState>({ status: 'loading' }),
+          catchError(() => of<CertificateCountState>({ status: 'error' })),
+        );
+      }),
     ),
-    { initialValue: null },
+    { initialValue: { status: 'loading' } as CertificateCountState },
   );
 
+  isCertificateCountLoading = computed(() => this.certificateCountResult().status === 'loading');
+
   showCertificates = computed(() => {
-    if (!this.configService.mtlsEnabled) return false;
-    const count = this.certificateCount();
-    return count !== null && (count.metadata?.paginateMetaData?.totalElements ?? 0) > 0;
+    const result = this.certificateCountResult();
+    if (result.status === 'skipped' || result.status === 'loading') return false;
+    if (result.status === 'error') return true;
+    return result.hasItems;
   });
 
   application$!: Observable<Application>;
