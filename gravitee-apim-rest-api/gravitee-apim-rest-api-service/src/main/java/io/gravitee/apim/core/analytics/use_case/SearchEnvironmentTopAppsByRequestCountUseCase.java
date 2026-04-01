@@ -64,7 +64,7 @@ public class SearchEnvironmentTopAppsByRequestCountUseCase {
             .search(
                 ApiSearchCriteria.builder()
                     .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2, DefinitionVersion.V1))
+                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
                     .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()

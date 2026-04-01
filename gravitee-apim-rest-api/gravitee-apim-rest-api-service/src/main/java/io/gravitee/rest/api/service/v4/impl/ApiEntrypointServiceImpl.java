@@ -360,10 +360,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     }
 
     public String getApiEntrypointsListenerType(GenericApiEntity genericApiEntity) {
-        if (
-            genericApiEntity.getDefinitionVersion() == DefinitionVersion.V1 ||
-            genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2
-        ) {
+        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
             return "HTTP";
         }
 
