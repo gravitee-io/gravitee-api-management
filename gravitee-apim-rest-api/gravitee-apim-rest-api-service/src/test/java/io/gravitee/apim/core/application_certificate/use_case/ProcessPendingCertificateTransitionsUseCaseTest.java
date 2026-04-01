@@ -29,7 +29,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.ClientCertificateCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -68,7 +68,7 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     @Mock
-    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
 
     private ProcessPendingCertificateTransitionsUseCase useCase;
 
@@ -82,7 +82,7 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
             clientCertificateCrudService,
             environmentCrudService,
             auditDomainService,
-            applicationCertificatesUpdateDomainService
+            mtlsSubscriptionSyncDomainService
         );
 
         environmentCrudService.initWith(
@@ -264,7 +264,7 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).isEmpty();
-        verify(applicationCertificatesUpdateDomainService, never()).updateActiveMTLSSubscriptions(org.mockito.ArgumentMatchers.anyString());
+        verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions(org.mockito.ArgumentMatchers.anyString());
     }
 
     @Test
@@ -360,8 +360,8 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions("app1");
-        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions("app2");
+        verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions("app1");
+        verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions("app2");
     }
 
     @Test
@@ -371,7 +371,7 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).isEmpty();
-        verify(applicationCertificatesUpdateDomainService, never()).updateActiveMTLSSubscriptions(org.mockito.ArgumentMatchers.anyString());
+        verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions(org.mockito.ArgumentMatchers.anyString());
     }
 
     @Test
@@ -449,15 +449,13 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
             )
         );
 
-        doThrow(new RuntimeException("mTLS update failed"))
-            .when(applicationCertificatesUpdateDomainService)
-            .updateActiveMTLSSubscriptions("app1");
+        doThrow(new RuntimeException("mTLS update failed")).when(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions("app1");
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).hasSize(2);
-        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions("app1");
-        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions("app2");
+        verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions("app1");
+        verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions("app2");
     }
 
     @Test
@@ -467,7 +465,7 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
             spiedService,
             environmentCrudService,
             new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            applicationCertificatesUpdateDomainService
+            mtlsSubscriptionSyncDomainService
         );
 
         var pastDate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
@@ -512,8 +510,8 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         spiedUseCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        verify(applicationCertificatesUpdateDomainService, never()).updateActiveMTLSSubscriptions("app1");
-        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions("app2");
+        verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions("app1");
+        verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions("app2");
     }
 
     @Test
@@ -523,7 +521,7 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
             spiedService,
             environmentCrudService,
             new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            applicationCertificatesUpdateDomainService
+            mtlsSubscriptionSyncDomainService
         );
 
         var pastDate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
