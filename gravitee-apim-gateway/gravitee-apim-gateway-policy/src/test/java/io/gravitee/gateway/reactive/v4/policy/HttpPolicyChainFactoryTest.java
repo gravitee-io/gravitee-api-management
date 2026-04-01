@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.policy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +35,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
@@ -240,6 +242,51 @@ class HttpPolicyChainFactoryTest {
         verify(policyManager, times(2)).create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class));
 
         verifyNoMoreInteractions(policyManager);
+    }
+
+    @Test
+    public void shouldSetPolicyDescriptionsWhenStepsHaveDescriptions() throws Exception {
+        final HttpPolicy policy1 = mock(HttpPolicy.class);
+        final HttpPolicy policy2 = mock(HttpPolicy.class);
+        final Flow flow = mock(Flow.class);
+        final Step step1 = mock(Step.class);
+        final Step step2 = mock(Step.class);
+
+        when(step1.isEnabled()).thenReturn(true);
+        when(step2.isEnabled()).thenReturn(true);
+        when(step1.getDescription()).thenReturn("description-1");
+        when(step2.getDescription()).thenReturn("description-2");
+        when(step1.getPolicy()).thenReturn("policy-step1");
+        when(step1.getConfiguration()).thenReturn("config-step1");
+        when(step1.getCondition()).thenReturn("condition-step1");
+        when(step2.getPolicy()).thenReturn("policy-step2");
+        when(step2.getConfiguration()).thenReturn("config-step2");
+        when(step2.getCondition()).thenReturn("condition-step2");
+        when(flow.getRequest()).thenReturn(List.of(step1, step2));
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy1).thenReturn(policy2);
+
+        final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
+
+        assertThat(policyChain.getPolicyDescriptions()).containsEntry(policy1, "description-1").containsEntry(policy2, "description-2");
+    }
+
+    @Test
+    public void shouldNotSetDescriptionsWhenStepsHaveNoDescriptions() {
+        final HttpPolicy policy1 = mock(HttpPolicy.class);
+        final Flow flow = mock(Flow.class);
+        final Step step1 = mock(Step.class);
+
+        when(step1.isEnabled()).thenReturn(true);
+        when(step1.getDescription()).thenReturn(null);
+        when(step1.getPolicy()).thenReturn("policy-step1");
+        when(step1.getConfiguration()).thenReturn("config-step1");
+        when(step1.getCondition()).thenReturn("condition-step1");
+        when(flow.getRequest()).thenReturn(List.of(step1));
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy1);
+
+        final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
+
+        assertThat(policyChain.getPolicyDescriptions()).isNull();
     }
 
     @Test

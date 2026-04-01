@@ -235,6 +235,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, defaultInvoker);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
     }
 

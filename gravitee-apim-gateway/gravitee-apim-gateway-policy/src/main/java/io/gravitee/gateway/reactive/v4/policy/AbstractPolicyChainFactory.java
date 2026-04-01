@@ -16,19 +16,19 @@
 package io.gravitee.gateway.reactive.v4.policy;
 
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.policy.AbstractPolicyChain;
-import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 /**
  * {@link AbstractPolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link AbstractPolicyChain} thanks to a cache.
@@ -63,7 +63,7 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
 
     protected abstract List<Step> getSteps(F flow, ExecutionPhase phase);
 
-    protected abstract PC buildPolicyChain(String flowChainId, F flow, ExecutionPhase phase, List<T> policies);
+    protected abstract PC buildPolicyChain(String flowChainId, F flow, ExecutionPhase phase, List<T> policies, Map<T, String> descriptions);
 
     protected abstract PolicyMetadata buildPolicyMetadata(Step step);
 
@@ -81,23 +81,26 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
     public PC create(final String flowChainId, F flow, ExecutionPhase phase) {
         final String key = getFlowKey(flow, phase);
         PC policyChain = policyChains.get(key);
-
-        if (policyChain == null) {
-            final List<Step> steps = getSteps(flow, phase);
-
-            final List<T> policies = steps
-                .stream()
-                .filter(Step::isEnabled)
-                .map(this::buildPolicyMetadata)
-                .map(policyMetadata -> (T) policyManager.create(phase, policyMetadata))
-                .filter(Objects::nonNull)
-                .toList();
-
-            policyChain = buildPolicyChain(flowChainId, flow, phase, policies);
-            policyChains.put(key, policyChain);
+        if (policyChain != null) {
+            return policyChain;
         }
-
+        policyChain = createChain(flowChainId, flow, phase);
+        policyChains.put(key, policyChain);
         return policyChain;
+    }
+
+    private PC createChain(final String flowChainId, F flow, ExecutionPhase phase) {
+        final List<T> policies = new ArrayList<>();
+        final Map<T, String> descriptions = new IdentityHashMap<>();
+        for (Step step : getSteps(flow, phase)) {
+            if (!step.isEnabled()) continue;
+            T policy = policyManager.create(phase, buildPolicyMetadata(step));
+            if (policy == null) continue;
+            policies.add(policy);
+            String desc = step.getDescription();
+            if (desc != null && !desc.isBlank()) descriptions.put(policy, desc);
+        }
+        return buildPolicyChain(flowChainId, flow, phase, policies, descriptions);
     }
 
     private String getFlowKey(F flow, ExecutionPhase phase) {

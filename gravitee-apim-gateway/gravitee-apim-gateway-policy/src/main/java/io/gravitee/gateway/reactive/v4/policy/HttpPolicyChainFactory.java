@@ -31,6 +31,7 @@ import io.netty.util.internal.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * {@link HttpPolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link HttpPolicyChain} thanks to a cache.
@@ -72,10 +73,19 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     }
 
     @Override
-    protected HttpPolicyChain buildPolicyChain(String flowChainId, Flow flow, ExecutionPhase phase, List<HttpPolicy> policies) {
+    protected HttpPolicyChain buildPolicyChain(
+        String flowChainId,
+        Flow flow,
+        ExecutionPhase phase,
+        List<HttpPolicy> policies,
+        Map<HttpPolicy, String> descriptions
+    ) {
         String policyChainId = getPolicyChainId(flowChainId, flow);
         HttpPolicyChain httpPolicyChain = new HttpPolicyChain(policyChainId, policies, phase);
         httpPolicyChain.addHooks(policyHooks);
+        if (!descriptions.isEmpty()) {
+            httpPolicyChain.setPolicyDescriptions(descriptions);
+        }
         return httpPolicyChain;
     }
 
