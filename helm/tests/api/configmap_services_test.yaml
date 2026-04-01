@@ -17,3 +17,67 @@ tests:
             \s subscription:
             \s   enabled: true
             \s   pre-expiration-notification-schedule: 15,10,5
+
+  - it: Enable events cleaner service with custom settings
+    template: api/api-configmap.yaml
+    set:
+      api:
+        services:
+          events:
+            enabled: true
+            cron: "0 0 12 * * *"
+            keep: 10
+            timeToLive: 15
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s events:
+            \s   cron: 0 0 12 \* \* \*
+            \s   enabled: true
+            \s   keep: 10
+            \s   timeToLive: 15
+
+  - it: Does not render events section when disabled
+    template: api/api-configmap.yaml
+    set:
+      api:
+        services:
+          events:
+            enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "events:"
+
+  - it: Enable audit cleaner service with custom retention
+    template: api/api-configmap.yaml
+    set:
+      api:
+        services:
+          audit:
+            enabled: true
+            cron: "0 1 * * * *"
+            retention:
+              days: 90
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s audit:
+            \s   cron: 0 1 \* \* \* \*
+            \s   enabled: true
+            \s   retention:
+            \s     days: 90
+
+  - it: Does not render audit section when disabled
+    template: api/api-configmap.yaml
+    set:
+      api:
+        services:
+          audit:
+            enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "audit:"
