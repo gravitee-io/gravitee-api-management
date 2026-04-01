@@ -197,6 +197,7 @@ public class MongoUserRepository implements UserRepository {
         userMongo.setLoginCount(user.getLoginCount());
         userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
         userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
+        userMongo.setIsServiceAccount(user.getIsServiceAccount());
         UserMongo userUpdated = internalUserRepo.save(userMongo);
         return mapper.map(userUpdated);
     }

@@ -76,6 +76,8 @@ public interface UserService {
 
     void resetPassword(ExecutionContext executionContext, String id);
 
+    void updateServiceAccountStatus(ExecutionContext executionContext, String id, boolean serviceAccount);
+
     UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl);
 
     Map<String, Object> getTokenRegistrationParams(
