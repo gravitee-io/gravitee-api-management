@@ -43,6 +43,7 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
@@ -51,6 +52,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -923,72 +925,215 @@ public class EndpointGroupsValidationServiceImplTest {
     /**
      * LLM Proxy provider consistency tests
      */
+    @Nested
+    class LLMProxyProviderConsistencyTest {
 
-    @Test
-    public void should_throw_when_llm_proxy_endpoints_have_different_providers() {
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("llm-group");
-        endpointGroup.setType("llm-proxy");
+        @Test
+        public void should_throw_when_llm_proxy_endpoints_have_different_providers() {
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("llm-group-name");
+            endpointGroup.setType("llm-proxy");
 
-        Endpoint endpoint1 = new Endpoint();
-        endpoint1.setName("openai-endpoint");
-        endpoint1.setType("llm-proxy");
-        endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
+            Endpoint endpoint1 = new Endpoint();
+            endpoint1.setName("openai-endpoint");
+            endpoint1.setType("llm-proxy");
+            endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
 
-        Endpoint endpoint2 = new Endpoint();
-        endpoint2.setName("azure-endpoint");
-        endpoint2.setType("llm-proxy");
-        endpoint2.setConfiguration("{\"provider\":\"OPEN_AI_COMPATIBLE\"}");
+            Endpoint endpoint2 = new Endpoint();
+            endpoint2.setName("azure-endpoint");
+            endpoint2.setType("llm-proxy");
+            endpoint2.setConfiguration("{\"provider\":\"OPEN_AI_COMPATIBLE\"}");
 
-        endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
-        assertThatExceptionOfType(EndpointGroupLlmProxyProviderMismatchInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup))
-        );
-    }
+            assertThatExceptionOfType(EndpointGroupLlmProxyInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup)))
+                .withMessageContaining("provider")
+                .withMessageNotContaining("aliases")
+                .withMessageContaining("llm-group-name");
+        }
 
-    @Test
-    public void should_not_throw_when_llm_proxy_endpoints_have_same_provider() {
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("llm-group");
-        endpointGroup.setType("llm-proxy");
+        @Test
+        public void should_not_throw_when_llm_proxy_endpoints_have_same_provider() {
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("llm-group-name");
+            endpointGroup.setType("llm-proxy");
 
-        Endpoint endpoint1 = new Endpoint();
-        endpoint1.setName("openai-endpoint-1");
-        endpoint1.setType("llm-proxy");
-        endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
+            Endpoint endpoint1 = new Endpoint();
+            endpoint1.setName("openai-endpoint-1");
+            endpoint1.setType("llm-proxy");
+            endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
 
-        Endpoint endpoint2 = new Endpoint();
-        endpoint2.setName("openai-endpoint-2");
-        endpoint2.setType("llm-proxy");
-        endpoint2.setConfiguration("{\"provider\":\"OPEN_AI\"}");
+            Endpoint endpoint2 = new Endpoint();
+            endpoint2.setName("openai-endpoint-2");
+            endpoint2.setType("llm-proxy");
+            endpoint2.setConfiguration("{\"provider\":\"OPEN_AI\"}");
 
-        endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
-        List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup));
-        assertThat(result).hasSize(1);
-    }
+            List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                ApiType.LLM_PROXY,
+                List.of(endpointGroup)
+            );
+            assertThat(result).hasSize(1);
+        }
 
-    @Test
-    public void should_not_validate_provider_for_non_llm_proxy_groups() {
-        // HTTP endpoint group with different configurations should pass without provider validation
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("http-group");
-        endpointGroup.setType("http");
+        @Test
+        public void should_not_validate_provider_for_non_llm_proxy_groups() {
+            // HTTP endpoint group with different configurations should pass without provider validation
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("http-group");
+            endpointGroup.setType("http");
 
-        Endpoint endpoint1 = new Endpoint();
-        endpoint1.setName("endpoint-1");
-        endpoint1.setType("http");
-        endpoint1.setConfiguration("{\"provider\":\"A\"}");
+            Endpoint endpoint1 = new Endpoint();
+            endpoint1.setName("endpoint-1");
+            endpoint1.setType("http");
+            endpoint1.setConfiguration("{\"provider\":\"A\"}");
 
-        Endpoint endpoint2 = new Endpoint();
-        endpoint2.setName("endpoint-2");
-        endpoint2.setType("http");
-        endpoint2.setConfiguration("{\"provider\":\"B\"}");
+            Endpoint endpoint2 = new Endpoint();
+            endpoint2.setName("endpoint-2");
+            endpoint2.setType("http");
+            endpoint2.setConfiguration("{\"provider\":\"B\"}");
 
-        endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
-        List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
-        assertThat(result).hasSize(1);
+            List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_throw_technical_exception_when_fail_to_parse_configuration() {
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("llm-group-name");
+            endpointGroup.setType("llm-proxy");
+
+            Endpoint endpoint1 = new Endpoint();
+            endpoint1.setName("openai-endpoint");
+            endpoint1.setType("llm-proxy");
+            endpoint1.setConfiguration(
+                """
+                {
+                 "models": [
+                   {"name": "gemini-2.5-flash-lite"},
+                   {"n
+                 "provider": "OPEN_AI"
+                }
+                """
+            );
+
+            Endpoint endpoint2 = new Endpoint();
+            endpoint2.setName("azure-endpoint");
+            endpoint2.setType("llm-proxy");
+            endpoint2.setConfiguration(
+                """
+                {
+                 "models": [
+                   {"name": "gemini-2.5-flash-lite", "aliases": ["light"]},
+                   {"name": "gemini-3"}
+                 ],
+                 "provider": "OPEN_AI"
+                }
+                """
+            );
+
+            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+
+            var exception = catchException(() ->
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup))
+            );
+
+            assertThat(exception).isInstanceOf(TechnicalManagementException.class);
+        }
+
+        @Test
+        public void should_not_throw_when_llm_proxy_endpoints_have_same_aliases() {
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("llm-group-name");
+            endpointGroup.setType("llm-proxy");
+
+            Endpoint endpoint1 = new Endpoint();
+            endpoint1.setName("openai-endpoint");
+            endpoint1.setType("llm-proxy");
+            endpoint1.setConfiguration(
+                """
+                {
+                 "models": [
+                   {"name": "gemini-2.5-flash-lite"},
+                   {"name": "gemini-3", "aliases": ["light"]}
+                 ],
+                 "provider": "OPEN_AI"
+                }
+                """
+            );
+
+            Endpoint endpoint2 = new Endpoint();
+            endpoint2.setName("azure-endpoint");
+            endpoint2.setType("llm-proxy");
+            endpoint2.setConfiguration(
+                """
+                {
+                 "models": [
+                   {"name": "gemini-2.5-flash-lite", "aliases": ["light"]},
+                   {"name": "gemini-3"}
+                 ],
+                 "provider": "OPEN_AI"
+                }
+                """
+            );
+
+            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+
+            List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                ApiType.LLM_PROXY,
+                List.of(endpointGroup)
+            );
+
+            assertThat(endpointGroups).hasSize(1);
+        }
+
+        @Test
+        public void should_throw_when_llm_proxy_endpoints_have_different_aliases() {
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("llm-group-name");
+            endpointGroup.setType("llm-proxy");
+
+            Endpoint endpoint1 = new Endpoint();
+            endpoint1.setName("openai-endpoint");
+            endpoint1.setType("llm-proxy");
+            endpoint1.setConfiguration(
+                """
+                {
+                 "models": [
+                   {"name": "gemini-2.5-flash-lite", "aliases": ["fast"]},
+                   {"name": "gemini-3"}
+                 ],
+                 "provider": "OPEN_AI"
+                }
+                """
+            );
+
+            Endpoint endpoint2 = new Endpoint();
+            endpoint2.setName("azure-endpoint");
+            endpoint2.setType("llm-proxy");
+            endpoint2.setConfiguration(
+                """
+                {
+                 "models": [
+                   {"name": "gemini-2.5-flash-lite", "aliases": ["light"]},
+                   {"name": "gemini-3"}
+                 ],
+                 "provider": "OPEN_AI"
+                }
+                """
+            );
+
+            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
+
+            assertThatExceptionOfType(EndpointGroupLlmProxyInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup)))
+                .withMessageContaining("aliases")
+                .withMessageNotContaining("provider")
+                .withMessageContaining("llm-group-name");
+        }
     }
 }
