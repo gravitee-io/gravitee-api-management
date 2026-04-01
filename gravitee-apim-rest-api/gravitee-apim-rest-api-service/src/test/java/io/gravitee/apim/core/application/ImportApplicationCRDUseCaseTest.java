@@ -32,7 +32,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDo
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -103,9 +103,7 @@ class ImportApplicationCRDUseCaseTest {
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
     private final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
     private final ParameterService parameterService = mock(ParameterService.class);
-    private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService = mock(
-        ApplicationCertificatesUpdateDomainService.class
-    );
+    private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService = mock(MtlsSubscriptionSyncDomainService.class);
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     // Validation
@@ -121,7 +119,7 @@ class ImportApplicationCRDUseCaseTest {
     void setUp() {
         importApplicationCRDDomainService.initWith(List.of(anApplicationCRD()));
         userDomainService.initWith(getUsers());
-        Mockito.reset(applicationCertificatesUpdateDomainService);
+        Mockito.reset(mtlsSubscriptionSyncDomainService);
         useCase = new ImportApplicationCRDUseCase(
             applicationCrudService,
             importApplicationCRDDomainService,
@@ -129,7 +127,7 @@ class ImportApplicationCRDUseCaseTest {
             applicationMetadataQueryService,
             membersDomainService,
             crdValidator,
-            applicationCertificatesUpdateDomainService
+            mtlsSubscriptionSyncDomainService
         );
         roleQueryService.initWith(
             List.of(
@@ -202,7 +200,7 @@ class ImportApplicationCRDUseCaseTest {
             crd.setId(UuidString.generateRandom());
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
-            verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(APP_ID);
+            verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions(APP_ID);
         }
 
         @Test
@@ -272,7 +270,7 @@ class ImportApplicationCRDUseCaseTest {
             crd.setDescription("updated description");
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
-            verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(APP_ID);
+            verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions(APP_ID);
         }
 
         @Test
