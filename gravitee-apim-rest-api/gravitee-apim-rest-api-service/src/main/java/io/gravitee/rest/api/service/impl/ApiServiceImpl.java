@@ -1788,10 +1788,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     }
 
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false, false, false);
-                    // Remove policy description from sync check
-                    removeDescriptionFromPolicies(api);
-                    removeDescriptionFromPolicies(deployedApi);
-
                     // FIXME: Dirty hack due to ec1abe6c8560ff5da7284191ff72e4e54b7630e3, after this change the
                     //  payloadEntity doesn't contain the flow ids yet as there were no upgrader to update the last
                     //  publish_api event. So we need to remove the flow ids before comparing the deployed API and the
@@ -1833,10 +1829,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static void removePlans(ApiEntity api, ApiEntity deployedApi) {
         api.setPlans(null);
         deployedApi.setPlans(null);
-    }
-
-    private void removeDescriptionFromPolicies(final ApiEntity api) {
-        // No-op: paths with Rule policies have been removed (V1 API support dropped)
     }
 
     @Override
@@ -2087,11 +2079,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return imageEntity;
-    }
-
-    @Override
-    public ApiEntity migrate(ExecutionContext executionContext, String apiId) {
-        throw new UnsupportedOperationException("V1 to V2 migration is no longer supported");
     }
 
     @Override

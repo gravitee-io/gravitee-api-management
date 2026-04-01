@@ -1224,7 +1224,7 @@ public class ApiService_UpdateTest {
     @Test(expected = DefinitionVersionException.class)
     public void shouldNotDowngradeDefinitionVersion() throws TechnicalException {
         prepareUpdate();
-        updateApiEntity.setGraviteeDefinitionVersion("1.0.0");
+        updateApiEntity.setGraviteeDefinitionVersion("2.0.0");
         api.setDefinition(
             "{\"id\": \"" +
                 API_ID +

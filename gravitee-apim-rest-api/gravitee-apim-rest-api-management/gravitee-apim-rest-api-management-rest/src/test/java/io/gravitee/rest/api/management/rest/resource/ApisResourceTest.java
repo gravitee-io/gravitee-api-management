@@ -159,27 +159,6 @@ public class ApisResourceTest extends AbstractResourceTest {
             .post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        verify(apiService, times(0)).migrate(eq(GraviteeContext.getExecutionContext()), any());
-    }
-
-    @Test
-    public void shouldImportApiWithMigrationFromGraviteeIODefinitionIfAlreadyV2() {
-        reset(apiService, swaggerService);
-        String apiDefinition = "{}";
-
-        ApiEntity createdApi = new ApiEntity();
-        createdApi.setGraviteeDefinitionVersion("1.0.0");
-        createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
-
-        final Response response = envTarget()
-            .path("import")
-            .queryParam("definitionVersion", "2.0.0")
-            .request()
-            .post(Entity.json(apiDefinition));
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        verify(apiService, times(1)).migrate(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test

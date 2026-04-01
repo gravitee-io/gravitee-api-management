@@ -143,8 +143,6 @@ public interface ApiService {
 
     InlinePictureEntity getBackground(ExecutionContext executionContext, String apiId);
 
-    ApiEntity migrate(ExecutionContext executionContext, String api);
-
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
     void checkPolicyConfigurations(List<Flow> flows, Set<PlanEntity> plans);
