@@ -117,7 +117,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
         apiEntity.setName("test");
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setVisibility(Visibility.PUBLIC);
-        apiEntity.setGraviteeDefinitionVersion("1.0.0");
+        apiEntity.setGraviteeDefinitionVersion("2.0.0");
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, ApiSerializer.Version.DEFAULT.getVersion());

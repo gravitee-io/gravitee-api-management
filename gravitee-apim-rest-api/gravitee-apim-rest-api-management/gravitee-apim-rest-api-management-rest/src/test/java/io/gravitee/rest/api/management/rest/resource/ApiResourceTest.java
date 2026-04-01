@@ -397,7 +397,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 any(),
                 eq("Foo"),
-                eq(DefinitionVersion.valueOfLabel("1.0.0"))
+                eq(DefinitionVersion.valueOfLabel("2.0.0"))
             )
         ).thenReturn(mockApi);
 

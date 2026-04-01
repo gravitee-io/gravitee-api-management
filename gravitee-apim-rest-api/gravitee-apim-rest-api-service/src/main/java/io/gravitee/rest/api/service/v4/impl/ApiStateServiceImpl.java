@@ -545,9 +545,6 @@ public class ApiStateServiceImpl implements ApiStateService {
 
                         io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(payloadEntity, null, false);
 
-                        removePathsRuleDescriptionFromApiV1(deployedApiEntity);
-                        removePathsRuleDescriptionFromApiV1(apiEntity);
-
                         removePlans(apiEntity, deployedApiEntity);
                         sync = synchronizationService.checkSynchronization(
                             io.gravitee.rest.api.model.api.ApiEntity.class,
@@ -589,10 +586,6 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
 
         return false;
-    }
-
-    private void removePathsRuleDescriptionFromApiV1(final io.gravitee.rest.api.model.api.ApiEntity api) {
-        // No-op: paths with Rule policies have been removed (V1 API support dropped)
     }
 
     private void removeFlowsIdsFromApiV2(io.gravitee.rest.api.model.api.ApiEntity api) {

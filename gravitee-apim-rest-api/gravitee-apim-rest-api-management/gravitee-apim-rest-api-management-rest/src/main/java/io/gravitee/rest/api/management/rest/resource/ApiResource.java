@@ -607,7 +607,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiWithSwaggerPUT(
         @Parameter(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor,
-        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(
@@ -703,7 +703,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response importApiPathMappingsFromPage(
         @QueryParam("page") @NotNull String page,
-        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
         ApiEntity updatedApi = apiService.importPathMappingsFromPage(
@@ -858,29 +858,6 @@ public class ApiResource extends AbstractResource {
     public Response duplicateAPI(@Parameter(name = "api", required = true) @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity(); // call this method to check READ permission on source API.
         return Response.ok(apiDuplicatorService.duplicate(GraviteeContext.getExecutionContext(), apiEntity, duplicateApiEntity)).build();
-    }
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("_migrate")
-    @Operation(
-        summary = "Migrate the API definition to be used with Policy Studio",
-        description = "User must have the MANAGE_API create permission to use this service"
-    )
-    @ApiResponse(
-        responseCode = "200",
-        description = "API definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-        }
-    )
-    public Response migrateAPI() {
-        return Response.ok(apiService.migrate(GraviteeContext.getExecutionContext(), this.api)).build();
     }
 
     @POST
