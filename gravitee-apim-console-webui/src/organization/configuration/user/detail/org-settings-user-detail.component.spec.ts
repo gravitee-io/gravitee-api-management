@@ -182,6 +182,103 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Reset password' }))).toHaveLength(0);
   });
 
+  it('should not show reset password button for service account user', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      isServiceAccount: true,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Reset password' }))).toHaveLength(0);
+  });
+
+  it('should show reset password button for non-service account user with gravitee source', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      isServiceAccount: false,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Reset password' }))).toHaveLength(1);
+  });
+
+  it('should show convert to service account button when isServiceAccount is null and user has no password', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      isServiceAccount: undefined,
+      hasPassword: false,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Convert to service account' }))).toHaveLength(1);
+  });
+
+  it('should not show convert to service account button when user is already a service account', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      isServiceAccount: true,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Convert to service account' }))).toHaveLength(0);
+  });
+
+  it('should not show convert to service account button when user has a password', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      isServiceAccount: undefined,
+      hasPassword: true,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Convert to service account' }))).toHaveLength(0);
+  });
+
+  it('should not show convert to service account button for memory source users', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'memory',
+      isServiceAccount: undefined,
+      hasPassword: false,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Convert to service account' }))).toHaveLength(0);
+  });
+
+  it('should convert to service account after confirm dialog', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      isServiceAccount: undefined,
+      hasPassword: false,
+    });
+    expectInitRequests(user);
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    const convertButton = await userCard.getHarness(MatButtonHarness.with({ text: 'Convert to service account' }));
+
+    await convertButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Convert' }))).click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/serviceAccount`);
+    expect(req.request.method).toEqual('PATCH');
+    expect(req.request.body).toEqual({ serviceAccount: true });
+  });
+
   it('should accept user registration after confirm dialog', async () => {
     const user = fakeUser({
       id: 'userId',
@@ -835,6 +932,18 @@ describe('OrgSettingsUserDetailComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/memberships?type=${type}`);
     expect(req.request.method).toEqual('GET');
     req.flush(userMembership ?? {});
+  }
+
+  function expectInitRequests(user: User) {
+    expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
+    expectUserTokensGetRequest(user);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
   }
 
   function expectGroupListByOrganizationRequest(groups: Group[] = []) {

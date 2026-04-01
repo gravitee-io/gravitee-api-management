@@ -371,6 +371,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       });
   }
 
+  canResetPassword(): boolean {
+    return this.user.status === 'ACTIVE' && this.user.source === 'gravitee' && !this.isServiceUser();
+  }
+
   onResetPassword() {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
@@ -678,7 +682,37 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   isServiceUser(): boolean {
-    return this.user?.source === 'management';
+    return this.user?.isServiceAccount === true;
+  }
+
+  canConvertToServiceAccount(): boolean {
+    return this.user?.isServiceAccount == null && !this.user?.hasPassword && this.user?.source !== 'memory';
+  }
+
+  onConvertToServiceAccount() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Convert to service account',
+          content: `Are you sure you want to convert <strong>${this.user.displayName}</strong> to a service account? This action cannot be undone.`,
+          confirmButton: 'Convert',
+        },
+        role: 'alertdialog',
+        id: 'convertToServiceAccountConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.usersService.updateServiceAccountStatus(this.user.id, true)),
+        tap(() => this.snackBarService.success(`User "${this.user.displayName}" has been converted to a service account`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   isApiRolePrimaryOwner(groupId: string): boolean {
