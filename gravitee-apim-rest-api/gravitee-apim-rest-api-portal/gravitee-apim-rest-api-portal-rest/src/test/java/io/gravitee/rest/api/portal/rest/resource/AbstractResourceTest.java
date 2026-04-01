@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.mockito.Mockito.reset;
 
+import io.gravitee.apim.core.application.use_case.UpdateApplicationUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
@@ -137,6 +138,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected DeleteClientCertificateUseCase deleteClientCertificateUseCase;
+
+    @Autowired
+    protected UpdateApplicationUseCase updateApplicationUseCase;
 
     @Autowired
     protected CustomUserFieldService customUserFieldService;
@@ -371,6 +375,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
             createClientCertificateUseCase,
             updateClientCertificateUseCase,
             deleteClientCertificateUseCase,
+            updateApplicationUseCase,
             apiService,
             apiSearchService,
             apiAuthorizationService,
