@@ -71,19 +71,21 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
 
     @Override
     protected void doStart() throws Exception {
-        if (clusterManager.self().primary()) {
-            if (enabled) {
-                super.doStart();
-                logger.info("Event cleaner service has been initialized with cron [{}]", cronTrigger);
-                scheduler.schedule(this, new CronTrigger(cronTrigger));
-            } else {
-                logger.warn("Event cleaner Refresher service has been disabled");
-            }
+        if (enabled) {
+            super.doStart();
+            logger.info("Event cleaner service has been initialized with cron [{}]", cronTrigger);
+            scheduler.schedule(this, new CronTrigger(cronTrigger));
+        } else {
+            logger.warn("Event cleaner Refresher service has been disabled");
         }
     }
 
     @Override
     public void run() {
+        if (!clusterManager.self().primary()) {
+            logger.debug("Event cleaner service is not the primary node, skipping execution");
+            return;
+        }
         var environments = stream(organizationService.findAll())
             .flatMap(o -> stream(environmentService.findByOrganization(o.getId())))
             .toList();

@@ -18,7 +18,9 @@ package io.gravitee.rest.api.services.events;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.event.use_case.CleanupEventsUseCase;
@@ -73,23 +75,6 @@ class ScheduledEventsCleaningServiceTest {
 
     @Test
     void should_be_enabled_by_default() throws Exception {
-        // Given
-        Member mockMember = org.mockito.Mockito.mock(Member.class);
-        when(mockMember.primary()).thenReturn(true);
-        when(clusterManager.self()).thenReturn(mockMember);
-
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true, // enabled = true
-            30
-        );
-
         // When
         scheduledEventsCleaningService.doStart();
 
@@ -100,17 +85,13 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_schedule_task_when_enabled() throws Exception {
         // Given
-        Member mockMember = org.mockito.Mockito.mock(Member.class);
-        when(mockMember.primary()).thenReturn(true);
-        when(clusterManager.self()).thenReturn(mockMember);
-        String cronExpression = "@hourly";
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
             environmentService,
             scheduler,
             clusterManager,
-            cronExpression,
+            "@hourly",
             5,
             true,
             30
@@ -126,17 +107,13 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_use_correct_cron_expression() throws Exception {
         // Given
-        Member mockMember = org.mockito.Mockito.mock(Member.class);
-        when(mockMember.primary()).thenReturn(true);
-        when(clusterManager.self()).thenReturn(mockMember);
-        String cronExpression = "0 0 2 * * ?"; // Daily at 2 AM
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
             environmentService,
             scheduler,
             clusterManager,
-            cronExpression,
+            "0 0 2 * * ?",
             5,
             true,
             30
@@ -290,55 +267,45 @@ class ScheduledEventsCleaningServiceTest {
 
     @Test
     void should_log_info_message_when_starting() throws Exception {
-        // Given
-        Member mockMember = org.mockito.Mockito.mock(Member.class);
-        when(mockMember.primary()).thenReturn(true);
-        when(clusterManager.self()).thenReturn(mockMember);
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true,
-            30
-        );
-
         // When
         scheduledEventsCleaningService.doStart();
 
         // Then
-        // The service should log an info message about initialization
-        // This is verified by the fact that the service starts without throwing exceptions
-        assertThat(scheduledEventsCleaningService).isNotNull();
+        verify(scheduler).schedule(eq(scheduledEventsCleaningService), any(CronTrigger.class));
     }
 
     @Test
     void should_not_log_warning_when_enabled() throws Exception {
-        // Given
-        Member mockMember = org.mockito.Mockito.mock(Member.class);
-        when(mockMember.primary()).thenReturn(true);
-        when(clusterManager.self()).thenReturn(mockMember);
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true, // enabled = true
-            30
-        );
-
         // When
         scheduledEventsCleaningService.doStart();
 
         // Then
-        // No warning should be logged when the service is enabled
-        // This is verified by the fact that the service starts without throwing exceptions
-        assertThat(scheduledEventsCleaningService).isNotNull();
+        verify(scheduler).schedule(eq(scheduledEventsCleaningService), any(CronTrigger.class));
+    }
+
+    @Test
+    void should_schedule_even_when_not_primary_at_startup() throws Exception {
+        // Given - no primary mock needed: doStart() no longer checks cluster state
+        // (this would have failed before the fix, when primary()=false prevented scheduling)
+
+        // When
+        scheduledEventsCleaningService.doStart();
+
+        // Then - scheduler is registered regardless; primary check happens in run()
+        verify(scheduler).schedule(eq(scheduledEventsCleaningService), any(CronTrigger.class));
+    }
+
+    @Test
+    void should_skip_cleanup_when_not_primary() {
+        // Given
+        Member mockMember = mock(Member.class);
+        when(mockMember.primary()).thenReturn(false);
+        when(clusterManager.self()).thenReturn(mockMember);
+
+        // When
+        scheduledEventsCleaningService.run();
+
+        // Then
+        verifyNoInteractions(organizationService);
     }
 }
