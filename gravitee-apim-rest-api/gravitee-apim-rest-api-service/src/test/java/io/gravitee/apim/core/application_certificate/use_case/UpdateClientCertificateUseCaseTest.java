@@ -17,10 +17,13 @@ package io.gravitee.apim.core.application_certificate.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
@@ -39,17 +42,14 @@ class UpdateClientCertificateUseCaseTest {
     private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
 
     @Mock
-    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private ClientCertificateDomainService clientCertificateDomainService;
 
     private UpdateClientCertificateUseCase updateClientCertificateUseCase;
 
     @BeforeEach
     void setUp() {
         clientCertificateCrudService.reset();
-        updateClientCertificateUseCase = new UpdateClientCertificateUseCase(
-            clientCertificateCrudService,
-            applicationCertificatesUpdateDomainService
-        );
+        updateClientCertificateUseCase = new UpdateClientCertificateUseCase(clientCertificateCrudService, clientCertificateDomainService);
     }
 
     @Test
@@ -75,7 +75,25 @@ class UpdateClientCertificateUseCaseTest {
         );
         clientCertificateCrudService.initWith(List.of(certificate));
 
+        var updatedCertificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            appId,
+            "Updated Name",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
         var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
+        when(clientCertificateDomainService.update(eq(certId), any(ClientCertificate.class))).thenReturn(updatedCertificate);
 
         var result = updateClientCertificateUseCase.execute(new UpdateClientCertificateUseCase.Input(certId, updateRequest));
 
@@ -83,12 +101,15 @@ class UpdateClientCertificateUseCaseTest {
         assertThat(result.clientCertificate().id()).isEqualTo(certId);
         assertThat(result.clientCertificate().name()).isEqualTo("Updated Name");
 
-        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(appId);
+        verify(clientCertificateDomainService).update(eq(certId), any(ClientCertificate.class));
     }
 
     @Test
     void should_throw_exception_when_certificate_not_found() {
         var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
+        when(clientCertificateDomainService.update(eq("non-existent-id"), any(ClientCertificate.class))).thenThrow(
+            new ClientCertificateNotFoundException("non-existent-id")
+        );
 
         var input = new UpdateClientCertificateUseCase.Input("non-existent-id", updateRequest);
 

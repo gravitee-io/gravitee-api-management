@@ -63,12 +63,18 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
@@ -1225,8 +1231,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
-        return mock(ApplicationCertificatesUpdateDomainService.class);
+    MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService() {
+        return mock(MtlsSubscriptionSyncDomainService.class);
+    }
+
+    @Bean
+    ClientCertificateDomainService clientCertificateDomainService() {
+        return mock(ClientCertificateDomainService.class);
     }
 
     @Bean
