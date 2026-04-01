@@ -8,7 +8,9 @@ RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
     YARN_CACHE_FOLDER=/usr/local/share/.cache/yarn yarn install --immutable
 COPY gravitee-apim-console-webui/ ./
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    YARN_CACHE_FOLDER=/usr/local/share/.cache/yarn yarn build:prod
+    YARN_CACHE_FOLDER=/usr/local/share/.cache/yarn \
+    NODE_OPTIONS="--max-old-space-size=5120" \
+    node_modules/.bin/ng build --configuration=production
 
 FROM graviteeio/nginx:1.27.5
 LABEL maintainer="contact@graviteesource.com"
