@@ -69,7 +69,6 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -216,12 +215,6 @@ public class ApiService_CreateTest {
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
         when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(admin));
-    }
-
-    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
-    public void shouldNotCreateWithOldDefinitionVersion() {
-        when(newApi.getGraviteeDefinitionVersion()).thenReturn(DefinitionVersion.V1.getLabel());
-        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
     }
 
     @Test

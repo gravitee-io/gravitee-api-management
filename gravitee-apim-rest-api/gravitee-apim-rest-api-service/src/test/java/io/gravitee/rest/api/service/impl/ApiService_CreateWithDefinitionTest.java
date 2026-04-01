@@ -69,7 +69,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
@@ -236,14 +235,6 @@ public class ApiService_CreateWithDefinitionTest {
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
-    }
-
-    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
-    public void shouldNotCreateIfDefinitionV1() throws Exception {
-        UpdateApiEntity api = new UpdateApiEntity();
-        api.setGraviteeDefinitionVersion("1.0.0");
-
-        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, "", null);
     }
 
     @Test

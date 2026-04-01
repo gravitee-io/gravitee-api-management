@@ -24,8 +24,6 @@ import io.gravitee.apim.infra.domain_service.policy.PolicyValidationDomainServic
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.debug.DebugApiV4;
 import io.gravitee.definition.model.flow.Flow;
@@ -65,111 +63,6 @@ class ApiPolicyValidatorDomainServiceTest {
     @BeforeEach
     void setUp() {
         cut = new ApiPolicyValidatorDomainService(policyValidationDomainService);
-    }
-
-    @Nested
-    class ApiV1 {
-
-        @Test
-        void should_not_validate_null_v1_api() {
-            assertThatThrownBy(() -> cut.checkPolicyConfigurations(null))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Api should not be null");
-        }
-
-        @ParameterizedTest
-        @MethodSource("provideEmptyCasesForPaths")
-        void should_validate_v1_api_without_any_path(DebugApiV2 api, List<Plan> plans) {
-            api.setDefinitionVersion(DefinitionVersion.V1);
-            api.setPlans(plans);
-            assertDoesNotThrow(() -> cut.checkPolicyConfigurations(api));
-        }
-
-        @Test
-        void should_validate_paths() {
-            var api = new DebugApiV2();
-            api.setDefinitionVersion(DefinitionVersion.V1);
-            api.setPaths(
-                Map.of(
-                    "path1",
-                    List.of(buildRule("policy1", "config1")),
-                    "path2",
-                    List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
-                    "path-no-rule",
-                    List.of()
-                )
-            );
-            api.setPlans(
-                List.of(
-                    Plan.builder()
-                        .id("plan1")
-                        .paths(
-                            Map.of(
-                                "path1",
-                                List.of(buildRule("policy1", "config1")),
-                                "path2",
-                                List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
-                                "path-no-rule",
-                                List.of()
-                            )
-                        )
-                        .build(),
-                    Plan.builder()
-                        .id("plan2")
-                        .paths(
-                            Map.of(
-                                "path1",
-                                List.of(buildRule("policy1", "config1")),
-                                "path2",
-                                List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
-                                "path-no-rule",
-                                List.of()
-                            )
-                        )
-                        .build()
-                )
-            );
-
-            cut.checkPolicyConfigurations(api);
-
-            SoftAssertions.assertSoftly(softly -> {
-                // Verify paths at api level
-                softly
-                    .assertThat(
-                        api
-                            .getPaths()
-                            .values()
-                            .stream()
-                            .flatMap(Collection::stream)
-                            .map(rule -> rule.getPolicy().getConfiguration())
-                    )
-                    .hasSize(3)
-                    .allMatch(configuration -> configuration.equals("validated"));
-                // verify paths for plans
-                softly
-                    .assertThat(
-                        api
-                            .getPlans()
-                            .stream()
-                            .flatMap(plan -> plan.getPaths().values().stream().flatMap(Collection::stream))
-                            .map(rule -> rule.getPolicy().getConfiguration())
-                    )
-                    .hasSize(6)
-                    .allMatch(configuration -> configuration.equals("validated"));
-            });
-        }
-
-        private Rule buildRule(String name, String configuration) {
-            final Rule rule = new Rule();
-            rule.setPolicy(Policy.builder().name(name).configuration(configuration).build());
-            return rule;
-        }
-
-        private static Stream<Arguments> provideEmptyCasesForPaths() {
-            var api = new DebugApiV2();
-            api.setPaths(Map.of());
-            return Stream.concat(provideEmptyCases(), Stream.of(Arguments.of(api, null), Arguments.of(api, List.of())));
-        }
     }
 
     @Nested
