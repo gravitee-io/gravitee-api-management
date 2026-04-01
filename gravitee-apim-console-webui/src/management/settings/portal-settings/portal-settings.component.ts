@@ -391,7 +391,7 @@ export class PortalSettingsComponent implements OnInit {
         mtls: new FormGroup({
           enabled: new FormControl({
             value: !!this.settings.portalNext?.mtls?.enabled,
-            disabled: this.isReadonly('portalNext.feature.mtlsEnabled'),
+            disabled: this.isReadonly('portalNext.mtls.enabled'),
           }),
         }),
       }),
