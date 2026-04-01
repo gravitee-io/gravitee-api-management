@@ -158,7 +158,6 @@ public class ApisResourceTest extends AbstractResourceTest {
             .request()
             .post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
     }
 
     @Test
