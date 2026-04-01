@@ -33,7 +33,7 @@
         "enabled" : true
       }]
   },
-  "gravitee" : "1.0.0",
+  "gravitee" : "2.0.0",
   "path_mappings" : [ ],
   "response_templates" : { },
   "lifecycle_state" : "created",

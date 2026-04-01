@@ -684,7 +684,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .asEntity(PlanV2.class)
                 .isEqualTo(
                     new PlanV2()
-                        .paths(Map.of())
                         .flows(createPlanV2.getFlows())
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2)
                         .id("new-id")
@@ -810,7 +809,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
             final Response response = target.request().get();
 
-            assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity).paths(Map.of()));
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
         }
     }
 
@@ -1063,7 +1062,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     new PlanV2()
                         .flows(updatePlanV2.getFlows())
-                        .paths(Map.of())
                         .id(PLAN)
                         .definitionVersion(DefinitionVersion.V2)
                         .name(updatePlanV2.getName())

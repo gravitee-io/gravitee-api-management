@@ -82,7 +82,6 @@ public class PlanConverterTest {
         assertEquals(result.getDescription(), actual.getDescription());
         assertEquals(result.getValidation(), actual.getValidation());
         assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        assertEquals(result.getPaths(), actual.getPaths());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
         assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
         assertEquals(result.isCommentRequired(), actual.isCommentRequired());
@@ -96,7 +95,6 @@ public class PlanConverterTest {
     @Test
     public void toUpdatePlanEntity_should_not_set_fields_with_default_value_to_null() {
         final PlanEntity actual = buildTestPlanEntity();
-        actual.setPaths(null);
         final UpdatePlanEntity result = planConverter.toUpdatePlanEntity(actual);
 
         assertEquals(result.getId(), actual.getId());
@@ -104,7 +102,6 @@ public class PlanConverterTest {
         assertEquals(result.getDescription(), actual.getDescription());
         assertEquals(result.getValidation(), actual.getValidation());
         assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        assertEquals(result.getPaths(), new HashMap<>());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
         assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
         assertEquals(result.isCommentRequired(), actual.isCommentRequired());
@@ -129,7 +126,6 @@ public class PlanConverterTest {
         assertEquals(result.getStatus(), actual.getStatus());
         assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getApi(), actual.getApi());
-        assertEquals(result.getPaths(), actual.getPaths());
         assertEquals(result.getFlows(), actual.getFlows());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
         assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
@@ -147,7 +143,6 @@ public class PlanConverterTest {
         actual.setSecurity(null);
         actual.setType(null);
         actual.setStatus(null);
-        actual.setPaths(null);
         actual.setFlows(null);
         final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
 
@@ -162,7 +157,6 @@ public class PlanConverterTest {
         assertEquals(result.getApi(), actual.getApi());
         assertEquals(result.getStatus(), PlanStatus.STAGING);
         assertEquals(result.getReferenceId(), actual.getReferenceId());
-        assertEquals(result.getPaths(), new HashMap<>());
         assertEquals(result.getFlows(), new ArrayList<>());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
         assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
@@ -274,7 +268,6 @@ public class PlanConverterTest {
         newPlan.setSecurityDefinition("{\"prop\":\"value\"}");
         newPlan.setStatus(PlanStatus.STAGING);
         newPlan.setValidation(PlanValidationType.MANUAL);
-        newPlan.setPaths(new HashMap<>());
         newPlan.setCharacteristics(new ArrayList<>());
         newPlan.setExcludedGroups(new ArrayList<>());
         newPlan.setCommentRequired(true);
@@ -297,7 +290,6 @@ public class PlanConverterTest {
         planEntity.setSecurityDefinition("definition");
         planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
         planEntity.setStatus(PlanStatus.STAGING);
-        planEntity.setPaths(new HashMap<>());
         planEntity.setFlows(new ArrayList<>());
         planEntity.setCharacteristics(new ArrayList<>());
         planEntity.setExcludedGroups(new ArrayList<>());

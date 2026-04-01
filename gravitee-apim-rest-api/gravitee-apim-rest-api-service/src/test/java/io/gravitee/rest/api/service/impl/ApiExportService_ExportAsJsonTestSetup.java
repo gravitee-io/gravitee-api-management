@@ -136,7 +136,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         apiEntity.setExecutionMode(ExecutionMode.V3);
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         // set proxy
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
@@ -154,7 +154,6 @@ public class ApiExportService_ExportAsJsonTestSetup {
         endpointGroup.setLoadBalancer(loadBalancer);
         proxy.setGroups(Collections.singleton(endpointGroup));
 
-        apiEntity.setPaths(null);
         apiEntity.setProxy(proxy);
 
         ResponseTemplate responseTemplate = new ResponseTemplate();
@@ -260,31 +259,6 @@ public class ApiExportService_ExportAsJsonTestSetup {
         publishedPlan.setValidation(PlanValidationType.AUTO);
         publishedPlan.setStatus(PlanStatus.PUBLISHED);
         publishedPlan.setExcludedGroups(List.of("my-group"));
-        Map<String, List<Rule>> paths = new HashMap<>();
-        io.gravitee.definition.model.Rule rule = new io.gravitee.definition.model.Rule();
-        rule.setEnabled(true);
-        rule.setMethods(Sets.newSet(HttpMethod.GET));
-        Policy policy = new Policy();
-        policy.setName("rate-limit");
-        String ls = System.lineSeparator();
-        policy.setConfiguration(
-            "{" +
-                ls +
-                "          \"rate\": {" +
-                ls +
-                "            \"limit\": 1," +
-                ls +
-                "            \"periodTime\": 1," +
-                ls +
-                "            \"periodTimeUnit\": \"SECONDS\"" +
-                ls +
-                "          }" +
-                ls +
-                "        }"
-        );
-        rule.setPolicy(policy);
-        paths.put("/", Collections.singletonList(rule));
-        publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
         closedPlan.setCrossId("closed-test-plan-cross-id");
@@ -294,7 +268,6 @@ public class ApiExportService_ExportAsJsonTestSetup {
         closedPlan.setSecurity(PlanSecurityType.API_KEY);
         closedPlan.setValidation(PlanValidationType.AUTO);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        closedPlan.setPaths(paths);
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
         set.add(closedPlan);

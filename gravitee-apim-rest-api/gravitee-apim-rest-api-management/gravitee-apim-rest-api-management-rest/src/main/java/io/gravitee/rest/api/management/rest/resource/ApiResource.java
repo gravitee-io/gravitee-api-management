@@ -1050,7 +1050,6 @@ public class ApiResource extends AbstractResource {
         filteredProxy.setVirtualHosts(singletonList(virtualHost));
 
         entity.setProxy(filteredProxy);
-        entity.setPaths(null);
         entity.setProperties(null);
         entity.setServices(null);
         entity.setResources(null);

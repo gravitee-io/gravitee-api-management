@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.definition.model.DefinitionVersion.V1;
+import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
@@ -144,12 +144,12 @@ public class PlanService_CreateTest {
 
     @Test
     public void should_convert_using_api_definition_version_v1() throws Exception {
-        mockApiDefinitionVersion(V1);
+        mockApiDefinitionVersion(V2);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
-        verify(planConverter, times(1)).toPlan(newPlanEntity, V1);
+        verify(planConverter, times(1)).toPlan(newPlanEntity, V2);
     }
 
     @Test

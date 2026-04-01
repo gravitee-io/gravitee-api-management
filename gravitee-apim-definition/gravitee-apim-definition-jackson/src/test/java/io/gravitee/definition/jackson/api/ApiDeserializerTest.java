@@ -74,13 +74,6 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
-    public void definition_noPath() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-nopath.json", Api.class);
-
-        assertNull(api.getPaths());
-    }
-
-    @Test
     public void definition_reformatContextPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-reformat-contextpath.json", Api.class);
 
@@ -94,44 +87,6 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_contextPathExpected() {
         assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class));
-    }
-
-    @Test
-    public void definition_defaultPath() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-
-        assertNotNull(api.getPaths());
-        assertEquals(1, api.getPaths().size());
-
-        Map<String, List<Rule>> paths = api.getPaths();
-        assertEquals("/*", paths.keySet().iterator().next());
-
-        List<Rule> rules = paths.get("/*");
-        assertEquals(4, rules.size());
-    }
-
-    @Test
-    public void definition_multiplePath() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-multiplepath.json", Api.class);
-
-        assertNotNull(api.getPaths());
-        assertEquals(2, api.getPaths().size());
-    }
-
-    @Test
-    public void definition_pathwithmethods() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-
-        assertNotNull(api.getPaths());
-        assertEquals(1, api.getPaths().size());
-
-        Map<String, List<Rule>> paths = api.getPaths();
-
-        List<Rule> rules = paths.get("/*");
-        assertEquals(4, rules.size());
-
-        Set<HttpMethod> methods = rules.iterator().next().getMethods();
-        assertEquals(2, methods.size());
     }
 
     @Test
@@ -162,61 +117,6 @@ public class ApiDeserializerTest extends AbstractTest {
         assertTrue(pattern.matcher("/echo/anything").matches());
         assertTrue(pattern.matcher("/echo/anything/").matches());
         assertFalse(pattern.matcher("/echo/anything/anything-else").matches());
-    }
-
-    @Test
-    public void definition_pathwithoutmethods() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-path-nohttpmethod.json", Api.class);
-
-        assertNotNull(api.getPaths());
-        assertEquals(1, api.getPaths().size());
-
-        Map<String, List<Rule>> paths = api.getPaths();
-
-        List<Rule> rules = paths.get("/*");
-        assertEquals(1, rules.size());
-
-        Set<HttpMethod> methods = rules.iterator().next().getMethods();
-        assertEquals(10, methods.size());
-    }
-
-    @Test
-    public void definition_pathwithpolicies() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        Map<String, List<Rule>> paths = api.getPaths();
-        List<Rule> rules = paths.get("/*");
-
-        Policy policy = rules.iterator().next().getPolicy();
-        assertNotNull(policy);
-        assertEquals("access-control", policy.getName());
-    }
-
-    @Test
-    public void definition_pathwithpolicies_disabled() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        Map<String, List<Rule>> paths = api.getPaths();
-        List<Rule> rules = paths.get("/*");
-
-        Rule accessControlRule = rules.get(0);
-        Policy policy = accessControlRule.getPolicy();
-        assertNotNull(policy);
-        assertEquals("access-control", policy.getName());
-        assertFalse(accessControlRule.isEnabled());
-
-        Rule corsRule = rules.get(1);
-        policy = corsRule.getPolicy();
-        assertNotNull(policy);
-        assertEquals("cors", policy.getName());
-        assertTrue(corsRule.isEnabled());
-    }
-
-    @Test
-    public void definition_pathwithoutpolicy() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-path-withoutpolicy.json", Api.class);
-        Map<String, List<Rule>> paths = api.getPaths();
-        List<Rule> rules = paths.get("/*");
-
-        assertEquals(0, rules.size());
     }
 
     @Test

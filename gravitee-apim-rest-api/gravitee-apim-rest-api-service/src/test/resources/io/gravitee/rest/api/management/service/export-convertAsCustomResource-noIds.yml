@@ -9,7 +9,7 @@ spec:
   name: "Export Test API"
   execution_mode: "v3"
   description: "Gravitee.io"
-  gravitee: "1.0.0"
+  gravitee: "2.0.0"
   flow_mode: "DEFAULT"
   resources: []
   properties: []

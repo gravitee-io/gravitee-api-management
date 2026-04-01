@@ -150,7 +150,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
 
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         // set proxy
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
@@ -168,7 +168,6 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         endpointGroup.setLoadBalancer(loadBalancer);
         proxy.setGroups(Collections.singleton(endpointGroup));
 
-        apiEntity.setPaths(null);
         apiEntity.setProxy(proxy);
 
         String groupName = "developers";

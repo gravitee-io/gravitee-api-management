@@ -66,7 +66,6 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -580,27 +579,6 @@ public class ApiService_UpdateTest {
         api.setDescription("tag test basic example");
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
-    }
-
-    @Test(expected = InvalidDataException.class)
-    public void shouldNotUpdateWithInvalidPolicyConfiguration() throws TechnicalException {
-        prepareUpdate();
-
-        HashMap<String, List<Rule>> paths = new HashMap<>();
-        ArrayList<Rule> rules = new ArrayList<>();
-        Rule rule = new Rule();
-        Policy policy = new Policy();
-        rule.setPolicy(policy);
-        rule.setEnabled(true);
-        rules.add(rule);
-        paths.put("/", rules);
-
-        updateApiEntity.setPaths(paths);
-        doThrow(new InvalidDataException()).when(policyService).validatePolicyConfiguration(any(Policy.class));
-
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-
-        fail("should throw InvalidDataException");
     }
 
     @Test(expected = InvalidDataException.class)
@@ -1246,7 +1224,7 @@ public class ApiService_UpdateTest {
     @Test(expected = DefinitionVersionException.class)
     public void shouldNotDowngradeDefinitionVersion() throws TechnicalException {
         prepareUpdate();
-        updateApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+        updateApiEntity.setGraviteeDefinitionVersion("1.0.0");
         api.setDefinition(
             "{\"id\": \"" +
                 API_ID +

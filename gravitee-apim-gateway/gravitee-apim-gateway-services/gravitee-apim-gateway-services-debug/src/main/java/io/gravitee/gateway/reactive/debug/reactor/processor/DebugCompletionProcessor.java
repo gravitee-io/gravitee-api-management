@@ -184,7 +184,6 @@ public class DebugCompletionProcessor implements Processor {
             debugAPI.setFlows(debugApiV2.getDefinition().getFlows());
             debugAPI.setPathMappings(debugApiV2.getDefinition().getPathMappings());
             debugAPI.setPlans(debugApiV2.getDefinition().getPlans());
-            debugAPI.setPaths(debugApiV2.getDefinition().getPaths());
             debugAPI.setServices(debugApiV2.getDefinition().getServices());
             debugAPI.setProxy(debugApiV2.getDefinition().getProxy());
             debugAPI.setProperties(debugApiV2.getDefinition().getProperties());

@@ -77,15 +77,6 @@ public class GenericApiMapperTest {
     }
 
     @Test
-    public void shouldCallV2ApiMapperWhenV1DefinitionVersion() {
-        Api api = new Api();
-        api.setDefinitionVersion(DefinitionVersion.V1);
-
-        genericApiMapper.toGenericApi(api, null);
-        verify(apiConverter).toApiEntity(api, null, true);
-    }
-
-    @Test
     public void shouldCallV2ApiMapperWhenNoDefinitionVersion() {
         Api api = new Api();
 

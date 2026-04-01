@@ -123,7 +123,6 @@ class RollbackApiEntityDeserializerTest {
         assertThat(e.getName()).isEqualTo("Minimal API");
 
         assertThat(e.getPlans()).isEmpty();
-        assertThat(e.getPaths()).isEmpty();
         assertThat(e.getFlows()).isEmpty();
         assertThat(e.getResources()).isEmpty();
 

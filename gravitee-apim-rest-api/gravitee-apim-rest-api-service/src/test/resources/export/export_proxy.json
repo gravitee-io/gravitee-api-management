@@ -136,7 +136,7 @@
         "id": "api-id",
         "name": "My Api",
         "description": "My Api description",
-        "apiVersion": "1.0.0",
+        "apiVersion": "2.0.0",
         "deployedAt": "2024-11-08T10:22:17.487Z",
         "createdAt": "2023-11-07T15:17:44.946Z",
         "updatedAt": "2024-11-13T14:31:05.066Z",

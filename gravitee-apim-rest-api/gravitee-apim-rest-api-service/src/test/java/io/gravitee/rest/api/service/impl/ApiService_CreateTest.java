@@ -283,7 +283,6 @@ public class ApiService_CreateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        assertNotNull(apiEntity.getPaths());
 
         verify(apiRepository, times(1)).create(any());
         verify(auditService, times(1)).createApiAuditLog(
