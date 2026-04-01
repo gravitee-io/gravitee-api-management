@@ -170,12 +170,7 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
             })
             .flatMap(response -> {
                 assertThat(response.statusCode()).isEqualTo(401);
-                String wwwAuthenticateHeader = String.format(
-                    "Bearer resource_metadata=\"%s://localhost:%s/%s/.well-known/oauth-protected-resource\"",
-                    scheme(),
-                    httpConfig.httpPort(),
-                    apiId
-                );
+                String wwwAuthenticateHeader = String.format("Bearer", scheme(), httpConfig.httpPort(), apiId);
                 assertThat(response.headers().get("WWW-Authenticate")).isEqualTo(wwwAuthenticateHeader);
                 return response.rxBody();
             })
