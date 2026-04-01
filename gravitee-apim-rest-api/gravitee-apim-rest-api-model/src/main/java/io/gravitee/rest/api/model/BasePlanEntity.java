@@ -18,15 +18,12 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import jakarta.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -120,10 +117,6 @@ public class BasePlanEntity implements GenericPlanEntity {
      */
     @JsonProperty("closed_at")
     private Date closedAt;
-
-    @DeploymentRequired
-    @JsonProperty(value = "paths", required = true)
-    private Map<String, List<Rule>> paths = new HashMap<>();
 
     private List<String> characteristics;
 

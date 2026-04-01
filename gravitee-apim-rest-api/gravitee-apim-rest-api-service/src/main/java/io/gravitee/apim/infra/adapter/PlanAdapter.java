@@ -15,11 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -103,7 +101,6 @@ public interface PlanAdapter {
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(source))")
     io.gravitee.definition.model.v4.nativeapi.NativePlan toPlanDefinitionNativeV4(io.gravitee.repository.management.model.Plan source);
 
-    @Mapping(target = "paths", expression = "java(computeBasePlanEntityPaths(source))")
     @Mapping(target = "security", qualifiedByName = "serializeV2PlanSecurityType")
     io.gravitee.definition.model.Plan toPlanDefinitionV2(io.gravitee.repository.management.model.Plan source);
 
@@ -202,20 +199,6 @@ public interface PlanAdapter {
         return planSecurity != null ? PlanSecurityType.valueOfLabel(planSecurity.getType()) : null;
     }
 
-    @Named("computeBasePlanEntityPaths")
-    default Map<String, List<Rule>> computeBasePlanEntityPaths(io.gravitee.repository.management.model.Plan plan) {
-        if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
-            try {
-                return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<>() {});
-            } catch (IOException ioe) {
-                log.error("Unexpected error while generating policy definition", ioe);
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
     default String serializeDefinition(Plan source) {
         return switch (source.getDefinitionVersion()) {
             case V4 -> null;
@@ -234,16 +217,7 @@ public interface PlanAdapter {
     }
 
     default String serializeV2PlanPaths(io.gravitee.definition.model.Plan plan) {
-        if (plan != null && plan.getPaths() != null && !plan.getPaths().isEmpty()) {
-            try {
-                return GraviteeJacksonMapper.getInstance().writeValueAsString(plan.getPaths());
-            } catch (IOException ioe) {
-                log.error("Unexpected error while serializing v2 plan paths", ioe);
-                return null;
-            }
-        } else {
-            return null;
-        }
+        return null;
     }
 
     @Named("serializeV2PlanSecurityType")

@@ -68,7 +68,6 @@ public class RollbackApiEntityDeserializer extends StdDeserializer<RollbackApiEn
 
         out.setProxy(p.proxy);
 
-        out.setPaths(nullableOr(p.paths, new HashMap<>()));
         out.setFlows(nullableOr(p.flows, new ArrayList<>()));
         out.setPlans(nullableOr(p.plans, new ArrayList<>()));
 
@@ -139,7 +138,6 @@ public class RollbackApiEntityDeserializer extends StdDeserializer<RollbackApiEn
         public String description;
 
         public Proxy proxy;
-        public Map<String, List<Rule>> paths;
         public List<Flow> flows;
         public List<Plan> plans;
 

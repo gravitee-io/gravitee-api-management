@@ -26,7 +26,6 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -87,10 +86,6 @@ public class UpdateApiEntity {
     @JsonProperty(value = "proxy", required = true)
     @Schema(description = "API's definition.")
     private Proxy proxy;
-
-    @JsonProperty(value = "paths")
-    @Schema(description = "a map where you can associate a path to a configuration (the policies configuration)")
-    private Map<String, List<Rule>> paths = new HashMap<>();
 
     @JsonProperty(value = "flows")
     @Schema(description = "a list of flows (the policies configuration)")

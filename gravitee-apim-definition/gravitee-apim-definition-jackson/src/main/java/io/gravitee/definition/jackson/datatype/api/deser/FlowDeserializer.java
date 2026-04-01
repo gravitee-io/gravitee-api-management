@@ -23,7 +23,6 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.FailoverCase;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.*;
 import java.io.IOException;
 import java.util.ArrayList;

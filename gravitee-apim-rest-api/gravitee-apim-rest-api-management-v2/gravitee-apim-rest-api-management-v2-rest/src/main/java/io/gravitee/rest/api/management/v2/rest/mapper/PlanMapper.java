@@ -57,7 +57,7 @@ import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class, DefinitionVersionMapper.class },
+    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class },
     nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
 )
 public interface PlanMapper {

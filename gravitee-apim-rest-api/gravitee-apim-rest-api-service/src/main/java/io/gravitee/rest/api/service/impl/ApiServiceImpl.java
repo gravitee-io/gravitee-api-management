@@ -61,7 +61,6 @@ import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
@@ -1072,8 +1071,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (swaggerDescriptor.isWithPolicyPaths()) {
                 if (DefinitionVersion.V2.getLabel().equals(updateApiEntity.getGraviteeDefinitionVersion())) {
                     updateApiEntity.setFlows(swaggerApiEntity.getFlows());
-                } else {
-                    updateApiEntity.setPaths(swaggerApiEntity.getPaths());
                 }
             }
         }
@@ -1450,9 +1447,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updateApiDefinition.setFlowMode(updateApiEntity.getFlowMode());
             }
 
-            if (updateApiEntity.getPaths() != null) {
-                updateApiDefinition.setPaths(updateApiEntity.getPaths());
-            }
             if (updateApiEntity.getPathMappings() != null) {
                 updateApiDefinition.setPathMappings(
                     updateApiEntity
@@ -1539,32 +1533,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkPolicyConfigurations(final UpdateApiEntity updateApiEntity) {
-        checkPolicyConfigurations(updateApiEntity.getPaths(), updateApiEntity.getFlows(), updateApiEntity.getPlans());
+        checkPolicyConfigurations(updateApiEntity.getFlows(), updateApiEntity.getPlans());
     }
 
-    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans) {
-        checkPathsPolicyConfiguration(paths);
+    public void checkPolicyConfigurations(List<Flow> flows, Set<PlanEntity> plans) {
         checkFlowsPolicyConfiguration(flows);
 
         if (plans != null) {
             plans
                 .stream()
                 .forEach(plan -> {
-                    checkPathsPolicyConfiguration(plan.getPaths());
                     checkFlowsPolicyConfiguration(plan.getFlows());
                 });
-        }
-    }
-
-    private void checkPathsPolicyConfiguration(Map<String, List<Rule>> paths) {
-        if (paths != null) {
-            paths.forEach((s, rules) ->
-                rules
-                    .stream()
-                    .filter(Rule::isEnabled)
-                    .map(Rule::getPolicy)
-                    .forEach(policy -> policyService.validatePolicyConfiguration(policy))
-            );
         }
     }
 
@@ -1595,19 +1575,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
-        // validate regex on paths
-        if (updateApiEntity.getPaths() != null) {
-            updateApiEntity
-                .getPaths()
-                .forEach((path, v) -> {
-                    try {
-                        Pattern.compile(path);
-                    } catch (java.util.regex.PatternSyntaxException pse) {
-                        throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
-                    }
-                });
-        }
-
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
             updateApiEntity
@@ -1869,14 +1836,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {
-        if (api.getPaths() != null) {
-            api
-                .getPaths()
-                .values()
-                .stream()
-                .flatMap(CollectionUtils::stream)
-                .forEach(rule -> rule.setDescription(""));
-        }
+        // No-op: paths with Rule policies have been removed (V1 API support dropped)
     }
 
     @Override

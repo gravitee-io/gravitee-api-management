@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -28,7 +27,6 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
 
@@ -179,7 +177,6 @@ public sealed interface PlanDescriptor {
         String generalConditions,
 
         String securityDefinition,
-        Map<String, List<Rule>> paths,
         Collection<Flow> flows
     ) implements PlanDescriptor {
         @JsonProperty("tags")
@@ -214,7 +211,6 @@ public sealed interface PlanDescriptor {
                 commentMessage,
                 generalConditions,
                 securityDefinition,
-                paths,
                 newFlow
             );
         }

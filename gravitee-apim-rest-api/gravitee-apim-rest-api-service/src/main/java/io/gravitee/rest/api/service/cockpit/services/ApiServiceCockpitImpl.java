@@ -271,7 +271,6 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         List<String> labels
     ) {
         final SwaggerApiEntity api = swaggerService.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
-        api.setPaths(null);
         api.setLabels(labels);
 
         // apply update to proxy paths
@@ -292,7 +291,6 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         List<String> labels
     ) {
         final SwaggerApiEntity api = swaggerService.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
-        api.setPaths(null);
         api.setLabels(labels);
 
         final ContextPathValidationResult result = checkContextPath(executionContext.getEnvironmentId(), api);

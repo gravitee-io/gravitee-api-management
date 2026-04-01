@@ -100,7 +100,6 @@ public class ApiConverter {
             try {
                 var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
                 apiEntity.setProxy(apiDefinition.getProxy());
-                apiEntity.setPaths(apiDefinition.getPaths());
                 apiEntity.setServices(apiDefinition.getServices());
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
@@ -223,7 +222,6 @@ public class ApiConverter {
         updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
         updateApiEntity.setDescription(apiEntity.getDescription());
         updateApiEntity.setGroups(apiEntity.getGroups());
-        updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPicture(apiEntity.getPicture());
         updateApiEntity.setBackground(apiEntity.getBackground());
         updateApiEntity.setResources(apiEntity.getResources());

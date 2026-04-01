@@ -96,7 +96,6 @@ import org.slf4j.Logger;
         ServiceMapper.class,
         CorsMapper.class,
         ConfigurationSerializationMapper.class,
-        DefinitionVersionMapper.class,
     }
 )
 public interface ApiMapper {
