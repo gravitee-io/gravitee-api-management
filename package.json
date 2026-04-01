@@ -236,10 +236,11 @@
         "dashboard:storybook": "nx storybook dashboard",
         "dashboard:test": "nx test dashboard",
         "clean": "rm -rf gravitee-apim-console-webui/node_modules gravitee-apim-console-webui/.angular gravitee-apim-console-webui/dist gravitee-apim-console-webui/dist-lib gravitee-apim-portal-webui-next/node_modules gravitee-apim-portal-webui-next/.angular gravitee-apim-portal-webui-next/dist && echo '✅ Clean done.'",
-        "gamma:serve": "nx serve gravitee-gamma-control-plane-webui",
-        "gamma:build": "nx build gravitee-gamma-control-plane-webui",
-        "gamma:build:prod": "nx build gravitee-gamma-control-plane-webui --configuration=production",
-        "gamma:test": "nx test gravitee-gamma-control-plane-webui",
+        "gamma-console:serve": "nx serve gamma-console",
+        "gamma-console:build": "nx build gamma-console",
+        "gamma-console:build:prod": "nx build gamma-console --configuration=production",
+        "gamma-console:test": "nx test gamma-console",
+        "gamma-console:test:ci": "nx test gamma-console --coverage --maxWorkers=4",
         "postinstall": "yarn clean"
     },
     "scarfSettings": {

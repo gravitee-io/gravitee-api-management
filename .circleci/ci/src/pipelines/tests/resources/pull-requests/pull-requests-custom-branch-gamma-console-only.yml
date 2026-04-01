@@ -121,7 +121,7 @@ jobs:
           command: yarn nx lint << parameters.nx-project >>
       - run:
           name: Run unit tests
-          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >> --configuration=ci
+          command: yarn << parameters.nx-project >>:test:ci
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -148,7 +148,7 @@ jobs:
           command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
       - run:
           name: Build Gamma UI
-          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma:build:prod
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -191,7 +191,7 @@ workflows:
           context:
             - cicd-orchestrator
           apim-ui-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
-          nx-project: gravitee-gamma-control-plane-webui
+          nx-project: gamma-console
           resource_class: xlarge
           max-workers: "4"
       - job-gamma-webui-build:

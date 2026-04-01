@@ -516,7 +516,7 @@ export class PullRequestsWorkflow {
           name: 'Lint & test Gamma Console',
           context: config.jobContext,
           'apim-ui-project-workdir': config.components.gamma.workdir,
-          'nx-project': 'gravitee-gamma-control-plane-webui',
+          'nx-project': 'gamma-console',
           resource_class: 'xlarge',
           'max-workers': '4',
         }),
