@@ -2240,20 +2240,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             false,
             false
         );
-        pages.sort(
-            new Comparator<PageEntity>() {
-                @Override
-                public int compare(PageEntity p0, PageEntity p1) {
-                    Integer r0 = PageType.valueOf(p0.getType()).getRemoveOrder();
-                    Integer r1 = PageType.valueOf(p1.getType()).getRemoveOrder();
-                    if (r0.equals(r1)) {
-                        return Integer.compare(p1.getOrder(), p0.getOrder());
-                    }
-                    return r0.compareTo(r1);
-                }
-            }
-        );
-        pages.forEach(pageEntity -> delete(executionContext, pageEntity.getId()));
+
+        final PageEntityTreeNode pageEntityTreeNode = new PageEntityTreeNode(new PageEntity());
+        pageEntityTreeNode.appendListToTree(pages);
+        deleteChildrenPages(executionContext, pageEntityTreeNode.children);
     }
 
     @Override
@@ -2902,6 +2892,16 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(executionContext, apiId, createdOrUpdatedPage.getId(), child.children);
             }
+        }
+    }
+
+    private void deleteChildrenPages(final ExecutionContext executionContext, List<PageEntityTreeNode> children) {
+        for (final PageEntityTreeNode child : children) {
+            if (child.children != null && !child.children.isEmpty()) {
+                this.deleteChildrenPages(executionContext, child.children);
+            }
+
+            delete(executionContext, child.data.getId());
         }
     }
 
