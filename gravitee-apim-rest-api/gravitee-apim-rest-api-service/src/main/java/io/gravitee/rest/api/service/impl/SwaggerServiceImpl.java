@@ -25,7 +25,6 @@ import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
-import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIV2Converter;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.parser.WsdlParser;

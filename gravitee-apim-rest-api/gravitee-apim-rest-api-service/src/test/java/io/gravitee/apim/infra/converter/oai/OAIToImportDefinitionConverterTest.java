@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.converter.oai;
 
-import static io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter.X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION;
+import static io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIV2Converter.X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
