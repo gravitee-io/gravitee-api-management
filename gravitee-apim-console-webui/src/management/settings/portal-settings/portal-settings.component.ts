@@ -107,6 +107,7 @@ interface PortalForm {
   }>;
   portalNext: FormGroup<{
     access: FormGroup<{ enabled: FormControl<boolean> }>;
+    mtls: FormGroup<{ enabled: FormControl<boolean> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -387,6 +388,12 @@ export class PortalSettingsComponent implements OnInit {
             disabled: this.isReadonly('portalNext.access.enabled'),
           }),
         }),
+        mtls: new FormGroup({
+          enabled: new FormControl({
+            value: !!this.settings.portalNext?.mtls?.enabled,
+            disabled: this.isReadonly('portalNext.mtls.enabled'),
+          }),
+        }),
       }),
       scheduler: new FormGroup({
         tasks: new FormControl({
@@ -636,6 +643,7 @@ export class PortalSettingsComponent implements OnInit {
           ...this.settings.portalNext.access,
           ...this.portalForm.get('portalNext.access').value,
         },
+        mtls: this.portalForm.get('portalNext.mtls').value,
       },
     };
 
