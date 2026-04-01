@@ -37,34 +37,11 @@ import lombok.*;
 @Builder(toBuilder = true)
 public class UserEntity implements Indexable {
 
-    /**
-     * User identifier
-     */
     private String id;
-
-    /**
-     * The user organization id of the user
-     */
     private String organizationId;
-
-    /**
-     * The user first name
-     */
     private String firstname;
-
-    /**
-     * The user last name
-     */
     private String lastname;
-
-    /**
-     * The user password
-     */
     private String password;
-
-    /**
-     * The user email
-     */
     private String email;
 
     /**
@@ -77,21 +54,12 @@ public class UserEntity implements Indexable {
      */
     private Map<String, Set<UserRoleEntity>> envRoles;
 
-    /**
-     * The user creation date
-     */
     @JsonProperty("created_at")
     private Date createdAt;
 
-    /**
-     * The user last updated date
-     */
     @JsonProperty("updated_at")
     private Date updatedAt;
 
-    /**
-     * The user picture
-     */
     private String picture;
 
     /**
@@ -104,29 +72,24 @@ public class UserEntity implements Indexable {
      */
     private String sourceId;
 
-    /**
-     * The user last connection date
-     */
     private Date lastConnectionAt;
-
-    /**
-     * The user first connection date
-     */
     private Date firstConnectionAt;
 
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
 
     private String status;
-
     private long loginCount;
 
     @JsonProperty("number_of_active_tokens")
     private int nbActiveTokens;
 
     private Boolean newsletterSubscribed;
+    private Boolean isServiceAccount;
 
     private Map<String, Object> customFields;
+
+    private boolean hasPassword;
 
     @JsonIgnore
     private String referenceType;

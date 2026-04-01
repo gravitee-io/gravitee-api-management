@@ -62,6 +62,7 @@ public class UserConverter {
         if (userEntity.getStatus() != null) {
             user.setStatus(UserStatus.valueOf(userEntity.getStatus()));
         }
+        user.setIsServiceAccount(userEntity.getIsServiceAccount());
         return user;
     }
 
@@ -97,6 +98,7 @@ public class UserConverter {
 
         userEntity.setLoginCount(user.getLoginCount());
         userEntity.setNewsletterSubscribed(user.getNewsletterSubscribed());
+        userEntity.setIsServiceAccount(user.getIsServiceAccount());
 
         if (customUserFields != null && !customUserFields.isEmpty()) {
             Maps.MapBuilder builder = Maps.builder();
