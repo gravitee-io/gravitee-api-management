@@ -18,7 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { ApplicationTabSettingsEditHarness } from './application-tab-settings-edit/application-tab-settings-edit.harness';
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
@@ -542,6 +542,30 @@ describe('ApplicationTabSettingsComponent - Certificates section visibility', ()
     });
 
     it('should show certificates section', async () => {
+      expect(await updateHarness.getCertificatesSection()).not.toBeNull();
+    });
+  });
+
+  describe('when certificate count is still loading', () => {
+    beforeEach(async () => {
+      mockCertList.mockReturnValue(new Subject());
+      await init(simpleApplication, fakeSimpleApplicationType());
+    });
+
+    it('should show loader and hide certificates section', async () => {
+      expect(await updateHarness.getCertificatesLoader()).not.toBeNull();
+      expect(await updateHarness.getCertificatesSection()).toBeNull();
+    });
+  });
+
+  describe('when certificate count API fails', () => {
+    beforeEach(async () => {
+      mockCertList.mockReturnValue(throwError(() => new Error('API error')));
+      await init(simpleApplication, fakeSimpleApplicationType());
+    });
+
+    it('should show certificates section as fallback', async () => {
+      expect(await updateHarness.getCertificatesLoader()).toBeNull();
       expect(await updateHarness.getCertificatesSection()).not.toBeNull();
     });
   });
