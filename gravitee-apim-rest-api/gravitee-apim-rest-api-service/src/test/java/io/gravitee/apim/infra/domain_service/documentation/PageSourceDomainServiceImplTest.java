@@ -28,6 +28,9 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,6 +82,28 @@ class PageSourceDomainServiceImplTest {
             cut.setContentFromSource(Page.builder().source(dummySource()).build());
         });
         assertThat(error).hasMessage("unable to build fetcher instance");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_read_content_and_close_stream() throws Exception {
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
+            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
+        );
+        when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
+        when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
+        when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
+        when(fetcherConfigurationFactory.create(any(), any())).thenReturn(new DummyFetcherConfiguration("data", "secret"));
+
+        var trackingStream = new TrackingInputStream(new ByteArrayInputStream("dummy content".getBytes()));
+        DummyFetcher.nextStream.set(trackingStream);
+
+        Page page = Page.builder().source(dummySource()).build();
+        cut.setContentFromSource(page);
+
+        assertThat(page.getContent()).isEqualTo("dummy content");
+        assertThat(trackingStream.closed).isTrue();
     }
 
     @Test
@@ -213,5 +238,32 @@ class PageSourceDomainServiceImplTest {
                 )
             )
             .build();
+    }
+
+    /** Wraps an InputStream and tracks whether close() was called. */
+    static class TrackingInputStream extends InputStream {
+
+        private final InputStream delegate;
+        boolean closed = false;
+
+        TrackingInputStream(InputStream delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public int read() throws IOException {
+            return delegate.read();
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            return delegate.read(b, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            closed = true;
+            delegate.close();
+        }
     }
 }
