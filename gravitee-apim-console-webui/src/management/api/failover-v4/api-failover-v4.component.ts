@@ -25,7 +25,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { onlyApiV4Filter } from '../../../util/apiFilter.operator';
-import { ApiV4 } from '../../../entities/management-api-v2';
+import { ApiType, ApiV4 } from '../../../entities/management-api-v2';
 import { Failover } from '../../../entities/management-api-v2/api/v4/failover';
 import {
   GioInformationDialogComponent,
@@ -73,7 +73,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         tap((api: ApiV4) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           this.hasKafkaEndpointsGroup = api?.endpointGroups?.some(endpointGroup => endpointGroup.type === 'kafka');
-          this.createForm(isReadOnly, api?.failover);
+          this.createForm(isReadOnly, api.type, api?.failover);
           this.setupDisablingFields();
         }),
         takeUntil(this.unsubscribe$),
@@ -86,7 +86,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  private createForm(isReadOnly: boolean, failover?: Failover) {
+  private createForm(isReadOnly: boolean, apiType: ApiType, failover?: Failover) {
     const isFailoverReadOnly = isReadOnly || !failover?.enabled;
 
     this.failoverForm = this.formBuilder.group({
@@ -113,7 +113,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         [],
       ],
       slowCallDuration: [
-        { value: failover?.slowCallDuration ?? 2000, disabled: isFailoverReadOnly },
+        { value: failover?.slowCallDuration ?? this.getDefaultSlowCallDuration(apiType), disabled: isFailoverReadOnly },
         [Validators.required, Validators.min(50)],
       ],
       openStateDuration: [
@@ -235,5 +235,9 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe();
+  }
+
+  private getDefaultSlowCallDuration(apiType: ApiType): number {
+    return apiType === 'LLM_PROXY' ? 30_000 : 2000;
   }
 }
