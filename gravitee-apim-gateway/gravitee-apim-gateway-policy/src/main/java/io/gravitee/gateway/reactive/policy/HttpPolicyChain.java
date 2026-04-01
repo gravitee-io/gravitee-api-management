@@ -27,10 +27,12 @@ import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
+import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.reactivex.rxjava3.core.Completable;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import lombok.CustomLog;
 
@@ -47,6 +49,7 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
 
     private List<PolicyHook> policyHooks;
     private List<PolicyMessageHook> policyMessageHooks;
+    private Map<HttpPolicy, String> policyDescriptions;
 
     /**
      * Creates a policy chain with the given list of policies.
@@ -57,6 +60,14 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
      */
     public HttpPolicyChain(@Nonnull String id, @Nonnull List<HttpPolicy> policies, @Nonnull ExecutionPhase phase) {
         super(id, policies, phase);
+    }
+
+    public void setPolicyDescriptions(final Map<HttpPolicy, String> descriptions) {
+        this.policyDescriptions = descriptions;
+    }
+
+    public Map<HttpPolicy, String> getPolicyDescriptions() {
+        return policyDescriptions;
     }
 
     @Override
@@ -110,6 +121,10 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
             baseCtx.withLogger(log).debug("Executing policy {} on phase {} in policy chain {}", policy.id(), phase, id);
 
             HttpExecutionContext ctx = (HttpExecutionContext) baseCtx;
+            ctx.putInternalAttribute(
+                TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION,
+                policyDescriptions != null ? policyDescriptions.get(policy) : null
+            );
             return switch (phase) {
                 case REQUEST -> HookHelper.hook(() -> policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
                 case RESPONSE -> HookHelper.hook(() -> policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);

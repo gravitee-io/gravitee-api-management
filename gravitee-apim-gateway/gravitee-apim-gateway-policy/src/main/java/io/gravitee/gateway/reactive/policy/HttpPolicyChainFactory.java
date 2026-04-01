@@ -28,15 +28,14 @@ import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import io.netty.util.internal.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * {@link PolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link HttpPolicyChain} thanks to a cache.
@@ -85,18 +84,25 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
 
         if (policyChain == null) {
             final List<Step> steps = getSteps(flow, phase);
+            final List<HttpPolicy> policies = new ArrayList<>(steps.size());
+            final Map<HttpPolicy, String> policyDescriptions = new IdentityHashMap<>();
 
-            final List<HttpPolicy> policies = steps
-                .stream()
-                .filter(Step::isEnabled)
-                .map(this::buildPolicyMetadata)
-                .map(policyMetadata -> (HttpPolicy) policyManager.create(phase, policyMetadata))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            for (Step step : steps) {
+                if (!step.isEnabled()) continue;
+                HttpPolicy policy = (HttpPolicy) policyManager.create(phase, buildPolicyMetadata(step));
+                if (policy == null) continue;
+                policies.add(policy);
+                String desc = step.getDescription();
+                if (desc != null && !desc.isBlank()) policyDescriptions.put(policy, desc);
+            }
 
             String policyChainId = getFlowId(flowChainId, flow);
             policyChain = new HttpPolicyChain(policyChainId, policies, phase);
             policyChain.addHooks(policyHooks);
+            if (!policyDescriptions.isEmpty()) {
+                policyChain.setPolicyDescriptions(policyDescriptions);
+            }
+
             policyChains.put(key, policyChain);
         }
 

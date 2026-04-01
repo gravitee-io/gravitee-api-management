@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.policy;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -33,11 +34,14 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -270,6 +274,74 @@ class HttpPolicyChainTest {
 
         verify(policy1).onRequest(ctx);
         verifyNoMoreInteractions(policy2);
+    }
+
+    @Test
+    void should_set_policy_description_in_context_before_execution() {
+        final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
+        final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
+
+        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+
+        Map<HttpPolicy, String> descriptions = new IdentityHashMap<>();
+        descriptions.put(httpPolicy1, "description-1");
+        descriptions.put(httpPolicy2, "description-2");
+        httpPolicyChain.setPolicyDescriptions(descriptions);
+
+        when(httpPolicy1.onRequest(ctx)).thenAnswer(inv -> {
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isEqualTo("description-1");
+            return Completable.complete();
+        });
+        when(httpPolicy2.onRequest(ctx)).thenAnswer(inv -> {
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isEqualTo("description-2");
+            return Completable.complete();
+        });
+
+        httpPolicyChain.execute(ctx).test().assertComplete();
+
+        verify(httpPolicy1).onRequest(ctx);
+        verify(httpPolicy2).onRequest(ctx);
+    }
+
+    @Test
+    void should_not_set_policy_description_in_context_when_no_descriptions_configured() {
+        final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
+
+        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1), ExecutionPhase.REQUEST);
+
+        when(httpPolicy1.onRequest(ctx)).thenAnswer(inv -> {
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isNull();
+            return Completable.complete();
+        });
+
+        httpPolicyChain.execute(ctx).test().assertComplete();
+    }
+
+    @Test
+    void should_clear_policy_description_in_context_when_subsequent_policy_has_no_description() {
+        final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
+        final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
+
+        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+
+        Map<HttpPolicy, String> descriptions = new IdentityHashMap<>();
+        descriptions.put(httpPolicy1, "description-1");
+        // httpPolicy2 intentionally has no description
+        httpPolicyChain.setPolicyDescriptions(descriptions);
+
+        when(httpPolicy1.onRequest(ctx)).thenAnswer(inv -> {
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isEqualTo("description-1");
+            return Completable.complete();
+        });
+        when(httpPolicy2.onRequest(ctx)).thenAnswer(inv -> {
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isNull();
+            return Completable.complete();
+        });
+
+        httpPolicyChain.execute(ctx).test().assertComplete();
+
+        verify(httpPolicy1).onRequest(ctx);
+        verify(httpPolicy2).onRequest(ctx);
     }
 
     @Test
