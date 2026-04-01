@@ -216,6 +216,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       access: {
         enabled: true,
       },
+      mtls: {
+        enabled: false,
+      },
       banner: {
         enabled: true,
         title: 'testTitle',
