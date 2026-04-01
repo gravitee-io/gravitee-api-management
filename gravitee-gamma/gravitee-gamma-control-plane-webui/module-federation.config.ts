@@ -16,7 +16,7 @@
 import { ModuleFederationConfig } from '@nx/module-federation';
 
 const config: ModuleFederationConfig = {
-    name: 'gravitee-gamma-control-plane-webui',
+    name: 'gamma-console',
     exposes: {},
     remotes: [],
     shared: (libraryName, sharedConfig) => {

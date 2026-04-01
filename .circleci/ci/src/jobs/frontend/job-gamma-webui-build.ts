@@ -50,7 +50,7 @@ export class GammaWebuiBuildJob {
       }),
       new commands.Run({
         name: 'Build Gamma UI',
-        command: `NODE_OPTIONS=--max_old_space_size=4086 yarn gamma:build:prod`,
+        command: `NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod`,
       }),
     ];
 
