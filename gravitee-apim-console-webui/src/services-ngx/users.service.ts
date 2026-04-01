@@ -89,6 +89,10 @@ export class UsersService {
     return this.http.post<void>(`${this.constants.org.baseURL}/users/${id}/resetPassword`, {});
   }
 
+  updateServiceAccountStatus(id: string, serviceAccount: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.constants.org.baseURL}/users/${id}/serviceAccount`, { serviceAccount });
+  }
+
   processRegistration(userId: string, accepted: boolean): Observable<void> {
     return this.http.post<void>(`${this.constants.org.baseURL}/users/${userId}/_process`, accepted);
   }

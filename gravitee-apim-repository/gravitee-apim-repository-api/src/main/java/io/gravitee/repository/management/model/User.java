@@ -44,14 +44,7 @@ public class User {
         USER_REJECTED,
     }
 
-    /**
-     * User identifier
-     */
     private String id;
-
-    /**
-     * The organization id.
-     */
     private String organizationId;
 
     /**
@@ -64,59 +57,19 @@ public class User {
      */
     private String sourceId;
 
-    /**
-     * The user password
-     */
     private String password;
-
-    /**
-     * The user email
-     */
     private String email;
-
-    /**
-     * The user first name
-     */
     private String firstname;
-
-    /**
-     * The user last name
-     */
     private String lastname;
-
-    /**
-     * The user creation date
-     */
     private Date createdAt;
-
-    /**
-     * The user last updated date
-     */
     private Date updatedAt;
-
-    /**
-     * The user last connection date
-     */
     private Date lastConnectionAt;
-
-    /**
-     * The user first connection date
-     */
     private Date firstConnectionAt;
-
-    /**
-     * The user picture
-     */
     private String picture;
-
     private UserStatus status;
-
-    /**
-     * The user login count
-     */
     private long loginCount;
-
     private Boolean newsletterSubscribed;
+    private Boolean isServiceAccount;
 
     public User(User cloned) {
         this.id = cloned.id;
@@ -135,6 +88,7 @@ public class User {
         this.loginCount = cloned.loginCount;
         this.firstConnectionAt = cloned.firstConnectionAt;
         this.newsletterSubscribed = cloned.newsletterSubscribed;
+        this.isServiceAccount = cloned.isServiceAccount;
     }
 
     @Override
