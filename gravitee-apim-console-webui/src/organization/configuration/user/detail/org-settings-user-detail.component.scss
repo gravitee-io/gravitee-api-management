@@ -58,6 +58,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
       &__right {
         flex: 0 0 auto;
+        display: flex;
+        gap: 8px;
 
         &__btn {
           margin: 8px 0;

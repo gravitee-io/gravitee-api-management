@@ -50,12 +50,14 @@
 
         <div class="org-settings-user-detail__card__head__right">
           <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
-            <div
-              *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee' && !isServiceUser()"
-              class="org-settings-user-detail__card__head__left__btn"
-            >
+            @if (canConvertToServiceAccount()) {
+              <button (click)="onConvertToServiceAccount()" mat-stroked-button aria-label="Convert to service account">
+                Convert to service account
+              </button>
+            }
+            @if (canResetPassword()) {
               <button (click)="onResetPassword()" mat-stroked-button aria-label="User reset password">Reset password</button>
-            </div>
+            }
           </ng-container>
         </div>
       </div>

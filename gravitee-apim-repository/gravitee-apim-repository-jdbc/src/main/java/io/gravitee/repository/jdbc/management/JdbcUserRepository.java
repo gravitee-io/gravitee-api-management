@@ -66,6 +66,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("login_count", Types.BIGINT, long.class)
             .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
             .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
+            .addColumn("is_service_account", Types.BOOLEAN, Boolean.class)
             .build();
     }
 
