@@ -7,6 +7,16 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
+.loader {
+  padding: 24px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .gridContent {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsDateHistoResponse;
+import io.gravitee.apim.core.analytics.model.AnalyticsGroupByResponse;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsCountUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsDateHistoUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsGroupByUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchAnalyticsStatsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -30,12 +36,14 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.analytics.param.AnalyticsParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -43,6 +51,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -51,6 +60,18 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @PathParam("apiId")
     private String apiId;
+
+    @Inject
+    private SearchAnalyticsCountUseCase searchAnalyticsCountUseCase;
+
+    @Inject
+    private SearchAnalyticsStatsUseCase searchAnalyticsStatsUseCase;
+
+    @Inject
+    private SearchAnalyticsGroupByUseCase searchAnalyticsGroupByUseCase;
+
+    @Inject
+    private SearchAnalyticsDateHistoUseCase searchAnalyticsDateHistoUseCase;
 
     @Inject
     private SearchRequestsCountAnalyticsUseCase searchRequestsCountAnalyticsUseCase;
@@ -69,6 +90,65 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public Response getAnalytics(@BeanParam AnalyticsParam param) {
+        param.validate();
+
+        var start = Optional.ofNullable(param.getFrom()).map(Instant::ofEpochMilli);
+        var end = Optional.ofNullable(param.getTo()).map(Instant::ofEpochMilli);
+
+        return switch (param.getType()) {
+            case COUNT -> {
+                var input = new SearchAnalyticsCountUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
+                var output = searchAnalyticsCountUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                yield Response.ok(output.response()).build();
+            }
+            case STATS -> {
+                var input = new SearchAnalyticsStatsUseCase.Input(
+                    apiId,
+                    GraviteeContext.getCurrentEnvironment(),
+                    param.getField(),
+                    start,
+                    end
+                );
+                var output = searchAnalyticsStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                yield output
+                    .stats()
+                    .map(stats -> Response.ok(stats).build())
+                    .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
+            }
+            case GROUP_BY -> {
+                var input = new SearchAnalyticsGroupByUseCase.Input(
+                    apiId,
+                    GraviteeContext.getCurrentEnvironment(),
+                    param.getField(),
+                    param.getSize(),
+                    start,
+                    end
+                );
+                var output = searchAnalyticsGroupByUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                yield Response.ok(output.groupBy()).build();
+            }
+            case DATE_HISTO -> {
+                var input = new SearchAnalyticsDateHistoUseCase.Input(
+                    apiId,
+                    GraviteeContext.getCurrentEnvironment(),
+                    param.getField(),
+                    param.getInterval() != null ? param.getInterval() : 3_600_000L,
+                    start,
+                    end
+                );
+                var output = searchAnalyticsDateHistoUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                yield Response.ok(output.dateHisto()).build();
+            }
+            default -> throw new jakarta.ws.rs.WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Unsupported analytics type: " + param.getType()).build()
+            );
+        };
+    }
 
     @Path("/requests-count")
     @GET

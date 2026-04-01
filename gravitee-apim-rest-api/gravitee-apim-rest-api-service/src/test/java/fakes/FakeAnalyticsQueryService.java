@@ -15,7 +15,10 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsDateHistoResponse;
+import io.gravitee.apim.core.analytics.model.AnalyticsGroupByResponse;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsStatsResponse;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -43,6 +46,10 @@ import java.util.Optional;
  */
 public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
+    public long count;
+    public AnalyticsStatsResponse stats;
+    public Map<String, Long> groupByValues = Map.of();
+    public AnalyticsDateHistoResponse dateHistoResponse;
     public RequestsCount requestsCount;
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
@@ -57,6 +64,34 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(requestsCount);
+    }
+
+    @Override
+    public long searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+        return count;
+    }
+
+    @Override
+    public Optional<AnalyticsStatsResponse> searchStats(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        Instant from,
+        Instant to
+    ) {
+        return Optional.ofNullable(stats);
+    }
+
+    @Override
+    public Map<String, Long> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        int size,
+        Instant from,
+        Instant to
+    ) {
+        return groupByValues;
     }
 
     @Override
@@ -80,6 +115,9 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     }
 
     public void reset() {
+        stats = null;
+        groupByValues = Map.of();
+        dateHistoResponse = null;
         requestsCount = null;
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
@@ -133,5 +171,17 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topFailedApis);
+    }
+
+    @Override
+    public AnalyticsDateHistoResponse searchDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        long intervalMs,
+        Instant from,
+        Instant to
+    ) {
+        return dateHistoResponse;
     }
 }
