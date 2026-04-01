@@ -29,9 +29,9 @@ import { SubscribeToApiComponent } from '../../../api/subscribe-to-api/subscribe
 export class DocumentationSubscribeComponent {
   api = input.required<Api>();
   navId = input.required<string>();
-  pageId = input<string>();
+  selectedId = input<string>();
 
   private router = inject(Router);
 
-  cancel = () => this.router.navigate(['/documentation', this.navId(), 'api', this.api().id]);
+  cancel = () => this.router.navigate(['/documentation', this.navId()], { queryParams: { selectedId: this.selectedId() } });
 }
