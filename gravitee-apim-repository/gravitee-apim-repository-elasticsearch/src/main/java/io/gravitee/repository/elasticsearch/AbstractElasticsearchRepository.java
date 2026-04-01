@@ -75,11 +75,7 @@ public abstract class AbstractElasticsearchRepository {
         if (isDefinitionVersionsNullOrEmpty || definitionVersions.contains(DefinitionVersion.V4)) {
             indexes.add(indexV4Metrics);
         }
-        if (
-            isDefinitionVersionsNullOrEmpty ||
-            definitionVersions.contains(DefinitionVersion.V2) ||
-            definitionVersions.contains(DefinitionVersion.V1)
-        ) {
+        if (isDefinitionVersionsNullOrEmpty || definitionVersions.contains(DefinitionVersion.V2)) {
             indexes.add(indexV2Request);
         }
 

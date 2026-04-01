@@ -186,9 +186,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<TopHitsAggregate> searchTopHitsApi(QueryContext queryContext, TopHitsQueryCriteria criteria) {
-        var indexV1V2Request = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV2Request = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var indexV4Metrics = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var indexes = String.join(",", List.of(indexV1V2Request, indexV4Metrics));
+        var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var apiIdFields = List.of("api-id", "api");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(apiIdFields, criteria);
@@ -215,9 +215,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria) {
-        var indexV1V2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var indexes = String.join(",", List.of(indexV1V2Request, indexV4Metrics));
+        var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var applicationIdFields = List.of("application-id", "application");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(applicationIdFields, criteria);
@@ -228,9 +228,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
-        var indexV1V2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var indexes = String.join(",", List.of(indexV1V2Request, indexV4Metrics));
+        var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var esQuery = SearchTopFailedApisAdapter.adaptQuery(criteria);
 
