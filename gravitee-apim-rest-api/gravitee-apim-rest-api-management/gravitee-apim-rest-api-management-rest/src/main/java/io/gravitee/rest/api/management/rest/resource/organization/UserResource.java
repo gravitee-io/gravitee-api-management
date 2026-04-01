@@ -201,6 +201,26 @@ public class UserResource extends AbstractResource {
         return Response.noContent().build();
     }
 
+    @PATCH
+    @Consumes(APPLICATION_JSON)
+    @Operation(
+        summary = "Update user service account status",
+        description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service"
+    )
+    @ApiResponse(responseCode = "204", description = "User service account status updated")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
+    @Path("serviceAccount")
+    public Response updateServiceAccountStatus(@Valid @NotNull UpdateServiceAccountEntity updateServiceAccountEntity) {
+        userService.updateServiceAccountStatus(
+            GraviteeContext.getExecutionContext(),
+            userId,
+            updateServiceAccountEntity.isServiceAccount()
+        );
+        return Response.noContent().build();
+    }
+
     @GET
     @Path("/avatar")
     @Operation(summary = "Get the user's avatar")
