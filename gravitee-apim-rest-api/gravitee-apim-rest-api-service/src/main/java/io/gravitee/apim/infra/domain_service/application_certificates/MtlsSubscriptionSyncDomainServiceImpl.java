@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.domain_service.application_certificates;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
@@ -36,14 +36,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of ApplicationCertificatesUpdateDomainService.
+ * Implementation of MtlsSubscriptionSyncDomainService.
  *
  * @author GraviteeSource Team
  */
 @CustomLog
 @RequiredArgsConstructor
 @Service
-public class ApplicationCertificatesUpdateDomainServiceImpl implements ApplicationCertificatesUpdateDomainService {
+public class MtlsSubscriptionSyncDomainServiceImpl implements MtlsSubscriptionSyncDomainService {
 
     private final SubscriptionQueryService subscriptionQueryService;
     private final SubscriptionCrudService subscriptionCrudService;

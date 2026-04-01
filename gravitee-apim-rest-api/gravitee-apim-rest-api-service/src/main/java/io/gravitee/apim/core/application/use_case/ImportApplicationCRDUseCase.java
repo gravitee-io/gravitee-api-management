@@ -22,7 +22,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDo
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.application_metadata.crud_service.ApplicationMetadataCrudService;
 import io.gravitee.apim.core.application_metadata.query_service.ApplicationMetadataQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -55,7 +55,7 @@ public class ImportApplicationCRDUseCase {
     private final ApplicationMetadataQueryService applicationMetadataQueryService;
     private final CRDMembersDomainService membersDomainService;
     private final ValidateApplicationCRDDomainService crdValidator;
-    private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
 
     public ImportApplicationCRDUseCase(
         ApplicationCrudService applicationCrudService,
@@ -64,7 +64,7 @@ public class ImportApplicationCRDUseCase {
         ApplicationMetadataQueryService applicationMetadataQueryService,
         CRDMembersDomainService membersDomainService,
         ValidateApplicationCRDDomainService crdValidator,
-        ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService
+        MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService
     ) {
         this.applicationCrudService = applicationCrudService;
         this.importApplicationCRDDomainService = importApplicationCRDDomainService;
@@ -72,7 +72,7 @@ public class ImportApplicationCRDUseCase {
         this.applicationMetadataQueryService = applicationMetadataQueryService;
         this.membersDomainService = membersDomainService;
         this.crdValidator = crdValidator;
-        this.applicationCertificatesUpdateDomainService = applicationCertificatesUpdateDomainService;
+        this.mtlsSubscriptionSyncDomainService = mtlsSubscriptionSyncDomainService;
     }
 
     public record Output(ApplicationCRDStatus status) {}
@@ -112,7 +112,7 @@ public class ImportApplicationCRDUseCase {
                 sanitizedInput.crd.getMembers()
             );
 
-            applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(newApplication.getId());
+            mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(newApplication.getId());
 
             return ApplicationCRDStatus.builder()
                 .id(newApplication.getId())
@@ -144,7 +144,7 @@ public class ImportApplicationCRDUseCase {
                 sanitizedInput.crd.getMembers()
             );
 
-            applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(updatedApplication.getId());
+            mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(updatedApplication.getId());
 
             return ApplicationCRDStatus.builder()
                 .id(updatedApplication.getId())
