@@ -19,18 +19,21 @@ import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import java.util.EnumSet;
 import java.util.Map;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointGroupLlmProxyProviderMismatchInvalidException extends AbstractManagementException {
+public class EndpointGroupLlmProxyInvalidException extends AbstractManagementException {
 
     private final String groupName;
+    private final EnumSet<Validation> validations;
 
-    public EndpointGroupLlmProxyProviderMismatchInvalidException(String groupName) {
+    public EndpointGroupLlmProxyInvalidException(String groupName, EnumSet<Validation> validations) {
         this.groupName = groupName;
+        this.validations = validations;
     }
 
     @Override
@@ -40,7 +43,12 @@ public class EndpointGroupLlmProxyProviderMismatchInvalidException extends Abstr
 
     @Override
     public String getMessage() {
-        return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same provider.";
+        if (validations.size() == 1 && validations.contains(Validation.PROVIDER_MISMATCH)) {
+            return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same provider.";
+        } else if (validations.size() == 1 && validations.contains(Validation.ALIASES_MISMATCH)) {
+            return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same aliases.";
+        }
+        return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same provider and aliases.";
     }
 
     @Override
@@ -51,5 +59,10 @@ public class EndpointGroupLlmProxyProviderMismatchInvalidException extends Abstr
     @Override
     public Map<String, String> getParameters() {
         return singletonMap("api.endpointsGroup[].name", groupName);
+    }
+
+    public enum Validation {
+        PROVIDER_MISMATCH,
+        ALIASES_MISMATCH,
     }
 }
