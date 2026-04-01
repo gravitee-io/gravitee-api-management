@@ -4187,6 +4187,9 @@ components:
                     default: -1
                 runPolicies:
                     type: boolean
+                allowPrivateNetwork:
+                    type: boolean
+                    description: Allow private network access (PNA) requests during CORS preflight
         Dlq:
             type: object
             properties:
