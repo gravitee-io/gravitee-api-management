@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.converter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
@@ -25,11 +26,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
 public class UserConverterTest {
 
-    @InjectMocks
-    private UserConverter userConverter;
+    private final UserConverter userConverter = new UserConverter();
 
     @Test
     public void should_convert_userEntity_to_user() {
@@ -38,6 +37,7 @@ public class UserConverterTest {
         userEntity.setFirstname("my-firstname");
         userEntity.setLastname("my-lastname");
         userEntity.setId("my-id");
+        userEntity.setIsServiceAccount(true);
 
         User user = userConverter.toUser(userEntity);
 
@@ -45,6 +45,7 @@ public class UserConverterTest {
         assertEquals("my-firstname", user.getFirstname());
         assertEquals("my-lastname", user.getLastname());
         assertEquals("my-id", user.getId());
+        assertTrue(user.getIsServiceAccount());
     }
 
     @Test
@@ -55,6 +56,7 @@ public class UserConverterTest {
         user.setLastname("my-lastname");
         user.setId("my-id");
         user.setOrganizationId("my-org-id");
+        user.setIsServiceAccount(true);
 
         UserEntity userEntity = userConverter.toUserEntity(user);
 
@@ -63,6 +65,7 @@ public class UserConverterTest {
         assertEquals("my-lastname", userEntity.getLastname());
         assertEquals("my-id", userEntity.getId());
         assertEquals("my-org-id", userEntity.getOrganizationId());
+        assertTrue(userEntity.getIsServiceAccount());
     }
 
     @Test

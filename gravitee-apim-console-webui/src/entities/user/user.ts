@@ -35,9 +35,10 @@ export interface User {
   primary_owner?: boolean;
   number_of_active_tokens?: number;
   firstLogin?: boolean;
-
   created_at?: number;
   updated_at?: number;
+  isServiceAccount?: boolean;
+  hasPassword?: boolean;
 }
 
 export interface UserRole {

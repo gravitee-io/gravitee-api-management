@@ -795,6 +795,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user.setId(UuidString.generateRandom());
             user.setOrganizationId(organizationId);
             user.setStatus(autoRegistrationEnabled ? UserStatus.ACTIVE : UserStatus.PENDING);
+            user.setIsServiceAccount(false);
+            if (newExternalUserEntity instanceof NewPreRegisterUserEntity preRegisterUser) {
+                user.setIsServiceAccount(preRegisterUser.isService());
+            }
 
             // Set date fields
             user.setCreatedAt(new Date());
@@ -934,10 +938,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private boolean isServiceAccount(User user) {
-        // A service account do not have a password and the sourceId is equals to the lastname or to the email address
+        // A service account has the sourceId equals to the lastname or to the email address
         return (
             IDP_SOURCE_GRAVITEE.equals(user.getSource()) &&
-            (user.getPassword() == null || user.getPassword().isEmpty()) &&
+            user.getIsServiceAccount() != null &&
+            user.getIsServiceAccount() &&
             (user.getSourceId().equalsIgnoreCase(user.getEmail()) || user.getSourceId().equalsIgnoreCase(user.getLastname()))
         );
     }
@@ -1467,6 +1472,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
+    public void updateServiceAccountStatus(ExecutionContext executionContext, String id, boolean serviceAccount) {
+        try {
+            Optional<User> optionalUser = userRepository
+                .findById(id)
+                .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
+
+            if (optionalUser.isEmpty()) {
+                throw new UserNotFoundException(id);
+            }
+
+            User user = optionalUser.get();
+            user.setIsServiceAccount(serviceAccount);
+            user.setUpdatedAt(new Date());
+            userRepository.update(user);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to update service account status for user " + id, ex);
+        }
+    }
+
+    @Override
     public UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl) {
         if (sourceId.startsWith("deleted")) {
             throw new UserNotActiveException(sourceId);
@@ -1647,6 +1672,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
 
         if (nullifyPassword) {
+            userEntity.setHasPassword(user.getPassword() != null && !user.getPassword().isEmpty());
             // Delete password for security reason
             userEntity.setPassword(null);
         }
