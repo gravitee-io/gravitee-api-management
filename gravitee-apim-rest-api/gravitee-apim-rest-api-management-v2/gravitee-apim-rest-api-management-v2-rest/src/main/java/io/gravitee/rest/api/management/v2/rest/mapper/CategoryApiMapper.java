@@ -30,7 +30,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DefinitionVersionMapper.class })
+@Mapper
 public interface CategoryApiMapper {
     CategoryApiMapper INSTANCE = Mappers.getMapper(CategoryApiMapper.class);
 

@@ -592,14 +592,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     private void removePathsRuleDescriptionFromApiV1(final io.gravitee.rest.api.model.api.ApiEntity api) {
-        if (api.getPaths() != null) {
-            api
-                .getPaths()
-                .values()
-                .stream()
-                .flatMap(CollectionUtils::stream)
-                .forEach(rule -> rule.setDescription(""));
-        }
+        // No-op: paths with Rule policies have been removed (V1 API support dropped)
     }
 
     private void removeFlowsIdsFromApiV2(io.gravitee.rest.api.model.api.ApiEntity api) {

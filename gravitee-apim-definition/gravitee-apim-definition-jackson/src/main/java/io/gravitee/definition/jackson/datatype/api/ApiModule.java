@@ -45,7 +45,6 @@ public class ApiModule extends GraviteeModule {
         super("api");
         // first deserializers
         addDeserializer(Api.class, new ApiDeserializer(Api.class));
-        addDeserializer(Rule.class, new RuleDeserializer(Rule.class));
         addDeserializer(Policy.class, new PolicyDeserializer(Policy.class));
         addDeserializer(Proxy.class, new ProxyDeserializer(Proxy.class));
         addDeserializer(LoadBalancer.class, new LoadBalancerDeserializer(LoadBalancer.class));
@@ -73,7 +72,6 @@ public class ApiModule extends GraviteeModule {
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
-        addSerializer(Rule.class, new RuleSerializer(Rule.class));
         addSerializer(Policy.class, new PolicySerializer(Policy.class));
         addSerializer(Proxy.class, new ProxySerializer(Proxy.class));
         addSerializer(LoadBalancer.class, new LoadBalancerSerializer(LoadBalancer.class));

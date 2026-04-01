@@ -51,10 +51,6 @@ public class Plan implements Serializable {
     @JsonProperty("securityDefinition")
     private String securityDefinition;
 
-    @Builder.Default
-    @JsonProperty("paths")
-    private Map<String, List<Rule>> paths = new HashMap<>();
-
     /**
      * @deprecated Only for backward compatibility at the API level.
      * Will be removed in a future version.

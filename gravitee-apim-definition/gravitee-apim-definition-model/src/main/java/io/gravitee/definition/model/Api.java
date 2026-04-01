@@ -73,9 +73,6 @@ public class Api implements Serializable, ApiDefinition {
     @JsonProperty("resources")
     private List<Resource> resources = new ArrayList<>();
 
-    @JsonProperty("paths")
-    private Map<String, List<Rule>> paths;
-
     @JsonProperty("flows")
     private List<Flow> flows;
 
@@ -107,7 +104,6 @@ public class Api implements Serializable, ApiDefinition {
         this.proxy = other.proxy;
         this.services = other.services;
         this.resources = other.resources;
-        this.paths = other.paths;
         this.flows = other.flows;
         this.properties = other.properties;
         this.tags = other.tags;

@@ -83,7 +83,6 @@ public interface GraviteeDefinitionAdapter {
     )
     @Mapping(target = "status", source = "source.planDefinitionV2.status")
     @Mapping(target = "securityDefinition", source = "source.planDefinitionV2.securityDefinition")
-    @Mapping(target = "paths", source = "source.planDefinitionV2.paths")
     @Mapping(target = "flows", source = "source.planDefinitionV2.flows")
     PlanDescriptor.V2 mapPlanV2(Plan source, boolean ignoreId);
 
@@ -185,7 +184,6 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "proxy", source = "apiEntity.apiDefinition.proxy")
     @Mapping(target = "services", source = "apiEntity.apiDefinition.services")
     @Mapping(target = "resources", source = "apiEntity.apiDefinition.resources")
-    @Mapping(target = "paths", source = "apiEntity.apiDefinition.paths")
     @Mapping(target = "flows", source = "apiEntity.apiDefinition.flows")
     @Mapping(target = "properties", source = "apiEntity.apiDefinition.properties")
     @Mapping(target = "tags", source = "apiEntity.apiDefinition.tags")

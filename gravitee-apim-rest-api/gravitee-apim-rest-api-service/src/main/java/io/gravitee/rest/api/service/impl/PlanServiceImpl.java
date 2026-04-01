@@ -285,9 +285,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 checkStatusOfGeneralConditions(newPlan);
             }
 
-            String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
-            newPlan.setDefinition(planPolicies);
-
             validateExcludedGroups(updatePlan.getExcludedGroups(), api.getEnvironmentId());
             newPlan.setExcludedGroups(updatePlan.getExcludedGroups());
 
@@ -339,11 +336,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update plan %s", updatePlan.getName()),
                 ex
-            );
-        } catch (JsonProcessingException jse) {
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying to update a plan %s", updatePlan.getName()),
-                jse
             );
         }
     }

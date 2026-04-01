@@ -16,10 +16,8 @@
 package io.gravitee.rest.api.service.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.NewPlanEntity;
@@ -29,9 +27,7 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,15 +66,6 @@ public class PlanConverter {
         entity.setExcludedGroups(plan.getExcludedGroups());
         entity.setFlows(flows);
 
-        if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
-            try {
-                HashMap<String, List<Rule>> rules = objectMapper.readValue(plan.getDefinition(), new TypeReference<>() {});
-                entity.setPaths(rules);
-            } catch (IOException ioe) {
-                log.error("Unexpected error while generating policy definition", ioe);
-            }
-        }
-
         // Backward compatibility
         if (plan.getStatus() != null) {
             entity.setStatus(PlanStatus.valueOf(plan.getStatus().name()));
@@ -113,9 +100,6 @@ public class PlanConverter {
         updatePlanEntity.setName(planEntity.getName());
         updatePlanEntity.setDescription(planEntity.getDescription());
         updatePlanEntity.setValidation(planEntity.getValidation());
-        if (planEntity.getPaths() != null) {
-            updatePlanEntity.setPaths(planEntity.getPaths());
-        }
         updatePlanEntity.setCharacteristics(planEntity.getCharacteristics());
         updatePlanEntity.setOrder(planEntity.getOrder());
         updatePlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
@@ -154,9 +138,6 @@ public class PlanConverter {
         }
         if (planEntity.getStatus() != null) {
             newPlanEntity.setStatus(planEntity.getStatus());
-        }
-        if (planEntity.getPaths() != null) {
-            newPlanEntity.setPaths(planEntity.getPaths());
         }
         if (planEntity.getFlows() != null) {
             newPlanEntity.setFlows(planEntity.getFlows());
@@ -211,11 +192,6 @@ public class PlanConverter {
 
         plan.setCharacteristics(newPlan.getCharacteristics());
 
-        if (!DefinitionVersion.V2.equals(graviteeDefinitionVersion)) {
-            String planPolicies = objectMapper.writeValueAsString(newPlan.getPaths());
-            plan.setDefinition(planPolicies);
-        }
-
         return plan;
     }
 
@@ -232,7 +208,6 @@ public class PlanConverter {
         planDefinition.setFlows(plan.getFlows());
         planDefinition.setId(plan.getId());
         planDefinition.setName(plan.getName());
-        planDefinition.setPaths(plan.getPaths());
         planDefinition.setSelectionRule(plan.getSelectionRule());
         planDefinition.setStatus(plan.getStatus().name());
         planDefinition.setTags(plan.getTags());

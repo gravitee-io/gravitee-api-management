@@ -29,7 +29,6 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -127,11 +126,6 @@ public class ApiEntity implements GenericApiEntity {
     @JsonProperty(value = "flow_mode")
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
-
-    @DeploymentRequired
-    @JsonProperty(value = "paths")
-    @Schema(description = "a map where you can associate a path to a configuration (the policies configuration)")
-    private Map<String, List<Rule>> paths = new HashMap<>();
 
     @DeploymentRequired
     @JsonProperty(value = "flows")

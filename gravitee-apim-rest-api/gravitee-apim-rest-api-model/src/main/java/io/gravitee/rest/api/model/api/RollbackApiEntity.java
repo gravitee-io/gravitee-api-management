@@ -68,10 +68,6 @@ public class RollbackApiEntity {
     @Schema(description = "API's definition.")
     private Proxy proxy;
 
-    @JsonProperty(value = "paths", required = true)
-    @Schema(description = "a map where you can associate a path to a configuration (the policies configuration)")
-    private Map<String, List<Rule>> paths = new HashMap<>();
-
     @JsonProperty(value = "flows", required = true)
     @Schema(description = "a list of flows (the policies configuration)")
     private List<Flow> flows = new ArrayList<>();

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
@@ -64,9 +63,6 @@ public class NewPlanEntity {
 
     private String referenceId;
     private GenericPlanEntity.ReferenceType referenceType;
-
-    @JsonProperty(value = "paths", required = true)
-    private Map<String, List<Rule>> paths = new HashMap<>();
 
     @JsonProperty(value = "flows", required = true)
     private List<Flow> flows = new ArrayList<>();
@@ -150,14 +146,6 @@ public class NewPlanEntity {
     @Deprecated
     public void setApi(String api) {
         this.api = api;
-    }
-
-    public Map<String, List<Rule>> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, List<Rule>> paths) {
-        this.paths = paths;
     }
 
     public List<Flow> getFlows() {

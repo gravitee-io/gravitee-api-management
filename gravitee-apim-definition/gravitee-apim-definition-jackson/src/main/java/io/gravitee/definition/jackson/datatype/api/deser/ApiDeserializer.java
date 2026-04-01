@@ -126,34 +126,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         // If no flow mode provided, defaults to "default"
         api.setFlowMode(FlowMode.valueOf(node.path("flow_mode").asText(FlowMode.DEFAULT.name())));
 
-        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-            if (node.get("flows") != null) {
-                throw JsonMappingException.from(ctxt, "Flows are only available for definition >= 2.x.x ");
-            }
-
-            JsonNode pathsNode = node.get("paths");
-            if (pathsNode != null) {
-                final Map<String, List<Rule>> paths = new TreeMap<>(reverseOrder());
-                pathsNode
-                    .fields()
-                    .forEachRemaining(jsonNode -> {
-                        try {
-                            List<Rule> rules = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(new TypeReference<List<Rule>>() {});
-                            paths.put(jsonNode.getKey(), rules);
-                        } catch (IOException e) {
-                            log.error("Path {} cannot be de-serialized", jsonNode.getKey());
-                        }
-                    });
-
-                api.setPaths(paths);
-            }
-        }
-
         if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-            if (node.get("paths") != null) {
-                throw JsonMappingException.from(ctxt, "Paths are only available for definition 1.x.x ");
-            }
-
             JsonNode flowsNode = node.get("flows");
             if (flowsNode != null) {
                 final List<Flow> flows = new ArrayList<>();
@@ -256,6 +229,6 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                 return DefinitionVersion.valueOfLabel(gravitee.asText());
             }
         } catch (IllegalArgumentException ignored) {}
-        return DefinitionVersion.V1;
+        return DefinitionVersion.V2;
     }
 }

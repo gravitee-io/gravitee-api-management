@@ -61,22 +61,7 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
             jgen.writeObjectField("proxy", api.getProxy());
         }
 
-        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-            if (api.getPaths() != null) {
-                jgen.writeObjectFieldStart("paths");
-                api
-                    .getPaths()
-                    .forEach((s, path) -> {
-                        try {
-                            jgen.writeObjectField(s, path);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                jgen.writeEndObject();
-            }
-        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             if (api.getFlows() != null && !api.getFlows().isEmpty()) {
                 jgen.writeObjectField("flows", api.getFlows());
             }

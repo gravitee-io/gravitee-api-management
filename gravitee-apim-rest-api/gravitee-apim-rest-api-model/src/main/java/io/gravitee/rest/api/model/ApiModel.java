@@ -44,7 +44,6 @@ public class ApiModel implements GenericApiModel {
     private ExecutionMode executionMode;
     private Set<String> groups;
     private Proxy proxy;
-    private Map<String, List<Rule>> paths = new HashMap<>();
     private Date deployedAt;
     private Date createdAt;
     private Date updatedAt;
@@ -145,14 +144,6 @@ public class ApiModel implements GenericApiModel {
 
     public void setProxy(Proxy proxy) {
         this.proxy = proxy;
-    }
-
-    public Map<String, List<Rule>> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, List<Rule>> paths) {
-        this.paths = paths;
     }
 
     public PrimaryOwnerEntity getPrimaryOwner() {
@@ -281,8 +272,6 @@ public class ApiModel implements GenericApiModel {
             '\'' +
             ", proxy=" +
             proxy +
-            ", paths=" +
-            paths +
             ", createdAt=" +
             createdAt +
             ", updatedAt=" +

@@ -177,7 +177,6 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
 
                 apiModelEntity.setServices(apiEntity.getServices());
                 apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
-                apiModelEntity.setPaths(apiEntity.getPaths());
                 apiModelEntity.setProxy(apiEntity.getProxy());
 
                 apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
