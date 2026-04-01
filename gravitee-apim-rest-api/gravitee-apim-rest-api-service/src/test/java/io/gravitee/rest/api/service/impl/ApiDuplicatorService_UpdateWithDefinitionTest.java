@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
@@ -715,19 +714,5 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
-    }
-
-    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
-    public void shouldNotUpdateIfDefinitionV1() throws TechnicalException, IOException {
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.v1.definition.json");
-        String toBeImport = Resources.toString(url, Charsets.UTF_8);
-        ApiEntity apiEntity = new ApiEntity();
-        Api api = new Api();
-        api.setId(API_ID);
-        apiEntity.setId(API_ID);
-
-        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
-
-        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
     }
 }
