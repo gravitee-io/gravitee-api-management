@@ -60,8 +60,8 @@ public interface ApiAdapter {
                 : deserialize(source, NativeApi.class);
             case FEDERATED -> deserialize(source, FederatedApi.class);
             case FEDERATED_AGENT -> null; // TODO ???
-            case V1, V2 -> deserialize(source, io.gravitee.definition.model.Api.class);
-            case null -> deserialize(source, io.gravitee.definition.model.Api.class);
+            case V2 -> deserialize(source, io.gravitee.definition.model.Api.class);
+            case null, default -> deserialize(source, io.gravitee.definition.model.Api.class);
         };
     }
 

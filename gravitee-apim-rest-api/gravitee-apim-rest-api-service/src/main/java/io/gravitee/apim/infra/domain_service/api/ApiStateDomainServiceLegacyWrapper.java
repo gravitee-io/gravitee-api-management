@@ -52,8 +52,9 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
                 var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId(), true, false, false);
                 yield apiStateService.isSynchronized(executionContext, genericApiEntity);
             }
-            case V1, V2 -> apiService.isSynchronized(executionContext, api.getId());
+            case V2 -> apiService.isSynchronized(executionContext, api.getId());
             case FEDERATED_AGENT, FEDERATED -> true;
+            default -> false;
         };
     }
 

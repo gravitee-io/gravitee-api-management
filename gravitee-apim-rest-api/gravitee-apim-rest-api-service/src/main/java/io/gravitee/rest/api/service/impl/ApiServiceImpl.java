@@ -894,7 +894,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setDefinitionVersion(DefinitionVersion.V2);
         }
         var apiEntity = switch (api.getDefinitionVersion()) {
-            case V1, V2 -> convertWithApiFlowsAndPlansAndApiCategories(executionContext, api, getPrimaryOwner(executionContext, api));
+            case V2 -> convertWithApiFlowsAndPlansAndApiCategories(executionContext, api, getPrimaryOwner(executionContext, api));
             case V4 -> apiSearchService.findById(executionContext, id);
             default -> throw new BadNotificationConfigException();
         };

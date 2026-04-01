@@ -43,7 +43,8 @@ public class GenericApiMapper {
             };
             case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(api, primaryOwner);
-            case V1, V2 -> apiConverter.toApiEntity(api, primaryOwner, true);
+            case V2 -> apiConverter.toApiEntity(api, primaryOwner, true);
+            default -> null;
         };
     }
 
@@ -69,7 +70,8 @@ public class GenericApiMapper {
             };
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);
-            case V1, V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
+            case V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
+            default -> null;
         };
     }
 
