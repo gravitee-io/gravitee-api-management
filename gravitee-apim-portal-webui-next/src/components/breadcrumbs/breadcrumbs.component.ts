@@ -30,9 +30,9 @@ export interface Breadcrumb {
         <span class="breadcrumb-separator">/</span>
       }
       @if (breadcrumb.url) {
-        <a class="internal-link" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
+        <a class="internal-link next-gen-small" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
       } @else {
-        <span class="breadcrumb-item">{{ breadcrumb.label }}</span>
+        <span class="breadcrumb-item next-gen-small">{{ breadcrumb.label }}</span>
       }
     }
   `,
@@ -41,7 +41,13 @@ export interface Breadcrumb {
       :host {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 15px;
+        padding: 20px 0;
+      }
+
+      .breadcrumb-item {
+        overflow-wrap: anywhere;
       }
     `,
   ],

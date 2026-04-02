@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { RouterModule } from '@angular/router';
-
-@Component({
-  selector: 'app-nav-bar-button',
-  imports: [RouterModule, MatButtonModule, CommonModule],
-  templateUrl: './nav-bar-button.component.html',
-  styleUrl: './nav-bar-button.component.scss',
-})
-export class NavBarButtonComponent {
-  @Input()
-  path: string[] = [''];
+.nav-bar-button__label {
+  white-space: nowrap;
 }
