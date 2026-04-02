@@ -25,6 +25,7 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
+import { AnalyticsQueryParams, AnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsUnified';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
@@ -103,6 +104,27 @@ export class ApiAnalyticsV2Service {
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
+      }),
+    );
+  }
+
+  /**
+   * Unified analytics endpoint — supports COUNT, STATS, GROUP_BY, DATE_HISTO.
+   *
+   * Reacts to the shared time-range filter so components stay in sync with
+   * the existing filter bar. Caller-supplied params (type, field, interval, size)
+   * are merged with the current from/to from the filter.
+   */
+  getAnalytics<T extends AnalyticsResponse>(apiId: string, params: Omit<AnalyticsQueryParams, 'from' | 'to'>): Observable<T> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const queryParams = new URLSearchParams({ type: params.type, from: String(from), to: String(to) });
+        if (params.field != null) queryParams.set('field', params.field);
+        if (params.interval != null) queryParams.set('interval', String(params.interval));
+        if (params.size != null) queryParams.set('size', String(params.size));
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?${queryParams}`;
+        return this.http.get<T>(url);
       }),
     );
   }
