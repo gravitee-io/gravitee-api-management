@@ -11,6 +11,11 @@ analytics:
         tenant2: cluster2
     http:
       timeout: 30000
+      proxy:
+        type: HTTP
+        http:
+          host: legacy-proxy.local
+          port: 8080
     ssl:
       keystore:
         certs:
