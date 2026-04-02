@@ -28,9 +28,7 @@ import {
 } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
-import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
-import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 import {
   ApiAnalyticsResponseStatusRanges,
@@ -39,6 +37,7 @@ import {
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
+import { AnalyticsCount, AnalyticsStats } from '../../../../../entities/management-api-v2/analytics/analyticsUnified';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -64,28 +63,33 @@ type ApiAnalyticsVM = {
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
-  private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsV2Service
-    .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
-    .pipe(
-      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
-      startWith({ isLoading: true }),
-    );
+  private readonly apiId = this.activatedRoute.snapshot.params.apiId;
 
-  private getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
-    this.apiAnalyticsV2Service.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
-      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
-      startWith({ isLoading: true }),
-    );
+  private count$: Observable<AnalyticsCount | null> = this.apiAnalyticsV2Service
+    .getAnalytics<AnalyticsCount>(this.apiId, { type: 'COUNT' })
+    .pipe(startWith(null));
+
+  private gatewayRt$: Observable<AnalyticsStats | null> = this.apiAnalyticsV2Service
+    .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'gateway-response-time-ms' })
+    .pipe(startWith(null));
+
+  private upstreamRt$: Observable<AnalyticsStats | null> = this.apiAnalyticsV2Service
+    .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'endpoint-response-time-ms' })
+    .pipe(startWith(null));
+
+  private contentLength$: Observable<AnalyticsStats | null> = this.apiAnalyticsV2Service
+    .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'request-content-length' })
+    .pipe(startWith(null));
 
   private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsV2Service
-    .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
+    .getResponseStatusRanges(this.apiId)
     .pipe(
       map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
 
   public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
-    this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
+    this.apiService.getLastApiFetch(this.apiId).pipe(onlyApiV4Filter()),
     this.apiAnalyticsV2Service.timeRangeFilter(),
   ]).pipe(
     map(([api]) => {
@@ -102,27 +106,22 @@ export class ApiAnalyticsProxyComponent {
   );
 
   private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = combineLatest([
-    this.getRequestsCount$.pipe(catchError(() => of({ isLoading: false, total: undefined }))),
-    this.getAverageConnectionDuration$.pipe(catchError(() => of({ isLoading: false, average: undefined }))),
+    this.count$.pipe(catchError(() => of(null))),
+    this.gatewayRt$.pipe(catchError(() => of(null))),
+    this.upstreamRt$.pipe(catchError(() => of(null))),
+    this.contentLength$.pipe(catchError(() => of(null))),
     this.getResponseStatusRanges$.pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
   ]).pipe(
-    map(([requestsCount, averageConnectionDuration, responseStatuesRanges]) => ({
+    map(([count, gatewayRt, upstreamRt, contentLength, responseStatusRanges]) => ({
       requestStats: [
-        {
-          label: 'Total Requests',
-          value: requestsCount.total,
-          isLoading: requestsCount.isLoading,
-        },
-        {
-          label: 'Average Connection Duration',
-          unitLabel: 'ms',
-          value: averageConnectionDuration.average,
-          isLoading: averageConnectionDuration.isLoading,
-        },
+        { label: 'Total Requests', value: count?.count, isLoading: count === null },
+        { label: 'Avg Gateway Response Time', unitLabel: 'ms', value: gatewayRt?.avg, isLoading: gatewayRt === null },
+        { label: 'Avg Upstream Response Time', unitLabel: 'ms', value: upstreamRt?.avg, isLoading: upstreamRt === null },
+        { label: 'Avg Content Length', unitLabel: 'bytes', value: contentLength?.avg, isLoading: contentLength === null },
       ],
       responseStatusRanges: {
-        isLoading: responseStatuesRanges.isLoading,
-        data: Object.entries(responseStatuesRanges.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
+        isLoading: responseStatusRanges.isLoading,
+        data: Object.entries(responseStatusRanges.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
       },
     })),
   );
