@@ -27,10 +27,14 @@ import lombok.Getter;
  *
  * @author Gravitee.io Team
  */
-@Getter
 public class SubscriptionFormDefinitionValidationException extends ValidationDomainException {
 
+    @Getter
     private final List<String> errors;
+
+    public SubscriptionFormDefinitionValidationException(String error) {
+        this(List.of(error));
+    }
 
     public SubscriptionFormDefinitionValidationException(List<String> errors) {
         this(errors, null);

@@ -23,7 +23,6 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema.Dyna
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * In-memory test double for {@link SubscriptionFormElResolverDomainService}.
@@ -80,21 +79,19 @@ public class SubscriptionFormElResolverInMemory implements SubscriptionFormElRes
             return constraints;
         }
 
-        Map<String, List<Constraint>> resolved = new LinkedHashMap<>();
         for (Map.Entry<String, List<Constraint>> entry : constraints.byFieldKey().entrySet()) {
-            resolved.put(entry.getKey(), resolveConstraintList(entry.getValue()));
+            resolveConstraintList(entry.getValue());
         }
-        return new SubscriptionFormFieldConstraints(resolved);
+        return constraints;
     }
 
-    private List<Constraint> resolveConstraintList(List<Constraint> constraints) {
-        return constraints.stream().map(this::resolveConstraint).collect(Collectors.toList());
+    private void resolveConstraintList(List<Constraint> constraints) {
+        constraints.forEach(this::resolveConstraint);
     }
 
-    private Constraint resolveConstraint(Constraint constraint) {
+    private void resolveConstraint(Constraint constraint) {
         if (constraint instanceof Constraint.ResolvableOptions resolvableOptions) {
-            return resolvableOptions.resolve((expression, fallback) -> resolvedByExpression.getOrDefault(expression, fallback));
+            resolvableOptions.resolve(resolvedByExpression::get);
         }
-        return constraint;
     }
 }

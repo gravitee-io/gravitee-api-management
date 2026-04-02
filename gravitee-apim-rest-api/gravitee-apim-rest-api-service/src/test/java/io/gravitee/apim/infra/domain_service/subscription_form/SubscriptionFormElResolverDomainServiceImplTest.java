@@ -24,8 +24,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
-import io.gravitee.apim.core.documentation.domain_service.TemplateResolverDomainService;
-import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormExpressionResolverDomainService;
 import io.gravitee.apim.core.subscription_form.model.Constraint;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
@@ -39,13 +38,15 @@ import org.junit.jupiter.api.Test;
 
 class SubscriptionFormElResolverDomainServiceImplTest {
 
-    private final TemplateResolverDomainService templateResolver = mock(TemplateResolverDomainService.class);
+    private final SubscriptionFormExpressionResolverDomainService expressionResolver = mock(
+        SubscriptionFormExpressionResolverDomainService.class
+    );
     private final ApiMetadataQueryService metadataQueryService = mock(ApiMetadataQueryService.class);
     private SubscriptionFormElResolverDomainServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new SubscriptionFormElResolverDomainServiceImpl(templateResolver, metadataQueryService);
+        service = new SubscriptionFormElResolverDomainServiceImpl(expressionResolver, metadataQueryService);
         when(metadataQueryService.findApiMetadata(anyString(), anyString())).thenReturn(
             Map.of("envs", ApiMetadata.builder().key("envs").value("Dev,Staging,Prod").build())
         );
@@ -75,7 +76,7 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_resolve_expression_when_apiId_is_present() {
-            when(templateResolver.resolveTemplate(eq("{#api.metadata['envs']}"), any())).thenReturn("Dev,Staging,Prod");
+            when(expressionResolver.resolveToOptions(eq("{#api.metadata['envs']}"), any())).thenReturn(List.of("Dev", "Staging", "Prod"));
 
             var schema = new SubscriptionFormSchema(
                 List.of(
@@ -111,7 +112,7 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_resolve_expression_without_api_context_when_expression_is_self_contained() {
-            when(templateResolver.resolveTemplate(eq("{#'Dev,Staging,Prod'}"), eq(Map.of()))).thenReturn("Dev,Staging,Prod");
+            when(expressionResolver.resolveToOptions("{#'Dev,Staging,Prod'}", Map.of())).thenReturn(List.of("Dev", "Staging", "Prod"));
 
             var schema = new SubscriptionFormSchema(
                 List.of(
@@ -130,28 +131,7 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_use_fallback_when_resolution_fails() {
-            when(templateResolver.resolveTemplate(anyString(), any())).thenThrow(
-                new InvalidPageContentException("template error", new RuntimeException())
-            );
-
-            var schema = new SubscriptionFormSchema(
-                List.of(
-                    SelectField.builder()
-                        .fieldKey("env")
-                        .required(false)
-                        .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod")))
-                        .build()
-                )
-            );
-
-            var result = service.resolveSchemaOptions(schema, "env-1", "api-1");
-
-            assertThat(result).containsEntry("env", List.of("Prod"));
-        }
-
-        @Test
-        void should_use_fallback_when_resolved_value_is_blank() {
-            when(templateResolver.resolveTemplate(anyString(), any())).thenReturn("   ");
+            when(expressionResolver.resolveToOptions(anyString(), any())).thenReturn(List.of());
 
             var schema = new SubscriptionFormSchema(
                 List.of(
@@ -170,9 +150,7 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_use_fallback_without_api_context_when_resolution_fails() {
-            when(templateResolver.resolveTemplate(eq("{#api.metadata['envs']}"), eq(Map.of()))).thenThrow(
-                new InvalidPageContentException("template error", new RuntimeException())
-            );
+            when(expressionResolver.resolveToOptions("{#api.metadata['envs']}", Map.of())).thenReturn(List.of());
 
             var schema = new SubscriptionFormSchema(
                 List.of(
@@ -200,29 +178,33 @@ class SubscriptionFormElResolverDomainServiceImplTest {
         }
 
         @Test
-        void should_resolve_dynamic_one_of_to_one_of() {
-            when(templateResolver.resolveTemplate(eq("{#api.metadata['plans']}"), any())).thenReturn("Free,Pro");
+        void should_resolve_dynamic_one_of_in_place() {
+            when(expressionResolver.resolveToOptions(eq("{#api.metadata['plans']}"), any())).thenReturn(List.of("Free", "Pro"));
+            var dynamicConstraint = Constraint.OneOf.dynamic("{#api.metadata['plans']}", List.of("Free"));
 
-            var constraints = new SubscriptionFormFieldConstraints(
-                Map.of("plan", List.of(Constraint.OneOf.dynamic("{#api.metadata['plans']}", List.of("Free"))))
-            );
+            var constraints = new SubscriptionFormFieldConstraints(Map.of("plan", List.of(dynamicConstraint)));
 
             var resolved = service.resolveConstraints(constraints, "env-1", "api-1");
 
-            assertThat(resolved.byFieldKey().get("plan")).containsExactly(new Constraint.OneOf(List.of("Free", "Pro")));
+            assertThat(resolved).isSameAs(constraints);
+            assertThat(resolved.byFieldKey().get("plan")).containsExactly(dynamicConstraint);
+            assertThat(dynamicConstraint.options()).containsExactly("Free", "Pro");
+            assertThat(dynamicConstraint.resolved()).isTrue();
         }
 
         @Test
-        void should_resolve_dynamic_each_of_to_each_of() {
-            when(templateResolver.resolveTemplate(eq("{#api.metadata['tags']}"), any())).thenReturn("Alpha,Beta");
+        void should_resolve_dynamic_each_of_in_place() {
+            when(expressionResolver.resolveToOptions(eq("{#api.metadata['tags']}"), any())).thenReturn(List.of("Alpha", "Beta"));
+            var dynamicConstraint = Constraint.EachOf.dynamic("{#api.metadata['tags']}", List.of("Fallback"));
 
-            var constraints = new SubscriptionFormFieldConstraints(
-                Map.of("tags", List.of(Constraint.EachOf.dynamic("{#api.metadata['tags']}", List.of("Fallback"))))
-            );
+            var constraints = new SubscriptionFormFieldConstraints(Map.of("tags", List.of(dynamicConstraint)));
 
             var resolved = service.resolveConstraints(constraints, "env-1", "api-1");
 
-            assertThat(resolved.byFieldKey().get("tags")).containsExactly(new Constraint.EachOf(List.of("Alpha", "Beta")));
+            assertThat(resolved).isSameAs(constraints);
+            assertThat(resolved.byFieldKey().get("tags")).containsExactly(dynamicConstraint);
+            assertThat(dynamicConstraint.options()).containsExactly("Alpha", "Beta");
+            assertThat(dynamicConstraint.resolved()).isTrue();
         }
 
         @Test
@@ -238,17 +220,16 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_use_fallback_when_resolution_fails() {
-            when(templateResolver.resolveTemplate(anyString(), any())).thenThrow(
-                new InvalidPageContentException("template error", new RuntimeException())
-            );
+            when(expressionResolver.resolveToOptions(anyString(), any())).thenReturn(List.of());
+            var dynamicConstraint = Constraint.OneOf.dynamic("{#api.metadata['plans']}", List.of("Free"));
 
-            var constraints = new SubscriptionFormFieldConstraints(
-                Map.of("plan", List.of(Constraint.OneOf.dynamic("{#api.metadata['plans']}", List.of("Free"))))
-            );
+            var constraints = new SubscriptionFormFieldConstraints(Map.of("plan", List.of(dynamicConstraint)));
 
             var resolved = service.resolveConstraints(constraints, "env-1", "api-1");
 
-            assertThat(resolved.byFieldKey().get("plan")).containsExactly(new Constraint.OneOf(List.of("Free")));
+            assertThat(resolved.byFieldKey().get("plan")).containsExactly(dynamicConstraint);
+            assertThat(dynamicConstraint.options()).containsExactly("Free");
+            assertThat(dynamicConstraint.resolved()).isTrue();
         }
     }
 }

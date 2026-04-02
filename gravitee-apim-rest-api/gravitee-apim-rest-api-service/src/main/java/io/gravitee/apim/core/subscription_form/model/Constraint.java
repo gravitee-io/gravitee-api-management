@@ -15,13 +15,16 @@
  */
 package io.gravitee.apim.core.subscription_form.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 
@@ -51,8 +54,8 @@ import java.util.stream.Stream;
         @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
         @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
         @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
-        @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "dynamicOneOf"),
-        @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "dynamicEachOf"),
+        @JsonSubTypes.Type(value = Constraint.DynamicOneOf.class, name = "dynamicOneOf"),
+        @JsonSubTypes.Type(value = Constraint.DynamicEachOf.class, name = "dynamicEachOf"),
     }
 )
 public sealed interface Constraint
@@ -64,6 +67,8 @@ public sealed interface Constraint
         Constraint.MinLength,
         Constraint.MaxLength,
         Constraint.MatchesPattern,
+        Constraint.OneOf,
+        Constraint.EachOf,
         Constraint.ResolvableOptions {
     /**
      * Whether the submitted value satisfies this constraint. The value is already trimmed; an empty string means absent.
@@ -213,110 +218,188 @@ public sealed interface Constraint
     }
 
     /** Single value must be one of the allowed options (skipped when empty). */
-    record OneOf(List<String> options, String expression, List<String> fallback) implements ResolvableOptions {
-        public OneOf(List<String> options) {
-            this(options, null, null);
-        }
-
-        public static OneOf dynamic(String expression, List<String> fallback) {
-            return new OneOf(null, expression, fallback);
+    record OneOf(List<String> options) implements Constraint {
+        public static DynamicOneOf dynamic(String expression, List<String> fallback) {
+            return new DynamicOneOf(expression, fallback);
         }
 
         @Override
         public boolean check(String value) {
-            if (isDynamic() && options == null) {
-                throw unresolvedConstraintException();
-            }
-            return options == null || options.isEmpty() || value.isEmpty() || options.contains(value);
+            return oneOfCheck(options, value);
         }
 
         @Override
         public String formatErrorMessage(String fieldKey, String value) {
-            if (isDynamic() && options == null) {
-                throw unresolvedConstraintException();
-            }
             return String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, value);
-        }
-
-        @Override
-        public Constraint withResolvedOptions(List<String> resolvedOptions) {
-            return new OneOf(resolvedOptions);
         }
     }
 
     /** Every value in a comma-separated string must be one of the allowed options (skipped when empty). */
-    record EachOf(List<String> options, String expression, List<String> fallback) implements ResolvableOptions {
-        public EachOf(List<String> options) {
-            this(options, null, null);
-        }
-
-        public static EachOf dynamic(String expression, List<String> fallback) {
-            return new EachOf(null, expression, fallback);
+    record EachOf(List<String> options) implements Constraint {
+        public static DynamicEachOf dynamic(String expression, List<String> fallback) {
+            return new DynamicEachOf(expression, fallback);
         }
 
         @Override
         public boolean check(String value) {
-            if (isDynamic() && options == null) {
-                throw unresolvedConstraintException();
-            }
-            if (options == null || options.isEmpty() || value.isEmpty()) {
-                return true;
-            }
-            Set<String> allowed = new HashSet<>(options);
-            return splitCsv(value).allMatch(allowed::contains);
+            return eachOfCheck(options, value);
         }
 
         @Override
         public String formatErrorMessage(String fieldKey, String value) {
-            if (isDynamic() && options == null) {
-                throw unresolvedConstraintException();
-            }
-            if (options == null || options.isEmpty() || value.isEmpty()) {
-                return "";
-            }
-            Set<String> allowed = new HashSet<>(options);
-            var lines = splitCsv(value)
-                .filter(item -> !allowed.contains(item))
-                .map(item -> String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, item))
-                .toList();
-            return String.join("\n", lines);
+            return eachOfErrorMessage(options, fieldKey, value);
+        }
+    }
+
+    /** Dynamic single-value options constraint resolved from an EL expression. */
+    final class DynamicOneOf extends ResolvableOptions {
+
+        @JsonCreator
+        public DynamicOneOf(@JsonProperty("expression") String expression, @JsonProperty("fallback") List<String> fallback) {
+            super(expression, fallback, false, List.of());
         }
 
         @Override
-        public Constraint withResolvedOptions(List<String> resolvedOptions) {
-            return new EachOf(resolvedOptions);
+        public boolean check(String value) {
+            return oneOfCheck(this.options, value);
+        }
+
+        @Override
+        public String formatErrorMessage(String fieldKey, String value) {
+            return String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, value);
+        }
+    }
+
+    /** Dynamic multi-value options constraint resolved from an EL expression. */
+    final class DynamicEachOf extends ResolvableOptions {
+
+        @JsonCreator
+        public DynamicEachOf(@JsonProperty("expression") String expression, @JsonProperty("fallback") List<String> fallback) {
+            super(expression, fallback, false, List.of());
+        }
+
+        @Override
+        public boolean check(String value) {
+            return eachOfCheck(this.options, value);
+        }
+
+        @Override
+        public String formatErrorMessage(String fieldKey, String value) {
+            return eachOfErrorMessage(this.options, fieldKey, value);
         }
     }
 
     /**
-     * Contract for option constraints that are resolved at runtime.
+     * Base type for option constraints that are resolved at runtime.
      *
-     * <p>Implementations may store an expression and fallback options.
-     * They must be resolved to effective options via {@link #resolve(BiFunction)} before validation.</p>
+     * <p>Fallback values are used as effective options when expression resolution returns no values.</p>
      */
-    non-sealed interface ResolvableOptions extends Constraint {
-        String expression();
+    abstract sealed class ResolvableOptions implements Constraint permits DynamicOneOf, DynamicEachOf {
 
-        List<String> fallback();
+        private final String expression;
+        private final List<String> fallback;
+        private boolean resolved;
+        protected List<String> options;
 
-        Constraint withResolvedOptions(List<String> resolvedOptions);
-
-        default boolean isDynamic() {
-            return expression() != null;
+        protected ResolvableOptions(String expression, List<String> fallback, boolean resolved, List<String> options) {
+            this.expression = expression;
+            this.fallback = normalizeOptions(fallback);
+            this.resolved = resolved;
+            this.options = options != null ? normalizeOptions(options) : this.fallback;
         }
 
-        default Constraint resolve(BiFunction<String, List<String>, List<String>> resolver) {
-            if (!isDynamic()) {
-                return this;
+        @JsonProperty("expression")
+        public String expression() {
+            return expression;
+        }
+
+        @JsonProperty("fallback")
+        public List<String> fallback() {
+            return fallback;
+        }
+
+        public boolean resolved() {
+            return resolved;
+        }
+
+        public List<String> options() {
+            return options;
+        }
+
+        public final void resolve(Function<String, List<String>> resolver) {
+            if (resolved) {
+                throw new IllegalStateException("Dynamic constraint already resolved");
             }
-            return withResolvedOptions(resolver.apply(expression(), fallback()));
+            var resolvedOptions = resolver.apply(expression);
+            this.options = normalizeOptions(resolvedOptions == null || resolvedOptions.isEmpty() ? fallback : resolvedOptions);
+            this.resolved = true;
         }
 
-        default UnsupportedOperationException unresolvedConstraintException() {
-            return new UnsupportedOperationException(
-                getClass().getSimpleName() + " must be resolved before validation — call resolve() first"
+        @Override
+        public final boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ResolvableOptions that = (ResolvableOptions) o;
+            return (
+                resolved == that.resolved &&
+                Objects.equals(expression, that.expression) &&
+                Objects.equals(fallback, that.fallback) &&
+                Objects.equals(options, that.options)
             );
         }
+
+        @Override
+        public final int hashCode() {
+            return Objects.hash(getClass(), expression, fallback, resolved, options);
+        }
+
+        @Override
+        public String toString() {
+            return (
+                getClass().getSimpleName() +
+                "[expression=" +
+                expression +
+                ", fallback=" +
+                fallback +
+                ", resolved=" +
+                resolved +
+                ", options=" +
+                options +
+                "]"
+            );
+        }
+
+        private static List<String> normalizeOptions(List<String> options) {
+            return options == null ? List.of() : List.copyOf(options);
+        }
+    }
+
+    private static boolean oneOfCheck(List<String> options, String value) {
+        return options == null || options.isEmpty() || value.isEmpty() || options.contains(value);
+    }
+
+    private static boolean eachOfCheck(List<String> options, String value) {
+        if (options == null || options.isEmpty() || value.isEmpty()) {
+            return true;
+        }
+        Set<String> allowed = new HashSet<>(options);
+        return splitCsv(value).allMatch(allowed::contains);
+    }
+
+    private static String eachOfErrorMessage(List<String> options, String fieldKey, String value) {
+        if (options == null || options.isEmpty() || value.isEmpty()) {
+            return "";
+        }
+        Set<String> allowed = new HashSet<>(options);
+        var lines = splitCsv(value)
+            .filter(item -> !allowed.contains(item))
+            .map(item -> String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, item))
+            .toList();
+        return String.join("\n", lines);
     }
 
     private static Stream<String> splitCsv(String value) {
