@@ -25,6 +25,8 @@ export interface TableColumn {
   id: string;
   label: string;
   type?: 'text' | 'date';
+  /** When true, header and cells for this column are hidden below the container width (see SCSS). */
+  hideBelowBreakpoint?: boolean;
 }
 
 @Component({

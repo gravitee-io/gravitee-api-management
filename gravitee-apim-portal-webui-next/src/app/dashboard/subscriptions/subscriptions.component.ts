@@ -68,9 +68,9 @@ export default class SubscriptionsComponent {
   }));
   tableColumns: TableColumn[] = [
     { id: 'api', label: 'Subscribed API' },
-    { id: 'plan', label: 'Plan' },
+    { id: 'plan', label: 'Plan', hideBelowBreakpoint: true },
     { id: 'application', label: 'Application' },
-    { id: 'created_at', label: 'Created', type: 'date' },
+    { id: 'created_at', label: 'Created', type: 'date', hideBelowBreakpoint: true },
     { id: 'status', label: 'Status' },
   ];
 
