@@ -406,7 +406,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   canConvertToServiceAccount(): boolean {
-    return this.user?.isServiceAccount == null && !this.user?.hasPassword && this.user?.source !== 'memory';
+    return this.user?.isServiceAccount == null && !this.user?.hasPassword && this.user?.source === 'gravitee';
   }
 
   onConvertToServiceAccount() {
