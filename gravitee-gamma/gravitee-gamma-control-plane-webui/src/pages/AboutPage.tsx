@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { GammaModule } from './gamma-module';
-export { useGammaModules } from './use-gamma-modules';
-export { RemoteModuleRoute } from './remote-module-loader';
+import { Link } from 'react-router-dom';
+
+export function AboutPage() {
+    return (
+        <div>
+            <h1>About</h1>
+            <p>
+                <Link to="/">Home</Link>
+            </p>
+        </div>
+    );
+}

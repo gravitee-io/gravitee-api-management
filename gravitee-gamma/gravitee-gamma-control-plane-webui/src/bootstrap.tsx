@@ -18,36 +18,41 @@ import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from './app/app';
-import { AuthProvider } from './auth/auth-context';
-import { BootstrapProvider } from './bootstrap/bootstrap-context';
-import { EnvironmentProvider } from './bootstrap/environment-context';
-import { ErrorBoundary } from './error-boundary';
+import { useAuthStore } from './features/auth';
+import { useEnvironmentStore } from './features/environment';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
+import { useBootstrapStore } from './shared/config/bootstrap.store';
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-root.render(
-    <StrictMode>
-        <BrowserRouter>
-            <ErrorBoundary
-                fallback={(error, retry) => (
-                    <div>
-                        <h2>Bootstrap Failed</h2>
-                        <p>{error.message}</p>
-                        <button type="button" onClick={retry}>
-                            Retry
-                        </button>
-                    </div>
-                )}
-            >
-                <Suspense fallback={<div>Loading…</div>}>
-                    <BootstrapProvider>
-                        <AuthProvider>
-                            <EnvironmentProvider>
-                                <App />
-                            </EnvironmentProvider>
-                        </AuthProvider>
-                    </BootstrapProvider>
-                </Suspense>
-            </ErrorBoundary>
-        </BrowserRouter>
-    </StrictMode>,
-);
+async function initialize() {
+    await useBootstrapStore.getState().initialize();
+
+    const config = useBootstrapStore.getState().config!;
+    useEnvironmentStore.getState().setEnvironment(config.organizationId, 'DEFAULT');
+
+    await useAuthStore.getState().initialize();
+}
+
+initialize().then(() => {
+    const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+    root.render(
+        <StrictMode>
+            <BrowserRouter>
+                <ErrorBoundary
+                    fallback={(error, retry) => (
+                        <div>
+                            <h2>Bootstrap Failed</h2>
+                            <p>{error.message}</p>
+                            <button type="button" onClick={retry}>
+                                Retry
+                            </button>
+                        </div>
+                    )}
+                >
+                    <Suspense fallback={<div>Loading…</div>}>
+                        <App />
+                    </Suspense>
+                </ErrorBoundary>
+            </BrowserRouter>
+        </StrictMode>,
+    );
+});
