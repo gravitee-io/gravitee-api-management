@@ -153,9 +153,9 @@ class SearchApiAnalyticsUseCaseTest {
         }
 
         @Test
-        void should_pass_from_and_to_to_the_query_service() {
-            // Verify the time range is forwarded (the fake stores the call implicitly;
-            // real assertion is that count comes back correctly for the given range)
+        void should_return_result_with_time_range() {
+            // Note: FakeAnalyticsQueryService does not capture call arguments, so we verify
+            // that the result is returned correctly when a time range is supplied in the Input.
             analyticsQueryService.requestsCount = RequestsCount.builder().total(7L).build();
 
             var result = cut.execute(GraviteeContext.getExecutionContext(), countInput(MY_API, ENV_ID));
@@ -276,9 +276,14 @@ class SearchApiAnalyticsUseCaseTest {
 
         @Test
         void should_return_date_histo_output_for_a_valid_v4_proxy_api() {
+            analyticsQueryService.analyticsDateHisto =
+                new AnalyticsDateHisto(List.of(1697000000000L), List.of(new AnalyticsDateHisto.Bucket("200", List.of(5L), Map.of("name", "200"))));
+
             var result = cut.execute(GraviteeContext.getExecutionContext(), dateHistoInput(MY_API, ENV_ID, "status", 3_600_000L));
 
             assertThat(result).isInstanceOf(Output.DateHisto.class);
+            assertThat(((Output.DateHisto) result).timestamps()).containsExactly(1697000000000L);
+            assertThat(((Output.DateHisto) result).buckets()).hasSize(1);
         }
 
         @Test

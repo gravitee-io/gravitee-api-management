@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -119,12 +119,12 @@ export class ApiAnalyticsV2Service {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
       switchMap(({ from, to }) => {
-        const queryParams = new URLSearchParams({ type: params.type, from: String(from), to: String(to) });
-        if (params.field != null) queryParams.set('field', params.field);
-        if (params.interval != null) queryParams.set('interval', String(params.interval));
-        if (params.size != null) queryParams.set('size', String(params.size));
-        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?${queryParams}`;
-        return this.http.get<T>(url);
+        let queryParams = new HttpParams().set('type', params.type).set('from', String(from)).set('to', String(to));
+        if (params.field != null) queryParams = queryParams.set('field', params.field);
+        if (params.interval != null) queryParams = queryParams.set('interval', String(params.interval));
+        if (params.size != null) queryParams = queryParams.set('size', String(params.size));
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`;
+        return this.http.get<T>(url, { params: queryParams });
       }),
     );
   }

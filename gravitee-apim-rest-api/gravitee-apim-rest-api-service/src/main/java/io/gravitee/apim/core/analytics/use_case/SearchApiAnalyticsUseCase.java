@@ -90,7 +90,7 @@ public class SearchApiAnalyticsUseCase {
                 var stats = analyticsQueryService.searchStats(
                     executionContext,
                     input.apiId(),
-                    input.field().orElseThrow(() -> new IllegalArgumentException("field is required for STATS")),
+                    input.field().orElse(null),
                     input.from().orElse(null),
                     input.to().orElse(null)
                 );
@@ -102,7 +102,7 @@ public class SearchApiAnalyticsUseCase {
                 var groupBy = analyticsQueryService.searchGroupBy(
                     executionContext,
                     input.apiId(),
-                    input.field().orElseThrow(() -> new IllegalArgumentException("field is required for GROUP_BY")),
+                    input.field().orElse(null),
                     input.size(),
                     input.from().orElse(null),
                     input.to().orElse(null)
@@ -115,10 +115,8 @@ public class SearchApiAnalyticsUseCase {
                 var dateHisto = analyticsQueryService.searchDateHisto(
                     executionContext,
                     input.apiId(),
-                    input.field().orElseThrow(() -> new IllegalArgumentException("field is required for DATE_HISTO")),
-                    Duration.ofMillis(
-                        input.interval().orElseThrow(() -> new IllegalArgumentException("interval is required for DATE_HISTO"))
-                    ),
+                    input.field().orElse(null),
+                    Duration.ofMillis(input.interval().orElse(0L)),
                     input.from().orElse(null),
                     input.to().orElse(null)
                 );
@@ -146,7 +144,11 @@ public class SearchApiAnalyticsUseCase {
     }
 
     private static void validateApiIsNotTcp(Api api) {
-        if (api.getApiDefinitionHttpV4().isTcpProxy()) {
+        // Null guard: getApiDefinitionHttpV4() returns null for non-V4 APIs.
+        // The version check always runs first, so null here means a bug in the call order —
+        // skip the TCP check rather than masking the real exception with the wrong type.
+        var v4Definition = api.getApiDefinitionHttpV4();
+        if (v4Definition != null && v4Definition.isTcpProxy()) {
             throw new TcpProxyNotSupportedException(api.getId());
         }
     }

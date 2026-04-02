@@ -54,6 +54,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 
 public class ApiAnalyticsResource extends AbstractResource {
@@ -225,11 +226,10 @@ public class ApiAnalyticsResource extends AbstractResource {
 
         AnalyticsType analyticsType;
         try {
-            analyticsType = AnalyticsType.valueOf(type.toUpperCase());
+            analyticsType = AnalyticsType.valueOf(type.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(
-                "Invalid value for query parameter 'type': '" + type + "'. Allowed values: COUNT, STATS, GROUP_BY, DATE_HISTO"
-            );
+            // Do not reflect the raw user-supplied value into the message — prevents log injection.
+            throw new BadRequestException("Invalid value for query parameter 'type'. Allowed values: COUNT, STATS, GROUP_BY, DATE_HISTO");
         }
 
         if ((analyticsType == AnalyticsType.STATS || analyticsType == AnalyticsType.GROUP_BY) && (field == null || field.isBlank())) {
@@ -242,6 +242,10 @@ public class ApiAnalyticsResource extends AbstractResource {
 
         var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
         var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+
+        if (start.isPresent() && end.isPresent() && start.get().isAfter(end.get())) {
+            throw new BadRequestException("Query parameter 'from' must not be after 'to'");
+        }
 
         var input = new SearchApiAnalyticsUseCase.Input(
             apiId,

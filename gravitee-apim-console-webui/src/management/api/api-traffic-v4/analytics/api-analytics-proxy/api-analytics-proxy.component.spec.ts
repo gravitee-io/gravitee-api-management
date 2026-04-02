@@ -284,7 +284,7 @@ describe('ApiAnalyticsProxyComponent', () => {
   function expectAnalyticsStatusPie(data: ReturnType<typeof fakeAnalyticsGroupBy>) {
     const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
     const req = httpTestingController.expectOne(
-      (r) => r.method === 'GET' && r.url.startsWith(baseUrl) && r.url.includes('type=GROUP_BY') && r.url.includes('field=status'),
+      (r) => r.method === 'GET' && r.url === baseUrl && r.params.get('type') === 'GROUP_BY' && r.params.get('field') === 'status',
     );
     req.flush(data);
     fixture.detectChanges();
@@ -292,7 +292,7 @@ describe('ApiAnalyticsProxyComponent', () => {
 
   function expectAnalyticsCount(data: ReturnType<typeof fakeAnalyticsCount>) {
     const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
-    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(baseUrl) && r.url.includes('type=COUNT'));
+    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === baseUrl && r.params.get('type') === 'COUNT');
     req.flush(data);
     fixture.detectChanges();
   }
@@ -300,7 +300,7 @@ describe('ApiAnalyticsProxyComponent', () => {
   function expectAnalyticsGatewayRt(data: ReturnType<typeof fakeAnalyticsStats>) {
     const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
     const req = httpTestingController.expectOne(
-      (r) => r.method === 'GET' && r.url.startsWith(baseUrl) && r.url.includes('type=STATS') && r.url.includes('field=gateway-response-time-ms'),
+      (r) => r.method === 'GET' && r.url === baseUrl && r.params.get('type') === 'STATS' && r.params.get('field') === 'gateway-response-time-ms',
     );
     req.flush(data);
     fixture.detectChanges();
@@ -309,7 +309,7 @@ describe('ApiAnalyticsProxyComponent', () => {
   function expectAnalyticsUpstreamRt(data: ReturnType<typeof fakeAnalyticsStats>) {
     const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
     const req = httpTestingController.expectOne(
-      (r) => r.method === 'GET' && r.url.startsWith(baseUrl) && r.url.includes('type=STATS') && r.url.includes('field=endpoint-response-time-ms'),
+      (r) => r.method === 'GET' && r.url === baseUrl && r.params.get('type') === 'STATS' && r.params.get('field') === 'endpoint-response-time-ms',
     );
     req.flush(data);
     fixture.detectChanges();
@@ -318,7 +318,7 @@ describe('ApiAnalyticsProxyComponent', () => {
   function expectAnalyticsContentLength(data: ReturnType<typeof fakeAnalyticsStats>) {
     const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
     const req = httpTestingController.expectOne(
-      (r) => r.method === 'GET' && r.url.startsWith(baseUrl) && r.url.includes('type=STATS') && r.url.includes('field=request-content-length'),
+      (r) => r.method === 'GET' && r.url === baseUrl && r.params.get('type') === 'STATS' && r.params.get('field') === 'request-content-length',
     );
     req.flush(data);
     fixture.detectChanges();

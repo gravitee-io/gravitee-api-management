@@ -104,9 +104,8 @@ describe('ApiAnalyticsV2Service', () => {
       });
 
       const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
-      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(url));
-      expect(req.request.params.get('type')).toBeNull(); // params built via URLSearchParams in the URL
-      expect(req.request.url).toContain('type=COUNT');
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === url);
+      expect(req.request.params.get('type')).toBe('COUNT');
       req.flush(fakeAnalyticsCount({ count: 42 }));
     });
 
@@ -117,10 +116,10 @@ describe('ApiAnalyticsV2Service', () => {
       });
 
       const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
-      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(url));
-      expect(req.request.url).toContain('type=DATE_HISTO');
-      expect(req.request.url).toContain('field=status');
-      expect(req.request.url).toContain('interval=3600000');
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === url);
+      expect(req.request.params.get('type')).toBe('DATE_HISTO');
+      expect(req.request.params.get('field')).toBe('status');
+      expect(req.request.params.get('interval')).toBe('3600000');
       req.flush(fakeAnalyticsDateHisto());
     });
 
@@ -133,9 +132,9 @@ describe('ApiAnalyticsV2Service', () => {
         });
 
       const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
-      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(url));
-      expect(req.request.url).toContain('type=STATS');
-      expect(req.request.url).toContain('field=gateway-response-time-ms');
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === url);
+      expect(req.request.params.get('type')).toBe('STATS');
+      expect(req.request.params.get('field')).toBe('gateway-response-time-ms');
       req.flush(fakeAnalyticsStats({ count: 10, avg: 120.5 }));
     });
 
@@ -146,10 +145,10 @@ describe('ApiAnalyticsV2Service', () => {
       });
 
       const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
-      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(url));
-      expect(req.request.url).toContain('type=GROUP_BY');
-      expect(req.request.url).toContain('field=status');
-      expect(req.request.url).toContain('size=5');
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === url);
+      expect(req.request.params.get('type')).toBe('GROUP_BY');
+      expect(req.request.params.get('field')).toBe('status');
+      expect(req.request.params.get('size')).toBe('5');
       req.flush(fakeAnalyticsGroupBy({ values: { '200': 100 } }));
     });
   });

@@ -70,10 +70,16 @@ export type AnalyticsResponse = AnalyticsCount | AnalyticsStats | AnalyticsGroup
 
 export interface AnalyticsQueryParams {
   type: AnalyticsQueryType;
-  /** Epoch-ms start of the query window */
-  from: number;
-  /** Epoch-ms end of the query window */
-  to: number;
+  /**
+   * Epoch-ms start of the query window.
+   * Optional — when omitted, `getAnalytics()` injects the value from the shared time-range filter.
+   */
+  from?: number;
+  /**
+   * Epoch-ms end of the query window.
+   * Optional — when omitted, `getAnalytics()` injects the value from the shared time-range filter.
+   */
+  to?: number;
   /** Required for STATS, GROUP_BY, and DATE_HISTO; ignored for COUNT */
   field?: string;
   /** Bucket width in ms — required for DATE_HISTO */

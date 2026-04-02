@@ -52,6 +52,9 @@ describe('ApiAnalyticsStatusPieComponent', () => {
   });
 
   it('should display loading state while data is being fetched', () => {
+    // Timing note: setTimeRangeFilter triggers the switchMap which sets isLoading=true
+    // synchronously. The HTTP call remains pending (not flushed), so gio-loader is visible.
+    // This relies on the loading flag being set *inside* the switchMap before the HTTP call.
     apiAnalyticsV2Service.setTimeRangeFilter(timeFrameRangesParams('1d'));
     fixture.detectChanges();
 
@@ -59,7 +62,7 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     expect(fixture.nativeElement.querySelector('gio-chart-pie')).toBeNull();
 
     // Flush pending request
-    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
+    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
     req.flush(fakeAnalyticsGroupBy());
   });
 
@@ -67,7 +70,7 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     apiAnalyticsV2Service.setTimeRangeFilter(timeFrameRangesParams('1d'));
     fixture.detectChanges();
 
-    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
+    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
     req.flush(fakeAnalyticsGroupBy({ values: { '200': 50, '404': 10, '500': 5 } }));
     fixture.detectChanges();
 
@@ -79,7 +82,7 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     apiAnalyticsV2Service.setTimeRangeFilter(timeFrameRangesParams('1d'));
     fixture.detectChanges();
 
-    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
+    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
     req.flush(fakeAnalyticsGroupBy({ values: {} }));
     fixture.detectChanges();
 
@@ -91,7 +94,7 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     apiAnalyticsV2Service.setTimeRangeFilter(timeFrameRangesParams('1d'));
     fixture.detectChanges();
 
-    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
+    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
     req.flush('Internal Server Error', { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
 
@@ -104,9 +107,9 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     apiAnalyticsV2Service.setTimeRangeFilter(timeFrameRangesParams('1d'));
     fixture.detectChanges();
 
-    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
-    expect(req.request.url).toContain('type=GROUP_BY');
-    expect(req.request.url).toContain('field=status');
+    const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
+    expect(req.request.params.get('type')).toBe('GROUP_BY');
+    expect(req.request.params.get('field')).toBe('status');
     req.flush(fakeAnalyticsGroupBy());
   });
 
@@ -115,7 +118,7 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     fixture.detectChanges();
 
     // First call
-    let req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
+    let req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
     req.flush(fakeAnalyticsGroupBy({ values: { '200': 10 } }));
     fixture.detectChanges();
 
@@ -128,7 +131,7 @@ describe('ApiAnalyticsStatusPieComponent', () => {
     expect(fixture.nativeElement.querySelector('gio-loader')).toBeTruthy();
 
     // Second call
-    req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(analyticsUrl) && r.url.includes('type=GROUP_BY'));
+    req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === analyticsUrl && r.params.get('type') === 'GROUP_BY');
     req.flush(fakeAnalyticsGroupBy({ values: { '200': 50 } }));
     fixture.detectChanges();
 

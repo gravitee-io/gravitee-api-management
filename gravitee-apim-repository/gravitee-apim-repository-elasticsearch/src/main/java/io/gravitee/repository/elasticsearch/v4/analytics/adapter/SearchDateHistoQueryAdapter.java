@@ -15,14 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
 import io.gravitee.repository.log.v4.model.analytics.DateHistoQuery;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,22 +30,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Adapts {@link DateHistoQuery} to an Elasticsearch {@code date_histogram} query and parses the response.
  *
- * <p>Follows the same pattern as {@link SearchResponseStatusOverTimeAdapter}: Jackson ObjectNode
- * for query building, {@code ElasticsearchInfo} for version-aware interval field names.</p>
+ * <p>Follows the same pattern as {@link SearchGroupByQueryAdapter} and {@link SearchStatsQueryAdapter}:
+ * Vert.x {@code JsonObject} for query building, {@code ElasticsearchInfo} for version-aware interval field names.</p>
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchDateHistoQueryAdapter {
 
     static final String AGG_BY_DATE = "by_date";
     static final String AGG_BY_FIELD = "by_field";
 
     private static final String TIME_FIELD = "@timestamp";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    private SearchDateHistoQueryAdapter() {}
 
     /**
      * Serialises a {@link DateHistoQuery} to an Elasticsearch {@code date_histogram} JSON request.
@@ -60,11 +59,14 @@ public class SearchDateHistoQueryAdapter {
      * @return a JSON string ready to be posted to the {@code _search} endpoint
      */
     public static String adaptQuery(DateHistoQuery query, ElasticsearchInfo esInfo) {
-        return json()
-            .put("size", 0)
-            .<ObjectNode>set("query", buildQuery(query))
-            .set("aggregations", buildAggregations(query, esInfo))
-            .toString();
+        var jsonContent = new HashMap<String, Object>();
+        jsonContent.put("size", 0);
+        var esQuery = buildElasticQuery(query);
+        if (esQuery != null) {
+            jsonContent.put("query", esQuery);
+        }
+        jsonContent.put("aggregations", buildAggregations(query, esInfo));
+        return new JsonObject(jsonContent).encode();
     }
 
     /**
@@ -134,51 +136,50 @@ public class SearchDateHistoQueryAdapter {
     }
 
     // -------------------------------------------------------------------------
-    // Query builders
+    // Query builders — Vert.x JsonObject, consistent with SearchGroupByQueryAdapter / SearchStatsQueryAdapter
     // -------------------------------------------------------------------------
 
-    private static ObjectNode buildQuery(DateHistoQuery query) {
-        var filters = json();
-        var mustArray = MAPPER.createArrayNode();
+    private static JsonObject buildElasticQuery(DateHistoQuery query) {
+        var terms = new ArrayList<JsonObject>();
 
-        // API id filter
-        query.apiId().ifPresent(apiId -> mustArray.add(json().set("term", json().put("api-id", apiId))));
+        query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 
-        // Time range filter
-        var range = json();
-        query.from().ifPresent(from -> range.put("from", from.toEpochMilli()));
-        query.to().ifPresent(to -> range.put("to", to.toEpochMilli()));
-        range.put("include_lower", true).put("include_upper", true);
-        mustArray.add(json().set("range", json().set(TIME_FIELD, range)));
+        // Only add the range clause when at least one bound is present.
+        // A range query with only include_lower/include_upper and no gte/lte is rejected by ES 7+ with parse_exception.
+        if (query.from().isPresent() || query.to().isPresent()) {
+            var timestamp = new JsonObject();
+            query.from().ifPresent(from -> timestamp.put("from", from.toEpochMilli()).put("include_lower", true));
+            query.to().ifPresent(to -> timestamp.put("to", to.toEpochMilli()).put("include_upper", true));
+            terms.add(JsonObject.of("range", JsonObject.of(TIME_FIELD, timestamp)));
+        }
 
-        filters.set("filter", mustArray);
-        return json().set("bool", filters);
+        if (terms.isEmpty()) {
+            return null;
+        }
+
+        return JsonObject.of("bool", JsonObject.of("filter", JsonArray.of(terms.toArray())));
     }
 
-    private static ObjectNode buildAggregations(DateHistoQuery query, ElasticsearchInfo esInfo) {
+    private static JsonObject buildAggregations(DateHistoQuery query, ElasticsearchInfo esInfo) {
         String intervalFieldName = esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
 
-        ObjectNode histogram = json()
+        var histogram = new JsonObject()
             .put("field", TIME_FIELD)
             .put(intervalFieldName, query.interval().toMillis() + "ms")
             .put("min_doc_count", 0);
 
         query
             .from()
-            .ifPresent(from -> {
+            .ifPresent(from ->
                 query
                     .to()
-                    .ifPresent(to -> {
-                        histogram.set("extended_bounds", json().put("min", from.toEpochMilli()).put("max", to.toEpochMilli()));
-                    });
-            });
+                    .ifPresent(to ->
+                        histogram.put("extended_bounds", JsonObject.of("min", from.toEpochMilli(), "max", to.toEpochMilli()))
+                    )
+            );
 
-        ObjectNode subAgg = json().set(AGG_BY_FIELD, json().set("terms", json().put("field", query.field())));
+        var subAgg = JsonObject.of(AGG_BY_FIELD, JsonObject.of("terms", JsonObject.of("field", query.field())));
 
-        return json().set(AGG_BY_DATE, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", subAgg));
-    }
-
-    private static ObjectNode json() {
-        return MAPPER.createObjectNode();
+        return JsonObject.of(AGG_BY_DATE, new JsonObject().put("date_histogram", histogram).put("aggregations", subAgg));
     }
 }

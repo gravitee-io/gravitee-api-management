@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -405,6 +406,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         }
 
         @Test
+        void should_return_404_when_api_does_not_exist() {
+            // apiCrudServiceInMemory is empty — ApiNotFoundException maps to 404
+            final Response response = analyticsTarget.queryParam("type", "COUNT").request().get();
+
+            MAPIAssertions.assertThat(response).hasStatus(NOT_FOUND_404);
+        }
+
+        @Test
         void should_return_400_when_type_is_missing() {
             final Response response = analyticsTarget.request().get();
 
@@ -566,7 +575,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
             final Response response = analyticsTarget.queryParam("type", "count").request().get();
 
-            MAPIAssertions.assertThat(response).hasStatus(OK_200);
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsCountResponse.class)
+                .satisfies(r -> assertThat(r.getType()).isEqualTo("COUNT"));
         }
 
         @Test

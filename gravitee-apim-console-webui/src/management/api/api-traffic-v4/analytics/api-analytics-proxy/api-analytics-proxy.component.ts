@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { combineLatest, Observable, of, switchMap } from 'rxjs';
@@ -50,6 +50,7 @@ type ApiAnalyticsVM = {
 
 @Component({
   selector: 'api-analytics-proxy',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatCardModule,
@@ -68,65 +69,57 @@ type ApiAnalyticsVM = {
 export class ApiAnalyticsProxyComponent {
   private readonly apiId = this.activatedRoute.snapshot.params.apiId;
 
-  private count$: Observable<AnalyticsCount | null> = this.apiAnalyticsV2Service
-    .getAnalytics<AnalyticsCount>(this.apiId, { type: 'COUNT' })
-    .pipe(startWith(null));
-
-  private gatewayRt$: Observable<AnalyticsStats | null> = this.apiAnalyticsV2Service
-    .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'gateway-response-time-ms' })
-    .pipe(startWith(null));
-
-  private upstreamRt$: Observable<AnalyticsStats | null> = this.apiAnalyticsV2Service
-    .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'endpoint-response-time-ms' })
-    .pipe(startWith(null));
-
-  private contentLength$: Observable<AnalyticsStats | null> = this.apiAnalyticsV2Service
-    .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'request-content-length' })
-    .pipe(startWith(null));
-
-  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsV2Service
-    .getResponseStatusRanges(this.apiId)
-    .pipe(
-      map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
-      startWith({ isLoading: true }),
-    );
-
   public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.apiId).pipe(onlyApiV4Filter()),
     this.apiAnalyticsV2Service.timeRangeFilter(),
   ]).pipe(
-    map(([api]) => {
-      return { isAnalyticsEnabled: api.analytics.enabled };
-    }),
+    map(([api]) => ({ isAnalyticsEnabled: api.analytics.enabled })),
     switchMap(({ isAnalyticsEnabled }) => {
-      if (isAnalyticsEnabled) {
-        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, apiId: this.apiId, ...analyticsData })));
+      if (!isAnalyticsEnabled) {
+        return of({ isAnalyticsEnabled: false });
       }
-      return of({ isAnalyticsEnabled: false });
+      // All HTTP calls share this switchMap so that a new time-range emission cancels
+      // any in-flight requests from the previous range before issuing fresh ones.
+      return combineLatest([
+        this.apiAnalyticsV2Service.getAnalytics<AnalyticsCount>(this.apiId, { type: 'COUNT' }).pipe(startWith(null), catchError(() => of(null))),
+        this.apiAnalyticsV2Service
+          .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'gateway-response-time-ms' })
+          .pipe(startWith(null), catchError(() => of(null))),
+        this.apiAnalyticsV2Service
+          .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'endpoint-response-time-ms' })
+          .pipe(startWith(null), catchError(() => of(null))),
+        this.apiAnalyticsV2Service
+          .getAnalytics<AnalyticsStats>(this.apiId, { type: 'STATS', field: 'request-content-length' })
+          .pipe(startWith(null), catchError(() => of(null))),
+        this.apiAnalyticsV2Service
+          .getResponseStatusRanges(this.apiId)
+          .pipe(
+            map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
+            startWith({ isLoading: true }),
+            catchError(() => of({ isLoading: false, ranges: undefined })),
+          ),
+      ]).pipe(
+        map(([count, gatewayRt, upstreamRt, contentLength, responseStatusRanges]) => ({
+          isAnalyticsEnabled: true,
+          apiId: this.apiId,
+          requestStats: [
+            { label: 'Total Requests', value: count?.count, isLoading: count === null },
+            { label: 'Avg Gateway Response Time', unitLabel: 'ms', value: gatewayRt?.avg, isLoading: gatewayRt === null },
+            { label: 'Avg Upstream Response Time', unitLabel: 'ms', value: upstreamRt?.avg, isLoading: upstreamRt === null },
+            { label: 'Avg Content Length', unitLabel: 'bytes', value: contentLength?.avg, isLoading: contentLength === null },
+          ],
+          responseStatusRanges: {
+            isLoading: (responseStatusRanges as { isLoading: boolean }).isLoading,
+            data: Object.entries((responseStatusRanges as Partial<AnalyticsResponseStatusRanges>).ranges ?? {}).map(([label, value]) => ({
+              label,
+              value: toNumber(value),
+            })),
+          },
+        })),
+      );
     }),
     map((analyticsData) => ({ isLoading: false, ...analyticsData })),
     startWith({ isLoading: true }),
-  );
-
-  private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled' | 'apiId'>> = combineLatest([
-    this.count$.pipe(catchError(() => of(null))),
-    this.gatewayRt$.pipe(catchError(() => of(null))),
-    this.upstreamRt$.pipe(catchError(() => of(null))),
-    this.contentLength$.pipe(catchError(() => of(null))),
-    this.getResponseStatusRanges$.pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
-  ]).pipe(
-    map(([count, gatewayRt, upstreamRt, contentLength, responseStatusRanges]) => ({
-      requestStats: [
-        { label: 'Total Requests', value: count?.count, isLoading: count === null },
-        { label: 'Avg Gateway Response Time', unitLabel: 'ms', value: gatewayRt?.avg, isLoading: gatewayRt === null },
-        { label: 'Avg Upstream Response Time', unitLabel: 'ms', value: upstreamRt?.avg, isLoading: upstreamRt === null },
-        { label: 'Avg Content Length', unitLabel: 'bytes', value: contentLength?.avg, isLoading: contentLength === null },
-      ],
-      responseStatusRanges: {
-        isLoading: responseStatusRanges.isLoading,
-        data: Object.entries(responseStatusRanges.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
-      },
-    })),
   );
 
   constructor(

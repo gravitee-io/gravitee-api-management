@@ -52,7 +52,9 @@ public class SearchGroupByQueryAdapter {
 
         final var groupByAgg = aggregations.get(GROUP_BY_AGG);
         if (groupByAgg == null || groupByAgg.getBuckets() == null || groupByAgg.getBuckets().isEmpty()) {
-            return Optional.of(GroupByAggregate.builder().values(Map.of()).metadata(Map.of()).build());
+            // Return empty consistent with SearchStatsQueryAdapter and SearchDateHistoQueryAdapter;
+            // the use case's orElseGet fallback provides the empty-map default.
+            return Optional.empty();
         }
 
         final var values = groupByAgg
@@ -70,10 +72,6 @@ public class SearchGroupByQueryAdapter {
     }
 
     private static JsonObject buildElasticQuery(GroupByQuery query) {
-        if (query == null) {
-            return null;
-        }
-
         var terms = new ArrayList<JsonObject>();
         query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 

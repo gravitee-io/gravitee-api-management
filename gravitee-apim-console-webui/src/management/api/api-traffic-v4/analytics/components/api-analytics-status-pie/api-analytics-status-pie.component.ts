@@ -45,7 +45,10 @@ function statusColor(code: string): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiAnalyticsStatusPieComponent implements OnInit {
-  /** The V4 API identifier used to scope the GROUP_BY analytics query. */
+  /**
+   * The V4 API identifier used to scope the GROUP_BY analytics query.
+   * Static: must not change after ngOnInit — the subscription does not react to input changes.
+   */
   @Input({ required: true }) apiId: string;
 
   public isLoading = true;

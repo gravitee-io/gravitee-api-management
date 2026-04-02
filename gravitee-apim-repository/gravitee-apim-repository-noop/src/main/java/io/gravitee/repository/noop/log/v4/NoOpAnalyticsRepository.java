@@ -18,8 +18,6 @@ package io.gravitee.repository.noop.log.v4;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.*;
-import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
-import io.gravitee.repository.log.v4.model.analytics.DateHistoQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;

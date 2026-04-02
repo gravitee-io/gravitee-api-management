@@ -33,11 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchStatsQueryAdapter {
 
-    static final String STATS_COUNT_AGG = "stats_count";
-    static final String STATS_MIN_AGG = "stats_min";
-    static final String STATS_MAX_AGG = "stats_max";
-    static final String STATS_AVG_AGG = "stats_avg";
-    static final String STATS_SUM_AGG = "stats_sum";
+    // Single ES stats aggregation — returns count, min, max, avg, sum in one round trip.
+    static final String STATS_AGG = "stats_agg";
 
     public static String adaptQuery(StatsQuery query) {
         var jsonContent = new HashMap<String, Object>();
@@ -56,41 +53,25 @@ public class SearchStatsQueryAdapter {
             return Optional.empty();
         }
 
-        var countAgg = aggregations.get(STATS_COUNT_AGG);
-        var minAgg = aggregations.get(STATS_MIN_AGG);
-        var maxAgg = aggregations.get(STATS_MAX_AGG);
-        var avgAgg = aggregations.get(STATS_AVG_AGG);
-        var sumAgg = aggregations.get(STATS_SUM_AGG);
-
-        if (countAgg == null) {
+        var statsAgg = aggregations.get(STATS_AGG);
+        if (statsAgg == null) {
             return Optional.empty();
         }
 
         return Optional.of(
             StatsAggregate
                 .builder()
-                .count(countAgg.getValue() != null ? countAgg.getValue().longValue() : 0L)
-                .min(minAgg != null && minAgg.getValue() != null ? minAgg.getValue().doubleValue() : null)
-                .max(maxAgg != null && maxAgg.getValue() != null ? maxAgg.getValue().doubleValue() : null)
-                .avg(avgAgg != null && avgAgg.getValue() != null ? avgAgg.getValue().doubleValue() : null)
-                .sum(sumAgg != null && sumAgg.getValue() != null ? sumAgg.getValue().doubleValue() : null)
+                .count(statsAgg.getCount() != null ? statsAgg.getCount().longValue() : 0L)
+                .min(statsAgg.getMin() != null ? statsAgg.getMin().doubleValue() : null)
+                .max(statsAgg.getMax() != null ? statsAgg.getMax().doubleValue() : null)
+                .avg(statsAgg.getAvg() != null ? statsAgg.getAvg().doubleValue() : null)
+                .sum(statsAgg.getSum() != null ? statsAgg.getSum().doubleValue() : null)
                 .build()
         );
     }
 
     private static JsonObject buildStatsAggregations(String field) {
-        return JsonObject.of(
-            STATS_COUNT_AGG,
-            JsonObject.of("value_count", JsonObject.of("field", field)),
-            STATS_MIN_AGG,
-            JsonObject.of("min", JsonObject.of("field", field)),
-            STATS_MAX_AGG,
-            JsonObject.of("max", JsonObject.of("field", field)),
-            STATS_AVG_AGG,
-            JsonObject.of("avg", JsonObject.of("field", field)),
-            STATS_SUM_AGG,
-            JsonObject.of("sum", JsonObject.of("field", field))
-        );
+        return JsonObject.of(STATS_AGG, JsonObject.of("stats", JsonObject.of("field", field)));
     }
 
     private static JsonObject buildElasticQuery(StatsQuery query) {
