@@ -1,0 +1,35 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="card">
+  <mat-card-header>
+    <mat-card-title>HTTP Status Distribution</mat-card-title>
+    <mat-card-subtitle>Hits repartition by HTTP Status Code</mat-card-subtitle>
+  </mat-card-header>
+
+  @if (isLoading) {
+    <div class="card__loader">
+      <gio-loader></gio-loader>
+    </div>
+  } @else if (hasError) {
+    <gio-card-empty-state icon="alert-circle" title="Analytics unavailable"></gio-card-empty-state>
+  } @else if (isEmpty) {
+    <gio-card-empty-state icon="bar-chart-2" title="No data" subtitle="No data available for this time range."></gio-card-empty-state>
+  } @else {
+    <gio-chart-pie [input]="pieData" inputDescription="Nb hits" totalInputDescription="Nb hits total"></gio-chart-pie>
+  }
+</mat-card>

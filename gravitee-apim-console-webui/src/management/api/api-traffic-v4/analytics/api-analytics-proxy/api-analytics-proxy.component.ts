@@ -38,10 +38,12 @@ import { AnalyticsResponseStatusRanges } from '../../../../../entities/managemen
 import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 import { AnalyticsCount, AnalyticsStats } from '../../../../../entities/management-api-v2/analytics/analyticsUnified';
+import { ApiAnalyticsStatusPieComponent } from '../components/api-analytics-status-pie/api-analytics-status-pie.component';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
+  apiId?: string;
   requestStats?: AnalyticsRequestStats;
   responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
 };
@@ -58,6 +60,7 @@ type ApiAnalyticsVM = {
     ApiAnalyticsResponseStatusRangesComponent,
     ApiAnalyticsResponseStatusOvertimeComponent,
     ApiAnalyticsResponseTimeOverTimeComponent,
+    ApiAnalyticsStatusPieComponent,
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
@@ -97,7 +100,7 @@ export class ApiAnalyticsProxyComponent {
     }),
     switchMap(({ isAnalyticsEnabled }) => {
       if (isAnalyticsEnabled) {
-        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
+        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, apiId: this.apiId, ...analyticsData })));
       }
       return of({ isAnalyticsEnabled: false });
     }),
@@ -105,7 +108,7 @@ export class ApiAnalyticsProxyComponent {
     startWith({ isLoading: true }),
   );
 
-  private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = combineLatest([
+  private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled' | 'apiId'>> = combineLatest([
     this.count$.pipe(catchError(() => of(null))),
     this.gatewayRt$.pipe(catchError(() => of(null))),
     this.upstreamRt$.pipe(catchError(() => of(null))),

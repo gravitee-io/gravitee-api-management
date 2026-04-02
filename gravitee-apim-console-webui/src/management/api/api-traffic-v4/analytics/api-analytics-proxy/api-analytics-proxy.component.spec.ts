@@ -32,7 +32,11 @@ import { AnalyticsResponseStatusOvertime } from '../../../../../entities/managem
 import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
 import { fakeAnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime.fixture';
-import { fakeAnalyticsCount, fakeAnalyticsStats } from '../../../../../entities/management-api-v2/analytics/analyticsUnified.fixture';
+import {
+  fakeAnalyticsCount,
+  fakeAnalyticsGroupBy,
+  fakeAnalyticsStats,
+} from '../../../../../entities/management-api-v2/analytics/analyticsUnified.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -98,6 +102,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+      expectAnalyticsStatusPie(fakeAnalyticsGroupBy({ values: { '200': 10 } }));
     });
 
     it('should display Traffic Overview - 4 stats cards', async () => {
@@ -141,7 +146,7 @@ describe('ApiAnalyticsProxyComponent', () => {
         { label: 'Avg Content Length', value: '512bytes', isLoading: false },
       ]);
 
-      // Flush remaining analytics
+      // Flush remaining analytics request
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
 
@@ -213,6 +218,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectAnalyticsUpstreamRt(fakeAnalyticsStats());
       expectAnalyticsContentLength(fakeAnalyticsStats());
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+      expectAnalyticsStatusPie(fakeAnalyticsGroupBy());
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
     });
@@ -242,6 +248,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+      expectAnalyticsStatusPie(fakeAnalyticsGroupBy());
       expectAnalyticsCount(fakeAnalyticsCount());
       expectAnalyticsGatewayRt(fakeAnalyticsStats());
       expectAnalyticsUpstreamRt(fakeAnalyticsStats());
@@ -258,6 +265,15 @@ describe('ApiAnalyticsProxyComponent', () => {
 
     res.flush(api);
 
+    fixture.detectChanges();
+  }
+
+  function expectAnalyticsStatusPie(data: ReturnType<typeof fakeAnalyticsGroupBy>) {
+    const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
+    const req = httpTestingController.expectOne(
+      (r) => r.method === 'GET' && r.url.startsWith(baseUrl) && r.url.includes('type=GROUP_BY') && r.url.includes('field=status'),
+    );
+    req.flush(data);
     fixture.detectChanges();
   }
 

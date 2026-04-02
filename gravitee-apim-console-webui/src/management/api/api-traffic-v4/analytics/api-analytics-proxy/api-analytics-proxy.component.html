@@ -33,6 +33,7 @@
     <div class="gridContent">
       <app-api-analytics-request-stats title="Traffic Overview" [requestsStats]="apiAnalyticsVM.requestStats" />
       <api-analytics-response-status-ranges title="Response Status" [responseStatusRanges]="apiAnalyticsVM.responseStatusRanges" />
+      <api-analytics-status-pie [apiId]="apiAnalyticsVM.apiId" class="full-bleed" />
       <api-analytics-response-status-overtime class="full-bleed" />
       <api-analytics-response-time-over-time class="full-bleed" />
     </div>
