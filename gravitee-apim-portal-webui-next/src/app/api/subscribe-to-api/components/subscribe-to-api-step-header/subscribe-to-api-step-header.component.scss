@@ -24,6 +24,7 @@
 
   background: #{theme.$card-background-color};
   border-bottom: #{theme.$border-width} solid #{theme.$border-color};
+  border-radius: #{theme.$container-shape};
 }
 
 .step-header__badge {
