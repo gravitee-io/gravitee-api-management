@@ -52,7 +52,6 @@ describe('ApplicationTabSettingsComponent', () => {
           provide: ConfigService,
           useValue: {
             baseURL: TESTING_BASE_URL,
-            mtlsEnabled: false,
           },
         },
       ],
@@ -481,7 +480,7 @@ describe('ApplicationTabSettingsComponent - Certificates section visibility', ()
     await TestBed.configureTestingModule({
       imports: [ApplicationTabSettingsComponent, ConfirmDialogComponent, HttpClientTestingModule, NoopAnimationsModule, AppTestingModule],
       providers: [
-        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL, mtlsEnabled: true } },
+        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL, configuration: { portalNext: { mtls: { enabled: true } } } } },
         { provide: ApplicationCertificateService, useValue: { list: mockCertList } },
       ],
     }).compileComponents();
@@ -524,6 +523,28 @@ describe('ApplicationTabSettingsComponent - Certificates section visibility', ()
     updateHarness = await loader.getHarness(ApplicationTabSettingsEditHarness);
   }
 
+  async function initForLoadingState(application: Application, applicationType: ApplicationType) {
+    fixture = TestBed.createComponent(ApplicationTabSettingsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('applicationId', applicationId);
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
+    fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
+    fixture.detectChanges();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+    flushGetRequests(application);
+    await fixture.whenStable();
+
+    fixture.componentRef.instance.isEditing.set(true);
+    fixture.detectChanges();
+
+    // Do NOT call whenStable() here — rxResource with a never-emitting Subject
+    // keeps the zone unstable indefinitely. Flush the app GET from ngOnInit directly.
+    flushGetRequests(application);
+    fixture.detectChanges();
+  }
+
   describe('when application has no certificates', () => {
     beforeEach(async () => {
       mockCertList.mockReturnValue(of({ metadata: { paginateMetaData: { totalElements: 0 } } }));
@@ -549,12 +570,12 @@ describe('ApplicationTabSettingsComponent - Certificates section visibility', ()
   describe('when certificate count is still loading', () => {
     beforeEach(async () => {
       mockCertList.mockReturnValue(new Subject());
-      await init(simpleApplication, fakeSimpleApplicationType());
+      await initForLoadingState(simpleApplication, fakeSimpleApplicationType());
     });
 
-    it('should show loader and hide certificates section', async () => {
-      expect(await updateHarness.getCertificatesLoader()).not.toBeNull();
-      expect(await updateHarness.getCertificatesSection()).toBeNull();
+    it('should show loader and hide certificates section', () => {
+      expect(fixture.nativeElement.querySelector('app-loader')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-application-tab-settings-certificates')).toBeNull();
     });
   });
 

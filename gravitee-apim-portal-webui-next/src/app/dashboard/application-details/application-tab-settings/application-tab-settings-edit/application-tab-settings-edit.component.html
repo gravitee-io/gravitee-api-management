@@ -133,8 +133,8 @@
           }
         </div>
 
-        @if (configService.mtlsEnabled) {
-          @if (isCertificateCountLoading()) {
+        @if (mtlsEnabled) {
+          @if (certificates.isLoading()) {
             <app-loader />
           } @else if (showCertificates()) {
             <app-application-tab-settings-certificates

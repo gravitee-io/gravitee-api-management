@@ -45,10 +45,6 @@ export class ConfigService {
     return this._configuration ?? {};
   }
 
-  public get mtlsEnabled(): boolean {
-    return this._configuration?.portalNext?.mtls?.enabled === true;
-  }
-
   private set baseURL(baseURL: string) {
     this._baseURL = baseURL;
   }

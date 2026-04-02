@@ -15,7 +15,7 @@
  */
 import { AsyncPipe } from '@angular/common';
 import { Component, computed, inject, input, OnInit } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -27,11 +27,12 @@ import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { catchError, map, Observable, of, startWith, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
+import { map, Observable, of, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
+import { ClientCertificatesResponse } from '../../../../../entities/application/client-certificate';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
 import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
 import { ApplicationService } from '../../../../../services/application.service';
@@ -64,8 +65,6 @@ interface ApplicationGrantTypeVM {
   isDisabled: boolean;
 }
 
-type CertificateCountState = { status: 'loading' } | { status: 'loaded'; hasItems: boolean } | { status: 'error' } | { status: 'skipped' };
-
 @Component({
   selector: 'app-application-tab-settings-edit',
   imports: [
@@ -94,27 +93,20 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   applicationTypeConfiguration = input.required<ApplicationType>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
 
-  private readonly certificateCountResult = toSignal(
-    toObservable(this.applicationId).pipe(
-      switchMap(appId => {
-        if (!this.configService.mtlsEnabled) return of<CertificateCountState>({ status: 'skipped' });
-        return this.certService.list(appId, 1, 1).pipe(
-          map(res => ({ status: 'loaded' as const, hasItems: (res.metadata?.paginateMetaData?.totalElements ?? 0) > 0 })),
-          startWith<CertificateCountState>({ status: 'loading' }),
-          catchError(() => of<CertificateCountState>({ status: 'error' })),
-        );
-      }),
-    ),
-    { initialValue: { status: 'loading' } as CertificateCountState },
-  );
+  protected get mtlsEnabled(): boolean {
+    return this.configService.configuration?.portalNext?.mtls?.enabled === true;
+  }
 
-  isCertificateCountLoading = computed(() => this.certificateCountResult().status === 'loading');
+  protected readonly certificates = rxResource<ClientCertificatesResponse | undefined, string | null>({
+    params: () => (this.mtlsEnabled ? this.applicationId() : null),
+    stream: ({ params }) => (params ? this.certService.list(params, 1, 1) : of(undefined)),
+  });
 
   showCertificates = computed(() => {
-    const result = this.certificateCountResult();
-    if (result.status === 'skipped' || result.status === 'loading') return false;
-    if (result.status === 'error') return true;
-    return result.hasItems;
+    if (this.certificates.error()) return true;
+    const response = this.certificates.value();
+    if (!response) return false;
+    return (response.metadata?.paginateMetaData?.totalElements ?? 0) > 0;
   });
 
   application$!: Observable<Application>;

@@ -50,7 +50,6 @@ describe('ApplicationTabSettingsComponent - Read view', () => {
           provide: ConfigService,
           useValue: {
             baseURL: TESTING_BASE_URL,
-            mtlsEnabled: false,
           },
         },
       ],
