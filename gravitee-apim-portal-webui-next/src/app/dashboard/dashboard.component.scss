@@ -15,7 +15,7 @@
  */
 @use '@angular/material' as mat;
 @use '../../scss/theme' as app-theme;
-@use '../../scss/m3-adapter';
+@use '../../scss/typography';
 @use '../../scss/layout' as layout;
 
 :host {
@@ -41,6 +41,11 @@ app-sidenav-layout {
         button {
           justify-content: flex-start;
           text-align: start;
+
+          &.selected {
+            @extend .next-gen-small-bold;
+            color: app-theme.$primary-main-color;
+          }
         }
       }
     }
