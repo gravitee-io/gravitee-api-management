@@ -52,7 +52,6 @@ spec:
     type: "API"
     status: "PUBLISHED"
     order: 0
-    paths: {}
     comment_required: false
     flows: []
   path_mappings: []

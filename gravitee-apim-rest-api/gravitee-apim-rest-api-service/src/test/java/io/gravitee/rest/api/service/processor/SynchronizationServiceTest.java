@@ -60,7 +60,7 @@ public class SynchronizationServiceTest {
         entity.setServices(new Services());
         entity.setEntrypoints(new ArrayList<>());
 
-        int apiEntityRequiredFieldCount = 13;
+        int apiEntityRequiredFieldCount = 12;
 
         List<Object> requiredFields = synchronizationService.getRequiredFieldsForComparison(ApiEntity.class, entity);
 

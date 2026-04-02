@@ -66,7 +66,7 @@ class ManagementApiServicesManagerTest {
     class DeployServices {
 
         @ParameterizedTest
-        @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+        @EnumSource(value = DefinitionVersion.class, names = { "V2" })
         void should_not_deploy_service_for_non_v4_api(DefinitionVersion definitionVersion) {
             final Api api = ApiFixtures.aProxyApiV2();
             api.setDefinitionVersion(definitionVersion);
@@ -123,7 +123,7 @@ class ManagementApiServicesManagerTest {
     class StartDynamicProperties {
 
         @ParameterizedTest
-        @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+        @EnumSource(value = DefinitionVersion.class, names = { "V2" })
         void should_not_start_dp_for_non_v4_api(DefinitionVersion definitionVersion) {
             final Api api = ApiFixtures.aProxyApiV2();
             api.setDefinitionVersion(definitionVersion);

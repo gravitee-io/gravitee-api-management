@@ -144,7 +144,6 @@ describe('API - Visibility', () => {
         description: createdApi.description,
         version: createdApi.version,
         name: createdApi.name,
-        paths: createdApi.paths,
         proxy: createdApi.proxy,
         response_templates: createdApi.response_templates,
         lifecycle_state: ApiLifecycleState.PUBLISHED,

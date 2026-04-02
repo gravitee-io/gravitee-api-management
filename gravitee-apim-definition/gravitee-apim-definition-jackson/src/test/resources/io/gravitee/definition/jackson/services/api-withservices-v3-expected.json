@@ -21,11 +21,6 @@
     "strip_context_path": false
   },
 
-  "paths": {
-    "/*": [
-    ]
-  },
-
   "properties" : [ {
     "key" : "my_property",
     "value" : "true"

@@ -557,16 +557,6 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
-    public void definition_v2_withPath() throws Exception {
-        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-v2-withpath.json", Api.class));
-    }
-
-    @Test
-    public void definition_v1_withFlow() throws Exception {
-        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-v1-withflow.json", Api.class));
-    }
-
-    @Test
     public void shouldDefaultDefinitionExecutionModeEqualV3WhenJsonContainsNull() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-default-executionmode.json", Api.class);
 

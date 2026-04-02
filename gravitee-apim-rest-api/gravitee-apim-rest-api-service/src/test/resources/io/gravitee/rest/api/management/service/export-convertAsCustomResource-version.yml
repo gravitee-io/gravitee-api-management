@@ -56,7 +56,6 @@ spec:
     status: "PUBLISHED"
     api: "id-api"
     order: 0
-    paths: {}
     comment_required: false
     flows: []
   id: "id-api"

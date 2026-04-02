@@ -35,9 +35,6 @@
       }
     } ]
   },
-  "paths" : {
-    "/*" : [ ]
-  },
   "services" : {
     "health-check" : {
       "enabled" : false

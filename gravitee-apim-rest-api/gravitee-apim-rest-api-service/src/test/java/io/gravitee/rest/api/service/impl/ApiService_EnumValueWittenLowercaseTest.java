@@ -111,41 +111,6 @@ public class ApiService_EnumValueWittenLowercaseTest {
     }
 
     @Test
-    public void shouldConvertAsJsonForV1ExportWithUppercaseEnum() throws IOException {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(API_ID);
-        apiEntity.setName("test");
-        apiEntity.setDescription("Gravitee.io");
-        apiEntity.setVisibility(Visibility.PUBLIC);
-        apiEntity.setGraviteeDefinitionVersion("2.0.0");
-
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, ApiSerializer.Version.DEFAULT.getVersion());
-        metadata.put(
-            ApiSerializer.METADATA_FILTERED_FIELDS_LIST,
-            Arrays.asList("groups", "members", "pages", "plans", "metadata", "media")
-        );
-        apiEntity.setMetadata(metadata);
-
-        String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
-        assertThat(result).isEqualTo(
-            "{\n" +
-                "  \"name\" : \"test\",\n" +
-                "  \"execution_mode\" : \"v3\",\n" +
-                "  \"description\" : \"Gravitee.io\",\n" +
-                "  \"visibility\" : \"PUBLIC\",\n" +
-                "  \"paths\" : { },\n" +
-                "  \"gravitee\" : \"1.0.0\",\n" +
-                "  \"resources\" : [ ],\n" +
-                "  \"properties\" : [ ],\n" +
-                "  \"id\" : \"id-api\",\n" +
-                "  \"path_mappings\" : [ ],\n" +
-                "  \"disable_membership_notifications\" : false\n" +
-                "}"
-        );
-    }
-
-    @Test
     public void shouldConvertAsObjectForImportWithLowercaseEnum() throws IOException {
         final String lowercaseApiDefinition =
             "{\n" +

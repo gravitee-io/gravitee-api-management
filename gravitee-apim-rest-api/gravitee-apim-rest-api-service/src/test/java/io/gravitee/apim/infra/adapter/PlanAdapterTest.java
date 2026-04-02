@@ -281,7 +281,7 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("Comment message");
                 soft.assertThat(plan.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(plan.getCrossId()).isEqualTo("my-plan-crossId");
-                soft.assertThat(plan.getDefinition()).isEqualTo("{\"/\":[]}");
+                soft.assertThat(plan.getDefinition()).isNull();
                 soft.assertThat(plan.getDescription()).isEqualTo("Description");
                 soft.assertThat(plan.getExcludedGroups()).containsExactly("excludedGroup1", "excludedGroup2");
                 soft.assertThat(plan.getGeneralConditions()).isEqualTo("General conditions");

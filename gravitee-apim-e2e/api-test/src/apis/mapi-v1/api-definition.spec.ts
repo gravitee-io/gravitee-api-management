@@ -701,27 +701,6 @@ describe('API definition', () => {
     expect(primaryOwner.displayName).not.toEqual('foobar');
   });
 
-  test('should not downgrade definition version', async () => {
-    const definitionVersion = '1.0.0';
-    const jsonPatch = [
-      {
-        jsonPath: '$.gravitee',
-        value: definitionVersion,
-      },
-    ];
-
-    await fail(
-      apiDefinitionApi.patch({
-        orgId,
-        envId,
-        api,
-        jsonPatch,
-      }),
-      400,
-      'The definition versions 1.0.0 is not supported anymore.',
-    );
-  });
-
   test('should not inject script', async () => {
     const script = '<script src=”http://localhost:8080”></script>';
     const jsonPatch = [
