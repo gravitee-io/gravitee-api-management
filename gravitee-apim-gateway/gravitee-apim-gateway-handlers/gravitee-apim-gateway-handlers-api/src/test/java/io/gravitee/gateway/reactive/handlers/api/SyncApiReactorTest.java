@@ -771,6 +771,18 @@ class SyncApiReactorTest {
         verify(ctx.response()).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
     }
 
+    @Test
+    void shouldAlwaysExecuteAfterHandleProcessorsWhenOrganizationResponseFlowFails() throws Exception {
+        ExecutionFailure executionFailure = new ExecutionFailure(502).key("CUSTOM_ERROR");
+        when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
+        setupOrgFlowErrorTest(spy(Completable.error(new InterruptionFailureException(executionFailure))));
+
+        cut.handle(ctx).test().assertComplete();
+
+        // afterHandleProcessors must always execute (metrics, logging, etc.) even after org flow errors
+        verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
+    }
+
     private void setupOrgFlowErrorTest(Completable orgResponseFlowChain) throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
         when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
