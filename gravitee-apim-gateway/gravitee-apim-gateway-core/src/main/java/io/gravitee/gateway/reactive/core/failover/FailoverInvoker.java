@@ -51,9 +51,9 @@ import org.springframework.util.StringUtils;
 @CustomLog
 public class FailoverInvoker implements HttpInvoker, Invoker {
 
-    private final HttpInvoker delegate;
-    private final Failover failoverConfiguration;
-    private final EndpointManager endpointManager;
+    protected final HttpInvoker delegate;
+    protected final Failover failoverConfiguration;
+    protected final EndpointManager endpointManager;
 
     @VisibleForTesting
     final CircuitBreaker circuitBreaker;
@@ -214,7 +214,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      * @return a list of endpoint names in the calculated rotation order, or {@code null} if no
      *         valid endpoints are available or the rotation could not be determined.
      */
-    private List<String> buildEndpointRotation(HttpExecutionContext ctx) {
+    protected List<String> buildEndpointRotation(HttpExecutionContext ctx) {
         ManagedEndpoint selectedEndpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
         if (selectedEndpoint == null) {
             return null;
@@ -271,7 +271,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             .onErrorComplete(t -> !(t instanceof FailoverConditionMatchException));
     }
 
-    private String resolveCurrentEndpointName(HttpExecutionContext ctx) {
+    protected String resolveCurrentEndpointName(HttpExecutionContext ctx) {
         ManagedEndpoint endpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
         return endpoint != null ? endpoint.getDefinition().getName() : null;
     }
@@ -304,7 +304,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      * Captures the current request state (path, headers, body) so it can be restored on retry.
      * Calling {@code body()} also activates internal chunk caching, which is mandatory to replay the request.
      */
-    private Completable captureRequestState(HttpExecutionContext ctx, AtomicReference<RequestSnapshot> snapshotRef) {
+    protected Completable captureRequestState(HttpExecutionContext ctx, AtomicReference<RequestSnapshot> snapshotRef) {
         return FailoverRequestAdapter.forRequest(ctx.request())
             .body()
             // Body present: capture path, headers, and body for full replay
@@ -318,7 +318,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      * Restores the request to its initial state captured by {@link #captureRequestState}.
      * Removes response headers to avoid interference with subsequent response processing.
      */
-    private void restoreContextState(HttpExecutionContext ctx, RequestSnapshot snapshot) {
+    protected void restoreContextState(HttpExecutionContext ctx, RequestSnapshot snapshot) {
         if (ctx.request() instanceof HttpRequestInternal httpRequestInternal) {
             httpRequestInternal.pathInfo(snapshot.pathInfo());
         }
@@ -339,7 +339,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
     }
 
     @VisibleForTesting
-    record RequestSnapshot(String pathInfo, HttpHeaders headers, Buffer body) {
+    protected record RequestSnapshot(String pathInfo, HttpHeaders headers, Buffer body) {
         /** Captures request state including the body content for replay on retry. */
         static RequestSnapshot withBody(HttpExecutionContext ctx, Buffer body) {
             return new RequestSnapshot(ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), body);
