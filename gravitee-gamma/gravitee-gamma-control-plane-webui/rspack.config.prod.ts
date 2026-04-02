@@ -49,7 +49,7 @@ export default {
             main: './src/main.ts',
             index: './src/index.html',
             baseHref: '/',
-            assets: ['./src/assets'],
+            assets: ['./src/assets', './src/constants.json'],
             styles: ['./src/styles.css'],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',
