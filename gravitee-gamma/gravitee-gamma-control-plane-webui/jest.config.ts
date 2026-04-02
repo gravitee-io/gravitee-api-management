@@ -15,8 +15,9 @@
  */
 export default {
     displayName: 'gravitee-gamma-control-plane-webui',
-    testEnvironment: 'jsdom',
-    setupFiles: ['./src/test-setup.ts'],
+    testEnvironment: 'jest-fixed-jsdom',
+    setupFilesAfterEnv: ['./src/test-setup.ts'],
+    transformIgnorePatterns: ['/node_modules/(?!(until-async)/)'],
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
         '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
