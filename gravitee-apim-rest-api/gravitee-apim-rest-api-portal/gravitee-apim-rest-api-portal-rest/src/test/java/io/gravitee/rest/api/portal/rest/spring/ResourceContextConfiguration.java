@@ -24,12 +24,15 @@ import inmemory.ApiExposedEntrypointDomainServiceInMemory;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
+import inmemory.ClientCertificateCrudServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
@@ -62,6 +65,7 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
@@ -144,6 +148,7 @@ import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomai
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -159,6 +164,8 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.definition.Analyti
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.application_certificates.ClientCertificateDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.application_certificates.ClientCertificateValidationDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
@@ -1092,8 +1099,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public SubscriptionQueryServiceInMemory subscriptionQueryService() {
-        return new SubscriptionQueryServiceInMemory();
+    public ClientCertificateCrudServiceInMemory clientCertificateService() {
+        return new ClientCertificateCrudServiceInMemory();
+    }
+
+    @Bean
+    public SubscriptionQueryServiceInMemory subscriptionQueryService(
+        SubscriptionCrudServiceInMemory subscriptionCrudService,
+        PlanCrudServiceInMemory planCrudService
+    ) {
+        return new SubscriptionQueryServiceInMemory(subscriptionCrudService, planCrudService);
     }
 
     @Bean
@@ -1221,13 +1236,23 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    ClientCertificateDomainService clientCertificateDomainService() {
-        return mock(ClientCertificateDomainService.class);
+    ClientCertificateDomainService clientCertificateDomainService(
+        ClientCertificateCrudService clientCertificateService,
+        MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService,
+        SubscriptionQueryService subscriptionQueryService
+    ) {
+        return new ClientCertificateDomainServiceImpl(
+            clientCertificateService,
+            mtlsSubscriptionSyncDomainService,
+            subscriptionQueryService
+        );
     }
 
     @Bean
-    public ClientCertificateValidationDomainService clientCertificateValidationDomainService() {
-        return mock(ClientCertificateValidationDomainService.class);
+    public ClientCertificateValidationDomainService clientCertificateValidationDomainService(
+        ClientCertificateCrudService clientCertificateService
+    ) {
+        return new ClientCertificateValidationDomainServiceImpl(clientCertificateService);
     }
 
     @Bean
@@ -1246,13 +1271,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public UpdateClientCertificateUseCase updateClientCertificateUseCase() {
-        return mock(UpdateClientCertificateUseCase.class);
+    public UpdateClientCertificateUseCase updateClientCertificateUseCase(
+        ClientCertificateDomainService clientCertificateDomainService,
+        ClientCertificateValidationDomainService clientCertificateValidationDomainService
+    ) {
+        return new UpdateClientCertificateUseCase(clientCertificateDomainService, clientCertificateValidationDomainService);
     }
 
     @Bean
-    public DeleteClientCertificateUseCase deleteClientCertificateUseCase() {
-        return mock(DeleteClientCertificateUseCase.class);
+    public DeleteClientCertificateUseCase deleteClientCertificateUseCase(ClientCertificateDomainService clientCertificateDomainService) {
+        return new DeleteClientCertificateUseCase(clientCertificateDomainService);
     }
 
     @Bean

@@ -17,6 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.mockito.Mockito.reset;
 
+import inmemory.ClientCertificateCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
@@ -119,6 +122,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = { ResourceContextConfiguration.class })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
+
+    @Autowired
+    protected ClientCertificateCrudServiceInMemory clientCertificateService;
+
+    @Autowired
+    protected SubscriptionCrudServiceInMemory subscriptionCrudService;
+
+    @Autowired
+    protected PlanCrudServiceInMemory planCrudService;
 
     @Autowired
     protected CreateSubscriptionUseCase createSubscriptionUseCase;
@@ -369,8 +381,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
             getClientCertificatesUseCase,
             getClientCertificateUseCase,
             createClientCertificateUseCase,
-            updateClientCertificateUseCase,
-            deleteClientCertificateUseCase,
             apiService,
             apiSearchService,
             apiAuthorizationService,
@@ -439,6 +449,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
             themeMapper,
             endpointConnectorPluginService
         );
+        clientCertificateService.reset();
+        subscriptionCrudService.reset();
+        planCrudService.reset();
     }
 
     @Priority(50)

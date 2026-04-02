@@ -20,6 +20,9 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import inmemory.ClientCertificateCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
@@ -173,7 +176,13 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected CategoryService categoryService;
 
     @Autowired
-    protected ClientCertificateCrudService clientCertificateService;
+    protected ClientCertificateCrudServiceInMemory clientCertificateService;
+
+    @Autowired
+    protected SubscriptionCrudServiceInMemory subscriptionCrudService;
+
+    @Autowired
+    protected PlanCrudServiceInMemory planCrudService;
 
     @Autowired
     protected GetClientCertificateUseCase getClientCertificateUseCase;

@@ -17,22 +17,27 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
-import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
-import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +46,8 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
     private static final String APPLICATION_ID = "my-application";
     private static final String CERT_ID = "my-cert-id";
+    private static final String PLAN_ID = "plan-id";
+    private static final String API_ID = "api-id";
 
     @Override
     protected String contextPath() {
@@ -51,26 +58,25 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        reset(getClientCertificateUseCase, updateClientCertificateUseCase, deleteClientCertificateUseCase);
+        reset(getClientCertificateUseCase);
+        clientCertificateService.reset();
+        subscriptionCrudService.reset();
+        planCrudService.reset();
     }
 
     @Test
     public void should_get_client_certificate() {
-        var certificate = createClientCertificate(CERT_ID, "My Certificate");
-
+        var certificate = buildCertificate(CERT_ID, "My Certificate");
         when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenReturn(
             new GetClientCertificateUseCase.Output(certificate)
         );
-
         final Response response = envTarget().request().get();
-
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             var result = response.readEntity(io.gravitee.rest.api.model.clientcertificate.ClientCertificate.class);
             soft.assertThat(result.id()).isEqualTo(CERT_ID);
             soft.assertThat(result.name()).isEqualTo("My Certificate");
         });
-        verify(getClientCertificateUseCase).execute(any(GetClientCertificateUseCase.Input.class));
     }
 
     @Test
@@ -78,80 +84,78 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
         when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenThrow(
             new ClientCertificateNotFoundException(CERT_ID)
         );
-
         final Response response = envTarget().request().get();
-
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
 
     @Test
     public void should_update_client_certificate() {
+        clientCertificateService.initWith(List.of(buildCertificate(CERT_ID, "Original Name")));
         UpdateClientCertificate updateRequest = new UpdateClientCertificate(
             "Updated Certificate Name",
-            new Date(),
-            new Date(System.currentTimeMillis() + 86400000)
+            Date.from(Instant.now()),
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
         );
-
-        ClientCertificate updated = createClientCertificate(CERT_ID, "Updated Certificate Name");
-
-        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenReturn(
-            new UpdateClientCertificateUseCase.Output(updated)
-        );
-
         final Response response = envTarget().request().put(Entity.json(updateRequest));
-
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             var result = response.readEntity(io.gravitee.rest.api.model.clientcertificate.ClientCertificate.class);
             soft.assertThat(result.name()).isEqualTo("Updated Certificate Name");
         });
-        verify(updateClientCertificateUseCase).execute(any(UpdateClientCertificateUseCase.Input.class));
+        assertThat(clientCertificateService.storage().getFirst().name()).isEqualTo("Updated Certificate Name");
     }
 
     @Test
     public void should_not_update_client_certificate_without_name() {
         UpdateClientCertificate updateRequest = new UpdateClientCertificate(null, new Date(), null);
-
         final Response response = envTarget().request().put(Entity.json(updateRequest));
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+    }
 
+    @Test
+    public void should_return_400_when_updating_certificate_with_invalid_dates() {
+        clientCertificateService.initWith(List.of(buildCertificate(CERT_ID, "My Certificate")));
+        UpdateClientCertificate updateRequest = new UpdateClientCertificate(
+            "My Certificate",
+            Date.from(Instant.now().plus(2, ChronoUnit.DAYS)),
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
+        );
+        final Response response = envTarget().request().put(Entity.json(updateRequest));
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
     }
 
     @Test
     public void should_return_404_when_updating_non_existent_certificate() {
         UpdateClientCertificate updateRequest = new UpdateClientCertificate("Updated Certificate Name", null, null);
-
-        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenThrow(
-            new ClientCertificateNotFoundException(CERT_ID)
-        );
-
         final Response response = envTarget().request().put(Entity.json(updateRequest));
-
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
 
     @Test
     public void should_delete_client_certificate() {
-        doNothing().when(deleteClientCertificateUseCase).execute(any(DeleteClientCertificateUseCase.Input.class));
-
+        clientCertificateService.initWith(List.of(buildCertificate(CERT_ID, "My Certificate")));
         final Response response = envTarget().request().delete();
-
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
-        verify(deleteClientCertificateUseCase).execute(any(DeleteClientCertificateUseCase.Input.class));
+        assertThat(clientCertificateService.storage()).isEmpty();
+    }
+
+    @Test
+    public void should_return_400_when_deleting_last_active_certificate_with_mtls_subscriptions() {
+        clientCertificateService.initWith(List.of(buildCertificate(CERT_ID, "My Certificate")));
+        planCrudService.initWith(List.of(buildMtlsPlan()));
+        subscriptionCrudService.initWith(List.of(buildAcceptedSubscription()));
+        final Response response = envTarget().request().delete();
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        assertThat(clientCertificateService.storage()).hasSize(1);
     }
 
     @Test
     public void should_return_404_when_deleting_non_existent_certificate() {
-        doThrow(new ClientCertificateNotFoundException(CERT_ID))
-            .when(deleteClientCertificateUseCase)
-            .execute(any(DeleteClientCertificateUseCase.Input.class));
-
         final Response response = envTarget().request().delete();
-
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
 
-    private ClientCertificate createClientCertificate(String id, String name) {
+    private ClientCertificate buildCertificate(String id, String name) {
         return new ClientCertificate(
             id,
             null,
@@ -167,7 +171,33 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
             null,
             null,
             null,
-            null
+            ClientCertificateStatus.ACTIVE
         );
+    }
+
+    private Plan buildMtlsPlan() {
+        var planDefinition = io.gravitee.definition.model.v4.plan.Plan.builder()
+            .id(PLAN_ID)
+            .security(PlanSecurity.builder().type(PlanSecurityType.MTLS.name()).build())
+            .build();
+        return Plan.builder()
+            .id(PLAN_ID)
+            .apiId(API_ID)
+            .definitionVersion(DefinitionVersion.V4)
+            .planDefinitionHttpV4(planDefinition)
+            .build();
+    }
+
+    private SubscriptionEntity buildAcceptedSubscription() {
+        var now = ZonedDateTime.now();
+        return SubscriptionEntity.builder()
+            .id("sub-1")
+            .applicationId(APPLICATION_ID)
+            .planId(PLAN_ID)
+            .apiId(API_ID)
+            .status(SubscriptionEntity.Status.ACCEPTED)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
     }
 }
