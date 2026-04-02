@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsType;
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -25,10 +27,14 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsDateHistoResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsGroupByResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsStatsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -36,6 +42,8 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -43,6 +51,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -69,6 +78,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @Inject
+    private SearchApiAnalyticsUseCase searchApiAnalyticsUseCase;
 
     @Path("/requests-count")
     @GET
@@ -181,5 +193,105 @@ public class ApiAnalyticsResource extends AbstractResource {
         }
 
         return ApiAnalyticsMapper.INSTANCE.map(result);
+    }
+
+    /**
+     * Unified analytics endpoint supporting four query types.
+     *
+     * <p>Required parameters:
+     * <ul>
+     *   <li>{@code type}     – COUNT | STATS | GROUP_BY | DATE_HISTO</li>
+     *   <li>{@code from}     – start of the time window (epoch ms)</li>
+     *   <li>{@code to}       – end of the time window (epoch ms)</li>
+     *   <li>{@code field}    – metric field name (required for STATS and GROUP_BY)</li>
+     *   <li>{@code interval} – bucket interval in ms (required for DATE_HISTO)</li>
+     *   <li>{@code size}     – top-N limit for GROUP_BY (default 10)</li>
+     * </ul>
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public Response getApiAnalytics(
+        @QueryParam("type") String type,
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to,
+        @QueryParam("field") String field,
+        @QueryParam("interval") Long interval,
+        @QueryParam("size") @DefaultValue("10") int size
+    ) {
+        if (type == null || type.isBlank()) {
+            throw new BadRequestException("Query parameter 'type' is required. Allowed values: COUNT, STATS, GROUP_BY, DATE_HISTO");
+        }
+
+        AnalyticsType analyticsType;
+        try {
+            analyticsType = AnalyticsType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(
+                "Invalid value for query parameter 'type': '" + type + "'. Allowed values: COUNT, STATS, GROUP_BY, DATE_HISTO"
+            );
+        }
+
+        if ((analyticsType == AnalyticsType.STATS || analyticsType == AnalyticsType.GROUP_BY) && (field == null || field.isBlank())) {
+            throw new BadRequestException("Query parameter 'field' is required when type is " + analyticsType);
+        }
+
+        if (analyticsType == AnalyticsType.DATE_HISTO && interval == null) {
+            throw new BadRequestException("Query parameter 'interval' is required when type is DATE_HISTO");
+        }
+
+        var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
+        var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+
+        var input = new SearchApiAnalyticsUseCase.Input(
+            apiId,
+            GraviteeContext.getCurrentEnvironment(),
+            analyticsType,
+            start,
+            end,
+            Optional.ofNullable(field),
+            Optional.ofNullable(interval),
+            size
+        );
+
+        var output = searchApiAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        Object responseBody =
+            switch (output) {
+                case SearchApiAnalyticsUseCase.Output.Count c -> ApiAnalyticsCountResponse.builder().count(c.count()).build();
+                case SearchApiAnalyticsUseCase.Output.Stats s -> ApiAnalyticsStatsResponse
+                    .builder()
+                    .count(s.count())
+                    .min(s.min())
+                    .max(s.max())
+                    .avg(s.avg())
+                    .sum(s.sum())
+                    .build();
+                case SearchApiAnalyticsUseCase.Output.GroupBy g -> ApiAnalyticsGroupByResponse
+                    .builder()
+                    .values(g.values())
+                    .metadata(g.metadata())
+                    .build();
+                case SearchApiAnalyticsUseCase.Output.DateHisto h -> ApiAnalyticsDateHistoResponse
+                    .builder()
+                    .timestamp(h.timestamps())
+                    .values(
+                        h
+                            .buckets()
+                            .stream()
+                            .map(b ->
+                                ApiAnalyticsDateHistoResponse.Bucket
+                                    .builder()
+                                    .field(b.field())
+                                    .buckets(b.buckets())
+                                    .metadata(b.metadata())
+                                    .build()
+                            )
+                            .toList()
+                    )
+                    .build();
+            };
+
+        return Response.ok(responseBody).build();
     }
 }

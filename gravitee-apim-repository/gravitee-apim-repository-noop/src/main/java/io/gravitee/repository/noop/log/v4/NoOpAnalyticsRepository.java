@@ -18,6 +18,8 @@ package io.gravitee.repository.noop.log.v4;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.*;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
@@ -74,6 +76,21 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
     public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<DateHistoAggregate> searchDateHisto(QueryContext queryContext, DateHistoQuery query) {
         return Optional.empty();
     }
 }

@@ -15,7 +15,10 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsDateHisto;
+import io.gravitee.apim.core.analytics.model.AnalyticsGroupBy;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsStats;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -44,6 +47,9 @@ import java.util.Optional;
 public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     public RequestsCount requestsCount;
+    public AnalyticsStats analyticsStats;
+    public AnalyticsGroupBy analyticsGroupBy;
+    public AnalyticsDateHisto analyticsDateHisto;
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
@@ -57,6 +63,35 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(requestsCount);
+    }
+
+    @Override
+    public Optional<AnalyticsStats> searchStats(ExecutionContext executionContext, String apiId, String field, Instant from, Instant to) {
+        return Optional.ofNullable(analyticsStats);
+    }
+
+    @Override
+    public Optional<AnalyticsGroupBy> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        int size,
+        Instant from,
+        Instant to
+    ) {
+        return Optional.ofNullable(analyticsGroupBy);
+    }
+
+    @Override
+    public Optional<AnalyticsDateHisto> searchDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        Duration interval,
+        Instant from,
+        Instant to
+    ) {
+        return Optional.ofNullable(analyticsDateHisto);
     }
 
     @Override
@@ -81,6 +116,9 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     public void reset() {
         requestsCount = null;
+        analyticsStats = null;
+        analyticsGroupBy = null;
+        analyticsDateHisto = null;
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
         averageAggregate = new LinkedHashMap<>();

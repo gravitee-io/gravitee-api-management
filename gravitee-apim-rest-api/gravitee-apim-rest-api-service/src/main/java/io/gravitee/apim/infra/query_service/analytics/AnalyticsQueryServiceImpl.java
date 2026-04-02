@@ -15,7 +15,10 @@
  */
 package io.gravitee.apim.infra.query_service.analytics;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsDateHisto;
+import io.gravitee.apim.core.analytics.model.AnalyticsGroupBy;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsStats;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
@@ -24,9 +27,12 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -72,6 +78,46 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
             );
+    }
+
+    @Override
+    public Optional<AnalyticsGroupBy> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        int size,
+        Instant from,
+        Instant to
+    ) {
+        return analyticsRepository
+            .searchGroupBy(executionContext.getQueryContext(), new GroupByQuery(apiId, field, size, from, to))
+            .map(agg -> new AnalyticsGroupBy(agg.getValues(), agg.getMetadata()));
+    }
+
+    @Override
+    public Optional<AnalyticsDateHisto> searchDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        Duration interval,
+        Instant from,
+        Instant to
+    ) {
+        return analyticsRepository
+            .searchDateHisto(executionContext.getQueryContext(), new DateHistoQuery(apiId, field, interval, from, to))
+            .map(agg ->
+                new AnalyticsDateHisto(
+                    agg.getTimestamps(),
+                    agg.getBuckets().stream().map(b -> new AnalyticsDateHisto.Bucket(b.getField(), b.getCounts(), b.getMetadata())).toList()
+                )
+            );
+    }
+
+    @Override
+    public Optional<AnalyticsStats> searchStats(ExecutionContext executionContext, String apiId, String field, Instant from, Instant to) {
+        return analyticsRepository
+            .searchStats(executionContext.getQueryContext(), new StatsQuery(apiId, field, from, to))
+            .map(agg -> new AnalyticsStats(agg.getCount(), agg.getMin(), agg.getMax(), agg.getAvg(), agg.getSum()));
     }
 
     @Override
