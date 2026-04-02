@@ -28,7 +28,6 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -76,7 +75,7 @@ public class UpdateSubscriptionFormUseCase {
     private void validateFieldCount(SubscriptionFormSchema schema) {
         if (schema != null && schema.fields().size() > SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT) {
             throw new SubscriptionFormDefinitionValidationException(
-                List.of("Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields")
+                "Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"
             );
         }
     }
