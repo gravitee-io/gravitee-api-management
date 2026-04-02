@@ -13,39 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TextEncoder, TextDecoder } from 'util';
+import { act } from '@testing-library/react';
 
-Object.assign(global, { TextEncoder, TextDecoder });
+import { resetAllStores, seedBootstrap } from './testing/helpers';
+import { server } from './testing/server';
 
-// jsdom does not provide a native fetch — stub it so module-level code that
-// calls fetch (e.g. bootstrap-context, auth-context) does not crash on import.
-global.fetch = jest.fn((url: string) => {
-    if (url === '/constants.json') {
-        return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ gammaBaseURL: 'http://localhost:8083/gamma' }),
-        });
-    }
-    if (url.includes('/gamma/ui/bootstrap')) {
-        return Promise.resolve({
-            ok: true,
-            json: () =>
-                Promise.resolve({
-                    gammaBaseURL: 'http://localhost:8083/gamma',
-                    managementBaseURL: 'http://localhost:8083/management',
-                    organizationId: 'DEFAULT',
-                }),
-        });
-    }
-    if (url.endsWith('/user')) {
-        return Promise.resolve({
-            ok: true,
-            headers: new Headers(),
-            json: () => Promise.resolve({ displayName: 'Test', email: 'test@test.com', firstname: 'Test', lastname: 'User' }),
-        });
-    }
-    if (url.includes('/modules')) {
-        return Promise.resolve({ ok: true, headers: new Headers(), json: () => Promise.resolve([]) });
-    }
-    return Promise.resolve({ ok: false, status: 404, headers: new Headers(), json: () => Promise.resolve({}) });
-}) as jest.Mock;
+beforeAll(() => {
+    server.listen({ onUnhandledRequest: 'error' });
+});
+beforeEach(() => seedBootstrap());
+afterEach(() => {
+    server.resetHandlers();
+    act(() => {
+        resetAllStores();
+    });
+});
+afterAll(() => server.close());
