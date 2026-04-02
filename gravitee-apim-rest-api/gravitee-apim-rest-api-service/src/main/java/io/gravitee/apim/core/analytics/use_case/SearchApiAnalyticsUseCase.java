@@ -34,10 +34,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Unified analytics use case supporting COUNT, STATS, GROUP_BY and DATE_HISTO query types.
+ * Unified analytics use case supporting COUNT, STATS, GROUP_BY and DATE_HISTO query types
+ * via the single {@code GET /v2/apis/{apiId}/analytics} endpoint.
  *
- * <p>Story 1 wires up the validation pipeline and output type hierarchy.
- * Each type's data-fetching branch is filled in by Stories 2–5.</p>
+ * <p>All four query types share the same validation pipeline:
+ * <ol>
+ *   <li>API must exist (throws {@link ApiNotFoundException})</li>
+ *   <li>API must be V4 (throws {@link ApiInvalidDefinitionVersionException})</li>
+ *   <li>API must not be a TCP proxy (throws {@link TcpProxyNotSupportedException})</li>
+ *   <li>API must belong to the caller's environment (multi-tenancy guard)</li>
+ * </ol>
+ * Field and interval validation for STATS/GROUP_BY/DATE_HISTO is intentionally kept
+ * in the REST layer ({@code ApiAnalyticsResource}) so the use case stays focused on
+ * business rules, not HTTP concerns.
+ * </p>
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -47,6 +57,19 @@ public class SearchApiAnalyticsUseCase {
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
+    /**
+     * Validates the target API and dispatches to the appropriate analytics query.
+     *
+     * <p>Validation always runs in full before any query is executed, so callers
+     * receive a domain exception (not a partial result) when the API is invalid.</p>
+     *
+     * @param executionContext organisation/environment context for the Elasticsearch tenant
+     * @param input           query parameters including type discriminator and optional field/interval
+     * @return a sealed {@link Output} variant whose concrete type matches {@link Input#type()}
+     * @throws ApiNotFoundException                if the API does not exist or belongs to a different environment
+     * @throws ApiInvalidDefinitionVersionException if the API is not V4
+     * @throws TcpProxyNotSupportedException        if the API is a TCP proxy (no HTTP metrics)
+     */
     public Output execute(ExecutionContext executionContext, Input input) {
         var api = apiCrudService.get(input.apiId());
         validateApiDefinitionVersion(api, input.apiId());

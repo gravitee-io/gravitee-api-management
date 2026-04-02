@@ -29,27 +29,35 @@ export interface AnalyticsCount {
 export interface AnalyticsStats {
   type: 'STATS';
   count: number;
+  /** null when no documents matched (backend returns null, not 0) */
   min: number | null;
   max: number | null;
+  /** Primary metric displayed in the Traffic Overview cards */
   avg: number | null;
   sum: number | null;
 }
 
 export interface AnalyticsGroupBy {
   type: 'GROUP_BY';
+  /** Keyed by the field value (e.g. HTTP status code "200"), value is document count */
   values: Record<string, number>;
+  /** Optional display metadata per field value (e.g. human-readable label) */
   metadata: Record<string, Record<string, string>>;
 }
 
 export interface AnalyticsDateHistoBucket {
+  /** The distinct field value this series represents (e.g. "200", "404") */
   field: string;
+  /** Counts parallel-aligned to the parent {@link AnalyticsDateHisto.timestamp} array */
   buckets: number[];
   metadata: Record<string, string>;
 }
 
 export interface AnalyticsDateHisto {
   type: 'DATE_HISTO';
+  /** Epoch-ms start of each time bucket, ascending */
   timestamp: number[];
+  /** One entry per distinct field value; each Bucket.buckets array aligns with timestamp */
   values: AnalyticsDateHistoBucket[];
 }
 
@@ -62,9 +70,14 @@ export type AnalyticsResponse = AnalyticsCount | AnalyticsStats | AnalyticsGroup
 
 export interface AnalyticsQueryParams {
   type: AnalyticsQueryType;
+  /** Epoch-ms start of the query window */
   from: number;
+  /** Epoch-ms end of the query window */
   to: number;
+  /** Required for STATS, GROUP_BY, and DATE_HISTO; ignored for COUNT */
   field?: string;
+  /** Bucket width in ms — required for DATE_HISTO */
   interval?: number;
+  /** Top-N limit for GROUP_BY (backend default: 10) */
   size?: number;
 }

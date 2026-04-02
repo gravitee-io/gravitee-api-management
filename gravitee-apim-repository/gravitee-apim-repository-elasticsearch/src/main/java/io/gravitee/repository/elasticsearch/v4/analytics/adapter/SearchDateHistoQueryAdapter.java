@@ -48,6 +48,17 @@ public class SearchDateHistoQueryAdapter {
 
     private SearchDateHistoQueryAdapter() {}
 
+    /**
+     * Serialises a {@link DateHistoQuery} to an Elasticsearch {@code date_histogram} JSON request.
+     *
+     * <p>{@code esInfo} is required to select the correct interval field name:
+     * ES 7.2+ uses {@code "fixed_interval"} while older versions use the deprecated
+     * {@code "interval"} parameter — see {@link io.gravitee.elasticsearch.version.ElasticsearchVersion#canUseDateHistogramFixedInterval()}.</p>
+     *
+     * @param query  the histogram parameters (field, interval, time bounds, API filter)
+     * @param esInfo runtime Elasticsearch version info used for version-aware query building
+     * @return a JSON string ready to be posted to the {@code _search} endpoint
+     */
     public static String adaptQuery(DateHistoQuery query, ElasticsearchInfo esInfo) {
         return json()
             .put("size", 0)
@@ -56,6 +67,24 @@ public class SearchDateHistoQueryAdapter {
             .toString();
     }
 
+    /**
+     * Parses an Elasticsearch {@code date_histogram} response into a {@link DateHistoAggregate}.
+     *
+     * <p>Design notes:
+     * <ul>
+     *   <li>A {@link TreeMap} is used for {@code timestampToFieldCounts} so that the epoch-ms
+     *       keys are iterated in ascending chronological order without an explicit sort step.</li>
+     *   <li>A {@link TreeSet} is used for {@code fieldValues} so that the series order is
+     *       deterministic (natural string ordering of field values like HTTP status codes),
+     *       making the parallel arrays stable across calls.</li>
+     *   <li>The {@code counts} array for every bucket is aligned to the {@code timestamps}
+     *       list — missing sub-buckets (field values with zero hits in a time slot) are
+     *       filled with {@code 0L} via {@link Map#getOrDefault}.</li>
+     * </ul></p>
+     *
+     * @param response the raw Elasticsearch search response
+     * @return empty if the response contains no aggregation buckets
+     */
     public static Optional<DateHistoAggregate> adaptResponse(SearchResponse response) {
         final Map<String, Aggregation> aggregations = response.getAggregations();
         if (aggregations == null || aggregations.isEmpty()) {

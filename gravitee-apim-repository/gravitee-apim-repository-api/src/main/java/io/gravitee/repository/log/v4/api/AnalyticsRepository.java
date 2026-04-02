@@ -45,10 +45,22 @@ import java.util.Optional;
 public interface AnalyticsRepository {
     Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
 
+    /**
+     * Executes a stats aggregation (count, min, max, avg, sum) against the analytics index.
+     * The target field is carried inside {@link StatsQuery}.
+     */
     Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query);
 
+    /**
+     * Executes a terms aggregation against the analytics index, returning top-N values
+     * for the field specified in {@link GroupByQuery}.
+     */
     Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query);
 
+    /**
+     * Executes a date_histogram aggregation with a per-bucket terms sub-aggregation,
+     * returning time-aligned counts for each distinct field value in {@link DateHistoQuery}.
+     */
     Optional<DateHistoAggregate> searchDateHisto(QueryContext queryContext, DateHistoQuery query);
 
     Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query);

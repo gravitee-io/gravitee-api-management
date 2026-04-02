@@ -45,6 +45,7 @@ function statusColor(code: string): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiAnalyticsStatusPieComponent implements OnInit {
+  /** The V4 API identifier used to scope the GROUP_BY analytics query. */
   @Input({ required: true }) apiId: string;
 
   public isLoading = true;
@@ -65,6 +66,8 @@ export class ApiAnalyticsStatusPieComponent implements OnInit {
         switchMap(() => {
           this.isLoading = true;
           this.hasError = false;
+          // OnPush: mutating component state outside the Angular zone (inside subscribe)
+          // does not schedule a check automatically — markForCheck() propagates upward.
           this.cdr.markForCheck();
           return this.apiAnalyticsV2Service.getAnalytics<AnalyticsGroupBy>(this.apiId, { type: 'GROUP_BY', field: 'status' });
         }),

@@ -42,8 +42,25 @@ import org.checkerframework.checker.units.qual.A;
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
+    /**
+     * Returns statistical aggregates (count, min, max, avg, sum) for a numeric field.
+     *
+     * @param field the indexed metric field name (e.g. {@code "gateway-response-time-ms"})
+     * @param from  start of the time window; {@code null} uses the backend default
+     * @param to    end of the time window; {@code null} defaults to now
+     * @return empty if no documents matched the window
+     */
     Optional<AnalyticsStats> searchStats(ExecutionContext executionContext, String apiId, String field, Instant from, Instant to);
 
+    /**
+     * Returns the top-N document counts keyed by the distinct values of {@code field}.
+     *
+     * @param field the field to group by (e.g. {@code "status"})
+     * @param size  maximum number of distinct values to return (top-N by count)
+     * @param from  start of the time window; {@code null} uses the backend default
+     * @param to    end of the time window; {@code null} defaults to now
+     * @return empty if no documents matched the window
+     */
     Optional<AnalyticsGroupBy> searchGroupBy(
         ExecutionContext executionContext,
         String apiId,
@@ -53,6 +70,19 @@ public interface AnalyticsQueryService {
         Instant to
     );
 
+    /**
+     * Returns a time-bucketed histogram with one series per distinct value of {@code field}.
+     *
+     * <p>The response carries parallel arrays: {@code timestamps} lists each bucket's start
+     * epoch (ms), and each {@code Bucket.counts} array is aligned to those timestamps
+     * (index 0 of counts corresponds to index 0 of timestamps).</p>
+     *
+     * @param field    the field to sub-aggregate within each time bucket (e.g. {@code "status"})
+     * @param interval bucket width; must be positive
+     * @param from     start of the time window; {@code null} uses the backend default
+     * @param to       end of the time window; {@code null} defaults to now
+     * @return empty if no documents matched the window
+     */
     Optional<AnalyticsDateHisto> searchDateHisto(
         ExecutionContext executionContext,
         String apiId,
