@@ -17,10 +17,9 @@
 -->
 @if (node().type === 'LINK') {
   <a
-    class="tree__row nav-button tree__link"
+    class="tree__row nav-button tree__link next-gen-small"
     role="treeitem"
     mat-stroked-button
-    [class.m3-selected-nav-item]="isSelected()"
     [class.child]="level() > 0"
     [style.--level]="level()"
     [attr.aria-level]="level() + 1"
@@ -37,12 +36,12 @@
   @let isContainer = node().type === 'FOLDER' || node().type === 'API';
 
   <button
-    class="tree__row nav-button"
+    class="tree__row nav-button next-gen-small"
     role="treeitem"
     mat-stroked-button
-    [class.m3-selected-nav-item]="isSelected()"
     [class.folder]="node().type === 'FOLDER'"
     [class.api]="node().type === 'API'"
+    [class.selected]="isSelected()"
     [class.child]="level() > 0"
     [style.--level]="level()"
     [attr.aria-level]="level() + 1"

@@ -17,6 +17,7 @@ import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
+import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
@@ -85,6 +86,12 @@ export const appConfig: ApplicationConfig = {
     {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: { dateFormat: 'yyyy-MM-dd HH:mm:ss.SSS' },
+    },
+    {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: {
+        minWidth: '440px',
+      },
     },
     provideCharts(withDefaultRegisterables()),
   ],
