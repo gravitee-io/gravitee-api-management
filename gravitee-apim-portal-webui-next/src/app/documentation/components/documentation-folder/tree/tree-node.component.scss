@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use 'sass:map';
 @use '../../../../../scss/theme';
-@use '../../../../../scss/m3-adapter';
+@use '../../../../../scss/typography';
 
 $indent-base: 4px;
-$folder-indent-step: 26px;
-$indent-step: 26px;
+$indent-step: 25px;
+$folder-indent-step: $indent-step;
 
 :host {
   display: flex;
@@ -34,11 +33,13 @@ $indent-step: 26px;
     overflow: hidden;
     align-items: center;
     justify-content: flex-start;
-    padding: 12px 4px 12px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
+    padding: 10px 10px 10px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
     border: none;
     border-radius: 5px;
     background: none;
     cursor: pointer;
+    text-align: left;
+    height: fit-content;
 
     &.folder,
     &.api {
@@ -47,6 +48,11 @@ $indent-step: 26px;
       &.child {
         padding-left: calc(#{$indent-base} + (var(--level) * #{$folder-indent-step}));
       }
+    }
+
+    &.selected {
+      @extend .next-gen-small-bold;
+      color: theme.$primary-main-color;
     }
   }
 
