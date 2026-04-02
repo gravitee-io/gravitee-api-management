@@ -55,7 +55,7 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void should_do_nothing_on_not_v4_api_deploy(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.DEPLOY, eventApi);
@@ -78,7 +78,7 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void should_do_nothing_on_not_v4_api_undeploy(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.UNDEPLOY, eventApi);
@@ -101,7 +101,7 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void should_do_nothing_on_not_v4_api_update(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.UPDATE, eventApi);
@@ -124,7 +124,7 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void should_do_nothing_on_not_v4_api_dynamic_property_started(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, eventApi);
@@ -148,7 +148,7 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void should_do_nothing_on_not_v4_api_dynamic_property_stopped(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, eventApi);

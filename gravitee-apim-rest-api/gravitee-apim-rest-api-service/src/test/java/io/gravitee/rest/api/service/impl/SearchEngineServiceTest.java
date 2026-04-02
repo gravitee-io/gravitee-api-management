@@ -674,8 +674,6 @@ public class SearchEngineServiceTest {
             // Actually we index hrid categories...
             apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
             apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        } else {
-            apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         }
 
         apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));

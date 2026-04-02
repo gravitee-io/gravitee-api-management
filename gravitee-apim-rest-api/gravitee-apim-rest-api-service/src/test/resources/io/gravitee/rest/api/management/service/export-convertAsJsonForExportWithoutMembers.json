@@ -112,23 +112,6 @@
       "status": "PUBLISHED",
       "api": "id-api",
       "order": 0,
-      "paths": {
-        "/": [
-          {
-            "methods": [
-              "GET"
-            ],
-            "rate-limit": {
-              "rate": {
-                "limit": 1,
-                "periodTime": 1,
-                "periodTimeUnit": "SECONDS"
-              }
-            },
-            "enabled": true
-          }
-        ]
-      },
       "flows": [],
       "comment_required": false,
       "excluded_groups": [

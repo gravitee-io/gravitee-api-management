@@ -103,7 +103,6 @@ describe('API - V2 - Rollback', () => {
             proxy: importedApi.proxy,
             labels: importedApi.labels,
             flow_mode: importedApi.flow_mode,
-            paths: importedApi.paths,
             flows: importedApi.flows,
             plans: importedApi.plans,
             execution_mode: importedApi.execution_mode,

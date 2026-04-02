@@ -221,19 +221,6 @@ public class IndexableApiDocumentTransformerTest {
     }
 
     @Test
-    void should_throw_when_not_V4_api() {
-        // Given
-        var apiV2 = Api.builder().id(API_ID).lifecycleState(Api.LifecycleState.STARTED).definitionVersion(DefinitionVersion.V2).build();
-        var indexable = new IndexableApi(apiV2, PRIMARY_OWNER, Map.of(), Set.of());
-
-        // When
-        var throwable = catchThrowable(() -> cut.transform(indexable));
-
-        // Then
-        assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessage("Unsupported definition version: V2");
-    }
-
-    @Test
     void should_transform_a_federated_api() {
         // Given
         var indexable = new IndexableApi(

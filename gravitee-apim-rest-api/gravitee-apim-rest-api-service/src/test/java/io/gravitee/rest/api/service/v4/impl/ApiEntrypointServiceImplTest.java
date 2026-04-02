@@ -280,7 +280,7 @@ class ApiEntrypointServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void shouldReturnHttpEntrypointListenerForV1AndV2Api(DefinitionVersion version) {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(version);

@@ -1230,7 +1230,7 @@ public class ApiService_UpdateTest {
                 API_ID +
                 "\",\"name\": \"" +
                 API_NAME +
-                "\",\"gravitee\": \"2.0.0\"" +
+                "\",\"gravitee\": \"4.0.0\"" +
                 ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
         );
 

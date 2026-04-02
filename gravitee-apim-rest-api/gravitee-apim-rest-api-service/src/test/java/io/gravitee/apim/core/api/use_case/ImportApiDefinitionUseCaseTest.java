@@ -177,7 +177,7 @@ class ImportApiDefinitionUseCaseTest {
     }
 
     @ParameterizedTest(name = "Test for API import with {0} definition version")
-    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
     void should_not_allow_import_with_api_definition_version(DefinitionVersion definitionVersion) {
         // Given
         var importDefinition = ImportDefinition.builder()

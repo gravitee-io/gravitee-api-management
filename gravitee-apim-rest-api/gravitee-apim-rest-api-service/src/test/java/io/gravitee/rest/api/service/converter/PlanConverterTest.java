@@ -220,7 +220,7 @@ public class PlanConverterTest {
         assertEquals(Plan.PlanValidationType.MANUAL, plan.getValidation());
         assertEquals(newPlan.getCharacteristics(), plan.getCharacteristics());
         assertNull(plan.getPublishedAt());
-        assertNotNull(plan.getDefinition());
+        assertNull(plan.getDefinition());
     }
 
     @Test
