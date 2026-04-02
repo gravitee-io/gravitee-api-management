@@ -105,6 +105,19 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectAnalyticsStatusPie(fakeAnalyticsGroupBy({ values: { '200': 10 } }));
     });
 
+    it('should render pie chart and overtime in two-column row', async () => {
+      expectAnalyticsCount(fakeAnalyticsCount());
+      expectAnalyticsGatewayRt(fakeAnalyticsStats());
+      expectAnalyticsUpstreamRt(fakeAnalyticsStats());
+      expectAnalyticsContentLength(fakeAnalyticsStats());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+
+      expect(fixture.nativeElement.querySelector('api-analytics-status-pie')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('api-analytics-response-status-overtime')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('api-analytics-response-time-over-time')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.analytics-row-2col')).toBeTruthy();
+    });
+
     it('should display Traffic Overview - 4 stats cards', async () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
       const requestStats = await componentHarness.getRequestStatsHarness('Traffic Overview');

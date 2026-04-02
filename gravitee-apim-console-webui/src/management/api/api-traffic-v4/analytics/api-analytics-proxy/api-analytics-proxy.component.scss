@@ -17,3 +17,9 @@
   width: 100%;
   grid-column: 1 / 3;
 }
+
+.analytics-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
