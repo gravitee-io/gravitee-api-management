@@ -171,11 +171,11 @@ describe('TreeNodeComponent', () => {
     await init({ node });
 
     const row = fixture.debugElement.query(By.css('.tree__row'));
-    expect(row.nativeElement.classList.contains('m3-selected-nav-item')).toBe(false);
+    expect(row.nativeElement.classList.contains('selected')).toBe(false);
 
     fixture.componentRef.setInput('selectedId', 'n1');
     fixture.detectChanges();
 
-    expect(row.nativeElement.classList.contains('m3-selected-nav-item')).toBe(true);
+    expect(row.nativeElement.classList.contains('selected')).toBe(true);
   });
 });
