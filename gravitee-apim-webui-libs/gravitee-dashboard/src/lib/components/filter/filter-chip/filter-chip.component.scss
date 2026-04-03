@@ -1,0 +1,68 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Customizable tokens (set on the gd-filter-chip element or any ancestor):
+ *
+ *   --gd-filter-chip-radius        border radius               (default: 6px — rectangular pill)
+ *   --gd-filter-chip-height        chip height                 (default: 24px)
+ *   --gd-filter-chip-padding-h     horizontal padding          (default: 8px)
+ *   --gd-filter-chip-background    background color            (default: --mat-sys-primary-container)
+ *   --gd-filter-chip-color         label + icon color          (default: --mat-sys-on-primary-container)
+ *                                  ⚠ Always set both background and color together
+ *                                  to ensure sufficient WCAG contrast (min 4.5:1).
+ *   --gd-filter-chip-border-width  outline width               (default: 0 — no border)
+ *   --gd-filter-chip-border-color  outline color               (only used when border-width > 0)
+ *   --gd-filter-chip-font-family   label font family           (default: inherit — picks up the app's body font)
+ *   --gd-filter-chip-font-size     label font size             (default: 12px)
+ *   --gd-filter-chip-font-weight   label font weight           (default: 600 — bold)
+ *
+ * Color resolution order (cascade):
+ *   1. --gd-filter-chip-* (consumer explicit override — highest priority)
+ *   2. --mat-sys-primary-container / on-primary-container (M3 theme — automatic)
+ *   3. Hardcoded fallback (M2 apps or no theme configured)
+ *
+ * Implementation note: ViewEncapsulation.None means Angular does NOT compile
+ * :host — the component selector is used as the CSS scope directly.
+ * Official --mat-chip-* tokens cascade into mat-chip via CSS custom property
+ * inheritance. Padding has no official token and is overridden directly.
+ */
+gd-filter-chip {
+  cursor: pointer;
+
+  // Official Angular Material chip tokens.
+  // Background → primary-container (light tint), text/icon → on-primary-container (dark readable).
+  // No border by default — cleaner appearance matching the reference design.
+  // Hardcoded fallbacks are a last-resort for M2 environments without --mat-sys-* tokens.
+  --mat-chip-container-shape-radius: var(--gd-filter-chip-radius, 6px);
+  --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
+  --mat-chip-elevated-container-color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
+  --mat-chip-label-text-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
+  --mat-chip-label-text-font: var(--gd-filter-chip-font-family, inherit);
+  --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
+  --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
+  --mat-chip-with-icon-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
+  --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
+  --mat-chip-outline-width: var(--gd-filter-chip-border-width, 0px);
+  --mat-chip-outline-color: var(--gd-filter-chip-border-color, var(--mat-sys-on-primary-container, #f15115));
+}
+
+// Horizontal padding has no official token — direct override is required.
+// Specificity (0,2,1) beats Material's (0,2,0).
+// Handles the trailing-action variant (our chip always has matChipRemove).
+gd-filter-chip .mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action .mdc-evolution-chip__action--primary {
+  padding-left: var(--gd-filter-chip-padding-h, 8px);
+}

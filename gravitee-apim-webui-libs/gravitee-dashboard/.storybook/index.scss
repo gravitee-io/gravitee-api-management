@@ -1,2 +1,47 @@
 @import '@angular/material/prebuilt-themes/azure-blue.css';
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+// Self-hosted fonts — same packages used by @gravitee/ui-particles-angular.
+// Avoids Google Fonts network dependency and ensures Storybook matches console-webui.
+@import '@fontsource/material-icons/400.css';
+@import '@fontsource/kanit/400.css';
+@import '@fontsource/kanit/500.css';
+@import '@fontsource/kanit/600.css';
+
+// @fontsource only ships the @font-face declaration.
+// The .material-icons class (ligatures, sizing) must be added manually —
+// identical to what @gravitee/ui-particles-angular gio-fonts.scss mixin does.
+.material-icons {
+  display: inline-block;
+  direction: ltr;
+  // stylelint-disable-next-line font-family-no-missing-generic-family-keyword
+  font-family: 'Material Icons';
+  font-feature-settings: 'liga';
+  font-size: 24px;
+  font-style: normal;
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Override M3 primary system tokens with Gravitee orange tonal palette.
+// Seed color: #fe733f (Gravitee lighter orange — brand color used in console-webui buttons).
+// Chip design: light orange background (#fff3eb) + bold dark orange text (#f15115).
+// #f15115 on #fff3eb → ~3.3:1 contrast (bold 12px — consistent with Gravitee button style).
+html {
+  font-family: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-primary: #fe733f;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #fff3eb;
+  --mat-sys-on-primary-container: #f15115;
+  --mat-sys-primary-fixed: #ffe9d9;
+  --mat-sys-primary-fixed-dim: #ffb990;
+  --mat-sys-on-primary-fixed: #9c3900;
+  --mat-sys-on-primary-fixed-variant: #c45200;
+  --mat-sys-inverse-primary: #ffb990;
+}
