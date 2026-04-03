@@ -19,7 +19,7 @@
   <span class="gd-filter-chip__name">{{ labelParts().name }}</span>
   @if (labelParts().operator) {
     <span class="gd-filter-chip__operator">{{ labelParts().operator }}</span>
-    <span class="gd-filter-chip__value">{{ labelParts().value }}</span>
+    <span class="gd-filter-chip__value" [class.gd-filter-chip__value--badge]="labelParts().isCount">{{ labelParts().value }}</span>
   }
   <mat-icon matChipRemove (mousedown)="onRemovePointerDown($event)" (click)="$event.stopPropagation()">close</mat-icon>
 </mat-chip>

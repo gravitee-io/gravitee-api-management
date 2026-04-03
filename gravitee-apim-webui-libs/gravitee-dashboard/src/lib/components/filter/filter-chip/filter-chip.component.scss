@@ -72,15 +72,19 @@ gd-filter-chip .mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action .
 // the Roboto value set by the prebuilt Material theme on :root, not the body font-family.
 // Targeting the label element directly makes CSS inherit work as expected.
 //
+// display: inline-flex + align-items: center ensures all label parts (name, operator, badge)
+// are perfectly centered regardless of their individual heights — no vertical-align hacks needed.
+//
 // Specificity note: Material's own rule is
 //   .mat-mdc-standard-chip .mdc-evolution-chip__text-label  →  (0,2,0)
 // Adding .mat-mdc-standard-chip to our selector gives (0,2,1) which beats it.
 gd-filter-chip .mat-mdc-standard-chip .mdc-evolution-chip__text-label {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--gd-filter-chip-font-family, inherit);
 }
 
 // Operator rendered at normal weight to visually recede between the bold name and value.
-// Spacing via margin-left (no flex needed — inline spans keep Material's overflow/truncation intact).
 gd-filter-chip .gd-filter-chip__operator {
   font-weight: var(--gd-filter-chip-operator-font-weight, 400);
   margin-left: 0.25em;
@@ -88,4 +92,22 @@ gd-filter-chip .gd-filter-chip__operator {
 
 gd-filter-chip .gd-filter-chip__value {
   margin-left: 0.25em;
+}
+
+// Count badge: small circle with inverted chip colors (text color becomes background,
+// chip background becomes text). Automatically adapts when --gd-filter-chip-* tokens
+// are overridden by the consumer.
+// No vertical-align needed — centering is handled by the parent inline-flex container.
+gd-filter-chip .gd-filter-chip__value--badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
+  color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 }
