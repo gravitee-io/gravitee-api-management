@@ -2,6 +2,10 @@
 
 A library for Gravitee Markdown, an enriched markdown language. This library provides components for editing and viewing Gravitee Markdown content, along with various components that can be used within the editor.
 
+## Example page (full feature tour)
+
+See **`src/lib/assets/examples/gmd-full-showcase.md`**: a ready-to-paste GMD document that combines Markdown, HTML, layout (`gmd-grid`, `gmd-cell`), cards, buttons, and every form control. Preview it with Storybook: **Gravitee Markdown Viewer → Full GMD showcase**.
+
 ## Overview
 
 Gravitee Markdown is an enriched markdown language that extends standard markdown with additional features and components. This library provides:

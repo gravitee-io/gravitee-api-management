@@ -32,11 +32,14 @@ volumes:
     apim-management-api-logs:
     apim-management-ui-logs:
     apim-portal-ui-logs:
+    db-postgres:
 
 services:
     mongodb:
         image: mongo:${MONGODB_VERSION:-6.0}
-        container_name: gio_apim_mongodb
+        container_name: apim_mongodb
+        ports:
+            - '27017:27017'
         restart: always
         volumes:
             - data-mongo:/data/db
@@ -49,10 +52,29 @@ services:
         networks:
             - storage
 
+    pg_database:
+        container_name: apim-qs-psql-db
+        image: postgres:13
+        restart: always
+        environment:
+            POSTGRES_DB: gravitee
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
+            PGDATA: /var/lib/postgresql/data
+        volumes:
+            - ./.data/db-postgres:/var/lib/postgresql/data
+        ports:
+            - '0.0.0.0:5432:5432'
+        networks:
+            - storage
+
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
-        container_name: gio_apim_elasticsearch
+        container_name: apim_elasticsearch
         restart: always
+        ports:
+            - '9200:9200'
+            - '9300:9300'
         volumes:
             - data-elasticsearch:/usr/share/elasticsearch/data
         environment:
@@ -75,92 +97,6 @@ services:
             retries: 10
         networks:
             - storage
-
-    gateway:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-        container_name: gio_apim_gateway
-        restart: always
-        ports:
-            - '8082:8082'
-        depends_on:
-            mongodb:
-                condition: service_healthy
-            elasticsearch:
-                condition: service_healthy
-        volumes:
-            - apim-gateway-logs:/opt/graviteeio-gateway/logs
-            - ./.license:/opt/graviteeio-gateway/license
-        environment:
-            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-            - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-            - 'license.key=${LICENSE_KEY}'
-        networks:
-            - storage
-            - frontend
-
-    management_api:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-        container_name: gio_apim_management_api
-        restart: always
-        ports:
-            - '8083:8083'
-        links:
-            - mongodb
-            - elasticsearch
-        depends_on:
-            mongodb:
-                condition: service_healthy
-            elasticsearch:
-                condition: service_healthy
-        volumes:
-            - apim-management-api-logs:/opt/graviteeio-management-api/logs
-            - ./.license:/opt/graviteeio-management-api/license
-        environment:
-            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-            - gravitee_email_enabled=true
-            - gravitee_email_host=mailhog
-            - gravitee_email_port=1025
-            - gravitee_email_subject="TEST"
-            - gravitee_email_from="user@my.domain"
-            - 'license.key=${LICENSE_KEY}'
-        networks:
-            - storage
-            - frontend
-            - email
-
-    management_ui:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-        container_name: gio_apim_management_ui
-        restart: always
-        ports:
-            - '8084:8080'
-        depends_on:
-            - management_api
-        environment:
-            - MGMT_API_URL=http://localhost:8083/management/
-            #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as the default portal for management UI environment redirection.
-        volumes:
-            - apim-management-ui-logs:/var/log/nginx
-        networks:
-            - frontend
-
-    portal_ui:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-        container_name: gio_apim_portal_ui
-        restart: always
-        ports:
-            - '4100:8080'
-        depends_on:
-            - management_api
-        environment:
-            - PORTAL_API_URL=http://localhost:8083/portal
-            #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as default portal
-        volumes:
-            - apim-portal-ui-logs:/var/log/nginx
-        networks:
-            - frontend
 
     mailhog:
         image: mailhog/mailhog

@@ -141,7 +141,11 @@ public enum Key {
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_THEME_FONT_FAMILY("portal.next.theme.font.family", "\"Roboto\", sans-serif", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_FONT_FAMILY(
+        "portal.next.theme.font.family",
+        "Arial, Helvetica, \"Liberation Sans\", FreeSans, sans-serif",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
     PORTAL_NEXT_CATALOG_VIEW_MODE("portal.next.catalog.viewMode", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_MTLS_ENABLED("portal.next.mtls.enabled", new HashSet<>(singletonList(ENVIRONMENT))),
 

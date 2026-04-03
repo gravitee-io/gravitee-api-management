@@ -126,14 +126,22 @@ export class DocumentationFolderComponent {
   }
 
   private loadChildrenAndContent(navId: string, selectedId: string): Observable<FolderData> {
+    this.folderLoading.set(true);
+    this.contentLoading.set(true);
     return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navId).pipe(
       tap(children => this.treeService.init(this.navItem(), children)),
       tap(() => this.tree.set(this.treeService.getTree())),
+      tap(() => this.folderLoading.set(false)),
       switchMap(children => this.loadContentOrRedirect(selectedId, children)),
     );
   }
 
+  // FIXME
+  // does not always disable content loading
+  // for example when opening an empty API
   private loadContentOrRedirect(selectedId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
+    this.contentLoading.set(true);
+
     if (!selectedId) {
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
@@ -157,6 +165,7 @@ export class DocumentationFolderComponent {
       tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
       tap(() => this.apiId.set(this.treeService.getAncestorApiId(selectedId))),
       map(selectedPageContent => ({ children, selectedPageContent })),
+      finalize(() => this.contentLoading.set(false)),
     );
   }
 

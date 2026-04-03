@@ -13,28 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { Component, computed, effect, input } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { Component, computed, effect, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, filter, Observable, switchMap } from 'rxjs';
-import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder/documentation-folder.component';
 import { NavigationPageFullWidthComponent } from '../../../components/navigation-page-full-width/navigation-page-full-width.component';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
-import { PortalPageContent } from '../../../entities/portal-navigation/portal-page-content';
-import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
 
 @Component({
   selector: 'app-documentation',
-  imports: [DocumentationFolderComponent, AsyncPipe, NavigationPageFullWidthComponent],
-  standalone: true,
+  imports: [DocumentationFolderComponent, NavigationPageFullWidthComponent],
   template: `
     @if (isItemFolder()) {
       <app-documentation-folder [navItem]="navItem()!" />
     } @else if (isItemPage()) {
-      <app-navigation-page-full-width [pageContent]="pageContent$ | async" />
+      <app-navigation-page-full-width [navItem]="navItem()!" />
     }
   `,
   styles: `
@@ -45,18 +38,13 @@ import { PortalNavigationItemsService } from '../../../services/portal-navigatio
   `,
 })
 export class DocumentationComponent {
+  readonly router = inject(Router);
+  
   navItem = input.required<PortalNavigationItem>();
   isItemFolder = computed(() => this.navItem()?.type === 'FOLDER');
   isItemPage = computed(() => this.navItem()?.type === 'PAGE');
-  pageContent$: Observable<PortalPageContent | null> = toObservable(this.navItem).pipe(
-    filter(navItem => navItem?.type === 'PAGE'),
-    switchMap(navItem => this.portalNavigationItemsService.getNavigationItemContent(navItem.id)),
-    catchError(() => of(null)),
-  );
-  constructor(
-    private readonly router: Router,
-    private readonly portalNavigationItemsService: PortalNavigationItemsService,
-  ) {
+
+  constructor() {
     effect(() => {
       const itemType = this.navItem()?.type;
       if (itemType !== 'FOLDER' && itemType !== 'PAGE') {

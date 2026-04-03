@@ -25,6 +25,7 @@ import { GraviteeMarkdownRendererService } from '../services/gravitee-markdown-r
 @Component({
   selector: 'gmd-viewer',
   templateUrl: './gravitee-markdown-viewer.component.html',
+  styleUrl: './gravitee-markdown-viewer.component.scss',
   // eslint-disable-next-line @angular-eslint/prefer-standalone
   standalone: false,
   encapsulation: ViewEncapsulation.ShadowDom,

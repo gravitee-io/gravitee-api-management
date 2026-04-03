@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 @use '../../scss/layout' as layout;
+@use '../../scss/theme' as theme;
+@use '../../animations/keyframes';
 
 :host {
   @include layout.full-width-container();
@@ -21,4 +23,30 @@
   display: flex;
   flex-flow: column;
   align-items: center;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.navigation-page-full-width__content {
+  &-enter {
+    animation: fade-in 500ms 150ms both;
+  }
+}
+
+.navigation-page-full-width__skeleton-container {
+  position: absolute;
+  max-width: theme.$inner-content-width;
+  padding: 0 layout.$container-content-padding-horizontal;
+}
+
+.navigation-page-full-width__skeleton {
+  &--leave {
+    animation: none;
+    opacity: 0;
+    transition: opacity 220ms ease-in;
+  }
 }

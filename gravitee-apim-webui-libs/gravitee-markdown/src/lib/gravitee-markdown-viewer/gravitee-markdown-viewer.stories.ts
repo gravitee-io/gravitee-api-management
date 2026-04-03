@@ -142,6 +142,35 @@ and scrambled it to make a type specimen book. It has survived not only five cen
   }),
 };
 
+export const FullGmdShowcase: StoryObj<GraviteeMarkdownViewerComponent> = {
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: 'Loads `src/lib/assets/examples/gmd-full-showcase.md` via static assets — grids, cards, buttons, forms, tables, and code blocks.',
+      },
+    },
+  },
+  loaders: [
+    async (): Promise<{ showcaseContent: string }> => {
+      const res = await fetch(new URL('assets/examples/gmd-full-showcase.md', document.baseURI));
+      if (!res.ok) {
+        throw new Error(`Failed to load showcase: ${res.status} ${res.statusText}`);
+      }
+      const showcaseContent = await res.text();
+      return { showcaseContent };
+    },
+  ],
+  render: args => ({
+    props: args,
+    template: `
+      <div style="min-height: 100vh; padding: 24px; box-sizing: border-box; background: #fff;">
+        <gmd-viewer [content]="showcaseContent"></gmd-viewer>
+      </div>
+    `,
+  }),
+};
+
 export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
   render: () => ({
     template: `

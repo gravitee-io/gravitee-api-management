@@ -11,6 +11,7 @@ const config: StorybookConfig = {
   staticDirs: [
     { from: '../../../node_modules/monaco-editor', to: '/assets/monaco-editor' },
     { from: '../src/lib/assets/homepage', to: 'assets/homepage' },
+    { from: '../src/lib/assets/examples', to: 'assets/examples' },
   ],
 };
 
