@@ -27,11 +27,9 @@ import { Build, Constants, DefaultPortal } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 import { environment } from './environments/environment';
-import { CsrfInterceptor } from './shared/interceptors/csrf.interceptor';
 
 const requestConfig: RequestInit = {
   headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-  credentials: 'include',
 };
 
 // fix angular-schema-form angular<1.7
@@ -67,7 +65,6 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
         requestConfig,
       )
-        .then((r) => storeCsrfToken(r))
         .then((r) => getSuccessJsonDataOrThrowError(r))
         .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
           bootstrapResponse,
@@ -214,13 +211,6 @@ function bootstrapApplication(constants: Constants) {
       // eslint-disable-next-line
       console.error(err);
     });
-}
-
-function storeCsrfToken(response: Response): Response {
-  if (response.headers.has(CsrfInterceptor.xsrfTokenHeaderName)) {
-    CsrfInterceptor.xsrfToken = response.headers.get(CsrfInterceptor.xsrfTokenHeaderName);
-  }
-  return response;
 }
 
 function getSuccessJsonDataOrThrowError(response: Response): Promise<any> {
