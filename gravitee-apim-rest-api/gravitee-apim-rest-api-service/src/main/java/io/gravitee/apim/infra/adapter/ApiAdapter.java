@@ -88,6 +88,7 @@ public interface ApiAdapter {
     @Mapping(target = "listeners", expression = "java((List<Listener>) spec.getListeners())")
     @Mapping(target = "endpointGroups", expression = "java((List<EndpointGroup>) spec.getEndpointGroups())")
     @Mapping(target = "flows", expression = "java((List<Flow>) spec.getFlows())")
+    @Mapping(target = "plans", expression = "java(PlanAdapter.INSTANCE.toPlanEntityV4(spec, spec.getPlans()))")
     UpdateApiEntity toUpdateApiEntity(ApiCRDSpec spec);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
@@ -104,6 +105,7 @@ public interface ApiAdapter {
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "listeners", expression = "java((List<Listener>) api.getListeners())")
+    @Mapping(target = "plans", expression = "java(PlanAdapter.INSTANCE.toPlanEntityV4(api, api.getPlans()))")
     ApiEntity toApiEntity(ApiCRDSpec api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
