@@ -55,6 +55,7 @@ export type MoreFiltersForm = {
 };
 
 export type LogFiltersInitialValues = {
+  period?: SimpleFilter;
   applications?: MultiFilter;
   plans?: MultiFilter;
   from: Moment;

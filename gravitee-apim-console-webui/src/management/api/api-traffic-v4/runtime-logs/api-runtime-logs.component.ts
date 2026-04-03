@@ -22,7 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { QuickFiltersStoreService } from './services';
-import { LogFiltersInitialValues } from './models';
+import { LogFiltersInitialValues, PERIODS } from './models';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiLogsParam, ApiLogsResponse, ApiType, ApiV4 } from '../../../../entities/management-api-v2';
@@ -146,15 +146,12 @@ export class ApiRuntimeLogsComponent implements OnInit {
   }
 
   private initData() {
-    const applicationIds: string[] = this.activatedRoute.snapshot.queryParams?.applicationIds
-      ? this.activatedRoute.snapshot.queryParams.applicationIds.split(',')
-      : null;
-    const planIds: string[] = this.activatedRoute.snapshot.queryParams?.planIds
-      ? this.activatedRoute.snapshot.queryParams.planIds.split(',')
-      : null;
-    const statuses: Set<number> = this.activatedRoute.snapshot.queryParams?.statuses
-      ? new Set(this.activatedRoute.snapshot.queryParams.statuses.split(',').map(Number))
-      : null;
+    const qp = this.activatedRoute.snapshot.queryParams;
+    const applicationIds: string[] = qp?.applicationIds ? qp.applicationIds.split(',') : null;
+    const planIds: string[] = qp?.planIds ? qp.planIds.split(',') : null;
+    const statuses: Set<number> = qp?.statuses ? new Set(qp.statuses.split(',').map(Number)) : null;
+    const period = PERIODS.find(p => p.value === qp?.period) ?? undefined;
+    const hasRelativePeriod = period && period.value !== '0';
 
     forkJoin([
       applicationIds?.length > 0 ? this.applicationService.findByIds(applicationIds, 1, applicationIds?.length ?? 10) : of(null),
@@ -163,6 +160,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
       .pipe(
         map(([applications, plans]) => {
           return {
+            period,
             plans:
               planIds?.map(id => {
                 const plan = plans.find(p => p.id === id);
@@ -173,15 +171,13 @@ export class ApiRuntimeLogsComponent implements OnInit {
                 const application = applications.data.find(app => app.id === id);
                 return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
               }) ?? undefined,
-            from: this.activatedRoute.snapshot.queryParams?.from
-              ? moment(Number(this.activatedRoute.snapshot.queryParams.from))
-              : undefined,
-            to: this.activatedRoute.snapshot.queryParams?.to ? moment(Number(this.activatedRoute.snapshot.queryParams.to)) : undefined,
-            methods: this.activatedRoute.snapshot.queryParams?.methods?.split(',') ?? undefined,
-            mcpMethods: this.activatedRoute.snapshot.queryParams?.mcpMethods?.split(',') ?? undefined,
+            from: !hasRelativePeriod && qp?.from ? moment(Number(qp.from)) : undefined,
+            to: !hasRelativePeriod && qp?.to ? moment(Number(qp.to)) : undefined,
+            methods: qp?.methods?.split(',') ?? undefined,
+            mcpMethods: qp?.mcpMethods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
-            entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
-            errorKeys: this.activatedRoute.snapshot.queryParams?.errorKeys?.split(',') ?? undefined,
+            entrypoints: qp?.entrypointIds?.split(',') ?? undefined,
+            errorKeys: qp?.errorKeys?.split(',') ?? undefined,
           };
         }),
       )
