@@ -71,7 +71,7 @@ export default {
 
     const timeSeriesData: TimeSeriesResponse = {
       interval: '1h',
-      metrics: [{ name: 'HTTP_REQUESTS', buckets: metricBuckets }],
+      metrics: [{ name: 'HTTP_REQUESTS', unit: 'NUMBER', buckets: metricBuckets }],
       buckets: metricBuckets.map(({ key, name, timestamp }) => ({ key, name, timestamp })),
     };
 
@@ -148,6 +148,7 @@ export const StackedBar: StoryObj<TimeSeriesChartStoryArgs> = {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER' as const,
           buckets: timestamps.map(t => ({
             key: t,
             name: t,
@@ -157,6 +158,7 @@ export const StackedBar: StoryObj<TimeSeriesChartStoryArgs> = {
         },
         {
           name: 'HTTP_ERRORS',
+          unit: 'NUMBER' as const,
           buckets: timestamps.map(t => ({
             key: t,
             name: t,
@@ -166,6 +168,7 @@ export const StackedBar: StoryObj<TimeSeriesChartStoryArgs> = {
         },
         {
           name: 'MESSAGES',
+          unit: 'NUMBER' as const,
           buckets: timestamps.map(t => ({
             key: t,
             name: t,
@@ -198,6 +201,7 @@ export const ColorPaletteDemo: StoryObj<TimeSeriesChartStoryArgs> = {
     const createMetric = (name: string, baseValue: number) => ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       name: name as any,
+      unit: 'NUMBER' as const,
       buckets: timestamps.map(ts => ({
         key: ts,
         name: ts,

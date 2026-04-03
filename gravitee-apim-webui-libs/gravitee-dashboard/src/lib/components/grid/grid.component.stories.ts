@@ -36,6 +36,7 @@ const commonItems: Widget[] = [
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             { key: 'North America', name: 'North America', measures: [{ name: 'COUNT', value: 35 }] },
             { key: 'Europe', name: 'Europe', measures: [{ name: 'COUNT', value: 28 }] },
@@ -58,6 +59,7 @@ const commonItems: Widget[] = [
       metrics: [
         {
           name: 'HTTP_ERRORS',
+          unit: 'NUMBER',
           buckets: [
             { key: 'SELECT', name: 'SELECT', measures: [{ name: 'COUNT', value: 45 }] },
             { key: 'INSERT', name: 'INSERT', measures: [{ name: 'COUNT', value: 20 }] },
@@ -77,6 +79,7 @@ const commonItems: Widget[] = [
       metrics: [
         {
           name: 'HTTP_GATEWAY_LATENCY',
+          unit: 'MILLISECONDS',
           measures: [
             { name: 'COUNT', value: 1234 },
             { name: 'AVG', value: 45.6 },
@@ -95,6 +98,7 @@ const commonItems: Widget[] = [
       metrics: [
         {
           name: 'MESSAGE_ERRORS',
+          unit: 'NUMBER',
           buckets: [
             { key: '4xx', name: '4xx', measures: [{ name: 'COUNT', value: 12 }] },
             { key: '5xx', name: '5xx', measures: [{ name: 'COUNT', value: 3 }] },
@@ -113,6 +117,7 @@ const commonItems: Widget[] = [
       metrics: [
         {
           name: 'HTTP_ENDPOINT_RESPONSE_TIME',
+          unit: 'MILLISECONDS',
           buckets: [
             { key: '< 100ms', name: '< 100ms', measures: [{ name: 'COUNT', value: 600 }] },
             { key: '100-500ms', name: '< 100ms', measures: [{ name: 'COUNT', value: 300 }] },
@@ -131,12 +136,13 @@ const commonItems: Widget[] = [
     response: {
       metrics: [
         {
-          name: 'APIS',
+          name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: [
             { key: 'Active', name: 'Active', measures: [{ name: 'COUNT', value: 150 }] },
-            { key: 'Inactive', name: 'Active', measures: [{ name: 'COUNT', value: 50 }] },
-            { key: 'New', name: 'Active', measures: [{ name: 'COUNT', value: 30 }] },
-            { key: 'Returning', name: 'Active', measures: [{ name: 'COUNT', value: 120 }] },
+            { key: 'Inactive', name: 'Inactive', measures: [{ name: 'COUNT', value: 50 }] },
+            { key: 'New', name: 'New', measures: [{ name: 'COUNT', value: 30 }] },
+            { key: 'Returning', name: 'Returning', measures: [{ name: 'COUNT', value: 120 }] },
           ],
         },
       ],
