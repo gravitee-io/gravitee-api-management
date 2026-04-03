@@ -60,3 +60,54 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: ${gravitee.home}/plugins-ext
+  - it: Adapt plugin initContainer SecurityContext for OpenShift
+    template: api/api-deployment.yaml
+    set:
+      openshift:
+        enabled: true
+      api:
+        federation:
+          enabled: true
+      initContainers:
+        image: alpine:latest
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+        env: []
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers[0].securityContext.runAsUser
+      - notExists:
+          path: spec.template.spec.initContainers[0].securityContext.runAsGroup
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
+          value: true
+  - it: Do not adapt plugin initContainer SecurityContext when disabled
+    template: api/api-deployment.yaml
+    set:
+      openshift:
+        enabled: true
+        adaptSecurityContext: disabled
+      api:
+        federation:
+          enabled: true
+      initContainers:
+        image: alpine:latest
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+        env: []
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
+          value: true

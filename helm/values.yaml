@@ -2567,6 +2567,11 @@ kafkaConsole:
 # has to be removed to ensure OpenShift is creating a Route from the Ingress
 openshift:
   enabled: false
+  # Adapt security contexts for OpenShift compatibility.
+  # auto: adapt only when openshift.enabled=true
+  # force: always adapt
+  # disabled: never adapt
+  adaptSecurityContext: auto
 
 initContainers:
   image: alpine:latest

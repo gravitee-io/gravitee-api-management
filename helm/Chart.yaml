@@ -36,3 +36,7 @@ annotations:
       description: 'Add parameter to enable or disable Alert Engine default filters (enabled by default) through the APIM Rest API.'
     - kind: added
       description: 'Deprecate old logging configuration parameters in favor of logback override and node logging configuration.'
+    - kind: added
+      description: 'Add configurable OpenShift security context adaptation with auto, force and disabled modes.'
+    - kind: fixed
+      description: 'Apply OpenShift security context adaptation consistently to pod, container and generated initContainer security contexts.'
