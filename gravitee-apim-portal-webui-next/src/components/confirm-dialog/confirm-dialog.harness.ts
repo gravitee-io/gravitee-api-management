@@ -21,6 +21,8 @@ export class ConfirmDialogHarness extends ComponentHarness {
 
   private readonly getConfirmButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '.confirm-dialog__confirm-button' }));
   private readonly getCancelButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '.confirm-dialog__cancel-button' }));
+  private readonly getTitleText = this.locatorFor('.confirm-dialog__title');
+  private readonly getContentText = this.locatorFor('.confirm-dialog__content');
 
   public async confirm(): Promise<void> {
     await this.getConfirmButtonHarness().then(button => button.click());
@@ -36,5 +38,13 @@ export class ConfirmDialogHarness extends ComponentHarness {
 
   public async getCancelText(): Promise<string> {
     return await this.getCancelButtonHarness().then(button => button.getText());
+  }
+
+  public async getTitle(): Promise<string> {
+    return await this.getTitleText().then(title => title.text());
+  }
+
+  public async getContent(): Promise<string> {
+    return await this.getContentText().then(content => content.text());
   }
 }

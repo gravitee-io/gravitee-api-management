@@ -39,9 +39,11 @@
     }
   </div>
 
-  @if (loadError()) {
-    <p class="next-gen-small certificates__error" i18n="@@certificatesLoadError">Failed to load certificates. Please try again.</p>
-  } @else if (certificates().length === 0) {
+  @if (error(); as errorText) {
+    <p class="certificates__error next-gen-small" data-testid="certificate-error" role="alert">{{ errorText }}</p>
+  }
+
+  @if (certificates().length === 0 && !error()) {
     <div class="certificates__empty">
       <span class="material-icons icon-with-background" aria-hidden="true">workspace_premium</span>
       <span class="next-gen-h5" i18n="@@noCertificatesTitle">No mTLS certificates added</span>
@@ -49,7 +51,7 @@
         Add your first certificate to enable mTLS authentication for this application
       </span>
     </div>
-  } @else {
+  } @else if (certificates().length > 0) {
     <mat-tab-group (selectedTabChange)="onTabChange()">
       <mat-tab>
         <ng-template mat-tab-label>
@@ -62,7 +64,10 @@
           [totalElements]="totalElements()"
           [currentPage]="currentPage()"
           [pageSize]="pageSize"
+          [navigable]="false"
+          [actions]="canManage() ? activeActions : []"
           (pageChange)="onPageChange($event)"
+          (actionClick)="onActiveAction($event)"
         />
       </mat-tab>
       <mat-tab>
@@ -76,7 +81,10 @@
           [totalElements]="totalElements()"
           [currentPage]="currentPage()"
           [pageSize]="pageSize"
+          [navigable]="false"
+          [actions]="canManage() ? historyActions : []"
           (pageChange)="onPageChange($event)"
+          (actionClick)="onHistoryAction($event)"
         />
       </mat-tab>
     </mat-tab-group>

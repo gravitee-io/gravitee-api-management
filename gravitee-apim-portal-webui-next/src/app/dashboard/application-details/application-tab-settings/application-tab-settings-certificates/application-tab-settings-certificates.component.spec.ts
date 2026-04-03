@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -23,6 +25,7 @@ import { provideRouter } from '@angular/router';
 
 import { ApplicationTabSettingsCertificatesComponent } from './application-tab-settings-certificates.component';
 import { ApplicationTabSettingsCertificatesHarness } from './application-tab-settings-certificates.harness';
+import { ConfirmDialogHarness } from '../../../../../components/confirm-dialog/confirm-dialog.harness';
 import { ClientCertificate } from '../../../../../entities/application/client-certificate';
 import { fakeUserApplicationPermissions } from '../../../../../entities/permission/permission.fixtures';
 import { ConfigService } from '../../../../../services/config.service';
@@ -39,6 +42,7 @@ const fakeCertificate = (overrides: Partial<ClientCertificate> = {}): ClientCert
 describe('ApplicationTabSettingsCertificatesComponent', () => {
   let fixture: ComponentFixture<ApplicationTabSettingsCertificatesComponent>;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
   const applicationId = 'app-1';
 
   beforeEach(async () => {
@@ -51,10 +55,17 @@ describe('ApplicationTabSettingsCertificatesComponent', () => {
         provideRouter([]),
         { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true,
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApplicationTabSettingsCertificatesComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.componentRef.setInput('applicationId', applicationId);
     fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
   });
@@ -177,4 +188,248 @@ describe('ApplicationTabSettingsCertificatesComponent', () => {
 
     expect(openSpy).toHaveBeenCalled();
   });
+
+  it('should keep certificate untouched when first delete confirmation is cancelled', async () => {
+    const certificate = fakeCertificate();
+    await initWithCertificates([certificate]);
+
+    await clickDeleteButton();
+
+    const confirmDialog = await getConfirmDialog();
+    expect(confirmDialog).not.toBeNull();
+    expect(await confirmDialog?.getTitle()).toBe('Delete certificate');
+    await confirmDialog?.cancel();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(await getConfirmDialog()).toBeNull();
+    httpTestingController.expectNone(req => req.method === 'DELETE');
+    expect(fixture.componentInstance.activeCertificates().map(cert => cert.id)).toEqual([certificate.id]);
+  });
+
+  it('should delete a non-last-active certificate after the initial confirmation', async () => {
+    const certificates = [
+      fakeCertificate({ id: 'cert-1', name: 'Certificate 1' }),
+      fakeCertificate({ id: 'cert-2', name: 'Certificate 2' }),
+    ];
+    await initWithCertificates(certificates, 2);
+
+    await clickDeleteButton();
+
+    const confirmDialog = await getConfirmDialog();
+    await confirmDialog?.confirm();
+
+    expect(await getConfirmDialog()).toBeNull();
+    httpTestingController.expectNone(`${TESTING_BASE_URL}/applications/${applicationId}/certificates?page=1&size=${certificates.length}`);
+
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates/cert-1`,
+        method: 'DELETE',
+      })
+      .flush(null);
+
+    flushCertificatesRequest([certificates[1]], 1);
+
+    expect(fixture.componentInstance.activeCertificates().map(cert => cert.id)).toEqual(['cert-2']);
+  });
+
+  it('should require a final warning confirmation before deleting the last active certificate', async () => {
+    const certificate = fakeCertificate();
+    await initWithCertificates([certificate]);
+
+    await clickDeleteButton();
+
+    const firstConfirmDialog = await getConfirmDialog();
+    expect(await firstConfirmDialog?.getTitle()).toBe('Delete certificate');
+    await firstConfirmDialog?.confirm();
+
+    httpTestingController.expectNone(req => req.method === 'DELETE');
+    flushCertificatesRequest([certificate], 1);
+
+    const warningDialog = await getConfirmDialog();
+    expect(warningDialog).not.toBeNull();
+    expect(await warningDialog?.getTitle()).toBe('Warning');
+    expect(await warningDialog?.getContent()).toContain(
+      'There is no active certificate in case you proceed with the deletion. Do you want to proceed?',
+    );
+    httpTestingController.expectNone(req => req.method === 'DELETE');
+
+    await warningDialog?.confirm();
+
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates/${certificate.id}`,
+        method: 'DELETE',
+      })
+      .flush(null);
+
+    flushCertificatesRequest([], 0);
+
+    expect(fixture.componentInstance.activeCertificates()).toEqual([]);
+  });
+
+  it('should keep the last active certificate untouched when the warning is cancelled', async () => {
+    const certificate = fakeCertificate();
+    await initWithCertificates([certificate]);
+
+    await clickDeleteButton();
+
+    const firstConfirmDialog = await getConfirmDialog();
+    await firstConfirmDialog?.confirm();
+
+    flushCertificatesRequest([certificate], 1);
+
+    const warningDialog = await getConfirmDialog();
+    expect(warningDialog).not.toBeNull();
+    await warningDialog?.cancel();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(await getConfirmDialog()).toBeNull();
+    httpTestingController.expectNone(req => req.method === 'DELETE');
+    expect(fixture.componentInstance.activeCertificates().map(cert => cert.id)).toEqual([certificate.id]);
+  });
+
+  it('should delete a certificate from history after confirmation', async () => {
+    const activeCertificate = fakeCertificate({ id: 'cert-active', status: 'ACTIVE' });
+    const historyCertificate = fakeCertificate({ id: 'cert-history', status: 'REVOKED', name: 'Revoked certificate' });
+    await initWithCertificates([activeCertificate, historyCertificate], 2);
+
+    await clickHistoryTab();
+    await clickHistoryDeleteButton();
+
+    const confirmDialog = await getConfirmDialog();
+    expect(confirmDialog).not.toBeNull();
+    expect(await confirmDialog?.getTitle()).toBe('Delete certificate');
+    await confirmDialog?.confirm();
+
+    expect(await getConfirmDialog()).toBeNull();
+    httpTestingController.expectNone(`${TESTING_BASE_URL}/applications/${applicationId}/certificates?page=1&size=2`);
+
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates/${historyCertificate.id}`,
+        method: 'DELETE',
+      })
+      .flush(null);
+
+    flushCertificatesRequest([activeCertificate], 1);
+
+    expect(fixture.componentInstance.historyCertificates()).toEqual([]);
+  });
+
+  it('should show a persistent inline error when certificate deletion fails', async () => {
+    const certificates = [fakeCertificate({ id: 'cert-1' }), fakeCertificate({ id: 'cert-2' })];
+    await initWithCertificates(certificates, 2);
+
+    await clickDeleteButton();
+
+    const confirmDialog = await getConfirmDialog();
+    await confirmDialog?.confirm();
+    httpTestingController.expectNone(`${TESTING_BASE_URL}/applications/${applicationId}/certificates?page=1&size=${certificates.length}`);
+
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates/${certificates[0].id}`,
+        method: 'DELETE',
+      })
+      .flush({ error: 'Delete failed' }, { status: 500, statusText: 'Internal Server Error' });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(getErrorMessage()?.textContent).toContain('An error occurred while deleting the certificate. Please try again');
+    expect(fixture.componentInstance.activeCertificates().map(cert => cert.id)).toEqual(['cert-1', 'cert-2']);
+  });
+
+  it('should clear delete error when retrying certificate deletion', async () => {
+    const certificates = [fakeCertificate({ id: 'cert-1' }), fakeCertificate({ id: 'cert-2' })];
+    await initWithCertificates(certificates, 2);
+
+    await failDeleteAttempt(certificates[0]);
+    expect(getErrorMessage()?.textContent).toContain('An error occurred while deleting the certificate. Please try again');
+
+    await clickDeleteButton();
+
+    expect(getErrorMessage()).toBeNull();
+
+    const confirmDialog = await getConfirmDialog();
+    await confirmDialog?.cancel();
+  });
+
+  it('should clear delete error after a successful certificates reload', async () => {
+    const certificates = [fakeCertificate({ id: 'cert-1' }), fakeCertificate({ id: 'cert-2' })];
+    await initWithCertificates(certificates, 2);
+
+    await failDeleteAttempt(certificates[0]);
+    expect(getErrorMessage()?.textContent).toContain('An error occurred while deleting the certificate. Please try again');
+
+    fixture.componentInstance.loadCertificates();
+    flushCertificatesRequest(certificates, 2);
+
+    expect(getErrorMessage()).toBeNull();
+  });
+
+  function flushCertificatesRequest(data: ClientCertificate[] = [], totalElements = data.length, page = 1, size = 10): void {
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates?page=${page}&size=${size}`,
+        method: 'GET',
+      })
+      .flush({
+        data,
+        metadata: { paginateMetaData: { totalElements } },
+      });
+    fixture.detectChanges();
+  }
+
+  async function clickDeleteButton(index = 0): Promise<void> {
+    const deleteButtons = fixture.nativeElement.querySelectorAll('[data-testid="paginated-table-action-delete-certificate-button"]');
+    (deleteButtons[index] as HTMLButtonElement | undefined)?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+
+  async function clickHistoryDeleteButton(index = 0): Promise<void> {
+    const deleteButtons = fixture.nativeElement.querySelectorAll(
+      '[data-testid="paginated-table-action-delete-history-certificate-button"]',
+    );
+    (deleteButtons[index] as HTMLButtonElement | undefined)?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+
+  async function clickHistoryTab(): Promise<void> {
+    const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationTabSettingsCertificatesHarness);
+    await harness.clickTab('history');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    flushCertificatesRequest(fixture.componentInstance.certificates(), fixture.componentInstance.totalElements());
+  }
+
+  async function getConfirmDialog(): Promise<ConfirmDialogHarness | null> {
+    return rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+  }
+
+  async function failDeleteAttempt(certificate: ClientCertificate): Promise<void> {
+    await clickDeleteButton();
+
+    const confirmDialog = await getConfirmDialog();
+    await confirmDialog?.confirm();
+
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates/${certificate.id}`,
+        method: 'DELETE',
+      })
+      .flush({ error: 'Delete failed' }, { status: 500, statusText: 'Internal Server Error' });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+
+  function getErrorMessage(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('[data-testid="certificate-error"]');
+  }
 });
