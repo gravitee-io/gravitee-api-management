@@ -71,7 +71,7 @@ mat-expansion-panel {
 mat-stepper {
   @include mat.stepper-overrides(
     (
-      container-color: transparent,
+      container-color: #{theme.$card-background-color},
     )
   );
 }

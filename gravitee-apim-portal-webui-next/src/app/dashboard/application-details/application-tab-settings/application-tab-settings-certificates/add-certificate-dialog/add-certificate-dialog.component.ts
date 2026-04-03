@@ -29,6 +29,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { of, switchMap, tap } from 'rxjs';
 
 import { ApplicationCertificateService } from '../../../../../../services/application-certificate.service';
+import { fileNameWithoutExtension } from '../../../../../../utils/common.utils';
 
 export interface AddCertificateDialogData {
   applicationId: string;
@@ -132,8 +133,7 @@ export class AddCertificateDialogComponent {
     const content = await this.readFileAsText(file);
     this.uploadForm.controls.certificate.setValue(content);
     if (!this.uploadForm.controls.name.value) {
-      const nameWithoutExtension = file.name.replace(/\.[^.]+$/, '');
-      this.uploadForm.controls.name.setValue(nameWithoutExtension);
+      this.uploadForm.controls.name.setValue(fileNameWithoutExtension(file.name));
     }
     input.value = '';
   }
