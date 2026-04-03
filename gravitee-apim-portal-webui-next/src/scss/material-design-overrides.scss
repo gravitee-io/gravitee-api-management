@@ -68,6 +68,14 @@ mat-expansion-panel {
   --mat-expansion-container-background-color: #{theme.$card-background-color};
 }
 
+mat-stepper {
+  @include mat.stepper-overrides(
+    (
+      container-color: #{theme.$card-background-color},
+    )
+  );
+}
+
 .mat-mdc-select-panel {
   --mat-select-panel-background-color: #{theme.$select-panel-background-color};
 }

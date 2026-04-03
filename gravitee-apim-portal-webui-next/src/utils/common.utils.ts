@@ -63,6 +63,14 @@ export function toTitleCase(value: string): string {
 }
 
 /**
+ * Returns the file name without its last extension (`cert.pem` → `cert`).
+ * If there is no `.suffix`, returns `fileName` unchanged.
+ */
+export function fileNameWithoutExtension(fileName: string): string {
+  return fileName.replace(/\.[^.]+$/, '');
+}
+
+/**
  * Compares two filter objects for equality.
  * Compares arrays and primitive values within the filter objects.
  */

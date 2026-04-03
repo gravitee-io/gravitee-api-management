@@ -90,4 +90,19 @@ describe('ApplicationCertificateService', () => {
     expect(req.request.method).toEqual('DELETE');
     req.flush(null);
   });
+
+  it('should POST to _validate and return certificate metadata', done => {
+    const certificate = '-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----';
+    const response = { certificateExpiration: '2027-06-01T00:00:00.000Z', subject: 'CN=test', issuer: 'CN=ca' };
+
+    service.validate(appId, certificate).subscribe(res => {
+      expect(res).toMatchObject(response);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${appId}/certificates/_validate`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual({ certificate });
+    req.flush(response);
+  });
 });
