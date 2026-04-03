@@ -204,13 +204,10 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                     Class<? extends Acceptor<?>> acceptorType = resolve(acceptor.getClass());
                     if (acceptorType != null) {
                         acceptors.compute(acceptorType, (k, v) -> {
-                            if (v == null) {
-                                v = new ArrayList<>();
-                            }
-                            v.add(acceptor);
-                            // Sort list based on Acceptor comparable
-                            v.sort(null);
-                            return v;
+                            var copy = v == null ? new ArrayList<Acceptor<?>>() : new ArrayList<>(v);
+                            copy.add(acceptor);
+                            copy.sort(null);
+                            return Collections.unmodifiableList(copy);
                         });
                     }
                 });
@@ -225,12 +222,12 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                     Class<? extends Acceptor<?>> acceptorType = resolve(acceptor.getClass());
                     if (acceptorType != null) {
                         acceptors.computeIfPresent(acceptorType, (k, v) -> {
-                            v.remove(acceptor);
+                            var copy = new ArrayList<>(v);
+                            copy.remove(acceptor);
                             acceptor.clear();
-                            if (!v.isEmpty()) {
-                                // Sort list based on Acceptor comparable
-                                v.sort(null);
-                                return v;
+                            if (!copy.isEmpty()) {
+                                copy.sort(null);
+                                return Collections.unmodifiableList(copy);
                             } else {
                                 return null;
                             }
