@@ -35,6 +35,14 @@
 // #f15115 on #fff3eb → ~3.3:1 contrast (bold 12px — consistent with Gravitee button style).
 html {
   font-family: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+
+  // Override M3 body typography tokens so overlays (tooltip, menu, dialog)
+  // that live outside the component tree also use Kanit.
+  // azure-blue.css sets these to Roboto on :root.
+  --mat-sys-body-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-body-medium-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-label-large-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+
   --mat-sys-primary: #fe733f;
   --mat-sys-on-primary: #ffffff;
   --mat-sys-primary-container: #fff3eb;

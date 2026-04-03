@@ -42,7 +42,9 @@ export interface FilterCondition {
 // Partial allows safe indexing with any string — no 'as' cast needed
 export const OPERATOR_SYMBOLS: Partial<Record<string, string>> = {
   EQ: '=',
-  IN: '∈',
+  NEQ: '≠',
+  IN: 'in',
+  NOT_IN: 'not in',
   GTE: '≥',
   LTE: '≤',
 };
@@ -61,8 +63,24 @@ function displayOperator(condition: FilterCondition): string {
 
 export function buildChipLabel(condition: FilterCondition): string {
   if (condition.values.length === 0) return condition.label;
-  if (condition.values.length > 1) return `${condition.label} (${condition.values.length})`;
-  return `${condition.label} ${getOperatorSymbol(displayOperator(condition))} ${condition.values[0]}`;
+  const op = getOperatorSymbol(displayOperator(condition));
+  if (condition.values.length > 1) return `${condition.label} ${op} (${condition.values.length})`;
+  return `${condition.label} ${op} ${condition.values[0]}`;
+}
+
+// Structured label for the template — enables distinct font weights per part.
+// operator and value are empty strings when there are no values (no-op condition).
+export interface ChipLabelParts {
+  name: string;
+  operator: string;
+  value: string;
+}
+
+export function buildChipLabelParts(condition: FilterCondition): ChipLabelParts {
+  if (condition.values.length === 0) return { name: condition.label, operator: '', value: '' };
+  const op = getOperatorSymbol(displayOperator(condition));
+  const val = condition.values.length > 1 ? `(${condition.values.length})` : condition.values[0];
+  return { name: condition.label, operator: op, value: val };
 }
 
 export function buildChipTooltip(condition: FilterCondition): string {

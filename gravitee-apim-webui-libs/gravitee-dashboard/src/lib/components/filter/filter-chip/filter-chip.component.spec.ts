@@ -16,11 +16,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { buildChipLabel, buildChipTooltip, FilterCondition } from '../filter.model';
+import { buildChipLabel, buildChipLabelParts, buildChipTooltip, FilterCondition } from '../filter.model';
 import { FilterChipComponent } from './filter-chip.component';
 
 const STATUS_CODE_EQ_200: FilterCondition = { field: 'HTTP_STATUS', label: 'Status Code', operator: 'EQ', values: ['200'] };
 const STATUS_CODE_IN_200_204: FilterCondition = { field: 'HTTP_STATUS', label: 'Status Code', operator: 'IN', values: ['200', '204'] };
+const STATUS_CODE_NOT_IN_300_404: FilterCondition = {
+  field: 'HTTP_STATUS',
+  label: 'Status Code',
+  operator: 'NOT_IN',
+  values: ['300', '404'],
+};
 const STATUS_CODE_IN_200: FilterCondition = { field: 'HTTP_STATUS', label: 'Status Code', operator: 'IN', values: ['200'] };
 const STATUS_CODE_GTE_500: FilterCondition = { field: 'HTTP_STATUS', label: 'Status Code', operator: 'GTE', values: ['500'] };
 const STATUS_CODE_LTE_299: FilterCondition = { field: 'HTTP_STATUS', label: 'Status Code', operator: 'LTE', values: ['299'] };
@@ -34,8 +40,12 @@ const STATUS_CODE_UNKNOWN_OP: FilterCondition = {
 
 describe('buildChipLabel', () => {
   describe('known operators', () => {
-    it('should_display_count_when_multiple_values', () => {
-      expect(buildChipLabel(STATUS_CODE_IN_200_204)).toBe('Status Code (2)');
+    it('should_display_operator_word_and_count_when_multiple_in_values', () => {
+      expect(buildChipLabel(STATUS_CODE_IN_200_204)).toBe('Status Code in (2)');
+    });
+
+    it('should_display_operator_word_and_count_when_multiple_not_in_values', () => {
+      expect(buildChipLabel(STATUS_CODE_NOT_IN_300_404)).toBe('Status Code not in (2)');
     });
 
     it('should_display_eq_symbol_when_single_in_value', () => {
@@ -66,9 +76,31 @@ describe('buildChipLabel', () => {
   });
 });
 
+describe('buildChipLabelParts', () => {
+  it('should_return_name_only_when_values_is_empty', () => {
+    expect(buildChipLabelParts(STATUS_CODE_EMPTY)).toEqual({ name: 'Status Code', operator: '', value: '' });
+  });
+
+  it('should_return_all_parts_for_single_eq_value', () => {
+    expect(buildChipLabelParts(STATUS_CODE_EQ_200)).toEqual({ name: 'Status Code', operator: '=', value: '200' });
+  });
+
+  it('should_normalize_single_in_value_to_eq_operator', () => {
+    expect(buildChipLabelParts(STATUS_CODE_IN_200)).toEqual({ name: 'Status Code', operator: '=', value: '200' });
+  });
+
+  it('should_return_operator_word_and_count_for_multiple_in_values', () => {
+    expect(buildChipLabelParts(STATUS_CODE_IN_200_204)).toEqual({ name: 'Status Code', operator: 'in', value: '(2)' });
+  });
+
+  it('should_return_not_in_word_and_count_for_multiple_not_in_values', () => {
+    expect(buildChipLabelParts(STATUS_CODE_NOT_IN_300_404)).toEqual({ name: 'Status Code', operator: 'not in', value: '(2)' });
+  });
+});
+
 describe('buildChipTooltip', () => {
-  it('should_display_full_expression_with_in_symbol_for_multiple_values', () => {
-    expect(buildChipTooltip(STATUS_CODE_IN_200_204)).toBe('Status Code ∈ [200, 204]');
+  it('should_display_full_expression_with_in_word_for_multiple_values', () => {
+    expect(buildChipTooltip(STATUS_CODE_IN_200_204)).toBe('Status Code in [200, 204]');
   });
 
   it('should_display_eq_expression_when_single_in_value', () => {
@@ -105,26 +137,50 @@ describe('FilterChipComponent', () => {
   });
 
   describe('Label display', () => {
-    it('should_display_correct_label_for_single_eq_value', () => {
-      const chipEl = fixture.debugElement.query(By.css('mat-chip'));
-      expect(chipEl.nativeElement.textContent).toContain('Status Code = 200');
+    it('should_render_name_operator_and_value_in_separate_spans', () => {
+      const nameEl = fixture.debugElement.query(By.css('.gd-filter-chip__name'));
+      const operatorEl = fixture.debugElement.query(By.css('.gd-filter-chip__operator'));
+      const valueEl = fixture.debugElement.query(By.css('.gd-filter-chip__value'));
+
+      expect(nameEl.nativeElement.textContent.trim()).toBe('Status Code');
+      expect(operatorEl.nativeElement.textContent.trim()).toBe('=');
+      expect(valueEl.nativeElement.textContent.trim()).toBe('200');
     });
 
-    it('should_display_count_as_label_and_full_expression_as_tooltip_for_multiple_values', () => {
+    it('should_render_operator_word_and_count_for_multiple_values', () => {
       fixture.componentRef.setInput('filter', STATUS_CODE_IN_200_204);
       fixture.detectChanges();
 
-      const chipEl = fixture.debugElement.query(By.css('mat-chip'));
-      expect(chipEl.nativeElement.textContent).toContain('Status Code (2)');
-      expect(component['tooltip']()).toBe('Status Code ∈ [200, 204]');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__name')).nativeElement.textContent.trim()).toBe('Status Code');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('in');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__value')).nativeElement.textContent.trim()).toBe('(2)');
+      expect(component['tooltip']()).toBe('Status Code in [200, 204]');
     });
 
-    it('should_display_raw_operator_name_when_operator_is_unknown', () => {
+    it('should_distinguish_in_and_not_in_operators_in_multi_value_label', () => {
+      fixture.componentRef.setInput('filter', STATUS_CODE_NOT_IN_300_404);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('not in');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__value')).nativeElement.textContent.trim()).toBe('(2)');
+      expect(component['tooltip']()).toBe('Status Code not in [300, 404]');
+    });
+
+    it('should_render_name_only_span_when_values_is_empty', () => {
+      fixture.componentRef.setInput('filter', { ...STATUS_CODE_EQ_200, values: [] });
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__name')).nativeElement.textContent.trim()).toBe('Status Code');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator'))).toBeNull();
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__value'))).toBeNull();
+    });
+
+    it('should_render_raw_operator_name_when_operator_is_unknown', () => {
       fixture.componentRef.setInput('filter', STATUS_CODE_UNKNOWN_OP);
       fixture.detectChanges();
 
-      const chipEl = fixture.debugElement.query(By.css('mat-chip'));
-      expect(chipEl.nativeElement.textContent).toContain('Status Code CONTAINS value');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('CONTAINS');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__value')).nativeElement.textContent.trim()).toBe('value');
     });
   });
 

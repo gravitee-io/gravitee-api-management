@@ -26,9 +26,10 @@
  *                                  to ensure sufficient WCAG contrast (min 4.5:1).
  *   --gd-filter-chip-border-width  outline width               (default: 0 — no border)
  *   --gd-filter-chip-border-color  outline color               (only used when border-width > 0)
- *   --gd-filter-chip-font-family   label font family           (default: inherit — picks up the app's body font)
- *   --gd-filter-chip-font-size     label font size             (default: 12px)
- *   --gd-filter-chip-font-weight   label font weight           (default: 600 — bold)
+ *   --gd-filter-chip-font-family            label font family           (default: inherit — picks up the app's body font)
+ *   --gd-filter-chip-font-size              label font size             (default: 12px)
+ *   --gd-filter-chip-font-weight            name + value font weight    (default: 600 — bold)
+ *   --gd-filter-chip-operator-font-weight   operator font weight        (default: 400 — normal)
  *
  * Color resolution order (cascade):
  *   1. --gd-filter-chip-* (consumer explicit override — highest priority)
@@ -51,7 +52,6 @@ gd-filter-chip {
   --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
   --mat-chip-elevated-container-color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
   --mat-chip-label-text-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
-  --mat-chip-label-text-font: var(--gd-filter-chip-font-family, inherit);
   --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
   --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
   --mat-chip-with-icon-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
@@ -60,9 +60,32 @@ gd-filter-chip {
   --mat-chip-outline-color: var(--gd-filter-chip-border-color, var(--mat-sys-on-primary-container, #f15115));
 }
 
-// Horizontal padding has no official token — direct override is required.
+// Padding and font-family have no official Material token — direct overrides are required.
 // Specificity (0,2,1) beats Material's (0,2,0).
 // Handles the trailing-action variant (our chip always has matChipRemove).
 gd-filter-chip .mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action .mdc-evolution-chip__action--primary {
   padding-left: var(--gd-filter-chip-padding-h, 8px);
+}
+
+// font-family uses inherit so it picks up the app's global body font (e.g. Kanit in console-webui).
+// --mat-chip-label-text-font cannot be used here: its fallback `inherit` would resolve to
+// the Roboto value set by the prebuilt Material theme on :root, not the body font-family.
+// Targeting the label element directly makes CSS inherit work as expected.
+//
+// Specificity note: Material's own rule is
+//   .mat-mdc-standard-chip .mdc-evolution-chip__text-label  →  (0,2,0)
+// Adding .mat-mdc-standard-chip to our selector gives (0,2,1) which beats it.
+gd-filter-chip .mat-mdc-standard-chip .mdc-evolution-chip__text-label {
+  font-family: var(--gd-filter-chip-font-family, inherit);
+}
+
+// Operator rendered at normal weight to visually recede between the bold name and value.
+// Spacing via margin-left (no flex needed — inline spans keep Material's overflow/truncation intact).
+gd-filter-chip .gd-filter-chip__operator {
+  font-weight: var(--gd-filter-chip-operator-font-weight, 400);
+  margin-left: 0.25em;
+}
+
+gd-filter-chip .gd-filter-chip__value {
+  margin-left: 0.25em;
 }
