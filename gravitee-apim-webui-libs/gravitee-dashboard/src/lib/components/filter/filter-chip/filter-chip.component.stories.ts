@@ -28,7 +28,7 @@ import { FilterChipComponent } from './filter-chip.component';
   changeDetection: ChangeDetectionStrategy.Default,
   template: `
     <div class="story-layout">
-      <gd-filter-chip [filter]="filter" (removed)="onEvent('removed')" (clicked)="onEvent('clicked')" />
+      <gd-filter-chip [filter]="filter" [editable]="editable" (removed)="onEvent('removed')" (clicked)="onEvent('clicked')" />
 
       <div class="story-events">
         <span class="story-events__label">Events</span>
@@ -87,6 +87,7 @@ import { FilterChipComponent } from './filter-chip.component';
 })
 class FilterChipWrapperComponent {
   @Input() filter!: FilterCondition;
+  @Input() editable = true;
 
   protected counts = { removed: 0, clicked: 0 };
 
@@ -102,6 +103,7 @@ interface StoryArgs {
   label: string;
   operator: string;
   valuesInput: string;
+  editable: boolean;
   // CSS Tokens
   background: string;
   color: string;
@@ -173,9 +175,11 @@ and emits two events; all state management is the consumer's responsibility.
 \`\`\`html
 <gd-filter-chip
   [filter]="myCondition"
+  [editable]="canEditFilter"
   (clicked)="openEditModal(myCondition)"
   (removed)="removeFilter(myCondition.field)"
 />
+<!-- editable=false: chip is disabled, remove icon hidden, clicks ignored -->
 \`\`\`
 
 \`\`\`typescript
@@ -199,7 +203,7 @@ const condition: FilterCondition = {
 | Single value, \`IN\`                | displayed as \`=\`                     | \`Status Code = 200\`               |
 | Multiple values, \`IN\`             | name **in** + circular count badge   | \`Status Code in\` ⬤ 2             |
 | Multiple values, \`NOT_IN\`         | name **not in** + circular count badge | \`Status Code not in\` ⬤ 2        |
-| Unknown / future operator         | name **operator name** value         | \`HTTP Path CONTAINS /api\`         |
+| Unknown / future operator         | name **operator name** value (no formatting, raw operator displayed as-is) | \`HTTP Path UNKNOWN_OP /api\` |
 
 The count badge uses inverted chip colors (text color → badge background, chip background → badge text)
 and resizes automatically — circular for single digits, pill-shaped for larger counts.
@@ -260,10 +264,10 @@ export default {
     },
     operator: {
       control: { type: 'select' },
-      options: ['EQ', 'NEQ', 'IN', 'NOT_IN', 'GTE', 'LTE', 'CONTAINS'],
+      options: ['EQ', 'NEQ', 'IN', 'NOT_IN', 'GTE', 'LTE', 'UNKNOWN_OP'],
       description:
         'Filter operator. `EQ` `NEQ` `GTE` `LTE` render as symbols. `IN` / `NOT_IN` render as words. ' +
-        'Unknown values (e.g. `CONTAINS`) fall back to their raw name.',
+        '`UNKNOWN_OP` demonstrates the fallback: any unrecognised value is displayed as-is with no formatting.',
       table: { category: 'Filter Condition', defaultValue: { summary: 'EQ' } },
     },
     valuesInput: {
@@ -271,6 +275,14 @@ export default {
       control: { type: 'text' },
       description: 'Comma-separated list of values (e.g. `200, 204`). Multiple values trigger the count display.',
       table: { category: 'Filter Condition', defaultValue: { summary: '200' } },
+    },
+    editable: {
+      control: { type: 'boolean' },
+      description:
+        'When `false` the chip is **disabled**: no ripple, no pointer cursor, the remove icon is hidden and ' +
+        'clicks are silently ignored. Use this for filters that are active but cannot be modified by the current user ' +
+        '(e.g. insufficient permissions or system-managed filters).',
+      table: { category: 'Filter Condition', defaultValue: { summary: 'true' } },
     },
     // ── CSS Tokens ────────────────────────────────────────────────────────────
     background: {
@@ -352,19 +364,21 @@ const DISABLE_FILTER: Partial<Record<keyof StoryArgs, { table: { disable: boolea
   label: { table: { disable: true } },
   operator: { table: { disable: true } },
   valuesInput: { table: { disable: true } },
+  editable: { table: { disable: true } },
 };
 
 const PLAYGROUND_DESCRIPTION = `
 Use the **Controls** panel to explore all display variants interactively:
 change the operator (\`EQ\`, \`IN\`, \`NOT_IN\`, \`GTE\`…), enter multiple
-comma-separated values to trigger the count display, or try an unknown
-operator like \`CONTAINS\` to see the graceful fallback.
+comma-separated values to trigger the count display, or type \`UNKNOWN_OP\`
+as operator to see the graceful fallback (raw value displayed as-is).
 
 ### Component
 
 \`\`\`html
 <gd-filter-chip
   [filter]="condition"
+  [editable]="canEditFilter"
   (clicked)="openEditModal(condition)"
   (removed)="removeFilter(condition.field)"
 />
@@ -393,11 +407,12 @@ export const Playground: StoryObj<StoryArgs> = {
     label: 'Status Code',
     operator: 'EQ',
     valuesInput: '200',
+    editable: true,
     ...TOKEN_DEFAULTS,
   },
   render: (args: StoryArgs) => ({
-    template: `<gd-filter-chip-story-wrapper [filter]="filter" />`,
-    props: { filter: buildFilter(args) },
+    template: `<gd-filter-chip-story-wrapper [filter]="filter" [editable]="editable" />`,
+    props: { filter: buildFilter(args), editable: args.editable },
   }),
 };
 

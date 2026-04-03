@@ -213,4 +213,39 @@ describe('FilterChipComponent', () => {
       expect(clickedSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('editable input', () => {
+    it('should_not_emit_clicked_when_editable_is_false', () => {
+      fixture.componentRef.setInput('editable', false);
+      fixture.detectChanges();
+
+      const spy = jest.spyOn(component.clicked, 'emit');
+      const chipEl = fixture.debugElement.query(By.css('mat-chip'));
+      chipEl.nativeElement.click();
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should_hide_remove_icon_when_editable_is_false', () => {
+      fixture.componentRef.setInput('editable', false);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('mat-icon[matChipRemove]'))).toBeNull();
+    });
+
+    it('should_show_remove_icon_when_editable_is_true', () => {
+      fixture.componentRef.setInput('editable', true);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('mat-icon[matChipRemove]'))).not.toBeNull();
+    });
+
+    it('should_set_disabled_on_mat_chip_when_editable_is_false', () => {
+      fixture.componentRef.setInput('editable', false);
+      fixture.detectChanges();
+
+      const chipEl = fixture.debugElement.query(By.css('mat-chip'));
+      expect(chipEl.nativeElement.hasAttribute('aria-disabled') || chipEl.componentInstance.disabled).toBeTruthy();
+    });
+  });
 });
