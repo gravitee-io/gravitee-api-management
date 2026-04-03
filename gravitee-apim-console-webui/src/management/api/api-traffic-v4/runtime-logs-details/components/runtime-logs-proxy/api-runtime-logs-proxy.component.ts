@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { input, InputSignal } from '@angular/core';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, input, InputSignal } from '@angular/core';
 import { catchError, share } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';

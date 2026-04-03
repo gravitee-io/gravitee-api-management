@@ -22,7 +22,9 @@
         <div class="card__header__title">Details</div>
         <div class="card__header__subtitle">Analyse the connection logs and messages for a specific connection</div>
       </div>
-      <a mat-button mat-raised-button [routerLink]="'..'" aria-label="Back to Connections">Back to Connections</a>
+      <button mat-button mat-raised-button routerLink=".." queryParamsHandling="preserve" aria-label="Back to Connections">
+        Back to Connections
+      </button>
     </div>
 
     <mat-tab-group (selectedTabChange)="onTabChange($event)">
