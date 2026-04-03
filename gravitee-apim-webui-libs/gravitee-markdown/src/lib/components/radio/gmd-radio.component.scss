@@ -21,7 +21,7 @@ $token-mapping: overrides.tokens();
 .gmd-radio {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
+  margin-block: 0.5rem;
   gap: 0.5rem;
 
   &__group-label {
