@@ -20,58 +20,58 @@ import { MatInputHarness } from '@angular/material/input/testing';
 export class AddCertificateDialogHarness extends ComponentHarness {
   static readonly hostSelector = 'app-add-certificate-dialog';
 
-  private readonly getNameInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
-  private readonly getPemInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="certificate-pem-input"]' }));
-  private readonly getContinueUploadButton = this.locatorFor(
+  protected locateNameInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
+  protected locatePemInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="certificate-pem-input"]' }));
+  protected locateContinueUploadButton = this.locatorFor(
     MatButtonHarness.with({ selector: '[data-testid="certificate-continue-upload-button"]' }),
   );
-  private readonly getContinueConfigureButton = this.locatorFor(
+  protected locateContinueConfigureButton = this.locatorFor(
     MatButtonHarness.with({ selector: '[data-testid="certificate-continue-configure-button"]' }),
   );
-  private readonly getSubmitButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="certificate-submit-button"]' }));
-  private readonly getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="certificate-cancel-button"]' }));
-  private readonly getPreviousButton = this.locatorForOptional(
+  protected locateSubmitButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="certificate-submit-button"]' }));
+  protected locateCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="certificate-cancel-button"]' }));
+  protected locatePreviousButton = this.locatorForOptional(
     MatButtonHarness.with({ selector: '[data-testid="certificate-previous-button"]' }),
   );
-  private readonly getGracePeriodInput = this.locatorForOptional(
+  protected locateGracePeriodInput = this.locatorForOptional(
     MatInputHarness.with({ selector: '[data-testid="certificate-grace-period-input"]' }),
   );
-  private readonly getSubmitErrorEl = this.locatorForOptional('[data-testid="certificate-submit-error"]');
+  protected locateSubmitErrorEl = this.locatorForOptional('[data-testid="certificate-submit-error"]');
 
-  async nameInput(): Promise<MatInputHarness> {
-    return this.getNameInput();
+  public async nameInput(): Promise<MatInputHarness> {
+    return this.locateNameInput();
   }
 
-  async pemInput(): Promise<MatInputHarness> {
-    return this.getPemInput();
+  public async pemInput(): Promise<MatInputHarness> {
+    return this.locatePemInput();
   }
 
-  async clickContinueUpload(): Promise<void> {
-    return (await this.getContinueUploadButton()).click();
+  public async clickContinueUpload(): Promise<void> {
+    return (await this.locateContinueUploadButton()).click();
   }
 
-  async clickContinueConfigure(): Promise<void> {
-    return (await this.getContinueConfigureButton()).click();
+  public async clickContinueConfigure(): Promise<void> {
+    return (await this.locateContinueConfigureButton()).click();
   }
 
-  async clickSubmit(): Promise<void> {
-    return (await this.getSubmitButton()).click();
+  public async clickSubmit(): Promise<void> {
+    return (await this.locateSubmitButton()).click();
   }
 
-  async clickCancel(): Promise<void> {
-    return (await this.getCancelButton()).click();
+  public async clickCancel(): Promise<void> {
+    return (await this.locateCancelButton()).click();
   }
 
-  async previousButton(): Promise<MatButtonHarness | null> {
-    return this.getPreviousButton();
+  public async previousButton(): Promise<MatButtonHarness | null> {
+    return this.locatePreviousButton();
   }
 
-  async gracePeriodInput(): Promise<MatInputHarness | null> {
-    return this.getGracePeriodInput();
+  public async gracePeriodInput(): Promise<MatInputHarness | null> {
+    return this.locateGracePeriodInput();
   }
 
-  async submitErrorText(): Promise<string | null> {
-    const el = await this.getSubmitErrorEl();
+  public async submitErrorText(): Promise<string | null> {
+    const el = await this.locateSubmitErrorEl();
     return el ? el.text() : null;
   }
 }
