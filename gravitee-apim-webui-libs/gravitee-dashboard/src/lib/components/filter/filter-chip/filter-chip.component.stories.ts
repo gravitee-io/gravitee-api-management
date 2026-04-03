@@ -173,13 +173,19 @@ and emits two events; all state management is the consumer's responsibility.
 ### Usage
 
 \`\`\`html
+<!-- editable chip (default) -->
 <gd-filter-chip
   [filter]="myCondition"
-  [editable]="canEditFilter"
+  [editable]="true"
   (clicked)="openEditModal(myCondition)"
   (removed)="removeFilter(myCondition.field)"
 />
-<!-- editable=false: chip is disabled, remove icon hidden, clicks ignored -->
+
+<!-- read-only chip: disabled state, no remove icon, tooltip still visible -->
+<gd-filter-chip
+  [filter]="myCondition"
+  [editable]="false"
+/>
 \`\`\`
 
 \`\`\`typescript
@@ -235,6 +241,21 @@ automatically adapts to the consuming application's theme without extra configur
 
 ---
 
+### Editable vs disabled state
+
+| \`[editable]\` | Cursor | Click | Remove icon | Tooltip | Visual |
+|---|---|---|---|---|---|
+| \`true\` (default) | \`pointer\` | emits \`clicked\` | visible | yes | filled chip |
+| \`false\` | \`default\` | ignored | hidden | yes | filled chip + 1px outline |
+
+When \`editable=false\` the chip uses Angular Material's native \`[disabled]\` state:
+- No ripple or click animation.
+- The remove icon is hidden — the filter can only be deleted programmatically.
+- The tooltip still shows on hover so the full filter expression remains readable.
+- A 1px outline is added automatically to visually separate adjacent disabled chips on the same line.
+
+---
+
 ### One condition per field
 
 The chip itself is stateless; the **filter-bar** (Phase 2) enforces the constraint
@@ -279,8 +300,10 @@ export default {
     editable: {
       control: { type: 'boolean' },
       description:
-        'When `false` the chip is **disabled**: no ripple, no pointer cursor, the remove icon is hidden and ' +
-        'clicks are silently ignored. Use this for filters that are active but cannot be modified by the current user ' +
+        'When `false` the chip is **disabled**: no ripple, no pointer cursor (stays `default`), the remove icon is hidden ' +
+        'and clicks are silently ignored. The tooltip on hover still works. A 1px outline is automatically added to ' +
+        'visually separate disabled chips on the same line. ' +
+        'Use this for filters that are active but cannot be modified by the current user ' +
         '(e.g. insufficient permissions or system-managed filters).',
       table: { category: 'Filter Condition', defaultValue: { summary: 'true' } },
     },

@@ -37,8 +37,10 @@
  * editable state:
  *   When [editable]=false the chip is rendered with Material's [disabled] attribute:
  *   pointer-events:none (no click, no ripple), remove icon is hidden via @if.
- *   The pointer cursor rule below is a no-op when the chip is disabled because
- *   Material's pointer-events:none takes precedence.
+ *   The disabled chip receives a 1px outline (Material's default color) to visually
+ *   separate it from adjacent chips on the same line. opacity:1 prevents Material's
+ *   disabled fade; pointer-events:auto restores hover so matTooltip still fires
+ *   (MatRipple internally respects the disabled flag — no ripple on click).
  *
  * Implementation note: ViewEncapsulation.None means Angular does NOT compile
  * :host — the component selector is used as the CSS scope directly.
@@ -65,6 +67,25 @@ gd-filter-chip {
 // so this rule is automatically a no-op for non-editable chips.
 gd-filter-chip .mdc-evolution-chip__action--primary {
   cursor: pointer;
+}
+
+// Disabled (non-editable) chips get a 1px outline to visually separate them from
+// adjacent chips on the same line. The color defaults to Material's outline token.
+// --mat-chip-outline-width re-declaration on the chip element overrides the 0 set on the
+// gd-filter-chip host via CSS custom property inheritance.
+// opacity:1 prevents Material's default disabled fade so the label stays fully readable.
+// pointer-events:auto overrides MDC's `pointer-events:none` on the disabled container so
+// that matTooltip still receives hover events. MatRipple internally checks its own
+// `disabled` flag so the ripple does NOT reappear.
+gd-filter-chip .mdc-evolution-chip--disabled {
+  --mat-chip-outline-width: 1px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+// Specificity (0,2,1) beats the pointer rule above (0,1,1) — cursor stays default on disabled chips.
+gd-filter-chip .mdc-evolution-chip--disabled .mdc-evolution-chip__action--primary {
+  cursor: default;
 }
 
 // Padding and font-family have no official Material token — direct overrides are required.
