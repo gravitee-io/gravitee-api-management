@@ -52,7 +52,9 @@ public class CrdIdHelper {
         }
         plans.forEach((key, planCRD) -> {
             if (planCRD.getId() == null) {
-                planCRD.setId(HRIDToUUID.plan().context(audit).api(apiHrid).plan(key).id());
+                var plan = HRIDToUUID.plan().context(audit).api(apiHrid).plan(key);
+                planCRD.setId(plan.id());
+                planCRD.setCrossId(plan.apiCrossId());
             }
             if (
                 (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
