@@ -192,7 +192,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
           application: this.applicationService.get(subscription.application),
           hasDocumentationAccess: of(hasDocumentationAccess),
           documentationNavigationTarget: hasDocumentationAccess
-            ? this.portalNavigationItemsService.resolveApiNavigationTarget(this.apiId).pipe(catchError(() => of(null)))
+            ? this.portalNavigationItemsService.searchNavigationItemsWithApis(1, this.apiId, 10).pipe(
+                map(res => {
+                  const item = res.data.find(i => i.id === this.apiId);
+                  return item ? { rootId: item.rootId, navItemId: item.navItemId } : null;
+                }),
+                catchError(() => of(null)),
+              )
             : of(null),
         }),
       ),
