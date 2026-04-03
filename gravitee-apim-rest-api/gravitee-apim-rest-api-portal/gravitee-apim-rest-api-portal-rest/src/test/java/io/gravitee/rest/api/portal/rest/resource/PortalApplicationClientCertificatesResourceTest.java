@@ -20,12 +20,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.clientcertificate.ValidateCertificateRequest;
+import io.gravitee.rest.api.model.clientcertificate.ValidateCertificateResponse;
 import io.gravitee.rest.api.portal.rest.model.CreatePortalClientCertificateInput;
 import io.gravitee.rest.api.portal.rest.model.PortalClientCertificate;
 import io.gravitee.rest.api.portal.rest.model.PortalClientCertificatesResponse;
@@ -113,6 +117,34 @@ public class PortalApplicationClientCertificatesResourceTest extends AbstractRes
         createRequest.setName("My Certificate");
 
         final Response response = target().request().post(Entity.json(createRequest));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+    }
+
+    @Test
+    public void should_validate_certificate_and_return_metadata() {
+        var expiration = new Date();
+        var certInfo = new CertificateInfo(expiration, "CN=test", "CN=ca", "abc123");
+        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class))).thenReturn(
+            new ValidateClientCertificateUseCase.Output(certInfo)
+        );
+
+        var request = new ValidateCertificateRequest("-----BEGIN CERTIFICATE-----\nMIIBkTCB...\n-----END CERTIFICATE-----");
+        final Response response = target("/_validate").request().post(Entity.json(request));
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var result = response.readEntity(ValidateCertificateResponse.class);
+            soft.assertThat(result.certificateExpiration()).isEqualTo(expiration);
+            soft.assertThat(result.subject()).isEqualTo("CN=test");
+            soft.assertThat(result.issuer()).isEqualTo("CN=ca");
+        });
+        verify(validateClientCertificateUseCase).execute(any(ValidateClientCertificateUseCase.Input.class));
+    }
+
+    @Test
+    public void should_return_400_when_certificate_is_missing_in_validate_request() {
+        final Response response = target("/_validate").request().post(Entity.json("{}"));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
     }

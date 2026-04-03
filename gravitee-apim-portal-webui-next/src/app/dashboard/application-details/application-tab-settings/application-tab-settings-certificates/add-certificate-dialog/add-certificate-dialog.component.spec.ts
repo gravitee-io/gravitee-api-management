@@ -26,6 +26,8 @@ import { ConfigService } from '../../../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../../testing/app-testing.module';
 
 const APPLICATION_ID = 'app-1';
+const VALIDATE_URL = `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates/_validate`;
+const CERTIFICATES_URL = `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`;
 
 function makeData(overrides: Partial<AddCertificateDialogData> = {}): AddCertificateDialogData {
   return {
@@ -64,6 +66,23 @@ describe('AddCertificateDialogComponent', () => {
     fixture.detectChanges();
   }
 
+  function flushValidate(overrides: object = {}): void {
+    const req = httpTestingController.expectOne(VALIDATE_URL);
+    expect(req.request.method).toBe('POST');
+    req.flush({ certificateExpiration: '2027-06-01T00:00:00.000Z', subject: 'CN=test', issuer: 'CN=ca', ...overrides });
+  }
+
+  async function fillAndValidate(): Promise<void> {
+    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
+    fixture.detectChanges();
+    await harness.clickContinueUpload();
+    fixture.detectChanges();
+    flushValidate();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
   afterEach(() => httpTestingController.verify());
 
   it('should show upload step initially', async () => {
@@ -81,52 +100,54 @@ describe('AddCertificateDialogComponent', () => {
     expect(fixture.componentInstance.uploadForm.invalid).toBe(true);
   });
 
-  it('should advance to configure step when upload form is valid', async () => {
+  it('should advance to configure step after successful certificate validation', async () => {
     await init();
-
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    fixture.detectChanges();
-
-    await harness.clickContinueUpload();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await fillAndValidate();
 
     expect(fixture.componentInstance.stepper().selectedIndex).toBe(1);
   });
 
-  it('should not show grace period field when hasActiveCertificates is false', async () => {
-    await init(makeData({ hasActiveCertificates: false }));
+  it('should pre-fill endsAt from certificate expiration returned by validation', async () => {
+    await init();
+    await fillAndValidate();
 
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
+    expect(fixture.componentInstance.configureForm.controls.endsAt.value).toEqual(new Date('2027-06-01T00:00:00.000Z'));
+  });
+
+  it('should show validate error when certificate validation returns 400', async () => {
+    await init();
+
+    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: 'INVALID PEM' });
+    fixture.detectChanges();
     await harness.clickContinueUpload();
+    fixture.detectChanges();
+
+    httpTestingController.expectOne(VALIDATE_URL).flush({ error: 'Invalid PEM' }, { status: 400, statusText: 'Bad Request' });
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+
+    expect(await harness.validateErrorText()).toBeTruthy();
+    expect(fixture.componentInstance.stepper().selectedIndex).toBe(0);
+  });
+
+  it('should not show grace period field when hasActiveCertificates is false', async () => {
+    await init(makeData({ hasActiveCertificates: false }));
+    await fillAndValidate();
 
     expect(await harness.gracePeriodInput()).toBeNull();
   });
 
   it('should show grace period field when hasActiveCertificates is true', async () => {
     await init(makeData({ hasActiveCertificates: true, activeCertificateId: 'old-cert' }));
-
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    await harness.clickContinueUpload();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await fillAndValidate();
 
     expect(await harness.gracePeriodInput()).toBeTruthy();
   });
 
   it('should call create and close dialog on successful submit', async () => {
     await init();
-
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    await harness.clickContinueUpload();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await fillAndValidate();
 
     await harness.clickContinueConfigure();
     fixture.detectChanges();
@@ -136,7 +157,7 @@ describe('AddCertificateDialogComponent', () => {
     await harness.clickSubmit();
     fixture.detectChanges();
 
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`);
+    const req = httpTestingController.expectOne(CERTIFICATES_URL);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toMatchObject({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
     req.flush({ id: 'new-cert', name: 'My Cert', status: 'ACTIVE' });
@@ -149,12 +170,7 @@ describe('AddCertificateDialogComponent', () => {
   it('should also call update on old cert when gracePeriodEnd is set', async () => {
     const activeCertificateId = 'old-cert-id';
     await init(makeData({ hasActiveCertificates: true, activeCertificateId }));
-
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
-    await harness.clickContinueUpload();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await fillAndValidate();
 
     const graceDate = new Date('2026-12-31');
     fixture.componentInstance.configureForm.controls.gracePeriodEnd.setValue(graceDate);
@@ -166,13 +182,11 @@ describe('AddCertificateDialogComponent', () => {
     await harness.clickSubmit();
     fixture.detectChanges();
 
-    const createReq = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`);
+    const createReq = httpTestingController.expectOne(CERTIFICATES_URL);
     createReq.flush({ id: 'new-cert', name: 'My Cert', status: 'ACTIVE' });
     fixture.detectChanges();
 
-    const updateReq = httpTestingController.expectOne(
-      `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates/${activeCertificateId}`,
-    );
+    const updateReq = httpTestingController.expectOne(`${CERTIFICATES_URL}/${activeCertificateId}`);
     expect(updateReq.request.method).toBe('PUT');
     expect(updateReq.request.body).toMatchObject({ endsAt: graceDate.toISOString() });
     updateReq.flush({ id: activeCertificateId, name: 'Old Cert', status: 'ACTIVE_WITH_END' });
@@ -182,14 +196,9 @@ describe('AddCertificateDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith(true);
   });
 
-  it('should show validation error on 400 response', async () => {
+  it('should show submit error on 400 response from create', async () => {
     await init();
-
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: 'INVALID PEM' });
-    await harness.clickContinueUpload();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await fillAndValidate();
 
     await harness.clickContinueConfigure();
     fixture.detectChanges();
@@ -199,14 +208,36 @@ describe('AddCertificateDialogComponent', () => {
     await harness.clickSubmit();
     fixture.detectChanges();
 
-    httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`)
-      .flush({ error: 'Invalid PEM' }, { status: 400, statusText: 'Bad Request' });
+    httpTestingController.expectOne(CERTIFICATES_URL).flush({ error: 'Invalid PEM' }, { status: 400, statusText: 'Bad Request' });
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(await harness.submitErrorText()).toBeTruthy();
     expect(dialogRef.close).not.toHaveBeenCalled();
+  });
+
+  it('should fill certificate name from uploaded file name', async () => {
+    await init();
+
+    const file = new File(['-----BEGIN CERTIFICATE-----'], 'my-server.crt', { type: 'application/x-x509-ca-cert' });
+    const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
+    await fixture.componentInstance.onFileSelected(mockEvent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.uploadForm.controls.name.value).toBe('my-server');
+  });
+
+  it('should not overwrite an existing certificate name when uploading a file', async () => {
+    await init();
+
+    fixture.componentInstance.uploadForm.controls.name.setValue('already-set');
+
+    const file = new File(['-----BEGIN CERTIFICATE-----'], 'my-server.crt', { type: 'application/x-x509-ca-cert' });
+    const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
+    await fixture.componentInstance.onFileSelected(mockEvent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.uploadForm.controls.name.value).toBe('already-set');
   });
 });

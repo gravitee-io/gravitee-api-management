@@ -69,6 +69,7 @@ import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertif
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -1248,6 +1249,11 @@ public class ResourceContextConfiguration {
     @Bean
     public DeleteClientCertificateUseCase deleteClientCertificateUseCase() {
         return mock(DeleteClientCertificateUseCase.class);
+    }
+
+    @Bean
+    public ValidateClientCertificateUseCase validateClientCertificateUseCase() {
+        return mock(ValidateClientCertificateUseCase.class);
     }
 
     @Bean
