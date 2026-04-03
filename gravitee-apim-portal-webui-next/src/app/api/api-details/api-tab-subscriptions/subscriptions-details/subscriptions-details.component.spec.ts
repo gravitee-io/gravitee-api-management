@@ -53,7 +53,7 @@ describe('SubscriptionsDetailsComponent', () => {
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
-  let resolveApiNavigationTargetMock: jest.Mock;
+  let searchNavigationItemsWithApisMock: jest.Mock;
 
   const API_ID = 'testApiId';
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
@@ -75,7 +75,22 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   beforeEach(async () => {
-    resolveApiNavigationTargetMock = jest.fn().mockReturnValue(of({ rootId: 'root-id', navItemId: 'nav-item-id' }));
+    searchNavigationItemsWithApisMock = jest.fn().mockReturnValue(
+      of({
+        data: [
+          {
+            id: API_ID,
+            name: 'API',
+            version: '1',
+            description: '',
+            rootId: 'root-id',
+            navItemId: 'nav-item-id',
+          },
+        ],
+        metadata: {},
+        links: {},
+      }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [SubscriptionsDetailsComponent, ConfirmDialogComponent, AppTestingModule],
@@ -87,7 +102,8 @@ describe('SubscriptionsDetailsComponent', () => {
         {
           provide: PortalNavigationItemsService,
           useValue: {
-            resolveApiNavigationTarget: (apiId: string) => resolveApiNavigationTargetMock(apiId),
+            searchNavigationItemsWithApis: (page: number, query: string, size: number) =>
+              searchNavigationItemsWithApisMock(page, query, size),
           },
         },
       ],
@@ -505,7 +521,7 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('when documentation is available but navigation target cannot be resolved', () => {
     beforeEach(() => {
-      resolveApiNavigationTargetMock.mockReturnValue(of(null));
+      searchNavigationItemsWithApisMock.mockReturnValue(of({ data: [], metadata: {}, links: {} }));
       expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
       expectGetApiPermissions();
       expectPlansList(fakePlansResponse());
