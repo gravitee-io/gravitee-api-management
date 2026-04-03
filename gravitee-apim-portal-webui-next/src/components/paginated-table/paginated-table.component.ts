@@ -15,6 +15,7 @@
  */
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
@@ -27,10 +28,19 @@ export interface TableColumn {
   type?: 'text' | 'date';
 }
 
+export interface TableAction<T> {
+  id: string;
+  icon: string;
+  ariaLabel: string;
+  color?: 'primary' | 'accent' | 'warn';
+  isVisible?: (row: T) => boolean;
+  isDisabled?: (row: T) => boolean;
+}
+
 @Component({
   selector: 'app-paginated-table',
   standalone: true,
-  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent],
+  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent, MatButtonModule],
   templateUrl: './paginated-table.component.html',
   styleUrl: './paginated-table.component.scss',
 })
@@ -41,13 +51,25 @@ export class PaginatedTableComponent<T> {
   currentPage = input.required<number>();
   pageSize = input.required<number>();
   pageSizeOptions = input<number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
+  navigable = input(true);
+  actions = input<TableAction<T>[]>([]);
 
   pageChange = output<number>();
   pageSizeChange = output<number>();
+  actionClick = output<{ actionId: string; row: T }>();
 
-  displayedColumns = computed(() => [...this.columns().map(c => c.id as string), 'expand']);
+  displayedColumns = computed(() => [
+    ...this.columns().map(c => c.id as string),
+    ...(this.actions().length > 0 ? ['actions'] : []),
+    ...(this.navigable() ? ['expand'] : []),
+  ]);
 
   onPageChange(page: number): void {
     this.pageChange.emit(page);
+  }
+
+  onActionClick(event: Event, actionId: string, row: T): void {
+    event.stopPropagation();
+    this.actionClick.emit({ actionId, row });
   }
 }

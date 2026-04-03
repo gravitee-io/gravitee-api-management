@@ -35,11 +35,19 @@
   }
 
   &__row {
-    cursor: pointer;
-
     &:last-child td {
       border-bottom: none;
     }
+  }
+
+  &__row--navigable {
+    cursor: pointer;
+  }
+
+  &__actions,
+  &__column-expand {
+    width: 1%;
+    white-space: nowrap;
   }
 
   &__column-expand {
