@@ -258,9 +258,29 @@ mongo:
     password:
 
 jdbc:
+  # The jdbc.url scheme and jdbc.driverSource decide how APIM obtains the JDBC driver.
+  # Supported values for jdbc.driverSource:
+  # - auto: bundled PostgreSQL/MariaDB/SQL Server drivers, download for MySQL and other custom JDBC families
+  # - download: always download the driver from jdbc.driver at startup
+  # - image: copy the driver at startup from a dedicated customer-provided JDBC image
+  # In auto mode, MySQL still requires jdbc.driver and downloads the driver at startup.
+  # PostgreSQL, MariaDB, and SQL Server ignore jdbc.driver in auto mode.
+  driverSource: auto
+  # APIM bundles PostgreSQL, MariaDB, and SQL Server JDBC drivers in the official images.
+  # MySQL is intentionally not bundled in official images.
+  # For MySQL, the recommended path is jdbc.driverSource=image with a minimal JDBC image
+  # containing /drivers/mysql-connector-j.jar.
+  # The fallback path is jdbc.driverSource=download using jdbc.driver.
+  # mount-based MySQL delivery is not part of the documented recommendation.
   url: jdbc:mysql://localhost:3306/gravitee
-  # the URL to download the driver
+  # Set this URL for MySQL runtime download mode or any other non-bundled/custom JDBC driver.
   driver: https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.22/mysql-connector-java-8.0.22.jar
+  image:
+    # Required when jdbc.driverSource=image.
+    # The image must contain the MySQL JDBC driver at /drivers/mysql-connector-j.jar.
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
   # the version of the gravitee-repository-jdbc (only required for apim versions < 3.5.0)
 #  repositoryVersion: 3.3.0
   username:

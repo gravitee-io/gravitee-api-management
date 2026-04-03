@@ -144,6 +144,65 @@ Create volumes for plugins
 {{- end -}}
 
 {{/*
+Classify the configured JDBC URL family.
+*/}}
+{{- define "apim.jdbcDriverFamily" -}}
+{{- $url := lower (default "" .Values.jdbc.url) -}}
+{{- if hasPrefix "jdbc:postgresql:" $url -}}
+postgresql
+{{- else if hasPrefix "jdbc:mariadb:" $url -}}
+mariadb
+{{- else if hasPrefix "jdbc:sqlserver:" $url -}}
+sqlserver
+{{- else if hasPrefix "jdbc:mysql:" $url -}}
+mysql
+{{- else -}}
+other
+{{- end -}}
+{{- end -}}
+
+{{/*
+Configured JDBC driver source.
+*/}}
+{{- define "apim.jdbcDriverSource" -}}
+{{- lower (default "auto" .Values.jdbc.driverSource) -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC driver should be downloaded at startup.
+*/}}
+{{- define "apim.shouldDownloadJdbcDriver" -}}
+{{- $family := include "apim.jdbcDriverFamily" . -}}
+{{- $source := include "apim.jdbcDriverSource" . -}}
+{{- if eq .Values.management.type "jdbc" -}}
+{{- if and (eq $source "download") .Values.jdbc.driver -}}
+true
+{{- else if and (eq $source "auto") .Values.jdbc.driver (not (or (eq $family "postgresql") (eq $family "mariadb") (eq $family "sqlserver"))) -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC driver should be copied from a dedicated image.
+*/}}
+{{- define "apim.shouldCopyJdbcDriverFromImage" -}}
+{{- $source := include "apim.jdbcDriverSource" . -}}
+{{- if and (eq .Values.management.type "jdbc") (eq $source "image") -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC volume and mount should be provisioned.
+*/}}
+{{- define "apim.shouldProvisionJdbcDriver" -}}
+{{- if or (eq (include "apim.shouldDownloadJdbcDriver" .) "true") (eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true") -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 Use the fullname if the serviceAccount value is not set
 */}}
 {{- define "apim.serviceAccount" -}}
