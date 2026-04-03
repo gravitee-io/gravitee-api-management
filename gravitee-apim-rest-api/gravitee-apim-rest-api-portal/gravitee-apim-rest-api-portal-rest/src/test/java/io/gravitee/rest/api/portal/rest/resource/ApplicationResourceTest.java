@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.application.use_case.UpdateApplicationUseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.TlsSettings;
@@ -143,7 +144,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
+        doReturn(new UpdateApplicationUseCase.Output(updatedEntity))
+            .when(updateApplicationUseCase)
+            .execute(any(UpdateApplicationUseCase.Input.class));
 
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
@@ -167,9 +170,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
-        UpdateApplicationEntity updateAppEntity = captor.getValue();
+        ArgumentCaptor<UpdateApplicationUseCase.Input> captor = ArgumentCaptor.forClass(UpdateApplicationUseCase.Input.class);
+        Mockito.verify(updateApplicationUseCase).execute(captor.capture());
+        UpdateApplicationEntity updateAppEntity = captor.getValue().updateApplicationEntity();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         assertEquals(scaledPicture, updateAppEntity.getPicture());
@@ -202,7 +205,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
+        doReturn(new UpdateApplicationUseCase.Output(updatedEntity))
+            .when(updateApplicationUseCase)
+            .execute(any(UpdateApplicationUseCase.Input.class));
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -217,9 +222,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
-        UpdateApplicationEntity updateAppEntity = captor.getValue();
+        ArgumentCaptor<UpdateApplicationUseCase.Input> captor = ArgumentCaptor.forClass(UpdateApplicationUseCase.Input.class);
+        Mockito.verify(updateApplicationUseCase).execute(captor.capture());
+        UpdateApplicationEntity updateAppEntity = captor.getValue().updateApplicationEntity();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
@@ -251,7 +256,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
+        doReturn(new UpdateApplicationUseCase.Output(updatedEntity))
+            .when(updateApplicationUseCase)
+            .execute(any(UpdateApplicationUseCase.Input.class));
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -269,9 +276,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
-        UpdateApplicationEntity updateAppEntity = captor.getValue();
+        ArgumentCaptor<UpdateApplicationUseCase.Input> captor = ArgumentCaptor.forClass(UpdateApplicationUseCase.Input.class);
+        Mockito.verify(updateApplicationUseCase).execute(captor.capture());
+        UpdateApplicationEntity updateAppEntity = captor.getValue().updateApplicationEntity();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
@@ -305,7 +312,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
+        doReturn(new UpdateApplicationUseCase.Output(updatedEntity))
+            .when(updateApplicationUseCase)
+            .execute(any(UpdateApplicationUseCase.Input.class));
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -323,9 +332,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
-        UpdateApplicationEntity updateAppEntity = captor.getValue();
+        ArgumentCaptor<UpdateApplicationUseCase.Input> captor = ArgumentCaptor.forClass(UpdateApplicationUseCase.Input.class);
+        Mockito.verify(updateApplicationUseCase).execute(captor.capture());
+        UpdateApplicationEntity updateAppEntity = captor.getValue().updateApplicationEntity();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
@@ -360,7 +369,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
+        doReturn(new UpdateApplicationUseCase.Output(updatedEntity))
+            .when(updateApplicationUseCase)
+            .execute(any(UpdateApplicationUseCase.Input.class));
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -392,9 +403,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
-        UpdateApplicationEntity updateAppEntity = captor.getValue();
+        ArgumentCaptor<UpdateApplicationUseCase.Input> captor = ArgumentCaptor.forClass(UpdateApplicationUseCase.Input.class);
+        Mockito.verify(updateApplicationUseCase).execute(captor.capture());
+        UpdateApplicationEntity updateAppEntity = captor.getValue().updateApplicationEntity();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();

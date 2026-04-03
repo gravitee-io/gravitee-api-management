@@ -62,6 +62,7 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application.use_case.UpdateApplicationUseCase;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
@@ -1253,6 +1254,11 @@ public class ResourceContextConfiguration {
     @Bean
     public DeleteClientCertificateUseCase deleteClientCertificateUseCase() {
         return mock(DeleteClientCertificateUseCase.class);
+    }
+
+    @Bean
+    public UpdateApplicationUseCase updateApplicationUseCase() {
+        return mock(UpdateApplicationUseCase.class);
     }
 
     @Bean

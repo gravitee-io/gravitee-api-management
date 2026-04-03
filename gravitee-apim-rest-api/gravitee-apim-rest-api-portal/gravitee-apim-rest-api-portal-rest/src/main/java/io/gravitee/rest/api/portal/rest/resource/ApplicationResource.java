@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.application.use_case.UpdateApplicationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -56,6 +57,9 @@ public class ApplicationResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private UpdateApplicationUseCase updateApplicationUseCase;
 
     @Inject
     private ApplicationMapper applicationMapper;
@@ -142,7 +146,9 @@ public class ApplicationResource extends AbstractResource {
 
         Application updatedApp = applicationMapper.convert(
             GraviteeContext.getExecutionContext(),
-            applicationService.update(GraviteeContext.getExecutionContext(), applicationId, updateApplicationEntity),
+            updateApplicationUseCase
+                .execute(new UpdateApplicationUseCase.Input(getAuditInfo(), applicationId, updateApplicationEntity))
+                .application(),
             uriInfo
         );
         return Response.ok(addApplicationLinks(updatedApp))
