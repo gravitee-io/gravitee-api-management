@@ -24,8 +24,6 @@
  *   --gd-filter-chip-color         label + icon color          (default: --mat-sys-on-primary-container)
  *                                  ⚠ Always set both background and color together
  *                                  to ensure sufficient WCAG contrast (min 4.5:1).
- *   --gd-filter-chip-border-width  outline width               (default: 0 — no border)
- *   --gd-filter-chip-border-color  outline color               (only used when border-width > 0)
  *   --gd-filter-chip-font-family            label font family           (default: inherit — picks up the app's body font)
  *   --gd-filter-chip-font-size              label font size             (default: 12px)
  *   --gd-filter-chip-font-weight            name + value font weight    (default: 600 — bold)
@@ -46,18 +44,16 @@ gd-filter-chip {
 
   // Official Angular Material chip tokens.
   // Background → primary-container (light tint), text/icon → on-primary-container (dark readable).
-  // No border by default — cleaner appearance matching the reference design.
   // Hardcoded fallbacks are a last-resort for M2 environments without --mat-sys-* tokens.
   --mat-chip-container-shape-radius: var(--gd-filter-chip-radius, 6px);
   --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
   --mat-chip-elevated-container-color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
   --mat-chip-label-text-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
-  --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
-  --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
   --mat-chip-with-icon-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
   --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
-  --mat-chip-outline-width: var(--gd-filter-chip-border-width, 0px);
-  --mat-chip-outline-color: var(--gd-filter-chip-border-color, var(--mat-sys-on-primary-container, #f15115));
+  --mat-chip-outline-width: 0;
+  --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
+  --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
 }
 
 // Padding and font-family have no official Material token — direct overrides are required.
@@ -104,6 +100,8 @@ gd-filter-chip .gd-filter-chip__value--badge {
   justify-content: center;
   min-width: 14px;
   height: 14px;
+  padding: 0 2px;
+  margin-left: 4px;
   border-radius: 7px;
   background-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
   color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));

@@ -112,25 +112,13 @@ interface StoryArgs {
   fontSize: string;
   fontWeight: string;
   operatorFontWeight: string;
-  borderWidth: string;
-  borderColor: string;
 }
 
 // ─── Token defaults — mirrors filter-chip.component.scss ─────────────────────
 
 const TOKEN_DEFAULTS: Pick<
   StoryArgs,
-  | 'background'
-  | 'color'
-  | 'height'
-  | 'radius'
-  | 'paddingH'
-  | 'fontFamily'
-  | 'fontSize'
-  | 'fontWeight'
-  | 'operatorFontWeight'
-  | 'borderWidth'
-  | 'borderColor'
+  'background' | 'color' | 'height' | 'radius' | 'paddingH' | 'fontFamily' | 'fontSize' | 'fontWeight' | 'operatorFontWeight'
 > = {
   background: '#fff3eb',
   color: '#f15115',
@@ -141,8 +129,6 @@ const TOKEN_DEFAULTS: Pick<
   fontSize: '12px',
   fontWeight: '600',
   operatorFontWeight: '400',
-  borderWidth: '0px',
-  borderColor: '#f15115',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -170,8 +156,6 @@ function buildTokenStyle(args: Omit<StoryArgs, 'label' | 'operator' | 'valuesInp
     `--gd-filter-chip-font-size: ${args.fontSize}`,
     `--gd-filter-chip-font-weight: ${args.fontWeight}`,
     `--gd-filter-chip-operator-font-weight: ${args.operatorFontWeight}`,
-    `--gd-filter-chip-border-width: ${args.borderWidth}`,
-    `--gd-filter-chip-border-color: ${args.borderColor}`,
   ].join('; ');
 }
 
@@ -209,14 +193,16 @@ const condition: FilterCondition = {
 
 ### Label display rules
 
-| Condition                         | Label displayed              | Example                        |
-|-----------------------------------|------------------------------|--------------------------------|
-| Single value, scalar operator     | name op value                | \`Status Code = 200\`            |
-| Single value, \`IN\`                | displayed as \`=\`             | \`Status Code = 200\`            |
-| Multiple values, \`IN\`             | name **in** (count)          | \`Status Code in (2)\`           |
-| Multiple values, \`NOT_IN\`         | name **not in** (count)      | \`Status Code not in (2)\`       |
-| Unknown operator                  | name RAW_OP value            | \`HTTP Path CONTAINS /api\`      |
+| Condition                         | Label displayed                      | Example                           |
+|-----------------------------------|--------------------------------------|-----------------------------------|
+| Single value, scalar operator     | name op value                        | \`Status Code = 200\`               |
+| Single value, \`IN\`                | displayed as \`=\`                     | \`Status Code = 200\`               |
+| Multiple values, \`IN\`             | name **in** + circular count badge   | \`Status Code in\` ⬤ 2             |
+| Multiple values, \`NOT_IN\`         | name **not in** + circular count badge | \`Status Code not in\` ⬤ 2        |
+| Unknown / future operator         | name **operator name** value         | \`HTTP Path CONTAINS /api\`         |
 
+The count badge uses inverted chip colors (text color → badge background, chip background → badge text)
+and resizes automatically — circular for single digits, pill-shaped for larger counts.
 The full expression (e.g. \`Status Code in [200, 204]\`) is always available in the tooltip.
 
 ---
@@ -236,8 +222,6 @@ gd-filter-chip {
   --gd-filter-chip-font-size:             12px;
   --gd-filter-chip-font-weight:           600;      /* name + value */
   --gd-filter-chip-operator-font-weight:  400;      /* operator word */
-  --gd-filter-chip-border-width:          0px;
-  --gd-filter-chip-border-color:          currentColor;
 }
 \`\`\`
 
@@ -347,18 +331,6 @@ export default {
         'Font weight of the operator word (`in`, `not in`, `=`, `≥`…). Typically lighter than the name/value to visually recede.',
       table: { category: 'CSS Tokens', defaultValue: { summary: TOKEN_DEFAULTS.operatorFontWeight } },
     },
-    borderWidth: {
-      name: '--gd-filter-chip-border-width',
-      control: { type: 'text' },
-      description: 'Outline width. Set to `1px` to enable the border.',
-      table: { category: 'CSS Tokens', defaultValue: { summary: TOKEN_DEFAULTS.borderWidth } },
-    },
-    borderColor: {
-      name: '--gd-filter-chip-border-color',
-      control: { type: 'color' },
-      description: 'Outline color — only visible when `--gd-filter-chip-border-width > 0`.',
-      table: { category: 'CSS Tokens', defaultValue: { summary: TOKEN_DEFAULTS.borderColor } },
-    },
   },
 } satisfies Meta<StoryArgs>;
 
@@ -374,8 +346,6 @@ const DISABLE_TOKENS: Partial<Record<keyof StoryArgs, { table: { disable: boolea
   fontSize: { table: { disable: true } },
   fontWeight: { table: { disable: true } },
   operatorFontWeight: { table: { disable: true } },
-  borderWidth: { table: { disable: true } },
-  borderColor: { table: { disable: true } },
 };
 
 const DISABLE_FILTER: Partial<Record<keyof StoryArgs, { table: { disable: boolean } }>> = {
@@ -448,11 +418,11 @@ update in real time. Copy the values you like into your application's stylesheet
 | \`--gd-filter-chip-font-size\` | dimension | \`12px\` |
 | \`--gd-filter-chip-font-weight\` | number | \`600\` |
 | \`--gd-filter-chip-operator-font-weight\` | number | \`400\` |
-| \`--gd-filter-chip-border-width\` | dimension | \`0px\` |
-| \`--gd-filter-chip-border-color\` | color | \`#f15115\` ← \`var(--mat-sys-on-primary-container)\` |
 
 > **Color resolution order:** consumer \`--gd-filter-chip-*\` → M3 theme \`--mat-sys-*\` → hardcoded fallback.
 > Always set \`--gd-filter-chip-background\` and \`--gd-filter-chip-color\` together to guarantee WCAG contrast (min 4.5:1).
+>
+> **Count badge colors** are automatically derived from the two color tokens above (inverted): no extra tokens needed.
 `;
 
 export const CustomTokens: StoryObj<StoryArgs> = {
