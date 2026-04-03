@@ -26,12 +26,9 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ClientCertificateDateBoundsInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -95,17 +92,6 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         }
     }
 
-    private void validateDateBounds(ClientCertificate clientCertificate) {
-        if (
-            !Duration.between(
-                Optional.ofNullable(clientCertificate.startsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
-                Optional.ofNullable(clientCertificate.endsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MAX_VALUE))
-            ).isPositive()
-        ) {
-            throw new ClientCertificateDateBoundsInvalidException();
-        }
-    }
-
     @Override
     public ClientCertificate update(String clientCertificateId, ClientCertificate update) {
         try {
@@ -114,8 +100,6 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             var existingCertificate = clientCertificateRepository
                 .findById(clientCertificateId)
                 .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
-
-            validateDateBounds(update);
 
             existingCertificate.setName(update.name());
             existingCertificate.setStartsAt(update.startsAt());

@@ -19,6 +19,13 @@ import io.gravitee.apim.core.application_certificate.crud_service.ClientCertific
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +42,7 @@ public class ClientCertificateDomainServiceImpl implements ClientCertificateDoma
 
     private final ClientCertificateCrudService clientCertificateCrudService;
     private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
+    private final SubscriptionQueryService subscriptionQueryService;
 
     @Override
     public ClientCertificate create(String applicationId, ClientCertificate certificate) {
@@ -45,8 +53,9 @@ public class ClientCertificateDomainServiceImpl implements ClientCertificateDoma
     }
 
     @Override
-    public ClientCertificate update(String certificateId, ClientCertificate certificate) {
+    public ClientCertificate update(String applicationId, String certificateId, ClientCertificate certificate) {
         log.debug("Updating client certificate [{}]", certificateId);
+        resolveAndVerifyOwnership(certificateId, applicationId);
         var updated = clientCertificateCrudService.update(certificateId, certificate);
         mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(updated.applicationId());
         return updated;
@@ -55,8 +64,41 @@ public class ClientCertificateDomainServiceImpl implements ClientCertificateDoma
     @Override
     public void delete(String applicationId, String certificateId) {
         log.debug("Deleting client certificate [{}] for application [{}]", certificateId, applicationId);
-        mtlsSubscriptionSyncDomainService.validateCertificateRemoval(applicationId, certificateId);
+        var existing = resolveAndVerifyOwnership(certificateId, applicationId);
+        var resolvedAppId = existing.applicationId();
+        validateCertificateRemoval(resolvedAppId, certificateId);
         clientCertificateCrudService.delete(certificateId);
-        mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(applicationId);
+        mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(resolvedAppId);
+    }
+
+    private ClientCertificate resolveAndVerifyOwnership(String certificateId, String applicationId) {
+        var existing = clientCertificateCrudService.findById(certificateId);
+        if (applicationId != null && !applicationId.equals(existing.applicationId())) {
+            throw new ClientCertificateNotFoundException(certificateId);
+        }
+        return existing;
+    }
+
+    private void validateCertificateRemoval(String applicationId, String certificateId) {
+        List<SubscriptionEntity> mtlsSubscriptions = subscriptionQueryService.findActiveByApplicationIdAndPlanSecurityTypes(
+            applicationId,
+            List.of(PlanSecurityType.MTLS.name())
+        );
+
+        if (mtlsSubscriptions.isEmpty()) {
+            return;
+        }
+
+        var activeCertificates = clientCertificateCrudService.findByApplicationIdAndStatuses(
+            applicationId,
+            ClientCertificateStatus.ACTIVE,
+            ClientCertificateStatus.ACTIVE_WITH_END
+        );
+
+        boolean noneRemaining = activeCertificates.stream().noneMatch(c -> !c.id().equals(certificateId));
+
+        if (noneRemaining) {
+            throw new ClientCertificateLastRemovalException(applicationId);
+        }
     }
 }

@@ -209,4 +209,57 @@ class ClientCertificateValidationDomainServiceImplTest {
             assertThat(result).isNotNull();
         }
     }
+
+    @Nested
+    class ValidateForUpdate {
+
+        @Test
+        void should_pass_when_date_bounds_are_valid() {
+            var startsAt = Date.from(Instant.now());
+            var endsAt = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+            var cert = new ClientCertificate("Good Dates", startsAt, endsAt);
+
+            service.validateForUpdate(cert);
+        }
+
+        @Test
+        void should_pass_when_dates_are_null() {
+            var cert = new ClientCertificate("No Dates", null, null);
+
+            service.validateForUpdate(cert);
+        }
+
+        @Test
+        void should_throw_when_starts_at_is_after_ends_at() {
+            var startsAt = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
+            var endsAt = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+            var cert = new ClientCertificate("Bad Dates", startsAt, endsAt);
+
+            assertThatThrownBy(() -> service.validateForUpdate(cert)).isInstanceOf(ClientCertificateDateBoundsInvalidException.class);
+        }
+
+        @Test
+        void should_pass_when_starts_at_is_null_and_ends_at_is_set() {
+            var endsAt = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+            var cert = new ClientCertificate("Only EndsAt", null, endsAt);
+
+            service.validateForUpdate(cert);
+        }
+
+        @Test
+        void should_pass_when_starts_at_is_set_and_ends_at_is_null() {
+            var startsAt = Date.from(Instant.now());
+            var cert = new ClientCertificate("Only StartsAt", startsAt, null);
+
+            service.validateForUpdate(cert);
+        }
+
+        @Test
+        void should_throw_when_starts_at_equals_ends_at() {
+            var now = Date.from(Instant.now());
+            var cert = new ClientCertificate("Same Dates", now, now);
+
+            assertThatThrownBy(() -> service.validateForUpdate(cert)).isInstanceOf(ClientCertificateDateBoundsInvalidException.class);
+        }
+    }
 }

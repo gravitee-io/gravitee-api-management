@@ -34,17 +34,19 @@ public interface ClientCertificateDomainService {
 
     /**
      * Updates an existing client certificate and syncs active mTLS subscriptions.
+     * Performs an ownership check when applicationId is non-null.
      *
+     * @param applicationId the application ID for ownership verification (may be null to skip)
      * @param certificateId the certificate ID to update
      * @param certificate the certificate data to apply
      * @return the updated certificate
      */
-    ClientCertificate update(String certificateId, ClientCertificate certificate);
+    ClientCertificate update(String applicationId, String certificateId, ClientCertificate certificate);
 
     /**
      * Deletes a client certificate and syncs active mTLS subscriptions.
      *
-     * @param applicationId the application ID (used for validation and sync)
+     * @param applicationId the application ID for ownership verification (may be null to skip; resolved from the certificate)
      * @param certificateId the certificate ID to delete
      */
     void delete(String applicationId, String certificateId);
