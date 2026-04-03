@@ -39,7 +39,8 @@
         "configDir": "gravitee-apim-webui-libs/gravitee-dashboard/.storybook",
         "browserTarget": "dashboard:build",
         "compodoc": false,
-        "port": 6008
+        "port": 6008,
+        "styles": ["gravitee-apim-webui-libs/gravitee-dashboard/.storybook/index.scss"]
       }
     },
     "build-storybook": {
@@ -48,7 +49,8 @@
         "configDir": "gravitee-apim-webui-libs/gravitee-dashboard/.storybook",
         "browserTarget": "dashboard:build",
         "compodoc": false,
-        "outputDir": "gravitee-apim-webui-libs/gravitee-dashboard/storybook-static"
+        "outputDir": "gravitee-apim-webui-libs/gravitee-dashboard/storybook-static",
+        "styles": ["gravitee-apim-webui-libs/gravitee-dashboard/.storybook/index.scss"]
       }
     }
   },
