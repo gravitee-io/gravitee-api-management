@@ -34,14 +34,18 @@
  *   2. --mat-sys-primary-container / on-primary-container (M3 theme — automatic)
  *   3. Hardcoded fallback (M2 apps or no theme configured)
  *
+ * editable state:
+ *   When [editable]=false the chip is rendered with Material's [disabled] attribute:
+ *   pointer-events:none (no click, no ripple), remove icon is hidden via @if.
+ *   The pointer cursor rule below is a no-op when the chip is disabled because
+ *   Material's pointer-events:none takes precedence.
+ *
  * Implementation note: ViewEncapsulation.None means Angular does NOT compile
  * :host — the component selector is used as the CSS scope directly.
  * Official --mat-chip-* tokens cascade into mat-chip via CSS custom property
  * inheritance. Padding has no official token and is overridden directly.
  */
 gd-filter-chip {
-  cursor: pointer;
-
   // Official Angular Material chip tokens.
   // Background → primary-container (light tint), text/icon → on-primary-container (dark readable).
   // Hardcoded fallbacks are a last-resort for M2 environments without --mat-sys-* tokens.
@@ -54,6 +58,13 @@ gd-filter-chip {
   --mat-chip-outline-width: 0;
   --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
   --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
+}
+
+// Material sets cursor:default on the internal action element — override to pointer.
+// When the chip is disabled, Material adds pointer-events:none which takes precedence,
+// so this rule is automatically a no-op for non-editable chips.
+gd-filter-chip .mdc-evolution-chip__action--primary {
+  cursor: pointer;
 }
 
 // Padding and font-family have no official Material token — direct overrides are required.

@@ -30,12 +30,27 @@ import { buildChipLabelParts, buildChipTooltip, ChipLabelParts, FilterCondition 
 })
 export class FilterChipComponent {
   filter = input.required<FilterCondition>();
+  /**
+   * When `false` the chip is disabled: no ripple, no pointer cursor, the remove
+   * icon is hidden and clicks are ignored. Use this for filters that are active
+   * but cannot be modified by the current user (e.g. insufficient permissions).
+   */
+  editable = input<boolean>(true);
   removed = output<void>();
   clicked = output<void>();
 
   protected labelParts = computed<ChipLabelParts>(() => buildChipLabelParts(this.filter()));
   protected tooltip = computed(() => buildChipTooltip(this.filter()));
-  protected ariaLabel = computed(() => `Edit filter: ${buildChipTooltip(this.filter())}. Press Delete to remove.`);
+  protected ariaLabel = computed(() => {
+    const expr = buildChipTooltip(this.filter());
+    return this.editable() ? `Edit filter: ${expr}. Press Delete to remove.` : `Active filter: ${expr}`;
+  });
+
+  protected onChipClick(): void {
+    if (this.editable()) {
+      this.clicked.emit();
+    }
+  }
 
   // Prevents the chip from gaining focus when the remove icon is pressed.
   // stopPropagation blocks the chip ripple; preventDefault blocks the browser's

@@ -15,11 +15,19 @@
     limitations under the License.
 
 -->
-<mat-chip [matTooltip]="tooltip()" [attr.aria-label]="ariaLabel()" (removed)="removed.emit()" (click)="clicked.emit()">
+<mat-chip
+  [disabled]="!editable()"
+  [matTooltip]="tooltip()"
+  [attr.aria-label]="ariaLabel()"
+  (removed)="removed.emit()"
+  (click)="onChipClick()"
+>
   <span class="gd-filter-chip__name">{{ labelParts().name }}</span>
   @if (labelParts().operator) {
     <span class="gd-filter-chip__operator">{{ labelParts().operator }}</span>
     <span class="gd-filter-chip__value" [class.gd-filter-chip__value--badge]="labelParts().isCount">{{ labelParts().value }}</span>
   }
-  <mat-icon matChipRemove (mousedown)="onRemovePointerDown($event)" (click)="$event.stopPropagation()">close</mat-icon>
+  @if (editable()) {
+    <mat-icon matChipRemove (mousedown)="onRemovePointerDown($event)" (click)="$event.stopPropagation()">close</mat-icon>
+  }
 </mat-chip>
