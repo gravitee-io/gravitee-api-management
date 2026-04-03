@@ -96,7 +96,7 @@ spec:
       initContainers:
         {{- if $shouldDownloadJdbcDriver }}
         - name: get-repository-jdbc-ext
-          {{- toYaml .Values.initContainers | nindent 10 }}
+          {{- include "gravitee.renderInitContainerSpec" (dict "context" . "initContainer" .Values.initContainers) | nindent 10 }}
           command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget {{ .Values.jdbc.driver }}" ]
           volumeMounts:
             - name: graviteeio-apim-repository-jdbc-ext
@@ -122,7 +122,7 @@ spec:
         - name: {{ template "gravitee.api.fullname" . }}-pre-upgrade
           image: "{{ .Values.api.image.repository }}:{{ default .Chart.AppVersion .Values.api.image.tag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
-          securityContext: {{ toYaml ( .Values.api.securityContext | default .Values.api.deployment.securityContext ) | nindent 12 }}
+          securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" (.Values.api.securityContext | default .Values.api.deployment.securityContext)) | nindent 12 }}
           ports:
             - name: {{ .Values.api.service.internalPortName }}
               containerPort: {{ .Values.api.service.internalPort }}

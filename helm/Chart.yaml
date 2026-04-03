@@ -31,4 +31,6 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
-      description: 'Deprecate old logging configuration parameters in favor of logback override and node logging configuration.'
+      description: 'Add configurable OpenShift security context adaptation with auto, force and disabled modes.'
+    - kind: fixed
+      description: 'Apply OpenShift security context adaptation consistently to pod, container and generated initContainer security contexts.'

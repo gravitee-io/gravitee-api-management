@@ -302,6 +302,8 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 1001
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
@@ -321,6 +323,58 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 1002
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Adapt SecurityContext for OpenShift
+    template: api/api-deployment.yaml
+    set:
+      openshift:
+        enabled: true
+      api:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext.fsGroup
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Do not adapt SecurityContext when disabled
+    template: api/api-deployment.yaml
+    set:
+      openshift:
+        enabled: true
+        adaptSecurityContext: disabled
+      api:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+          value: 1001
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
