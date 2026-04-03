@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ContentContainerComponentHarness, parallel, TestKey } from '@angular/cdk/testing';
+import { ContentContainerComponentHarness, parallel, TestElement, TestKey } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatChipGridHarness } from '@angular/material/chips/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { CopyCodeHarness } from '../../../../../components/copy-code/copy-code.harness';
+import { ApplicationTabSettingsCertificatesHarness } from '../application-tab-settings-certificates/application-tab-settings-certificates.harness';
 
 export class ApplicationTabSettingsEditHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-application-tab-settings-edit';
+  protected locateCertificatesSection = this.locatorForOptional(ApplicationTabSettingsCertificatesHarness);
+  protected locateCertificatesLoader = this.locatorForOptional('app-loader');
   protected locateAppName = this.getHarness(MatInputHarness.with({ selector: '[data-testId="name"]' }));
   protected locateAppDescription = this.getHarness(MatInputHarness.with({ selector: '[data-testId="description"]' }));
   protected locateAppDomain = this.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testId="domain"]' }));
@@ -34,6 +37,14 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
   protected locateGrantTypes = this.getHarnessOrNull(MatSelectHarness.with({ selector: '[data-testId="grantTypes"]' }));
   protected locateSaveButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="save"]' }));
   protected locateDiscardButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="discard"]' }));
+  public async getCertificatesSection(): Promise<ApplicationTabSettingsCertificatesHarness | null> {
+    return this.locateCertificatesSection();
+  }
+
+  public async getCertificatesLoader(): Promise<TestElement | null> {
+    return this.locateCertificatesLoader();
+  }
+
   public async getName(): Promise<string> {
     return this.locateAppName.then(input => input.getValue());
   }

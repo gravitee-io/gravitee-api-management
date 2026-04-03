@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, input, OnInit } from '@angular/core';
+import { Component, computed, inject, input, OnInit } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -26,13 +27,16 @@ import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { map, Observable, startWith, Subject, take, takeUntil, tap } from 'rxjs';
-import { of } from 'rxjs/internal/observable/of';
+import { map, Observable, of, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
+import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
+import { ClientCertificatesResponse } from '../../../../../entities/application/client-certificate';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
+import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
 import { ApplicationService } from '../../../../../services/application.service';
+import { ConfigService } from '../../../../../services/config.service';
 import { ApplicationTabSettingsCertificatesComponent } from '../application-tab-settings-certificates/application-tab-settings-certificates.component';
 
 interface ApplicationSettingsVM {
@@ -66,6 +70,7 @@ interface ApplicationGrantTypeVM {
   imports: [
     ApplicationTabSettingsCertificatesComponent,
     CopyCodeComponent,
+    LoaderComponent,
     MatButtonModule,
     MatCardModule,
     MatDivider,
@@ -81,9 +86,28 @@ interface ApplicationGrantTypeVM {
   styleUrl: './application-tab-settings-edit.component.scss',
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
+  protected readonly configService = inject(ConfigService);
+  private readonly certService = inject(ApplicationCertificateService);
+
   applicationId = input.required<string>();
   applicationTypeConfiguration = input.required<ApplicationType>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
+
+  protected get mtlsEnabled(): boolean {
+    return this.configService.configuration?.portalNext?.mtls?.enabled === true;
+  }
+
+  protected readonly certificates = rxResource<ClientCertificatesResponse | undefined, string | null>({
+    params: () => (this.mtlsEnabled ? this.applicationId() : null),
+    stream: ({ params }) => (params ? this.certService.list(params, 1, 1) : of(undefined)),
+  });
+
+  showCertificates = computed(() => {
+    if (this.certificates.error()) return true;
+    const response = this.certificates.value();
+    if (!response) return false;
+    return (response.metadata?.paginateMetaData?.totalElements ?? 0) > 0;
+  });
 
   application$!: Observable<Application>;
 

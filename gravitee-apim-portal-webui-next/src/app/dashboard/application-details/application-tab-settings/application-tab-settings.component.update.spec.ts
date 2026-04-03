@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { of, Subject, throwError } from 'rxjs';
 
 import { ApplicationTabSettingsEditHarness } from './application-tab-settings-edit/application-tab-settings-edit.harness';
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
@@ -32,6 +33,7 @@ import {
   fakeWebApplicationType,
 } from '../../../../entities/application/application.fixture';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
+import { ApplicationCertificateService } from '../../../../services/application-certificate.service';
 import { ConfigService } from '../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
@@ -461,6 +463,131 @@ describe('ApplicationTabSettingsComponent', () => {
       await updateHarness.discardChanges();
       expect(await updateHarness.getName()).toEqual('Native application');
       expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
+    });
+  });
+});
+
+describe('ApplicationTabSettingsComponent - Certificates section visibility', () => {
+  let fixture: ComponentFixture<ApplicationTabSettingsComponent>;
+  let httpTestingController: HttpTestingController;
+  let loader: HarnessLoader;
+  let updateHarness: ApplicationTabSettingsEditHarness;
+  const applicationId = 'id1';
+  const simpleApplication = fakeApplication({ id: applicationId });
+  const mockCertList = jest.fn();
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationTabSettingsComponent, ConfirmDialogComponent, HttpClientTestingModule, NoopAnimationsModule, AppTestingModule],
+      providers: [
+        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL, configuration: { portalNext: { mtls: { enabled: true } } } } },
+        { provide: ApplicationCertificateService, useValue: { list: mockCertList } },
+      ],
+    }).compileComponents();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  function flushGetRequests(application: Application) {
+    const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
+    httpTestingController.match(applicationUrl).forEach(req => {
+      expect(req.request.method).toBe('GET');
+      req.flush(application);
+      fixture.detectChanges();
+    });
+  }
+
+  async function init(application: Application, applicationType: ApplicationType) {
+    fixture = TestBed.createComponent(ApplicationTabSettingsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    fixture.componentRef.setInput('applicationId', applicationId);
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
+    fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
+    fixture.detectChanges();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+    flushGetRequests(application);
+    await fixture.whenStable();
+
+    fixture.componentRef.instance.isEditing.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+
+    updateHarness = await loader.getHarness(ApplicationTabSettingsEditHarness);
+  }
+
+  async function initForLoadingState(application: Application, applicationType: ApplicationType) {
+    fixture = TestBed.createComponent(ApplicationTabSettingsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('applicationId', applicationId);
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
+    fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
+    fixture.detectChanges();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+    flushGetRequests(application);
+    await fixture.whenStable();
+
+    fixture.componentRef.instance.isEditing.set(true);
+    fixture.detectChanges();
+
+    // Do NOT call whenStable() here — rxResource with a never-emitting Subject
+    // keeps the zone unstable indefinitely. Flush the app GET from ngOnInit directly.
+    flushGetRequests(application);
+    fixture.detectChanges();
+  }
+
+  describe('when application has no certificates', () => {
+    beforeEach(async () => {
+      mockCertList.mockReturnValue(of({ metadata: { paginateMetaData: { totalElements: 0 } } }));
+      await init(simpleApplication, fakeSimpleApplicationType());
+    });
+
+    it('should hide certificates section', async () => {
+      expect(await updateHarness.getCertificatesSection()).toBeNull();
+    });
+  });
+
+  describe('when application has certificates', () => {
+    beforeEach(async () => {
+      mockCertList.mockReturnValue(of({ metadata: { paginateMetaData: { totalElements: 1 } } }));
+      await init(simpleApplication, fakeSimpleApplicationType());
+    });
+
+    it('should show certificates section', async () => {
+      expect(await updateHarness.getCertificatesSection()).not.toBeNull();
+    });
+  });
+
+  describe('when certificate count is still loading', () => {
+    beforeEach(async () => {
+      mockCertList.mockReturnValue(new Subject());
+      await initForLoadingState(simpleApplication, fakeSimpleApplicationType());
+    });
+
+    it('should show loader and hide certificates section', () => {
+      expect(fixture.nativeElement.querySelector('app-loader')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-application-tab-settings-certificates')).toBeNull();
+    });
+  });
+
+  describe('when certificate count API fails', () => {
+    beforeEach(async () => {
+      mockCertList.mockReturnValue(throwError(() => new Error('API error')));
+      await init(simpleApplication, fakeSimpleApplicationType());
+    });
+
+    it('should show certificates section as fallback', async () => {
+      expect(await updateHarness.getCertificatesLoader()).toBeNull();
+      expect(await updateHarness.getCertificatesSection()).not.toBeNull();
     });
   });
 });
