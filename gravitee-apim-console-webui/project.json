@@ -145,7 +145,7 @@
           "namedChunks": true
         }
       },
-      "defaultConfiguration": "production"
+      "defaultConfiguration": "development"
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
@@ -195,7 +195,7 @@
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
       "options": {
-        "browserTarget": "console:build",
+        "browserTarget": "console:build:production",
         "compodoc": false,
         "port": 9008,
         "configDir": "gravitee-apim-console-webui/.storybook"
@@ -204,7 +204,7 @@
     "build-storybook": {
       "executor": "@storybook/angular:build-storybook",
       "options": {
-        "browserTarget": "console:build",
+        "browserTarget": "console:build:production",
         "compodoc": false,
         "configDir": "gravitee-apim-console-webui/.storybook",
         "outputDir": "gravitee-apim-console-webui/storybook-static"
