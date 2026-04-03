@@ -390,215 +390,216 @@ data:
         {{- end}}
       {{- end}}
     {{- end }}
-    management:
-    {{- if .Values.gateway.dbLess }}
-      type: {{ "none" }}
-    {{- else }}
-      type: {{ .Values.management.type | default "mongodb" }}
-      {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
-      mongodb:
-        sslEnabled: {{ .Values.mongo.sslEnabled }}
-        socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
-        {{- if .Values.mongo.uri }}
-        uri: {{ .Values.mongo.uri }}
-        {{- else if .Values.mongo.servers }}
-        servers:
-          {{- .Values.mongo.servers | nindent 10 }}
-        dbname: {{ .Values.mongo.dbname }}
-        {{- if (eq .Values.mongo.auth.enabled true) }}
-        username: {{ .Values.mongo.auth.username }}
-        password: {{ .Values.mongo.auth.password }}
-        authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
-        {{- end }}
-        {{- else }}
-        uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
-        {{- end }}
-        {{- if .Values.mongo.keystore }}
-        keystore:
-        {{- toYaml .Values.mongo.keystore | nindent 10 }}
-        {{- end }}
-        {{- if .Values.mongo.truststore }}
-        truststore:
-        {{- toYaml .Values.mongo.truststore | nindent 10 }}
-        {{- end }}
-      {{- else if (eq .Values.management.type "jdbc") }}
-      jdbc:
-        url: {{ .Values.jdbc.url }}
-        {{- if .Values.jdbc.username }}
-        username: {{ .Values.jdbc.username }}
-        {{- end }}
-        {{- if .Values.jdbc.password }}
-        password: {{ .Values.jdbc.password }}
-        {{- end }}
-        schema: {{ .Values.jdbc.schema | default "public" }}
-        liquibase: {{ .Values.jdbc.liquibase }}
-        {{- if .Values.jdbc.pool }}
-        pool:
-          {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
-        {{- end }}
-      {{- else if (eq .Values.management.type "http") }}
-      http:
-        url: {{ .Values.gateway.management.http.url }}
-        keepAlive: {{ if hasKey .Values.gateway.management.http "keepAlive" }}{{ .Values.gateway.management.http.keepAlive }}{{else}}true{{end}}
-        idleTimeout: {{ .Values.gateway.management.http.idleTimeout | default 60000 }}
-        connectTimeout: {{ .Values.gateway.management.http.connectTimeout | default 5000 }}
-        keepAliveTimeout: {{ .Values.gateway.management.http.keepAliveTimeout | default 10000 }}
-        useCompression: {{ if hasKey .Values.gateway.management.http "useCompression" }}{{ .Values.gateway.management.http.useCompression }}{{else}}true{{end}}
-        followRedirects: {{ .Values.gateway.management.http.followRedirects | default false }}
-        clearTextUpgrade: {{ if hasKey .Values.gateway.management.http "clearTextUpgrade" }}{{ .Values.gateway.management.http.clearTextUpgrade }}{{else}}true{{end}}
-        version: {{ .Values.gateway.management.http.version | default "HTTP_1_1" }}
-        {{- if .Values.gateway.management.http.connectionRetry }}
-        connectionRetry:
-          delaySec: {{ .Values.gateway.management.http.connectionRetry.delaySec | default 2 }}
-          maxDelaySec: {{ .Values.gateway.management.http.connectionRetry.maxDelaySec  | default 60 }}
-          backoffFactor: {{ .Values.gateway.management.http.connectionRetry.backoffFactor  | default 1.5 }}
-        {{- end}}
-        {{- if .Values.gateway.management.http.proxy}}
-        proxy:
-{{ toYaml .Values.gateway.management.http.proxy | indent 10 -}}
-        {{- end }}
-        {{- if .Values.gateway.management.http.username }}
-        authentication:
-          type: basic
-          basic:
-            username: {{ .Values.gateway.management.http.username }}
-            password: {{ .Values.gateway.management.http.password }}
-        {{- else if .Values.gateway.management.http.authentication }}
-        authentication:
-{{ toYaml .Values.gateway.management.http.authentication | indent 10 }}
-        {{- end }}
-        {{- if .Values.gateway.management.http.ssl }}
-        ssl:
-          {{- if hasKey .Values.gateway.management.http.ssl "trustall" }}
-          trustAll: {{ .Values.gateway.management.http.ssl.trustall }}
+    repositories:
+      management:
+      {{- if .Values.gateway.dbLess }}
+        type: {{ "none" }}
+      {{- else }}
+        type: {{ .Values.management.type | default "mongodb" }}
+        {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
+        mongodb:
+          sslEnabled: {{ .Values.mongo.sslEnabled }}
+          socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
+          {{- if .Values.mongo.uri }}
+          uri: {{ .Values.mongo.uri }}
+          {{- else if .Values.mongo.servers }}
+          servers:
+            {{- .Values.mongo.servers | nindent 12 }}
+          dbname: {{ .Values.mongo.dbname }}
+          {{- if (eq .Values.mongo.auth.enabled true) }}
+          username: {{ .Values.mongo.auth.username }}
+          password: {{ .Values.mongo.auth.password }}
+          authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
+          {{- end }}
           {{- else }}
-          trustAll: {{ .Values.gateway.management.http.ssl.trustAll | default false }}
-          {{- end}}
-          verifyHostname: {{ if hasKey .Values.gateway.management.http.ssl "verifyHostname" }}{{ .Values.gateway.management.http.ssl.verifyHostname }}{{else}}true{{end}}
-          {{- if .Values.gateway.management.http.ssl.keystore }}
+          uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
+          {{- end }}
+          {{- if .Values.mongo.keystore }}
           keystore:
-{{ toYaml .Values.gateway.management.http.ssl.keystore | indent 12 }}
+          {{- toYaml .Values.mongo.keystore | nindent 12 }}
           {{- end }}
-          {{- if .Values.gateway.management.http.ssl.truststore }}
+          {{- if .Values.mongo.truststore }}
           truststore:
-{{ toYaml .Values.gateway.management.http.ssl.truststore | indent 12 }}
+          {{- toYaml .Values.mongo.truststore | nindent 12 }}
+          {{- end }}
+        {{- else if (eq .Values.management.type "jdbc") }}
+        jdbc:
+          url: {{ .Values.jdbc.url }}
+          {{- if .Values.jdbc.username }}
+          username: {{ .Values.jdbc.username }}
+          {{- end }}
+          {{- if .Values.jdbc.password }}
+          password: {{ .Values.jdbc.password }}
+          {{- end }}
+          schema: {{ .Values.jdbc.schema | default "public" }}
+          liquibase: {{ .Values.jdbc.liquibase }}
+          {{- if .Values.jdbc.pool }}
+          pool:
+            {{ toYaml .Values.jdbc.pool | nindent 12 | trim -}}
+          {{- end }}
+        {{- else if (eq .Values.management.type "http") }}
+        http:
+          url: {{ .Values.gateway.management.http.url }}
+          keepAlive: {{ if hasKey .Values.gateway.management.http "keepAlive" }}{{ .Values.gateway.management.http.keepAlive }}{{else}}true{{end}}
+          idleTimeout: {{ .Values.gateway.management.http.idleTimeout | default 60000 }}
+          connectTimeout: {{ .Values.gateway.management.http.connectTimeout | default 5000 }}
+          keepAliveTimeout: {{ .Values.gateway.management.http.keepAliveTimeout | default 10000 }}
+          useCompression: {{ if hasKey .Values.gateway.management.http "useCompression" }}{{ .Values.gateway.management.http.useCompression }}{{else}}true{{end}}
+          followRedirects: {{ .Values.gateway.management.http.followRedirects | default false }}
+          clearTextUpgrade: {{ if hasKey .Values.gateway.management.http "clearTextUpgrade" }}{{ .Values.gateway.management.http.clearTextUpgrade }}{{else}}true{{end}}
+          version: {{ .Values.gateway.management.http.version | default "HTTP_1_1" }}
+          {{- if .Values.gateway.management.http.connectionRetry }}
+          connectionRetry:
+            delaySec: {{ .Values.gateway.management.http.connectionRetry.delaySec | default 2 }}
+            maxDelaySec: {{ .Values.gateway.management.http.connectionRetry.maxDelaySec  | default 60 }}
+            backoffFactor: {{ .Values.gateway.management.http.connectionRetry.backoffFactor  | default 1.5 }}
+          {{- end}}
+          {{- if .Values.gateway.management.http.proxy}}
+          proxy:
+{{ toYaml .Values.gateway.management.http.proxy | indent 12 -}}
+          {{- end }}
+          {{- if .Values.gateway.management.http.username }}
+          authentication:
+            type: basic
+            basic:
+              username: {{ .Values.gateway.management.http.username }}
+              password: {{ .Values.gateway.management.http.password }}
+          {{- else if .Values.gateway.management.http.authentication }}
+          authentication:
+{{ toYaml .Values.gateway.management.http.authentication | indent 12 }}
+          {{- end }}
+          {{- if .Values.gateway.management.http.ssl }}
+          ssl:
+            {{- if hasKey .Values.gateway.management.http.ssl "trustall" }}
+            trustAll: {{ .Values.gateway.management.http.ssl.trustall }}
+            {{- else }}
+            trustAll: {{ .Values.gateway.management.http.ssl.trustAll | default false }}
+            {{- end}}
+            verifyHostname: {{ if hasKey .Values.gateway.management.http.ssl "verifyHostname" }}{{ .Values.gateway.management.http.ssl.verifyHostname }}{{else}}true{{end}}
+            {{- if .Values.gateway.management.http.ssl.keystore }}
+            keystore:
+{{ toYaml .Values.gateway.management.http.ssl.keystore | indent 14 }}
+            {{- end }}
+            {{- if .Values.gateway.management.http.ssl.truststore }}
+            truststore:
+{{ toYaml .Values.gateway.management.http.ssl.truststore | indent 14 }}
+            {{- end }}
           {{- end }}
         {{- end }}
       {{- end }}
-    {{- end }}
 
-    ratelimit:
-      type: {{ .Values.ratelimit.type | default "mongodb" }}
-      {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
-      mongodb:
-        sslEnabled: {{ .Values.mongo.sslEnabled }}
-        socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
-        {{- if .Values.mongo.uri }}
-        uri: {{ .Values.mongo.uri }}
-        {{- else if .Values.mongo.servers }}
-        servers:
-          {{- .Values.mongo.servers | nindent 10 }}
-        dbname: {{ .Values.mongo.dbname }}
-        {{- if (eq .Values.mongo.auth.enabled true) }}
-        username: {{ .Values.mongo.auth.username }}
-        password: {{ .Values.mongo.auth.password }}
-        authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
-        {{- end }}
-        {{- else }}
-        uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
-        {{- end }}
-        {{- if .Values.mongo.keystore }}
-        keystore:{{- toYaml .Values.mongo.keystore | nindent 10 }}
-        {{- end }}
-        {{- if .Values.mongo.truststore }}
-        truststore:{{- toYaml .Values.mongo.truststore | nindent 10 }}
-        {{- end }}
-      {{- else if (eq .Values.ratelimit.type "jdbc") }}
-      jdbc:
-        url: {{ .Values.jdbc.url }}
-        {{- if .Values.jdbc.username }}
-        username: {{ .Values.jdbc.username }}
-        {{- end }}
-        {{- if .Values.jdbc.password }}
-        password: {{ .Values.jdbc.password }}
-        {{- end }}
-        schema: {{ .Values.jdbc.schema | default "public" }}
-        liquibase: {{ .Values.jdbc.liquibase }}
-        {{- if .Values.jdbc.pool }}
-        pool:
-          {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
-        {{- end }}
-      {{- else if (eq .Values.ratelimit.type "redis") }}
-      redis:
-        host: {{ .Values.gateway.ratelimit.redis.host }}
-        port: {{ .Values.gateway.ratelimit.redis.port }}
-        {{- if .Values.gateway.ratelimit.redis.username }}
-        username: {{ .Values.gateway.ratelimit.redis.username }}
-        {{- end }}
-        {{- if .Values.gateway.ratelimit.redis.password }}
-        password: {{ .Values.gateway.ratelimit.redis.password }}
-        {{- end }}
-        {{- if .Values.gateway.ratelimit.redis.ssl }}
-        ssl: {{ .Values.gateway.ratelimit.redis.ssl }}
-        hostnameVerificationAlgorithm: {{ .Values.gateway.ratelimit.redis.hostnameVerificationAlgorithm | default "NONE" }}
-        trustAll: {{ if hasKey .Values.gateway.ratelimit.redis "trustAll" }}{{ .Values.gateway.ratelimit.redis.trustAll }}{{else}}true{{end}}
-        tlsProtocols: {{ .Values.gateway.ratelimit.redis.tlsProtocols | default "TLSv1.2" }}
-        {{- if .Values.gateway.ratelimit.redis.tlsCiphers }}
-        tlsCiphers: {{ .Values.gateway.ratelimit.redis.tlsCiphers | quote }}
-        {{- end }}
-        alpn: {{ .Values.gateway.ratelimit.redis.alpn | default false }}
-        openssl: {{ .Values.gateway.ratelimit.redis.openssl | default false }}
-        {{/* end of ssl block */}}
-        {{- end }}
-        {{- if .Values.gateway.ratelimit.redis.keystore }}
-        keystore:
-          type: {{ .Values.gateway.ratelimit.redis.keystore.type | default "pem" }}
-          path: {{ .Values.gateway.ratelimit.redis.keystore.path | default "${gravitee.home}/security/redis-keystore.jks" }}
-          password: {{ required "The password required to access the keystore must be provided (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.ratelimit.redis.keystore.password }}
-          {{- if .Values.gateway.ratelimit.redis.keystore.keyPassword }}
-          keyPassword: {{ .Values.gateway.ratelimit.redis.keystore.keyPassword | quote }}
+      ratelimit:
+        type: {{ .Values.ratelimit.type | default "mongodb" }}
+        {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
+        mongodb:
+          sslEnabled: {{ .Values.mongo.sslEnabled }}
+          socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
+          {{- if .Values.mongo.uri }}
+          uri: {{ .Values.mongo.uri }}
+          {{- else if .Values.mongo.servers }}
+          servers:
+            {{- .Values.mongo.servers | nindent 12 }}
+          dbname: {{ .Values.mongo.dbname }}
+          {{- if (eq .Values.mongo.auth.enabled true) }}
+          username: {{ .Values.mongo.auth.username }}
+          password: {{ .Values.mongo.auth.password }}
+          authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
           {{- end }}
-          {{- if .Values.gateway.ratelimit.redis.keystore.alias }}
-          alias: {{ .Values.gateway.ratelimit.redis.keystore.alias }}
+          {{- else }}
+          uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
           {{- end }}
-          {{/* guard clause for pem mTLS requirements */}}
-          {{- if and ( eq .Values.gateway.ratelimit.redis.keystore.type "pem" ) ( empty .Values.gateway.ratelimit.redis.keystore.certificates ) }}
-            {{ fail "When configuring Gravitee to use a keystore for mTLS, your certificates must be provided!" }}
+          {{- if .Values.mongo.keystore }}
+          keystore:{{- toYaml .Values.mongo.keystore | nindent 12 }}
           {{- end }}
-          certificates:
-            {{- range .Values.gateway.ratelimit.redis.keystore.certificates }}
-            - cert: {{ .cert }}
-              key: {{ .key }}
+          {{- if .Values.mongo.truststore }}
+          truststore:{{- toYaml .Values.mongo.truststore | nindent 12 }}
+          {{- end }}
+        {{- else if (eq .Values.ratelimit.type "jdbc") }}
+        jdbc:
+          url: {{ .Values.jdbc.url }}
+          {{- if .Values.jdbc.username }}
+          username: {{ .Values.jdbc.username }}
+          {{- end }}
+          {{- if .Values.jdbc.password }}
+          password: {{ .Values.jdbc.password }}
+          {{- end }}
+          schema: {{ .Values.jdbc.schema | default "public" }}
+          liquibase: {{ .Values.jdbc.liquibase }}
+          {{- if .Values.jdbc.pool }}
+          pool:
+            {{ toYaml .Values.jdbc.pool | nindent 12 | trim -}}
+          {{- end }}
+        {{- else if (eq .Values.ratelimit.type "redis") }}
+        redis:
+          host: {{ .Values.gateway.ratelimit.redis.host }}
+          port: {{ .Values.gateway.ratelimit.redis.port }}
+          {{- if .Values.gateway.ratelimit.redis.username }}
+          username: {{ .Values.gateway.ratelimit.redis.username }}
+          {{- end }}
+          {{- if .Values.gateway.ratelimit.redis.password }}
+          password: {{ .Values.gateway.ratelimit.redis.password }}
+          {{- end }}
+          {{- if .Values.gateway.ratelimit.redis.ssl }}
+          ssl: {{ .Values.gateway.ratelimit.redis.ssl }}
+          hostnameVerificationAlgorithm: {{ .Values.gateway.ratelimit.redis.hostnameVerificationAlgorithm | default "NONE" }}
+          trustAll: {{ if hasKey .Values.gateway.ratelimit.redis "trustAll" }}{{ .Values.gateway.ratelimit.redis.trustAll }}{{else}}true{{end}}
+          tlsProtocols: {{ .Values.gateway.ratelimit.redis.tlsProtocols | default "TLSv1.2" }}
+          {{- if .Values.gateway.ratelimit.redis.tlsCiphers }}
+          tlsCiphers: {{ .Values.gateway.ratelimit.redis.tlsCiphers | quote }}
+          {{- end }}
+          alpn: {{ .Values.gateway.ratelimit.redis.alpn | default false }}
+          openssl: {{ .Values.gateway.ratelimit.redis.openssl | default false }}
+          {{/* end of ssl block */}}
+          {{- end }}
+          {{- if .Values.gateway.ratelimit.redis.keystore }}
+          keystore:
+            type: {{ .Values.gateway.ratelimit.redis.keystore.type | default "pem" }}
+            path: {{ .Values.gateway.ratelimit.redis.keystore.path | default "${gravitee.home}/security/redis-keystore.jks" }}
+            password: {{ required "The password required to access the keystore must be provided (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.ratelimit.redis.keystore.password }}
+            {{- if .Values.gateway.ratelimit.redis.keystore.keyPassword }}
+            keyPassword: {{ .Values.gateway.ratelimit.redis.keystore.keyPassword | quote }}
             {{- end }}
-        {{- end}}
-        {{- if .Values.gateway.ratelimit.redis.truststore }}
-        truststore:
-          type: {{ .Values.gateway.ratelimit.redis.truststore.type | default "pem" }}
-          path: {{ .Values.gateway.ratelimit.redis.truststore.path | default "${gravitee.home}/security/redis-truststore.jks" }}
-          password: {{ required "The password required to access the truststore must be provided! (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.ratelimit.redis.truststore.password }}
-          {{- if .Values.gateway.ratelimit.redis.truststore.alias }}
-          alias: {{ .Values.gateway.ratelimit.redis.truststore.alias }}
+            {{- if .Values.gateway.ratelimit.redis.keystore.alias }}
+            alias: {{ .Values.gateway.ratelimit.redis.keystore.alias }}
+            {{- end }}
+            {{/* guard clause for pem mTLS requirements */}}
+            {{- if and ( eq .Values.gateway.ratelimit.redis.keystore.type "pem" ) ( empty .Values.gateway.ratelimit.redis.keystore.certificates ) }}
+              {{ fail "When configuring Gravitee to use a keystore for mTLS, your certificates must be provided!" }}
+            {{- end }}
+            certificates:
+              {{- range .Values.gateway.ratelimit.redis.keystore.certificates }}
+              - cert: {{ .cert }}
+                key: {{ .key }}
+              {{- end }}
+          {{- end}}
+          {{- if .Values.gateway.ratelimit.redis.truststore }}
+          truststore:
+            type: {{ .Values.gateway.ratelimit.redis.truststore.type | default "pem" }}
+            path: {{ .Values.gateway.ratelimit.redis.truststore.path | default "${gravitee.home}/security/redis-truststore.jks" }}
+            password: {{ required "The password required to access the truststore must be provided! (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.ratelimit.redis.truststore.password }}
+            {{- if .Values.gateway.ratelimit.redis.truststore.alias }}
+            alias: {{ .Values.gateway.ratelimit.redis.truststore.alias }}
+            {{- end }}
+          {{- end }}
+          {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
+          sentinel:
+            master: {{ .Values.gateway.ratelimit.redis.sentinel.master }}
+            nodes:
+              {{- range .Values.gateway.ratelimit.redis.sentinel.nodes }}
+              - host: {{ .host }}
+                port: {{ .port }}
+              {{- end }}
+          {{- end }}
+          {{- if (not (empty (.Values.gateway.ratelimit.redis.operation))) }}
+          operation:
+            timeout: {{ .Values.gateway.ratelimit.redis.operation.timeout | default "10" }}
+          {{- end }}
+          {{- if (not (empty (.Values.gateway.ratelimit.redis.tcp))) }}
+          tcp:
+            connectTimeout: {{ .Values.gateway.ratelimit.redis.tcp.connectTimeout | default "5000" }}
+            idleTimeout: {{ .Values.gateway.ratelimit.redis.tcp.idleTimeout | default "0" }}
           {{- end }}
         {{- end }}
-        {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
-        sentinel:
-          master: {{ .Values.gateway.ratelimit.redis.sentinel.master }}
-          nodes:
-            {{- range .Values.gateway.ratelimit.redis.sentinel.nodes }}
-            - host: {{ .host }}
-              port: {{ .port }}
-            {{- end }}
-        {{- end }}
-        {{- if (not (empty (.Values.gateway.ratelimit.redis.operation))) }}
-        operation:
-          timeout: {{ .Values.gateway.ratelimit.redis.operation.timeout | default "10" }}
-        {{- end }}
-        {{- if (not (empty (.Values.gateway.ratelimit.redis.tcp))) }}
-        tcp:
-          connectTimeout: {{ .Values.gateway.ratelimit.redis.tcp.connectTimeout | default "5000" }}
-          idleTimeout: {{ .Values.gateway.ratelimit.redis.tcp.idleTimeout | default "0" }}
-        {{- end }}
-      {{- end }}
 
     # Sharding tags configuration
     # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
