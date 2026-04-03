@@ -41,6 +41,7 @@ export type LogFiltersForm = { period: SimpleFilter; entrypoints: string[]; plan
 export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number>; applications?: MultiFilter };
 
 export type LogFiltersInitialValues = {
+  period?: SimpleFilter;
   applications?: MultiFilter;
   plans?: MultiFilter;
   from: Moment;
