@@ -96,13 +96,13 @@ export function buildChipTooltip(condition: FilterCondition): string {
 
 // Deliberate bridge casts: FilterCondition uses widened string types for forward compatibility,
 // RequestFilter is a strict existing contract (out of scope Phase 1).
-// FilterName | string and FilterOperator | string both collapse to string in TypeScript,
-// making 'as' the only viable bridge here — not a lazy escape hatch.
+// The operator cast targets RequestFilter['operator'] directly — FilterOperator is now wider
+// than the legacy contract and cannot be used as the cast target.
 // values is guaranteed non-empty by the filter-form (Phase 2).
 export function toRequestFilter(condition: FilterCondition): RequestFilter {
   return {
     name: condition.field as FilterName,
-    operator: condition.operator as FilterOperator,
+    operator: condition.operator as RequestFilter['operator'],
     value: condition.values.length === 1 ? condition.values[0] : condition.values,
   };
 }
