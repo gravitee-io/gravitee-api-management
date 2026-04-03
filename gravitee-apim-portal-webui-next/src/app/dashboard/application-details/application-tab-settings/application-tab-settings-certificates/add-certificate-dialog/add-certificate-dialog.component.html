@@ -25,7 +25,7 @@
         <span i18n="@@addCertificateStepUpload">Upload</span>
       </ng-template>
       <form [formGroup]="uploadForm" class="add-certificate-dialog__step">
-        <mat-form-field class="add-certificate-dialog__field">
+        <mat-form-field appearance="outline" class="add-certificate-dialog__field">
           <mat-label i18n="@@addCertificateNameLabel">Certificate Name</mat-label>
           <input matInput formControlName="name" type="text" maxlength="256" data-testid="certificate-name-input" />
           @if (uploadForm.controls.name.hasError('required') && uploadForm.controls.name.touched) {
@@ -36,7 +36,7 @@
         <div class="add-certificate-dialog__certificate-input">
           <div class="add-certificate-dialog__section">
             <span class="next-gen-h4" i18n="@@addCertificatePasteLabel">Paste certificate</span>
-            <mat-form-field class="add-certificate-dialog__field">
+            <mat-form-field appearance="outline" class="add-certificate-dialog__field">
               <mat-label i18n="@@addCertificatePemLabel">Certificate (PEM)</mat-label>
               <textarea
                 matInput
@@ -70,6 +70,12 @@
             </label>
           </div>
         </div>
+
+        @if (validateError(); as validateError) {
+          <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-validate-error" role="alert">
+            {{ validateError }}
+          </p>
+        }
       </form>
     </mat-step>
 
@@ -79,7 +85,7 @@
         <span i18n="@@addCertificateStepConfigure">Configure</span>
       </ng-template>
       <form [formGroup]="configureForm" class="add-certificate-dialog__step">
-        <mat-form-field class="add-certificate-dialog__field">
+        <mat-form-field appearance="outline" class="add-certificate-dialog__field">
           <mat-label i18n="@@addCertificateEndsAtLabel">Active until (optional)</mat-label>
           <input matInput [matDatepicker]="endsAtPicker" [min]="minDate" formControlName="endsAt" data-testid="certificate-ends-at-input" />
           <mat-datepicker-toggle
@@ -100,7 +106,7 @@
             </span>
           </div>
 
-          <mat-form-field class="add-certificate-dialog__field">
+          <mat-form-field appearance="outline" class="add-certificate-dialog__field">
             <mat-label i18n="@@addCertificateGracePeriodLabel">Grace period end for current certificate</mat-label>
             <input
               matInput
@@ -200,7 +206,8 @@
       mat-flat-button
       color="primary"
       type="button"
-      (click)="continueStep(uploadForm)"
+      [disabled]="isValidating()"
+      (click)="validateAndContinue()"
       data-testid="certificate-continue-upload-button"
       i18n="@@addCertificateContinueButton"
     >

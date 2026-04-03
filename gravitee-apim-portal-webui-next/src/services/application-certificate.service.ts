@@ -23,6 +23,7 @@ import {
   ClientCertificatesResponse,
   CreateClientCertificateInput,
   UpdateClientCertificateInput,
+  ValidateCertificateResponse,
 } from '../entities/application/client-certificate';
 
 @Injectable({
@@ -46,6 +47,13 @@ export class ApplicationCertificateService {
 
   update(applicationId: string, certId: string, body: UpdateClientCertificateInput): Observable<ClientCertificate> {
     return this.http.put<ClientCertificate>(`${this.configService.baseURL}/applications/${applicationId}/certificates/${certId}`, body);
+  }
+
+  validate(applicationId: string, certificate: string): Observable<ValidateCertificateResponse> {
+    return this.http.post<ValidateCertificateResponse>(
+      `${this.configService.baseURL}/applications/${applicationId}/certificates/_validate`,
+      { certificate },
+    );
   }
 
   delete(applicationId: string, certId: string): Observable<void> {

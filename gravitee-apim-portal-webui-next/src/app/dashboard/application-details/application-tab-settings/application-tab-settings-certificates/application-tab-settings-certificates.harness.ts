@@ -13,25 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 
 export class ApplicationTabSettingsCertificatesHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-application-tab-settings-certificates';
 
-  getEmptyState = this.locatorForOptional('.certificates__empty');
-  getPaginatedTable = this.locatorForOptional('app-paginated-table');
-  getErrorMessage = this.locatorForOptional('.certificates__error');
-  getTabButtons = this.locatorForAll('.certificates__tabs__tab');
-  getActiveTabButton = this.locatorForOptional('.certificates__tabs__tab--active');
-  getUploadButton = this.locatorForOptional('[data-testid="upload-certificate-button"]');
+  protected locateEmptyState = this.locatorForOptional('.certificates__empty');
+  protected locatePaginatedTable = this.locatorForOptional('app-paginated-table');
+  protected locateErrorMessage = this.locatorForOptional('.certificates__error');
+  protected locateTabButtons = this.locatorForAll('.certificates__tabs__tab');
+  protected locateActiveTabButton = this.locatorForOptional('.certificates__tabs__tab--active');
+  protected locateUploadButton = this.locatorForOptional('[data-testid="upload-certificate-button"]');
 
-  async clickUploadButton(): Promise<void> {
-    const btn = await this.getUploadButton();
+  public async getEmptyState(): Promise<TestElement | null> {
+    return this.locateEmptyState();
+  }
+
+  public async getPaginatedTable(): Promise<TestElement | null> {
+    return this.locatePaginatedTable();
+  }
+
+  public async getErrorMessage(): Promise<TestElement | null> {
+    return this.locateErrorMessage();
+  }
+
+  public async getActiveTabButton(): Promise<TestElement | null> {
+    return this.locateActiveTabButton();
+  }
+
+  public async getUploadButton(): Promise<TestElement | null> {
+    return this.locateUploadButton();
+  }
+
+  public async clickUploadButton(): Promise<void> {
+    const btn = await this.locateUploadButton();
     await btn?.click();
   }
 
-  async clickTab(label: 'active' | 'history'): Promise<void> {
-    const tabs = await this.getTabButtons();
+  public async clickTab(label: 'active' | 'history'): Promise<void> {
+    const tabs = await this.locateTabButtons();
     const index = label === 'active' ? 0 : 1;
     await tabs[index].click();
   }
