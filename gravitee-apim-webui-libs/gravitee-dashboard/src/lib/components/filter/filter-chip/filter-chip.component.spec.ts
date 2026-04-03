@@ -78,23 +78,23 @@ describe('buildChipLabel', () => {
 
 describe('buildChipLabelParts', () => {
   it('should_return_name_only_when_values_is_empty', () => {
-    expect(buildChipLabelParts(STATUS_CODE_EMPTY)).toEqual({ name: 'Status Code', operator: '', value: '' });
+    expect(buildChipLabelParts(STATUS_CODE_EMPTY)).toEqual({ name: 'Status Code', operator: '', value: '', isCount: false });
   });
 
   it('should_return_all_parts_for_single_eq_value', () => {
-    expect(buildChipLabelParts(STATUS_CODE_EQ_200)).toEqual({ name: 'Status Code', operator: '=', value: '200' });
+    expect(buildChipLabelParts(STATUS_CODE_EQ_200)).toEqual({ name: 'Status Code', operator: '=', value: '200', isCount: false });
   });
 
   it('should_normalize_single_in_value_to_eq_operator', () => {
-    expect(buildChipLabelParts(STATUS_CODE_IN_200)).toEqual({ name: 'Status Code', operator: '=', value: '200' });
+    expect(buildChipLabelParts(STATUS_CODE_IN_200)).toEqual({ name: 'Status Code', operator: '=', value: '200', isCount: false });
   });
 
-  it('should_return_operator_word_and_count_for_multiple_in_values', () => {
-    expect(buildChipLabelParts(STATUS_CODE_IN_200_204)).toEqual({ name: 'Status Code', operator: 'in', value: '(2)' });
+  it('should_return_bare_count_and_isCount_true_for_multiple_in_values', () => {
+    expect(buildChipLabelParts(STATUS_CODE_IN_200_204)).toEqual({ name: 'Status Code', operator: 'in', value: '2', isCount: true });
   });
 
-  it('should_return_not_in_word_and_count_for_multiple_not_in_values', () => {
-    expect(buildChipLabelParts(STATUS_CODE_NOT_IN_300_404)).toEqual({ name: 'Status Code', operator: 'not in', value: '(2)' });
+  it('should_return_bare_count_and_isCount_true_for_multiple_not_in_values', () => {
+    expect(buildChipLabelParts(STATUS_CODE_NOT_IN_300_404)).toEqual({ name: 'Status Code', operator: 'not in', value: '2', isCount: true });
   });
 });
 
@@ -147,13 +147,15 @@ describe('FilterChipComponent', () => {
       expect(valueEl.nativeElement.textContent.trim()).toBe('200');
     });
 
-    it('should_render_operator_word_and_count_for_multiple_values', () => {
+    it('should_render_operator_word_and_badge_count_for_multiple_values', () => {
       fixture.componentRef.setInput('filter', STATUS_CODE_IN_200_204);
       fixture.detectChanges();
 
+      const valueEl = fixture.debugElement.query(By.css('.gd-filter-chip__value'));
       expect(fixture.debugElement.query(By.css('.gd-filter-chip__name')).nativeElement.textContent.trim()).toBe('Status Code');
       expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('in');
-      expect(fixture.debugElement.query(By.css('.gd-filter-chip__value')).nativeElement.textContent.trim()).toBe('(2)');
+      expect(valueEl.nativeElement.textContent.trim()).toBe('2');
+      expect(valueEl.nativeElement.classList).toContain('gd-filter-chip__value--badge');
       expect(component['tooltip']()).toBe('Status Code in [200, 204]');
     });
 
@@ -161,8 +163,10 @@ describe('FilterChipComponent', () => {
       fixture.componentRef.setInput('filter', STATUS_CODE_NOT_IN_300_404);
       fixture.detectChanges();
 
+      const valueEl = fixture.debugElement.query(By.css('.gd-filter-chip__value'));
       expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('not in');
-      expect(fixture.debugElement.query(By.css('.gd-filter-chip__value')).nativeElement.textContent.trim()).toBe('(2)');
+      expect(valueEl.nativeElement.textContent.trim()).toBe('2');
+      expect(valueEl.nativeElement.classList).toContain('gd-filter-chip__value--badge');
       expect(component['tooltip']()).toBe('Status Code not in [300, 404]');
     });
 

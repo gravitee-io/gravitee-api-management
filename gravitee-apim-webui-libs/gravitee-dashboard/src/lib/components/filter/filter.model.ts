@@ -68,19 +68,23 @@ export function buildChipLabel(condition: FilterCondition): string {
   return `${condition.label} ${op} ${condition.values[0]}`;
 }
 
-// Structured label for the template — enables distinct font weights per part.
+// Structured label for the template — enables distinct font weights per part
+// and a circular badge for the count when multiple values are selected.
 // operator and value are empty strings when there are no values (no-op condition).
 export interface ChipLabelParts {
   name: string;
   operator: string;
   value: string;
+  isCount: boolean; // true when value is a count (multi-value) — drives the badge style
 }
 
 export function buildChipLabelParts(condition: FilterCondition): ChipLabelParts {
-  if (condition.values.length === 0) return { name: condition.label, operator: '', value: '' };
+  if (condition.values.length === 0) return { name: condition.label, operator: '', value: '', isCount: false };
   const op = getOperatorSymbol(displayOperator(condition));
-  const val = condition.values.length > 1 ? `(${condition.values.length})` : condition.values[0];
-  return { name: condition.label, operator: op, value: val };
+  if (condition.values.length > 1) {
+    return { name: condition.label, operator: op, value: `${condition.values.length}`, isCount: true };
+  }
+  return { name: condition.label, operator: op, value: condition.values[0], isCount: false };
 }
 
 export function buildChipTooltip(condition: FilterCondition): string {
