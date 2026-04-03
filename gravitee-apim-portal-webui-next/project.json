@@ -89,7 +89,7 @@
           "sourceMap": true
         }
       },
-      "defaultConfiguration": "production"
+      "defaultConfiguration": "development"
     },
     "serve": {
       "executor": "@angular/build:dev-server",
@@ -147,7 +147,7 @@
       "options": {
         "configDir": "gravitee-apim-portal-webui-next/.storybook",
         "styles": ["gravitee-apim-portal-webui-next/.storybook/index.scss"],
-        "browserTarget": "portal-next:build",
+        "browserTarget": "portal-next:build:production",
         "compodoc": false,
         "port": 6006
       }
@@ -156,7 +156,7 @@
       "executor": "@storybook/angular:build-storybook",
       "options": {
         "configDir": "gravitee-apim-portal-webui-next/.storybook",
-        "browserTarget": "portal-next:build",
+        "browserTarget": "portal-next:build:production",
         "compodoc": false,
         "outputDir": "gravitee-apim-portal-webui-next/storybook-static"
       }
