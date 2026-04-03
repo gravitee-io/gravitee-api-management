@@ -704,6 +704,88 @@ public class ReactorHandlerRegistryTest {
         Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size());
     }
 
+    @Test
+    public void shouldReturnUnmodifiableListFromGetAcceptors() {
+        Reactable reactable = createReactable("reactable1");
+        ReactorHandler handler = createReactorHandler("/");
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+        reactorHandlerRegistry.create(reactable);
+
+        Collection<HttpAcceptor> acceptorList = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
+        Assert.assertEquals(1, acceptorList.size());
+
+        try {
+            ((List<HttpAcceptor>) acceptorList).add(mock(HttpAcceptor.class));
+            Assert.fail("Expected UnsupportedOperationException");
+        } catch (UnsupportedOperationException e) {
+            // expected: list is unmodifiable
+        }
+    }
+
+    @Test
+    public void shouldNotThrowConcurrentModificationException_concurrentReadersAndWriters() throws InterruptedException {
+        // Pre-populate some APIs so readers always have something to iterate
+        for (int i = 0; i < 5; i++) {
+            DummyReactable reactable = createReactable("seed" + i);
+            ReactorHandler handler = createReactorHandler("/seed" + i);
+            when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+            reactorHandlerRegistry.create(reactable);
+        }
+
+        var errors = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+        int durationMs = 3000;
+        long deadline = System.currentTimeMillis() + durationMs;
+
+        // Reader threads: continuously iterate getAcceptors on event-loop-like threads
+        int readerCount = 4;
+        ExecutorService readers = Executors.newFixedThreadPool(readerCount);
+        for (int r = 0; r < readerCount; r++) {
+            readers.submit(() -> {
+                while (System.currentTimeMillis() < deadline && errors.get() == null) {
+                    try {
+                        Collection<HttpAcceptor> snapshot = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
+                        for (HttpAcceptor a : snapshot) {
+                            // force full iteration
+                            a.path();
+                        }
+                        // Also iterate DummyAcceptor (simulates TcpAcceptor, separate map key)
+                        Collection<DummyAcceptor> dummySnapshot = reactorHandlerRegistry.getAcceptors(DummyAcceptor.class);
+                        for (DummyAcceptor d : dummySnapshot) {
+                            d.apiId();
+                        }
+                    } catch (Throwable t) {
+                        errors.compareAndSet(null, t);
+                    }
+                }
+            });
+        }
+
+        // Writer thread: continuously create and remove reactables
+        ExecutorService writer = Executors.newSingleThreadExecutor();
+        writer.submit(() -> {
+            int idx = 100;
+            while (System.currentTimeMillis() < deadline && errors.get() == null) {
+                try {
+                    String id = "stress" + (idx++);
+                    DummyReactable reactable = createReactable(id);
+                    ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
+                    when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+                    reactorHandlerRegistry.create(reactable);
+                    reactorHandlerRegistry.remove(reactable);
+                } catch (Throwable t) {
+                    errors.compareAndSet(null, t);
+                }
+            }
+        });
+
+        readers.shutdown();
+        writer.shutdown();
+        assertTrue("Readers did not finish", readers.awaitTermination(durationMs + 5000, TimeUnit.MILLISECONDS));
+        assertTrue("Writer did not finish", writer.awaitTermination(durationMs + 5000, TimeUnit.MILLISECONDS));
+
+        Assert.assertNull("Concurrent modification detected: " + errors.get(), errors.get());
+    }
+
     private void assertEntryPoint(String host, String path, HttpAcceptor httpAcceptor) {
         Assert.assertEquals(host, httpAcceptor.host());
         Assert.assertEquals(path, httpAcceptor.path());
