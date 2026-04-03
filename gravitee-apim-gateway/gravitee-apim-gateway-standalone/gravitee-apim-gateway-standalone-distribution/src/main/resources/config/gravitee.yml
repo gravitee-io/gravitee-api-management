@@ -271,21 +271,23 @@ secrets:
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # If you use a JDBC repository, we recommend disabling liquibase scripts execution by the Gateway. Let the Management API do it.
-# management:
-#   type: jdbc
-#   jdbc:
-#     liquibase: false
+# repositories:
+#   management:
+#     type: jdbc
+#     jdbc:
+#       liquibase: false
 
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
-management:
-  type: mongodb                  # repository type
-  mongodb:                       # mongodb repository
-#    prefix:                      # collections prefix
-    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
-    host: ${ds.mongodb.host}     # mongodb host (default localhost)
-    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+repositories:
+  management:
+    type: mongodb                  # repository type
+    mongodb:                       # mongodb repository
+#      prefix:                      # collections prefix
+      dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+      host: ${ds.mongodb.host}     # mongodb host (default localhost)
+      port: ${ds.mongodb.port}     # mongodb port (default 27017)
 
 ## Client settings
 #    description:                 # mongodb description (default gravitee.io)
@@ -413,10 +415,10 @@ management:
 
 # When defining rate-limiting policy, the gateway has to store data to share with other gateway instances.
 # In this example, we are using MongoDB to store counters.
-ratelimit:
-  type: mongodb
-  mongodb:
-    uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+  ratelimit:
+    type: mongodb
+    mongodb:
+      uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
 #  redis:
 #    username: # Optional: Redis username for ACL authentication
 #    password:

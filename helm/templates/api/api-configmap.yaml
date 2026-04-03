@@ -45,50 +45,51 @@ data:
         {{- end }}
     {{- end }}
 
-    management:
-      type: {{ .Values.management.type | default "mongodb" }}
-      {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
-      mongodb:
-        sslEnabled: {{ .Values.mongo.sslEnabled }}
-        socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
-        {{- if .Values.mongo.uri }}
-        uri: {{ .Values.mongo.uri }}
-        {{- else if .Values.mongo.servers }}
-        servers:
-          {{- .Values.mongo.servers | nindent 10 }}
-        dbname: {{ .Values.mongo.dbname }}
-        {{- if (eq .Values.mongo.auth.enabled true) }}
-        username: {{ .Values.mongo.auth.username }}
-        password: {{ .Values.mongo.auth.password }}
-        authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
+    repositories:
+      management:
+        type: {{ .Values.management.type | default "mongodb" }}
+        {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
+        mongodb:
+          sslEnabled: {{ .Values.mongo.sslEnabled }}
+          socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
+          {{- if .Values.mongo.uri }}
+          uri: {{ .Values.mongo.uri }}
+          {{- else if .Values.mongo.servers }}
+          servers:
+            {{- .Values.mongo.servers | nindent 12 }}
+          dbname: {{ .Values.mongo.dbname }}
+          {{- if (eq .Values.mongo.auth.enabled true) }}
+          username: {{ .Values.mongo.auth.username }}
+          password: {{ .Values.mongo.auth.password }}
+          authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
+          {{- end }}
+          {{- else }}
+          uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
+          {{- end }}
+          {{- if .Values.mongo.keystore }}
+          keystore:
+          {{- toYaml .Values.mongo.keystore | nindent 12 }}
+          {{- end }}
+          {{- if .Values.mongo.truststore }}
+          truststore:
+          {{- toYaml .Values.mongo.truststore | nindent 12 }}
+          {{- end }}
+        {{- else if (eq .Values.management.type "jdbc") }}
+        jdbc:
+          url: {{ .Values.jdbc.url }}
+          {{- if .Values.jdbc.username }}
+          username: {{ .Values.jdbc.username }}
+          {{- end }}
+          {{- if .Values.jdbc.password }}
+          password: {{ .Values.jdbc.password }}
+          {{- end }}
+          schema: {{ .Values.jdbc.schema | default "public" }}
+          liquibase: {{ .Values.jdbc.liquibase }}
+          {{- if .Values.jdbc.pool }}
+          pool:
+            {{ toYaml .Values.jdbc.pool | nindent 12 | trim -}}
+          {{- end }}
         {{- end }}
-        {{- else }}
-        uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
-        {{- end }}
-        {{- if .Values.mongo.keystore }}
-        keystore:
-        {{- toYaml .Values.mongo.keystore | nindent 10 }}
-        {{- end }}
-        {{- if .Values.mongo.truststore }}
-        truststore:
-        {{- toYaml .Values.mongo.truststore | nindent 10 }}
-        {{- end }}
-      {{- else if (eq .Values.management.type "jdbc") }}
-      jdbc:
-        url: {{ .Values.jdbc.url }}
-        {{- if .Values.jdbc.username }}
-        username: {{ .Values.jdbc.username }}
-        {{- end }}
-        {{- if .Values.jdbc.password }}
-        password: {{ .Values.jdbc.password }}
-        {{- end }}
-        schema: {{ .Values.jdbc.schema | default "public" }}
-        liquibase: {{ .Values.jdbc.liquibase }}
-        {{- if .Values.jdbc.pool }}
-        pool:
-          {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
-        {{- end }}
-      {{- end }}
 
     # Secret Manager configuration
     {{- if .Values.secrets }}
@@ -261,45 +262,45 @@ data:
     {{- end }}
     {{- end }}
 
-    analytics:
-      {{- if (eq .Values.api.analytics.type "elasticsearch") }}
-      type: elasticsearch
-      elasticsearch:
-        {{- with .Values.es.endpoints }}
-        endpoints:
-          {{ toYaml . | nindent 10 | trim -}}
-        {{- end }}
-        {{- if .Values.es.index_mode }}
-        index_mode: {{ .Values.es.index_mode }}
-        {{- end }}
-        {{- if .Values.es.http }}
-        http:
-          {{- if .Values.es.http.timeout }}
-          timeout: {{ .Values.es.http.timeout }}
+      analytics:
+        {{- if (eq .Values.api.analytics.type "elasticsearch") }}
+        type: elasticsearch
+        elasticsearch:
+          {{- with .Values.es.endpoints }}
+          endpoints:
+            {{ toYaml . | nindent 12 | trim -}}
           {{- end }}
-        {{- end }}
-        {{- if (eq .Values.es.security.enabled true) }}
-        security:
-          username: {{ .Values.es.security.username }}
-          password: {{ .Values.es.security.password }}
-        {{- end }}
-        {{- if (eq .Values.es.ssl.enabled true) }}
-        ssl:
-          keystore:
-            type: {{ .Values.es.ssl.keystore.type }}
-            {{- if or .Values.es.ssl.keystore.path .Values.es.ssl.keystore.password }}
-            path: {{ .Values.es.ssl.keystore.path }}
-            password: {{ .Values.es.ssl.keystore.password }}
+          {{- if .Values.es.index_mode }}
+          index_mode: {{ .Values.es.index_mode }}
+          {{- end }}
+          {{- if .Values.es.http }}
+          http:
+            {{- if .Values.es.http.timeout }}
+            timeout: {{ .Values.es.http.timeout }}
             {{- end }}
-            {{- if or .Values.es.ssl.keystore.certs .Values.es.ssl.keystore.keys }}
-            certs: {{ .Values.es.ssl.keystore.certs }}
-            keys: {{ .Values.es.ssl.keystore.keys }}
-            {{- end }}
+          {{- end }}
+          {{- if (eq .Values.es.security.enabled true) }}
+          security:
+            username: {{ .Values.es.security.username }}
+            password: {{ .Values.es.security.password }}
+          {{- end }}
+          {{- if (eq .Values.es.ssl.enabled true) }}
+          ssl:
+            keystore:
+              type: {{ .Values.es.ssl.keystore.type }}
+              {{- if or .Values.es.ssl.keystore.path .Values.es.ssl.keystore.password }}
+              path: {{ .Values.es.ssl.keystore.path }}
+              password: {{ .Values.es.ssl.keystore.password }}
+              {{- end }}
+              {{- if or .Values.es.ssl.keystore.certs .Values.es.ssl.keystore.keys }}
+              certs: {{ .Values.es.ssl.keystore.certs }}
+              keys: {{ .Values.es.ssl.keystore.keys }}
+              {{- end }}
+          {{- end }}
+          index: {{ .Values.es.index }}
+        {{- else if (eq .Values.api.analytics.type "none") }}
+        type: none
         {{- end }}
-        index: {{ .Values.es.index }}
-      {{- else if (eq .Values.api.analytics.type "none") }}
-      type: none
-      {{- end }}
     {{- if .Values.api.configuration.logging }}
     logging: {{- toYaml .Values.api.configuration.logging | nindent 6 }}
     {{- end }}

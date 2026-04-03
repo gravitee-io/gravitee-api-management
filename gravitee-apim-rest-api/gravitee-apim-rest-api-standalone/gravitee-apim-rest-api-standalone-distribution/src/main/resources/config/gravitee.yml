@@ -156,13 +156,14 @@ http:
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
-management:
-  type: mongodb                  # repository type
-  mongodb:                       # mongodb repository
-#    prefix:                      # collections prefix
-    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
-    host: ${ds.mongodb.host}     # mongodb host (default localhost)
-    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+repositories:
+  management:
+    type: mongodb                  # repository type
+    mongodb:                       # mongodb repository
+#      prefix:                      # collections prefix
+      dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+      host: ${ds.mongodb.host}     # mongodb host (default localhost)
+      port: ${ds.mongodb.port}     # mongodb port (default 27017)
 
 ## Client settings
 #    description:                 # mongodb description (default gravitee.io)
@@ -314,11 +315,11 @@ services:
 # Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
 # This is the default configuration using Elasticsearch. If you want to disable it completely, you can set
 # the type as "none"
-analytics:
-  type: elasticsearch # or none
-  elasticsearch:
-    endpoints:
-      - http://${ds.elastic.host}:${ds.elastic.port}
+  analytics:
+    type: elasticsearch # or none
+    elasticsearch:
+      endpoints:
+        - http://${ds.elastic.host}:${ds.elastic.port}
 #    index: gravitee
 #    index_per_type: true
 #    index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
