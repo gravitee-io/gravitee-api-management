@@ -86,7 +86,7 @@ spec:
         {{- end }}
         {{- end }}
     spec:
-      securityContext: {{ toYaml .Values.portal.deployment.podSecurityContext | nindent 8 }}
+      securityContext: {{ include "gravitee.adaptPodSecurityContext" (dict "context" . "securityContext" .Values.portal.deployment.podSecurityContext) | nindent 8 }}
       {{- if not (eq .Values.portal.deployment.serviceAccount "") }}
       serviceAccountName: {{ .Values.portal.deployment.serviceAccount }}
       {{- else if $serviceAccount }}
@@ -114,7 +114,7 @@ spec:
         - name: {{ template "gravitee.portal.fullname" . }}
           image: "{{ .Values.portal.image.repository }}:{{ default .Chart.AppVersion .Values.portal.image.tag }}"
           imagePullPolicy: {{ .Values.portal.image.pullPolicy }}
-          securityContext: {{ toYaml .Values.portal.deployment.securityContext | nindent 12 }}
+          securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.portal.deployment.securityContext) | nindent 12 }}
           env:
             - name: PORTAL_API_URL
               value: "https://{{index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}/"
