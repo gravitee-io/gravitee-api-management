@@ -18,7 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
@@ -60,6 +60,21 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('should navigate to parent route when clicking the back button', async () => {
+    await initComponent();
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigateByUrl');
+
+    expectApiWithConnectionLog(fakeConnectionLogDetail());
+    expectApiWithMessageLogs([]);
+
+    const backButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Back to Connections"]');
+    backButton.click();
+
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
   });
 
   describe('GIVEN there are connection logs', () => {
