@@ -31,3 +31,5 @@ export * from './lib/components/chart/time-series-chart/time-series-chart.compon
 export * from './lib/components/chart/category-chart/category-chart.component';
 export * from './lib/components/filter/dropdown-search/dropdown-search.component';
 export * from './lib/components/filter/generic-filter-bar/generic-filter-bar.component';
+export * from './lib/components/filter/filter.model';
+export * from './lib/components/filter/filter-chip/filter-chip.component';
