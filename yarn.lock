@@ -4335,7 +4335,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/kanit@npm:^5.2.6":
+"@fontsource/kanit@npm:5.2.8, @fontsource/kanit@npm:^5.2.6":
   version: 5.2.8
   resolution: "@fontsource/kanit@npm:5.2.8"
   checksum: 10c0/807f29f3d36f5bf2260cf8fc62f9aad79172d61cd50904aa2c45f350b9f006d631530f9caeb366940aebb31640107202633e4ed658d1a3a2a71b35683d002074
@@ -18981,6 +18981,7 @@ __metadata:
     "@fontsource/dm-mono": "npm:5.2.5"
     "@fontsource/dm-sans": "npm:5.2.5"
     "@fontsource/inter": "npm:5.2.5"
+    "@fontsource/kanit": "npm:5.2.8"
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@fontsource/material-icons": "npm:5.2.5"
     "@fontsource/material-icons-outlined": "npm:5.2.5"
