@@ -56,6 +56,7 @@ export default {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           measures: args.measures,
         },
       ],

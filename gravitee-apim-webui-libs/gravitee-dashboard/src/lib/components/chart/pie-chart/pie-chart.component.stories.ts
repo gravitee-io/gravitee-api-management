@@ -68,6 +68,7 @@ export default {
       metrics: [
         {
           name: 'HTTP_REQUESTS',
+          unit: 'NUMBER',
           buckets: args.buckets.map(bucket => ({
             key: bucket.key,
             name: bucket.key,
