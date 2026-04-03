@@ -55,7 +55,6 @@ gd-filter-chip {
   --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
   --mat-chip-elevated-container-color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
   --mat-chip-label-text-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
-  --mat-chip-with-icon-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
   --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
   --mat-chip-outline-width: 0;
   --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
@@ -63,8 +62,8 @@ gd-filter-chip {
 }
 
 // Material sets cursor:default on the internal action element — override to pointer.
-// When the chip is disabled, Material adds pointer-events:none which takes precedence,
-// so this rule is automatically a no-op for non-editable chips.
+// Disabled chips re-enable pointer-events:auto for tooltip support (see rule below),
+// so cursor:default is explicitly re-overridden there to prevent the pointer from showing.
 gd-filter-chip .mdc-evolution-chip__action--primary {
   cursor: pointer;
 }
@@ -88,10 +87,10 @@ gd-filter-chip .mdc-evolution-chip--disabled .mdc-evolution-chip__action--primar
   cursor: default;
 }
 
-// Padding and font-family have no official Material token — direct overrides are required.
+// Padding has no official Material token — direct override is required.
+// Targets all chip variants (editable has a trailing action, disabled does not).
 // Specificity (0,2,1) beats Material's (0,2,0).
-// Handles the trailing-action variant (our chip always has matChipRemove).
-gd-filter-chip .mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action .mdc-evolution-chip__action--primary {
+gd-filter-chip .mat-mdc-standard-chip .mdc-evolution-chip__action--primary {
   padding-left: var(--gd-filter-chip-padding-h, 8px);
 }
 

@@ -17,7 +17,7 @@ import { FilterName } from '../widget/model/request/enum/filter-name';
 import { RequestFilter } from '../widget/model/request/request';
 
 export type FilterType = 'KEYWORD' | 'STRING' | 'NUMBER' | 'ENUM';
-export type FilterOperator = 'EQ' | 'IN' | 'LTE' | 'GTE';
+export type FilterOperator = 'EQ' | 'NEQ' | 'IN' | 'NOT_IN' | 'LTE' | 'GTE';
 
 // FilterDefinition — mirrors the backend /filter-definitions endpoint response item.
 // All discriminant fields are widened to handle unknown values from future backend evolutions.

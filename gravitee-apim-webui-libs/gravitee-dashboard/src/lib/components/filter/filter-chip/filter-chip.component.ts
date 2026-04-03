@@ -46,6 +46,9 @@ export class FilterChipComponent {
     return this.editable() ? `Edit filter: ${expr}. Press Delete to remove.` : `Active filter: ${expr}`;
   });
 
+  // pointer-events:auto is restored on the disabled chip container for matTooltip support,
+  // so click events can still bubble up to this handler when editable=false.
+  // The guard prevents clicked from being emitted in that case.
   protected onChipClick(): void {
     if (this.editable()) {
       this.clicked.emit();
