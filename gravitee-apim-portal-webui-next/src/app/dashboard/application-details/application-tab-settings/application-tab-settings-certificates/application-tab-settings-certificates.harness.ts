@@ -21,8 +21,8 @@ export class ApplicationTabSettingsCertificatesHarness extends ComponentHarness 
   protected locateEmptyState = this.locatorForOptional('.certificates__empty');
   protected locatePaginatedTable = this.locatorForOptional('app-paginated-table');
   protected locateErrorMessage = this.locatorForOptional('.certificates__error');
-  protected locateTabButtons = this.locatorForAll('.certificates__tabs__tab');
-  protected locateActiveTabButton = this.locatorForOptional('.certificates__tabs__tab--active');
+  protected locateTabButtons = this.locatorForAll('[role="tab"]');
+  protected locateActiveTabButton = this.locatorForOptional('[role="tab"][aria-selected="true"]');
   protected locateUploadButton = this.locatorForOptional('[data-testid="upload-certificate-button"]');
 
   public async getEmptyState(): Promise<TestElement | null> {
