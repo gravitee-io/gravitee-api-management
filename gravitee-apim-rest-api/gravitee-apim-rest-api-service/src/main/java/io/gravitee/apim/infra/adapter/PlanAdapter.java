@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -94,7 +95,18 @@ public interface PlanAdapter {
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
     PlanCRD toCRD(Plan source);
 
-    PlanEntity toEntityV4(PlanCRD source);
+    @Mapping(target = "id", source = "source.id")
+    @Mapping(target = "hrid", source = "source.hrid")
+    @Mapping(target = "crossId", source = "source.crossId")
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "description", source = "source.description")
+    @Mapping(target = "type", source = "source.type")
+    @Mapping(target = "tags", source = "source.tags")
+    @Mapping(target = "flows", source = "source.flows")
+    @Mapping(target = "referenceId", source = "spec.id")
+    @Mapping(target = "referenceType", expression = "java(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)")
+    PlanEntity toEntityV4(PlanCRD source, ApiCRDSpec spec);
+
     io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
 
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(source))")
@@ -157,8 +169,12 @@ public interface PlanAdapter {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    default Set<PlanEntity> toPlanEntityV4(Map<String, PlanCRD> source) {
-        return source.values().stream().map(PlanAdapter.INSTANCE::toEntityV4).collect(Collectors.toSet());
+    default Set<PlanEntity> toPlanEntityV4(ApiCRDSpec spec, Map<String, PlanCRD> source) {
+        return source
+            .values()
+            .stream()
+            .map(plan -> PlanAdapter.INSTANCE.toEntityV4(plan, spec))
+            .collect(Collectors.toSet());
     }
 
     @Named("computeBasePlanEntityMode")
