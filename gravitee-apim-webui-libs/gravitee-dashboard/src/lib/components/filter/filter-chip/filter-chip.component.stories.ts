@@ -121,14 +121,28 @@ export const Default: StoryObj<FilterChipStoryArgs> = {
   },
 };
 
-export const MultipleValues: StoryObj<FilterChipStoryArgs> = {
+export const MultipleValuesIn: StoryObj<FilterChipStoryArgs> = {
+  name: 'Multiple Values — IN',
   args: {
-    storyId: 'multiple-values',
+    storyId: 'multiple-values-in',
     filter: {
       field: 'HTTP_STATUS',
       label: 'Status Code',
       operator: 'IN',
       values: ['200', '204'],
+    },
+  },
+};
+
+export const MultipleValuesNotIn: StoryObj<FilterChipStoryArgs> = {
+  name: 'Multiple Values — NOT IN',
+  args: {
+    storyId: 'multiple-values-not-in',
+    filter: {
+      field: 'HTTP_STATUS',
+      label: 'Status Code',
+      operator: 'NOT_IN',
+      values: ['300', '404'],
     },
   },
 };

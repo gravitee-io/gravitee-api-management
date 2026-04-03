@@ -18,7 +18,7 @@ import { MatChip, MatChipRemove } from '@angular/material/chips';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { buildChipLabel, buildChipTooltip, FilterCondition } from '../filter.model';
+import { buildChipLabelParts, buildChipTooltip, ChipLabelParts, FilterCondition } from '../filter.model';
 
 @Component({
   selector: 'gd-filter-chip',
@@ -33,7 +33,16 @@ export class FilterChipComponent {
   removed = output<void>();
   clicked = output<void>();
 
-  protected label = computed(() => buildChipLabel(this.filter()));
+  protected labelParts = computed<ChipLabelParts>(() => buildChipLabelParts(this.filter()));
   protected tooltip = computed(() => buildChipTooltip(this.filter()));
-  protected ariaLabel = computed(() => `Edit filter: ${this.label()}. Press Delete to remove.`);
+  protected ariaLabel = computed(() => `Edit filter: ${buildChipTooltip(this.filter())}. Press Delete to remove.`);
+
+  // Prevents the chip from gaining focus when the remove icon is pressed.
+  // stopPropagation blocks the chip ripple; preventDefault blocks the browser's
+  // default focus transfer on mousedown. The click event still fires so
+  // matChipRemove can process the removal.
+  protected onRemovePointerDown(event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+  }
 }
