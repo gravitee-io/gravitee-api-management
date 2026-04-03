@@ -21,7 +21,7 @@ tests:
       - isEmpty:
           # It should not contain environment variable by default
           path: spec.template.spec.containers[0].env
-      - isEmpty:
+      - notExists:
           # It should not contain init containers by default
           path: spec.template.spec.initContainers
       - equal:
@@ -47,7 +47,7 @@ tests:
       - isEmpty:
           # It should not contain environment variable by default
           path: spec.template.spec.containers[0].env
-      - isEmpty:
+      - notExists:
           # It should not contain init containers by default
           path: spec.template.spec.initContainers
 
