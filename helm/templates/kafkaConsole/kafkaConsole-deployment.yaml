@@ -76,7 +76,7 @@ spec:
         {{- end }}
         {{- end }}
     spec:
-      securityContext: {{ toYaml .Values.kafkaConsole.deployment.podSecurityContext | nindent 8 }}
+      securityContext: {{ include "gravitee.adaptPodSecurityContext" (dict "context" . "securityContext" .Values.kafkaConsole.deployment.podSecurityContext) | nindent 8 }}
       {{- if not (eq .Values.kafkaConsole.deployment.serviceAccount "") }}
       serviceAccountName: {{ .Values.kafkaConsole.deployment.serviceAccount }}
       {{- else if $serviceAccount }}
@@ -104,7 +104,7 @@ spec:
         - name: {{ template "gravitee.kafkaConsole.fullname" . }}
           image: "{{ .Values.kafkaConsole.image.repository }}:{{ default .Chart.AppVersion .Values.kafkaConsole.image.tag }}"
           imagePullPolicy: {{ .Values.kafkaConsole.image.pullPolicy }}
-          securityContext: {{ toYaml .Values.kafkaConsole.deployment.securityContext | nindent 12 }}
+          securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.kafkaConsole.deployment.securityContext) | nindent 12 }}
           env:
     {{- if and .Values.kafkaConsole.jwt.secret .Values.kafkaConsole.jwt.secret.value }}
             - name: AUTH_JWT_SECRET
