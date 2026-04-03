@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.plugin.reactor.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -86,6 +87,13 @@ class DefaultReactorPluginManagerTest {
 
         verify(reactorFactoryManager).register(fakeReactorFactory);
         verify(serviceManager).register(dummyService);
+    }
+
+    @Test
+    void should_return_null_for_plugin_documentation() throws Exception {
+        assertThat(cut.getPluginDocumentation("plugin-id")).isNull();
+        assertThat(cut.getPluginDocumentation("plugin-id", true)).isNull();
+        assertThat(cut.getPluginDocumentation("plugin-id", "property-key", true, true)).isNull();
     }
 
     private static class DummyService extends AbstractService {}
