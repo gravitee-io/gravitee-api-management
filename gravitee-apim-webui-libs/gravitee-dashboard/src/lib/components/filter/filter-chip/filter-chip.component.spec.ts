@@ -34,7 +34,7 @@ const STATUS_CODE_EMPTY: FilterCondition = { field: 'HTTP_STATUS', label: 'Statu
 const STATUS_CODE_UNKNOWN_OP: FilterCondition = {
   field: 'HTTP_STATUS',
   label: 'Status Code',
-  operator: 'CONTAINS',
+  operator: 'UNKNOWN_OP',
   values: ['value'],
 };
 
@@ -71,7 +71,7 @@ describe('buildChipLabel', () => {
     });
 
     it('should_display_raw_operator_name_when_operator_is_unknown', () => {
-      expect(buildChipLabel(STATUS_CODE_UNKNOWN_OP)).toBe('Status Code CONTAINS value');
+      expect(buildChipLabel(STATUS_CODE_UNKNOWN_OP)).toBe('Status Code UNKNOWN_OP value');
     });
   });
 });
@@ -112,7 +112,7 @@ describe('buildChipTooltip', () => {
   });
 
   it('should_display_raw_operator_name_when_operator_is_unknown', () => {
-    expect(buildChipTooltip(STATUS_CODE_UNKNOWN_OP)).toBe('Status Code CONTAINS value');
+    expect(buildChipTooltip(STATUS_CODE_UNKNOWN_OP)).toBe('Status Code UNKNOWN_OP value');
   });
 });
 
@@ -183,7 +183,7 @@ describe('FilterChipComponent', () => {
       fixture.componentRef.setInput('filter', STATUS_CODE_UNKNOWN_OP);
       fixture.detectChanges();
 
-      expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('CONTAINS');
+      expect(fixture.debugElement.query(By.css('.gd-filter-chip__operator')).nativeElement.textContent.trim()).toBe('UNKNOWN_OP');
       expect(fixture.debugElement.query(By.css('.gd-filter-chip__value')).nativeElement.textContent.trim()).toBe('value');
     });
   });
@@ -245,7 +245,7 @@ describe('FilterChipComponent', () => {
       fixture.detectChanges();
 
       const chipEl = fixture.debugElement.query(By.css('mat-chip'));
-      expect(chipEl.nativeElement.hasAttribute('aria-disabled') || chipEl.componentInstance.disabled).toBeTruthy();
+      expect(chipEl.componentInstance.disabled).toBe(true);
     });
   });
 });
