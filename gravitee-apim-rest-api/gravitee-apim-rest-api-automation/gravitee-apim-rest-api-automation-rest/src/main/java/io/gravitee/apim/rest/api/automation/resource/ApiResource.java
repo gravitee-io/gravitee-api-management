@@ -137,7 +137,7 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacy") boolean legacy) {
+    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacyID") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
