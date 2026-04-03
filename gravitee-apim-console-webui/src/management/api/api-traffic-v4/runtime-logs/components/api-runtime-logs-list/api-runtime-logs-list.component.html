@@ -28,7 +28,7 @@
     <ng-container matColumnDef="timestamp">
       <th mat-header-cell *matHeaderCellDef id="timestamp">Timestamp</th>
       <td mat-cell *matCellDef="let log">
-        <a [routerLink]="'./' + log.requestId">{{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}</a>
+        <a [routerLink]="'./' + log.requestId" queryParamsHandling="preserve">{{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}</a>
       </td>
     </ng-container>
 
@@ -145,7 +145,7 @@
       </th>
       <td mat-cell *matCellDef="let log">
         <div>
-          <a mat-button data-testid="api_logs_details_button" [routerLink]="'./' + log.requestId"
+          <a mat-button data-testid="api_logs_details_button" [routerLink]="'./' + log.requestId" queryParamsHandling="preserve"
             ><mat-icon svgIcon="gio:eye-empty"></mat-icon
           ></a>
         </div>

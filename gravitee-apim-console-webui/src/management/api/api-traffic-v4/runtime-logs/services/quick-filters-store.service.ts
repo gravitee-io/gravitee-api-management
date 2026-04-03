@@ -19,7 +19,7 @@ import moment from 'moment';
 
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-import { DEFAULT_FILTERS, LogFilters, SimpleFilter } from '../models';
+import { DEFAULT_FILTERS, DEFAULT_PERIOD, LogFilters, SimpleFilter } from '../models';
 
 @Injectable()
 export class QuickFiltersStoreService {
@@ -42,6 +42,7 @@ export class QuickFiltersStoreService {
     return {
       page,
       perPage,
+      period: logFilters.period?.value !== DEFAULT_PERIOD.value ? logFilters.period?.value : null,
       from: logFilters.from ? logFilters.from : from,
       to: logFilters.to ? logFilters.to : to,
       entrypointIds: logFilters.entrypoints?.length > 0 ? logFilters.entrypoints.join(',') : null,

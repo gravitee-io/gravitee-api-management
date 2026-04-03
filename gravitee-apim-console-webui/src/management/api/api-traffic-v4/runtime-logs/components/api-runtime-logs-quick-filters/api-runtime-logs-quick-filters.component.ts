@@ -131,7 +131,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.moreFiltersValues = {
-      period: DEFAULT_PERIOD,
+      period: this.initialValues.period ?? DEFAULT_PERIOD,
       from: this.initialValues.from,
       to: this.initialValues.to,
       statuses: this.initialValues.statuses,
@@ -139,7 +139,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       errorKeys: this.initialValues.errorKeys,
     };
     this.quickFiltersForm = new UntypedFormGroup({
-      period: new UntypedFormControl({ value: DEFAULT_PERIOD, disabled: true }),
+      period: new UntypedFormControl({ value: this.initialValues.period ?? DEFAULT_PERIOD, disabled: true }),
       entrypoints: new UntypedFormControl({ value: this.initialValues.entrypoints, disabled: true }),
       plans: new UntypedFormControl({
         value: this.initialValues.plans?.map(plan => plan.value) ?? DEFAULT_FILTERS.plans,
