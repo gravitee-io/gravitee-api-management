@@ -37,6 +37,7 @@ export class AddCertificateDialogHarness extends ComponentHarness {
     MatInputHarness.with({ selector: '[data-testid="certificate-grace-period-input"]' }),
   );
   protected locateSubmitErrorEl = this.locatorForOptional('[data-testid="certificate-submit-error"]');
+  protected locateValidateErrorEl = this.locatorForOptional('[data-testid="certificate-validate-error"]');
 
   public async nameInput(): Promise<MatInputHarness> {
     return this.locateNameInput();
@@ -72,6 +73,11 @@ export class AddCertificateDialogHarness extends ComponentHarness {
 
   public async submitErrorText(): Promise<string | null> {
     const el = await this.locateSubmitErrorEl();
+    return el ? el.text() : null;
+  }
+
+  public async validateErrorText(): Promise<string | null> {
+    const el = await this.locateValidateErrorEl();
     return el ? el.text() : null;
   }
 }

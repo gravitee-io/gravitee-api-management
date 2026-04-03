@@ -26,7 +26,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
-import { of, switchMap } from 'rxjs';
+import { of, switchMap, tap } from 'rxjs';
 
 import { ApplicationCertificateService } from '../../../../../../services/application-certificate.service';
 
@@ -69,6 +69,8 @@ export class AddCertificateDialogComponent {
 
   isSubmitting = signal(false);
   submitError = signal<string | null>(null);
+  isValidating = signal(false);
+  validateError = signal<string | null>(null);
 
   readonly uploadForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -86,12 +88,53 @@ export class AddCertificateDialogComponent {
     this.stepper().next();
   }
 
+  validateAndContinue(): void {
+    this.uploadForm.markAllAsTouched();
+    if (this.uploadForm.invalid) return;
+
+    this.isValidating.set(true);
+    this.validateError.set(null);
+
+    this.certService
+      .validate(this.data.applicationId, this.uploadForm.controls.certificate.value)
+      .pipe(
+        tap(response => {
+          if (response.certificateExpiration) {
+            this.configureForm.controls.endsAt.setValue(new Date(response.certificateExpiration));
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.isValidating.set(false);
+          this.stepper().next();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isValidating.set(false);
+          if (err.status === 400) {
+            this.validateError.set(
+              $localize`:@@addCertificateValidationError:Validation failed for Certificate uploaded. Please try again`,
+            );
+          } else {
+            this.validateError.set(
+              $localize`:@@addCertificateValidateError:An error occurred while validating the certificate. Please try again`,
+            );
+          }
+        },
+      });
+  }
+
   async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
     const content = await this.readFileAsText(file);
     this.uploadForm.controls.certificate.setValue(content);
+    if (!this.uploadForm.controls.name.value) {
+      const nameWithoutExtension = file.name.replace(/\.[^.]+$/, '');
+      this.uploadForm.controls.name.setValue(nameWithoutExtension);
+    }
     input.value = '';
   }
 

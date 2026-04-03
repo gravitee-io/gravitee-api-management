@@ -1906,6 +1906,40 @@ paths:
                     $ref: "#/components/responses/ApplicationNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/certificates/_validate:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application Client Certificates
+            requestBody:
+                description: Use to validate a client certificate.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ValidateCertificateRequest"
+            summary: Validate a PEM-encoded client certificate
+            description: |
+                Parses the certificate and returns its metadata without persisting it.
+
+                User must have the APPLICATION_DEFINITION[READ] permission.
+            operationId: validateApplicationCertificate
+            responses:
+                200:
+                    description: Certificate is valid
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidateCertificateResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /applications/{applicationId}/certificates/{certId}:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
@@ -6752,6 +6786,27 @@ components:
                 - GRAVITEE_MARKDOWN
                 - OPENAPI
 
+        ValidateCertificateRequest:
+            type: object
+            required:
+                - certificate
+            properties:
+                certificate:
+                    type: string
+                    description: The certificate in PEM format to validate.
+        ValidateCertificateResponse:
+            type: object
+            properties:
+                certificateExpiration:
+                    type: string
+                    format: date-time
+                    description: Expiration date extracted from the certificate.
+                subject:
+                    type: string
+                    description: Subject of the certificate.
+                issuer:
+                    type: string
+                    description: Issuer of the certificate.
         PortalClientCertificate:
             type: object
             properties:

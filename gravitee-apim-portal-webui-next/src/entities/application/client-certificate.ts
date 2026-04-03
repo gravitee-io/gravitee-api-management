@@ -35,6 +35,12 @@ export interface CreateClientCertificateInput {
   endsAt?: string;
 }
 
+export interface ValidateCertificateResponse {
+  certificateExpiration?: string;
+  subject?: string;
+  issuer?: string;
+}
+
 export interface UpdateClientCertificateInput {
   name?: string;
   startsAt?: string;
