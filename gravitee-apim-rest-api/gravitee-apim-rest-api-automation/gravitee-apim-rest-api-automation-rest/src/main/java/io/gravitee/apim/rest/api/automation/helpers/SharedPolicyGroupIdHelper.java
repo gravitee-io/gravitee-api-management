@@ -24,7 +24,7 @@ import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.apim.rest.api.automation.model.FlowV4;
 import io.gravitee.apim.rest.api.automation.model.StepV4;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.Objects;
@@ -66,8 +66,8 @@ public class SharedPolicyGroupIdHelper {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> struct = (Map<String, Object>) rawMap;
                 String hrid = (String) struct.get(HRID_FIELD);
-                if (hrid != null) {
-                    struct.put(SHARED_POLICY_GROUP_ID_FIELD, IdBuilder.builder(auditInfo, hrid).buildCrossId());
+                if (hrid != null && !hrid.isEmpty()) {
+                    struct.put(SHARED_POLICY_GROUP_ID_FIELD, HRIDToUUID.sharedPolicyGroup().context(auditInfo).hrid(hrid).crossId());
                 }
             }
         }

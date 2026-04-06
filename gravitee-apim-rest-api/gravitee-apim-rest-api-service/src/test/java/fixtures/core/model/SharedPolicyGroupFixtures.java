@@ -56,7 +56,7 @@ public class SharedPolicyGroupFixtures {
     }
 
     private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD.builder()
-        .crossId(UUID.random().toString())
+        .hrid("my-shared-policy-group-crd")
         .name("My Shared Policy Group CRD")
         .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
         .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);

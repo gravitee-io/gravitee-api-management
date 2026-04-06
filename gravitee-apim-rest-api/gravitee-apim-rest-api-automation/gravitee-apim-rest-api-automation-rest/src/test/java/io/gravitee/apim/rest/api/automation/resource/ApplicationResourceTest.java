@@ -32,7 +32,7 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
@@ -127,7 +127,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         void should_delete_application_and_return_no_content() {
             expectNoContent(HRID);
 
-            verify(applicationService, atLeastOnce()).archive(any(), eq(IdBuilder.builder(auditInfo, HRID).buildId()));
+            verify(applicationService, atLeastOnce()).archive(any(), eq(HRIDToUUID.application().context(auditInfo).hrid(HRID).id()));
         }
 
         @Test
@@ -141,7 +141,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         void should_return_a_404_status_code_with_unknown_hrid() {
             doThrow(new ApplicationNotFoundException("unknown"))
                 .when(applicationService)
-                .archive(any(), eq(IdBuilder.builder(auditInfo, "unknown").buildId()));
+                .archive(any(), eq(HRIDToUUID.application().context(auditInfo).hrid("unknown").id()));
 
             expectNotFound("unknown");
         }
@@ -151,7 +151,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid, boolean legacy) {
-            try (var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().delete()) {
+            try (var response = rootTarget().queryParam("legacyID", legacy).path(hrid).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }

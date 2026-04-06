@@ -28,6 +28,8 @@ import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -85,17 +87,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_legacy_id() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call -> {
-                ImportApiCRDUseCase.Input input = call.getArgument(0, ImportApiCRDUseCase.Input.class);
-                return new ImportApiCRDUseCase.Output(
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call ->
+                new ImportApiCRDUseCase.Output(
                     ApiCRDStatus.builder()
-                        .id(input.spec().getHrid())
+                        .id("api-hrid")
                         .crossId("api-cross-id")
                         .organizationId(ORGANIZATION)
                         .environmentId(ENVIRONMENT)
                         .build()
-                );
-            });
+                )
+            );
 
             var state = expectEntity("api-with-hrid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {
@@ -200,8 +201,12 @@ class ApisResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("api-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isNull();
-                soft.assertThat(state.getId()).isNull();
+                soft
+                    .assertThat(state.getCrossId())
+                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").crossId());
+                soft
+                    .assertThat(state.getId())
+                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
@@ -216,12 +221,39 @@ class ApisResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isNull();
-                soft.assertThat(state.getId()).isNull();
+                soft
+                    .assertThat(state.getId())
+                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
+                soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
+        }
+
+        @Test
+        void should_return_state_with_legacy_id() {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("legacyID", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-legacy-id.json")));
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var state = response.readEntity(ApiV4State.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(state.getId()).isEqualTo("api-id");
+                    soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
+                    soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                    soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                });
+            }
         }
 
         @Test
@@ -255,7 +287,7 @@ class ApisResourceTest extends AbstractResourceTest {
         try (
             var response = rootTarget()
                 .queryParam("dryRun", dryRun)
-                .queryParam("legacy", legacy)
+                .queryParam("legacyID", legacy)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(readJSON(spec)))

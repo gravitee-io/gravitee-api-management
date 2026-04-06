@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -51,13 +51,13 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
-    public Response get(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
+    public Response get(@PathParam("hrid") String hrid, @QueryParam("legacyID") boolean legacyID) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+                legacyID ? hrid : HRIDToUUID.sharedPolicyGroup().context(executionContext).hrid(hrid).id()
             );
             return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
         } catch (SharedPolicyGroupNotFoundException e) {
@@ -68,7 +68,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
-    public Response delete(@PathParam("hrid") String hrid, @QueryParam("dryRun") boolean dryRun, @QueryParam("legacy") boolean legacy) {
+    public Response delete(@PathParam("hrid") String hrid, @QueryParam("dryRun") boolean dryRun, @QueryParam("legacyID") boolean legacyID) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -87,7 +87,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+                legacyID ? hrid : HRIDToUUID.sharedPolicyGroup().context(executionContext).hrid(hrid).id()
             );
             if (!dryRun) {
                 deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), auditInfo));

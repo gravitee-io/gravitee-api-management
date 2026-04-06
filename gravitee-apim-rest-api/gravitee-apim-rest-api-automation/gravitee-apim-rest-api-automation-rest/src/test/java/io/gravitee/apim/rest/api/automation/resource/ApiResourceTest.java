@@ -43,7 +43,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiService;
 import jakarta.inject.Inject;
@@ -326,7 +326,7 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_delete_api_and_return_no_content() {
             expectNoContent(HRID);
 
-            verify(apiService, atLeastOnce()).delete(any(), eq(IdBuilder.builder(auditInfo, HRID).buildId()), eq(true));
+            verify(apiService, atLeastOnce()).delete(any(), eq(HRIDToUUID.api().context(auditInfo).hrid(HRID).id()), eq(true));
         }
 
         @Test

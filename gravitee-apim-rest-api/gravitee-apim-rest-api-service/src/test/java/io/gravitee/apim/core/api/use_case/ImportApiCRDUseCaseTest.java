@@ -109,6 +109,7 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
@@ -202,8 +203,7 @@ import org.junit.jupiter.api.Test;
 class ImportApiCRDUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
-    private static final String API_ID = "my-api";
-    private static final String API_CROSS_ID = "my-api-cross-id";
+    private static final String API_HRID_ID = "my-api-hrid-id";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -220,6 +220,10 @@ class ImportApiCRDUseCaseTest {
     private static final String MY_MEMBER_ID = "my-member-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
+    private static final String API_ID = "test-api-id";
+    private static final String API_CROSS_ID = "test-api-cross-id";
+    private static final String KEYLESS_PLAN_ID = "test-keyless-plan-id";
+    private static final String APIKEY_PLAN_ID = "test-apikey-plan-id";
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -274,13 +278,11 @@ class ImportApiCRDUseCaseTest {
 
     @BeforeAll
     static void beforeAll() {
-        UuidString.overrideGenerator(() -> "generated-id");
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
     }
 
     @AfterAll
     static void afterAll() {
-        UuidString.reset();
         TimeProvider.overrideClock(Clock.systemDefaultZone());
     }
 
@@ -628,9 +630,8 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_create_and_index_a_new_api() {
-            var expected = expectedApiV4Proxy();
+            var expected = expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build();
             expected.getApiDefinitionHttpV4().setPlans(List.of());
-            expected.setHrid(expected.getCrossId());
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
 
@@ -680,7 +681,7 @@ class ImportApiCRDUseCaseTest {
             assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
-                .containsExactly(tuple("keyless-id", "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
+                .containsExactly(tuple(KEYLESS_PLAN_ID, "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("plan-flow");
         }
 
@@ -695,7 +696,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -717,7 +718,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -739,7 +740,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -768,7 +769,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -872,6 +873,54 @@ class ImportApiCRDUseCaseTest {
                     tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
                     tuple(folder.getId(), folder.getCrossId(), folder.getName())
                 );
+        }
+
+        @Test
+        void should_throw_when_page_parent_is_not_a_folder() {
+            var markdownParent = PageCRD.builder()
+                .id("markdown-parent-id")
+                .hrid("markdown-parent")
+                .name("markdown-parent")
+                .type(PageCRD.Type.MARKDOWN)
+                .content("I am not a folder")
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
+
+            var child = PageCRD.builder()
+                .id("child-page-id")
+                .hrid("child-page")
+                .name("child-page")
+                .type(PageCRD.Type.MARKDOWN)
+                .parentId("markdown-parent-id")
+                .content("I have a bad parent")
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
+
+            var pages = new HashMap<String, PageCRD>();
+            pages.put("markdown-parent", markdownParent);
+            pages.put("child-page", child);
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+
+            assertThat(throwable).isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @Test
+        void should_handle_null_pages() {
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
+
+            assertThat(pageCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_handle_empty_members() {
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of()).build()));
+
+            assertThat(crdMembersDomainService.getApiMembers(API_ID)).isEmpty();
         }
 
         @Test
@@ -1080,16 +1129,16 @@ class ImportApiCRDUseCaseTest {
             .crossId(API_CROSS_ID)
             .build();
 
-        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder().referenceId(API_ID).build().setPlanTags(Set.of(TAG));
         private static final Plan NATIVE_KEYLESS = PlanFixtures.NativeV4.aKeyless()
             .toBuilder()
-            .apiId(API_ID)
+            .referenceId(API_ID)
             .build()
             .setPlanTags(Set.of(TAG));
-        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder().referenceId(API_ID).build().setPlanTags(Set.of(TAG));
         private static final Plan NATIVE_API_KEY = PlanFixtures.NativeV4.anApiKey()
             .toBuilder()
-            .apiId(API_ID)
+            .referenceId(API_ID)
             .build()
             .setPlanTags(Set.of(TAG));
 
@@ -1124,6 +1173,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1145,7 +1195,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1183,6 +1233,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1204,7 +1255,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1240,6 +1291,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1261,7 +1313,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1305,6 +1357,7 @@ class ImportApiCRDUseCaseTest {
                                     .build(),
                                 "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1326,7 +1379,7 @@ class ImportApiCRDUseCaseTest {
                     .environmentId(ENVIRONMENT_ID)
                     .organizationId(ORGANIZATION_ID)
                     .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
                     .errors(
                         ApiCRDStatus.Errors.builder()
                             .severe(List.of())
@@ -1364,8 +1417,9 @@ class ImportApiCRDUseCaseTest {
                                     .type(KEYLESS.getType())
                                     .flows(List.of((Flow) FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
-                                "api-key",
+                                "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1384,7 +1438,7 @@ class ImportApiCRDUseCaseTest {
             assertThat(planCrudService.storage())
                 .hasSize(2)
                 .extracting(Plan::getId, Plan::getName)
-                .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
+                .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
 
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
         }
@@ -1414,8 +1468,9 @@ class ImportApiCRDUseCaseTest {
                                     .type(NATIVE_KEYLESS.getType())
                                     .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
-                                "api-key",
+                                "apikey-key",
                                 PlanCRD.builder()
+                                    .id(APIKEY_PLAN_ID)
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -1434,7 +1489,7 @@ class ImportApiCRDUseCaseTest {
             assertThat(planCrudService.storage())
                 .hasSize(2)
                 .extracting(Plan::getId, Plan::getName)
-                .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
+                .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
 
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
         }
@@ -1666,6 +1721,72 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_delete_pages_not_present_in_crd_anymore() {
+            givenExistingApi();
+
+            var existingFolder = Page.builder()
+                .id("folder-id")
+                .name("markdowns")
+                .type(Page.Type.FOLDER)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
+            var existingMarkdown = Page.builder()
+                .id("markdown-id")
+                .name("hello-markdown")
+                .type(Page.Type.MARKDOWN)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
+
+            pageQueryService.initWith(List.of(existingFolder, existingMarkdown));
+            pageCrudService.initWith(List.of(existingFolder, existingMarkdown));
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
+
+            // Only keep the folder in the CRD, markdown should be deleted
+            var folderCRD = PageCRD.builder()
+                .id("folder-id")
+                .hrid("markdowns-folder")
+                .name("markdowns")
+                .type(PageCRD.Type.FOLDER)
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
+
+            var pages = new HashMap<String, PageCRD>();
+            pages.put("markdowns-folder", folderCRD);
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+
+            assertThat(pageCrudService.storage()).extracting(Page::getId).contains("folder-id").doesNotContain("markdown-id");
+        }
+
+        @Test
+        void should_delete_all_pages_when_crd_has_no_pages() {
+            givenExistingApi();
+
+            var existingPage = Page.builder()
+                .id("existing-page-id")
+                .name("existing-page")
+                .type(Page.Type.MARKDOWN)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
+
+            pageQueryService.initWith(List.of(existingPage));
+            pageCrudService.initWith(List.of(existingPage));
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
+
+            assertThat(pageCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_save_notification() {
             when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
                 call.getArgument(0)
@@ -1739,7 +1860,9 @@ class ImportApiCRDUseCaseTest {
     void should_not_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1778,7 +1901,9 @@ class ImportApiCRDUseCaseTest {
     void should_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1823,7 +1948,9 @@ class ImportApiCRDUseCaseTest {
     void should_stop_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1866,7 +1993,9 @@ class ImportApiCRDUseCaseTest {
     void should_start_the_api() {
         apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1885,7 +2014,7 @@ class ImportApiCRDUseCaseTest {
 
     @Test
     void should_start_the_native_api() {
-        apiQueryService.initWith(List.of(Update.NATIVE_API.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
+        apiQueryService.initWith(List.of(Update.NATIVE_API.toBuilder().id(API_ID).lifecycleState(Api.LifecycleState.STOPPED).build()));
         when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
             invocation.getArgument(0)
         );
@@ -1905,6 +2034,65 @@ class ImportApiCRDUseCaseTest {
         var inOrder = inOrder(apiStateDomainService);
         inOrder.verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         inOrder.verify(apiStateDomainService).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_not_deploy_when_no_plan_is_published_or_deprecated() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
+
+        useCase.execute(
+            new ImportApiCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STARTED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                    .plans(
+                        Map.of(
+                            "staging-plan",
+                            PlanCRD.builder()
+                                .id("staging-plan-id")
+                                .name("Staging Plan")
+                                .security(PlanSecurity.builder().type("KEY_LESS").build())
+                                .mode(PlanMode.STANDARD)
+                                .validation(Plan.PlanValidationType.AUTO)
+                                .status(PlanStatus.STAGING)
+                                .type(Plan.PlanType.API)
+                                .flows(List.of())
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_not_change_lifecycle_when_state_is_unchanged() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
+            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
+        );
+
+        useCase.execute(
+            new ImportApiCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STARTED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
@@ -1965,7 +2153,9 @@ class ImportApiCRDUseCaseTest {
     private static ApiCRDSpec.ApiCRDSpecBuilder aCRD() {
         return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
+            .id(API_ID)
             .crossId(API_CROSS_ID)
+            .hrid(API_HRID_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
             .endpointGroups(
@@ -1988,7 +2178,6 @@ class ImportApiCRDUseCaseTest {
                 )
             )
             .flows(List.of())
-            .id(API_ID)
             .labels(Set.of("label-1"))
             .lifecycleState("CREATED")
             .listeners(
@@ -2004,7 +2193,7 @@ class ImportApiCRDUseCaseTest {
                 Map.of(
                     "keyless-key",
                     PlanCRD.builder()
-                        .id("keyless-id")
+                        .id(KEYLESS_PLAN_ID)
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
@@ -2029,7 +2218,9 @@ class ImportApiCRDUseCaseTest {
     private static ApiCRDSpec.ApiCRDSpecBuilder aNativeApiCRD() {
         return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
+            .id(API_ID)
             .crossId(API_CROSS_ID)
+            .hrid(API_HRID_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
             .endpointGroups(
@@ -2052,7 +2243,6 @@ class ImportApiCRDUseCaseTest {
                 )
             )
             .flows(List.of())
-            .id(API_ID)
             .labels(Set.of("label-1"))
             .lifecycleState("CREATED")
             .listeners(
@@ -2070,7 +2260,7 @@ class ImportApiCRDUseCaseTest {
                 Map.of(
                     "keyless-key",
                     PlanCRD.builder()
-                        .id("keyless-id")
+                        .id(KEYLESS_PLAN_ID)
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
@@ -2098,9 +2288,8 @@ class ImportApiCRDUseCaseTest {
             .originContext(
                 new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
             )
-            .id(API_ID)
+            .hrid(API_HRID_ID)
             .environmentId(ENVIRONMENT_ID)
-            .crossId(API_CROSS_ID)
             .visibility(Api.Visibility.PRIVATE)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -2111,7 +2300,7 @@ class ImportApiCRDUseCaseTest {
             .background(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionHttpV4(
-                ApiDefinitionFixtures.aHttpProxyApiV4(API_ID)
+                ApiDefinitionFixtures.aHttpProxyApiV4(null)
                     .toBuilder()
                     .id(API_ID)
                     .name("My Api")
@@ -2144,9 +2333,8 @@ class ImportApiCRDUseCaseTest {
             .originContext(
                 new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
             )
-            .id(API_ID)
+            .hrid(API_ID)
             .environmentId(ENVIRONMENT_ID)
-            .crossId(API_CROSS_ID)
             .visibility(Api.Visibility.PRIVATE)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -2157,7 +2345,7 @@ class ImportApiCRDUseCaseTest {
             .background(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionNativeV4(
-                ApiDefinitionFixtures.aNativeApiV4(API_ID)
+                ApiDefinitionFixtures.aNativeApiV4(null)
                     .toBuilder()
                     .id(API_ID)
                     .name("My Api")
@@ -2197,7 +2385,7 @@ class ImportApiCRDUseCaseTest {
                         Map.of(
                             "keyless-key",
                             NativePlan.builder()
-                                .id("keyless-id")
+                                .id(KEYLESS_PLAN_ID)
                                 .name("Keyless")
                                 .security(PlanSecurity.builder().type("KEY_LESS").build())
                                 .mode(PlanMode.STANDARD)
@@ -2233,12 +2421,11 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownPage(PageCRD folder) {
         return PageCRD.builder()
-            .id(UUID.randomUUID().toString())
-            .crossId(UUID.randomUUID().toString())
+            .id("markdown-page-id")
             .parentId(folder.getId())
             .name("hello-markdown")
             .type(PageCRD.Type.MARKDOWN)
-            .parentId("markdowns-folder")
+            .parentId("markdowns-folder-id")
             .content("Hello world!")
             .visibility(PageCRD.Visibility.PUBLIC)
             .build();
@@ -2246,8 +2433,8 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownsFolderPage() {
         return PageCRD.builder()
-            .id(UUID.randomUUID().toString())
-            .crossId(UUID.randomUUID().toString())
+            .id("markdowns-folder-id")
+            .hrid("markdowns-folder")
             .name("markdowns")
             .type(PageCRD.Type.FOLDER)
             .visibility(PageCRD.Visibility.PUBLIC)

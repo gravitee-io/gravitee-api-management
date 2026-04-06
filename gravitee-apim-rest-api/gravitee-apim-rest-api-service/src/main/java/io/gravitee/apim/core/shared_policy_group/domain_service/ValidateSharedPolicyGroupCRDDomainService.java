@@ -20,7 +20,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 
@@ -41,28 +40,6 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
-
-        if (input.crd().getCrossId() == null && input.crd().getHrid() == null) {
-            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
-            return Result.ofErrors(errors);
-        }
-
-        if (input.crd().getHrid() == null) {
-            input.crd().setHrid(input.crd().getCrossId());
-            var idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getCrossId());
-            if (input.crd().getSharedPolicyGroupId() == null) {
-                input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-            }
-        } else {
-            var idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getHrid());
-            if (input.crd().getCrossId() == null) {
-                input.crd().setCrossId(idBuilder.buildCrossId());
-            }
-            if (input.crd().getSharedPolicyGroupId() == null) {
-                input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-            }
-        }
-
         var sanitizedBuilder = input.crd.toBuilder();
 
         sharedPolicyGroupCrudService
