@@ -24,7 +24,11 @@ import io.gravitee.definition.model.v4.plan.AbstractPlan;
  *
  * @author GraviteeSource Team
  */
-public record SecurityPlanContext(String planId, String planName, String selectionRule) {
+public record SecurityPlanContext(String planId, String planName, String selectionRule, String securityType) {
+    public SecurityPlanContext(String planId, String planName, String selectionRule) {
+        this(planId, planName, selectionRule, null);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -39,6 +43,7 @@ public record SecurityPlanContext(String planId, String planName, String selecti
             this.planId = plan.getId();
             this.planName = plan.getName();
             this.selectionRule = plan.getSelectionRule();
+            this.securityType = plan.getSecurity();
             return this;
         }
 
@@ -46,11 +51,14 @@ public record SecurityPlanContext(String planId, String planName, String selecti
             this.planId = plan.getId();
             this.planName = plan.getName();
             this.selectionRule = plan.getSelectionRule();
+            this.securityType = plan.getSecurity() != null ? plan.getSecurity().getType() : null;
             return this;
         }
 
         public SecurityPlanContext build() {
-            return new SecurityPlanContext(planId, planName, selectionRule);
+            return new SecurityPlanContext(planId, planName, selectionRule, securityType);
         }
+
+        private String securityType;
     }
 }

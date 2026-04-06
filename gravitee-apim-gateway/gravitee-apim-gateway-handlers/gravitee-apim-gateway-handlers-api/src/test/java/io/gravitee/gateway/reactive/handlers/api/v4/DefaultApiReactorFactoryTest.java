@@ -207,6 +207,15 @@ class DefaultApiReactorFactoryTest {
         }
 
         @Test
+        void should_create_mcp_proxy_api_with_http_listener() {
+            when(definition.getType()).thenReturn(ApiType.MCP_PROXY);
+            when(definition.getListeners()).thenReturn(Collections.singletonList(new HttpListener()));
+
+            boolean create = cut.canCreate(anApi());
+            assertTrue(create);
+        }
+
+        @Test
         void should_not_create_api_with_subscription_listener() {
             when(definition.getListeners()).thenReturn(Collections.singletonList(new SubscriptionListener()));
 

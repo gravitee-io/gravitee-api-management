@@ -114,6 +114,10 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
         return policy.order();
     }
 
+    public boolean hasSecurityType(String securityType) {
+        return planContext.securityType() != null && planContext.securityType().equalsIgnoreCase(securityType);
+    }
+
     protected abstract Maybe<SecurityToken> extractSecurityToken(final C executionContext);
 
     protected abstract Completable executeSecurityPolicy(final C ctx, final ExecutionPhase executionPhase);

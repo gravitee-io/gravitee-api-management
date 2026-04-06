@@ -216,7 +216,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         // Check that the API contains at least one subscription listener.
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            api.getDefinition().getType() == ApiType.PROXY &&
+            (api.getDefinition().getType() == ApiType.PROXY || api.getDefinition().getType() == ApiType.MCP_PROXY) &&
             api
                 .getDefinition()
                 .getListeners()
@@ -454,7 +454,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
 
     private List<TemplateVariableProvider> ctxTemplateVariableProviders(Api api) {
         final List<TemplateVariableProvider> requestTemplateVariableProviders = commonTemplateVariableProviders(api);
-        if (api.getDefinition().getType() == ApiType.PROXY) {
+        if (api.getDefinition().getType() == ApiType.PROXY || api.getDefinition().getType() == ApiType.MCP_PROXY) {
             requestTemplateVariableProviders.add(new ContentTemplateVariableProvider());
         }
 

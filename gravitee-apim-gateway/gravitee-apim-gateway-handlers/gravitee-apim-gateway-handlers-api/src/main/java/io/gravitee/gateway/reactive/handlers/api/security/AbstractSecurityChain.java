@@ -23,6 +23,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static io.reactivex.rxjava3.core.Completable.defer;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -52,6 +53,10 @@ public abstract class AbstractSecurityChain<
     P extends AbstractSecurityPlan<? extends BaseSecurityPolicy, C>,
     C extends BaseExecutionContext
 > {
+
+    private static final String JWT_SECURITY_TYPE = "JWT";
+    private static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
+    private static final String BEARER_REALM = "gravitee.io";
 
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
     protected static final String PLAN_RESOLUTION_FAILURE = "GATEWAY_PLAN_RESOLUTION_FAILURE";
@@ -106,25 +111,7 @@ public abstract class AbstractSecurityChain<
                                         .message(TEMPORARILY_UNAVAILABLE_MESSAGE)
                                 );
                             }
-
-                            return chain
-                                .filter(securityPlan -> securityPlan instanceof HttpSecurityPlan)
-                                .flatMapSingle(securityPlan -> {
-                                    if (ctx instanceof HttpPlainExecutionContext httpCtx) {
-                                        return ((HttpSecurityPlan) securityPlan).wwwAuthenticate(httpCtx);
-                                    }
-                                    return Single.just(false);
-                                })
-                                .any(Boolean::booleanValue)
-                                .flatMapCompletable(wwwAuthenticate ->
-                                    sendError(
-                                        ctx,
-                                        new ExecutionFailure(UNAUTHORIZED_401)
-                                            .key(PLAN_UNRESOLVABLE)
-                                            .message(securityChainDiagnostic.message())
-                                            .cause(securityChainDiagnostic.cause())
-                                    )
-                                );
+                            return handleUnresolvablePlan(ctx, securityChainDiagnostic);
                         }
                         return Completable.complete();
                     })
@@ -162,5 +149,67 @@ public abstract class AbstractSecurityChain<
                 }
                 return FALSE;
             });
+    }
+
+    private Completable handleUnresolvablePlan(C ctx, SecurityChainDiagnostic securityChainDiagnostic) {
+        return shouldSetDefaultJwtChallenge(ctx).flatMapCompletable(shouldSetJwtChallenge ->
+            sendUnauthorizedWithOptionalJwtChallenge(ctx, securityChainDiagnostic, shouldSetJwtChallenge)
+        );
+    }
+
+    private Single<Boolean> shouldSetDefaultJwtChallenge(C ctx) {
+        return Single.zip(
+            hasWwwAuthenticateHeaderInChain(ctx),
+            chain.any(securityPlan -> securityPlan.hasSecurityType(JWT_SECURITY_TYPE)),
+            this::shouldApplyDefaultJwtChallenge
+        );
+    }
+
+    private Completable sendUnauthorizedWithOptionalJwtChallenge(
+        C ctx,
+        SecurityChainDiagnostic securityChainDiagnostic,
+        Boolean shouldSetJwtChallenge
+    ) {
+        applyDefaultJwtChallengeIfNeeded(ctx, shouldSetJwtChallenge);
+        return sendError(ctx, buildUnresolvablePlanFailure(securityChainDiagnostic));
+    }
+
+    private Single<Boolean> hasWwwAuthenticateHeaderInChain(C ctx) {
+        return chain
+            .filter(securityPlan -> securityPlan instanceof HttpSecurityPlan)
+            .flatMapSingle(securityPlan -> resolveWwwAuthenticate(ctx, securityPlan))
+            .any(Boolean::booleanValue);
+    }
+
+    private Single<Boolean> resolveWwwAuthenticate(C ctx, P securityPlan) {
+        if (ctx instanceof HttpPlainExecutionContext httpCtx) {
+            return ((HttpSecurityPlan) securityPlan).wwwAuthenticate(httpCtx);
+        }
+        return FALSE;
+    }
+
+    private boolean shouldApplyDefaultJwtChallenge(boolean wwwAuthenticate, boolean hasJwtPlan) {
+        return !wwwAuthenticate && hasJwtPlan;
+    }
+
+    private void applyDefaultJwtChallengeIfNeeded(C ctx, Boolean shouldSetJwtChallenge) {
+        if (ctx instanceof HttpPlainExecutionContext httpCtx && Boolean.TRUE.equals(shouldSetJwtChallenge)) {
+            setDefaultBearerChallenge(httpCtx);
+        }
+    }
+
+    private ExecutionFailure buildUnresolvablePlanFailure(SecurityChainDiagnostic securityChainDiagnostic) {
+        return new ExecutionFailure(UNAUTHORIZED_401)
+            .key(PLAN_UNRESOLVABLE)
+            .message(securityChainDiagnostic.message())
+            .cause(securityChainDiagnostic.cause());
+    }
+
+    private static void setDefaultBearerChallenge(HttpPlainExecutionContext ctx) {
+        final var authenticateHeaders = ctx.response().headers().getAll(HttpHeaders.WWW_AUTHENTICATE);
+        if (authenticateHeaders == null || authenticateHeaders.isEmpty()) {
+            String headerValue = BEARER_AUTHORIZATION_TYPE + " realm=\"" + BEARER_REALM + "\"";
+            ctx.response().headers().set(HttpHeaders.WWW_AUTHENTICATE, headerValue);
+        }
     }
 }

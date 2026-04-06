@@ -17,8 +17,10 @@ package io.gravitee.gateway.security.jwt.policy;
 
 import static io.gravitee.reporter.api.http.SecurityType.JWT;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.policy.Policy;
@@ -36,7 +38,7 @@ public class CheckSubscriptionPolicy implements Policy {
     static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
         ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
-
+    static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
     static final String OAUTH2_UNAUTHORIZED_MESSAGE = "Unauthorized";
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
 
@@ -80,13 +82,22 @@ public class CheckSubscriptionPolicy implements Policy {
             }
         }
 
-        policyChain.failWith(
-            PolicyResult.failure(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE)
-        );
+        sendError(executionContext.response(), policyChain);
     }
 
     @Override
     public String id() {
         return "check-subscription";
+    }
+
+    private void sendError(Response response, PolicyChain policyChain) {
+        final var authenticateHeaders = response.headers().getAll(HttpHeaders.WWW_AUTHENTICATE);
+        if (authenticateHeaders == null || authenticateHeaders.isEmpty()) {
+            String headerValue = BEARER_AUTHORIZATION_TYPE + " realm=\"gravitee.io\"";
+            response.headers().set(HttpHeaders.WWW_AUTHENTICATE, headerValue);
+        }
+        policyChain.failWith(
+            PolicyResult.failure(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE)
+        );
     }
 }

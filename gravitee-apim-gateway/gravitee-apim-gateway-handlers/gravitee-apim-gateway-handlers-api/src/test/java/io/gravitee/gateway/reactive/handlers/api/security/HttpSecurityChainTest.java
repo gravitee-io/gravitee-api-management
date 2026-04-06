@@ -23,11 +23,13 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
@@ -38,6 +40,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,11 +73,17 @@ class HttpSecurityChainTest {
     @Mock
     private Configuration configuration;
 
+    @Mock
+    private HttpResponse response;
+
     @BeforeEach
     void setUp() {
         lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
         lenient().when(configuration.getProperty("api.security.verbose401", Boolean.class, false)).thenReturn(false);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(configuration);
+        lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(response.headers()).thenReturn(io.gravitee.gateway.api.http.HttpHeaders.create());
+        setupInternalAttributesMock();
     }
 
     @Test
@@ -169,9 +178,9 @@ class HttpSecurityChainTest {
 
     @Test
     void shouldInterrupt401WhenNoPolicyHasRelevantSecurityTokenAndWwwAuthenticateReturnsFalse() {
-        final Plan plan1 = mockPlan("plan1");
+        final Plan plan1 = mockPlan("plan1", "jwt");
         final Plan plan2 = mockPlan("plan2");
-        final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
+        final SecurityPolicy policy1 = mockSecurityPolicy("plan1", "jwt", false, false);
         final SecurityPolicy policy2 = mockSecurityPolicy("plan2", false, false);
 
         final ArrayList<Plan> plans = new ArrayList<>();
@@ -192,6 +201,7 @@ class HttpSecurityChainTest {
         obs.assertError(Throwable.class);
         verifyUnauthorized();
         verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+        assertEquals(List.of("Bearer realm=\"gravitee.io\""), response.headers().getAll(HttpHeaders.WWW_AUTHENTICATE));
     }
 
     @Test
@@ -213,6 +223,27 @@ class HttpSecurityChainTest {
         obs.assertError(Throwable.class);
         verifyUnauthorized();
         verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+    }
+
+    @Test
+    void shouldNotAddWwwAuthenticateHeaderWhenNoJwtPlan() {
+        final Plan plan1 = mockPlan("plan1", "oauth2");
+        final SecurityPolicy policy1 = mockSecurityPolicy("plan1", "oauth2", false, false);
+
+        final ArrayList<Plan> plans = new ArrayList<>();
+        plans.add(plan1);
+
+        when(api.getPlans()).thenReturn(plans);
+        when(policy1.wwwAuthenticate(any())).thenReturn(Single.just(false));
+        when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
+
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+
+        obs.assertError(Throwable.class);
+        verifyUnauthorized();
+        List<String> authenticateHeaders = response.headers().getAll(HttpHeaders.WWW_AUTHENTICATE);
+        Assertions.assertTrue(authenticateHeaders == null || authenticateHeaders.isEmpty());
     }
 
     @Test
@@ -273,17 +304,21 @@ class HttpSecurityChainTest {
 
     private void setupInternalAttributesMock() {
         Map<String, Object> internalAttributes = new HashMap<>();
-        doAnswer(inv -> {
-            internalAttributes.put(inv.getArgument(0), inv.getArgument(1));
-            return null;
-        })
+        lenient()
+            .doAnswer(inv -> {
+                internalAttributes.put(inv.getArgument(0), inv.getArgument(1));
+                return null;
+            })
             .when(ctx)
             .setInternalAttribute(anyString(), any());
-        when(ctx.getInternalAttribute(anyString())).thenAnswer(inv -> internalAttributes.get(inv.<String>getArgument(0)));
-        doAnswer(inv -> {
-            internalAttributes.remove(inv.<String>getArgument(0));
-            return null;
-        })
+        lenient()
+            .when(ctx.getInternalAttribute(anyString()))
+            .thenAnswer(inv -> internalAttributes.get(inv.<String>getArgument(0)));
+        lenient()
+            .doAnswer(inv -> {
+                internalAttributes.remove(inv.<String>getArgument(0));
+                return null;
+            })
             .when(ctx)
             .removeInternalAttribute(anyString());
     }
@@ -303,24 +338,29 @@ class HttpSecurityChainTest {
     }
 
     private Plan mockPlan(String name) {
+        return mockPlan(name, MOCK_POLICY + "-" + name);
+    }
+
+    private Plan mockPlan(String name, String security) {
         final Plan plan = mock(Plan.class);
 
-        when(plan.getSecurity()).thenReturn(MOCK_POLICY + "-" + name);
+        when(plan.getSecurity()).thenReturn(security);
         when(plan.getSecurityDefinition()).thenReturn(MOCK_POLICY_CONFIG + '-' + name);
 
         return plan;
     }
 
     private SecurityPolicy mockSecurityPolicy(String name, boolean hasSecurityToken, boolean validateSubscription) {
+        return mockSecurityPolicy(name, MOCK_POLICY + "-" + name, hasSecurityToken, validateSubscription);
+    }
+
+    private SecurityPolicy mockSecurityPolicy(String name, String securityType, boolean hasSecurityToken, boolean validateSubscription) {
         final SecurityPolicy policy = mock(SecurityPolicy.class);
 
         when(
             policyManager.create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    meta ->
-                        meta.getName().equals(MOCK_POLICY + "-" + name) && meta.getConfiguration().equals(MOCK_POLICY_CONFIG + '-' + name)
-                )
+                argThat(meta -> meta.getName().equals(securityType) && meta.getConfiguration().equals(MOCK_POLICY_CONFIG + '-' + name))
             )
         ).thenReturn(policy);
 

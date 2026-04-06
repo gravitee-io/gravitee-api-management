@@ -17,8 +17,10 @@ package io.gravitee.gateway.security.jwt.policy;
 
 import static io.gravitee.reporter.api.http.Metrics.on;
 import static java.lang.System.currentTimeMillis;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -72,10 +74,14 @@ public class CheckSubscriptionPolicyTest {
     public void shouldReturnUnauthorized_noSubscription() throws PolicyException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
+        Response response = mock(Response.class);
+        io.gravitee.gateway.api.http.HttpHeaders headers = io.gravitee.gateway.api.http.HttpHeaders.create();
         PolicyChain policyChain = mock(PolicyChain.class);
 
         // Search subscription now includes all criteria so the result is empty in case of bad clientId or planId.
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
+        when(executionContext.response()).thenReturn(response);
+        when(response.headers()).thenReturn(headers);
 
         policy.execute(policyChain, executionContext);
 
@@ -86,6 +92,33 @@ public class CheckSubscriptionPolicyTest {
                     CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
             )
         );
+        assertEquals("Bearer realm=\"gravitee.io\"", headers.getFirst(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @Test
+    public void shouldKeepExistingWwwAuthenticateHeader_noSubscription() throws PolicyException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+
+        Response response = mock(Response.class);
+        io.gravitee.gateway.api.http.HttpHeaders headers = io.gravitee.gateway.api.http.HttpHeaders.create();
+        headers.add(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"existing\"");
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
+        when(executionContext.response()).thenReturn(response);
+        when(response.headers()).thenReturn(headers);
+
+        policy.execute(policyChain, executionContext);
+
+        verify(policyChain, times(1)).failWith(
+            argThat(
+                result ->
+                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
+                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
+            )
+        );
+        assertEquals("Basic realm=\"existing\"", headers.getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        assertEquals(1, headers.getAll(HttpHeaders.WWW_AUTHENTICATE).size());
     }
 
     @Test
