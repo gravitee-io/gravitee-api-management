@@ -201,7 +201,7 @@ public class SearchEnvironmentLogsUseCase {
             .apis()
             .orElseGet(Collections::emptyList)
             .stream()
-            .filter(api -> api.getType() == ApiType.PROXY)
+            .filter(api -> isWantedHttpApi(api.getType()))
             .map(Api::getId)
             .collect(Collectors.toSet());
         filterContext.limitByApiIds(apiIds);
@@ -319,6 +319,10 @@ public class SearchEnvironmentLogsUseCase {
             }
             default -> throw new IllegalStateException("Unexpected value: " + name);
         }
+    }
+
+    private static boolean isWantedHttpApi(ApiType type) {
+        return type == ApiType.PROXY || type == ApiType.LLM_PROXY || type == ApiType.MCP_PROXY;
     }
 
     private io.gravitee.apim.core.logs_engine.model.HttpMethod httpMethod(String method) {

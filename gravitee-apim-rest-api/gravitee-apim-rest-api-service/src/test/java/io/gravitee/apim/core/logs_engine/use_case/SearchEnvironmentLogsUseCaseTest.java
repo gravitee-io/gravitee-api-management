@@ -908,9 +908,44 @@ class SearchEnvironmentLogsUseCaseTest {
         static Stream<Arguments> nonProxyApiProvider() {
             return Stream.of(
                 Arguments.of(ApiFixtures.aMessageApiV4().toBuilder().id("message-api").build()),
-                Arguments.of(ApiFixtures.aNativeApi().toBuilder().id("native-api").build()),
+                Arguments.of(ApiFixtures.aNativeApi().toBuilder().id("native-api").build())
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("proxyLikeApiProvider")
+        void should_include_llm_and_mcp_proxy_api_ids_in_filters(Api proxyLikeApi) {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1, proxyLikeApi))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
+            );
+            when(planCrudService.findByIds(any())).thenReturn(List.of());
+            when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            var request = new SearchLogsRequest(null, null, 1, 10);
+            useCase.execute(new Input(AUDIT_INFO, request));
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().apiIds()).contains(API1.getId(), proxyLikeApi.getId());
+        }
+
+        static Stream<Arguments> proxyLikeApiProvider() {
+            return Stream.of(
+                Arguments.of(ApiFixtures.aLLMProxyApiV4().toBuilder().id("llm-api").build()),
                 Arguments.of(ApiFixtures.aMCPProxyApiV4().toBuilder().id("mcp-api").build()),
-                Arguments.of(ApiFixtures.aLLMProxyApiV4().toBuilder().id("llm-api").build())
+                Arguments.of(ApiFixtures.aProxyApiV4().toBuilder().id("v4-api").build())
             );
         }
 
