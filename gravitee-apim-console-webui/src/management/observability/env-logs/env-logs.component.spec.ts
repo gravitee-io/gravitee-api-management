@@ -19,12 +19,13 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
+import { MatTabsModule } from '@angular/material/tabs';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { EnvLogsComponent } from './env-logs.component';
+import { EnvLogsComponent, EnvLogsTab } from './env-logs.component';
 import { EnvLogsTableHarness } from './components/env-logs-table/env-logs-table.harness';
 import { EnvLogsFilterBarHarness } from './components/env-logs-filter-bar/env-logs-filter-bar.harness';
 
@@ -67,7 +68,7 @@ describe('EnvLogsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule, EnvLogsComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, MatTabsModule, GioBannerModule, EnvLogsComponent],
     }).compileComponents();
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -111,11 +112,13 @@ describe('EnvLogsComponent', () => {
     expect(title.textContent).toContain('Logs');
   }));
 
-  it('should render the banner warning', fakeAsync(() => {
+  it('should render two tabs', fakeAsync(() => {
     initComponent();
 
-    const banner = fixture.nativeElement.querySelector('gio-banner-info');
-    expect(banner).toBeTruthy();
+    const tabs = fixture.nativeElement.querySelectorAll('.mat-mdc-tab');
+    expect(tabs.length).toBe(2);
+    expect(tabs[0].textContent).toContain('All non-message APIs');
+    expect(tabs[1].textContent).toContain('Messages and Events');
   }));
 
   it('should display filters section', fakeAsync(async () => {
@@ -383,6 +386,54 @@ describe('EnvLogsComponent', () => {
       expect(log.warnings).toEqual([{ key: 'SLOW_RESPONSE' }, { key: 'DEPRECATED_HEADER' }]);
     }));
   });
+
+  describe('tab infrastructure', () => {
+    it('should default to first tab (non-message APIs)', fakeAsync(() => {
+      initComponent();
+
+      expect(component.activeTab()).toBe(EnvLogsTab.NON_MESSAGE_APIS);
+    }));
+
+    it('should switch to messages tab and reset pagination', fakeAsync(() => {
+      initComponent(MOCK_RESPONSE);
+
+      component.onPaginationUpdated({ index: 3, size: 10 });
+      fixture.detectChanges();
+      tick(1);
+
+      const page3Url = `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=3&perPage=10`;
+      flushSearch(EMPTY_RESPONSE, page3Url);
+
+      component.onTabChanged(1);
+      fixture.detectChanges();
+      tick(1);
+
+      // Tab change resets pagination to page 1, which re-triggers the search pipeline.
+      // Drain all pending search requests from the debounce cascade.
+      let pending = httpTestingController.match(req => req.method === 'POST' && req.url.includes('/logs/search'));
+      pending.forEach(req => req.flush(EMPTY_RESPONSE));
+      fixture.detectChanges();
+      tick(1);
+      pending = httpTestingController.match(req => req.method === 'POST' && req.url.includes('/logs/search'));
+      pending.forEach(req => req.flush(EMPTY_RESPONSE));
+
+      expect(component.activeTab()).toBe(EnvLogsTab.MESSAGES);
+      expect(component.pagination().page).toBe(1);
+      expect(component.messagePagination().page).toBe(1);
+    }));
+
+    it('should update message pagination independently', fakeAsync(() => {
+      initComponent();
+
+      component.onMessagePaginationUpdated({ index: 2, size: 25 });
+
+      expect(component.messagePagination().page).toBe(2);
+      expect(component.messagePagination().perPage).toBe(25);
+      // Non-message pagination should be unaffected
+      expect(component.pagination().page).toBe(1);
+      expect(component.pagination().perPage).toBe(10);
+    }));
+  });
 });
 
 describe('EnvLogsComponent — query param persistence', () => {
@@ -392,7 +443,7 @@ describe('EnvLogsComponent — query param persistence', () => {
 
   function createComponentWithQueryParams(queryParams: Record<string, string>) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule, EnvLogsComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, MatTabsModule, GioBannerModule, EnvLogsComponent],
       providers: [
         {
           provide: ActivatedRoute,
@@ -420,7 +471,7 @@ describe('EnvLogsComponent — query param persistence', () => {
     fixture?.destroy();
   });
 
-  it('should_restore_filters_from_query_params', fakeAsync(() => {
+  it('should restore filters from query params', fakeAsync(() => {
     createComponentWithQueryParams({
       period: '-7d',
       methods: 'GET,POST',
@@ -444,7 +495,7 @@ describe('EnvLogsComponent — query param persistence', () => {
     searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
   }));
 
-  it('should_restore_pagination_from_query_params', fakeAsync(() => {
+  it('should restore pagination from query params', fakeAsync(() => {
     createComponentWithQueryParams({
       perPage: '25',
       methods: 'GET',
@@ -463,7 +514,7 @@ describe('EnvLogsComponent — query param persistence', () => {
     );
   }));
 
-  it('should_return_undefined_when_no_filter_query_params_exist', fakeAsync(() => {
+  it('should return undefined when no filter query params exist', fakeAsync(() => {
     createComponentWithQueryParams({});
 
     fixture.detectChanges();
@@ -474,7 +525,7 @@ describe('EnvLogsComponent — query param persistence', () => {
     searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
   }));
 
-  it('should_restore_more_filter_values_from_query_params', fakeAsync(() => {
+  it('should restore more filter values from query params', fakeAsync(() => {
     createComponentWithQueryParams({
       transactionId: 'txn-123',
       requestId: 'req-456',
@@ -497,6 +548,30 @@ describe('EnvLogsComponent — query param persistence', () => {
         expect.objectContaining({ name: 'RESPONSE_TIME', operator: 'GTE', value: 500 }),
       ]),
     );
+    searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+  }));
+
+  it('should restore messages tab from query params', fakeAsync(() => {
+    createComponentWithQueryParams({ tab: 'messages' });
+
+    fixture.detectChanges();
+    tick();
+
+    expect(component.activeTab()).toBe(EnvLogsTab.MESSAGES);
+
+    const searchReq = httpTestingController.expectOne(req => req.method === 'POST' && req.url.includes('/logs/search'));
+    searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+  }));
+
+  it('should default to first tab when no tab query param', fakeAsync(() => {
+    createComponentWithQueryParams({});
+
+    fixture.detectChanges();
+    tick();
+
+    expect(component.activeTab()).toBe(EnvLogsTab.NON_MESSAGE_APIS);
+
+    const searchReq = httpTestingController.expectOne(req => req.method === 'POST' && req.url.includes('/logs/search'));
     searchReq.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
   }));
 });
