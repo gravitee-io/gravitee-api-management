@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,27 @@ class ConnectionLogAdapterTest {
         assertThat(result.isRequestEnded()).isEqualTo(toConvert.isRequestEnded());
         assertThat(result.getTransactionId()).isEqualTo(toConvert.getTransactionId());
         assertThat(result.getStatus()).isEqualTo(toConvert.getStatus());
+    }
+
+    @Test
+    void should_extract_mcp_method_from_additional_metrics() {
+        final Metrics toConvert = Metrics.builder()
+            .requestId("request-id")
+            .additionalMetrics(Map.of(ConnectionLogAdapter.MCP_PROXY_METHOD_KEY, "tools/call"))
+            .build();
+
+        final BaseConnectionLog result = ConnectionLogAdapter.INSTANCE.toEntity(toConvert);
+
+        assertThat(result.getMcpMethod()).isEqualTo("tools/call");
+    }
+
+    @Test
+    void should_leave_mcp_method_null_when_additional_metrics_is_null() {
+        final Metrics toConvert = Metrics.builder().requestId("request-id").build();
+
+        final BaseConnectionLog result = ConnectionLogAdapter.INSTANCE.toEntity(toConvert);
+
+        assertThat(result.getMcpMethod()).isNull();
     }
 
     @Test
