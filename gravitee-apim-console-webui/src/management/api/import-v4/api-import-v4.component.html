@@ -16,25 +16,17 @@
 
 -->
 
-@if (isUpdateMode) {
-  <h2 mat-dialog-title class="import__dialog-title">Update API</h2>
-  <mat-dialog-content class="import__dialog-content">
-    <ng-container [ngTemplateOutlet]="formContent"></ng-container>
-  </mat-dialog-content>
-  <mat-dialog-actions class="import__dialog-actions">
-    <ng-container [ngTemplateOutlet]="formActions"></ng-container>
-  </mat-dialog-actions>
-} @else {
+<div [class.import--page]="!isUpdateMode">
   <mat-card class="import">
     <mat-card-content>
-      <h2>Import API</h2>
+      <h2>{{ isUpdateMode ? 'Update API' : 'Import API' }}</h2>
       <ng-container [ngTemplateOutlet]="formContent"></ng-container>
     </mat-card-content>
     <mat-card-actions>
       <ng-container [ngTemplateOutlet]="formActions"></ng-container>
     </mat-card-actions>
   </mat-card>
-}
+</div>
 
 <ng-template #formContent>
   <form [formGroup]="form">

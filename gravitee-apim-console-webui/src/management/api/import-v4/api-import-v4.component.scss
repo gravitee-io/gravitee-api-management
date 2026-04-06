@@ -1,12 +1,8 @@
 @use 'sass:map';
 @use '../../../scss/gio-layout' as gio-layout;
 
-:host {
+.import--page {
   @include gio-layout.gio-responsive-margin-container;
-}
-
-.import__dialog-title {
-  color: inherit;
 }
 
 .import {

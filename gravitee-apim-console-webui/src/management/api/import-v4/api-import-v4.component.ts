@@ -25,7 +25,7 @@ import { EMPTY, Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { ApiImportFilePickerComponent } from '../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -51,7 +51,6 @@ export type ApiImportV4DialogData = {
     RouterModule,
     ApiImportFilePickerComponent,
     GioFormSlideToggleModule,
-    MatDialogModule,
     MatSlideToggle,
     NgTemplateOutlet,
   ],
@@ -73,6 +72,7 @@ export class ApiImportV4Component implements OnInit {
   protected dialogRef: MatDialogRef<ApiImportV4Component> | null = inject(MatDialogRef, { optional: true });
 
   protected readonly isUpdateMode = !!this.dialogData?.apiId;
+
   /** Hidden until remote source support is added in a future release. */
   protected readonly showFileSource = false;
 
