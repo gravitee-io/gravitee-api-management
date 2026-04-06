@@ -15,10 +15,15 @@
  */
 package io.gravitee.apim.infra.domain_service.logs_engine;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.logs_engine.model.ApiLog;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
 import io.gravitee.apim.core.user.model.UserContext;
+import io.gravitee.definition.model.v4.ApiType;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,15 +36,22 @@ public class LogNamesPostProcessorImpl implements LogNamesPostProcessor {
 
     @Override
     public SearchLogsResponse mapLogNames(UserContext context, SearchLogsResponse response) {
+        var apiTypeById = context
+            .apis()
+            .orElseGet(Collections::emptyList)
+            .stream()
+            .filter(api -> api.getType() != null)
+            .collect(Collectors.toMap(Api::getId, Api::getType, (a, b) -> a));
+
         var enrichedLogs = response
             .data()
             .stream()
-            .map(log -> enrichLog(context, log))
+            .map(log -> enrichLog(context, log, apiTypeById))
             .toList();
         return new SearchLogsResponse(enrichedLogs, response.pagination());
     }
 
-    private ApiLog enrichLog(UserContext context, ApiLog log) {
+    private ApiLog enrichLog(UserContext context, ApiLog log, Map<String, ApiType> apiTypeById) {
         var apiName = context
             .apiNameById()
             .map(m -> m.get(log.apiId()))
@@ -74,6 +86,8 @@ public class LogNamesPostProcessorImpl implements LogNamesPostProcessor {
                 .map(m -> m.get(log.gateway()))
                 .orElse(log.gateway());
 
-        return log.withApiName(apiName).withPlan(plan).withApplication(application).withGateway(gateway);
+        var apiType = apiTypeById.get(log.apiId());
+
+        return log.toBuilder().apiName(apiName).apiType(apiType).plan(plan).application(application).gateway(gateway).build();
     }
 }

@@ -54,6 +54,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.LongStream;
@@ -207,6 +208,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     assertThat(r.getData()).hasSize(1);
                     var log = r.getData().getFirst();
                     assertThat(log.getApiName()).isEqualTo("API1");
+                    assertThat(log.getApiType()).isEqualTo(EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY);
                     assertThat(log.getPlan()).isNotNull();
                     assertThat(log.getPlan().getName()).isEqualTo("1st plan");
                     assertThat(log.getApplication()).isNotNull();
@@ -965,6 +967,50 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     assertThat(links.getNext()).isNull();
                     assertThat(links.getPrevious()).isNotNull();
                 });
+        }
+    }
+
+    @Nested
+    class WhenApiTypeMapping {
+
+        @Test
+        void should_return_http_proxy_api_type_for_proxy_api() {
+            connectionLogsCrudService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().apiId(API_1).build()));
+
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(1);
+                    assertThat(r.getData().getFirst().getApiType()).isEqualTo(EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY);
+                });
+        }
+
+        @Test
+        void should_return_null_api_type_when_api_not_in_context() {
+            when(userContextLoader.loadApis(any(UserContext.class))).thenAnswer(invocation -> {
+                UserContext ctx = invocation.getArgument(0);
+                return ctx.withApis(List.of()).withApiNamesById(Map.of());
+            });
+
+            connectionLogsCrudService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().apiId(API_1).build()));
+
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> assertThat(r.getData()).isEmpty());
         }
     }
 }

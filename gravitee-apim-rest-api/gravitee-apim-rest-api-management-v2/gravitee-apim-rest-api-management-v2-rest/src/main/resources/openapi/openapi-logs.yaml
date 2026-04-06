@@ -315,6 +315,13 @@ components:
           type: string
           description: Name of the API.
           example: My API
+        apiType:
+          type: string
+          description: The type of the API.
+          enum:
+            - HTTP_PROXY
+            - LLM_PROXY
+            - MCP_PROXY
         timestamp:
           type: string
           format: date-time

@@ -352,30 +352,29 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private ApiLog mapApiLog(BaseConnectionLog item) {
-        return new ApiLog(
-            item.getApiId(),
-            null,
-            toOffsetDateTime(item.getTimestamp()),
-            item.getRequestId(),
-            item.getRequestId(),
-            mapHttpMethod(item.getMethod()),
-            item.getClientIdentifier(),
-            mapPlan(item.getPlanId()),
-            mapApplication(item.getApplicationId()),
-            item.getTransactionId(),
-            item.getStatus(),
-            item.isRequestEnded(),
-            safeToInteger(item.getGatewayResponseTime()),
-            item.getGateway(),
-            item.getUri(),
-            item.getEndpoint(),
-            item.getMessage(),
-            item.getErrorKey(),
-            item.getErrorComponentName(),
-            item.getErrorComponentType(),
-            mapWarnings(item.getWarnings()),
-            item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of()
-        );
+        return ApiLog.builder()
+            .apiId(item.getApiId())
+            .timestamp(toOffsetDateTime(item.getTimestamp()))
+            .id(item.getRequestId())
+            .requestId(item.getRequestId())
+            .method(mapHttpMethod(item.getMethod()))
+            .clientIdentifier(item.getClientIdentifier())
+            .plan(mapPlan(item.getPlanId()))
+            .application(mapApplication(item.getApplicationId()))
+            .transactionId(item.getTransactionId())
+            .status(item.getStatus())
+            .requestEnded(item.isRequestEnded())
+            .gatewayResponseTime(safeToInteger(item.getGatewayResponseTime()))
+            .gateway(item.getGateway())
+            .uri(item.getUri())
+            .endpoint(item.getEndpoint())
+            .message(item.getMessage())
+            .errorKey(item.getErrorKey())
+            .errorComponentName(item.getErrorComponentName())
+            .errorComponentType(item.getErrorComponentType())
+            .warnings(mapWarnings(item.getWarnings()))
+            .additionalMetrics(item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of())
+            .build();
     }
 
     private OffsetDateTime toOffsetDateTime(String timestamp) {
