@@ -15,13 +15,17 @@
  */
 package io.gravitee.apim.core.logs_engine.model;
 
+import io.gravitee.definition.model.v4.ApiType;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 
+@Builder(toBuilder = true)
 public record ApiLog(
     String apiId,
     String apiName,
+    ApiType apiType,
     OffsetDateTime timestamp,
     String id,
     String requestId,
@@ -42,112 +46,4 @@ public record ApiLog(
     String errorComponentType,
     List<ApiLogDiagnostic> warnings,
     Map<String, Object> additionalMetrics
-) {
-    public ApiLog withApiName(String apiName) {
-        return new ApiLog(
-            apiId,
-            apiName,
-            timestamp,
-            id,
-            requestId,
-            method,
-            clientIdentifier,
-            plan,
-            application,
-            transactionId,
-            status,
-            requestEnded,
-            gatewayResponseTime,
-            gateway,
-            uri,
-            endpoint,
-            message,
-            errorKey,
-            errorComponentName,
-            errorComponentType,
-            warnings,
-            additionalMetrics
-        );
-    }
-
-    public ApiLog withPlan(BasePlan plan) {
-        return new ApiLog(
-            apiId,
-            apiName,
-            timestamp,
-            id,
-            requestId,
-            method,
-            clientIdentifier,
-            plan,
-            application,
-            transactionId,
-            status,
-            requestEnded,
-            gatewayResponseTime,
-            gateway,
-            uri,
-            endpoint,
-            message,
-            errorKey,
-            errorComponentName,
-            errorComponentType,
-            warnings,
-            additionalMetrics
-        );
-    }
-
-    public ApiLog withApplication(BaseApplication application) {
-        return new ApiLog(
-            apiId,
-            apiName,
-            timestamp,
-            id,
-            requestId,
-            method,
-            clientIdentifier,
-            plan,
-            application,
-            transactionId,
-            status,
-            requestEnded,
-            gatewayResponseTime,
-            gateway,
-            uri,
-            endpoint,
-            message,
-            errorKey,
-            errorComponentName,
-            errorComponentType,
-            warnings,
-            additionalMetrics
-        );
-    }
-
-    public ApiLog withGateway(String gateway) {
-        return new ApiLog(
-            apiId,
-            apiName,
-            timestamp,
-            id,
-            requestId,
-            method,
-            clientIdentifier,
-            plan,
-            application,
-            transactionId,
-            status,
-            requestEnded,
-            gatewayResponseTime,
-            gateway,
-            uri,
-            endpoint,
-            message,
-            errorKey,
-            errorComponentName,
-            errorComponentType,
-            warnings,
-            additionalMetrics
-        );
-    }
-}
+) {}

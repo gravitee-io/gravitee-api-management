@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.domain_service.logs_engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.logs_engine.model.ApiKeyMode;
 import io.gravitee.apim.core.logs_engine.model.ApiLog;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
@@ -32,6 +34,7 @@ import io.gravitee.apim.core.logs_engine.model.PlanSecurityType;
 import io.gravitee.apim.core.logs_engine.model.PrimaryOwner;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
 import io.gravitee.apim.core.user.model.UserContext;
+import io.gravitee.definition.model.v4.ApiType;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -59,30 +62,14 @@ class LogNamesPostProcessorImplTest {
     }
 
     private static ApiLog aLogWith(String apiId, BasePlan plan, BaseApplication application, String gateway) {
-        return new ApiLog(
-            apiId,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            plan,
-            application,
-            null,
-            null,
-            null,
-            null,
-            gateway,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            List.of(),
-            Map.of()
-        );
+        return ApiLog.builder()
+            .apiId(apiId)
+            .plan(plan)
+            .application(application)
+            .gateway(gateway)
+            .warnings(List.of())
+            .additionalMetrics(Map.of())
+            .build();
     }
 
     private static BasePlan aPlan(String planId) {
@@ -239,6 +226,7 @@ class LogNamesPostProcessorImplTest {
             var originalLog = new ApiLog(
                 "api-1",
                 "old-api-name",
+                ApiType.PROXY,
                 timestamp,
                 "log-id",
                 "req-1",
@@ -264,7 +252,8 @@ class LogNamesPostProcessorImplTest {
             var context = BASE_CONTEXT.withApiNamesById(Map.of("api-1", "New API"))
                 .withPlanNameById(Map.of("plan-1", "New Plan"))
                 .withApplicationNameById(Map.of("app-1", "New App"))
-                .withGatewayHostnameById(Map.of("gw-1", "resolved-hostname"));
+                .withGatewayHostnameById(Map.of("gw-1", "resolved-hostname"))
+                .withApis(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build()));
             var response = new SearchLogsResponse(List.of(originalLog), PAGINATION);
 
             var result = processor.mapLogNames(context, response);
@@ -277,6 +266,7 @@ class LogNamesPostProcessorImplTest {
 
             // All other ApiLog fields must survive unchanged
             assertThat(log.apiId()).isEqualTo("api-1");
+            assertThat(log.apiType()).isEqualTo(ApiType.PROXY);
             assertThat(log.timestamp()).isEqualTo(timestamp);
             assertThat(log.id()).isEqualTo("log-id");
             assertThat(log.requestId()).isEqualTo("req-1");
@@ -389,5 +379,62 @@ class LogNamesPostProcessorImplTest {
 
         assertThat(result.data()).isEmpty();
         assertThat(result.pagination()).isEqualTo(pagination);
+    }
+
+    @Nested
+    class WhenApiTypeResolution {
+
+        @Test
+        void should_resolve_api_type_from_context_apis() {
+            var api = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build();
+            var context = BASE_CONTEXT.withApis(List.of(api));
+            var response = new SearchLogsResponse(List.of(aLogWith("api-1", null, null)), PAGINATION);
+
+            var result = processor.mapLogNames(context, response);
+
+            assertThat(result.data().getFirst().apiType()).isEqualTo(ApiType.PROXY);
+        }
+
+        @Test
+        void should_resolve_llm_proxy_api_type() {
+            var api = ApiFixtures.aLLMProxyApiV4().toBuilder().id("api-1").build();
+            var context = BASE_CONTEXT.withApis(List.of(api));
+            var response = new SearchLogsResponse(List.of(aLogWith("api-1", null, null)), PAGINATION);
+
+            var result = processor.mapLogNames(context, response);
+
+            assertThat(result.data().getFirst().apiType()).isEqualTo(ApiType.LLM_PROXY);
+        }
+
+        @Test
+        void should_resolve_mcp_proxy_api_type() {
+            var api = ApiFixtures.aMCPProxyApiV4().toBuilder().id("api-1").build();
+            var context = BASE_CONTEXT.withApis(List.of(api));
+            var response = new SearchLogsResponse(List.of(aLogWith("api-1", null, null)), PAGINATION);
+
+            var result = processor.mapLogNames(context, response);
+
+            assertThat(result.data().getFirst().apiType()).isEqualTo(ApiType.MCP_PROXY);
+        }
+
+        @Test
+        void should_return_null_api_type_when_api_not_in_context() {
+            var api = ApiFixtures.aProxyApiV4().toBuilder().id("other-api").build();
+            var context = BASE_CONTEXT.withApis(List.of(api));
+            var response = new SearchLogsResponse(List.of(aLogWith("api-1", null, null)), PAGINATION);
+
+            var result = processor.mapLogNames(context, response);
+
+            assertThat(result.data().getFirst().apiType()).isNull();
+        }
+
+        @Test
+        void should_return_null_api_type_when_context_apis_is_empty() {
+            var response = new SearchLogsResponse(List.of(aLogWith("api-1", null, null)), PAGINATION);
+
+            var result = processor.mapLogNames(BASE_CONTEXT, response);
+
+            assertThat(result.data().getFirst().apiType()).isNull();
+        }
     }
 }
