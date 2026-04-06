@@ -1076,7 +1076,8 @@ class SearchEnvironmentLogsUseCaseTest {
                 .errorComponentName("error-component")
                 .errorComponentType("error-type")
                 .warnings(List.of(new ConnectionDiagnosticModel("type", "name", "key", "msg")))
-                .additionalMetrics(Map.of("custom", "metric", "keyword_mcp-proxy_method", "tools/list"))
+                .additionalMetrics(Map.of("custom", "metric"))
+                .mcpMethod("tools/list")
                 .build();
 
             when(userContextLoader.loadApis(any())).thenReturn(

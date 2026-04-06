@@ -52,4 +52,5 @@ public class BaseConnectionLog {
     private String errorComponentType;
     private List<ConnectionDiagnosticModel> warnings;
     private Map<String, Object> additionalMetrics;
+    private String mcpMethod;
 }

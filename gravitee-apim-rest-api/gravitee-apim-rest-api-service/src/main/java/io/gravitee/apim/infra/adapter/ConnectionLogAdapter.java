@@ -23,7 +23,10 @@ import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import java.util.List;
+import java.util.Map;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -32,6 +35,7 @@ import org.mapstruct.factory.Mappers;
  */
 @Mapper
 public interface ConnectionLogAdapter {
+    String MCP_PROXY_METHOD_KEY = "keyword_mcp-proxy_method";
     ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
 
     BaseConnectionLog toEntity(Metrics connectionLog);
@@ -44,4 +48,13 @@ public interface ConnectionLogAdapter {
     List<MetricsQuery.Filter.ResponseTimeRange> convert(List<Range> range);
 
     ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
+
+    @AfterMapping
+    default void extractMcpMethod(@MappingTarget BaseConnectionLog target) {
+        Map<String, Object> metrics = target.getAdditionalMetrics();
+        if (metrics == null) {
+            return;
+        }
+        target.setMcpMethod((String) metrics.get(MCP_PROXY_METHOD_KEY));
+    }
 }
