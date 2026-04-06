@@ -1076,7 +1076,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .errorComponentName("error-component")
                 .errorComponentType("error-type")
                 .warnings(List.of(new ConnectionDiagnosticModel("type", "name", "key", "msg")))
-                .additionalMetrics(Map.of("custom", "metric"))
+                .additionalMetrics(Map.of("custom", "metric", "keyword_mcp-proxy_method", "tools/list"))
                 .build();
 
             when(userContextLoader.loadApis(any())).thenReturn(
@@ -1123,6 +1123,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 soft.assertThat(log.warnings()).containsExactly(new ApiLogDiagnostic("type", "name", "key", "msg"));
 
                 soft.assertThat(log.additionalMetrics()).containsEntry("custom", "metric");
+                soft.assertThat(log.mcpMethod()).isEqualTo("tools/list");
             });
         }
 
@@ -1188,6 +1189,7 @@ class SearchEnvironmentLogsUseCaseTest {
             assertThat(apiLog.method()).isNull();
             assertThat(apiLog.warnings()).isEmpty();
             assertThat(apiLog.additionalMetrics()).isEmpty();
+            assertThat(apiLog.mcpMethod()).isNull();
         }
 
         @Test

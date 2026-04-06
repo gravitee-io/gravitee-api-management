@@ -246,7 +246,8 @@ class LogNamesPostProcessorImplTest {
                 "err-comp",
                 "err-type",
                 List.of(warning),
-                Map.of("k", "v")
+                Map.of("k", "v"),
+                "tools/list"
             );
 
             var context = BASE_CONTEXT.withApiNamesById(Map.of("api-1", "New API"))
@@ -285,6 +286,7 @@ class LogNamesPostProcessorImplTest {
             assertThat(log.errorComponentType()).isEqualTo("err-type");
             assertThat(log.warnings()).containsExactly(warning);
             assertThat(log.additionalMetrics()).containsEntry("k", "v");
+            assertThat(log.mcpMethod()).isEqualTo("tools/list");
 
             // Plan non-name fields must survive unchanged
             assertThat(log.plan().id()).isEqualTo("plan-1");

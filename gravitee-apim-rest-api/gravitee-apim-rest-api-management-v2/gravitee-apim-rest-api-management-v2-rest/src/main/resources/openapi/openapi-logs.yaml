@@ -398,6 +398,10 @@ components:
           type: object
           additionalProperties: true
           description: A map of string keys to values
+        mcpMethod:
+          type: string
+          description: The MCP method invoked (MCP Proxy APIs only).
+          example: "tools/list"
 
     Filter:
       description: |

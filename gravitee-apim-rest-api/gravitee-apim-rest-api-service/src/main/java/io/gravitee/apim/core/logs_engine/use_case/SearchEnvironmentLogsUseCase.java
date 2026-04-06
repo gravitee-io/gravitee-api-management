@@ -378,6 +378,7 @@ public class SearchEnvironmentLogsUseCase {
             .errorComponentType(item.getErrorComponentType())
             .warnings(mapWarnings(item.getWarnings()))
             .additionalMetrics(item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of())
+            .mcpMethod(item.getAdditionalMetrics() != null ? (String) item.getAdditionalMetrics().get("keyword_mcp-proxy_method") : null)
             .build();
     }
 
