@@ -31,6 +31,9 @@ export default {
     },
     devServer: {
         port: 3001,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+        },
     },
     plugins: [
         new NxAppRspackPlugin({

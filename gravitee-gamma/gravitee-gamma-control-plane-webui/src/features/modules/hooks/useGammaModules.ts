@@ -20,6 +20,18 @@ import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
 import { type GammaModule, type GammaModuleResponse, parseModule } from '../modules.types';
 
+const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
+    .split(',')
+    .filter(Boolean)
+    .reduce(
+        (acc, entry) => {
+            const [id, url] = entry.split('=', 2);
+            if (id && url) acc[id] = url;
+            return acc;
+        },
+        {} as Record<string, string>,
+    );
+
 export function useGammaModules(): { modules: GammaModule[]; loading: boolean; error: Error | null } {
     const gammaBaseURL = useBootstrapStore(s => s.config?.gammaBaseURL ?? '');
     const organizationId = useBootstrapStore(s => s.config?.organizationId ?? '');
@@ -54,7 +66,9 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
                 const parsed = Array.isArray(data) ? data.map(parseModule) : [];
                 const remotes = parsed.map(m => ({
                     name: m.remoteName,
-                    entry: `${gammaBaseURL}/organizations/${organizationId}/modules/${m.id}/assets/mf-manifest.json`,
+                    entry:
+                        DEV_MODULE_ENTRIES[m.id] ??
+                        `${gammaBaseURL}/organizations/${organizationId}/modules/${m.id}/assets/mf-manifest.json`,
                 }));
                 registerRemotes(remotes, { force: true });
                 setModules(parsed);

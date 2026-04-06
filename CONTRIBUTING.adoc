@@ -221,6 +221,47 @@ TIP: To run `yarn` from IntelliJ, you can duplicate this configuration and choos
 CLI Version::
 Run `yarn serve` from the `gravitee-api-management/gravitee-apim-portal-webui` directory to start the UI.
 
+
+==== Gamma Console (gravitee-gamma-control-plane-webui)
+
+The Gamma Console is a micro-frontend host application that dynamically loads module plugins via Module Federation.
+
+===== Starting the Gamma Console
+
+CLI Version::
+Run `yarn nx serve gamma-console` from the **repository root** to start the Gamma Console on port 4200.
+
+The dev server proxies `/gamma` and `/management` requests to the backend at `http://localhost:8083`.
+
+===== Developing modules locally
+
+By default, module UI assets are served by the backend from packaged plugins. During development, you can override specific modules to load from their local dev server instead, avoiding the need to rebuild the REST API.
+
+. Start the module dev server:
++
+[source,shell]
+----
+yarn nx serve gravitee-gamma-module-apim
+----
++
+This starts the module on port 3001 with hot-reload enabled.
+
+. Start the Gamma Console with the `DEV_MODULE_ENTRIES` environment variable pointing to the local module:
++
+[source,shell]
+----
+DEV_MODULE_ENTRIES="apim=http://localhost:3001/mf-manifest.json" yarn nx serve gamma-console
+----
+
+The format is `<moduleId>=<manifest-url>`. To override multiple modules, separate entries with commas:
+
+[source,shell]
+----
+DEV_MODULE_ENTRIES="apim=http://localhost:3001/mf-manifest.json,billing=http://localhost:3002/mf-manifest.json" yarn nx serve gravitee-gamma-control-plane-webui
+----
+
+NOTE: The backend must still be running to serve the `/modules` listing endpoint and other APIs. Only the module **assets** are loaded from the local dev server.
+
 // end::dev-guide[]
 
 == Working with GitHub issues
