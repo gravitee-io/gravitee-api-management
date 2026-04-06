@@ -17,12 +17,6 @@
 -->
 
 <gio-header title="Logs" subtitle="Inspect and analyze API runtime logs." />
-<gio-banner-info class="banner-warning">
-  <div class="banner-warning__content">
-    Currently, only HTTP Proxy is supported.
-    <span class="mat-body">Message APIs, SSEs, and webhook support are coming soon.</span>
-  </div>
-</gio-banner-info>
 
 @if (error()) {
   <gio-banner-error>{{ error() }}</gio-banner-error>
@@ -35,10 +29,29 @@
     (refresh)="onRefresh()"
     (filtersChanged)="onFiltersChanged($event)"
   ></env-logs-filter-bar>
-  <env-logs-table
-    class="env-runtime-logs__table"
-    [logs]="logs()"
-    [pagination]="paginationWithTotal()"
-    (paginationUpdated)="onPaginationUpdated($event)"
-  ></env-logs-table>
+
+  <mat-tab-group
+    [selectedIndex]="activeTab()"
+    (selectedIndexChange)="onTabChanged($event)"
+    animationDuration="0ms"
+    data-testid="env-logs-tab-group"
+  >
+    <mat-tab label="All non-message APIs">
+      <env-logs-table
+        class="env-runtime-logs__table"
+        [logs]="logs()"
+        [pagination]="paginationWithTotal()"
+        (paginationUpdated)="onPaginationUpdated($event)"
+      ></env-logs-table>
+    </mat-tab>
+
+    <mat-tab label="Messages and Events">
+      <env-logs-table
+        class="env-runtime-logs__table"
+        [logs]="messageLogs()"
+        [pagination]="messagePaginationWithTotal()"
+        (paginationUpdated)="onMessagePaginationUpdated($event)"
+      ></env-logs-table>
+    </mat-tab>
+  </mat-tab-group>
 </mat-card>

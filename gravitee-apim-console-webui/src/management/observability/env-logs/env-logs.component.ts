@@ -20,6 +20,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
+import { MatTabsModule } from '@angular/material/tabs';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { EMPTY } from 'rxjs';
 import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
@@ -42,13 +43,20 @@ import { Pagination } from '../../../entities/management-api-v2';
 import { GioHeaderComponent } from '../../../shared/components/gio-header/gio-header.component';
 
 const EMPTY_FIELD = '—';
+const TAB_QUERY_PARAM = 'tab';
+const MESSAGES_TAB_VALUE = 'messages';
 const DEFAULT_PER_PAGE = 10;
+
+export const enum EnvLogsTab {
+  NON_MESSAGE_APIS = 0,
+  MESSAGES = 1,
+}
 
 @Component({
   selector: 'env-logs',
   templateUrl: './env-logs.component.html',
   styleUrl: './env-logs.component.scss',
-  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule, GioHeaderComponent],
+  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, MatTabsModule, GioBannerModule, GioHeaderComponent],
   providers: [DatePipe],
   standalone: true,
 })
@@ -63,6 +71,18 @@ export class EnvLogsComponent {
   filters = signal<EnvLogsFilterValues | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  activeTab = signal<EnvLogsTab>(this.initialTabIndex());
+
+  /** Placeholder: message logs are empty until APIM-13200 wires the backend */
+  messageLogs = signal<EnvLog[]>([]);
+  messagePagination = signal<Pagination>({ page: 1, perPage: DEFAULT_PER_PAGE, totalCount: 0 });
+
+  messagePaginationWithTotal = computed(() => ({
+    ...this.messagePagination(),
+    // TODO(APIM-13200): Replace with actual totalCount from message logs response
+    totalCount: 0,
+  }));
 
   initialValues = signal<EnvLogsInitialValues | undefined>(this.parseQueryParams());
 
@@ -95,16 +115,31 @@ export class EnvLogsComponent {
   onFiltersChanged(filters: EnvLogsFilterValues) {
     this.filters.set(filters);
     this.pagination.update(prev => (prev.page === 1 ? prev : { ...prev, page: 1 }));
-    this.syncQueryParams(filters, this.pagination());
+    this.syncQueryParams();
   }
 
   onPaginationUpdated(event: GioTableWrapperPagination) {
     this.pagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
-    this.syncQueryParams(this.filters(), this.pagination());
+    this.syncQueryParams();
   }
 
-  private syncQueryParams(filters: EnvLogsFilterValues | null, pagination: Pagination) {
+  onTabChanged(index: number) {
+    this.activeTab.set(index);
+    this.pagination.update(prev => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    this.messagePagination.update(prev => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    this.syncQueryParams();
+  }
+
+  onMessagePaginationUpdated(event: GioTableWrapperPagination) {
+    this.messagePagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
+    this.syncQueryParams();
+  }
+
+  private syncQueryParams() {
+    const filters = this.filters();
+    const pagination = this.activeTab() === EnvLogsTab.MESSAGES ? this.messagePagination() : this.pagination();
     const queryParams: Record<string, string | null> = {
+      tab: this.activeTab() === EnvLogsTab.MESSAGES ? MESSAGES_TAB_VALUE : null,
       page: pagination.page > 1 ? String(pagination.page) : null,
       perPage: pagination.perPage === DEFAULT_PER_PAGE ? null : String(pagination.perPage),
       period: filters?.period && filters.period !== '0' ? filters.period : null,
@@ -130,11 +165,16 @@ export class EnvLogsComponent {
     });
   }
 
+  private initialTabIndex(): EnvLogsTab {
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    return queryParams[TAB_QUERY_PARAM] === MESSAGES_TAB_VALUE ? EnvLogsTab.MESSAGES : EnvLogsTab.NON_MESSAGE_APIS;
+  }
+
   private parseQueryParams(): EnvLogsInitialValues | undefined {
     const queryParams = this.activatedRoute.snapshot.queryParams;
     this.restorePagination(queryParams);
 
-    const nonFilterKeys = new Set(['apiId', 'page', 'perPage']);
+    const nonFilterKeys = new Set(['apiId', 'page', 'perPage', TAB_QUERY_PARAM]);
     const hasAnyFilter = Object.keys(queryParams).some(k => !nonFilterKeys.has(k));
     if (!hasAnyFilter) return undefined;
 
