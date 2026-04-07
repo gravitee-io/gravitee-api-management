@@ -26,9 +26,11 @@ import { Build, Constants, DefaultPortal } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 import { environment } from './environments/environment';
+import { CsrfInterceptor } from './shared/interceptors/csrf.interceptor';
 
 const requestConfig: RequestInit = {
   headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+  credentials: 'include',
 };
 
 // fix angular-schema-form angular<1.7
@@ -61,7 +63,12 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
         requestConfig,
       )
+<<<<<<< HEAD
         .then(r => getSuccessJsonDataOrThrowError(r))
+=======
+        .then((r) => storeCsrfToken(r))
+        .then((r) => getSuccessJsonDataOrThrowError(r))
+>>>>>>> f252a19cdb (fix: send cookies with fetch requests and store CSRF token on all org requests)
         .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
           bootstrapResponse,
           build: buildResponse,
@@ -75,9 +82,21 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
       constants.production = production ?? true;
 
       return Promise.all([
+<<<<<<< HEAD
         fetch(`${constants.org.baseURL}/console`, requestConfig).then(r => getSuccessJsonDataOrThrowError(r)),
         fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig).then(r => (r.status === 200 ? r.json() : null)),
         fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then(r => getSuccessJsonDataOrThrowError(r)),
+=======
+        fetch(`${constants.org.baseURL}/console`, requestConfig)
+          .then((r) => storeCsrfToken(r))
+          .then((r) => getSuccessJsonDataOrThrowError(r)),
+        fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig)
+          .then((r) => storeCsrfToken(r))
+          .then((r) => (r.status === 200 ? r.json() : null)),
+        fetch(`${constants.org.baseURL}/social-identities`, requestConfig)
+          .then((r) => storeCsrfToken(r))
+          .then((r) => getSuccessJsonDataOrThrowError(r)),
+>>>>>>> f252a19cdb (fix: send cookies with fetch requests and store CSRF token on all org requests)
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
         constants.org.settings = consoleResponse;
         constants.org.identityProviders = identityProvidersResponse;
@@ -207,6 +226,13 @@ function bootstrapApplication(constants: Constants) {
       // eslint-disable-next-line
       console.error(err);
     });
+}
+
+function storeCsrfToken(response: Response): Response {
+  if (response.headers.has(CsrfInterceptor.xsrfTokenHeaderName)) {
+    CsrfInterceptor.xsrfToken = response.headers.get(CsrfInterceptor.xsrfTokenHeaderName);
+  }
+  return response;
 }
 
 function getSuccessJsonDataOrThrowError(response: Response): Promise<any> {
