@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -75,6 +76,9 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
             }
             if (updateApiProduct.getApiIds() != null) {
                 repositoryModel.setApiIds(new ArrayList<>(updateApiProduct.getApiIds()));
+            }
+            if (updateApiProduct.getGroups() != null) {
+                repositoryModel.setGroups(new HashSet<>(updateApiProduct.getGroups()));
             }
             var updatedRepositoryModel = apiProductsRepository.update(repositoryModel);
             return ApiProductAdapter.INSTANCE.toModel(updatedRepositoryModel);

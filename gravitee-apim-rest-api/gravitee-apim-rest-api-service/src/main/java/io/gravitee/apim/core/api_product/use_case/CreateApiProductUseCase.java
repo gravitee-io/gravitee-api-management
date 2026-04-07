@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
@@ -31,15 +32,19 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.notification.model.config.NotificationConfig;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +64,7 @@ public class CreateApiProductUseCase {
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final NotificationConfigCrudService notificationConfigCrudService;
     private final DeployApiProductDomainService deployApiProductDomainService;
+    private final GroupQueryService groupQueryService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -100,6 +106,18 @@ public class CreateApiProductUseCase {
                     Map.of("environmentId", auditInfo.environmentId(), "name", apiProduct.getName())
                 );
             });
+
+        Set<String> defaultGroups = groupQueryService
+            .findByEvent(auditInfo.environmentId(), Group.GroupEvent.API_PRODUCT_CREATE)
+            .stream()
+            .filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()))
+            .map(Group::getId)
+            .collect(toSet());
+        if (!defaultGroups.isEmpty()) {
+            Set<String> sanitizedGroups = new HashSet<>(apiProduct.getGroups() != null ? apiProduct.getGroups() : Set.of());
+            sanitizedGroups.addAll(defaultGroups);
+            apiProduct.setGroups(sanitizedGroups);
+        }
 
         ApiProduct created = apiProductCrudService.create(apiProduct);
 

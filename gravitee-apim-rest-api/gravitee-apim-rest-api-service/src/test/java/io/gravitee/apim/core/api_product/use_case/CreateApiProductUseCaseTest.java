@@ -46,6 +46,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
@@ -141,7 +142,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
             notificationConfigCrudService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService)
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
+            groupQueryService
         );
 
         initRoles();
@@ -359,6 +361,112 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         Assertions.assertThat(message).contains("api-v2");
         Assertions.assertThat(message).contains("not allowed in API Products");
         Assertions.assertThat(message).contains("api-not-allowed");
+    }
+
+    @Test
+    void should_auto_attach_groups_with_api_product_create_event_rule() {
+        groupQueryService.initWith(
+            List.of(
+                Group.builder()
+                    .id("group-1")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                    .build(),
+                Group.builder()
+                    .id("group-2")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                    .build()
+            )
+        );
+
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getGroups()).containsExactlyInAnyOrder("group-1", "group-2");
+    }
+
+    @Test
+    void should_not_attach_groups_with_only_api_create_event_rule() {
+        groupQueryService.initWith(
+            List.of(
+                Group.builder()
+                    .id("group-api-create")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                    .build(),
+                Group.builder()
+                    .id("group-app-create")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.APPLICATION_CREATE)))
+                    .build()
+            )
+        );
+
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getGroups()).isNullOrEmpty();
+    }
+
+    @Test
+    void should_create_product_with_no_groups_when_no_groups_have_api_product_create_rule() {
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getGroups()).isNullOrEmpty();
+    }
+
+    @Test
+    void should_only_attach_groups_with_api_product_create_rule_when_mixed_groups_exist() {
+        groupQueryService.initWith(
+            List.of(
+                Group.builder()
+                    .id("group-api-product-create")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                    .build(),
+                Group.builder()
+                    .id("group-api-create")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                    .build()
+            )
+        );
+
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getGroups()).containsExactly("group-api-product-create");
+    }
+
+    @Test
+    void should_not_attach_group_with_api_primary_owner_set() {
+        groupQueryService.initWith(
+            List.of(
+                Group.builder()
+                    .id("group-with-po")
+                    .environmentId(ENV_ID)
+                    .apiPrimaryOwner("some-user-id")
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                    .build(),
+                Group.builder()
+                    .id("group-no-po")
+                    .environmentId(ENV_ID)
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                    .build()
+            )
+        );
+
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getGroups()).containsExactly("group-no-po");
     }
 
     private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {

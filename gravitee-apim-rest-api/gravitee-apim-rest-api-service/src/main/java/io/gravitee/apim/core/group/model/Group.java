@@ -51,5 +51,6 @@ public class Group {
     public enum GroupEvent {
         API_CREATE,
         APPLICATION_CREATE,
+        API_PRODUCT_CREATE,
     }
 }

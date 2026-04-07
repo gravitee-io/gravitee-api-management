@@ -22,4 +22,5 @@ package io.gravitee.repository.management.model;
 public enum GroupEvent {
     API_CREATE,
     APPLICATION_CREATE,
+    API_PRODUCT_CREATE,
 }
