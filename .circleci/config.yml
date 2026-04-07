@@ -26,6 +26,7 @@ parameters:
                 release_helm,
                 repositories_tests,
                 helm_tests,
+                maven_release,
                 run_e2e_tests,
             ]
         default: pull_requests
