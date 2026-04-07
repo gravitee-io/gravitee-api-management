@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.11.0_11_add_validation_constraints_to_subscription_forms
+      id: 4.11.1_00_add_validation_constraints_to_subscription_forms
       author: GraviteeSource Team
       changes:
         - addColumn:
