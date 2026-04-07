@@ -51,7 +51,22 @@ export const API_PRODUCTS_ROUTES: Routes = [
       },
       {
         path: 'configuration',
+        redirectTo: 'configuration/general',
+        pathMatch: 'full',
+      },
+      {
+        path: 'configuration/general',
         loadComponent: () => import('./configuration/api-product-configuration.component').then(m => m.ApiProductConfigurationComponent),
+      },
+      {
+        path: 'configuration/members',
+        loadComponent: () => import('./members/api-product-members.component').then(m => m.ApiProductMembersComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-member-r'],
+            unauthorizedFallbackTo: 'configuration/general',
+          },
+        },
       },
       {
         path: 'apis',

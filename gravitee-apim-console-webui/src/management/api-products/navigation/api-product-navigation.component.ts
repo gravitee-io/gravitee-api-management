@@ -242,8 +242,19 @@ export class ApiProductNavigationComponent {
   }
 
   private buildSubMenuItems(): MenuItem[] {
+    const configurationTabs: ApiProductTabMenuItem[] = [{ displayName: 'General', routerLink: 'configuration/general' }];
+    if (this.canAccessApiProductUserPermissions()) {
+      configurationTabs.push({ displayName: 'User Permissions', routerLink: 'configuration/members' });
+    }
+
     const items: MenuItem[] = [
-      { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
+      {
+        displayName: 'Configuration',
+        routerLink: 'configuration',
+        icon: 'gio:settings',
+        header: { title: 'Configuration', subtitle: 'Manage general settings and user permissions.' },
+        tabs: configurationTabs,
+      },
       { displayName: 'APIs', routerLink: 'apis', icon: 'gio:cloud-settings' },
     ];
 
@@ -270,6 +281,10 @@ export class ApiProductNavigationComponent {
     });
 
     return items;
+  }
+
+  private canAccessApiProductUserPermissions(): boolean {
+    return this.permissionService.hasAnyMatching(['api_product-member-r']);
   }
 
   private isItemActive(item: MenuItem): boolean {
