@@ -144,8 +144,6 @@ public class ImportApplicationCRDUseCase {
                 sanitizedInput.crd.getMembers()
             );
 
-            applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(updatedApplication.getId());
-
             return ApplicationCRDStatus.builder()
                 .id(updatedApplication.getId())
                 .organizationId(sanitizedInput.auditInfo.organizationId())

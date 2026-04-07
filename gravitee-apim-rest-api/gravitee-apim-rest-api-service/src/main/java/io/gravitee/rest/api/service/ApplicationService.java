@@ -83,6 +83,8 @@ public interface ApplicationService {
 
     ApplicationEntity update(final ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
 
+    void syncClientCertificates(ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
+
     ApplicationEntity updateApiKeyMode(final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode);
 
     ApplicationEntity renewClientSecret(final ExecutionContext executionContext, String applicationId);

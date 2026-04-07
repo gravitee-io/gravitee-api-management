@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.TlsSettings;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -325,14 +326,13 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
         Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
+        Mockito.verify(applicationService, Mockito.never()).syncClientCertificates(any(), any(), any());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
         assertNotNull(settings);
-        final TlsSettings tlsResult = settings.getTls();
-        assertNotNull(tlsResult);
-        assertEquals("certificate_updated", tlsResult.getClientCertificate());
+        assertNull(settings.getTls());
         assertNull(settings.getOauth());
         assertNull(settings.getApp());
 
@@ -431,6 +431,32 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION_ID, applicationResponse.getId());
+    }
+
+    @Test
+    public void shouldGetApplicationWithCertificateFromSettingsList() {
+        io.gravitee.rest.api.model.application.ApplicationSettings appSettings =
+            new io.gravitee.rest.api.model.application.ApplicationSettings();
+        appSettings.setTls(
+            TlsSettings.builder().clientCertificates(List.of(new CreateClientCertificate("my-cert", null, null, "PEM-FROM-LIST"))).build()
+        );
+
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setId(APPLICATION_ID);
+        appEntity.setSettings(appSettings);
+        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+
+        var mappedApp = new Application().id(APPLICATION_ID);
+        doReturn(mappedApp).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class), any());
+
+        final Response response = target(APPLICATION_ID).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApplicationEntity> captor = ArgumentCaptor.forClass(ApplicationEntity.class);
+        Mockito.verify(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), captor.capture(), any());
+        var enrichedEntity = captor.getValue();
+        assertNotNull(enrichedEntity.getSettings().getTls());
+        assertEquals("PEM-FROM-LIST", enrichedEntity.getSettings().getTls().getClientCertificate());
     }
 
     @Test

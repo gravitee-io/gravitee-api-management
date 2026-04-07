@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -23,7 +25,6 @@ import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -75,13 +76,27 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
-        Application application = applicationMapper.convert(
-            GraviteeContext.getExecutionContext(),
-            applicationService.findById(GraviteeContext.getExecutionContext(), applicationId),
-            uriInfo
-        );
+        var appEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
+        ensureAvailableCertificateIsPopulated(appEntity.getSettings());
+
+        var application = applicationMapper.convert(GraviteeContext.getExecutionContext(), appEntity, uriInfo);
         return Response.ok(addApplicationLinks(application)).build();
+    }
+
+    private static void ensureAvailableCertificateIsPopulated(ApplicationSettings appSettings) {
+        if (appSettings == null) {
+            return;
+        }
+
+        var tls = appSettings.getTls();
+        if (tls == null || StringUtils.isNotEmpty(tls.getClientCertificate())) {
+            return;
+        }
+
+        if (!CollectionUtils.isEmpty(tls.getClientCertificates())) {
+            tls.setClientCertificate(tls.getClientCertificates().getFirst().certificate());
+        }
     }
 
     @GET
@@ -134,17 +149,12 @@ public class ApplicationResource extends AbstractResource {
                 oacs.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
                 settings.setOauth(oacs);
             }
-            if (application.getSettings().getTls() != null) {
-                settings.setTls(TlsSettings.builder().clientCertificate(application.getSettings().getTls().getClientCertificate()).build());
-            }
             updateApplicationEntity.setSettings(settings);
         }
 
-        Application updatedApp = applicationMapper.convert(
-            GraviteeContext.getExecutionContext(),
-            applicationService.update(GraviteeContext.getExecutionContext(), applicationId, updateApplicationEntity),
-            uriInfo
-        );
+        var executionContext = GraviteeContext.getExecutionContext();
+        var updatedEntity = applicationService.update(executionContext, applicationId, updateApplicationEntity);
+        var updatedApp = applicationMapper.convert(executionContext, updatedEntity, uriInfo);
         return Response.ok(addApplicationLinks(updatedApp))
             .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
             .lastModified(Date.from(updatedApp.getUpdatedAt().toInstant()))
