@@ -161,6 +161,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApplicationService applicationService;
 
     @Autowired
+    protected io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
+    @Autowired
     protected ApplicationTypeService applicationTypeService;
 
     @Autowired
@@ -381,6 +384,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
             apiAuthorizationService,
             apiEntrypointService,
             applicationService,
+            clientCertificateCrudService,
             policyService,
             userService,
             fetcherService,

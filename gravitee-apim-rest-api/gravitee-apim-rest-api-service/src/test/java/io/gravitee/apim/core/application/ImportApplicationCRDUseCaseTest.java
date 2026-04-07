@@ -265,15 +265,6 @@ class ImportApplicationCRDUseCaseTest {
         }
 
         @Test
-        void should_call_updateActiveMTLSSubscriptions_on_update() {
-            ApplicationCRDSpec crd = anApplicationCRD();
-            crd.setDescription("updated description");
-            useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
-
-            verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions(APP_ID);
-        }
-
-        @Test
         void should_update_existing_application_and_its_members() {
             var expectedApp = expectedApplication();
             var expectedMembers = applicationMembers()

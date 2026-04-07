@@ -78,5 +78,10 @@ class ImportApplicationCRDDomainServiceLegacyWrapperTest {
         );
 
         verify(applicationService).update(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), APP_ID, updateApplicationEntity);
+        verify(applicationService).syncClientCertificates(
+            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+            APP_ID,
+            updateApplicationEntity
+        );
     }
 }

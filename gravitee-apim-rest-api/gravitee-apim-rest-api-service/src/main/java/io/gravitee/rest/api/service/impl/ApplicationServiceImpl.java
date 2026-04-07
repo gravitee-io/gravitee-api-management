@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
@@ -233,6 +234,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
+
+    @Autowired
+    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -650,9 +654,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
 
-            // Create, update, delete client certificate regarding of the new application state
-            syncClientCertificates(executionContext, applicationId, updateApplicationEntity);
-
             // Update a simple application
             if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
                 // If clientId is set, check for uniqueness
@@ -704,7 +705,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void syncClientCertificates(
+    @Override
+    public void syncClientCertificates(
         ExecutionContext executionContext,
         String applicationId,
         UpdateApplicationEntity updateApplicationEntity
@@ -779,6 +781,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 clientCertificateCrudService.delete(existingCert.id());
             }
         }
+
+        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(applicationId);
     }
 
     private ClientCertificate validateAndEnrich(ClientCertificate certToCreate, ExecutionContext executionContext) {
