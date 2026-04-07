@@ -19,9 +19,12 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 
+export type LogApiType = 'HTTP_PROXY' | 'LLM_PROXY' | 'MCP_PROXY';
+
 export type EnvironmentApiLog = {
   apiId: string;
   apiName?: string;
+  apiType?: LogApiType;
   timestamp: string;
   id: string;
   requestId: string;

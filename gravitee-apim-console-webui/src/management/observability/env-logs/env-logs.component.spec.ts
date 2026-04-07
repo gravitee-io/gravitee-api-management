@@ -135,6 +135,42 @@ describe('EnvLogsComponent', () => {
     expect(tableSection).toBeTruthy();
   }));
 
+  it('should render Asset Type column with mapped label in the table', fakeAsync(async () => {
+    const response: SearchLogsResponse = {
+      data: [
+        {
+          apiId: 'api-1',
+          apiName: 'My API',
+          apiType: 'LLM_PROXY',
+          timestamp: '2025-06-15T12:00:00Z',
+          id: 'log-1',
+          requestId: 'req-1',
+          method: 'GET',
+          status: 200,
+          requestEnded: true,
+          uri: '/test',
+        },
+      ],
+      pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+    };
+
+    initComponent(response);
+
+    const table = await loader.getHarness(EnvLogsTableHarness);
+    const rows = await table.getRowsData();
+    expect(rows.length).toBe(1);
+    expect(rows[0]['assetType']).toContain('LLM');
+  }));
+
+  it('should render dash in Asset Type column when apiType is absent', fakeAsync(async () => {
+    initComponent(MOCK_RESPONSE);
+
+    const table = await loader.getHarness(EnvLogsTableHarness);
+    const rows = await table.getRowsData();
+    expect(rows.length).toBe(1);
+    expect(rows[0]['assetType']).toContain('—');
+  }));
+
   it('should fetch logs on init and use backend-provided names', fakeAsync(() => {
     initComponent(MOCK_RESPONSE);
 
@@ -384,6 +420,67 @@ describe('EnvLogsComponent', () => {
       expect(log.errorKey).toBe('CONNECTION_TIMEOUT');
       expect(log.requestEnded).toBe(false);
       expect(log.warnings).toEqual([{ key: 'SLOW_RESPONSE' }, { key: 'DEPRECATED_HEADER' }]);
+    }));
+
+    it.each([
+      ['HTTP_PROXY', 'HTTP'],
+      ['LLM_PROXY', 'LLM'],
+      ['MCP_PROXY', 'MCP'],
+    ] as const)(
+      'should map apiType %s to display label %s',
+      fakeAsync((backendType, displayLabel) => {
+        const response: SearchLogsResponse = {
+          data: [
+            {
+              apiId: 'api-1',
+              apiName: 'Test API',
+              apiType: backendType,
+              timestamp: '2025-06-15T12:00:00Z',
+              id: 'log-typed',
+              requestId: 'req-typed',
+              method: 'GET',
+              status: 200,
+              requestEnded: true,
+              uri: '/test',
+            },
+          ],
+          pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        };
+
+        initComponent(response);
+
+        expect(component.logs()[0].apiType).toBe(displayLabel);
+      }),
+    );
+
+    it('should pass through unrecognized apiType values as-is', fakeAsync(() => {
+      const response: SearchLogsResponse = {
+        data: [
+          {
+            apiId: 'api-1',
+            apiName: 'Test API',
+            apiType: 'FUTURE_TYPE' as any,
+            timestamp: '2025-06-15T12:00:00Z',
+            id: 'log-unknown',
+            requestId: 'req-unknown',
+            method: 'GET',
+            status: 200,
+            requestEnded: true,
+            uri: '/test',
+          },
+        ],
+        pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+      };
+
+      initComponent(response);
+
+      expect(component.logs()[0].apiType).toBe('FUTURE_TYPE');
+    }));
+
+    it('should leave apiType undefined when not provided in response', fakeAsync(() => {
+      initComponent(MOCK_RESPONSE);
+
+      expect(component.logs()[0].apiType).toBeUndefined();
     }));
   });
 

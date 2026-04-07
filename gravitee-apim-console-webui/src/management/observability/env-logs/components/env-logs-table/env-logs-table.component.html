@@ -34,6 +34,10 @@
     }
   </ng-template>
 
+  <ng-template #assetTypeTemplate let-log>
+    {{ log.apiType || '—' }}
+  </ng-template>
+
   <ng-template #methodTemplate let-log>
     <span [class]="'gio-method-badge-' + log.method.toLocaleLowerCase()">{{ log.method }}</span>
   </ng-template>

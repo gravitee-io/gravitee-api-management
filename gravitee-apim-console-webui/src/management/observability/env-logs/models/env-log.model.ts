@@ -46,6 +46,8 @@ export type EnvLog = {
   api: string;
   /** API ID from backend (used for detail navigation) */
   apiId: string;
+  /** Short asset type label for the table column (e.g. "HTTP", "LLM", "MCP"). Mapped from the backend LogApiType enum. */
+  apiType?: string;
   /** Application name */
   application: string;
   /** HTTP method (GET, POST, etc.) */
@@ -68,7 +70,7 @@ export type EnvLog = {
   warnings?: EnvLogWarning[];
 
   // --- Detail fields (populated for the log detail page) ---
-  /** API type label (e.g. "HTTP Proxy") */
+  /** Full API type label for the detail page (e.g. "HTTP Proxy"). Distinct from the table-level `apiType`. */
   type?: string;
   /** Request host */
   host?: string;

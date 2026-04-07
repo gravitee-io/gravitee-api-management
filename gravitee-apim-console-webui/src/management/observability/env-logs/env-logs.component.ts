@@ -36,7 +36,7 @@ import {
 } from './components/env-logs-filter-bar/env-logs-filter-bar.component';
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 
-import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam } from '../../../services-ngx/environment-logs.service';
+import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam, LogApiType } from '../../../services-ngx/environment-logs.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperPagination } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Pagination } from '../../../entities/management-api-v2';
@@ -46,6 +46,12 @@ const EMPTY_FIELD = '—';
 const TAB_QUERY_PARAM = 'tab';
 const MESSAGES_TAB_VALUE = 'messages';
 const DEFAULT_PER_PAGE = 10;
+
+const API_TYPE_LABELS: Record<LogApiType, string> = {
+  HTTP_PROXY: 'HTTP',
+  LLM_PROXY: 'LLM',
+  MCP_PROXY: 'MCP',
+};
 
 export const enum EnvLogsTab {
   NON_MESSAGE_APIS = 0,
@@ -258,6 +264,7 @@ export class EnvLogsComponent {
       timestamp: this.datePipe.transform(log.timestamp, 'medium') ?? log.timestamp,
       api: log.apiName ?? log.apiId,
       apiId: log.apiId,
+      apiType: log.apiType ? (API_TYPE_LABELS[log.apiType] ?? log.apiType) : undefined,
       application: log.application?.name ?? log.application?.id ?? EMPTY_FIELD,
       method: log.method ?? EMPTY_FIELD,
       path: log.uri ?? EMPTY_FIELD,
