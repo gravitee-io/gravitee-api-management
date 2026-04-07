@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
 
-export interface ApiProductTabMenuItem {
-  displayName: string;
-  routerLink: string;
-}
-
-@Component({
-  selector: 'api-product-navigation-tabs',
-  templateUrl: './api-product-navigation-tabs.component.html',
-  styleUrls: ['./api-product-navigation-tabs.component.scss'],
-  standalone: true,
-  imports: [RouterModule, MatTabsModule],
-})
-export class ApiProductNavigationTabsComponent {
-  tabMenuItems = input.required<ApiProductTabMenuItem[]>();
+.api-product-navigation-tabs {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }

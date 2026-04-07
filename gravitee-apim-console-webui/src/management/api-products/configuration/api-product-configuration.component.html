@@ -17,11 +17,6 @@
 -->
 
 @if (apiProduct(); as product) {
-  <div class="configuration-section">
-    <h2 class="configuration-section__title">Configuration</h2>
-    <p class="configuration-section__subtitle">Manage general settings and product details.</p>
-  </div>
-
   <form [formGroup]="form" gioFormFocusInvalid>
     <mat-card class="configuration-card">
       <mat-card-content>

@@ -48,6 +48,26 @@ describe('ApiProductNavigationComponent', () => {
   let httpTestingController: HttpTestingController;
   const fakeSnackBarService = { error: jest.fn(), success: jest.fn() };
 
+  async function configureNavigationTestBed(testingPermissions: string[]): Promise<void> {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [ApiProductNavigationComponent, RouterOutlet, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      providers: [
+        { provide: Constants, useValue: CONSTANTS_TESTING },
+        { provide: SnackBarService, useValue: fakeSnackBarService },
+        { provide: GioTestingPermissionProvider, useValue: testingPermissions },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({ apiProductId: API_PRODUCT_ID }),
+            snapshot: { params: { apiProductId: API_PRODUCT_ID } },
+            parent: null,
+          },
+        },
+      ],
+    }).compileComponents();
+  }
+
   function flushRequests(product: ApiProduct, verifyOk = true, verifyReason?: string): void {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`).flush(product);
     httpTestingController
@@ -63,23 +83,8 @@ describe('ApiProductNavigationComponent', () => {
     fixture.detectChanges();
   }
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [ApiProductNavigationComponent, RouterOutlet, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
-      providers: [
-        { provide: Constants, useValue: CONSTANTS_TESTING },
-        { provide: SnackBarService, useValue: fakeSnackBarService },
-        { provide: GioTestingPermissionProvider, useValue: ['api_product-definition-u'] },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            params: of({ apiProductId: API_PRODUCT_ID }),
-            snapshot: { params: { apiProductId: API_PRODUCT_ID } },
-            parent: null,
-          },
-        },
-      ],
-    }).compileComponents();
+  beforeEach(async () => {
+    await configureNavigationTestBed(['api_product-definition-u', 'api_product-member-r']);
   });
 
   afterEach(() => {
@@ -194,7 +199,7 @@ describe('ApiProductNavigationComponent', () => {
   });
 
   it('should show out-of-sync banner without Deploy button when user lacks update permission', async () => {
-    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: [] });
+    await configureNavigationTestBed([]);
     createFixture();
     flushRequests({ ...fakeApiProduct, deploymentState: 'NEED_REDEPLOY' }, true);
     await fixture.whenStable();
@@ -233,9 +238,31 @@ describe('ApiProductNavigationComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('This API Product is out of sync.');
   });
 
+  describe('Configuration User Permissions tab visibility', () => {
+    it('should show User Permissions tab when user has api product member read', async () => {
+      await configureNavigationTestBed(['api_product-member-r']);
+      createFixture();
+      flushRequests(fakeApiProduct);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('User Permissions');
+    });
+
+    it('should hide User Permissions tab when user lacks api product member permissions', async () => {
+      await configureNavigationTestBed(['api_product-plan-r', 'api_product-subscription-r']);
+      createFixture();
+      flushRequests(fakeApiProduct);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).not.toContain('User Permissions');
+    });
+  });
+
   describe('Consumers menu item visibility', () => {
     it('should show consumers menu item when user has api product plan read permission', async () => {
-      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api_product-plan-r'] });
+      await configureNavigationTestBed(['api_product-plan-r']);
       createFixture();
       flushRequests(fakeApiProduct);
       await fixture.whenStable();
@@ -245,7 +272,7 @@ describe('ApiProductNavigationComponent', () => {
     });
 
     it('should hide consumers menu item when user lacks api product plan read permission', async () => {
-      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api_product-definition-r'] });
+      await configureNavigationTestBed(['api_product-definition-r']);
       createFixture();
       flushRequests(fakeApiProduct);
       await fixture.whenStable();
