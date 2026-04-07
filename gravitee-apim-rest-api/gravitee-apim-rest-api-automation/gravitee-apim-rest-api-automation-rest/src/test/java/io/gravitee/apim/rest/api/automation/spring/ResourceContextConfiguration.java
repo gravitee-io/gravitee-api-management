@@ -72,6 +72,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDo
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -114,7 +115,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -311,12 +312,12 @@ public class ResourceContextConfiguration {
      * Automation resource tests don't need real implementation, so a mock is enough.
      */
     @Bean
-    public ApiProductPlanSearchQueryService apiProductPlanSearchQueryService() {
-        return mock(ApiProductPlanSearchQueryService.class);
+    public PlanSearchQueryService planSearchQueryService() {
+        return mock(PlanSearchQueryService.class);
     }
 
     /**
-     * Required by ApiProductPlanOperationsUseCase.
+     * Required by PlanOperationsUseCase.
      */
     @Bean
     public PublishPlanDomainService planOperationsDomainService() {
@@ -1067,6 +1068,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
         return mock(ApplicationCertificatesUpdateDomainService.class);
+    }
+
+    @Bean
+    public ClientCertificateValidationDomainService clientCertificateValidationDomainService() {
+        return mock(ClientCertificateValidationDomainService.class);
     }
 
     @Bean

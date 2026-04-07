@@ -16,8 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
-// JSON schema harness not used; interact via component in tests when needed
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiLlmProviderHarness extends ComponentHarness {
   static hostSelector = 'api-provider';
@@ -25,9 +24,8 @@ export class ApiLlmProviderHarness extends ComponentHarness {
   private getTitleElement = this.locatorFor('.mat-h3');
   private getForm = this.locatorFor('form');
   private getProviderNameInput = this.locatorFor(MatInputHarness.with({ selector: '#name' }));
-  private getProviderNameFormField = this.locatorFor(MatFormFieldHarness.with({ selector: '#name' }));
-  private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Validate my endpoints' }));
-  private getBackButton = this.locatorFor(MatButtonHarness.with({ text: 'Go back to your endpoints' }));
+  private getSaveBar = this.locatorFor(GioSaveBarHarness);
+  private getBackButton = this.locatorFor(MatButtonHarness.with({ text: /Go back to your endpoints/ }));
 
   public async getTitle(): Promise<string> {
     const titleElement = await this.getTitleElement();
@@ -63,25 +61,14 @@ export class ApiLlmProviderHarness extends ComponentHarness {
     return await input.blur();
   }
 
-  public async getProviderNameError(): Promise<string> {
-    const errorElement = await this.locatorForOptional('mat-form-field .mat-error')();
-    if (!errorElement) return '';
-    return await errorElement.text();
-  }
-
-  public async isSaveButtonDisabled(): Promise<boolean> {
-    const button = await this.getSaveButton();
-    return await button.isDisabled();
-  }
-
-  public async getSaveButtonText(): Promise<string> {
-    const button = await this.getSaveButton();
-    return await button.getText();
+  public async isSaveButtonInvalid(): Promise<boolean> {
+    const saveBar = await this.getSaveBar();
+    return await saveBar.isSubmitButtonInvalid();
   }
 
   public async clickSaveButton(): Promise<void> {
-    const button = await this.getSaveButton();
-    return await button.click();
+    const saveBar = await this.getSaveBar();
+    return await saveBar.clickSubmit();
   }
 
   public async clickBackButton(): Promise<void> {

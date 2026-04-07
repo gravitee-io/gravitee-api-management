@@ -326,6 +326,16 @@ describe('SubscriptionsComponent', () => {
     c.verify();
   });
 
+  it('should send view=documentation when loading API filter options', async () => {
+    await setup();
+
+    fixture.componentInstance.apiResultsLoader({ searchTerm: 'payment', page: 1 }).subscribe();
+
+    const req = http.expectOne(req => req.url.includes('/apis/_search'));
+    expect(req.request.params.get('view')).toBe('documentation');
+    req.flush({ data: [], metadata: {} });
+  });
+
   it('hasSubscriptions is false when no data and no filters', async () => {
     await setup();
     expect(fixture.componentInstance.hasSubscriptions()).toBe(false);

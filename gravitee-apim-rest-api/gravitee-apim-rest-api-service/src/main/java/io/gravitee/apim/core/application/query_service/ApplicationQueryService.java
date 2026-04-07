@@ -15,9 +15,13 @@
  */
 package io.gravitee.apim.core.application.query_service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Set;
 
 public interface ApplicationQueryService {
     Set<BaseApplicationEntity> findByEnvironment(String environmentId);
+
+    Page<BaseApplicationEntity> searchByIds(Set<String> ids, String environmentId, Pageable pageable);
 }

@@ -57,6 +57,11 @@ public class CategoryDomainServiceImpl implements CategoryDomainService {
     }
 
     @Override
+    public Set<String> resolveToCategoryIds(String environmentId, Set<String> categoryIdsOrKeys) {
+        return categoryMapper.toCategoryId(environmentId, categoryIdsOrKeys);
+    }
+
+    @Override
     public void updateOrderCategoriesOfApi(String apiId, @Nullable Collection<String> categoryIds) {
         try {
             var previousCategories = apiCategoryOrderRepository.findAllByApiId(apiId);

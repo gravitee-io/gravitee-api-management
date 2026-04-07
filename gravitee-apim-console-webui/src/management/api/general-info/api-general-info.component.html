@@ -167,7 +167,7 @@
                     @let displayedProducts = apiProducts().slice(0, displayedApiProductsCount);
                     @let remainingCount = apiProducts().length - displayedApiProductsCount;
                     @for (product of displayedProducts; track product.id) {
-                      {{ product.name }}
+                      {{ truncatedProductNameForList(product.name) }}
                       @if (!$last) {
                         ,
                       }

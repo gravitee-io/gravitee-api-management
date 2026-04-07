@@ -19,6 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
 import { ApiAccessHarness } from '../../../../../components/api-access/api-access.harness';
@@ -27,6 +28,7 @@ import { ConfirmDialogHarness } from '../../../../../components/confirm-dialog/c
 import { SubscriptionInfoHarness } from '../../../../../components/subscription-info/subscription-info.harness';
 import { Api } from '../../../../../entities/api/api';
 import { fakeApi } from '../../../../../entities/api/api.fixtures';
+import { PortalApiViewParam } from '../../../../../entities/api/portal-api-view-param';
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
 import { Configuration } from '../../../../../entities/configuration/configuration';
@@ -43,6 +45,7 @@ import {
 } from '../../../../../entities/subscription';
 import { fakeSubscriptionConsumerConfiguration } from '../../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { ConfigService } from '../../../../../services/config.service';
+import { PortalNavigationItemsService } from '../../../../../services/portal-navigation-items.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 
 describe('SubscriptionsDetailsComponent', () => {
@@ -50,6 +53,7 @@ describe('SubscriptionsDetailsComponent', () => {
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
+  let searchNavigationItemsWithApisMock: jest.Mock;
 
   const API_ID = 'testApiId';
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
@@ -71,12 +75,36 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   beforeEach(async () => {
+    searchNavigationItemsWithApisMock = jest.fn().mockReturnValue(
+      of({
+        data: [
+          {
+            id: API_ID,
+            name: 'API',
+            version: '1',
+            description: '',
+            rootId: 'root-id',
+            navItemId: 'nav-item-id',
+          },
+        ],
+        metadata: {},
+        links: {},
+      }),
+    );
+
     await TestBed.configureTestingModule({
       imports: [SubscriptionsDetailsComponent, ConfirmDialogComponent, AppTestingModule],
       providers: [
         {
           provide: ConfigService,
           useClass: CustomConfigurationServiceStub,
+        },
+        {
+          provide: PortalNavigationItemsService,
+          useValue: {
+            searchNavigationItemsWithApis: (page: number, query: string, size: number) =>
+              searchNavigationItemsWithApisMock(page, query, size),
+          },
         },
       ],
     }).compileComponents();
@@ -173,6 +201,11 @@ describe('SubscriptionsDetailsComponent', () => {
     it('should show subscription details with Api Key', async () => {
       expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
       fixture.detectChanges();
+
+      const apiLink = fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]');
+      expect(apiLink).not.toBeNull();
+      expect(apiLink.getAttribute('href')).toContain('/documentation/root-id');
+      expect(apiLink.getAttribute('href')).toContain('selectedId=nav-item-id');
 
       const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
       expect(await apiAccess.getApiKey()).toStrictEqual(API_KEY);
@@ -392,8 +425,30 @@ describe('SubscriptionsDetailsComponent', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiIds=${apiId}`).flush(subscriptionResponse);
   }
 
-  function expectPlansList(plansResponse: PlansResponse = fakePlansResponse()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/testApiId/plans?size=-1`).flush(plansResponse);
+  function expectPlansList(plansResponse: PlansResponse = fakePlansResponse(), apiName = 'API name from metadata') {
+    const firstPlan = plansResponse.data?.[0];
+    const metadata = {
+      [fakeSubscription().plan]: {
+        name: firstPlan?.name,
+        securityType: firstPlan?.security,
+        planMode: firstPlan?.mode,
+        usageConfiguration: firstPlan?.usage_configuration,
+      },
+      [API_ID]: {
+        name: apiName,
+      },
+      ...(firstPlan?.id
+        ? {
+            [firstPlan.id]: {
+              name: firstPlan.name,
+              securityType: firstPlan.security,
+              planMode: firstPlan.mode,
+              usageConfiguration: firstPlan.usage_configuration,
+            },
+          }
+        : {}),
+    };
+    expectSubscriptionList(fakeSubscriptionResponse({ metadata }), API_ID);
   }
 
   function expectApplicationsList(applicationsResponse: Application = fakeApplication()) {
@@ -401,12 +456,86 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   function expectGetApi(api: Api = fakeApi()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${api.id}?view=documentation`).flush(api);
+    httpTestingController
+      .expectOne(request => {
+        return (
+          request.url === `${TESTING_BASE_URL}/apis/${api.id}` &&
+          request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION
+        );
+      })
+      .flush(api);
   }
 
-  function expectGetApiPermissions(permissions = fakeUserApiPermissions({ PLAN: ['R'] })) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/permissions?apiId=${API_ID}`).flush(permissions);
+  function expectGetApiPermissions(permissions = fakeUserApiPermissions({ PLAN: ['R'] }), hasDocumentationAccess = true) {
+    const req = httpTestingController.expectOne(
+      request =>
+        request.url === `${TESTING_BASE_URL}/permissions` &&
+        request.params.get('apiId') === API_ID &&
+        request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+    );
+    if (hasDocumentationAccess) {
+      req.flush(permissions);
+    } else {
+      req.flush(null, { status: 404, statusText: 'Not Found' });
+    }
   }
+
+  describe('when documentation view is unavailable', () => {
+    beforeEach(() => {
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
+      expectGetApiPermissions(undefined, false);
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+    });
+
+    it('should still render subscription details instead of generic error state', async () => {
+      fixture.detectChanges();
+
+      const errorMessage = fixture.nativeElement.querySelector('.subscriptions-details__error');
+      expect(errorMessage).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-label"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-api-access')).toBeNull();
+    });
+  });
+
+  describe('when documentation and api details are unavailable', () => {
+    const metadataApiName = 'API from subscription metadata';
+
+    beforeEach(() => {
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
+      expectGetApiPermissions(undefined, false);
+      expectPlansList(fakePlansResponse(), metadataApiName);
+      expectApplicationsList(fakeApplication());
+    });
+
+    it('should render API name from subscription metadata as plain text', async () => {
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]')).toBeNull();
+      const apiLabel = fixture.nativeElement.querySelector('[data-testid="subscription-api-label"]');
+      expect(apiLabel).not.toBeNull();
+      expect(apiLabel.textContent?.trim()).toStrictEqual(metadataApiName);
+    });
+  });
+
+  describe('when documentation is available but navigation target cannot be resolved', () => {
+    beforeEach(() => {
+      searchNavigationItemsWithApisMock.mockReturnValue(of({ data: [], metadata: {}, links: {} }));
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+    });
+
+    it('should render API label without clickable link', async () => {
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-label"]')).not.toBeNull();
+    });
+  });
 
   function expectPostChangeConsumerStatus() {
     const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_resumeFailure`;

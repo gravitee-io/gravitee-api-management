@@ -58,6 +58,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
       &__right {
         flex: 0 0 auto;
+        display: flex;
+        gap: 8px;
 
         &__btn {
           margin: 8px 0;
@@ -80,42 +82,11 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__environments-card,
-  &__groups-card,
-  &__apis-card,
-  &__applications-card,
-  &__org-role-card {
+  &__org-role-card,
+  &__memberships-card {
     margin: 16px 0;
     display: flex;
     flex-direction: column;
-  }
-
-  &__groups-card {
-    &__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-
-      h2 {
-        margin-bottom: 0;
-      }
-    }
-
-    &__table {
-      .mat-mdc-cell.mat-column-name {
-        .error {
-          color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
-        }
-      }
-
-      .mat-mdc-cell.mat-column-groupAdmin {
-        text-align: center;
-      }
-
-      .mat-mdc-row.error {
-        box-shadow: 8px 0px 0px 0px mat.m2-get-color-from-palette(gio.$mat-error-palette, default, 0.42) inset;
-      }
-    }
   }
 
   &__tokens {

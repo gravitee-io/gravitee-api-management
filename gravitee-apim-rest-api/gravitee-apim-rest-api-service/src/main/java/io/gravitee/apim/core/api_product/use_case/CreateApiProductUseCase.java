@@ -16,11 +16,11 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
-import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
@@ -30,9 +30,6 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
-import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
@@ -40,7 +37,6 @@ import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFac
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.notification.model.config.NotificationConfig;
-import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.time.ZonedDateTime;
@@ -59,11 +55,10 @@ public class CreateApiProductUseCase {
     private final AuditDomainService auditService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
     private final ApiProductPrimaryOwnerFactory apiProductPrimaryOwnerFactory;
-    private final EventCrudService eventCrudService;
-    private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final NotificationConfigCrudService notificationConfigCrudService;
+    private final DeployApiProductDomainService deployApiProductDomainService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -118,26 +113,10 @@ public class CreateApiProductUseCase {
         apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
 
         createDefaultMailNotification(created);
-        publishDeployEvent(auditInfo, created);
+        deployApiProductDomainService.deploy(auditInfo, created);
         createAuditLog(created, auditInfo);
 
         return new Output(created);
-    }
-
-    private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
-        final Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_API_PRODUCT,
-            apiProduct,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
-            )
-        );
-
-        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
 
     private void createDefaultMailNotification(ApiProduct apiProduct) {

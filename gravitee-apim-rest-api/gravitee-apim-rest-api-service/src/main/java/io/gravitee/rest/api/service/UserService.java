@@ -76,6 +76,8 @@ public interface UserService {
 
     void resetPassword(ExecutionContext executionContext, String id);
 
+    void updateServiceAccountStatus(ExecutionContext executionContext, String id, boolean serviceAccount);
+
     UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl);
 
     Map<String, Object> getTokenRegistrationParams(
@@ -91,6 +93,15 @@ public interface UserService {
         String portalUri,
         ACTION action,
         String confirmationPageUrl
+    );
+
+    Map<String, Object> getTokenRegistrationParams(
+        ExecutionContext executionContext,
+        UserEntity userEntity,
+        String portalUri,
+        ACTION action,
+        String confirmationPageUrl,
+        String passwordDigest
     );
 
     UserEntity create(ExecutionContext executionContext, NewPreRegisterUserEntity newPreRegisterUserEntity);

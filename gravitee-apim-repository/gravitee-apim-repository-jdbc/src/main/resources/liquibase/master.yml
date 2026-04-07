@@ -268,6 +268,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_8_0/05_add_environment_ids_to_entrypoints_table.yml
     - include:
+        - file: liquibase/changelogs/v4_8_24/01_add_users_service_account_column.yml
+    - include:
         - file: liquibase/changelogs/v4_9_0/00_add_hrid_to_applications_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/01_add_hrid_to_plans_table.yml
@@ -296,6 +298,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_9_5/01_change_dictionary_property_value_datatype.yml
     - include:
+        - file: liquibase/changelogs/v4_9_17/00_change_flow_selectors_path_length.yml
+    - include:
         - file: liquibase/changelogs/v4_11_0/00_add_api_products_table.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/01_add_api_product_apis_table.yml
@@ -318,3 +322,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_0/09_add_root_id_to_portal_navigation_items.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/10_make_root_id_not_null_portal_navigation_items.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/11_add_allow_multi_jwt_oauth2_subscriptions_to_apis.yml

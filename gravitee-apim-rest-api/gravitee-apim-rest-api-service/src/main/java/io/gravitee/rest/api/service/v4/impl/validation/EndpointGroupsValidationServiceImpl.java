@@ -15,8 +15,15 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.service.v4.exception.EndpointGroupLlmProxyInvalidException.Validation.ALIASES_MISMATCH;
+import static io.gravitee.rest.api.service.v4.exception.EndpointGroupLlmProxyInvalidException.Validation.PROVIDER_MISMATCH;
+import static java.util.function.Predicate.not;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
@@ -34,17 +41,23 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.exception.EndpointGroupLlmProxyInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,15 +68,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
+    private static final String LLM_PROXY_TYPE = "llm-proxy";
+
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
+    private final ObjectMapper objectMapper;
 
     public EndpointGroupsValidationServiceImpl(
         final EndpointConnectorPluginService endpointService,
-        final ApiServicePluginService apiServicePluginService
+        final ApiServicePluginService apiServicePluginService,
+        final ObjectMapper objectMapper
     ) {
         this.endpointService = endpointService;
         this.apiServicePluginService = apiServicePluginService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -92,6 +110,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             final ConnectorPluginEntity endpointConnector = endpointService.findById(endpointGroup.getType());
             validateEndpointGroupType(apiType, endpointGroup.getType(), endpointConnector);
             validateEndpointsExistence(endpointGroup);
+            validateLlmProxyProviderConsistency(endpointGroup);
             validateServices(apiType, endpointGroup);
 
             if (endpointGroup.getSharedConfiguration() != null) {
@@ -141,7 +160,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateSharedConfigurationInheritance(AbstractEndpointGroup endpointGroup, AbstractEndpoint endpoint) {
+    private void validateSharedConfigurationInheritance(AbstractEndpointGroup<?> endpointGroup, AbstractEndpoint endpoint) {
         if (endpoint.isInheritConfiguration() && endpointGroup.getSharedConfiguration() == null) {
             // If we try to inherit shared configuration that is null
             // Shared configuration has already been validated so no need to do it again
@@ -151,7 +170,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointsExistence(AbstractEndpointGroup endpointGroup) {
+    private void validateEndpointsExistence(AbstractEndpointGroup<?> endpointGroup) {
         if (endpointGroup instanceof EndpointGroup asHttpEndpointGroup) {
             validateHttpEndpointsExistence(asHttpEndpointGroup);
         } else if (endpointGroup instanceof NativeEndpointGroup asNativeEndpointGroup) {
@@ -192,11 +211,58 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointMatchType(final AbstractEndpointGroup endpointGroup, final AbstractEndpoint endpoint) {
+    private void validateEndpointMatchType(final AbstractEndpointGroup<?> endpointGroup, final AbstractEndpoint endpoint) {
         if (!endpointGroup.getType().equals(endpoint.getType())) {
             throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
         }
     }
+
+    private void validateLlmProxyProviderConsistency(final AbstractEndpointGroup<? extends AbstractEndpoint> endpointGroup) {
+        if (!LLM_PROXY_TYPE.equals(endpointGroup.getType())) {
+            return;
+        }
+        var llmValidationStream = stream(endpointGroup.getEndpoints())
+            .flatMap(endpoint -> extractLlmProxyProvider(endpoint.getConfiguration()))
+            .toList();
+
+        // all endpoints must have the same provider
+        long countDistinctProviders = llmValidationStream.stream().map(LLMValidation::provider).distinct().limit(2).count();
+        var validations = EnumSet.noneOf(EndpointGroupLlmProxyInvalidException.Validation.class);
+        if (countDistinctProviders > 1) {
+            validations.add(PROVIDER_MISMATCH);
+        }
+
+        // all endpoints must have the same aliases
+        long count = llmValidationStream.stream().map(LLMValidation::aliases).distinct().limit(2).count();
+        if (count > 1) {
+            validations.add(ALIASES_MISMATCH);
+        }
+        if (!validations.isEmpty()) {
+            throw new EndpointGroupLlmProxyInvalidException(endpointGroup.getName(), validations);
+        }
+    }
+
+    private Stream<LLMValidation> extractLlmProxyProvider(final String configuration) {
+        if (configuration == null) {
+            return Stream.empty();
+        }
+        try {
+            JsonNode config = objectMapper.readTree(configuration);
+            JsonNode providerNode = config.path("provider");
+            String provider = providerNode.textValue();
+
+            var aliases = stream(config.at("/models"))
+                .flatMap(model -> stream(model.at("/aliases")))
+                .map(JsonNode::textValue)
+                .filter(not(StringUtils::isBlank))
+                .collect(Collectors.toCollection(HashSet::new));
+            return Stream.ofNullable(new LLMValidation(provider, aliases));
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Failed to parse llm-proxy endpoint configuration", e);
+        }
+    }
+
+    private record LLMValidation(String provider, Set<String> aliases) {}
 
     private void validateAndSetHealthCheckConfiguration(Service healthCheck) {
         if (isBlank(healthCheck.getType())) {
@@ -235,13 +301,13 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         names.add(name);
     }
 
-    private void validateServices(ApiType apiType, AbstractEndpointGroup endpointGroup) {
+    private void validateServices(ApiType apiType, AbstractEndpointGroup<?> endpointGroup) {
         if (!ApiType.NATIVE.equals(apiType)) {
             validateHttpServices(((EndpointGroup) endpointGroup).getServices());
         }
     }
 
-    private void validateServices(ApiType apiType, AbstractEndpointGroup endpointGroup, AbstractEndpoint endpoint) {
+    private void validateServices(ApiType apiType, AbstractEndpointGroup<?> endpointGroup, AbstractEndpoint endpoint) {
         if (!ApiType.NATIVE.equals(apiType)) {
             validateHttpServices(((EndpointGroup) endpointGroup).getServices(), ((Endpoint) endpoint).getServices());
         }

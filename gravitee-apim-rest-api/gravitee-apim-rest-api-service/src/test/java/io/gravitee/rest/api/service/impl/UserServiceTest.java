@@ -951,17 +951,21 @@ public class UserServiceTest {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(passwordValidator.validate(anyString())).thenReturn(true);
 
+        String existingPasswordHash = "$2a$10$existingBcryptHash";
+        String passwordDigest = UserServiceImpl.computePasswordDigest(existingPasswordHash);
+
         User user = new User();
         user.setId("CUSTOM_LONG_ID");
         user.setEmail(EMAIL);
         user.setFirstname(FIRST_NAME);
         user.setLastname(LAST_NAME);
         user.setOrganizationId(ORGANIZATION);
+        user.setPassword(existingPasswordHash);
         when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
         when(userRepository.update(any())).thenAnswer(returnsFirstArg());
 
         ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
+        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name(), passwordDigest));
         userEntity.setPassword(PASSWORD);
 
         userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
@@ -970,6 +974,30 @@ public class UserServiceTest {
             eq(EXECUTION_CONTEXT),
             argThat(auditLogData -> auditLogData.getEvent().equals(PASSWORD_CHANGED))
         );
+    }
+
+    @Test(expected = UserStateConflictException.class)
+    public void changePassword_tokenAlreadyUsed() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        String originalPasswordHash = "$2a$10$originalBcryptHash";
+        String newPasswordHash = "$2a$10$newBcryptHashAfterReset";
+        String originalDigest = UserServiceImpl.computePasswordDigest(originalPasswordHash);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
+        user.setPassword(newPasswordHash);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
+        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name(), originalDigest));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test(expected = PasswordFormatInvalidException.class)
@@ -1152,7 +1180,6 @@ public class UserServiceTest {
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
-        when(user.getSourceId()).thenReturn(EMAIL);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         MetadataPage mdPage = mock(MetadataPage.class);
@@ -1234,20 +1261,24 @@ public class UserServiceTest {
         when(user.getSource()).thenReturn("gravitee");
         when(user.getSourceId()).thenReturn("lastname");
         when(user.getLastname()).thenReturn("lastname");
-        when(user.getPassword()).thenReturn(null);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(user.getIsServiceAccount()).thenReturn(true);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
     }
 
     private String createJWT(long expirationSeconds, String action) {
+        return createJWT(expirationSeconds, action, null);
+    }
+
+    private String createJWT(long expirationSeconds, String action, String passwordDigest) {
         Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 
         Date issueAt = new Date();
         Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(expirationSeconds));
 
-        return JWT.create()
+        var builder = JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))
@@ -1255,18 +1286,13 @@ public class UserServiceTest {
             .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
             .withClaim(JWTHelper.Claims.FIRSTNAME, FIRST_NAME)
             .withClaim(JWTHelper.Claims.LASTNAME, LAST_NAME)
-            .withClaim(JWTHelper.Claims.ACTION, action)
-            .sign(algorithm);
-        /*
-        HashMap<String, Object> claims = new HashMap<>();
-        claims.put(JWTHelper.Claims.SUBJECT, USER_NAME);
-        claims.put(JWTHelper.Claims.EMAIL, EMAIL);
-        claims.put(JWTHelper.Claims.FIRSTNAME, FIRST_NAME);
-        claims.put(JWTHelper.Claims.LASTNAME, LAST_NAME);
-        claims.put(JWTHelper.Claims.ACTION, USER_REGISTRATION);
-        claims.put("exp", expirationSeconds);
-        return new JWTSigner(JWT_SECRET).sign(claims);
-         */
+            .withClaim(JWTHelper.Claims.ACTION, action);
+
+        if (passwordDigest != null) {
+            builder = builder.withClaim(JWTHelper.Claims.PASSWORD_DIGEST, passwordDigest);
+        }
+
+        return builder.sign(algorithm);
     }
 
     private String createJWT(long expirationSeconds) {
@@ -2569,5 +2595,137 @@ public class UserServiceTest {
 
         assertEquals(List.of("x1", "x2", "x3"), page1.getContent().stream().map(UserEntity::getId).toList());
         assertEquals(List.of("x3", "x4", "x5"), page2.getContent().stream().map(UserEntity::getId).toList());
+    }
+
+    // --- isServiceAccount tests ---
+
+    @Test
+    public void shouldSetIsServiceAccountToFalseWhenCreatingNormalUser() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(false);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        when(newPreRegisterUserEntity.getLastname()).thenReturn(LAST_NAME);
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(
+            environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
+        ).thenReturn(1000);
+
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+
+        verify(userRepository).create(argThat(userToCreate -> Boolean.FALSE.equals(userToCreate.getIsServiceAccount())));
+    }
+
+    @Test
+    public void shouldSetIsServiceAccountToTrueWhenCreatingServiceUser() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(true);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        when(newPreRegisterUserEntity.getLastname()).thenReturn(LAST_NAME);
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+
+        verify(userRepository).create(argThat(userToCreate -> Boolean.TRUE.equals(userToCreate.getIsServiceAccount())));
+    }
+
+    @Test
+    public void shouldUpdateServiceAccountStatus() throws TechnicalException {
+        User existingUser = new User();
+        existingUser.setId(USER_NAME);
+        existingUser.setOrganizationId(ORGANIZATION);
+        existingUser.setIsServiceAccount(false);
+
+        when(userRepository.findById(USER_NAME)).thenReturn(of(existingUser));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+
+        userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+
+        verify(userRepository).update(
+            argThat(updatedUser -> Boolean.TRUE.equals(updatedUser.getIsServiceAccount()) && updatedUser.getUpdatedAt() != null)
+        );
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void shouldNotUpdateServiceAccountStatusWhenUserNotFound() throws TechnicalException {
+        when(userRepository.findById(USER_NAME)).thenReturn(empty());
+
+        userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void shouldNotUpdateServiceAccountStatusWhenUserInDifferentOrganization() throws TechnicalException {
+        User existingUser = new User();
+        existingUser.setId(USER_NAME);
+        existingUser.setOrganizationId("other-org");
+
+        when(userRepository.findById(USER_NAME)).thenReturn(of(existingUser));
+
+        userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
     }
 }

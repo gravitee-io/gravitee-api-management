@@ -82,6 +82,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDo
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -131,10 +132,13 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
-import io.gravitee.apim.core.plan.use_case.api_product.ApiProductPlanOperationsUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.UpdateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -187,6 +191,9 @@ import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
+import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
+import io.gravitee.apim.core.user.use_case.GetUserApplicationsUseCase;
+import io.gravitee.apim.core.user.use_case.GetUserGroupsUseCase;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -210,6 +217,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -262,6 +270,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationRepository applicationRepository() {
         return mock(ApplicationRepository.class);
+    }
+
+    @Bean
+    public CustomDashboardRepository customDashboardRepository() {
+        return mock(CustomDashboardRepository.class);
     }
 
     @Bean
@@ -977,14 +990,28 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    @Primary
+    public CreatePlanUseCase createPlanUseCase() {
+        return mock(CreatePlanUseCase.class);
+    }
+
+    @Bean
     public CreateApiProductPlanUseCase createApiProductPlanUseCase() {
         return mock(CreateApiProductPlanUseCase.class);
     }
 
     @Bean
-    public GetApiProductPlansUseCase getApiProductPlansUseCase() {
-        return mock(GetApiProductPlansUseCase.class);
+    public GetPlansUseCase getPlansUseCase() {
+        return mock(GetPlansUseCase.class);
+    }
+
+    @Bean
+    public UpdatePlanUseCase updatePlanUseCase() {
+        return mock(UpdatePlanUseCase.class);
+    }
+
+    @Bean
+    public UpdateFederatedPlanUseCase updateFederatedPlanUseCase() {
+        return mock(UpdateFederatedPlanUseCase.class);
     }
 
     @Bean
@@ -993,8 +1020,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase() {
-        return mock(ApiProductPlanOperationsUseCase.class);
+    public PlanOperationsUseCase planOperationsUseCase() {
+        return mock(PlanOperationsUseCase.class);
     }
 
     @Bean
@@ -1223,7 +1250,27 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ClientCertificateValidationDomainService clientCertificateValidationDomainService() {
+        return mock(ClientCertificateValidationDomainService.class);
+    }
+
+    @Bean
     public JsonSchemaChecker jsonSchemaChecker() {
         return mock(JsonSchemaChecker.class);
+    }
+
+    @Bean
+    public GetUserApisUseCase getUserApisUseCase() {
+        return mock(GetUserApisUseCase.class);
+    }
+
+    @Bean
+    public GetUserApplicationsUseCase getUserApplicationsUseCase() {
+        return mock(GetUserApplicationsUseCase.class);
+    }
+
+    @Bean
+    public GetUserGroupsUseCase getUserGroupsUseCase() {
+        return mock(GetUserGroupsUseCase.class);
     }
 }

@@ -187,11 +187,12 @@ public class SubscriptionCacheService implements SubscriptionService {
         updateSubscriptionIdById(subscription);
         updateIdentityCache(subscription, cacheByClientCertificate);
 
-        // Evict if cert bundle changed
+        // Evict if cert bundle or plan changed (e.g. subscription transfer)
         if (
             cached != null &&
             Objects.equals(subscription.getApi(), cached.getApi()) &&
-            !Objects.equals(subscription.getClientCertificate(), cached.getClientCertificate())
+            (!Objects.equals(subscription.getClientCertificate(), cached.getClientCertificate()) ||
+                !Objects.equals(subscription.getPlan(), cached.getPlan()))
         ) {
             String cacheKey = identityCacheKey(cached);
             String cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(cached);
@@ -212,9 +213,14 @@ public class SubscriptionCacheService implements SubscriptionService {
         // Register new subscription first
         updateIdentityCache(subscription, cacheByApiClientId);
 
-        // Then clean up old clientId entries if clientId changed
+        // Then clean up old entries if clientId or plan changed (e.g. subscription transfer)
+        // Only compare entries for the same API — exploded subscriptions span multiple APIs
         for (Subscription old : oldEntries) {
-            if (old.getClientId() != null && !old.getClientId().equals(subscription.getClientId())) {
+            if (
+                Objects.equals(old.getApi(), subscription.getApi()) &&
+                ((old.getClientId() != null && !old.getClientId().equals(subscription.getClientId())) ||
+                    (old.getPlan() != null && !old.getPlan().equals(subscription.getPlan())))
+            ) {
                 unregisterFromClientId(old);
             }
         }

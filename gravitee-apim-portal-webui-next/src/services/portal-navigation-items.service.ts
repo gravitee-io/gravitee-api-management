@@ -27,6 +27,11 @@ import {
 import { PortalNavigationApi, PortalNavigationItem, PortalArea } from '../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
+export interface ApiDocumentationNavigationTarget {
+  rootId: string;
+  navItemId: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })

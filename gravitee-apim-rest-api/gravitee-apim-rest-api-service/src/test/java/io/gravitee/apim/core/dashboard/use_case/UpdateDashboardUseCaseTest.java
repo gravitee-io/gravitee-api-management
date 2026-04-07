@@ -124,7 +124,7 @@ class UpdateDashboardUseCaseTest {
 
         @Test
         void should_update_dashboard_when_widgets_are_valid() {
-            var existing = Dashboard.builder().id(DASHBOARD_ID).organizationId("org-1").name("Old").widgets(List.of()).build();
+            var existing = Dashboard.builder().id(DASHBOARD_ID).environmentId("env-1").name("Old").widgets(List.of()).build();
             dashboardCrudServiceInMemory.initWith(List.of(existing));
 
             var updatedDashboard = Dashboard.builder().name("Updated").widgets(List.of(widgetWithMeasuresRequest())).build();
@@ -151,7 +151,7 @@ class UpdateDashboardUseCaseTest {
 
         @Test
         void should_throw_when_time_range_invalid() {
-            var existing = Dashboard.builder().id(DASHBOARD_ID).organizationId("org-1").name("Old").widgets(List.of()).build();
+            var existing = Dashboard.builder().id(DASHBOARD_ID).environmentId("env-1").name("Old").widgets(List.of()).build();
             dashboardCrudServiceInMemory.initWith(List.of(existing));
             var updatedDashboard = Dashboard.builder().name("Updated").widgets(List.of(widgetWithInvalidTimeRange())).build();
 

@@ -50,7 +50,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
       },
       {
         id: 'proxy-average-latency',
-        title: 'Average Latency in ms',
+        title: 'Average Latency',
         description: 'Average latency of the Gateway',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 0, x: 2 },
@@ -61,7 +61,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
       },
       {
         id: 'proxy-average-response-time',
-        title: 'Average Response Time in ms',
+        title: 'Average Response Time',
         description: 'Average response time of the Gateway',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 0, x: 3 },

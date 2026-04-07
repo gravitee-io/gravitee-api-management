@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -63,6 +64,7 @@ import org.springframework.stereotype.Component;
 public class ApiMapper {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final Set<String> MCP_ENTRYPOINT_TYPES = Set.of("mcp-proxy", "mcp");
 
     @Autowired
     private RatingService ratingService;
@@ -192,10 +194,13 @@ public class ApiMapper {
         if (api instanceof ApiEntity asHttpApiEntity) {
             Entrypoint mcpEntrypoint = asHttpApiEntity
                 .getListeners()
-                .getFirst()
-                .getEntrypoints()
                 .stream()
-                .filter(e -> Objects.equals(e.getType(), "mcp"))
+                .filter(Objects::nonNull)
+                .map(listener -> listener.getEntrypoints())
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .filter(e -> MCP_ENTRYPOINT_TYPES.contains(e.getType()))
                 .findFirst()
                 .orElse(null);
 

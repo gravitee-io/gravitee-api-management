@@ -20,8 +20,10 @@ import io.gravitee.apim.reporter.elasticsearch.factory.es8.Elastic8xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es9.Elastic9xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.opensearch.OpenSearchBeanFactory;
 import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -55,9 +57,47 @@ public class BeanFactoryBuilder {
         return client
             .getInfo()
             .retryWhen(error ->
-                error.flatMap(throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST))
+                error.flatMap(throwable -> {
+                    if (isUnauthorized(throwable)) {
+                        log.error(
+                            "Elasticsearch authentication failed (401). Please verify your 'reporters.elasticsearch.security.username' and 'reporters.elasticsearch.security.password' configuration.",
+                            throwable
+                        );
+                        return Flowable.error(throwable);
+                    }
+                    if (isForbidden(throwable)) {
+                        log.error(
+                            "Elasticsearch access denied (403). The configured user does not have sufficient permissions to access the Elasticsearch cluster. Please verify the user's roles and privileges.",
+                            throwable
+                        );
+                        return Flowable.error(throwable);
+                    }
+                    log.warn("Unable to connect to Elasticsearch, retrying in 5 seconds. Cause: {}", throwable.getMessage());
+                    return Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST);
+                })
             )
             .blockingGet();
+    }
+
+    static boolean isUnauthorized(Throwable throwable) {
+        var esException = findElasticsearchException(throwable);
+        return esException != null && Integer.valueOf(401).equals(esException.getStatusCode());
+    }
+
+    static boolean isForbidden(Throwable throwable) {
+        var esException = findElasticsearchException(throwable);
+        return esException != null && Integer.valueOf(403).equals(esException.getStatusCode());
+    }
+
+    static ElasticsearchException findElasticsearchException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ElasticsearchException esException) {
+                return esException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 
     private static BeanFactory getBeanFactoryFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {

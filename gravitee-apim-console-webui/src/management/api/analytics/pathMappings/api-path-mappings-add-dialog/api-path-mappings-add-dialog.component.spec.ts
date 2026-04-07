@@ -117,6 +117,51 @@ describe('ApiPathMappingsEditDialogComponent', () => {
       expectApiGetRequest(api);
       expectPathMappingImportRequest(api, 'swagger2');
     });
+
+    it('should fallback to V2 if definitionVersion is missing', async () => {
+      const apiWithoutVersion = fakeApiV2({ id: API_ID, definitionVersion: undefined });
+
+      // 1. Reset the module to allow provider overrides
+      TestBed.resetTestingModule();
+
+      // 2. Re-configure the module from scratch (similar to your beforeEach)
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioTestingModule, ApiPathMappingsModule],
+        providers: [
+          {
+            provide: MAT_DIALOG_DATA,
+            useValue: {
+              api: apiWithoutVersion, // Inject the "missing version" API here
+              swaggerDocs: [{ name: 'Swagger 1', id: 'swagger1' }],
+            },
+          },
+          { provide: MatDialogRef, useValue: matDialogRefMock },
+        ],
+      });
+
+      // 3. Re-initialize the local variables
+      fixture = TestBed.createComponent(ApiPathMappingsAddDialogComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+
+      // 4. Act: Select Swagger and click Add
+      await loader.getHarness(MatTabHarness.with({ label: 'Swagger Document' })).then(tab => tab.select());
+      await loader.getHarness(MatRadioGroupHarness).then(radioGroup => radioGroup.checkRadioButton({ label: /^Swagger 1/ }));
+
+      const addBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add path mapping"]' }));
+      await addBtn.click();
+
+      // 5. Assert: Verify requests
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(apiWithoutVersion);
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/import-path-mappings?page=swagger1&definitionVersion=2.0.0`,
+        })
+        .flush(apiWithoutVersion);
+    });
   });
 
   function expectApiGetRequest(api: ApiV2) {

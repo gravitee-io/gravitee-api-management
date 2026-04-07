@@ -1,5 +1,6 @@
 module.exports = {
   testTimeout: 30000,
+  workerIdleMemoryLimit: '512MB',
   preset: 'jest-preset-angular',
   roots: [__dirname + '/src'],
   setupFiles: ['jest-canvas-mock'],
@@ -30,6 +31,7 @@ module.exports = {
       {
         outputDirectory: __dirname + '/coverage',
         outputName: 'junit.xml',
+        addFileAttribute: 'true',
       },
     ],
   ],

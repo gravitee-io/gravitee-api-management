@@ -45,9 +45,45 @@
     }
   }
 
+  &__endpoint {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid #bdbdbd;
+    border-radius: 8px;
+
+    &__header {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 12px;
+      align-items: center;
+
+      &__title {
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        align-items: center;
+
+        .mat-h4 {
+          margin: 0 8px 0 0;
+          font-size: 1rem;
+        }
+
+        .gio-badge-primary {
+          text-transform: unset;
+        }
+      }
+
+      &__actions {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+      }
+    }
+  }
+
   .gio-table-light {
     width: 100%;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 
     th {
       text-transform: none;

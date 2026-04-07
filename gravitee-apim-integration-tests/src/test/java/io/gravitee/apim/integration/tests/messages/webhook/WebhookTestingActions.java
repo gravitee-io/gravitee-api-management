@@ -317,7 +317,9 @@ public class WebhookTestingActions {
 
         wiremock.stubFor(
             post("/jwt-token-endpoint")
-                .withRequestBody(containing("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                .withRequestBody(containing("client_assertion="))
                 .willReturn(ok("{\"token_type\":\"Bearer\",\"access_token\":\"token-from-jwt-profile-server\"}"))
         );
     }

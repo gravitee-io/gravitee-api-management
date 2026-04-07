@@ -61,6 +61,55 @@ tests:
           path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
 
+  - it: Check deployment with bundled PostgreSQL JDBC support
+    template: api/api-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        url: "jdbc:postgresql://db:5432/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+      - notExists:
+          path: spec.template.spec.volumes[1]
+
+  - it: Check deployment with MySQL JDBC image support
+    template: api/api-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "image"
+        url: "jdbc:mysql://db:3306/gravitee"
+        image:
+          repository: "customer/mysql-jdbc"
+          tag: "9.3.0"
+          pullPolicy: "IfNotPresent"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: copy-repository-jdbc-ext
+            image: "customer/mysql-jdbc:9.3.0"
+            imagePullPolicy: IfNotPresent
+            command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/" ]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-repository-jdbc-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-repository-jdbc-ext
+
   - it: Set containerPort with custom port if core service is enabled
     template: api/api-deployment.yaml
     set:
@@ -253,6 +302,8 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 1001
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
@@ -272,6 +323,58 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 1002
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Adapt SecurityContext for OpenShift
+    template: api/api-deployment.yaml
+    set:
+      openshift:
+        enabled: true
+      api:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext.fsGroup
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Do not adapt SecurityContext when disabled
+    template: api/api-deployment.yaml
+    set:
+      openshift:
+        enabled: true
+        adaptSecurityContext: disabled
+      api:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+          value: 1001
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true

@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input, signal } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, effect, inject, input, output, signal, ViewEncapsulation } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import moment from 'moment';
-import { combineLatest, map, of, startWith, switchMap, take } from 'rxjs';
+import { combineLatest, EMPTY, map, of, startWith, Subject, switchMap, take } from 'rxjs';
+import { catchError, debounceTime, tap } from 'rxjs/operators';
 
+import {
+  DashboardMetadataDialogComponent,
+  DashboardMetadataDialogData,
+  DashboardMetadataDialogResult,
+} from './components/dashboard-metadata-dialog/dashboard-metadata-dialog.component';
 import { Filter, GenericFilterBarComponent, SelectedFilter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
 import { timeFrames, timeFrameRangesParams, calculateCustomInterval } from './components/filter/timeframe-selector/utils/timeframe-ranges';
 import { GridComponent } from './components/grid/grid.component';
@@ -27,37 +38,51 @@ import { RequestFilter, TimeRange } from './components/widget/model/request/requ
 import { TimeSeriesRequest } from './components/widget/model/request/time-series-request';
 import { Widget, isTimeSeriesWidget } from './components/widget/model/widget/widget.model';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
+import { DashboardCapabilities, DEFAULT_CAPABILITIES } from './models/dashboard-capabilities.model';
+import { DASHBOARD_PERSISTENCE } from './models/dashboard-persistence.model';
+import { Dashboard } from './models/dashboard.model';
+
+export type SaveState = 'saving' | 'saved' | 'error';
+
+const METADATA_DIALOG_WIDTH = '500px';
 
 @Component({
   selector: 'gd-dashboard',
-  imports: [GridComponent, GenericFilterBarComponent],
-  template: `<div class="container">
-    <gd-generic-filter-bar
-      [filters]="filters()"
-      [currentSelectedFilters]="currentSelectedFilters()"
-      [defaultPeriod]="'5m'"
-      (selectedFilters)="onSelectedFilters($event)"
-      (refresh)="onRefresh()"
-      class="filterBar"
-    />
-
-    <gd-grid [items]="dashboardWidgets()" />
-  </div>`,
-  styles: `
-    .filterBar {
-      margin-left: 32px;
-      margin-right: 32px;
-    }
-  `,
+  encapsulation: ViewEncapsulation.None,
+  imports: [GridComponent, GenericFilterBarComponent, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
+  templateUrl: './gravitee-dashboard.component.html',
+  styleUrl: './gravitee-dashboard.component.scss',
 })
 export class GraviteeDashboardComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dashboardService = inject(GraviteeDashboardService);
-  baseURL = input.required<string>();
+  private readonly matDialog = inject(MatDialog);
+  private readonly persistence = inject(DASHBOARD_PERSISTENCE, { optional: true });
+
+  dashboard = input.required<Dashboard>();
   filters = input.required<Filter[]>();
-  widgetConfigs = input.required<Widget[]>();
+  baseURL = input.required<string>();
+  capabilities = input<DashboardCapabilities>(DEFAULT_CAPABILITIES);
   defaultPeriod = input<string>('5m');
+  showTitle = input<boolean>(true);
+
+  readonly deleteRequested = output<void>();
+  readonly nameChanged = output<string>();
+  readonly saveStateChange = output<SaveState>();
+
+  private readonly localWidgets = signal<Widget[]>([]);
+  private readonly localLayout = signal<Map<string, Widget['layout']>>(new Map());
+  private readonly localRemovedIds = signal<Set<string>>(new Set());
+  protected readonly localName = signal('');
+  private readonly localLabels = signal<Record<string, string>>({});
+
+  private readonly saveSubject = new Subject<void>();
+
+  readonly hasMenu = computed(() => {
+    const caps = this.capabilities();
+    return caps.canEditMetadata || caps.canDeleteDashboard;
+  });
 
   currentSelectedFilters = toSignal(
     this.activatedRoute.queryParams.pipe(
@@ -72,12 +97,14 @@ export class GraviteeDashboardComponent {
     { initialValue: [{ parentKey: 'period', value: '5m' }] as SelectedFilter[] },
   );
 
+  private readonly refreshTrigger = signal(0);
+
   readonly widgetsWithFilters = computed(() => {
     this.refreshTrigger();
-    return this.getUpdatedWidgetsWithFilters(this.widgetConfigs(), this.currentSelectedFilters());
+    return this.getUpdatedWidgetsWithFilters(this.localWidgets(), this.currentSelectedFilters());
   });
 
-  readonly dashboardWidgets = toSignal(
+  private readonly loadedWidgets = toSignal(
     toObservable(this.widgetsWithFilters).pipe(
       switchMap(widgets => {
         const widgetObservables = widgets.map(widget => this.loadWidgetData(widget).pipe(startWith(widget), take(2)));
@@ -87,7 +114,98 @@ export class GraviteeDashboardComponent {
     { initialValue: [] as Widget[] },
   );
 
-  private readonly refreshTrigger = signal(0);
+  readonly dashboardWidgets = computed(() => {
+    const overrides = this.localLayout();
+    const removed = this.localRemovedIds();
+    return this.loadedWidgets()
+      .filter(w => !removed.has(w.id))
+      .map(w => {
+        const layout = overrides.get(w.id);
+        return layout ? { ...w, layout } : w;
+      });
+  });
+
+  constructor() {
+    // Initialise local state whenever a new dashboard is passed in
+    effect(() => {
+      const d = this.dashboard();
+      this.localWidgets.set(d.widgets);
+      this.localLayout.set(new Map());
+      this.localRemovedIds.set(new Set());
+      this.localName.set(d.name);
+      this.localLabels.set(d.labels ?? {});
+    });
+
+    // Auto-save pipeline
+    this.saveSubject
+      .pipe(
+        debounceTime(700),
+        tap(() => this.saveStateChange.emit('saving')),
+        switchMap(() => {
+          if (!this.persistence) {
+            return EMPTY;
+          }
+          const layoutMap = this.localLayout();
+          const toSave: Dashboard = {
+            ...this.dashboard(),
+            name: this.localName(),
+            labels: this.localLabels(),
+            widgets: this.localWidgets()
+              .filter(w => !this.localRemovedIds().has(w.id))
+              .map(({ response: _, ...w }) => {
+                const layout = layoutMap.get(w.id);
+                return layout ? { ...w, layout } : w;
+              }),
+          };
+          return this.persistence.update(toSave).pipe(
+            tap(() => this.saveStateChange.emit('saved')),
+            catchError(() => {
+              this.saveStateChange.emit('error');
+              return EMPTY;
+            }),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe();
+  }
+
+  onWidgetsChange(widgets: Widget[]): void {
+    const survivingIds = new Set(widgets.map(w => w.id));
+    const newRemovedIds = new Set([
+      ...this.localRemovedIds(),
+      ...this.localWidgets()
+        .map(w => w.id)
+        .filter(id => !survivingIds.has(id)),
+    ]);
+    const prunedLayout = new Map([...this.localLayout().entries()].filter(([id]) => survivingIds.has(id)));
+    this.localRemovedIds.set(newRemovedIds);
+    this.localLayout.set(prunedLayout);
+    this.saveSubject.next();
+  }
+
+  onLayoutChange(widgets: Widget[]): void {
+    this.localLayout.set(new Map(widgets.map(w => [w.id, w.layout])));
+    this.saveSubject.next();
+  }
+
+  openMetadataDialog(): void {
+    const dialogRef = this.matDialog.open<DashboardMetadataDialogComponent, DashboardMetadataDialogData, DashboardMetadataDialogResult>(
+      DashboardMetadataDialogComponent,
+      {
+        data: { name: this.localName(), labels: this.localLabels() },
+        width: METADATA_DIALOG_WIDTH,
+      },
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.localName.set(result.name);
+      this.localLabels.set(result.labels);
+      this.nameChanged.emit(result.name);
+      this.saveSubject.next();
+    });
+  }
 
   onSelectedFilters($event: SelectedFilter[]) {
     const queryParams: Record<string, string> = {};

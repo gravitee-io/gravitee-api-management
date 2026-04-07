@@ -20,6 +20,8 @@
   display: flex;
   width: 100%;
   justify-content: space-between;
+  gap: 16px;
+  overflow: hidden;
 }
 
 .menu-items {
@@ -27,6 +29,15 @@
   flex: 1 1 auto;
   align-items: center;
   gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   &__link {
     display: inline-flex;

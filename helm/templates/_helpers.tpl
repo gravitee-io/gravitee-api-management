@@ -91,12 +91,64 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
+Return true when security contexts should be adapted for OpenShift compatibility.
+*/}}
+{{- define "gravitee.shouldAdaptSecurityContext" -}}
+{{- $mode := .context.Values.openshift.adaptSecurityContext | default "auto" -}}
+{{- if eq $mode "force" -}}
+true
+{{- else if eq $mode "disabled" -}}
+false
+{{- else if .context.Values.openshift.enabled -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end -}}
+
+{{/*
+Adapt a pod securityContext for OpenShift compatibility.
+*/}}
+{{- define "gravitee.adaptPodSecurityContext" -}}
+{{- $securityContext := deepCopy (.securityContext | default dict) -}}
+{{- if eq (include "gravitee.shouldAdaptSecurityContext" .) "true" -}}
+{{- $_ := unset $securityContext "runAsUser" -}}
+{{- $_ := unset $securityContext "runAsGroup" -}}
+{{- $_ := unset $securityContext "fsGroup" -}}
+{{- end -}}
+{{- toYaml $securityContext -}}
+{{- end -}}
+
+{{/*
+Adapt a container securityContext for OpenShift compatibility.
+*/}}
+{{- define "gravitee.adaptContainerSecurityContext" -}}
+{{- $securityContext := deepCopy (.securityContext | default dict) -}}
+{{- if eq (include "gravitee.shouldAdaptSecurityContext" .) "true" -}}
+{{- $_ := unset $securityContext "runAsUser" -}}
+{{- $_ := unset $securityContext "runAsGroup" -}}
+{{- end -}}
+{{- toYaml $securityContext -}}
+{{- end -}}
+
+{{/*
+Render an initContainer base spec with OpenShift-adapted securityContext.
+*/}}
+{{- define "gravitee.renderInitContainerSpec" -}}
+{{- $initContainer := deepCopy (.initContainer | default dict) -}}
+{{- if hasKey $initContainer "securityContext" -}}
+{{- $_ := set $initContainer "securityContext" (fromYaml (include "gravitee.adaptContainerSecurityContext" (dict "context" .context "securityContext" $initContainer.securityContext))) -}}
+{{- end -}}
+{{- toYaml $initContainer -}}
+{{- end -}}
+
+{{/*
 Create initContainers for downloading plugins ext plugin-ext
 */}}
 {{- define "deployment.pluginInitContainers" -}}
 {{- if .plugins }}
 - name: get-plugins
-  {{- toYaml .initContainers | nindent 2 }}
+  {{- include "gravitee.renderInitContainerSpec" (dict "context" .context "initContainer" .initContainers) | nindent 2 }}
   command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins {{- range $url := .plugins -}}
     {{ printf " && ( rm "}} {{regexFind "[^/]+$" $url}} {{ printf " 2>/dev/null || true ) && wget %s" $url }}
   {{- end -}}"]
@@ -106,7 +158,7 @@ Create initContainers for downloading plugins ext plugin-ext
 {{- end }}
 {{- range $key, $url := .extPlugins }}
 - name: get-{{ $key }}-ext
-  {{- toYaml .initContainers | nindent 2 }}
+  {{- include "gravitee.renderInitContainerSpec" (dict "context" .context "initContainer" .initContainers) | nindent 2 }}
   command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && ( rm {{regexFind "[^/]+$" $url}} || true ) && wget {{ $url }}"]
   volumeMounts:
     - name: graviteeio-apim-{{ $key }}-ext
@@ -141,6 +193,65 @@ Create volumes for plugins
 - name: graviteeio-apim-{{ $key }}-ext
   emptyDir: {}
 {{- end }}
+{{- end -}}
+
+{{/*
+Classify the configured JDBC URL family.
+*/}}
+{{- define "apim.jdbcDriverFamily" -}}
+{{- $url := lower (default "" .Values.jdbc.url) -}}
+{{- if hasPrefix "jdbc:postgresql:" $url -}}
+postgresql
+{{- else if hasPrefix "jdbc:mariadb:" $url -}}
+mariadb
+{{- else if hasPrefix "jdbc:sqlserver:" $url -}}
+sqlserver
+{{- else if hasPrefix "jdbc:mysql:" $url -}}
+mysql
+{{- else -}}
+other
+{{- end -}}
+{{- end -}}
+
+{{/*
+Configured JDBC driver source.
+*/}}
+{{- define "apim.jdbcDriverSource" -}}
+{{- lower (default "auto" .Values.jdbc.driverSource) -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC driver should be downloaded at startup.
+*/}}
+{{- define "apim.shouldDownloadJdbcDriver" -}}
+{{- $family := include "apim.jdbcDriverFamily" . -}}
+{{- $source := include "apim.jdbcDriverSource" . -}}
+{{- if eq .Values.management.type "jdbc" -}}
+{{- if and (eq $source "download") .Values.jdbc.driver -}}
+true
+{{- else if and (eq $source "auto") .Values.jdbc.driver (not (or (eq $family "postgresql") (eq $family "mariadb") (eq $family "sqlserver"))) -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC driver should be copied from a dedicated image.
+*/}}
+{{- define "apim.shouldCopyJdbcDriverFromImage" -}}
+{{- $source := include "apim.jdbcDriverSource" . -}}
+{{- if and (eq .Values.management.type "jdbc") (eq $source "image") -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether the JDBC volume and mount should be provisioned.
+*/}}
+{{- define "apim.shouldProvisionJdbcDriver" -}}
+{{- if or (eq (include "apim.shouldDownloadJdbcDriver" .) "true") (eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true") -}}
+true
+{{- end -}}
 {{- end -}}
 
 {{/*

@@ -27,6 +27,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterModule } from '@angular/router';
 
 import { ApiPlanListComponent } from './list/api-plan-list.component';
@@ -53,6 +54,7 @@ import { PlanListComponent } from '../component/plan/plan-list/plan-list.compone
     MatTableModule,
     MatTooltipModule,
     MatButtonToggleModule,
+    MatSlideToggleModule,
 
     GioIconsModule,
     GioPermissionModule,

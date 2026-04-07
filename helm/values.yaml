@@ -258,9 +258,29 @@ mongo:
     password:
 
 jdbc:
+  # The jdbc.url scheme and jdbc.driverSource decide how APIM obtains the JDBC driver.
+  # Supported values for jdbc.driverSource:
+  # - auto: bundled PostgreSQL/MariaDB/SQL Server drivers, download for MySQL and other custom JDBC families
+  # - download: always download the driver from jdbc.driver at startup
+  # - image: copy the driver at startup from a dedicated customer-provided JDBC image
+  # In auto mode, MySQL still requires jdbc.driver and downloads the driver at startup.
+  # PostgreSQL, MariaDB, and SQL Server ignore jdbc.driver in auto mode.
+  driverSource: auto
+  # APIM bundles PostgreSQL, MariaDB, and SQL Server JDBC drivers in the official images.
+  # MySQL is intentionally not bundled in official images.
+  # For MySQL, the recommended path is jdbc.driverSource=image with a minimal JDBC image
+  # containing /drivers/mysql-connector-j.jar.
+  # The fallback path is jdbc.driverSource=download using jdbc.driver.
+  # mount-based MySQL delivery is not part of the documented recommendation.
   url: jdbc:mysql://localhost:3306/gravitee
-  # the URL to download the driver
+  # Set this URL for MySQL runtime download mode or any other non-bundled/custom JDBC driver.
   driver: https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.22/mysql-connector-java-8.0.22.jar
+  image:
+    # Required when jdbc.driverSource=image.
+    # The image must contain the MySQL JDBC driver at /drivers/mysql-connector-j.jar.
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
   # the version of the gravitee-repository-jdbc (only required for apim versions < 3.5.0)
 #  repositoryVersion: 3.3.0
   username:
@@ -477,8 +497,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/pre-releases/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-8.0.0-alpha.13.zip
-    - https://download.gravitee.io/pre-releases/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-8.0.0-alpha.13.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-8.0.2.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-8.0.2.zip
 
 api:
   enabled: true
@@ -581,8 +601,8 @@ api:
           - appId
       pattern:
         overrideLogbackXml: false
-        console: "%d{HH:mm:ss} %-5level %logger{36} [%mdcList] - %msg%n"
-        file: "%d %-5p [%t] %c [%mdcList] : %m%n"
+        console: "%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n"
+        file: "%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n%n"
   restartPolicy: OnFailure
   # If you provide your own gravitee.yml by using a volumeMount, reloadOnConfigChange is disabled.
   reloadOnConfigChange: true
@@ -786,6 +806,16 @@ api:
     subscription:
       enabled: false
 #      pre-expiration-notification-schedule: 15,10,5
+    events:
+      enabled: false
+#      cron: "0 0 12 * * *"
+#      keep: 5
+#      timeToLive: 30
+    audit:
+      enabled: false
+#      cron: "0 1 * * * *"
+#      retention:
+#        days: 365
   http:
     services:
       core:
@@ -1362,8 +1392,8 @@ gateway:
           - apiId
       pattern:
         overrideLogbackXml: false
-        console: "%d{HH:mm:ss} %-5level %logger{36} [%mdcList] - %msg%n"
-        file: "%d %-5p [%t] %c [%mdcList] : %m%n"
+        console: "%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n"
+        file: "%d{HH:mm:ss.SSS} [%thread] [%mdcList] %-5level %logger{36} - %msg%n%n"
   # If you provide your own gravitee.yml by using a volumeMount, reloadOnConfigChange is disabled.
   reloadOnConfigChange: true
   deployment:
@@ -2537,6 +2567,11 @@ kafkaConsole:
 # has to be removed to ensure OpenShift is creating a Route from the Ingress
 openshift:
   enabled: false
+  # Adapt security contexts for OpenShift compatibility.
+  # auto: adapt only when openshift.enabled=true
+  # force: always adapt
+  # disabled: never adapt
+  adaptSecurityContext: auto
 
 initContainers:
   image: alpine:latest

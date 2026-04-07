@@ -16,13 +16,44 @@
 
 -->
 
-<gridster [options]="options()" class="grid">
+<gridster [options]="gridsterOptions" class="grid">
   @for (item of items()!; track item.id) {
     <gridster-item [item]="item.layout">
-      <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
-        <gd-widget-title [matTooltip]="item.description">
+      <gd-widget [isDraggable]="editMode()">
+        <gd-widget-title [description]="item.description">
           {{ item.title }}
         </gd-widget-title>
+
+        @if (editMode()) {
+          <div gdWidgetActions class="widget-edit-actions" [class.menu-open]="menuTrigger.menuOpen">
+            <button
+              type="button"
+              class="widget-action-btn"
+              disabled
+              aria-label="Edit widget"
+              data-testid="edit-widget-btn"
+              [matTooltip]="'Coming soon — Edit widget'"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              type="button"
+              class="widget-action-btn"
+              aria-label="Widget options"
+              data-testid="widget-options-btn"
+              [matMenuTriggerFor]="widgetMenu"
+              #menuTrigger="matMenuTrigger"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #widgetMenu>
+              <button mat-menu-item class="delete-action" (click)="removeWidget(item)" data-testid="delete-widget-item">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            </mat-menu>
+          </div>
+        }
 
         <gd-widget-body>
           @if (item.response) {

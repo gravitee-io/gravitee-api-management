@@ -50,6 +50,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -458,6 +459,7 @@ class UpdateNativeApiDomainServiceTest {
             .id(status.name())
             .definitionVersion(DefinitionVersion.V4)
             .referenceId(ApiFixtures.aNativeApi().getId())
+            .referenceType(GenericPlanEntity.ReferenceType.API)
             .apiType(ApiType.NATIVE)
             .planDefinitionNativeV4(NativePlan.builder().status(status).build())
             .build();

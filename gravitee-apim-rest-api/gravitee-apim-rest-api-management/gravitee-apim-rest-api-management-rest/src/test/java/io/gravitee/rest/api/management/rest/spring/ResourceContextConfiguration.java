@@ -64,11 +64,13 @@ import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -106,7 +108,7 @@ import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
-import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -455,6 +457,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ValidateClientCertificateUseCase validateClientCertificateUseCase() {
+        return mock(ValidateClientCertificateUseCase.class);
+    }
+
+    @Bean
     public PolicyOperationVisitorManager policyOperationVisitorManager() {
         return mock(PolicyOperationVisitorManager.class);
     }
@@ -505,8 +512,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ApiProductPlanSearchQueryService apiProductPlanSearchQueryService() {
-        return mock(ApiProductPlanSearchQueryService.class);
+    public PlanSearchQueryService planSearchQueryService() {
+        return mock(PlanSearchQueryService.class);
     }
 
     @Bean
@@ -1251,5 +1258,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
         return mock(ApplicationCertificatesUpdateDomainService.class);
+    }
+
+    @Bean
+    public ClientCertificateValidationDomainService clientCertificateValidationDomainService() {
+        return mock(ClientCertificateValidationDomainService.class);
     }
 }

@@ -17,10 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.DashboardFixtures;
@@ -39,16 +42,22 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilt
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.SecurityContext;
+import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -60,23 +69,79 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DashboardsResourceTest extends AbstractResourceTest {
+
+    private static final String ENVIRONMENT = "my-env";
 
     @Inject
     private DashboardCrudServiceInMemory dashboardCrudServiceInMemory;
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/analytics/dashboards";
+        return "/environments/" + ENVIRONMENT + "/analytics/dashboards";
+    }
+
+    @Override
+    protected void decorate(ResourceConfig resourceConfig) {
+        resourceConfig.register(
+            (ContainerRequestFilter) requestContext ->
+                requestContext.setSecurityContext(
+                    new SecurityContext() {
+                        @Override
+                        public Principal getUserPrincipal() {
+                            var userDetails = new io.gravitee.rest.api.management.v2.rest.UserDetails(USER_NAME, "", List.of());
+                            userDetails.setOrganizationId(ORGANIZATION);
+                            var principal = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                new Object()
+                            );
+                            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(principal);
+                            return principal;
+                        }
+
+                        @Override
+                        public boolean isUserInRole(String string) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean isSecure() {
+                            return true;
+                        }
+
+                        @Override
+                        public String getAuthenticationScheme() {
+                            return "BASIC";
+                        }
+                    }
+                ),
+            5
+        );
+        resourceConfig.register(GraviteeContextRequestFilter.class);
+        var mockResponse = Mockito.mock(HttpServletResponse.class);
+        resourceConfig.register(
+            new org.glassfish.hk2.utilities.binding.AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(mockResponse).to(HttpServletResponse.class);
+                }
+            }
+        );
     }
 
     @BeforeEach
     void init() {
         super.setUp();
         GraviteeContext.cleanContext();
-        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
+
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
     }
 
     @AfterEach
@@ -141,7 +206,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
             var stored = storage.getFirst();
 
             assertThat(stored.getName()).isEqualTo("My Dashboard");
-            assertThat(stored.getOrganizationId()).isEqualTo(ORGANIZATION);
+            assertThat(stored.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             assertThat(stored.getWidgets()).hasSize(3);
             assertThat(stored.getWidgets().getFirst().getType()).isEqualTo("stats");
             assertThat(stored.getWidgets().getFirst().getRequest().getType()).isEqualTo("measures");
@@ -213,7 +278,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.CREATE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT, RolePermissionAction.CREATE, () ->
                 rootTarget().request().post(json(DashboardFixtures.aCreateDashboard()))
             );
         }
@@ -360,7 +425,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_paginated_list_of_dashboards() {
-            var dashboards = DashboardFixtures.dashboardsForOrganization(ORGANIZATION, 3);
+            var dashboards = DashboardFixtures.dashboardsForEnvironment(ENVIRONMENT, 3);
             dashboardCrudServiceInMemory.initWith(dashboards);
 
             var response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
@@ -397,9 +462,27 @@ class DashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.READ, () ->
-                rootTarget().request().get()
-            );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DASHBOARD,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
+
+            var response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
         }
     }
 }

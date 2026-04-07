@@ -16,12 +16,12 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
-import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -32,15 +32,12 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
-import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.HashSet;
 import java.util.Map;
@@ -59,11 +56,10 @@ public class UpdateApiProductUseCase {
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateApiProductService validateApiProductService;
     private final ApiStateDomainService apiStateDomainService;
-    private final EventCrudService eventCrudService;
-    private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
+    private final DeployApiProductDomainService deployApiProductDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -114,25 +110,14 @@ public class UpdateApiProductUseCase {
         }
         apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), updated, primaryOwner);
 
-        publishDeployEvent(input.auditInfo(), updated);
+        try {
+            validateApiProductService.validateForDeploy(updated);
+            deployApiProductDomainService.deploy(input.auditInfo(), updated);
+        } catch (ValidationDomainException e) {
+            log.warn("API Product [{}] was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
+        }
         createAuditLog(beforeUpdate, updated, input.auditInfo());
         return new Output(updated);
-    }
-
-    private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
-        final Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_API_PRODUCT,
-            apiProduct,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
-            )
-        );
-
-        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
 
     public record Input(String apiProductId, UpdateApiProduct updateApiProduct, AuditInfo auditInfo) {

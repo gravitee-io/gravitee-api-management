@@ -37,6 +37,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
+import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
@@ -159,6 +160,9 @@ class ApiExportDomainServiceImplTest {
     @Mock
     IntegrationCrudService integrationCrudService;
 
+    @Mock
+    ApiCategoryQueryService apiCategoryQueryService;
+
     @InjectMocks
     ApiExportDomainServiceImpl sut;
 
@@ -186,6 +190,8 @@ class ApiExportDomainServiceImplTest {
                 )
             )
             .thenReturn(true);
+
+        lenient().when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of());
     }
 
     @AfterEach
@@ -262,6 +268,45 @@ class ApiExportDomainServiceImplTest {
                 assertThat(dynamicProperty.getType()).isEqualTo("http-dynamic-properties");
                 assertThat(dynamicProperty.getConfiguration()).isEqualTo(configuration);
             });
+    }
+
+    @Test
+    void should_export_v4_api_categories_as_keys_not_ids() {
+        // Given
+        String apiId = UUID.randomUUID().toString();
+        Api api = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id(apiId)
+            .environmentId("DEFAULT")
+            .categories(Set.of("cat-id-1", "cat-id-2"))
+            .build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+        when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of("proxy", "common"));
+
+        // When
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
+
+        // Then
+        assertThat(export.api().categories())
+            .as("V4 API must export categories as keys/names, not internal IDs")
+            .containsExactlyInAnyOrder("proxy", "common");
+    }
+
+    @Test
+    void should_export_v4_native_api_categories_as_keys_not_ids() {
+        // Given
+        String apiId = UUID.randomUUID().toString();
+        Api api = ApiFixtures.aNativeApi().toBuilder().environmentId("DEFAULT").categories(Set.of("cat-id-native")).build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+        when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of("native-key"));
+
+        // When
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
+
+        // Then
+        assertThat(export.api().categories())
+            .as("V4 native API must export categories as keys/names, not internal IDs")
+            .containsExactly("native-key");
     }
 
     @Test

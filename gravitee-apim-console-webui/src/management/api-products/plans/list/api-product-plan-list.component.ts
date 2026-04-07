@@ -119,7 +119,7 @@ export class ApiProductPlanListComponent {
   }
 
   private refreshPlansAfterStateChange(): void {
-    this.apiProductV2Service.notifyPlanStateChanged();
+    this.apiProductV2Service.notifyApiProductChanged();
     this.triggerReload();
   }
 

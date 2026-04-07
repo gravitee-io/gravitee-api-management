@@ -3401,6 +3401,10 @@ components:
                           description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
                           default: false
                           example: false
+                      allowMultiJwtOauth2Subscriptions:
+                        type: boolean
+                        description: Allow an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
+                        default: false
 
         ApiFederated:
             type: object
@@ -3916,6 +3920,10 @@ components:
                           description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
                           default: false
                           example: false
+                      allowMultiJwtOauth2Subscriptions:
+                        type: boolean
+                        description: Allow an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
+                        default: false
                   required: [listeners, endpointGroups, type]
 
         UpdateApiFederated:
@@ -7597,6 +7605,13 @@ components:
                     type: boolean
                     description: If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the API.
                     default: true
+                failureCondition:
+                    type: string
+                    description: An EL expression evaluated on the response to determine if it should be considered a failure (e.g. "{#response.status >= 500}"). If null, response content is not evaluated.
+                forceNextEndpointOnFailure:
+                    type: boolean
+                    description: If true, on retry the next endpoint in the group is forced instead of relying on the shared load balancer. This ensures retries target different endpoints.
+                    default: false
 
         CreateDocumentation:
             type: object

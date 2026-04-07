@@ -43,14 +43,8 @@ public class UpdatePlanUseCase {
 
     public Output execute(Input input) {
         final Plan planEntity = planCrudService
-            .findById(input.planToUpdate.getId())
+            .findByPlanIdAndReferenceIdAndReferenceType(input.planToUpdate.getId(), input.apiId, GenericPlanEntity.ReferenceType.API.name())
             .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(input.apiId, planEntity.getReferenceId())
-        ) {
-            throw new PlanNotFoundException(input.planToUpdate.getId());
-        }
         if (input.planToUpdate.getValidation() == null) {
             input.planToUpdate.setValidation(planEntity.getValidation());
         }

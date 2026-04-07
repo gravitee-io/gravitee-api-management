@@ -15,6 +15,8 @@
  */
 @use '../../scss/theme' as theme;
 
+$info-label-width: 140px;
+
 .subscription-info {
   height: 100%;
 
@@ -48,15 +50,15 @@
 
     &__subsections {
       display: flex;
-      flex-direction: column;
-      gap: 15px;
+      flex-wrap: wrap;
+      gap: 15px 150px;
     }
 
     &__grid {
       display: grid;
       grid-auto-rows: 22px;
       grid-gap: 15px 30px;
-      grid-template-columns: min-content 1fr;
+      grid-template-columns: $info-label-width 1fr;
     }
   }
 

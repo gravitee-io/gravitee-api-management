@@ -22,6 +22,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-nav-bar-button',
   imports: [RouterModule, MatButtonModule, CommonModule],
   templateUrl: './nav-bar-button.component.html',
+  styleUrl: './nav-bar-button.component.scss',
 })
 export class NavBarButtonComponent {
   @Input()

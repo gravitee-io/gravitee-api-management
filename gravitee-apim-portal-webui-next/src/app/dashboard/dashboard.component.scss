@@ -15,7 +15,8 @@
  */
 @use '@angular/material' as mat;
 @use '../../scss/theme' as app-theme;
-@use '../../scss/m3-adapter';
+@use '../../scss/typography';
+@use '../../scss/layout' as layout;
 
 :host {
   width: 100%;
@@ -28,6 +29,7 @@ app-sidenav-layout {
     &__main-content {
       display: flex;
       width: 100%;
+      padding: 0 layout.$container-content-padding-horizontal;
     }
 
     &__sidenav {
@@ -39,6 +41,11 @@ app-sidenav-layout {
         button {
           justify-content: flex-start;
           text-align: start;
+
+          &.selected {
+            @extend .next-gen-small-bold;
+            color: app-theme.$primary-main-color;
+          }
         }
       }
     }

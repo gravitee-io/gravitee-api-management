@@ -19,8 +19,13 @@ import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.Resource;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 public class DummyFetcher implements Fetcher {
+
+    /** Allow tests to inject a specific InputStream to track stream lifecycle. Thread-safe: one value per thread. */
+    public static final ThreadLocal<InputStream> nextStream = new ThreadLocal<>();
 
     DummyFetcherConfiguration fetcherConfiguration;
 
@@ -30,7 +35,11 @@ public class DummyFetcher implements Fetcher {
 
     @Override
     public Resource fetch() throws FetcherException {
-        return null;
+        var resource = new Resource();
+        InputStream stream = nextStream.get() != null ? nextStream.get() : new ByteArrayInputStream("dummy content".getBytes());
+        nextStream.remove(); // consume once
+        resource.setContent(stream);
+        return resource;
     }
 
     @Override

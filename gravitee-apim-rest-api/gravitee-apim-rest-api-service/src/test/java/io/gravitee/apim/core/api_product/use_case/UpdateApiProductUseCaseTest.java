@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.LicenseFixtures;
+import fixtures.core.model.PlanFixtures;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
@@ -38,6 +39,7 @@ import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -48,8 +50,11 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -76,6 +81,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        planQueryService.reset();
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateApiProductService = new ValidateApiProductService(
             apiQueryService,
@@ -90,16 +96,16 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductQueryService,
             validateApiProductService,
             apiStateDomainService,
-            eventCrudService,
-            eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
-            apiProductPrimaryOwnerDomainService
+            apiProductPrimaryOwnerDomainService,
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService)
         );
     }
 
     @Test
     void should_update_api_product() {
+        givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")
             .name("Old Name")
@@ -208,6 +214,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_include_all_allowed_apis() {
+        givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")
             .name("API Product")
@@ -256,6 +263,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_auto_undeploy_removed_deployed_api_without_plans_then_update_product() {
+        givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")
             .name("API Product")
@@ -283,6 +291,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_not_call_stop_when_no_apis_removed() {
+        givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")
             .name("API Product")
@@ -306,6 +315,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_stop_each_removed_deployed_api_without_plan_when_multiple_removed() {
+        givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")
             .name("API Product")
@@ -418,6 +428,45 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         Assertions.assertThat(message).contains("api-v2");
         Assertions.assertThat(message).contains("not allowed in API Products");
         Assertions.assertThat(message).contains("api-not-allowed");
+    }
+
+    @Test
+    void should_persist_update_but_not_publish_deploy_when_configuration_is_not_deployable() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of("api-1"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api api1 = createV4ProxyApi("api-1", true);
+        Api api2 = createV4ProxyApi("api-2", true);
+        apiCrudService.initWith(List.of(api1, api2));
+        // No API plans and no API Product plan — same rules as DeployApiProductUseCase
+
+        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+
+        var output = updateApiProductUseCase.execute(input);
+
+        assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+        verify(eventCrudService, never()).createEvent(any(), any(), any(), any(), any(), any());
+        verify(eventLatestCrudService, never()).createOrPatchLatestEvent(any(), any(), any());
+    }
+
+    private void givenPublishedApiProductPlan() {
+        Plan productPlan = PlanFixtures.aPlanHttpV4()
+            .toBuilder()
+            .id("api-product-deploy-plan")
+            .referenceId("api-product-id")
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .environmentId(ENV_ID)
+            .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.PUBLISHED).build())
+            .build();
+        planQueryService.initWith(List.of(productPlan));
     }
 
     private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {

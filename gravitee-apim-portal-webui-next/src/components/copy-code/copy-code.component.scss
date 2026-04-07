@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/m3-adapter';
 @use '../../scss/theme' as theme;
 
 .copy-code {
@@ -26,20 +25,22 @@
   &__command-line {
     display: flex;
     flex-flow: row;
-    align-items: center;
+    align-items: stretch;
     padding-left: 10px;
-    border-width: theme.$border-width;
-    border-style: solid;
-    border-color: theme.$border-color;
+    border: theme.$border-width solid theme.$border-color;
     border-radius: theme.$container-shape;
     gap: 4px;
 
     &__container {
+      display: flex;
+      align-items: center;
       flex-grow: 1;
       overflow-x: auto;
+      padding: 8px 0;
 
       &__code {
-        max-width: 0;
+        white-space: pre-wrap;
+        word-break: break-all;
         margin: 0;
       }
     }

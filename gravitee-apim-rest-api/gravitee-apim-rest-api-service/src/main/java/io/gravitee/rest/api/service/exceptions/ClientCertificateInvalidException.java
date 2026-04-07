@@ -22,6 +22,12 @@ import java.util.Map;
  */
 public class ClientCertificateInvalidException extends AbstractClientCertificateException {
 
+    public ClientCertificateInvalidException() {}
+
+    public ClientCertificateInvalidException(Throwable cause) {
+        super(cause);
+    }
+
     @Override
     public String getMessage() {
         return "An error has occurred while parsing client certificate";

@@ -10,7 +10,7 @@ info:
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0
-    version: "4.11.0-alpha.2-SNAPSHOT"
+    version: "4.11.2-SNAPSHOT"
 servers:
     - url: /portal/environments/{envId}
       description: The portal API for a given environment
@@ -2578,6 +2578,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/apiIdQueryParam"
                 - $ref: "#/components/parameters/applicationIdQueryParam"
+                - $ref: "#/components/parameters/apiViewParam"
             summary: Retrieve user's permissions
             description: |
                 Retrieve user's permissions.
@@ -3616,7 +3617,7 @@ components:
             name: view
             in: query
             required: false
-            description: Controls API visibility scope. When set to documentation, visibility is determined by NG Portal visibility rules.
+            description: Controls API visibility scope. When set to documentation, API visibility is determined by Next Gen Portal visibility rules; otherwise, Classic Portal visibility rules apply.
             schema:
                 $ref: "#/components/schemas/ApiView"
         ratingOrderQueryParam:

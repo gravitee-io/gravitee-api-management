@@ -52,4 +52,9 @@ public class Failover implements Serializable {
 
     @Builder.Default
     private boolean perSubscription = DEFAULT_PER_SUBSCRIPTION;
+
+    private String failureCondition;
+
+    @Builder.Default
+    private boolean forceNextEndpointOnFailure = false;
 }

@@ -271,6 +271,7 @@ public class PageService_DeleteTest {
         child.setOrder(2);
         child.setType(PageType.FOLDER.toString());
         child.setReferenceId(refId);
+        child.setParentId(folderId);
         child.setReferenceType(PageReferenceType.ENVIRONMENT);
         child.setVisibility("PUBLIC");
         when(pageRepository.findById(childId)).thenReturn(Optional.of(child));
@@ -278,6 +279,7 @@ public class PageService_DeleteTest {
         Page childPage = new Page();
         String childPageId = "childPageId";
         childPage.setId(childPageId);
+        childPage.setParentId(childId);
         childPage.setType(PageType.SWAGGER.toString());
         childPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         childPage.setReferenceId(refId);
@@ -287,11 +289,13 @@ public class PageService_DeleteTest {
         Page link = new Page();
         String linkId = "link";
         link.setId(linkId);
+        link.setParentId(childId);
         link.setContent(PAGE_ID);
         when(pageRepository.search(new PageCriteria.Builder().type("LINK").build())).thenReturn(List.of(link));
 
         Page page = new Page();
         page.setId(PAGE_ID);
+        page.setParentId(childId);
         page.setType(PageType.MARKDOWN.toString());
         page.setReferenceType(PageReferenceType.ENVIRONMENT);
         page.setReferenceId(refId);
@@ -301,6 +305,7 @@ public class PageService_DeleteTest {
         Page translation = new Page();
         String translationId = "translation";
         translation.setId(translationId);
+        translation.setParentId(folderId);
         Map<String, String> configuration = new HashMap<>();
         configuration.put(PageConfigurationKeys.TRANSLATION_LANG, "EN");
         translation.setConfiguration(configuration);

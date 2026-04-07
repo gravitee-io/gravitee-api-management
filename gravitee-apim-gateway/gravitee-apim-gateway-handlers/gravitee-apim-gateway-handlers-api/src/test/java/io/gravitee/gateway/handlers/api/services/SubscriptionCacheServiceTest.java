@@ -176,6 +176,78 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
+        void should_remove_old_plan_cache_entries_when_subscription_plan_changes_for_client_id() {
+            String plan1 = "plan-1";
+            String plan2 = "plan-2";
+
+            // Register subscription on plan1
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, plan1);
+            subscriptionService.register(subscription);
+
+            // Verify plan1 entry exists
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan1)).isPresent();
+
+            // Transfer: re-register same subscription with plan2
+            Subscription transferred = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, plan2);
+            subscriptionService.register(transferred);
+
+            // Plan2 entry should exist
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan2)).isPresent().get().isEqualTo(transferred);
+
+            // Plan1 entry should be gone (stale entry removed)
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan1)).isEmpty();
+
+            // Subscription by ID should return the transferred subscription
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent().get().isEqualTo(transferred);
+        }
+
+        @Test
+        void should_remove_old_plan_cache_entries_when_subscription_plan_changes_for_client_certificate() {
+            String plan1 = "plan-1";
+            String plan2 = "plan-2";
+
+            // Register subscription on plan1
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, plan1);
+            subscriptionService.register(subscription);
+
+            // Verify plan1 entry exists
+            assertThat(subscriptionService.getByClientCertificate(subscription)).isPresent();
+
+            // Transfer: re-register same subscription with plan2
+            Subscription transferred = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, plan2);
+            subscriptionService.register(transferred);
+
+            // Plan2 entry should exist
+            assertThat(subscriptionService.getByClientCertificate(transferred)).isPresent().get().isEqualTo(transferred);
+
+            // Plan1 entry should be gone (stale entry removed)
+            assertThat(subscriptionService.getByClientCertificate(subscription)).isEmpty();
+
+            // Subscription by ID should return the transferred subscription
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent().get().isEqualTo(transferred);
+        }
+
+        @Test
+        void should_allow_close_after_plan_transfer_for_client_id() {
+            String plan1 = "plan-1";
+            String plan2 = "plan-2";
+
+            // Register on plan1, then transfer to plan2
+            Subscription sub1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, plan1);
+            subscriptionService.register(sub1);
+            Subscription sub2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, plan2);
+            subscriptionService.register(sub2);
+
+            // Close (unregister) the subscription
+            subscriptionService.unregister(sub2);
+
+            // Both plan keys should be gone
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan1)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan2)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+        }
+
+        @Test
         void should_register_subscription_with_new_client_id_when_already_registered() {
             Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);

@@ -1,0 +1,114 @@
+{
+  "id": "my-api-v4-mutating-three-endpoints-post",
+  "name": "my-api-v4-mutating-three-endpoints-post",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "perSubscription": false
+  },
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mutating-http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mutating-http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint-1"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        },
+        {
+          "name": "second",
+          "type": "mutating-http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint-2"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        },
+        {
+          "name": "third",
+          "type": "mutating-http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint-3"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": [
+            "POST"
+          ]
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": true,
+    "logging": {
+      "condition": "",
+      "content": {
+        "headers": true,
+        "payload": true
+      },
+      "phase": {
+        "request": true,
+        "response": true
+      },
+      "mode": {
+        "endpoint": true,
+        "entrypoint": true
+      }
+    }
+  }
+}

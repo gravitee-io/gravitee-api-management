@@ -48,7 +48,7 @@ const DEFAULT_PER_PAGE = 10;
   selector: 'env-logs',
   templateUrl: './env-logs.component.html',
   styleUrl: './env-logs.component.scss',
-  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule, DatePipe, GioHeaderComponent],
+  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule, GioHeaderComponent],
   providers: [DatePipe],
   standalone: true,
 })

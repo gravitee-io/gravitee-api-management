@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
@@ -49,11 +50,13 @@ public class AnalyticsQueryValidator {
 
     public void validateMeasuresRequest(MeasuresRequest request) {
         validateTimeRange(request.timeRange());
+        validateFilters(request.filters());
         validateMetricsAndMeasures(request.metrics());
     }
 
     public void validateFacetsRequest(FacetsRequest request) {
         validateTimeRange(request.timeRange());
+        validateFilters(request.filters());
         validateFacetsSize(request);
         validateFacetMetricsAndMeasures(request.metrics());
         validateFacets(request.facets(), request.metrics());
@@ -63,6 +66,7 @@ public class AnalyticsQueryValidator {
 
     public void validateTimeSeriesRequest(TimeSeriesRequest request) {
         validateTimeRange(request.timeRange());
+        validateFilters(request.filters());
         validateFacetsSize(request);
         validateFacetMetricsAndMeasures(request.metrics());
         validateFacets(request.facets(), request.metrics());
@@ -125,6 +129,20 @@ public class AnalyticsQueryValidator {
         }
     }
 
+    private void validateFilters(List<Filter> filters) {
+        if (filters == null) {
+            return;
+        }
+        for (var filter : filters) {
+            if (filter.name() == null) {
+                throw new InvalidQueryException("Filter name cannot be null");
+            }
+            if (filter.value() == null) {
+                throw InvalidQueryException.forNullFilterValue(filter.name().name());
+            }
+        }
+    }
+
     private void validateTimeRange(TimeRange timeRange) {
         if (timeRange == null) {
             throw new InvalidQueryException("Time range cannot be null");
@@ -141,6 +159,9 @@ public class AnalyticsQueryValidator {
     }
 
     private void validateFacetMetricsAndMeasures(List<FacetMetricMeasuresRequest> queries) {
+        for (var query : queries) {
+            validateFilters(query.filters());
+        }
         validateMetricsAndMeasures(
             queries
                 .stream()
@@ -151,6 +172,9 @@ public class AnalyticsQueryValidator {
 
     private void validateMetricsAndMeasures(List<MetricMeasuresRequest> queries) {
         for (var query : queries) {
+            // Needed for the direct MeasuresRequest path; no-op when called via validateFacetMetricsAndMeasures
+            // (which projects to MetricMeasuresRequest with empty filters).
+            validateFilters(query.filters());
             var metric = query.name();
             var metricSpec = definition.findMetric(metric).orElseThrow(() -> forUnknownMetric(metric.name()));
 

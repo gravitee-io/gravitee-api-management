@@ -16,6 +16,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
 import { Api } from '../../entities/api/api';
@@ -24,12 +25,22 @@ import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration, Pla
 import { Subscription, SubscriptionConsumerStatusEnum } from '../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../pipe/capitalize-first.pipe';
 import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
+import { ApiDocumentationNavigationTarget } from '../../services/portal-navigation-items.service';
 import { BannerComponent } from '../banner/banner.component';
 import { LoaderComponent } from '../loader/loader.component';
 
 @Component({
   selector: 'app-subscription-info',
-  imports: [CapitalizeFirstPipe, ToPeriodTimeUnitLabelPipe, BannerComponent, MatIcon, MatButton, LoaderComponent, RouterLink],
+  imports: [
+    CapitalizeFirstPipe,
+    ToPeriodTimeUnitLabelPipe,
+    BannerComponent,
+    MatIcon,
+    MatButton,
+    MatTooltipModule,
+    LoaderComponent,
+    RouterLink,
+  ],
   templateUrl: './subscription-info.component.html',
   styleUrl: './subscription-info.component.scss',
 })
@@ -51,6 +62,12 @@ export class SubscriptionInfoComponent implements OnInit {
 
   @Input()
   api?: Api;
+
+  @Input()
+  apiName?: string;
+
+  @Input()
+  documentationNavigationTarget?: ApiDocumentationNavigationTarget;
 
   @Input()
   subscription?: Subscription;
@@ -82,5 +99,9 @@ export class SubscriptionInfoComponent implements OnInit {
 
   ngOnInit() {
     this.authentication = getPlanSecurityTypeLabel(this.planSecurity);
+  }
+
+  get resolvedApiName(): string | undefined {
+    return this.api?.name ?? this.apiName;
   }
 }

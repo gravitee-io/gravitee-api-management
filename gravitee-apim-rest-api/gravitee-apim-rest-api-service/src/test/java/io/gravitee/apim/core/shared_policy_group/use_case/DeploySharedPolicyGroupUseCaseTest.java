@@ -153,6 +153,7 @@ class DeploySharedPolicyGroupUseCaseTest {
                     );
                 assertThat(sharedPolicyGroupDefinition.getId()).isEqualTo(SHARED_POLICY_GROUP_CROSS_ID);
                 assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
+                assertThat(sharedPolicyGroupDefinition.getVersion()).isEqualTo("2");
                 assertThat(sharedPolicyGroupDefinition.getPhase()).isEqualTo(
                     io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST
                 );
@@ -178,6 +179,7 @@ class DeploySharedPolicyGroupUseCaseTest {
                     );
                 assertThat(sharedPolicyGroupDefinition.getId()).isEqualTo(SHARED_POLICY_GROUP_CROSS_ID);
                 assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
+                assertThat(sharedPolicyGroupDefinition.getVersion()).isEqualTo("2");
                 assertThat(sharedPolicyGroupDefinition.getPhase()).isEqualTo(
                     io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST
                 );

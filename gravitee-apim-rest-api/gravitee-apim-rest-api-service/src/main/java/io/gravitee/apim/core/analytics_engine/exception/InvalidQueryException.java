@@ -59,7 +59,11 @@ public class InvalidQueryException extends ValidationDomainException {
         return new InvalidQueryException("Measure " + measure + " is not supported for metric " + metric);
     }
 
+    public static InvalidQueryException forNullFilterValue(String filterName) {
+        return new InvalidQueryException("Filter '" + filterName + "' requires a non-null value");
+    }
+
     public static InvalidQueryException forUnknownAPIType(String apiType) {
-        return new InvalidQueryException("Unknown API type " + apiType);
+        return new InvalidQueryException("Unknown API type '" + apiType + "'");
     }
 }

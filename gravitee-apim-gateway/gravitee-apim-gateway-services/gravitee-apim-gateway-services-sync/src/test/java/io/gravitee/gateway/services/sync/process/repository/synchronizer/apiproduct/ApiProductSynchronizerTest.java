@@ -30,11 +30,13 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -52,6 +54,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -72,9 +75,6 @@ class ApiProductSynchronizerTest {
     private EnvironmentService environmentService;
 
     @Mock
-    private ApiProductPlanAppender apiProductPlanAppender;
-
-    @Mock
     private DeployerFactory deployerFactory;
 
     @Mock
@@ -87,15 +87,10 @@ class ApiProductSynchronizerTest {
         cut = new ApiProductSynchronizer(
             latestEventFetcher,
             new ApiProductMapper(objectMapper, environmentService),
-            apiProductPlanAppender,
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
-        lenient()
-            .when(apiProductPlanAppender.appends(any(), any()))
-            .thenAnswer(inv -> inv.getArgument(0));
-
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiProductDeployer()).thenReturn(apiProductDeployer);
         lenient().when(apiProductDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -344,6 +339,154 @@ class ApiProductSynchronizerTest {
         @Test
         void should_return_correct_order() {
             assertThat(cut.order()).isEqualTo(7);
+        }
+    }
+
+    @Nested
+    class PlansInPayloadTest {
+
+        @Test
+        void should_set_subscribable_plans_when_payload_contains_published_plan() throws InterruptedException, JsonProcessingException {
+            Event event = createDeployEventWithPlans(
+                "api-product-plans",
+                List.of(Map.of("id", "plan-published", "name", "Published Plan", "status", "PUBLISHED"))
+            );
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
+            verify(apiProductDeployer).deploy(captor.capture());
+
+            ApiProductReactorDeployable deployable = captor.getValue();
+            assertThat(deployable.subscribablePlans()).containsExactly("plan-published");
+            assertThat(deployable.reactableApiProduct().getPlans()).hasSize(1);
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getId()).isEqualTo("plan-published");
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getStatus()).isEqualTo(PlanStatus.PUBLISHED);
+        }
+
+        @Test
+        void should_include_deprecated_plan_in_subscribable_and_reactable_plans() throws InterruptedException, JsonProcessingException {
+            Event event = createDeployEventWithPlans(
+                "api-product-deprecated",
+                List.of(Map.of("id", "plan-deprecated", "name", "Deprecated Plan", "status", "DEPRECATED"))
+            );
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
+            verify(apiProductDeployer).deploy(captor.capture());
+
+            ApiProductReactorDeployable deployable = captor.getValue();
+            assertThat(deployable.subscribablePlans()).containsExactly("plan-deprecated");
+            assertThat(deployable.reactableApiProduct().getPlans()).hasSize(1);
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getStatus()).isEqualTo(PlanStatus.DEPRECATED);
+        }
+
+        @Test
+        void should_exclude_closed_plan_from_subscribable_and_reactable_plans() throws InterruptedException, JsonProcessingException {
+            // Mapper filters to PUBLISHED|DEPRECATED — CLOSED plans are stripped before the synchronizer sees them
+            Event event = createDeployEventWithPlans(
+                "api-product-closed",
+                List.of(Map.of("id", "plan-closed", "name", "Closed Plan", "status", "CLOSED"))
+            );
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
+            verify(apiProductDeployer).deploy(captor.capture());
+
+            ApiProductReactorDeployable deployable = captor.getValue();
+            assertThat(deployable.subscribablePlans()).isEmpty();
+            assertThat(deployable.reactableApiProduct().getPlans()).isEmpty();
+        }
+
+        @Test
+        void should_filter_mixed_status_plans_keeping_only_published_and_deprecated() throws InterruptedException, JsonProcessingException {
+            Event event = createDeployEventWithPlans(
+                "api-product-mixed",
+                List.of(
+                    Map.of("id", "plan-pub", "name", "Published", "status", "PUBLISHED"),
+                    Map.of("id", "plan-dep", "name", "Deprecated", "status", "DEPRECATED"),
+                    Map.of("id", "plan-clo", "name", "Closed", "status", "CLOSED")
+                )
+            );
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
+            verify(apiProductDeployer).deploy(captor.capture());
+
+            ApiProductReactorDeployable deployable = captor.getValue();
+            // CLOSED plan is excluded by the mapper — only PUBLISHED and DEPRECATED reach the gateway
+            assertThat(deployable.subscribablePlans()).containsExactlyInAnyOrder("plan-pub", "plan-dep");
+            assertThat(deployable.reactableApiProduct().getPlans())
+                .extracting(p -> p.getId())
+                .containsExactlyInAnyOrder("plan-pub", "plan-dep");
+        }
+
+        @Test
+        void should_not_set_plans_when_payload_has_no_plans() throws InterruptedException, JsonProcessingException {
+            // payload without "plans" key → no plans on ReactableApiProduct
+            Event event = new Event();
+            event.setId("event-no-plans");
+            event.setType(DEPLOY_API_PRODUCT);
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        "api-product-no-plans",
+                        "name",
+                        "No Plans",
+                        "version",
+                        "1.0",
+                        "apiIds",
+                        Set.of("api-1"),
+                        "environmentId",
+                        "env-id"
+                    )
+                )
+            );
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
+            verify(apiProductDeployer).deploy(captor.capture());
+
+            ApiProductReactorDeployable deployable = captor.getValue();
+            assertThat(deployable.subscribablePlans()).isEmpty();
+            assertThat(deployable.reactableApiProduct().getPlans()).isNullOrEmpty();
+        }
+
+        private Event createDeployEventWithPlans(String apiProductId, List<Map<String, String>> plans) throws JsonProcessingException {
+            Event event = new Event();
+            event.setId("event-" + apiProductId);
+            event.setType(DEPLOY_API_PRODUCT);
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        apiProductId,
+                        "name",
+                        "Test Product",
+                        "version",
+                        "1.0",
+                        "apiIds",
+                        Set.of("api-1"),
+                        "environmentId",
+                        "env-id",
+                        "plans",
+                        plans
+                    )
+                )
+            );
+            return event;
         }
     }
 }

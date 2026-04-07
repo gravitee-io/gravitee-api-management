@@ -166,6 +166,9 @@ tests:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 101
       - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+          value: 101
+      - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
 

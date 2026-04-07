@@ -46,7 +46,8 @@
         "lifecycleState": "STOPPED",
         "categories": ["my-category"],
         "apiLifecycleState": "DEPRECATED",
-        "disableMembershipNotifications": true
+        "disableMembershipNotifications": true,
+        "allowMultiJwtOauth2Subscriptions": true
     },
     {
         "id": "grouped-api",

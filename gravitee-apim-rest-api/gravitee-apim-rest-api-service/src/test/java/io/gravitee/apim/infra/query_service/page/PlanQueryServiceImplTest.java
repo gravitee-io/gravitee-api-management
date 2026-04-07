@@ -77,7 +77,9 @@ class PlanQueryServiceImplTest {
                 .status(Plan.Status.PUBLISHED)
                 .build();
 
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(plan_published, plan_closed, plan_staging, plan_different_page));
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(
+                Set.of(plan_published, plan_closed, plan_staging, plan_different_page)
+            );
 
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).hasSize(1);
@@ -89,7 +91,7 @@ class PlanQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_empty_list_if_no_results() {
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(Set.of());
 
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).isEmpty();
@@ -107,23 +109,28 @@ class PlanQueryServiceImplTest {
             Plan plan1 = Plan.builder()
                 .id("plan1")
                 .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
                 .status(Plan.Status.PUBLISHED)
                 .security(Plan.PlanSecurityType.API_KEY)
                 .build();
             Plan plan2 = Plan.builder()
                 .id("plan2")
                 .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
                 .security(Plan.PlanSecurityType.API_KEY)
                 .status(Plan.Status.CLOSED)
                 .build();
             Plan plan3 = Plan.builder()
                 .id("plan3")
                 .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
                 .security(Plan.PlanSecurityType.API_KEY)
                 .status(Plan.Status.STAGING)
                 .build();
 
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(plan1, plan2, plan3));
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(
+                Set.of(plan1, plan2, plan3)
+            );
 
             var res = service.findAllByApiId(API_ID);
             assertThat(res).hasSize(3).extracting(io.gravitee.apim.core.plan.model.Plan::getId).containsOnly("plan1", "plan2", "plan3");
@@ -132,7 +139,7 @@ class PlanQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_empty_list_if_no_results() {
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(Set.of());
 
             var res = service.findAllByApiId(API_ID);
             assertThat(res).isEmpty();
@@ -140,7 +147,7 @@ class PlanQueryServiceImplTest {
     }
 
     @Nested
-    class FindAllForApiProduct {
+    class FindAllByReferenceIdAndReferenceTypeForApiProduct {
 
         String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
@@ -173,7 +180,10 @@ class PlanQueryServiceImplTest {
                 Set.of(plan1, plan2, plan3)
             );
 
-            var res = service.findAllForApiProduct(API_PRODUCT_ID);
+            var res = service.findAllByReferenceIdAndReferenceType(
+                API_PRODUCT_ID,
+                io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT
+            );
             assertThat(res).hasSize(3).extracting(io.gravitee.apim.core.plan.model.Plan::getId).containsOnly("plan1", "plan2", "plan3");
         }
 
@@ -184,7 +194,10 @@ class PlanQueryServiceImplTest {
                 Set.of()
             );
 
-            var res = service.findAllForApiProduct(API_PRODUCT_ID);
+            var res = service.findAllByReferenceIdAndReferenceType(
+                API_PRODUCT_ID,
+                io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT
+            );
             assertThat(res).isEmpty();
         }
     }

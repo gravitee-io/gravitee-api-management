@@ -51,6 +51,19 @@
       <mat-divider></mat-divider>
 
       <div class="failover-card__control">
+        <gio-form-slide-toggle class="failover-card__enable-toggle">
+          <gio-form-label>Force next endpoint on failure</gio-form-label>
+          Force to use the next endpoint instead of relying on the load balancer.
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="forceNextEndpointOnFailure"
+            aria-label="Force next endpoint on failure toggle"
+            name="forceNextEndpointOnFailure"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
+
+      <div class="failover-card__control">
         <div class="failover-card__control__label">Max retries</div>
         <p class="failover-card__control__hint">
           Limit the number of retry attempts before recording an error. Each attempt dynamically selects an endpoint based on the load
@@ -65,6 +78,19 @@
           @if (failoverForm.controls.maxRetries.hasError('required')) {
             <mat-error>Max Retries is required</mat-error>
           }
+        </mat-form-field>
+      </div>
+
+      <div class="failover-card__control">
+        <div class="failover-card__control__label">Failure condition</div>
+        <p class="failover-card__control__hint">
+          An EL expression evaluated against the response to determine if it should be considered a failure (e.g.
+          <code>{{ '{' }}#response.status >= 500{{ '}' }}</code
+          >).
+        </p>
+        <mat-form-field class="failover-card__control__form-field">
+          <mat-label>Failure condition</mat-label>
+          <input matInput formControlName="failureCondition" type="text" />
         </mat-form-field>
       </div>
 

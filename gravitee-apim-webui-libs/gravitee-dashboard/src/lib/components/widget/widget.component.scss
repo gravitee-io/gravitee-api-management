@@ -24,7 +24,7 @@
   height: 50px;
   flex-shrink: 0;
   align-items: center;
-  padding: 0 15px;
+  padding: 0 4px 0 15px;
   border-bottom: 1px solid #eee;
 }
 
@@ -37,8 +37,4 @@
 
 .widget-title-container.is-draggable {
   cursor: move;
-}
-
-h3 {
-  margin: 0;
 }

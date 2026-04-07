@@ -23,6 +23,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of, firstValueFrom } from 'rxjs';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatDialog } from '@angular/material/dialog';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
@@ -352,6 +353,77 @@ describe('WebhookLogsComponent', () => {
 
     const dialog = await rootLoader.getHarness(WebhookSettingsDialogHarness);
     expect(dialog).not.toBeNull();
+  });
+
+  it('should re-fetch API after settings dialog is saved and pass updated data to the next dialog open', async () => {
+    // API with webhook logging initially disabled
+    const disabledWebhookApi = {
+      ...defaultApi,
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [{ type: 'webhook', configuration: { logging: { enabled: false } } }],
+        },
+      ],
+    } as ApiV4;
+    await setupComponent({ api: disabledWebhookApi });
+
+    const updatedApi = {
+      ...disabledWebhookApi,
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [{ type: 'webhook', configuration: { logging: { enabled: true } } }],
+        },
+      ],
+    } as ApiV4;
+
+    // Open the real settings dialog
+    await harness.clickConfigureReporting();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Simulate a successful save by closing the dialog with { saved: true }
+    const matDialog = TestBed.inject(MatDialog);
+    matDialog.openDialogs[0].close({ saved: true });
+    fixture.detectChanges();
+
+    // Drain Zone.js tasks so that afterClosed() emits and triggers loadApi() + loadWebhookLogs()
+    await fixture.whenStable();
+
+    // Handle the GET request triggered by loadApi() after dialog close
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env?.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(updatedApi);
+
+    // Also handle the loadWebhookLogs request triggered alongside the refresh
+    expectWebhookLogs();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Open the dialog a second time — it must receive the updated (re-fetched) API.
+    // Spy directly on the component's injected dialog instance to ensure we intercept the right object.
+    const componentDialog = (fixture.componentInstance as any)['dialog'];
+    const openSpy = jest.spyOn(componentDialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as any);
+    fixture.componentInstance.openSettingsDialog();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(openSpy).toHaveBeenCalledWith(
+      WebhookSettingsDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          api: expect.objectContaining({
+            listeners: expect.arrayContaining([
+              expect.objectContaining({
+                entrypoints: expect.arrayContaining([
+                  expect.objectContaining({ configuration: expect.objectContaining({ logging: { enabled: true } }) }),
+                ]),
+              }),
+            ]),
+          }),
+        }),
+      }),
+    );
   });
 
   it('should show the reporting disabled banner when entrypoint logging is disabled', async () => {

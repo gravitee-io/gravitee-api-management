@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.promotion;
 
 import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
+import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_PROCESSED;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -317,6 +318,73 @@ public class PromotionServiceTest {
         verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), any());
         verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), any());
         verify(promotionRepository, times(1)).update(any());
+    }
+
+    @Test
+    public void shouldCreateAuditLogInTargetEnvironmentWhenPromotionIsAccepted() throws Exception {
+        final Promotion promotion = getAPromotion();
+        final EnvironmentEntity targetEnvironment = new EnvironmentEntity();
+        targetEnvironment.setId("target-env-id");
+
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(promotion));
+        when(environmentService.findByCockpitId(any())).thenReturn(targetEnvironment);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+
+        Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        when(apiDuplicatorService.createWithImportedDefinition(any(), any())).thenReturn(new ApiEntity());
+
+        CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
+        when(
+            cockpitPromotionService.processPromotion(
+                argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+                any()
+            )
+        ).thenReturn(cockpitReply);
+
+        when(promotionRepository.update(any())).thenReturn(promotion);
+
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
+
+        verify(auditService).createApiAuditLog(
+            argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+            argThat(auditLogData -> auditLogData.getEvent().equals(PROMOTION_PROCESSED) && auditLogData.getOldValue() == null),
+            eq(promotion.getApiId())
+        );
+    }
+
+    @Test
+    public void shouldCreateAuditLogInTargetEnvironmentWhenPromotionIsRejected() throws Exception {
+        final Promotion promotion = getAPromotion();
+        final EnvironmentEntity targetEnvironment = new EnvironmentEntity();
+        targetEnvironment.setId("target-env-id");
+
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(promotion));
+        when(environmentService.findByCockpitId(any())).thenReturn(targetEnvironment);
+
+        Page<Promotion> promotionPage = new Page<>(singletonList(promotion), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
+        when(
+            cockpitPromotionService.processPromotion(
+                argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+                any()
+            )
+        ).thenReturn(cockpitReply);
+
+        when(promotionRepository.update(any())).thenReturn(promotion);
+
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, false);
+
+        verify(auditService).createApiAuditLog(
+            argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+            argThat(auditLogData -> auditLogData.getEvent().equals(PROMOTION_PROCESSED) && auditLogData.getOldValue() == null),
+            eq(promotion.getApiId())
+        );
     }
 
     @Test(expected = PromotionNotFoundException.class)

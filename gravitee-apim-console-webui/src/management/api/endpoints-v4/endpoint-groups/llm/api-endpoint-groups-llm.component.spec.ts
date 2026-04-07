@@ -121,7 +121,7 @@ describe('ApiEndpointGroupsLlmComponent', () => {
   });
 
   describe('table display tests', () => {
-    it('should display providers table correctly', async () => {
+    it('should display providers and endpoints correctly', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [
@@ -164,11 +164,48 @@ describe('ApiEndpointGroupsLlmComponent', () => {
       expect(await componentHarness.getProviderCards()).toBe(2);
       expect(await componentHarness.getProviderName(0)).toBe('OpenAI Provider');
       expect(await componentHarness.getProviderName(1)).toBe('Anthropic Provider');
-      expect(await componentHarness.getProviderType(0)).toBe('OpenAI Compatible');
-      expect(await componentHarness.getProviderType(1)).toBe('ANTHROPIC');
+      expect(await componentHarness.getEndpointProviderType(0, 0)).toBe('OpenAI Compatible');
+      expect(await componentHarness.getEndpointProviderType(1, 0)).toBe('ANTHROPIC');
     });
 
-    it('should display models table for each provider', async () => {
+    it('should display multiple endpoints per provider', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'OpenAI Provider',
+            type: 'llm',
+            endpoints: [
+              {
+                name: 'Production',
+                type: 'llm-proxy',
+                configuration: {
+                  provider: 'OPEN_AI',
+                  models: [{ name: 'gpt-4o', inputPrice: 2.5, outputPrice: 10.0 }],
+                },
+              },
+              {
+                name: 'Staging',
+                type: 'llm-proxy',
+                configuration: {
+                  provider: 'OPEN_AI',
+                  models: [{ name: 'gpt-4o-mini', inputPrice: 0.15, outputPrice: 0.6 }],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4);
+
+      expect(await componentHarness.getProviderCards()).toBe(1);
+      expect(await componentHarness.getEndpointCount(0)).toBe(2);
+      expect(await componentHarness.getEndpointName(0, 0)).toBe('Production');
+      expect(await componentHarness.getEndpointName(0, 1)).toBe('Staging');
+    });
+
+    it('should display models table for each endpoint', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [
@@ -194,10 +231,10 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       await initComponent(apiV4);
 
-      const modelsTable = await componentHarness.getModelsTable(0);
+      const modelsTable = await componentHarness.getModelsTable(0, 0);
       expect(modelsTable).toBeTruthy();
 
-      const modelsRows = await componentHarness.getModelsTableRows(0);
+      const modelsRows = await componentHarness.getModelsTableRows(0, 0);
       expect(modelsRows).toHaveLength(2);
       expect(modelsRows[0]).toEqual(['gpt-3.5-turbo', '0.001', '0.002', '']);
       expect(modelsRows[1]).toEqual(['gpt-4', '0.03', '0.06', '']);
@@ -205,7 +242,7 @@ describe('ApiEndpointGroupsLlmComponent', () => {
   });
 
   describe('action buttons tests', () => {
-    it('should show edit button when user has update permission', async () => {
+    it('should show group and endpoint edit buttons when user has update permission', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [
@@ -236,8 +273,9 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       await initComponent(apiV4, ['api-definition-r', 'api-definition-u']);
 
-      expect(await componentHarness.isEditButtonVisible(0)).toBe(true);
-      expect(await componentHarness.isDeleteButtonVisible(0)).toBe(true);
+      expect(await componentHarness.isGroupEditButtonVisible(0)).toBe(true);
+      expect(await componentHarness.isGroupDeleteButtonVisible(0)).toBe(true);
+      expect(await componentHarness.isEndpointEditButtonVisible(0)).toBe(true);
     });
 
     it('should hide edit and delete buttons when user has no update permission', async () => {
@@ -260,8 +298,9 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       await initComponent(apiV4, ['api-definition-r']);
 
-      expect(await componentHarness.isEditButtonVisible(0)).toBe(false);
-      expect(await componentHarness.isDeleteButtonVisible(0)).toBe(false);
+      expect(await componentHarness.isGroupEditButtonVisible(0)).toBe(false);
+      expect(await componentHarness.isGroupDeleteButtonVisible(0)).toBe(false);
+      expect(await componentHarness.isEndpointEditButtonVisible(0)).toBe(false);
     });
 
     it('should show add provider button when user has create permission', async () => {
@@ -288,7 +327,7 @@ describe('ApiEndpointGroupsLlmComponent', () => {
   });
 
   describe('delete flow tests', () => {
-    it('should show delete button when there are multiple providers', async () => {
+    it('should show group delete button when there are multiple providers', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [
@@ -319,14 +358,12 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       await initComponent(apiV4, ['api-definition-r', 'api-definition-u', 'api-definition-d']);
 
-      // Should have 2 providers
       expect(await componentHarness.getProviderCards()).toBe(2);
-      // Delete button should be visible when there are multiple providers
-      expect(await componentHarness.isDeleteButtonVisible(0)).toBe(true);
-      expect(await componentHarness.isDeleteButtonVisible(1)).toBe(true);
+      expect(await componentHarness.isGroupDeleteButtonVisible(0)).toBe(true);
+      expect(await componentHarness.isGroupDeleteButtonVisible(1)).toBe(true);
     });
 
-    it('should not show delete button when there is only one provider', async () => {
+    it('should not show group delete button when there is only one provider', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [
@@ -346,10 +383,60 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       await initComponent(apiV4, ['api-definition-r', 'api-definition-u', 'api-definition-d']);
 
-      // Should have 1 provider
       expect(await componentHarness.getProviderCards()).toBe(1);
-      // Delete button should not be visible when there is only one provider
-      expect(await componentHarness.isDeleteButtonVisible(0)).toBe(false);
+      expect(await componentHarness.isGroupDeleteButtonVisible(0)).toBe(false);
+    });
+
+    it('should show endpoint delete button when there are multiple endpoints in a group', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'OpenAI Provider',
+            type: 'llm',
+            endpoints: [
+              {
+                name: 'Endpoint 1',
+                type: 'llm-proxy',
+                configuration: { provider: 'OPEN_AI', models: [] },
+              },
+              {
+                name: 'Endpoint 2',
+                type: 'llm-proxy',
+                configuration: { provider: 'OPEN_AI', models: [] },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4, ['api-definition-r', 'api-definition-u']);
+
+      expect(await componentHarness.isEndpointDeleteButtonVisible(0)).toBe(true);
+      expect(await componentHarness.isEndpointDeleteButtonVisible(1)).toBe(true);
+    });
+
+    it('should not show endpoint delete button when there is only one endpoint', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'OpenAI Provider',
+            type: 'llm',
+            endpoints: [
+              {
+                name: 'Only Endpoint',
+                type: 'llm-proxy',
+                configuration: { provider: 'OPEN_AI', models: [] },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4, ['api-definition-r', 'api-definition-u']);
+
+      expect(await componentHarness.isEndpointDeleteButtonVisible(0)).toBe(false);
     });
   });
 
@@ -365,7 +452,7 @@ describe('ApiEndpointGroupsLlmComponent', () => {
       expect(await componentHarness.isAddProviderButtonVisible()).toBe(true);
     });
 
-    it('should have correct routerLink for edit provider button', async () => {
+    it('should have correct routerLink for edit provider group button', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [
@@ -385,7 +472,7 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       await initComponent(apiV4, ['api-definition-r', 'api-definition-u']);
 
-      expect(await componentHarness.isEditButtonVisible(0)).toBe(true);
+      expect(await componentHarness.isGroupEditButtonVisible(0)).toBe(true);
     });
   });
 

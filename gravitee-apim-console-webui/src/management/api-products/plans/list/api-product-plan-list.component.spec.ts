@@ -47,7 +47,7 @@ describe('ApiProductPlanListComponent', () => {
   let planListHarness: PlanListComponentHarness;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
-  let notifyPlanStateChangedSpy: jest.SpyInstance;
+  let notifyApiProductChangedSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
 
   async function init(permissions: string[] = ['api_product-plan-u', 'api_product-plan-r', 'api_product-plan-c']) {
@@ -89,7 +89,7 @@ describe('ApiProductPlanListComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
-    notifyPlanStateChangedSpy = jest.spyOn(TestBed.inject(ApiProductV2Service), 'notifyPlanStateChanged');
+    notifyApiProductChangedSpy = jest.spyOn(TestBed.inject(ApiProductV2Service), 'notifyApiProductChanged');
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     planListHarness = await loader.getHarness(PlanListComponentHarness);
@@ -424,7 +424,7 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
       flushPlansList([{ ...plan, status: 'PUBLISHED' }]);
 
-      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+      expect(notifyApiProductChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
     it('notifies plan state changed after deprecate so deploy banner is triggered', fakeAsync(async () => {
@@ -446,7 +446,7 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
       flushPlansList([{ ...plan, status: 'DEPRECATED' }]);
 
-      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+      expect(notifyApiProductChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
     it('notifies plan state changed after close so deploy banner is triggered', fakeAsync(async () => {
@@ -468,7 +468,7 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
       flushPlansList([{ ...plan, status: 'CLOSED' }]);
 
-      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+      expect(notifyApiProductChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
     it('notifies plan state changed after reorder so deploy banner is triggered', fakeAsync(async () => {
@@ -498,7 +498,7 @@ describe('ApiProductPlanListComponent', () => {
       listReq.flush({ data: [plan2, { ...plan1, order: 2 }] });
       fixture.detectChanges();
 
-      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+      expect(notifyApiProductChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
     it('does not notify plan state changed when publish fails', fakeAsync(async () => {
@@ -523,7 +523,7 @@ describe('ApiProductPlanListComponent', () => {
         .flush({ message: 'Publish failed' }, { status: 500, statusText: 'Server Error' });
       fixture.detectChanges();
 
-      expect(notifyPlanStateChangedSpy).not.toHaveBeenCalled();
+      expect(notifyApiProductChangedSpy).not.toHaveBeenCalled();
     }));
   });
 

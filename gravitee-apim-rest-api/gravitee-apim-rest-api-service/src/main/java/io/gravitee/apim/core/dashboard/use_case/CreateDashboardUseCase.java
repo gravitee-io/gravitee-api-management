@@ -52,7 +52,7 @@ public class CreateDashboardUseCase {
             .dashboard()
             .toBuilder()
             .id(UuidString.generateRandom())
-            .organizationId(input.auditInfo().organizationId())
+            .environmentId(input.auditInfo().environmentId())
             .createdBy(input.auditInfo().actor().userId())
             .createdAt(now)
             .lastModified(now)
@@ -69,6 +69,7 @@ public class CreateDashboardUseCase {
         auditService.createDashboardAuditLog(
             DashboardAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
                 .event(DashboardAuditEvent.DASHBOARD_CREATED)
                 .actor(auditInfo.actor())
                 .dashboardId(dashboard.getId())

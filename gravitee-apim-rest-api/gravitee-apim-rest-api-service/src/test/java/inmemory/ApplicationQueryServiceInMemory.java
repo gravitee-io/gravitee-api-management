@@ -16,7 +16,9 @@
 package inmemory;
 
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +51,21 @@ public class ApplicationQueryServiceInMemory implements ApplicationQueryService,
     @Override
     public List<BaseApplicationEntity> storage() {
         return Collections.unmodifiableList(storage);
+    }
+
+    @Override
+    public Page<BaseApplicationEntity> searchByIds(Set<String> ids, String environmentId, Pageable pageable) {
+        var matches = storage.stream().filter(app -> ids.contains(app.getId()));
+        if (environmentId != null) {
+            matches = matches.filter(app -> environmentId.equals(app.getEnvironmentId()));
+        }
+        var allMatches = matches.toList();
+        int pageNumber = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+        int startIndex = (pageNumber - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, allMatches.size());
+        var pageContent = (startIndex >= allMatches.size()) ? List.<BaseApplicationEntity>of() : allMatches.subList(startIndex, endIndex);
+        return new Page<>(pageContent, pageNumber, pageSize, allMatches.size());
     }
 
     @Override

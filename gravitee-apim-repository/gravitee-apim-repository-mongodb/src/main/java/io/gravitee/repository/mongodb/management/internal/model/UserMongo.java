@@ -69,4 +69,5 @@ public class UserMongo extends DeprecatedAuditable {
     private long loginCount;
     private Date firstConnectionAt;
     private Boolean newsletterSubscribed;
+    private Boolean isServiceAccount;
 }

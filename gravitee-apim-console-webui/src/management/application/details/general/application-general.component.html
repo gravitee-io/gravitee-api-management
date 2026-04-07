@@ -212,13 +212,11 @@
   </ng-container>
 
   <mat-card class="tls-card">
-    <mat-card-content>
-      <div class="tls-card__header">
-        <div class="tls-card__header__text">
-          <h3>Certificates</h3>
-          <p class="tls-card__header__subtitle">Manage mTLS certificates for this application</p>
-        </div>
-        @if (!isReadOnly) {
+    <mat-card-header>
+      <mat-card-title>Certificates</mat-card-title>
+      <mat-card-subtitle>Manage mTLS certificates for this application</mat-card-subtitle>
+      @if (!isReadOnly) {
+        <div class="tls-card__header__button">
           <button
             *gioPermission="{ anyOf: ['application-definition-u'] }"
             mat-stroked-button
@@ -228,9 +226,10 @@
             <mat-icon svgIcon="gio:plus"></mat-icon>
             Add certificate
           </button>
-        }
-      </div>
-
+        </div>
+      }
+    </mat-card-header>
+    <mat-card-content>
       @if (certificates.length > 0) {
         <table mat-table [dataSource]="certificates" class="tls-card__table" aria-label="Client certificates table">
           <ng-container matColumnDef="name">
@@ -240,37 +239,66 @@
 
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Uploaded</th>
-            <td mat-cell *matCellDef="let cert">{{ cert.createdAt | date: 'mediumDate' }}</td>
+            <td mat-cell *matCellDef="let cert">{{ cert.createdAt | date: 'medium' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="endsAt">
-            <th mat-header-cell *matHeaderCellDef>Expiry date</th>
+            <th mat-header-cell *matHeaderCellDef>Expiry date and time</th>
             <td mat-cell *matCellDef="let cert">
-              {{ cert.endsAt ? (cert.endsAt | date: 'mediumDate') : '—' }}
+              {{ cert.endsAt ? (cert.endsAt | date: 'medium') : '—' }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let cert">
-              <span class="tls-card__status tls-card__status--{{ cert.status | lowercase }}">{{ cert.status }}</span>
+              @switch (cert.status) {
+                @case ('ACTIVE') {
+                  <span class="gio-badge-success">Active</span>
+                }
+                @case ('ACTIVE_WITH_END') {
+                  @if (cert.endsAt | daysLeft: 15; as label) {
+                    <span class="gio-badge-warning">{{ label }}</span>
+                  } @else {
+                    <span class="gio-badge-success">Active</span>
+                  }
+                }
+                @case ('SCHEDULED') {
+                  <span class="gio-badge-neutral">Scheduled</span>
+                }
+                @case ('REVOKED') {
+                  <span class="gio-badge-neutral">Expired</span>
+                }
+              }
             </td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let cert">
-              @if (!isReadOnly) {
+              <div class="tls-card__table__actions">
                 <button
                   mat-icon-button
-                  aria-label="Delete certificate"
-                  matTooltip="Delete certificate"
-                  (click)="deleteCertificate(cert)"
-                  data-testid="delete-certificate-button"
+                  aria-label="View certificate details"
+                  matTooltip="View details"
+                  (click)="viewCertificateDetails(cert)"
+                  data-testid="view-certificate-button"
                 >
-                  <mat-icon svgIcon="gio:trash"></mat-icon>
+                  <mat-icon svgIcon="gio:eye-empty"></mat-icon>
                 </button>
-              }
+                @if (!isReadOnly) {
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    aria-label="Revoke certificate"
+                    matTooltip="Revoke certificate"
+                    (click)="deleteCertificate(cert)"
+                    data-testid="delete-certificate-button"
+                  >
+                    <mat-icon svgIcon="gio:x-circle"></mat-icon>
+                  </button>
+                }
+              </div>
             </td>
           </ng-container>
 

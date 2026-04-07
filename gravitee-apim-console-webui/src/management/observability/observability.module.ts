@@ -31,7 +31,7 @@ const routes: Routes = [
     path: 'dashboards',
     data: {
       permissions: {
-        anyOf: ['environment-dashboard-r'],
+        anyOf: ['environment-dashboard-r', 'environment-api-r'],
       },
     },
     children: [

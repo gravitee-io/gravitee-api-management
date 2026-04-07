@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface PublishPlanDomainService {
-    Plan publish(ExecutionContext executionContext, String planId);
+    Plan publish(AuditInfo auditInfo, String planId);
 }

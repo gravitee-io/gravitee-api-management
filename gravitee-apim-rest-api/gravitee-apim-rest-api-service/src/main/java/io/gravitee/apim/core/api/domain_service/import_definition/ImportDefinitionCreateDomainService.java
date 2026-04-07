@@ -21,8 +21,10 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
@@ -47,7 +49,6 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +73,7 @@ public class ImportDefinitionCreateDomainService {
     private final ApiIdsCalculatorDomainService apiIdsCalculatorDomainService;
     private final MetadataCrudService metadataCrudService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
+    private final CategoryDomainService categoryDomainService;
 
     public ImportDefinitionCreateDomainService(
         ApiImportDomainService apiImportDomainService,
@@ -83,7 +85,8 @@ public class ImportDefinitionCreateDomainService {
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
         MetadataCrudService metadataCrudService,
-        DocumentationValidationDomainService documentationValidationDomainService
+        DocumentationValidationDomainService documentationValidationDomainService,
+        CategoryDomainService categoryDomainService
     ) {
         this.apiImportDomainService = apiImportDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -95,6 +98,7 @@ public class ImportDefinitionCreateDomainService {
         this.apiIdsCalculatorDomainService = apiIdsCalculatorDomainService;
         this.metadataCrudService = metadataCrudService;
         this.documentationValidationDomainService = documentationValidationDomainService;
+        this.categoryDomainService = categoryDomainService;
     }
 
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
@@ -107,11 +111,14 @@ public class ImportDefinitionCreateDomainService {
             .orElse(auditInfo.actor().userId());
         PrimaryOwnerEntity primaryOwner = resolvePrimaryOwner(organizationId, environmentId, primaryOwnerId, auditInfo);
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
+        var api = ApiModelFactory.fromApiExport(apiWithIds.getApiExport(), environmentId);
+        var apiWithResolvedCategories = resolveCategoriesForImport(api, environmentId);
         var createdApi = createApiDomainService.create(
-            ApiModelFactory.fromApiExport(apiWithIds.getApiExport(), environmentId),
+            apiWithResolvedCategories,
             primaryOwner,
             auditInfo,
-            api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
+            apiToValidate ->
+                validateApiDomainService.validateAndSanitizeForCreation(apiToValidate, primaryOwner, environmentId, organizationId),
             oneShotIndexation(auditInfo)
         );
 
@@ -126,6 +133,14 @@ public class ImportDefinitionCreateDomainService {
             .process();
 
         return createdApi;
+    }
+
+    private Api resolveCategoriesForImport(Api api, String environmentId) {
+        if (api.getCategories() == null || api.getCategories().isEmpty()) {
+            return api;
+        }
+        var resolvedIds = categoryDomainService.resolveToCategoryIds(environmentId, api.getCategories());
+        return resolvedIds != null ? api.toBuilder().categories(resolvedIds).build() : api;
     }
 
     private PrimaryOwnerEntity resolvePrimaryOwner(

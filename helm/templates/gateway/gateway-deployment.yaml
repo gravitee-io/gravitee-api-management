@@ -85,7 +85,7 @@ spec:
         {{- end }}
         {{- end }}
     spec:
-      securityContext: {{ toYaml .Values.gateway.deployment.podSecurityContext | nindent 8 }}
+      securityContext: {{ include "gravitee.adaptPodSecurityContext" (dict "context" . "securityContext" .Values.gateway.deployment.podSecurityContext) | nindent 8 }}
       {{- if not (eq .Values.gateway.deployment.serviceAccount "") }}
       serviceAccountName: {{ .Values.gateway.deployment.serviceAccount }}
       {{- else if $serviceAccount }}
@@ -108,13 +108,27 @@ spec:
         {{- $plugins = concat $plugins .Values.gateway.additionalPlugins -}}
       {{- end -}}
 
-      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-gateway" "initContainers" $initContainers -}}
-      {{- if or .Values.gateway.extraInitContainers $plugins .Values.jdbc.driver }}
+      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-gateway" "initContainers" $initContainers "context" . -}}
+      {{- $shouldDownloadJdbcDriver := eq (include "apim.shouldDownloadJdbcDriver" .) "true" -}}
+      {{- $shouldCopyJdbcDriverFromImage := eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true" -}}
+      {{- $shouldProvisionJdbcDriver := eq (include "apim.shouldProvisionJdbcDriver" .) "true" -}}
+      {{- if or .Values.gateway.extraInitContainers $plugins $shouldProvisionJdbcDriver }}
       initContainers:
-        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        {{- if $shouldDownloadJdbcDriver }}
         - name: get-repository-jdbc-ext
-          {{- toYaml .Values.initContainers | nindent 10 }}
+          {{- include "gravitee.renderInitContainerSpec" (dict "context" . "initContainer" .Values.initContainers) | nindent 10 }}
           command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  {{ .Values.jdbc.driver }}"]
+          volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
+        {{- end -}}
+        {{- if $shouldCopyJdbcDriverFromImage }}
+        - name: copy-repository-jdbc-ext
+          image: "{{ required "jdbc.image.repository is required when jdbc.driverSource=image" .Values.jdbc.image.repository }}:{{ required "jdbc.image.tag is required when jdbc.driverSource=image" .Values.jdbc.image.tag }}"
+          imagePullPolicy: {{ .Values.jdbc.image.pullPolicy | default "IfNotPresent" }}
+          securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.initContainers.securityContext) | nindent 12 }}
+          env: {{ toYaml .Values.initContainers.env | nindent 12 }}
+          command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cp /drivers/mysql-connector-j.jar /tmp/plugins-ext/"]
           volumeMounts:
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /tmp/plugins-ext
@@ -128,7 +142,7 @@ spec:
         - name: {{ template "gravitee.gateway.fullname" . }}
           image: "{{ .Values.gateway.image.repository }}:{{ $dockerImageTag }}"
           imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
-          securityContext: {{ toYaml .Values.gateway.deployment.securityContext | nindent 12 }}
+          securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.gateway.deployment.securityContext) | nindent 12 }}
           ports:
             {{- if .Values.gateway.servers }}
             {{- range $i, $server := .Values.gateway.servers }}
@@ -254,7 +268,7 @@ spec:
               mountPath: /opt/graviteeio-gateway/config/logback.xml
               subPath: logback.xml
           {{- end }}
-          {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+          {{- if $shouldProvisionJdbcDriver }}
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /opt/graviteeio-gateway/plugins/ext/repository-jdbc
           {{- end }}
@@ -304,7 +318,7 @@ spec:
           configMap:
             name: {{ template "gravitee.gateway.fullname" . }}
         {{- end }}
-        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        {{- if $shouldProvisionJdbcDriver }}
         - name: graviteeio-apim-repository-jdbc-ext
           emptyDir: {}
         {{- end }}

@@ -55,6 +55,7 @@ public class DeleteDashboardUseCase {
         auditService.createDashboardAuditLog(
             DashboardAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
                 .event(DashboardAuditEvent.DASHBOARD_DELETED)
                 .actor(auditInfo.actor())
                 .dashboardId(dashboard.getId())

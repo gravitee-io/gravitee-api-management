@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -115,5 +116,55 @@ class ReporterProcessorTest {
         processor.handle(context);
 
         verify(next).handle(context);
+    }
+
+    @Test
+    void should_create_diagnostic_when_error_key_and_message_present() {
+        when(metrics.getErrorKey()).thenReturn("GATEWAY_PLAN_UNRESOLVABLE");
+        when(metrics.getMessage()).thenReturn("Unauthorized");
+
+        processor.handle(context);
+
+        verify(metrics).setFailure(new Diagnostic("GATEWAY_PLAN_UNRESOLVABLE", "Unauthorized", null, null));
+    }
+
+    @Test
+    void should_use_internal_error_key_when_error_key_null() {
+        when(metrics.getMessage()).thenReturn("Some error");
+
+        processor.handle(context);
+
+        verify(metrics).setFailure(new Diagnostic("internal_error", "Some error", null, null));
+    }
+
+    @Test
+    void should_not_create_diagnostic_when_message_null() {
+        when(metrics.getErrorKey()).thenReturn("GATEWAY_PLAN_UNRESOLVABLE");
+
+        processor.handle(context);
+
+        verify(metrics, never()).setFailure(any());
+    }
+
+    @Test
+    void should_not_create_diagnostic_when_message_blank() {
+        when(metrics.getErrorKey()).thenReturn("GATEWAY_PLAN_UNRESOLVABLE");
+        when(metrics.getMessage()).thenReturn("   ");
+
+        processor.handle(context);
+
+        verify(metrics, never()).setFailure(any());
+    }
+
+    @Test
+    void should_not_override_existing_diagnostic_failure() {
+        Diagnostic existing = new Diagnostic("existing_key", "existing_message", "comp_type", "comp_name");
+        when(metrics.getFailure()).thenReturn(existing);
+        when(metrics.getErrorKey()).thenReturn("GATEWAY_PLAN_UNRESOLVABLE");
+        when(metrics.getMessage()).thenReturn("Unauthorized");
+
+        processor.handle(context);
+
+        verify(metrics, never()).setFailure(any());
     }
 }

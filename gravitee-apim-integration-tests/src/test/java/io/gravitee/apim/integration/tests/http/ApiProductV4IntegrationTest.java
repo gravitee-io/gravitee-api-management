@@ -42,7 +42,6 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -218,6 +217,39 @@ class ApiProductV4IntegrationTest {
             assertStatus(client, API_1_PATH, KEY_ALPHA, 401);
             assertStatus(client, API_2_PATH, KEY_ALPHA, 200);
         }
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        @DeployApiProducts(PRODUCT_RESOURCE)
+        void should_keep_sibling_api_accessible_after_underlying_api_is_undeployed_from_gateway(HttpClient client) {
+            allowKeyForApi(KEY_ALPHA, API_1_ID);
+            allowKeyForApi(KEY_ALPHA, API_2_ID);
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 200);
+            assertStatus(client, API_2_PATH, KEY_ALPHA, 200);
+
+            undeploy(API_1_ID);
+            redeployApiProduct(product(PRODUCT_ID, Set.of(API_2_ID)));
+
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 404);
+            assertStatus(client, API_2_PATH, KEY_ALPHA, 200);
+        }
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        @DeployApiProducts(PRODUCT_RESOURCE)
+        void should_return_401_for_all_apis_when_last_api_is_undeployed_and_product_redeployed_with_no_apis(HttpClient client) {
+            allowKeyForApi(KEY_ALPHA, API_1_ID);
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 200);
+
+            undeploy(API_1_ID);
+            redeployApiProduct(product(PRODUCT_ID, Set.of()));
+
+            assertStatus(client, API_1_PATH, KEY_ALPHA, 404);
+        }
     }
 
     @Nested
@@ -287,8 +319,9 @@ class ApiProductV4IntegrationTest {
             int preTransitionApi2Status = getStatus(client, API_2_PATH, key);
             assertDeterministicStatus(preTransitionApi1Status, preTransitionApi2Status);
 
-            // Simulate plan close/delete by removing product plans from cache.
-            getBean(ApiProductPlanDefinitionCache.class).unregister(productId);
+            // Simulate plan close/delete by removing product plans.
+            ReactableApiProduct deployedProduct = getBean(ApiProductRegistry.class).get(productId, ENV_ID);
+            deployedProduct.setPlans(List.of());
 
             int api1Status = getStatus(client, API_1_PATH, key);
             int api2Status = getStatus(client, API_2_PATH, key);
@@ -512,11 +545,13 @@ class ApiProductV4IntegrationTest {
         }
 
         void registerProductApiKeyPlanWithStatus(String apiProductId, String planId, PlanStatus status) {
-            getBean(ApiProductPlanDefinitionCache.class).register(apiProductId, List.of(productApiKeyPlan(planId, status)));
+            ReactableApiProduct product = getBean(ApiProductRegistry.class).get(apiProductId, ENV_ID);
+            product.setPlans(List.of(productApiKeyPlan(planId, status)));
         }
 
         void registerProductPlans(String apiProductId, List<Plan> plans) {
-            getBean(ApiProductPlanDefinitionCache.class).register(apiProductId, plans);
+            ReactableApiProduct product = getBean(ApiProductRegistry.class).get(apiProductId, ENV_ID);
+            product.setPlans(plans);
         }
 
         ReactableApiProduct product(String productId, Set<String> apiIds) {

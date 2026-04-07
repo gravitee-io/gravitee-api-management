@@ -15,6 +15,7 @@
  */
 
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, Input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -22,7 +23,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, switchMap, tap, throwError } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
@@ -32,7 +33,6 @@ import { LoaderComponent } from '../../../../../components/loader/loader.compone
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../../entities/api/api';
 import { Application } from '../../../../../entities/application/application';
-import { UserApiPermissions } from '../../../../../entities/permission/permission';
 import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import {
   SubscriptionConsumerStatusEnum,
@@ -45,6 +45,7 @@ import { ApiService } from '../../../../../services/api.service';
 import { ApplicationService } from '../../../../../services/application.service';
 import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
+import { ApiDocumentationNavigationTarget, PortalNavigationItemsService } from '../../../../../services/portal-navigation-items.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 
 interface SubscriptionDetailsVM {
@@ -68,6 +69,9 @@ interface SubscriptionDetailsData {
   clientId?: string;
   clientSecret?: string;
   api?: Api;
+  apiName?: string;
+  hasDocumentationAccess: boolean;
+  documentationNavigationTarget?: ApiDocumentationNavigationTarget;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
@@ -108,6 +112,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     private apiService: ApiService,
     private applicationService: ApplicationService,
     private permissionsService: PermissionsService,
+    private portalNavigationItemsService: PortalNavigationItemsService,
     private destroyRef: DestroyRef,
     private planService: PlanService,
     public dialog: MatDialog,
@@ -158,27 +163,51 @@ export class SubscriptionsDetailsComponent implements OnInit {
       });
   }
 
+  private getDocumentationAccess$(): Observable<boolean> {
+    return this.permissionsService.getApiPermissions(this.apiId).pipe(
+      map(() => true),
+      catchError(error => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          return of(false);
+        }
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
   private loadDetails() {
     return this._subscriptionDetails.pipe(
       switchMap(() =>
         forkJoin({
           subscription: this.subscriptionService.get(this.subscriptionId),
-          permissions: this.permissionsService.getApiPermissions(this.apiId),
+          hasDocumentationAccess: this.getDocumentationAccess$(),
         }),
       ),
-      switchMap(({ subscription, permissions }) =>
+      switchMap(({ subscription, hasDocumentationAccess }) =>
         forkJoin({
           subscription: of(subscription),
-          plan: this.getPlanData$(subscription.plan, permissions),
-          api: this.apiService.details(this.apiId),
+          plan: this.getPlanData$(subscription.plan),
+          api: hasDocumentationAccess ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
           application: this.applicationService.get(subscription.application),
+          hasDocumentationAccess: of(hasDocumentationAccess),
+          documentationNavigationTarget: hasDocumentationAccess
+            ? this.portalNavigationItemsService.searchNavigationItemsWithApis(1, this.apiId, 10).pipe(
+                map(res => {
+                  const item = res.data.find(i => i.id === this.apiId);
+                  return item ? { rootId: item.rootId, navItemId: item.navItemId } : null;
+                }),
+                catchError(() => of(null)),
+              )
+            : of(null),
         }),
       ),
-      map(({ subscription, plan, api, application }) => {
+      map(({ subscription, plan, api, application, hasDocumentationAccess, documentationNavigationTarget }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
           application,
           subscription,
-          api,
+          api: api ?? undefined,
+          apiName: plan.apiName,
           planName: plan.name,
           planSecurity: plan.securityType,
           planUsageConfiguration: plan.usageConfiguration,
@@ -186,7 +215,9 @@ export class SubscriptionsDetailsComponent implements OnInit {
           failureCause: subscription.failureCause,
           createdAt: subscription.created_at,
           updatedAt: subscription.updated_at,
-          entrypointUrls: api?.entrypoints,
+          entrypointUrls: api?.entrypoints ?? [],
+          hasDocumentationAccess,
+          documentationNavigationTarget: documentationNavigationTarget ?? undefined,
         };
 
         if (subscription.status === 'ACCEPTED') {
@@ -237,22 +268,20 @@ export class SubscriptionsDetailsComponent implements OnInit {
     );
   }
 
-  private getPlanData$(
-    planId: string,
-    permissions: UserApiPermissions,
-  ): Observable<{
+  private getPlanData$(planId: string): Observable<{
     name: string;
     securityType: PlanSecurityEnum;
     usageConfiguration: PlanUsageConfiguration;
     planMode: PlanMode;
+    apiName?: string;
   }> {
-    return of(permissions.PLAN?.includes('R') === true).pipe(
-      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId) : this.getPlanDataFromMetadata$(planId))),
+    return this.getPlanDataFromMetadata$(planId).pipe(
       map(plan => ({
         name: plan.name ?? '',
         securityType: plan.securityType ?? 'KEY_LESS',
         usageConfiguration: plan.usageConfiguration ?? {},
         planMode: plan.planMode ?? 'STANDARD',
+        apiName: plan.apiName,
       })),
     );
   }
@@ -262,6 +291,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     securityType?: PlanSecurityEnum;
     usageConfiguration?: PlanUsageConfiguration;
     planMode?: PlanMode;
+    apiName?: string;
   }> {
     return this.planService.list(this.apiId).pipe(
       map(({ data }) => {
@@ -285,12 +315,19 @@ export class SubscriptionsDetailsComponent implements OnInit {
     securityType?: PlanSecurityEnum;
     usageConfiguration?: PlanUsageConfiguration;
     planMode?: PlanMode;
+    apiName?: string;
   }> {
     return this.subscriptionService.list({ apiIds: [this.apiId], statuses: [] }).pipe(
       catchError(_ => of({ data: [], metadata: {}, links: {} } as SubscriptionsResponse)),
       map(({ metadata }) => {
         const planMetadata = metadata[planId];
-        return { name: planMetadata?.name, securityType: planMetadata?.securityType, planMode: planMetadata?.planMode };
+        const apiMetadata = metadata[this.apiId];
+        return {
+          name: planMetadata?.name,
+          securityType: planMetadata?.securityType,
+          planMode: planMetadata?.planMode,
+          apiName: apiMetadata?.name,
+        };
       }),
     );
   }

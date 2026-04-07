@@ -20,14 +20,19 @@ import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefiniti
 import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collections;
 
 @UseCase
 public class ProcessPromotionUseCase {
@@ -36,17 +41,20 @@ public class ProcessPromotionUseCase {
     private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
     private final ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService;
+    private final AuditDomainService auditService;
 
     public ProcessPromotionUseCase(
         PromotionCrudService promotionCrudService,
         CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
         ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
-        ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService
+        ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService,
+        AuditDomainService auditService
     ) {
         this.promotionCrudService = promotionCrudService;
         this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
         this.importDefinitionUpdateDomainService = importDefinitionUpdateDomainService;
+        this.auditService = auditService;
     }
 
     public record Input(
@@ -92,7 +100,7 @@ public class ProcessPromotionUseCase {
             promotion.setStatus(PromotionStatus.REJECTED);
         }
 
-        var cockpitReplyStatus = cockpitPromotionServiceProvider.requestPromotion(
+        var cockpitReplyStatus = cockpitPromotionServiceProvider.processPromotion(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             promotion
@@ -102,7 +110,23 @@ public class ProcessPromotionUseCase {
             throw new TechnicalManagementException("An error occurs while sending promotion " + promotion.getId() + " request to cockpit");
         }
 
-        return promotionCrudService.update(promotion);
+        var updatedPromotion = promotionCrudService.update(promotion);
+
+        auditService.createApiAuditLog(
+            ApiAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiId(updatedPromotion.getApiId())
+                .event(ApiAuditEvent.PROMOTION_PROCESSED)
+                .actor(auditInfo.actor())
+                .oldValue(null)
+                .newValue(updatedPromotion)
+                .createdAt(TimeProvider.now())
+                .properties(Collections.emptyMap())
+                .build()
+        );
+
+        return updatedPromotion;
     }
 
     private void acceptPromotion(Promotion promotion, Api existingPromotedApi, ImportDefinition importDefinition, AuditInfo auditInfo) {

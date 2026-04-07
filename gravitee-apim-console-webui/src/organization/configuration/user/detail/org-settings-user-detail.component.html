@@ -50,12 +50,14 @@
 
         <div class="org-settings-user-detail__card__head__right">
           <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
-            <div
-              *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee' && !isServiceUser()"
-              class="org-settings-user-detail__card__head__left__btn"
-            >
+            @if (canConvertToServiceAccount()) {
+              <button (click)="onConvertToServiceAccount()" mat-stroked-button aria-label="Convert to service account">
+                Convert to service account
+              </button>
+            }
+            @if (canResetPassword()) {
               <button (click)="onResetPassword()" mat-stroked-button aria-label="User reset password">Reset password</button>
-            </div>
+            }
           </ng-container>
         </div>
       </div>
@@ -180,243 +182,20 @@
     </mat-card-footer>
   </mat-card>
 
-  <mat-card class="org-settings-user-detail__groups-card">
+  <mat-card class="org-settings-user-detail__memberships-card" *ngIf="membershipEnvironments?.length > 0">
     <mat-card-content>
-      <div class="org-settings-user-detail__groups-card__header">
-        <h2 gioTableOfContents>Groups</h2>
+      <h2 gioTableOfContents>Memberships</h2>
 
-        <ng-container *ngIf="user.status === 'ACTIVE'">
-          <button
-            *gioPermission="{ anyOf: ['organization-user-c'] }"
-            (click)="onAddGroupClicked()"
-            mat-raised-button
-            color="primary"
-            aria-label="Button to add a group"
-          >
-            <mat-icon>add</mat-icon>Add a group
-          </button>
-        </ng-container>
-      </div>
-
-      <p>You can manage all groups of this user.</p>
-
-      <gio-table-wrapper
-        *ngIf="groupsTableDS && groupsRolesFormGroup"
-        [length]="tablesUnpaginatedLength['groupsTableDS']"
-        (filtersChange)="onFiltersChanged('groupsTableDS', $event)"
-      >
-        <table
-          class="org-settings-user-detail__groups-card__table"
-          mat-table
-          [dataSource]="groupsTableDS"
-          [formGroup]="groupsRolesFormGroup"
-          matSort
-          aria-label="Groups table"
-        >
-          <!-- Position Name -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="group-name" mat-sort-header>Name</th>
-            <td mat-cell *matCellDef="let group">
-              {{ group.name }}
-
-              <div *ngIf="groupsRolesFormGroup.get(group.id).errors" class="mat-caption error">At least one role is mandatory</div>
-            </td>
-          </ng-container>
-
-          <!-- Group Admin Column -->
-          <ng-container matColumnDef="groupAdmin">
-            <th mat-header-cell *matHeaderCellDef id="groupAdmin" mat-sort-header>Group Admin</th>
-            <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-              <mat-checkbox formControlName="GROUP"></mat-checkbox>
-            </td>
-          </ng-container>
-
-          <!-- API Role Column -->
-          <ng-container matColumnDef="apiRoles">
-            <th mat-header-cell *matHeaderCellDef id="apiRoles" mat-sort-header>API Role</th>
-            <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-              <mat-form-field>
-                <mat-label>API role</mat-label>
-                <mat-select
-                  [id]="group.id"
-                  [aria-label]="'API roles for ' + group.id"
-                  formControlName="API"
-                  [disabled]="isApiRolePrimaryOwner(group.id)"
-                >
-                  <mat-option>-- None --</mat-option>
-                  <mat-option *ngFor="let role of apiRoles$ | async" [disabled]="role.system" [value]="role.name">{{
-                    role.name
-                  }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </td>
-          </ng-container>
-
-          <!-- Application Role Column -->
-          <ng-container matColumnDef="applicationRole">
-            <th mat-header-cell *matHeaderCellDef id="applicationRole" mat-sort-header>Application Role</th>
-            <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-              <mat-form-field>
-                <mat-label>Application role</mat-label>
-                <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
-                  <mat-option>-- None --</mat-option>
-                  <mat-option *ngFor="let role of applicationRoles$ | async" [disabled]="role.system" [value]="role.name">{{
-                    role.name
-                  }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </td>
-          </ng-container>
-
-          <!-- Integration Role Column -->
-          <ng-container matColumnDef="integrationRole">
-            <th mat-header-cell *matHeaderCellDef id="integrationRole" mat-sort-header>Integration Role</th>
-            <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-              <mat-form-field>
-                <mat-label>Integration role</mat-label>
-                <mat-select [id]="group.id" [aria-label]="'Integration roles for ' + group.id" formControlName="INTEGRATION">
-                  <mat-option>-- None --</mat-option>
-                  <mat-option *ngFor="let role of integrationRoles$ | async" [disabled]="role.system" [value]="role.name">{{
-                    role.name
-                  }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </td>
-          </ng-container>
-
-          <!-- Delete Column -->
-          <ng-container matColumnDef="delete">
-            <th mat-header-cell *matHeaderCellDef id="delete-user-group" width="5%">Delete</th>
-            <td mat-cell *matCellDef="let group">
-              <button
-                *gioPermission="{ anyOf: ['organization-user-d'] }"
-                (click)="onDeleteGroupClick(group)"
-                mat-icon-button
-                aria-label="Button to delete user group"
-                matTooltip="Delete"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="groupsTableDisplayedColumns"></tr>
-          <tr
-            mat-row
-            *matRowDef="let group; columns: groupsTableDisplayedColumns"
-            [class.error]="groupsRolesFormGroup.get(group.id).errors"
-          ></tr>
-
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="groupsTableDisplayedColumns.length">No group</td>
-          </tr>
-        </table>
-      </gio-table-wrapper>
+      <org-settings-user-detail-memberships
+        [environments]="membershipEnvironments"
+        [userId]="user.id"
+        [userStatus]="user.status"
+        [userDisplayName]="user.displayName"
+        [isReadOnly]="isReadOnly"
+        (groupRolesChanged)="onGroupRolesChanged($event)"
+        (requestReload)="onMembershipReload()"
+      ></org-settings-user-detail-memberships>
     </mat-card-content>
-    <mat-card-footer *ngIf="!(groupsTableDS && groupsRolesFormGroup)">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </mat-card-footer>
-  </mat-card>
-
-  <mat-card class="org-settings-user-detail__apis-card">
-    <mat-card-content>
-      <h2 gioTableOfContents>APIs</h2>
-      <p>Here is the list of all APIs of this user.</p>
-
-      <gio-table-wrapper
-        *ngIf="apisTableDS"
-        [length]="tablesUnpaginatedLength['apisTableDS']"
-        (filtersChange)="onFiltersChanged('apisTableDS', $event)"
-      >
-        <table mat-table [dataSource]="apisTableDS" matSort aria-label="APIs table">
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="api-name" mat-sort-header>Name</th>
-            <td mat-cell *matCellDef="let api">
-              @if (api.environmentId && api.id) {
-                <a [routerLink]="['/', api.environmentId, 'apis', api.id]">
-                  {{ api.name }}
-                </a>
-              } @else {
-                {{ api.name }}
-              }
-            </td>
-          </ng-container>
-
-          <!-- Version Column -->
-          <ng-container matColumnDef="version">
-            <th mat-header-cell *matHeaderCellDef id="version" mat-sort-header>Version</th>
-            <td mat-cell *matCellDef="let api">
-              {{ api.version }}
-            </td>
-          </ng-container>
-
-          <!-- Visibility Column -->
-          <ng-container matColumnDef="visibility">
-            <th mat-header-cell *matHeaderCellDef id="visibility" mat-sort-header>Visibility</th>
-            <td mat-cell *matCellDef="let api">
-              <span class="gio-badge">
-                <mat-icon class="gio-left">{{ api.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon> {{ api.visibility | titlecase }}
-              </span>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="apisTableDisplayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: apisTableDisplayedColumns"></tr>
-
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="apisTableDisplayedColumns.length">No API</td>
-          </tr>
-        </table>
-      </gio-table-wrapper>
-    </mat-card-content>
-    <mat-card-footer *ngIf="!apisTableDS">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </mat-card-footer>
-  </mat-card>
-
-  <mat-card class="org-settings-user-detail__applications-card">
-    <mat-card-content>
-      <h2 gioTableOfContents>Applications</h2>
-      <p>Here is the list of all applications of this user.</p>
-
-      <gio-table-wrapper
-        *ngIf="applicationsTableDS"
-        [length]="tablesUnpaginatedLength['applicationsTableDS']"
-        (filtersChange)="onFiltersChanged('applicationsTableDS', $event)"
-      >
-        <table
-          class="org-settings-user-detail__applications-card__table"
-          mat-table
-          [dataSource]="applicationsTableDS"
-          aria-label="Applications table"
-        >
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="app-name">Name</th>
-            <td mat-cell *matCellDef="let application">
-              @if (application.environmentId && application.id) {
-                <a [routerLink]="['/', application.environmentId, 'applications', application.id]">
-                  {{ application.name }}
-                </a>
-              } @else {
-                {{ application.name }}
-              }
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="applicationsTableDisplayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: applicationsTableDisplayedColumns"></tr>
-
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="applicationsTableDisplayedColumns.length">No application</td>
-          </tr>
-        </table>
-      </gio-table-wrapper>
-    </mat-card-content>
-    <mat-card-footer *ngIf="!applicationsTableDS">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </mat-card-footer>
   </mat-card>
 
   <mat-card class="org-settings-user-detail__tokens__card">

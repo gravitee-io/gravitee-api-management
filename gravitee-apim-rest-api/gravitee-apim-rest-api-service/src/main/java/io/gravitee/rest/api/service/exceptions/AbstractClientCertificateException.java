@@ -22,6 +22,12 @@ import io.gravitee.common.http.HttpStatusCode;
  */
 public abstract class AbstractClientCertificateException extends AbstractManagementException {
 
+    protected AbstractClientCertificateException() {}
+
+    protected AbstractClientCertificateException(Throwable cause) {
+        super(cause);
+    }
+
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;

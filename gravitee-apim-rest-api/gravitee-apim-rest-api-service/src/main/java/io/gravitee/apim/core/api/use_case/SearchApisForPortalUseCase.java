@@ -30,6 +30,10 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Searches APIs visible in the ng portal documentation context.
+ * Visibility rules in this use case must stay aligned with {@code GetVisiblePortalNavigationApisUseCase}.
+ */
 @UseCase
 @RequiredArgsConstructor
 public class SearchApisForPortalUseCase {

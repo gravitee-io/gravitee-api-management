@@ -115,6 +115,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   public readonly displayedApiProductsCount = 5;
 
+  private static readonly MAX_PRODUCT_NAME_DISPLAY_LENGTH = 20;
+
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
@@ -305,6 +307,14 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  truncatedProductNameForList(name: string | null | undefined): string {
+    const full = name ?? '';
+    if (full.length <= ApiGeneralInfoComponent.MAX_PRODUCT_NAME_DISPLAY_LENGTH) {
+      return full;
+    }
+    return full.slice(0, ApiGeneralInfoComponent.MAX_PRODUCT_NAME_DISPLAY_LENGTH) + '…';
   }
 
   openIncludedInDialog(): void {

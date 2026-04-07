@@ -24,14 +24,14 @@ public interface MembershipQueryService {
     Collection<Membership> findByReferencesAndRoleId(Membership.ReferenceType referenceType, List<String> referenceIds, String roleId);
     Collection<Membership> findByReference(Membership.ReferenceType referenceType, String referenceId);
 
-    Collection<Membership> findGroupsThatUserBelongsTo(String userId);
-    List<String> findClustersIdsThatUserBelongsTo(String userId);
-
     Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
         String memberId,
         Membership.Type memberType,
         Membership.ReferenceType referenceType
     );
+
+    Collection<Membership> findGroupsThatUserBelongsTo(String userId);
+    List<String> findClustersIdsThatUserBelongsTo(String userId);
 
     Collection<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
         Collection<String> memberIds,

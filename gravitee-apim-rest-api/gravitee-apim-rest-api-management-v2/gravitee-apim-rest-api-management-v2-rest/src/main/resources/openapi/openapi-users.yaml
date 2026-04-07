@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io APIM - Management API - Users
+    description: |-
+        This is the OpenAPI specification for our new version of APIM Management API.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 2.0.0
+
+security:
+    - BasicAuth: []
+    - CookieAuth: []
+
+servers:
+    - url: "/management/v2/organizations/{orgId}"
+      description: APIM Management API v2 - Base URL to target specific organizations
+      variables:
+          orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+
+tags:
+    - name: Users
+      description: Everything about users memberships
+
+paths:
+    /users/{userId}/apis:
+        parameters:
+            - $ref: "#/components/parameters/userIdParam"
+        get:
+            tags:
+                - Users
+            summary: Get APIs the user is a member of
+            description: |
+                Get the list of APIs the user is a member of.
+
+                User must have the ORGANIZATION_USERS[READ] permission.
+            operationId: getUserApis
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/environmentIdParam"
+            responses:
+                "200":
+                    description: Paginated list of APIs the user is a member of.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /users/{userId}/applications:
+        parameters:
+            - $ref: "#/components/parameters/userIdParam"
+        get:
+            tags:
+                - Users
+            summary: Get applications the user is a member of
+            description: |
+                Get the list of applications the user is a member of.
+
+                User must have the ORGANIZATION_USERS[READ] permission.
+            operationId: getUserApplications
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/environmentIdParam"
+            responses:
+                "200":
+                    description: Paginated list of applications the user is a member of.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserApplicationsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /users/{userId}/groups:
+        parameters:
+            - $ref: "#/components/parameters/userIdParam"
+        get:
+            tags:
+                - Users
+            summary: Get groups the user is a member of
+            description: |
+                Get the list of groups the user is a member of.
+
+                User must have the ORGANIZATION_USERS[READ] permission.
+            operationId: getUserGroups
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/environmentIdParam"
+            responses:
+                "200":
+                    description: Paginated list of groups the user is a member of.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserGroupsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+components:
+    schemas:
+        UserApi:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The API's unique identifier.
+                name:
+                    type: string
+                    description: The API's name.
+                version:
+                    type: string
+                    description: The API's version.
+                visibility:
+                    type: string
+                    description: The API's visibility.
+                environmentId:
+                    type: string
+                    description: The ID of the environment the API belongs to.
+                environmentName:
+                    type: string
+                    description: The name of the environment the API belongs to.
+        UserApisResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/UserApi"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+                links:
+                    $ref: "#/components/schemas/Links"
+
+        UserApplication:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The application's unique identifier.
+                name:
+                    type: string
+                    description: The application's name.
+                environmentId:
+                    type: string
+                    description: The ID of the environment the application belongs to.
+                environmentName:
+                    type: string
+                    description: The name of the environment the application belongs to.
+        UserApplicationsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/UserApplication"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+                links:
+                    $ref: "#/components/schemas/Links"
+
+        UserGroup:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The group's unique identifier.
+                name:
+                    type: string
+                    description: The group's name.
+                environmentId:
+                    type: string
+                    description: The ID of the environment the group belongs to.
+                environmentName:
+                    type: string
+                    description: The name of the environment the group belongs to.
+                roles:
+                    type: object
+                    description: The roles the user has in this group, as a map of scope to role name.
+                    additionalProperties:
+                        type: string
+                isApiPrimaryOwner:
+                    type: boolean
+                    description: Whether this group is the primary owner of at least one API.
+        UserGroupsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/UserGroup"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+                links:
+                    $ref: "#/components/schemas/Links"
+
+        Pagination:
+            description: Generic object to handle pagination data.
+            type: object
+            properties:
+                page:
+                    type: integer
+                    description: The current page.
+                perPage:
+                    type: integer
+                    description: The number of items requested per page.
+                pageCount:
+                    type: integer
+                    description: The total number of pages.
+                pageItemsCount:
+                    type: integer
+                    description: The number of items for the current page.
+                totalCount:
+                    type: integer
+                    format: int64
+                    description: The total number of items.
+
+        Links:
+            description: List of links for pagination
+            properties:
+                self:
+                    type: string
+                    description: Link to current resource
+                first:
+                    type: string
+                    description: In a paginated response, link to the first page
+                last:
+                    type: string
+                    description: In a paginated response, link to the last page
+                previous:
+                    type: string
+                    description: In a paginated response, link to the previous page. Maybe null if current is the first page
+                next:
+                    type: string
+                    description: In a paginated response, link to the next page. Maybe null if current is the last page
+
+        Error:
+            type: object
+            properties:
+                httpStatus:
+                    type: integer
+                    format: int32
+                    description: The error code
+                    example: 400
+                message:
+                    type: string
+                    description: The error message
+                    example: Bad request
+                technicalCode:
+                    type: string
+                    description: A technical code to identify the error
+                    example: invalid.import.definition
+                parameters:
+                    type: object
+                    description: A map of parameters to be used in the error message
+                    additionalProperties:
+                        type: string
+                details:
+                    type: array
+                    description: A list of details about the error
+                    items:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                description: The error message
+                                example: Bad request
+                            location:
+                                type: string
+                                description: The json path of the field in error.
+                                example: updateApi.properties[0].key
+                            invalidValue:
+                                description: The invalid value.
+
+    parameters:
+        userIdParam:
+            name: userId
+            in: path
+            required: true
+            description: Id of a user.
+            schema:
+                type: string
+        pageParam:
+            name: page
+            in: query
+            required: false
+            description: The page number for pagination.
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+        perPageParam:
+            name: perPage
+            in: query
+            required: false
+            description: The number of items per page for pagination.
+            schema:
+                type: integer
+                default: 10
+                minimum: 1
+        environmentIdParam:
+            name: environmentId
+            in: query
+            required: false
+            description: Filter results by environment ID.
+            schema:
+                type: string
+
+    responses:
+        Error:
+            description: Generic error response
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+
+    securitySchemes:
+        BasicAuth:
+            type: http
+            scheme: basic
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: Auth-Graviteeio-APIM

@@ -54,7 +54,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final AccessPointRepository accessPointRepository;
     private final AuditRepository auditRepository;
     private final CommandRepository commandRepository;
-    private final CustomDashboardRepository customDashboardRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
     private final EntrypointRepository entrypointRepository;
     private final EnvironmentService environmentService;
@@ -84,7 +83,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy AccessPointRepository accessPointRepository,
         @Lazy AuditRepository auditRepository,
         @Lazy CommandRepository commandRepository,
-        @Lazy CustomDashboardRepository customDashboardRepository,
         @Lazy CustomUserFieldsRepository customUserFieldsRepository,
         @Lazy EntrypointRepository entrypointRepository,
         @Lazy FlowRepository flowRepository,
@@ -115,7 +113,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.accessPointService = accessPointService;
         this.auditRepository = auditRepository;
         this.commandRepository = commandRepository;
-        this.customDashboardRepository = customDashboardRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
         this.entrypointRepository = entrypointRepository;
         this.environmentService = environmentService;
@@ -236,6 +233,5 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         );
         entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
         clusterRepository.deleteByOrganizationId(organization.getId());
-        customDashboardRepository.deleteByOrganizationId(organization.getId());
     }
 }

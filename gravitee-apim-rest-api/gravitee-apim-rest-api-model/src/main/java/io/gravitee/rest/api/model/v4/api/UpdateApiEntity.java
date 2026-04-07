@@ -197,6 +197,8 @@ public class UpdateApiEntity {
     )
     private Boolean allowedInApiProducts;
 
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     @Schema(description = "the API background encoded in base64")
     private String background;
 

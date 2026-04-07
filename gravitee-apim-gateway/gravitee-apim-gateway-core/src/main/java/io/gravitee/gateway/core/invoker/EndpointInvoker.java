@@ -17,19 +17,19 @@ package io.gravitee.gateway.core.invoker;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.api.endpoint.resolver.ProxyEndpoint;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.core.logging.LoggableProxyConnectionDecorator;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import org.springframework.core.NestedExceptionUtils;
 
 /**
@@ -69,6 +69,18 @@ public class EndpointInvoker implements Invoker {
                 final ProxyRequest proxyRequest = endpoint.createProxyRequest(context.request(), proxyRequestBuilder ->
                     proxyRequestBuilder.method(getHttpMethod(context))
                 );
+
+                // HTTP/2 inbound requests may lack Content-Length and Transfer-Encoding headers.
+                // The legacy connector needs one of these to stream the body to the backend over HTTP/1.1.
+                // We skip gRPC requests (application/grpc) as they use HTTP/2 end-to-end.
+                if (
+                    context.request().version() == HttpVersion.HTTP_2 &&
+                    proxyRequest.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null &&
+                    proxyRequest.headers().get(HttpHeaderNames.TRANSFER_ENCODING) == null &&
+                    !isGrpcRequest(proxyRequest)
+                ) {
+                    proxyRequest.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+                }
 
                 endpoint
                     .connector()
@@ -113,5 +125,10 @@ public class EndpointInvoker implements Invoker {
             ExecutionContext.ATTR_REQUEST_METHOD
         );
         return (overrideMethod == null) ? context.request().method() : overrideMethod;
+    }
+
+    private static boolean isGrpcRequest(ProxyRequest request) {
+        String contentType = request.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        return contentType != null && contentType.startsWith("application/grpc");
     }
 }

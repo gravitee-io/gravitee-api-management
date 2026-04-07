@@ -24,6 +24,7 @@ import { NavigationItemContentViewerHarness } from '../../../../components/navig
 import { SidenavLayoutComponentHarness } from '../../../../components/sidenav-layout/sidenav-layout.component.harness';
 import { SidenavToggleButtonComponentHarness } from '../../../../components/sidenav-toggle-button/sidenav-toggle-button.component.harness';
 import { DivHarness } from '../../../../testing/div.harness';
+import { ApiTabToolsComponentHarness } from '../../../api/api-details/api-tab-tools/api-tab-tools.component.harness';
 
 export class DocumentationFolderComponentHarness extends ComponentHarness {
   static readonly hostSelector = 'app-documentation-folder';
@@ -37,6 +38,8 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   private readonly getNavigationItemContentViewerHarness = this.locatorForOptional(NavigationItemContentViewerHarness);
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
   private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="subscribe-button"]' }));
+  private readonly getMcpMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="mcp-button"]' }));
+  private readonly locateApiTabTools = this.locatorForOptional(ApiTabToolsComponentHarness);
 
   async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
     const sidenav = await this.getSidenavLayoutHarness();
@@ -66,5 +69,13 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getSubscribeButton(): Promise<MatButtonHarness | null> {
     return this.getSubscribeMatButton();
+  }
+
+  async getMcpButton(): Promise<MatButtonHarness | null> {
+    return this.getMcpMatButton();
+  }
+
+  async getApiTabToolsHarness(): Promise<ApiTabToolsComponentHarness | null> {
+    return this.locateApiTabTools();
   }
 }

@@ -23,7 +23,6 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OrganizationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards.DashboardsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ApiServicesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
@@ -31,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ResourcesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.promotions.PromotionsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
+import io.gravitee.rest.api.management.v2.rest.resource.user.UserResource;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import jakarta.inject.Inject;
@@ -123,8 +123,8 @@ public class OrganizationResource extends AbstractResource {
         return resourceContext.getResource(PromotionsResource.class);
     }
 
-    @Path("analytics/dashboards")
-    public DashboardsResource getDashboardsResource() {
-        return resourceContext.getResource(DashboardsResource.class);
+    @Path("/users/{userId}")
+    public UserResource getUserResource() {
+        return resourceContext.getResource(UserResource.class);
     }
 }

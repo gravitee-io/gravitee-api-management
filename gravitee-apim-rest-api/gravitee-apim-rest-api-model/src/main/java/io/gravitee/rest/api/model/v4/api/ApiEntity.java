@@ -208,6 +208,9 @@ public class ApiEntity implements GenericApiEntity {
     )
     private Boolean allowedInApiProducts;
 
+    @Builder.Default
+    private boolean allowMultiJwtOauth2Subscriptions = false;
+
     @Schema(description = "the API background encoded in base64")
     private String background;
 
@@ -222,4 +225,12 @@ public class ApiEntity implements GenericApiEntity {
 
     @JsonIgnore
     private String referenceId;
+
+    public boolean isAllowMultiJwtOauth2Subscriptions() {
+        return allowMultiJwtOauth2Subscriptions;
+    }
+
+    public void setAllowMultiJwtOauth2Subscriptions(boolean allowMultiJwtOauth2Subscriptions) {
+        this.allowMultiJwtOauth2Subscriptions = allowMultiJwtOauth2Subscriptions;
+    }
 }
