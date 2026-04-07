@@ -17,7 +17,9 @@ package io.gravitee.repository.management.model;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +41,14 @@ public class ApiProduct {
     private String description;
     private String version;
     private List<String> apiIds;
+    private Set<String> groups;
     private Date createdAt;
     private Date updatedAt;
+
+    public boolean addGroup(String groupId) {
+        if (groups == null) {
+            groups = new HashSet<>();
+        }
+        return groups.add(groupId);
+    }
 }

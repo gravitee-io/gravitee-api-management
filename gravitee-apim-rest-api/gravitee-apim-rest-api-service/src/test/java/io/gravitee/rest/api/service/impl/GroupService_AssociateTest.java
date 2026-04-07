@@ -20,13 +20,16 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -74,6 +77,12 @@ public class GroupService_AssociateTest extends TestCase {
 
     @Mock
     private EventManager eventManager;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
+
+    @Mock
+    private MembershipService membershipService;
 
     @Test(expected = GroupNotFoundException.class)
     public void shouldThrowGroupNotFoundException() throws TechnicalException {
@@ -129,5 +138,54 @@ public class GroupService_AssociateTest extends TestCase {
 
         verify(applicationRepository, times(1)).update(app1);
         verify(eventManager, times(1)).publishEvent(eq(ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE), any());
+    }
+
+    @Test
+    public void shouldAssociateAllApiProducts() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        ApiProduct product1 = new ApiProduct();
+        product1.setId("product-1");
+
+        ApiProduct product2 = new ApiProduct();
+        product2.setId("product-2");
+        product2.setGroups(new java.util.HashSet<>(java.util.Set.of(GROUP_ID)));
+
+        when(apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId())).thenReturn(Set.of(product1, product2));
+
+        UserEntity fakeUser = new UserEntity();
+        fakeUser.setFirstname("firstName");
+        fakeUser.setLastname("lastName");
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeUser);
+        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.API_PRODUCT), eq(product1.getId()))).thenReturn(
+            null
+        );
+
+        groupService.associate(executionContext, GROUP_ID, "api_product");
+
+        verify(apiProductsRepository, times(1)).update(product1);
+        verify(apiProductsRepository, never()).update(product2);
+        verify(notifierService, times(1)).trigger(
+            eq(executionContext),
+            eq(ApiHook.API_UPDATED),
+            eq(io.gravitee.repository.management.model.NotificationReferenceType.API_PRODUCT),
+            eq(product1.getId()),
+            any()
+        );
+    }
+
+    @Test
+    public void shouldSkipApiProductAlreadyHavingGroup() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        ApiProduct product = new ApiProduct();
+        product.setId("product-1");
+        product.setGroups(new java.util.HashSet<>(java.util.Set.of(GROUP_ID)));
+
+        when(apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId())).thenReturn(Set.of(product));
+
+        groupService.associate(executionContext, GROUP_ID, "api_product");
+
+        verify(apiProductsRepository, never()).update(any());
     }
 }

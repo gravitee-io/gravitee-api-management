@@ -47,10 +47,6 @@ public class MongoApiProductRepository implements ApiProductsRepository {
     @Autowired
     private GraviteeMapper mapper;
 
-    public MongoApiProductRepository() {
-        log.info("MongoApiProductRepository constructor called - bean created!");
-    }
-
     @Override
     public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException {
         log.debug("MongoApiProductRepository.findByEnvironmentIdAndName({} , {})", environmentId, name);

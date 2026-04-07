@@ -43,6 +43,7 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.Plan;
@@ -89,6 +90,7 @@ import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -133,6 +135,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Lazy
     @Autowired
     private ApplicationRepository applicationRepository;
+
+    @Lazy
+    @Autowired
+    private io.gravitee.repository.management.api.ApiProductsRepository apiProductsRepository;
 
     @Autowired
     private MembershipService membershipService;
@@ -598,6 +604,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), Set.of(), Set.of(groupId))
                     );
                     break;
+                case "api_product":
+                    apiProductsRepository
+                        .findByEnvironmentId(executionContext.getEnvironmentId())
+                        .stream()
+                        .filter(apiProduct -> apiProduct.addGroup(groupId))
+                        .forEach(apiProduct -> {
+                            runAndManageTechnicalException(() -> apiProductsRepository.update(apiProduct));
+                            triggerApiProductUpdateNotification(executionContext, apiProduct);
+                        });
+                    break;
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
@@ -766,6 +782,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
                 new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), applicationIds, Collections.emptySet())
             );
+
+            //remove from api products
+            apiProductsRepository
+                .findByEnvironmentId(executionContext.getEnvironmentId())
+                .stream()
+                .filter(p -> p.getGroups() != null && p.getGroups().contains(groupId))
+                .forEach(p -> {
+                    p.getGroups().remove(groupId);
+                    runAndManageTechnicalException(() -> apiProductsRepository.update(p));
+                });
 
             //remove from portal pages
             PageCriteria environmentPageCriteria = new PageCriteria.Builder()
@@ -1278,6 +1304,41 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             ApiHook.API_UPDATED,
             api.getId(),
             new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, getAuthenticatedUsername())).build()
+        );
+    }
+
+    private void triggerApiProductUpdateNotification(
+        ExecutionContext executionContext,
+        io.gravitee.repository.management.model.ApiProduct apiProduct
+    ) {
+        io.gravitee.rest.api.model.PrimaryOwnerEntity primaryOwner = null;
+        try {
+            String ownerUserId = membershipService.getPrimaryOwnerUserId(
+                executionContext.getOrganizationId(),
+                MembershipReferenceType.API_PRODUCT,
+                apiProduct.getId()
+            );
+            if (ownerUserId != null) {
+                primaryOwner = new io.gravitee.rest.api.model.PrimaryOwnerEntity(userService.findById(executionContext, ownerUserId));
+            }
+        } catch (Exception e) {
+            log.debug("Could not resolve primary owner for API Product {} notification", apiProduct.getId(), e);
+        }
+        ApiProductTemplateModel model = ApiProductTemplateModel.builder()
+            .id(apiProduct.getId())
+            .name(apiProduct.getName())
+            .version(apiProduct.getVersion() != null ? apiProduct.getVersion() : "")
+            .primaryOwner(primaryOwner)
+            .build();
+        notifierService.trigger(
+            executionContext,
+            ApiHook.API_UPDATED,
+            NotificationReferenceType.API_PRODUCT,
+            apiProduct.getId(),
+            new NotificationParamsBuilder()
+                .apiProduct(model)
+                .user(userService.findById(executionContext, getAuthenticatedUsername()))
+                .build()
         );
     }
 

@@ -42,6 +42,7 @@ public class ApiProduct {
     private String description;
     private String version;
     private Set<String> apiIds;
+    private Set<String> groups;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private PrimaryOwnerEntity primaryOwner;
@@ -60,6 +61,9 @@ public class ApiProduct {
         }
         if (updateApiProduct.getApiIds() != null) {
             this.apiIds = updateApiProduct.getApiIds();
+        }
+        if (updateApiProduct.getGroups() != null) {
+            this.groups = updateApiProduct.getGroups();
         }
     }
 

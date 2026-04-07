@@ -40,10 +40,12 @@ import org.springframework.util.CollectionUtils;
 public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProduct, String> implements ApiProductsRepository {
 
     private final String API_PRODUCT_APIS;
+    private final String API_PRODUCT_GROUPS;
 
     JdbcApiProductRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_products");
         API_PRODUCT_APIS = getTableNameFor("api_product_apis");
+        API_PRODUCT_GROUPS = getTableNameFor("api_product_groups");
     }
 
     @Override
@@ -70,6 +72,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiProduct));
             storeApiIds(apiProduct, false);
+            storeGroupIds(apiProduct, false);
             return findById(apiProduct.getId()).orElse(null);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to create api product", ex);
@@ -82,6 +85,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiProduct, apiProduct.getId()));
             storeApiIds(apiProduct, true);
+            storeGroupIds(apiProduct, true);
             return findById(apiProduct.getId()).orElseThrow(() ->
                 new IllegalStateException(String.format("No api product found with id [%s]", apiProduct.getId()))
             );
@@ -103,6 +107,12 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 id
             );
             apiProduct.setApiIds(apiIds);
+            List<String> groupIds = jdbcTemplate.query(
+                "SELECT group_id FROM " + API_PRODUCT_GROUPS + " WHERE api_product_id = ?",
+                (ResultSet rs, int rowNum) -> rs.getString("group_id"),
+                id
+            );
+            apiProduct.setGroups(groupIds.isEmpty() ? null : new HashSet<>(groupIds));
             return Optional.of(apiProduct);
         }
         return opt;
@@ -125,7 +135,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                     return apiProduct;
                 }
             );
-            return new HashSet<>(aggregateApiProducts(apiProducts));
+            List<ApiProduct> aggregated = aggregateApiProducts(apiProducts);
+            enrichWithGroupIds(aggregated);
+            return new HashSet<>(aggregated);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find all api products", ex);
         }
@@ -150,7 +162,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 environmentId,
                 name
             );
-            return apiProducts.isEmpty() ? Optional.empty() : Optional.of(aggregateApiProducts(apiProducts).get(0));
+            List<ApiProduct> aggregated = aggregateApiProducts(apiProducts);
+            enrichWithGroupIds(aggregated);
+            return aggregated.isEmpty() ? Optional.empty() : Optional.of(aggregated.get(0));
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api product by environment and name", ex);
         }
@@ -175,7 +189,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 },
                 environmentId
             );
-            return new HashSet<>(aggregateApiProducts(apiProducts));
+            List<ApiProduct> aggregatedByEnv = aggregateApiProducts(apiProducts);
+            enrichWithGroupIds(aggregatedByEnv);
+            return new HashSet<>(aggregatedByEnv);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by environment", ex);
         }
@@ -186,6 +202,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         log.debug("JdbcApiProductRepository.delete({})", id);
         try {
             jdbcTemplate.update("DELETE FROM " + API_PRODUCT_APIS + " WHERE api_product_id = ?", id);
+            jdbcTemplate.update("DELETE FROM " + API_PRODUCT_GROUPS + " WHERE api_product_id = ?", id);
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to delete api product", ex);
@@ -213,7 +230,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 },
                 apiId
             );
-            return new HashSet<>(aggregateApiProducts(apiProducts));
+            List<ApiProduct> aggregatedByApiId = aggregateApiProducts(apiProducts);
+            enrichWithGroupIds(aggregatedByApiId);
+            return new HashSet<>(aggregatedByApiId);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by apiId", ex);
         }
@@ -257,7 +276,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 },
                 idList.toArray()
             );
-            return new HashSet<>(aggregateApiProducts(apiProducts));
+            List<ApiProduct> aggregatedByApiIds = aggregateApiProducts(apiProducts);
+            enrichWithGroupIds(aggregatedByApiIds);
+            return new HashSet<>(aggregatedByApiIds);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by api ids", ex);
         }
@@ -289,7 +310,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 },
                 idList.toArray()
             );
-            return new HashSet<>(aggregateApiProducts(apiProducts));
+            List<ApiProduct> aggregatedByIds = aggregateApiProducts(apiProducts);
+            enrichWithGroupIds(aggregatedByIds);
+            return new HashSet<>(aggregatedByIds);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by ids", ex);
         }
@@ -402,6 +425,50 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 }
             );
         }
+    }
+
+    private void storeGroupIds(ApiProduct apiProduct, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("DELETE FROM " + API_PRODUCT_GROUPS + " WHERE api_product_id = ?", apiProduct.getId());
+        }
+        if (apiProduct.getGroups() != null && !apiProduct.getGroups().isEmpty()) {
+            List<String> groupIds = new ArrayList<>(apiProduct.getGroups());
+            jdbcTemplate.batchUpdate(
+                "INSERT INTO " + API_PRODUCT_GROUPS + " (api_product_id, group_id) VALUES (?, ?)",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, apiProduct.getId());
+                        ps.setString(2, groupIds.get(i));
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return groupIds.size();
+                    }
+                }
+            );
+        }
+    }
+
+    private void enrichWithGroupIds(List<ApiProduct> products) {
+        if (products == null || products.isEmpty()) {
+            return;
+        }
+        List<String> productIds = products.stream().map(ApiProduct::getId).toList();
+        Map<String, Set<String>> groupsByProductId = new HashMap<>();
+        jdbcTemplate.query(
+            "SELECT api_product_id, group_id FROM " +
+                API_PRODUCT_GROUPS +
+                " WHERE api_product_id IN (" +
+                getOrm().buildInClause(productIds) +
+                ")",
+            rs -> {
+                groupsByProductId.computeIfAbsent(rs.getString("api_product_id"), k -> new HashSet<>()).add(rs.getString("group_id"));
+            },
+            productIds.toArray()
+        );
+        products.forEach(p -> p.setGroups(groupsByProductId.getOrDefault(p.getId(), null)));
     }
 
     private void addApiId(ApiProduct apiProduct, ResultSet rs) throws SQLException {

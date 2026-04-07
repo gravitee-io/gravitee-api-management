@@ -33,5 +33,6 @@ public class UpdateApiProduct {
     private String description;
     private String version;
     private Set<String> apiIds;
+    private Set<String> groups;
     private ZonedDateTime updatedAt;
 }
