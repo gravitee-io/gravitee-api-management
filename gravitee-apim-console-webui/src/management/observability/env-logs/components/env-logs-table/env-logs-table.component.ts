@@ -38,10 +38,12 @@ import { EnvLog } from '../../models/env-log.model';
 export class EnvLogsTableComponent {
   logs = input.required<EnvLog[]>();
   pagination = input.required<Pagination>();
+  showAssetTypeColumn = input<boolean>(false);
 
   paginationUpdated = output<GioTableWrapperPagination>();
 
   readonly timestampTemplate = viewChild.required<TemplateRef<EnvLog>>('timestampTemplate');
+  readonly assetTypeTemplate = viewChild.required<TemplateRef<EnvLog>>('assetTypeTemplate');
   readonly methodTemplate = viewChild.required<TemplateRef<EnvLog>>('methodTemplate');
   readonly statusTemplate = viewChild.required<TemplateRef<EnvLog>>('statusTemplate');
   readonly apiTemplate = viewChild.required<TemplateRef<EnvLog>>('apiTemplate');
@@ -56,6 +58,7 @@ export class EnvLogsTableComponent {
 
   readonly columns = computed<LogsListColumnDef[]>(() => [
     { id: 'timestamp', label: 'Timestamp', template: this.timestampTemplate() },
+    ...(this.showAssetTypeColumn() ? [{ id: 'assetType', label: 'Asset Type', template: this.assetTypeTemplate() }] : []),
     { id: 'method', label: 'Method', template: this.methodTemplate() },
     { id: 'status', label: 'Status', template: this.statusTemplate() },
     { id: 'api', label: 'API', template: this.apiTemplate() },
