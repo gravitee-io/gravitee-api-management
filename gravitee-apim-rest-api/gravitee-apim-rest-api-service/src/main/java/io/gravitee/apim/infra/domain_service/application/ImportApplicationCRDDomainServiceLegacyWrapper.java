@@ -59,7 +59,9 @@ public class ImportApplicationCRDDomainServiceLegacyWrapper implements ImportApp
             restored = true;
         }
         try {
-            return applicationService.update(executionContext, applicationId, updateApplicationEntity);
+            var result = applicationService.update(executionContext, applicationId, updateApplicationEntity);
+            applicationService.syncClientCertificates(executionContext, applicationId, updateApplicationEntity);
+            return result;
         } catch (AbstractManagementException ame) {
             if (restored) {
                 // manual rollback to avoid a commit on AbstractManagementException that can happened on a restored apps
