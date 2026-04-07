@@ -14,6 +14,7 @@
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
     "full_release": "zx steps/full_release.mjs",
+    "maven_release": "zx steps/maven_release.mjs",
     "release": "zx steps/1-release.mjs",
     "package_zip": "zx steps/2-package_zip.mjs",
     "docker": "zx steps/3-docker.mjs",
