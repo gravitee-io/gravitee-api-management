@@ -50,7 +50,7 @@ export default {
             index: './src/index.html',
             baseHref: '/',
             assets: ['./src/assets', './src/constants.json'],
-            styles: ['./src/styles.css'],
+            styles: [],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',
         }),
