@@ -91,11 +91,16 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
                     dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
                 }
             } else {
-                dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
-                if (criteria.getReferenceIds().size() == 1) {
-                    dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
+                if (criteria.getReferenceType() == SubscriptionReferenceType.API) {
+                    addApiReferenceIdsFilter(dataPipeline, criteria.getReferenceIds());
                 } else {
-                    dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
+                    // API_PRODUCT and other types: strict filter (new feature, no legacy fallback needed)
+                    dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
+                    if (criteria.getReferenceIds().size() == 1) {
+                        dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
+                    } else {
+                        dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
+                    }
                 }
             }
         }
@@ -239,6 +244,21 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             references.add(referenceId);
         });
         return references;
+    }
+
+    /**
+     * Appends an OR filter covering both migrated subscriptions (referenceType/referenceId) and legacy ones
+     * (referenceType null or absent, api field set) created by old nodes during a rolling upgrade.
+     */
+    private void addApiReferenceIdsFilter(List<Bson> dataPipeline, Collection<String> referenceIds) {
+        final boolean isSingle = referenceIds.size() == 1;
+        final String firstId = isSingle ? referenceIds.iterator().next() : null;
+        final Bson referenceIdFilter = isSingle ? eq("referenceId", firstId) : in("referenceId", referenceIds);
+        final Bson apiFilter = isSingle ? eq("api", firstId) : in("api", referenceIds);
+
+        Bson migratedFilter = and(eq("referenceType", SubscriptionReferenceType.API.name()), referenceIdFilter);
+        Bson legacyFilter = and(or(eq("referenceType", null), exists("referenceType", false)), apiFilter);
+        dataPipeline.add(match(or(migratedFilter, legacyFilter)));
     }
 
     private Page<SubscriptionMongo> buildSubscriptionsPage(

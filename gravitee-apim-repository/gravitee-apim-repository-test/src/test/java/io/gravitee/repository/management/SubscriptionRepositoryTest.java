@@ -353,10 +353,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 8, subscriptions.size());
+        assertEquals("Subscriptions size", 9, subscriptions.size());
         assertTrue(
             "Subscription id",
-            List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8").containsAll(
+            List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8", "sub-legacy-push").containsAll(
                 subscriptions.stream().map(Subscription::getId).toList()
             )
         );
@@ -381,12 +381,24 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 10, subscriptions.size());
+        assertEquals("Subscriptions size", 11, subscriptions.size());
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(
             "Should contain expected subscriptions",
             subscriptionIds.containsAll(
-                List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8", "sub-api-product-1", "sub-api-product-2")
+                List.of(
+                    "sub3",
+                    "sub2",
+                    "sub5",
+                    "sub4",
+                    "sub1",
+                    "sub6",
+                    "sub7",
+                    "sub8",
+                    "sub-api-product-1",
+                    "sub-api-product-2",
+                    "sub-legacy-push"
+                )
             )
         );
     }
@@ -416,6 +428,20 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(ranking);
         assertEquals("Ranking size", 1, ranking.size());
         assertEquals("Ranking", "api1", ranking.iterator().next());
+    }
+
+    @Test
+    public void should_search_subscriptions_including_legacy_api_field() throws TechnicalException {
+        // Regression test for APIM-13150: subscriptions with api field set but no referenceId/referenceType
+        // (created by old nodes during rolling upgrade from 4.10 to 4.11) must be included in results
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().referenceIds(List.of("api1")).referenceType(SubscriptionReferenceType.API).build()
+        );
+
+        assertNotNull(subscriptions);
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should include migrated subscription (referenceId/referenceType set)", ids.contains("sub1"));
+        assertTrue("Should include legacy subscription with only api field set", ids.contains("sub-legacy-push"));
     }
 
     @Test
@@ -555,16 +581,28 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldSearchByReferenceIdsAndType() throws TechnicalException {
         // Criteria with referenceIds/referenceType for API subscriptions
+        // Expects both the migrated subscription (referenceId/referenceType set) and the legacy one (only api field set)
         List<Subscription> subscriptions = this.subscriptionRepository.search(
             SubscriptionCriteria.builder().referenceIds(List.of("api1")).referenceType(SubscriptionReferenceType.API).build()
         );
 
         assertNotNull(subscriptions);
-        assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.get(0).getId());
-        assertEquals("API (reference)", "api1", subscriptions.get(0).getReferenceId());
-        assertEquals("Reference type", SubscriptionReferenceType.API, subscriptions.get(0).getReferenceType());
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should include migrated subscription", ids.contains("sub1"));
+        assertTrue("Should include legacy subscription (only api field set)", ids.contains("sub-legacy-push"));
+    }
+
+    @Test
+    public void should_search_by_multiple_reference_ids_including_legacy_api_field() throws TechnicalException {
+        // Regression test for APIM-13150: the multi-ID (IN clause) path must also include legacy subscriptions
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().referenceIds(List.of("api1", "api-unknown")).referenceType(SubscriptionReferenceType.API).build()
+        );
+
+        assertNotNull(subscriptions);
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should include migrated subscription", ids.contains("sub1"));
+        assertTrue("Should include legacy subscription with only api field set", ids.contains("sub-legacy-push"));
     }
 
     @Test
