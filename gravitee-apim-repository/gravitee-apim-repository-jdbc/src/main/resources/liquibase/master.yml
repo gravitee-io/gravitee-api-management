@@ -333,3 +333,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/02_add_api_product_groups_table.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/03_add_lock_api_product_role_to_groups.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/02_add_type_to_clusters_table.yml

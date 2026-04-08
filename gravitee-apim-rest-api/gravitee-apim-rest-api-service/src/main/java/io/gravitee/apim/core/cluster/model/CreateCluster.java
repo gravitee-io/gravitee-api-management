@@ -28,6 +28,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CreateCluster {
 
+    private ClusterType type;
     private String name;
     private String description;
     private Object configuration;

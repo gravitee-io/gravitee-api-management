@@ -37,6 +37,7 @@ public class Cluster {
     private String organizationId;
     private String name;
     private String description;
+    private String type;
     private String definition;
     private Set<String> groups;
 }

@@ -156,6 +156,7 @@ export class ClusterListComponent implements OnInit {
           }
 
           return this.clusterService.create({
+            type: 'KAFKA_CLUSTER_CONNECTION',
             name: result.name,
             description: result.description,
             configuration: {

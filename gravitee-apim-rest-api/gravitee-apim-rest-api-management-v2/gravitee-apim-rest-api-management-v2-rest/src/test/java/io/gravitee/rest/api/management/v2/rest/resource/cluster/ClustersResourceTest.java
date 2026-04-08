@@ -94,6 +94,7 @@ class ClustersResourceTest extends AbstractResourceTest {
         @Test
         void should_create_cluster() {
             CreateCluster createCluster = new CreateCluster();
+            createCluster.setType(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER_CONNECTION);
             createCluster.setName("cluster-1");
             createCluster.setDescription("Cluster 1 description");
             createCluster.setConfiguration(Map.of("bootstrapServers", "localhost:9092"));

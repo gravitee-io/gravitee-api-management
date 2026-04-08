@@ -15,4 +15,4 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
-public record KafkaClusterConfiguration(String bootstrapServers, SecurityConfig security) {}
+public record KafkaClusterConnectionConfiguration(String bootstrapServers, SecurityConfig security) {}

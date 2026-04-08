@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.domain.domain_service;
 
-import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConnectionConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
@@ -25,12 +25,19 @@ import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 
 public interface KafkaClusterDomainService {
-    KafkaClusterInfo describeCluster(KafkaClusterConfiguration config);
-    TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage, String sortBy, String sortOrder);
-    TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName);
-    BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId);
+    KafkaClusterInfo describeCluster(KafkaClusterConnectionConfiguration config);
+    TopicsPage listTopics(
+        KafkaClusterConnectionConfiguration config,
+        String nameFilter,
+        int page,
+        int perPage,
+        String sortBy,
+        String sortOrder
+    );
+    TopicDetail describeTopic(KafkaClusterConnectionConfiguration config, String topicName);
+    BrokerInfo describeBroker(KafkaClusterConnectionConfiguration config, int brokerId);
     ConsumerGroupsPage listConsumerGroups(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String nameFilter,
         String topicFilter,
         int page,
@@ -38,9 +45,9 @@ public interface KafkaClusterDomainService {
         String sortBy,
         String sortOrder
     );
-    ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId);
+    ConsumerGroupDetail describeConsumerGroup(KafkaClusterConnectionConfiguration config, String groupId);
     BrowseMessagesResult browseMessages(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String topicName,
         Integer partition,
         String offsetMode,
@@ -50,7 +57,7 @@ public interface KafkaClusterDomainService {
         int limit
     );
     void tailMessages(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String topicName,
         Integer partition,
         String keyFilter,

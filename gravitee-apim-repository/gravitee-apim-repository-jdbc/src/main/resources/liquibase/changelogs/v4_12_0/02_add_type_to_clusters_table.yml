@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_02_add_type_to_clusters_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}clusters
+            columns:
+              - column:
+                  name: type
+                  type: nvarchar(64)
+        - update:
+            tableName: ${gravitee_prefix}clusters
+            columns:
+              - column:
+                  name: type
+                  value: KAFKA_CLUSTER_CONNECTION
+            where: type IS NULL

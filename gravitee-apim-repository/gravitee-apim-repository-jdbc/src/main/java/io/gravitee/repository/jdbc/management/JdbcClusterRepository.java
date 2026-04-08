@@ -65,6 +65,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
