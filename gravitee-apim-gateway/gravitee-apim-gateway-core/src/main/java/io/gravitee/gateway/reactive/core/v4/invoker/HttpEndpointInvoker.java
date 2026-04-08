@@ -21,7 +21,6 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.HttpEndpointConnector;
@@ -34,6 +33,7 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointCriteria;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +48,8 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
     private static final Pattern ENDPOINT_PATTERN = Pattern.compile(
         "^(?<" + MATCH_GROUP_ENDPOINT + ">[^:]+):(?<" + MATCH_GROUP_PATH + ">.*)$"
     );
+
+    static final Set<String> KNOWN_URL_SCHEMES = Set.of("http", "https", "ws", "wss");
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
     public static final String INVALID_HTTP_METHOD = "INVALID_HTTP_METHOD";
@@ -105,19 +107,20 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
 
         if (endpointTarget != null) {
             final String evaluatedTarget = ctx.getTemplateEngine().getValue(endpointTarget, String.class);
-            if (URIUtils.isAbsolute(evaluatedTarget)) {
-                ctx.setAttribute(ATTR_REQUEST_ENDPOINT, evaluatedTarget);
-            } else {
-                final Matcher matcher = ENDPOINT_PATTERN.matcher(evaluatedTarget);
+            final Matcher matcher = ENDPOINT_PATTERN.matcher(evaluatedTarget);
 
-                if (matcher.matches()) {
-                    // Set endpoint name into the criteria.
-                    endpointCriteria.setName(matcher.group(MATCH_GROUP_ENDPOINT));
-
-                    // Replace the attribute to remove the endpoint reference part ("my-endpoint:/foo/bar' -> '/foo/bar').
+            if (matcher.matches()) {
+                final String endpointName = matcher.group(MATCH_GROUP_ENDPOINT);
+                if (KNOWN_URL_SCHEMES.contains(endpointName.toLowerCase())) {
+                    // Real absolute URL (e.g., http://backend/path)
+                    ctx.setAttribute(ATTR_REQUEST_ENDPOINT, evaluatedTarget);
+                } else {
+                    // Endpoint reference (e.g., "default:/path" or "default://path" from dynamic routing)
+                    endpointCriteria.setName(endpointName);
                     ctx.setAttribute(ATTR_REQUEST_ENDPOINT, matcher.group(MATCH_GROUP_PATH));
                 }
             }
+            // No else needed: any string with a colon matches ENDPOINT_PATTERN, including all absolute URIs.
         }
 
         final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
