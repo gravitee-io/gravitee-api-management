@@ -782,6 +782,13 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- Gamma modules -->
+            <dependency>
+                <groupId>io.gravitee.gamma.plugin.module</groupId>
+                <artifactId>gravitee-gamma-plugin-module-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- Gravitee APIM modules -->
             <dependency>
                 <groupId>io.gravitee.apim.reporter</groupId>
