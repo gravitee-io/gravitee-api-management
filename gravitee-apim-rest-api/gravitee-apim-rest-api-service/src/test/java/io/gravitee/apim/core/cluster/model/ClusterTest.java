@@ -79,8 +79,8 @@ public class ClusterTest {
         Object configuration = Map.of(
             "connections",
             List.of(
-                Map.of("bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")),
-                Map.of("bootstrapServers", "kafka2:9092", "security", Map.of("protocol", "SSL"))
+                Map.of("name", "primary", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")),
+                Map.of("name", "secondary", "bootstrapServers", "kafka2:9092", "security", Map.of("protocol", "SSL"))
             )
         );
         Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER).configuration(configuration).build();
@@ -88,7 +88,9 @@ public class ClusterTest {
         KafkaClusterConfiguration kafkaConfig = cluster.getKafkaClusterConfiguration(objectMapper);
 
         assertThat(kafkaConfig.connections()).hasSize(2);
+        assertThat(kafkaConfig.connections().get(0).name()).isEqualTo("primary");
         assertThat(kafkaConfig.connections().get(0).bootstrapServers()).isEqualTo("kafka1:9092");
+        assertThat(kafkaConfig.connections().get(1).name()).isEqualTo("secondary");
         assertThat(kafkaConfig.connections().get(1).bootstrapServers()).isEqualTo("kafka2:9092");
     }
 

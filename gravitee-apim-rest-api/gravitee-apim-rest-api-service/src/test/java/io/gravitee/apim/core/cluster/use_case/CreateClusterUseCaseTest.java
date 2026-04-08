@@ -184,7 +184,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         String name = "Kafka Cluster";
         Object configuration = Map.of(
             "connections",
-            List.of(Map.of("bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
+            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
         );
         // Given
         var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name(name).configuration(configuration).build();

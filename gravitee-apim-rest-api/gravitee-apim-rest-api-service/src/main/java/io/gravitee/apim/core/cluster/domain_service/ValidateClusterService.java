@@ -20,10 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterType;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -50,6 +52,27 @@ public class ValidateClusterService {
             jsonSchemaChecker.validate(schema, configJson);
         } catch (JsonProcessingException e) {
             throw new InvalidDataException("Configuration is not valid JSON.");
+        }
+
+        if (cluster.getType() == ClusterType.KAFKA_CLUSTER) {
+            validateUniqueConnectionNames(cluster);
+        }
+    }
+
+    private void validateUniqueConnectionNames(Cluster cluster) {
+        var config = cluster.getKafkaClusterConfiguration(objectMapper);
+        var duplicates = config
+            .connections()
+            .stream()
+            .collect(Collectors.groupingBy(c -> c.name(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(e -> e.getKey())
+            .toList();
+
+        if (!duplicates.isEmpty()) {
+            throw new InvalidDataException("Connection names must be unique. Duplicates found: " + duplicates);
         }
     }
 }

@@ -143,7 +143,9 @@ class ClustersResourceTest extends AbstractResourceTest {
             CreateCluster createCluster = new CreateCluster();
             createCluster.setType(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER);
             createCluster.setName("kafka-cluster-1");
-            createCluster.setConfiguration(Map.of("connections", java.util.List.of(Map.of("bootstrapServers", "kafka1:9092"))));
+            createCluster.setConfiguration(
+                Map.of("connections", java.util.List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092")))
+            );
 
             Cluster output = Cluster.builder()
                 .createdAt(Instant.now())
