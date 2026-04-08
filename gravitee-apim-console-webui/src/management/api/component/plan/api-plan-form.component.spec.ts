@@ -204,6 +204,7 @@ describe('ApiPlanFormComponent', () => {
             },
           ],
         } as CreatePlanV2);
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
       });
     });
     describe('JWT plan', () => {
@@ -353,6 +354,8 @@ describe('ApiPlanFormComponent', () => {
             },
           ],
         } as CreatePlanV2);
+        // Allow pending setTimeout(0) from writeValue in ui-particles 17.7.3 to fire before teardown
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
       });
     });
     describe('API Key plan', () => {

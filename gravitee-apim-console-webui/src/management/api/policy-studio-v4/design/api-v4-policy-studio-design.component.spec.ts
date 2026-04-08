@@ -630,7 +630,8 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
               name: 'Test policy',
               policy: 'test-policy',
               condition: undefined,
-              configuration: undefined,
+              messageCondition: undefined,
+              configuration: {},
             },
           ],
           selectors: [
