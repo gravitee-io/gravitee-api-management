@@ -183,6 +183,47 @@ class HttpEndpointInvokerTest {
         verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "http://api.gravitee.io/echo");
     }
 
+    @ParameterizedTest
+    @ValueSource(
+        strings = { "http://api.gravitee.io/echo", "https://api.gravitee.io/echo", "ws://stream.gravitee.io", "wss://stream.gravitee.io" }
+    )
+    void shouldTreatKnownSchemesAsAbsoluteUrls(String url) {
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(url);
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        cut.invoke(ctx).test().assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName() == null));
+        verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, url);
+    }
+
+    @Test
+    void shouldConnectToNamedEndpointWhenDynamicRoutingProducesDoubleSlash() {
+        // Bug: dynamic routing with {#endpoints['default']}/{#group[0]} where group[0] starts with /
+        // produces "default://path" which was incorrectly treated as an absolute URL
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("default://foo");
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName().equals("default")));
+        verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "//foo");
+    }
+
     @Test
     void shouldFailWith503WhenNoEndpointConnectorHasBeenResolved() {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
