@@ -150,6 +150,8 @@ describe('ApiProviderComponent', () => {
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider Test Provider created!');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      // Allow pending setTimeout(0) from writeValue in ui-particles 17.7.3 to fire before teardown
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
   });
 
@@ -196,6 +198,116 @@ describe('ApiProviderComponent', () => {
             ...existingProvider,
             name: 'Updated Provider',
             sharedConfiguration: { apiKey: 'updated-key' },
+<<<<<<< HEAD
+=======
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider group successfully updated!');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+    });
+  });
+
+  describe('create-endpoint mode', () => {
+    it('should add a new endpoint to an existing provider', async () => {
+      const existingProvider = {
+        name: 'OpenAI Provider',
+        type: 'llm-proxy',
+        sharedConfiguration: { apiKey: 'key' },
+        endpoints: [
+          {
+            name: 'Endpoint 1',
+            type: 'llm-proxy',
+            configuration: { provider: 'OPEN_AI' },
+            inheritConfiguration: true,
+          },
+        ],
+      };
+
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [existingProvider],
+      });
+
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0' }, ['provider', '0', 'new']);
+
+      await componentHarness.setProviderName('Endpoint 2');
+      fixture.componentInstance.formGroup.get('configuration')!.setValue({ provider: 'OPEN_AI' });
+      fixture.componentInstance.formGroup.get('configuration')!.setErrors(null);
+      fixture.componentInstance.formGroup.updateValueAndValidity();
+
+      await componentHarness.clickSaveButton();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            ...existingProvider,
+            endpoints: [
+              ...existingProvider.endpoints,
+              {
+                name: 'Endpoint 2',
+                type: 'llm-proxy',
+                inheritConfiguration: true,
+                configuration: { provider: 'OPEN_AI' },
+              },
+            ],
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint Endpoint 2 created!');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+    });
+  });
+
+  describe('edit-endpoint mode', () => {
+    it('should edit and save an existing endpoint', async () => {
+      const existingProvider = {
+        name: 'OpenAI Provider',
+        type: 'llm-proxy',
+        sharedConfiguration: { apiKey: 'key' },
+        endpoints: [
+          {
+            name: 'Endpoint 1',
+            type: 'llm-proxy',
+            configuration: { provider: 'OPEN_AI' },
+            inheritConfiguration: true,
+          },
+        ],
+      };
+
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [existingProvider],
+      });
+
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0', endpointIndex: '0' }, ['provider', '0', '0']);
+
+      expect(await componentHarness.getProviderName()).toBe('Endpoint 1');
+
+      await componentHarness.setProviderName('Updated Endpoint');
+      fixture.componentInstance.formGroup.get('configuration')!.setValue({ provider: 'OPEN_AI', model: 'gpt-4o' });
+      fixture.componentInstance.formGroup.get('configuration')!.setErrors(null);
+      fixture.componentInstance.formGroup.updateValueAndValidity();
+
+      await componentHarness.clickSaveButton();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            ...existingProvider,
+>>>>>>> 392b4aaf76 (chore: bump @gravitee/ui-particles-angular from 17.7.2 to 17.7.3)
             endpoints: [
               {
                 ...existingProvider.endpoints[0],
@@ -209,8 +321,14 @@ describe('ApiProviderComponent', () => {
       };
       expectApiPutRequest(updatedApi);
 
+<<<<<<< HEAD
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider successfully updated!');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+=======
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint successfully updated!');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+>>>>>>> 392b4aaf76 (chore: bump @gravitee/ui-particles-angular from 17.7.2 to 17.7.3)
     });
   });
 

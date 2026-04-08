@@ -143,9 +143,62 @@ export class ApiLlmProviderComponent implements OnInit {
       .subscribe();
   }
 
+<<<<<<< HEAD
   private updateExistingProvider(api: ApiV4, cleanName: string, configuration: any, sharedConfiguration: any): UpdateApiV4 {
     if (!this.provider || this.providerIndex === null) {
       throw new Error('Cannot update provider: provider or index is null');
+=======
+  private detectMode(): void {
+    const params = this.activatedRoute.snapshot.params;
+    const url = this.activatedRoute.snapshot.url;
+    const lastSegment = url?.[url.length - 1]?.path;
+
+    if (params.providerIndex === undefined) {
+      this.mode = 'create-group';
+      this.backPath = '../../';
+    } else {
+      this.providerIndex = +params.providerIndex;
+
+      if (lastSegment === 'edit') {
+        this.mode = 'edit-group';
+        this.backPath = '../../../';
+      } else if (lastSegment === 'new') {
+        this.mode = 'create-endpoint';
+        this.backPath = '../../../';
+      } else if (params.endpointIndex !== undefined) {
+        this.mode = 'edit-endpoint';
+        this.endpointIndex = +params.endpointIndex;
+        this.backPath = '../../';
+      }
+    }
+  }
+
+  private initializeComponent(api: ApiV4): void {
+    this.api = api;
+
+    const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+    const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+    this.isReadOnly = isKubernetesOrigin || !canUpdate;
+
+    if (this.providerIndex !== null) {
+      const endpointGroups = api.endpointGroups || [];
+      this.provider = endpointGroups[this.providerIndex];
+
+      if (!this.provider) {
+        this.snackBarService.error(`Provider at index [ ${this.providerIndex} ] does not exist.`);
+        this.router.navigate([this.backPath], { relativeTo: this.activatedRoute });
+        return;
+      }
+
+      if (this.mode === 'edit-endpoint' && this.endpointIndex !== null) {
+        this.endpoint = this.provider.endpoints?.[this.endpointIndex] || null;
+        if (!this.endpoint) {
+          this.snackBarService.error(`Endpoint at index [ ${this.endpointIndex} ] does not exist.`);
+          this.router.navigate([this.backPath], { relativeTo: this.activatedRoute });
+          return;
+        }
+      }
+>>>>>>> 392b4aaf76 (chore: bump @gravitee/ui-particles-angular from 17.7.2 to 17.7.3)
     }
 
     const endpoints = this.provider.endpoints || [];
