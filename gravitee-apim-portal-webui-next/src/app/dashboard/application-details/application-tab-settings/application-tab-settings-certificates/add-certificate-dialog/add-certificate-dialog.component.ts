@@ -35,6 +35,7 @@ export interface AddCertificateDialogData {
   applicationId: string;
   hasActiveCertificates: boolean;
   activeCertificateId?: string;
+  activeCertificateName?: string;
   activeCertificateExpiration?: string;
 }
 
@@ -157,6 +158,7 @@ export class AddCertificateDialogComponent {
         switchMap(() => {
           if (gracePeriodEnd && this.data.activeCertificateId) {
             return this.certService.update(this.data.applicationId, this.data.activeCertificateId!, {
+              ...(this.data.activeCertificateName ? { name: this.data.activeCertificateName } : {}),
               endsAt: gracePeriodEnd.toISOString(),
             });
           }
