@@ -1,0 +1,82 @@
+{
+  "id": "dynamic-routing-endpoint-ref",
+  "name": "dynamic-routing-endpoint-ref",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "backend",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "dynamic-routing-flow",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": ["GET"]
+        }
+      ],
+      "request": [
+        {
+          "name": "Dynamic routing",
+          "enabled": true,
+          "policy": "dynamic-routing",
+          "configuration": {
+            "rules": [
+              {
+                "pattern": "/plan(.*)",
+                "url": "{#endpoints['default']}/{#group[0]}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-keyless",
+      "status": "published",
+      "type": "API",
+      "definitionVersion": "V4",
+      "security": {
+        "type": "key-less",
+        "configuration": {}
+      },
+      "mode": "standard",
+      "flows": [],
+      "name": "default"
+    }
+  ]
+}
