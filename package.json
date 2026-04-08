@@ -132,7 +132,7 @@
         "@angular/build": "20.3.14",
         "@angular/cli": "20.3.14",
         "@angular/compiler-cli": "20.3.16",
-        "@gravitee/ui-schematics": "17.7.2",
+        "@gravitee/ui-schematics": "17.7.4",
         "@module-federation/enhanced": "0.18.0",
         "@nx/angular": "21.6.10",
         "@nx/jest": "22.4.5",
