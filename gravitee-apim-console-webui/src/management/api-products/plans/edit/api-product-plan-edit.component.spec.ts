@@ -229,6 +229,9 @@ describe('ApiProductPlanEditComponent', () => {
       fixture.detectChanges();
       submitForm();
       tick();
+      httpTestingController
+        .match(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`)
+        .forEach(req => req.error(new ProgressEvent('error')));
 
       httpTestingController.expectNone({
         method: 'POST',

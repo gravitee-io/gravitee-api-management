@@ -151,6 +151,8 @@ describe('ApiProviderComponent', () => {
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider Test Provider created!');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      // Allow pending setTimeout(0) from writeValue in ui-particles 17.7.3 to fire before teardown
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
   });
 
@@ -202,6 +204,7 @@ describe('ApiProviderComponent', () => {
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Provider group successfully updated!');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
   });
 
@@ -258,6 +261,7 @@ describe('ApiProviderComponent', () => {
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint Endpoint 2 created!');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
   });
 
@@ -313,7 +317,8 @@ describe('ApiProviderComponent', () => {
       expectApiPutRequest(updatedApi);
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint successfully updated!');
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
   });
 

@@ -158,7 +158,7 @@ export class ApiLlmProviderComponent implements OnInit {
       } else if (params.endpointIndex !== undefined) {
         this.mode = 'edit-endpoint';
         this.endpointIndex = +params.endpointIndex;
-        this.backPath = '../../../';
+        this.backPath = '../../';
       }
     }
   }
