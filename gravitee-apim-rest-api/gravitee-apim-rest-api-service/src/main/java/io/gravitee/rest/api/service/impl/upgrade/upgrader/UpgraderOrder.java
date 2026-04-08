@@ -68,4 +68,5 @@ public class UpgraderOrder {
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
     public static final int API_PRODUCT_ROLES_UPGRADER = 950;
+    public static final int API_PRODUCT_MEMBER_PERMISSION_UPGRADER = 951;
 }

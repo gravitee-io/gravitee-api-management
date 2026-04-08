@@ -22,7 +22,8 @@ public enum ApiProductPermission implements Permission {
     DEFINITION("DEFINITION", 1000),
     PLAN("PLAN", 1100),
     SUBSCRIPTION("SUBSCRIPTION", 1200),
-    NOTIFICATION("NOTIFICATION", 1300);
+    NOTIFICATION("NOTIFICATION", 1300),
+    MEMBER("MEMBER", 1400);
 
     final String name;
     final int mask;
