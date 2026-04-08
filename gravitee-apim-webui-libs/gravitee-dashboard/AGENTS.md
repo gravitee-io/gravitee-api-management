@@ -1,0 +1,20 @@
+# Coding Guidelines for gravitee-dashboard
+
+Project rules for the **gravitee-dashboard** library only.
+
+## 1. Selectors: gd-\* prefix
+
+- All component and host selectors in this library must use the **gd-\*** prefix (e.g. `gd-chart`, `gd-dashboard-tile`). Do not use `gmd-*` or other prefixes; `gd-*` is reserved for gravitee-dashboard.
+
+## 2. Composition
+
+- Place **subcomponents** in the same folder as the parent or in **subfolders** (e.g. a chart component may have a `chart/` subfolder with **converters** and related types). Keep related logic and UI together; avoid scattering dashboard pieces across unrelated directories.
+
+## 3. No theme variables
+
+- Use **plain SCSS** only; do not depend on the main app theme or theme variables. The dashboard library is theme-agnostic so it can be used in different host apps. No `@use '.../scss/theme'` or app-theme variables in this library.
+
+## 4. Charts
+
+- **Minimal SCSS on :host:** Limit chart host styles to layout/sizing (e.g. `:host { display: block; width: 100%; }`). Do not put chart logic or data transformation in the component template or SCSS.
+- **Logic in converter services and shared utilities:** All chart data transformation, options building, and rendering logic belong in **converter services** (or equivalent) and **shared utilities**, not in the component class or SCSS. Keep components thin and delegate to services and utilities.
