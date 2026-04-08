@@ -139,6 +139,35 @@ class ClustersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_create_kafka_cluster() {
+            CreateCluster createCluster = new CreateCluster();
+            createCluster.setType(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER);
+            createCluster.setName("kafka-cluster-1");
+            createCluster.setConfiguration(Map.of("connections", java.util.List.of(Map.of("bootstrapServers", "kafka1:9092"))));
+
+            Cluster output = Cluster.builder()
+                .createdAt(Instant.now())
+                .id("cl-id-2")
+                .type(io.gravitee.apim.core.cluster.model.ClusterType.KAFKA_CLUSTER)
+                .name(createCluster.getName())
+                .environmentId(ENV_ID)
+                .organizationId(ORGANIZATION)
+                .configuration(createCluster.getConfiguration())
+                .build();
+
+            when(createClusterUseCase.execute(any())).thenReturn(new CreateClusterUseCase.Output(output));
+
+            final Response response = rootTarget().request().post(json(createCluster));
+
+            assertThat(response.getStatus()).isEqualTo(CREATED_201);
+
+            var createdCluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+
+            assertThat(createdCluster.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER);
+            assertThat(createdCluster.getName()).isEqualTo(createCluster.getName());
+        }
+
+        @Test
         void should_return_400_if_execute_fails_with_invalid_data_exception() {
             CreateCluster createCluster = new CreateCluster();
 

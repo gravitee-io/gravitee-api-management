@@ -476,14 +476,27 @@
 					<includeSchemas>
 						<include>schemas/**/schema-form-ssl.json</include>
 					</includeSchemas>
-					<localSchemaFile>${project.basedir}/src/main/resources/cluster/kafka-cluster-configuration-schema-form.json</localSchemaFile>
-					<outputFile>${project.build.outputDirectory}/cluster/kafka-cluster-configuration-schema-form.json</outputFile>
 				</configuration>
 				<executions>
 					<execution>
+						<id>bundle-kafka-cluster-connection-schema</id>
 						<goals>
 							<goal>common-schema-form-bundle</goal>
 						</goals>
+						<configuration>
+							<localSchemaFile>${project.basedir}/src/main/resources/cluster/kafka-cluster-connection-configuration-schema-form.json</localSchemaFile>
+							<outputFile>${project.build.outputDirectory}/cluster/kafka-cluster-connection-configuration-schema-form.json</outputFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>bundle-kafka-cluster-schema</id>
+						<goals>
+							<goal>common-schema-form-bundle</goal>
+						</goals>
+						<configuration>
+							<localSchemaFile>${project.basedir}/src/main/resources/cluster/kafka-cluster-configuration-schema-form.json</localSchemaFile>
+							<outputFile>${project.build.outputDirectory}/cluster/kafka-cluster-configuration-schema-form.json</outputFile>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

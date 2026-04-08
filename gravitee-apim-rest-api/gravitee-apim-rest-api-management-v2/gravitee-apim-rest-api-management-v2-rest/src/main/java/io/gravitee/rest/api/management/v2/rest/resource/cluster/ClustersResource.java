@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.common.http.MediaType;
@@ -126,8 +127,9 @@ public class ClustersResource extends AbstractResource {
     @Path("schema/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
-    public Response getConfigurationSchema() {
-        return Response.ok(clusterConfigurationSchemaService.getConfigurationSchema()).build();
+    public Response getConfigurationSchema(@QueryParam("type") ClusterType type) {
+        ClusterType clusterType = type != null ? type : ClusterType.KAFKA_CLUSTER_CONNECTION;
+        return Response.ok(clusterConfigurationSchemaService.getConfigurationSchema(clusterType)).build();
     }
 
     @Path("{clusterId}")

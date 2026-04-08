@@ -18,8 +18,10 @@ package io.gravitee.apim.core.cluster.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -69,5 +71,35 @@ public class ClusterTest {
             () -> assertThat(cluster.getEnvironmentId()).isEqualTo(envId),
             () -> assertThat(cluster.getConfiguration()).isEqualTo(newConfiguration)
         );
+    }
+
+    @Test
+    public void should_deserialize_kafka_cluster_configuration() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Object configuration = Map.of(
+            "connections",
+            List.of(
+                Map.of("bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")),
+                Map.of("bootstrapServers", "kafka2:9092", "security", Map.of("protocol", "SSL"))
+            )
+        );
+        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER).configuration(configuration).build();
+
+        KafkaClusterConfiguration kafkaConfig = cluster.getKafkaClusterConfiguration(objectMapper);
+
+        assertThat(kafkaConfig.connections()).hasSize(2);
+        assertThat(kafkaConfig.connections().get(0).bootstrapServers()).isEqualTo("kafka1:9092");
+        assertThat(kafkaConfig.connections().get(1).bootstrapServers()).isEqualTo("kafka2:9092");
+    }
+
+    @Test
+    public void should_deserialize_kafka_cluster_connection_configuration() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).configuration(configuration).build();
+
+        KafkaClusterConnectionConfiguration connectionConfig = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
+
+        assertThat(connectionConfig.bootstrapServers()).isEqualTo("localhost:9092");
     }
 }

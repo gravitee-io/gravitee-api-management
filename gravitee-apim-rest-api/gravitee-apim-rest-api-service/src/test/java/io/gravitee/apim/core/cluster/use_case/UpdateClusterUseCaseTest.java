@@ -31,6 +31,7 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaSe
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
@@ -62,6 +63,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
             .name("Cluster 1")
             .createdAt(INSTANT_NOW)
             .description("The cluster no 1")
