@@ -135,6 +135,7 @@ export class ApplicationTabSettingsCertificatesComponent implements OnInit {
       applicationId: this.applicationId(),
       hasActiveCertificates: activeCerts.length > 0,
       activeCertificateId: activeCert?.id,
+      activeCertificateName: activeCert?.name,
       activeCertificateExpiration: activeCert?.endsAt,
     };
     this.dialog
