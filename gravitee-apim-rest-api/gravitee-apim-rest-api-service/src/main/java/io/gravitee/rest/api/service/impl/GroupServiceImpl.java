@@ -202,6 +202,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             // Batch-fetch GROUP->API and GROUP->APPLICATION memberships (2 queries instead of 3*N)
             Set<MembershipEntity> apiMemberships = Set.of();
             Set<MembershipEntity> appMemberships = Set.of();
+            Set<MembershipEntity> apiProductMemberships = Set.of();
             if (!allGroupIds.isEmpty()) {
                 apiMemberships = membershipService.getMembershipsByMembersAndReference(
                     MembershipMemberType.GROUP,
@@ -213,6 +214,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     allGroupIds,
                     MembershipReferenceType.APPLICATION
                 );
+                apiProductMemberships = membershipService.getMembershipsByMembersAndReference(
+                    MembershipMemberType.GROUP,
+                    allGroupIds,
+                    MembershipReferenceType.API_PRODUCT
+                );
             }
 
             // Build default role maps (memberships where referenceId is null)
@@ -221,6 +227,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .filter(m -> m.getReferenceId() == null)
                 .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
             Map<String, String> defaultAppRoleByGroup = appMemberships
+                .stream()
+                .filter(m -> m.getReferenceId() == null)
+                .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
+            Map<String, String> defaultApiProductRoleByGroup = apiProductMemberships
                 .stream()
                 .filter(m -> m.getReferenceId() == null)
                 .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
@@ -239,7 +249,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             final List<GroupEntity> groups = all
                 .stream()
-                .map(group -> mapWithBatchData(group, defaultApiRoleByGroup, defaultAppRoleByGroup, poGroupIds))
+                .map(group ->
+                    mapWithBatchData(group, defaultApiRoleByGroup, defaultAppRoleByGroup, defaultApiProductRoleByGroup, poGroupIds)
+                )
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toList());
 
@@ -415,6 +427,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updatedGroupEntity.setEventRules(group.getEventRules());
             updatedGroupEntity.setMaxInvitation(group.getMaxInvitation());
             updatedGroupEntity.setLockApiRole(group.isLockApiRole());
+            updatedGroupEntity.setLockApiProductRole(group.isLockApiProductRole());
             updatedGroupEntity.setLockApplicationRole(group.isLockApplicationRole());
             updatedGroupEntity.setSystemInvitation(group.isSystemInvitation());
             updatedGroupEntity.setEmailInvitation(group.isEmailInvitation());
@@ -473,7 +486,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         Map<RoleScope, String> formerRoles,
         Map<RoleScope, String> newRoles
     ) throws TechnicalException {
-        RoleScope[] groupRoleScopes = { RoleScope.API, RoleScope.APPLICATION };
+        RoleScope[] groupRoleScopes = { RoleScope.API, RoleScope.API_PRODUCT, RoleScope.APPLICATION };
         for (RoleScope roleScope : groupRoleScopes) {
             if (
                 formerRoles != null &&
@@ -1019,6 +1032,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setUpdatedAt(entity.getUpdatedAt());
         group.setMaxInvitation(entity.getMaxInvitation());
         group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApiProductRole(entity.isLockApiProductRole());
         group.setLockApplicationRole(entity.isLockApplicationRole());
         group.setSystemInvitation(entity.isSystemInvitation());
         group.setEmailInvitation(entity.isEmailInvitation());
@@ -1047,6 +1061,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
         group.setMaxInvitation(entity.getMaxInvitation());
         group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApiProductRole(entity.isLockApiProductRole());
         group.setLockApplicationRole(entity.isLockApplicationRole());
         group.setSystemInvitation(entity.isSystemInvitation());
         group.setEmailInvitation(entity.isEmailInvitation());
@@ -1103,12 +1118,17 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (defaultApplicationRole != null) {
             roles.put(RoleScope.APPLICATION, defaultApplicationRole.getName());
         }
+        RoleEntity defaultApiProductRole = getDefaultRole(group.getId(), RoleScope.API_PRODUCT);
+        if (defaultApiProductRole != null) {
+            roles.put(RoleScope.API_PRODUCT, defaultApiProductRole.getName());
+        }
         entity.setRoles(roles);
 
         entity.setCreatedAt(group.getCreatedAt());
         entity.setUpdatedAt(group.getUpdatedAt());
         entity.setMaxInvitation(group.getMaxInvitation());
         entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApiProductRole(group.isLockApiProductRole());
         entity.setLockApplicationRole(group.isLockApplicationRole());
         entity.setSystemInvitation(group.isSystemInvitation());
         entity.setEmailInvitation(group.isEmailInvitation());
@@ -1126,6 +1146,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         Group group,
         Map<String, String> defaultApiRoleIdByGroup,
         Map<String, String> defaultAppRoleIdByGroup,
+        Map<String, String> defaultApiProductRoleIdByGroup,
         Set<String> poGroupIds
     ) {
         if (group == null) {
@@ -1159,12 +1180,17 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (appRoleId != null) {
             roles.put(RoleScope.APPLICATION, roleService.findById(appRoleId).getName());
         }
+        String apiProductRoleId = defaultApiProductRoleIdByGroup.get(group.getId());
+        if (apiProductRoleId != null) {
+            roles.put(RoleScope.API_PRODUCT, roleService.findById(apiProductRoleId).getName());
+        }
         entity.setRoles(roles);
 
         entity.setCreatedAt(group.getCreatedAt());
         entity.setUpdatedAt(group.getUpdatedAt());
         entity.setMaxInvitation(group.getMaxInvitation());
         entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApiProductRole(group.isLockApiProductRole());
         entity.setLockApplicationRole(group.isLockApplicationRole());
         entity.setSystemInvitation(group.isSystemInvitation());
         entity.setEmailInvitation(group.isEmailInvitation());

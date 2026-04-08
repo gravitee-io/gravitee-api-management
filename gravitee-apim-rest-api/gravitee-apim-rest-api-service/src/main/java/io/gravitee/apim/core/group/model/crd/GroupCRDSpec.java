@@ -56,6 +56,7 @@ public class GroupCRDSpec {
             .apiPrimaryOwner(null)
             .eventRules(List.of())
             .lockApiRole(false)
+            .lockApiProductRole(false)
             .lockApplicationRole(false)
             .maxInvitation(Integer.MAX_VALUE)
             .systemInvitation(false)

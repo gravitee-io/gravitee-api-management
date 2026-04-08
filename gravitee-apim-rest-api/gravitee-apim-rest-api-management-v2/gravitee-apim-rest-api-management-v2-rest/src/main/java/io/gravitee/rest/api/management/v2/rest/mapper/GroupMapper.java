@@ -39,6 +39,7 @@ public interface GroupMapper {
 
     @Mapping(source = "roles", target = "apiRole", qualifiedByName = "mapApiRole")
     @Mapping(source = "roles", target = "applicationRole", qualifiedByName = "mapApplicationRole")
+    @Mapping(source = "roles", target = "apiProductRole", qualifiedByName = "mapApiProductRole")
     Group map(GroupEntity group);
 
     List<Group> map(List<GroupEntity> groups);
@@ -76,6 +77,14 @@ public interface GroupMapper {
             return null;
         }
         return roles.get(RoleScope.APPLICATION);
+    }
+
+    @Named("mapApiProductRole")
+    default String mapApiProductRole(Map<RoleScope, String> roles) {
+        if (Objects.isNull(roles)) {
+            return null;
+        }
+        return roles.get(RoleScope.API_PRODUCT);
     }
 
     List<Group> mapFromCoreList(List<io.gravitee.apim.core.group.model.Group> coreGroups);

@@ -122,11 +122,15 @@ public class GroupResource extends AbstractResource {
         ) {
             updateGroupEntity.setMaxInvitation(groupEntity.getMaxInvitation());
             updateGroupEntity.setLockApiRole(groupEntity.isLockApiRole());
+            updateGroupEntity.setLockApiProductRole(groupEntity.isLockApiProductRole());
             updateGroupEntity.setLockApplicationRole(groupEntity.isLockApplicationRole());
             updateGroupEntity.setSystemInvitation(groupEntity.isSystemInvitation());
             updateGroupEntity.setEmailInvitation(groupEntity.isEmailInvitation());
             if (groupEntity.isLockApiRole()) {
                 updateGroupEntity.getRoles().put(RoleScope.API, groupEntity.getRoles().get(RoleScope.API));
+            }
+            if (groupEntity.isLockApiProductRole() && groupEntity.getRoles() != null) {
+                updateGroupEntity.getRoles().put(RoleScope.API_PRODUCT, groupEntity.getRoles().get(RoleScope.API_PRODUCT));
             }
             if (groupEntity.isLockApplicationRole()) {
                 updateGroupEntity.getRoles().put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));

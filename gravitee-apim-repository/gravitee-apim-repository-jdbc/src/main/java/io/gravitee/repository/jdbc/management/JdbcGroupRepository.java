@@ -72,6 +72,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("max_invitation", Types.INTEGER, Integer.class)
             .addColumn("lock_api_role", Types.BIT, boolean.class)
+            .addColumn("lock_api_product_role", Types.BIT, boolean.class)
             .addColumn("lock_application_role", Types.BIT, boolean.class)
             .addColumn("system_invitation", Types.BIT, boolean.class)
             .addColumn("email_invitation", Types.BIT, boolean.class)

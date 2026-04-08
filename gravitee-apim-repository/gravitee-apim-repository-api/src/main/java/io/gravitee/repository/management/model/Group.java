@@ -48,6 +48,7 @@ public class Group {
     private Date updatedAt;
     private Integer maxInvitation;
     private boolean lockApiRole;
+    private boolean lockApiProductRole;
     private boolean lockApplicationRole;
     private boolean systemInvitation;
     private boolean emailInvitation;

@@ -65,6 +65,9 @@ public class GroupEntity {
     @JsonProperty("lock_api_role")
     private boolean lockApiRole;
 
+    @JsonProperty("lock_api_product_role")
+    private boolean lockApiProductRole;
+
     @JsonProperty("lock_application_role")
     private boolean lockApplicationRole;
 

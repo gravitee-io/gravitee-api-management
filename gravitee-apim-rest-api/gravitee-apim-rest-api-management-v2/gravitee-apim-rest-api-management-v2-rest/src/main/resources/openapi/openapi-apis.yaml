@@ -5788,6 +5788,12 @@ components:
                       lockApplicationRole:
                           type: boolean
                           description: Application role cannot be changed.
+                      apiProductRole:
+                          type: string
+                          description: The API Product role of the group.
+                      lockApiProductRole:
+                          type: boolean
+                          description: API Product role cannot be changed.
                       systemInvitation:
                           type: boolean
                           description: Invitation via user search enabled.

@@ -329,3 +329,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/00_add_lock_api_product_role_to_groups.yml
