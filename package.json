@@ -38,7 +38,7 @@
         "@gravitee/graphene": "1.0.0-alpha.23",
         "@gravitee/ui-analytics": "17.7.2",
         "@gravitee/ui-components": "4.4.0",
-        "@gravitee/ui-particles-angular": "17.7.2",
+        "@gravitee/ui-particles-angular": "17.7.3",
         "@gravitee/ui-policy-studio-angular": "17.7.2",
         "@highcharts/map-collection": "1.1.4",
         "@ngx-formly/core": "6.3.12",
