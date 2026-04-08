@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ThemeProvider } from '@gravitee/graphene';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -37,21 +38,23 @@ initialize().then(() => {
     root.render(
         <StrictMode>
             <BrowserRouter>
-                <ErrorBoundary
-                    fallback={(error, retry) => (
-                        <div>
-                            <h2>Bootstrap Failed</h2>
-                            <p>{error.message}</p>
-                            <button type="button" onClick={retry}>
-                                Retry
-                            </button>
-                        </div>
-                    )}
-                >
-                    <Suspense fallback={<div>Loading…</div>}>
-                        <App />
-                    </Suspense>
-                </ErrorBoundary>
+                <ThemeProvider defaultMode="system">
+                    <ErrorBoundary
+                        fallback={(error, retry) => (
+                            <div>
+                                <h2>Bootstrap Failed</h2>
+                                <p>{error.message}</p>
+                                <button type="button" onClick={retry}>
+                                    Retry
+                                </button>
+                            </div>
+                        )}
+                    >
+                        <Suspense fallback={<div>Loading…</div>}>
+                            <App />
+                        </Suspense>
+                    </ErrorBoundary>
+                </ThemeProvider>
             </BrowserRouter>
         </StrictMode>,
     );

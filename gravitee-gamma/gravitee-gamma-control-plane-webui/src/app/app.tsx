@@ -20,6 +20,7 @@ import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { AboutPage } from '../pages/AboutPage';
 import { HomePage } from '../pages/HomePage';
+import { ShellLayout } from '../shared/components/ShellLayout';
 
 export function App() {
     const { modules, loading, error } = useGammaModules();
@@ -31,11 +32,13 @@ export function App() {
                     <Route path="/login" element={<LoginPage />} />
                 </Route>
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/" element={<HomePage modules={modules} loading={loading} error={error} />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    {modules.map((m: GammaModule) => (
-                        <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
-                    ))}
+                    <Route element={<ShellLayout modules={modules} />}>
+                        <Route path="/" element={<HomePage modules={modules} loading={loading} error={error} />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        {modules.map((m: GammaModule) => (
+                            <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
+                        ))}
+                    </Route>
                 </Route>
             </Routes>
         </React.Suspense>

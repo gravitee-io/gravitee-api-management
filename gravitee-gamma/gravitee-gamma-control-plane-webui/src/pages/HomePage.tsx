@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Button } from '@gravitee/graphene';
 import { Link } from 'react-router-dom';
 
 import type { GammaModule } from '../features/modules';
@@ -27,12 +28,14 @@ export function HomePage({
     readonly error: Error | null;
 }) {
     return (
-        <div>
+        <>
             <h1>Welcome to Gravitee Gamma</h1>
             <h2>Shell</h2>
             <ul>
                 <li>
-                    <Link to="/about">About</Link>
+                    <Button variant="link" asChild>
+                        <Link to="/about">About</Link>
+                    </Button>
                 </li>
             </ul>
             <h2>Modules</h2>
@@ -43,14 +46,16 @@ export function HomePage({
                 <ul>
                     {modules.map(m => (
                         <li key={m.id}>
-                            <Link to={`/${m.id}`}>
-                                <strong>{m.name}</strong>
-                            </Link>{' '}
+                            <Button variant="link" asChild>
+                                <Link to={`/${m.id}`}>
+                                    <strong>{m.name}</strong>
+                                </Link>
+                            </Button>{' '}
                             (v{m.version})
                         </li>
                     ))}
                 </ul>
             )}
-        </div>
+        </>
     );
 }

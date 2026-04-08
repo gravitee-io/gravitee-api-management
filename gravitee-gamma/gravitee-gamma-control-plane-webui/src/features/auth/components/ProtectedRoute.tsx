@@ -26,11 +26,7 @@ export function ProtectedRoute() {
         return <Navigate to={`/login${redirect}`} replace />;
     }
 
-    return (
-        <div style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-            <Outlet />
-        </div>
-    );
+    return <Outlet />;
 }
 
 export function PublicOnlyRoute() {

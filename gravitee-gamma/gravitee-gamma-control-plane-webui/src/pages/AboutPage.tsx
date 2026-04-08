@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Button } from '@gravitee/graphene';
 import { Link } from 'react-router-dom';
 
 export function AboutPage() {
@@ -20,7 +21,9 @@ export function AboutPage() {
         <div>
             <h1>About</h1>
             <p>
-                <Link to="/">Home</Link>
+                <Button variant="link" asChild>
+                    <Link to="/">Home</Link>
+                </Button>
             </p>
         </div>
     );
