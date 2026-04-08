@@ -40,7 +40,7 @@ public class ListTopicsUseCase {
 
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
-        var config = cluster.getKafkaClusterConfiguration(objectMapper);
+        var config = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
         var topicsPage = kafkaClusterDomainService.listTopics(
             config,
             input.nameFilter(),

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
-import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConnectionConfiguration;
 import io.gravitee.apim.core.cluster.model.SaslMechanism;
 import io.gravitee.apim.core.cluster.model.SecurityProtocol;
 import io.gravitee.plugin.configurations.ssl.KeyStore;
@@ -102,7 +102,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private static final long GET_TIMEOUT_SECONDS = TIMEOUT_SECONDS + 2;
 
     @Override
-    public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
+    public KafkaClusterInfo describeCluster(KafkaClusterConnectionConfiguration config) {
         return withAdminClient(config, adminClient -> {
             DescribeClusterResult result = adminClient.describeCluster();
 
@@ -132,7 +132,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public TopicsPage listTopics(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String nameFilter,
         int page,
         int perPage,
@@ -219,7 +219,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     }
 
     @Override
-    public TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName) {
+    public TopicDetail describeTopic(KafkaClusterConnectionConfiguration config, String topicName) {
         return withAdminClient(config, adminClient -> {
             // Describe topic to get partition info
             TopicDescription description = adminClient
@@ -265,7 +265,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     }
 
     @Override
-    public BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId) {
+    public BrokerInfo describeBroker(KafkaClusterConnectionConfiguration config, int brokerId) {
         return withAdminClient(config, adminClient -> {
             // Step 1: describeCluster to find the node and detect controller
             DescribeClusterResult clusterResult = adminClient.describeCluster();
@@ -354,7 +354,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public ConsumerGroupsPage listConsumerGroups(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String nameFilter,
         String topicFilter,
         int page,
@@ -452,7 +452,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     }
 
     @Override
-    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId) {
+    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConnectionConfiguration config, String groupId) {
         return withAdminClient(config, adminClient -> {
             // Step 1: Describe the consumer group
             ConsumerGroupDescription description = adminClient
@@ -493,7 +493,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public BrowseMessagesResult browseMessages(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String topicName,
         Integer partition,
         String offsetMode,
@@ -594,7 +594,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public void tailMessages(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String topicName,
         Integer partition,
         String keyFilter,
@@ -637,7 +637,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         });
     }
 
-    private List<TopicPartition> resolvePartitions(KafkaClusterConfiguration config, String topicName, Integer partition) {
+    private List<TopicPartition> resolvePartitions(KafkaClusterConnectionConfiguration config, String topicName, Integer partition) {
         return withAdminClient(config, adminClient -> {
             TopicDescription description;
             try {
@@ -689,7 +689,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         T execute(KafkaConsumer<String, String> consumer) throws Exception;
     }
 
-    private <T> T withConsumer(KafkaClusterConfiguration config, int maxPollRecords, ConsumerAction<T> action) {
+    private <T> T withConsumer(KafkaClusterConnectionConfiguration config, int maxPollRecords, ConsumerAction<T> action) {
         List<Path> tempFiles = new ArrayList<>();
         Properties properties = buildConsumerProperties(config, maxPollRecords, tempFiles);
         try (KafkaConsumer<String, String> consumer = createConsumer(properties)) {
@@ -714,7 +714,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return new KafkaConsumer<>(properties);
     }
 
-    private Properties buildConsumerProperties(KafkaClusterConfiguration config, int maxPollRecords, List<Path> tempFiles) {
+    private Properties buildConsumerProperties(KafkaClusterConnectionConfiguration config, int maxPollRecords, List<Path> tempFiles) {
         Properties properties = buildProperties(config, tempFiles);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -919,7 +919,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         T execute(AdminClient adminClient) throws Exception;
     }
 
-    private <T> T withAdminClient(KafkaClusterConfiguration config, AdminClientAction<T> action) {
+    private <T> T withAdminClient(KafkaClusterConnectionConfiguration config, AdminClientAction<T> action) {
         List<Path> tempFiles = new ArrayList<>();
         Properties properties = buildProperties(config, tempFiles);
         try (AdminClient adminClient = createAdminClient(properties)) {
@@ -1017,7 +1017,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         );
     }
 
-    private Properties buildProperties(KafkaClusterConfiguration config, List<Path> tempFiles) {
+    private Properties buildProperties(KafkaClusterConnectionConfiguration config, List<Path> tempFiles) {
         Properties properties = new Properties();
         // TODO: Add allowed bootstrap servers validation via gravitee.yml config to prevent SSRF
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.bootstrapServers());

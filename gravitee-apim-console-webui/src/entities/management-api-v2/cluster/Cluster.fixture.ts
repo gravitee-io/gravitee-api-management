@@ -18,6 +18,7 @@ import { Cluster } from './Cluster';
 export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
   return {
     id: 'cluster-id',
+    type: 'KAFKA_CLUSTER_CONNECTION',
     name: 'Cluster Name',
     description: 'A test cluster',
     configuration: {

@@ -40,7 +40,7 @@ public class DescribeConsumerGroupUseCase {
 
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
-        var config = cluster.getKafkaClusterConfiguration(objectMapper);
+        var config = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
         var consumerGroupDetail = kafkaClusterDomainService.describeConsumerGroup(config, input.groupId());
         return new Output(consumerGroupDetail);
     }

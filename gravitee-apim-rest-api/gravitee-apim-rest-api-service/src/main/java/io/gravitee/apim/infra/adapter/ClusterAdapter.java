@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -29,12 +30,19 @@ public abstract class ClusterAdapter {
     public static final ObjectMapper mapper = new ObjectMapper();
 
     @Mapping(target = "definition", source = "cluster", qualifiedByName = "mapDefinition")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapTypeToString")
     public abstract io.gravitee.repository.management.model.Cluster toRepository(Cluster cluster);
+
+    @Named("mapTypeToString")
+    public String mapTypeToString(ClusterType type) {
+        return type != null ? type.name() : null;
+    }
 
     @Named("mapDefinition")
     public String mapDefinition(Cluster cluster) throws JsonProcessingException {
         var clusterDefinition = io.gravitee.definition.model.cluster.Cluster.builder()
             .id(cluster.getId())
+            .type(cluster.getType() != null ? cluster.getType().name() : null)
             .name(cluster.getName())
             .configuration(cluster.getConfiguration())
             .build();
@@ -42,7 +50,13 @@ public abstract class ClusterAdapter {
     }
 
     @Mapping(target = "configuration", source = "cluster", qualifiedByName = "mapConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapTypeFromString")
     public abstract Cluster fromRepository(io.gravitee.repository.management.model.Cluster cluster);
+
+    @Named("mapTypeFromString")
+    public ClusterType mapTypeFromString(String type) {
+        return type != null ? ClusterType.valueOf(type) : ClusterType.KAFKA_CLUSTER_CONNECTION;
+    }
 
     @Named("mapConfiguration")
     public Object mapConfiguration(io.gravitee.repository.management.model.Cluster cluster) throws JsonProcessingException {

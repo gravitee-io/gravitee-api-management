@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
-import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConnectionConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.MessageConsumer;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
@@ -89,7 +89,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
+    public KafkaClusterInfo describeCluster(KafkaClusterConnectionConfiguration config) {
         if (exception != null) {
             throw exception;
         }
@@ -98,7 +98,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public TopicsPage listTopics(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String nameFilter,
         int page,
         int perPage,
@@ -127,7 +127,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName) {
+    public TopicDetail describeTopic(KafkaClusterConnectionConfiguration config, String topicName) {
         if (exception != null) {
             throw exception;
         }
@@ -135,7 +135,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId) {
+    public BrokerInfo describeBroker(KafkaClusterConnectionConfiguration config, int brokerId) {
         if (exception != null) {
             throw exception;
         }
@@ -144,7 +144,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public ConsumerGroupsPage listConsumerGroups(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String nameFilter,
         String topicFilter,
         int page,
@@ -174,7 +174,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId) {
+    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConnectionConfiguration config, String groupId) {
         if (exception != null) {
             throw exception;
         }
@@ -183,7 +183,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public BrowseMessagesResult browseMessages(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String topicName,
         Integer partition,
         String offsetMode,
@@ -200,7 +200,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public void tailMessages(
-        KafkaClusterConfiguration config,
+        KafkaClusterConnectionConfiguration config,
         String topicName,
         Integer partition,
         String keyFilter,

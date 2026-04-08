@@ -54,6 +54,7 @@ public class CreateClusterUseCase {
     public Output execute(Input input) {
         Instant now = TimeProvider.instantNow();
         Cluster clusterToCreate = Cluster.builder()
+            .type(input.createCluster.getType())
             .name(input.createCluster.getName())
             .description(input.createCluster.getDescription())
             .configuration(input.createCluster.getConfiguration())

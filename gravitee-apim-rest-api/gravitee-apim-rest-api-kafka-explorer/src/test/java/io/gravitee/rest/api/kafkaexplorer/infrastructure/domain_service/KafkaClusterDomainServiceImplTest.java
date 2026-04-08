@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConnectionConfiguration;
 import io.gravitee.apim.core.cluster.model.SaslConfig;
 import io.gravitee.apim.core.cluster.model.SaslMechanism;
 import io.gravitee.apim.core.cluster.model.SecurityConfig;
@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class KafkaClusterDomainServiceImplTest {
 
-    private static final KafkaClusterConfiguration CONFIG = new KafkaClusterConfiguration(
+    private static final KafkaClusterConnectionConfiguration CONFIG = new KafkaClusterConnectionConfiguration(
         "localhost:9092",
         new SecurityConfig(SecurityProtocol.PLAINTEXT, null, null)
     );
@@ -312,11 +312,11 @@ class KafkaClusterDomainServiceImplTest {
             assertThat(Path.of(tempFilePath.get())).doesNotExist();
         }
 
-        private KafkaClusterConfiguration configWith(SecurityProtocol protocol, SaslConfig sasl, SslOptions ssl) {
-            return new KafkaClusterConfiguration("localhost:9092", new SecurityConfig(protocol, sasl, ssl));
+        private KafkaClusterConnectionConfiguration configWith(SecurityProtocol protocol, SaslConfig sasl, SslOptions ssl) {
+            return new KafkaClusterConnectionConfiguration("localhost:9092", new SecurityConfig(protocol, sasl, ssl));
         }
 
-        private Properties captureProperties(KafkaClusterConfiguration config) {
+        private Properties captureProperties(KafkaClusterConnectionConfiguration config) {
             var captured = new AtomicReference<Properties>();
             var service = new KafkaClusterDomainServiceImpl() {
                 @Override

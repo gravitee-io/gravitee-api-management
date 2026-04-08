@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 public class Cluster {
 
     private String id;
+    private String type;
     private String name;
     private Object configuration;
 }

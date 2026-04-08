@@ -40,7 +40,7 @@ public class BrowseMessagesUseCase {
 
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
-        var config = cluster.getKafkaClusterConfiguration(objectMapper);
+        var config = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
         var result = kafkaClusterDomainService.browseMessages(
             config,
             input.topicName(),

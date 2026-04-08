@@ -1385,21 +1385,28 @@ components:
         - PENDING
 
     # Cluster
+    ClusterType:
+      type: string
+      enum: [ KAFKA_CLUSTER_CONNECTION ]
     CreateCluster:
       type: object
       properties:
+        type:
+          $ref: "#/components/schemas/ClusterType"
         name:
           type: string
         description:
           type: string
         configuration:
           type: object
-      required: [ "name", "configuration" ]
+      required: [ "type", "name", "configuration" ]
     Cluster:
       type: object
       properties:
         id:
           type: string
+        type:
+          $ref: "#/components/schemas/ClusterType"
         createdAt:
           type: string
           format: date-time

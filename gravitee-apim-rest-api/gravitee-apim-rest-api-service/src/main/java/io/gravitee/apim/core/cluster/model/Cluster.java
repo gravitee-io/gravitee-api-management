@@ -35,13 +35,14 @@ public class Cluster {
     private Instant updatedAt;
     private String environmentId;
     private String organizationId;
+    private ClusterType type;
     private String name;
     private String description;
     private Object configuration;
     private Set<String> groups;
 
-    public KafkaClusterConfiguration getKafkaClusterConfiguration(ObjectMapper objectMapper) {
-        return objectMapper.convertValue(this.configuration, KafkaClusterConfiguration.class);
+    public KafkaClusterConnectionConfiguration getKafkaClusterConnectionConfiguration(ObjectMapper objectMapper) {
+        return objectMapper.convertValue(this.configuration, KafkaClusterConnectionConfiguration.class);
     }
 
     public void update(UpdateCluster updateCluster) {
