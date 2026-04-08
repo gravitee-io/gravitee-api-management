@@ -122,7 +122,13 @@ describe('AddCertificateDialogComponent', () => {
     await harness.clickContinueUpload();
     fixture.detectChanges();
 
-    httpTestingController.expectOne(VALIDATE_URL).flush({ error: 'Invalid PEM' }, { status: 400, statusText: 'Bad Request' });
+    httpTestingController.expectOne(VALIDATE_URL).flush(
+      { error: 'Invalid PEM' },
+      {
+        status: 400,
+        statusText: 'Bad Request',
+      },
+    );
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -169,7 +175,8 @@ describe('AddCertificateDialogComponent', () => {
 
   it('should also call update on old cert when gracePeriodEnd is set', async () => {
     const activeCertificateId = 'old-cert-id';
-    await init(makeData({ hasActiveCertificates: true, activeCertificateId }));
+    const activeCertificateName = 'Old Cert Name';
+    await init(makeData({ hasActiveCertificates: true, activeCertificateId, activeCertificateName }));
     await fillAndValidate();
 
     const graceDate = new Date('2026-12-31');
@@ -188,6 +195,36 @@ describe('AddCertificateDialogComponent', () => {
 
     const updateReq = httpTestingController.expectOne(`${CERTIFICATES_URL}/${activeCertificateId}`);
     expect(updateReq.request.method).toBe('PUT');
+    expect(updateReq.request.body).toMatchObject({ name: activeCertificateName, endsAt: graceDate.toISOString() });
+    updateReq.flush({ id: activeCertificateId, name: activeCertificateName, status: 'ACTIVE_WITH_END' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(dialogRef.close).toHaveBeenCalledWith(true);
+  });
+
+  it('should not send name in update when activeCertificateName is missing', async () => {
+    const activeCertificateId = 'old-cert-id';
+    await init(makeData({ hasActiveCertificates: true, activeCertificateId, activeCertificateName: undefined }));
+    await fillAndValidate();
+
+    const graceDate = new Date('2026-12-31');
+    fixture.componentInstance.configureForm.controls.gracePeriodEnd.setValue(graceDate);
+    await harness.clickContinueConfigure();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await harness.clickSubmit();
+    fixture.detectChanges();
+
+    const createReq = httpTestingController.expectOne(CERTIFICATES_URL);
+    createReq.flush({ id: 'new-cert', name: 'My Cert', status: 'ACTIVE' });
+    fixture.detectChanges();
+
+    const updateReq = httpTestingController.expectOne(`${CERTIFICATES_URL}/${activeCertificateId}`);
+    expect(updateReq.request.method).toBe('PUT');
+    expect(updateReq.request.body).not.toHaveProperty('name');
     expect(updateReq.request.body).toMatchObject({ endsAt: graceDate.toISOString() });
     updateReq.flush({ id: activeCertificateId, name: 'Old Cert', status: 'ACTIVE_WITH_END' });
     fixture.detectChanges();
@@ -208,7 +245,13 @@ describe('AddCertificateDialogComponent', () => {
     await harness.clickSubmit();
     fixture.detectChanges();
 
-    httpTestingController.expectOne(CERTIFICATES_URL).flush({ error: 'Invalid PEM' }, { status: 400, statusText: 'Bad Request' });
+    httpTestingController.expectOne(CERTIFICATES_URL).flush(
+      { error: 'Invalid PEM' },
+      {
+        status: 400,
+        statusText: 'Bad Request',
+      },
+    );
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
