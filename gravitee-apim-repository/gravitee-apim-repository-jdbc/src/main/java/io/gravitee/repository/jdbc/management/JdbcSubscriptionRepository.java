@@ -339,7 +339,13 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 // Filter by API only (e.g. Portal): include legacy subscriptions with null reference_type
                 builder.append("( s.reference_type = ? OR s.reference_type IS NULL )");
                 argsList.add(criteria.getReferenceType().name());
+            } else if (
+                !isEmpty(criteria.getReferenceIds()) &&
+                criteria.getReferenceType() == io.gravitee.repository.management.model.SubscriptionReferenceType.API
+            ) {
+                appendApiReferenceIdsFilter(criteria.getReferenceIds(), builder, argsList);
             } else {
+                // API_PRODUCT and other reference types: strict filter (no legacy fallback needed)
                 builder.append("s.reference_type = ?");
                 argsList.add(criteria.getReferenceType().name());
                 started = true;
@@ -446,6 +452,23 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         } catch (final Exception e) {
             throw new TechnicalException("Failed to find subscriptions by ids", e);
         }
+    }
+
+    /**
+     * Appends an OR filter covering both migrated subscriptions (reference_type/reference_id) and legacy ones
+     * (reference_type IS NULL, api field set) created by old nodes during a rolling upgrade.
+     */
+    private void appendApiReferenceIdsFilter(Collection<String> referenceIds, StringBuilder builder, List<Object> argsList) {
+        String inClause = getOrm().buildInClause(referenceIds);
+        builder
+            .append("( ( s.reference_type = ? AND s.reference_id IN (")
+            .append(inClause)
+            .append(") ) OR ( s.reference_type IS NULL AND s.api IN (")
+            .append(inClause)
+            .append(") ) )");
+        argsList.add(io.gravitee.repository.management.model.SubscriptionReferenceType.API.name());
+        argsList.addAll(referenceIds); // for reference_id IN
+        argsList.addAll(referenceIds); // for api IN
     }
 
     private void storeMetadata(Subscription subscription, boolean deleteFirst) {
