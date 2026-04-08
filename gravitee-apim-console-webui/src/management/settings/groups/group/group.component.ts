@@ -142,8 +142,10 @@ export class GroupComponent implements OnInit {
   groupMembers$: Observable<Member[]> = of([]);
   invitations$: Observable<Invitation[]> = of([]);
   groupAPIs$: Observable<any> = of([]);
-  groupApplications$: Observable<[]> = of([]);
+  groupAPIProducts$: Observable<any[]> = of([]);
+  groupApplications$: Observable<any[]> = of([]);
   defaultAPIRoles: Role[] = [];
+  defaultAPIProductRoles: Role[] = [];
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
   defaultClusterRoles: Role[] = [];
@@ -152,20 +154,24 @@ export class GroupComponent implements OnInit {
   groupForm: FormGroup<{
     name: FormControl<string>;
     defaultAPIRole: FormControl<string>;
+    defaultAPIProductRole: FormControl<string>;
     defaultApplicationRole: FormControl<string>;
     maxNumberOfMembers: FormControl<number>;
     shouldAllowInvitationViaSearch: FormControl<boolean>;
     shouldAllowInvitationViaEmail: FormControl<boolean>;
     canAdminChangeAPIRole: FormControl<boolean>;
+    canAdminChangeAPIProductRole: FormControl<boolean>;
     canAdminChangeApplicationRole: FormControl<boolean>;
     shouldNotifyWhenMemberAdded: FormControl<boolean>;
     shouldAddToNewAPIs: FormControl<boolean>;
+    shouldAddToNewAPIProducts: FormControl<boolean>;
     shouldAddToNewApplications: FormControl<boolean>;
   }>;
   mode: 'new' | 'edit' = 'new';
   memberColumnDefs: string[] = [
     'name',
     'defaultApiRole',
+    'defaultApiProductRole',
     'defaultApplicationRole',
     'defaultIntegrationRole',
     'defaultClusterRole',
@@ -173,6 +179,7 @@ export class GroupComponent implements OnInit {
   ];
   invitationColumnDefs: string[] = ['guestEmail', 'guestApiRole', 'guestApplicationRole', 'guestInvitedOn', 'guestActions'];
   groupAPIColumnDefs: string[] = ['apiName', 'apiVersion'];
+  groupAPIProductColumnDefs: string[] = ['apiProductName', 'apiProductVersion'];
   groupApplicationsColumnDefs: string[] = ['applicationName'];
   membersDefaultFilters: GioTableWrapperFilters = {
     searchTerm: '',
@@ -195,6 +202,13 @@ export class GroupComponent implements OnInit {
       size: 5,
     },
   };
+  apiProductsDefaultFilters: GioTableWrapperFilters = {
+    searchTerm: '',
+    pagination: {
+      index: 1,
+      size: 5,
+    },
+  };
   applicationsDefaultFilters: GioTableWrapperFilters = {
     searchTerm: '',
     pagination: {
@@ -208,6 +222,8 @@ export class GroupComponent implements OnInit {
   filteredInvitations: Invitation[] = [];
   noOfAPIs: number = 0;
   filteredAPIs: any[] = [];
+  noOfAPIProducts: number = 0;
+  filteredAPIProducts: any[] = [];
   noOfApplications: number = 0;
   filteredApplications: any[] = [];
   canAddMembers = false;
@@ -215,11 +231,13 @@ export class GroupComponent implements OnInit {
   deleteDisabled = false;
   disableAddGroupToExistingApplications = false;
   disableAddGroupToExistingAPIs = false;
+  disableAddGroupToExistingAPIProducts = false;
 
   private group = new BehaviorSubject<Group>(null);
   private groupMembers = new BehaviorSubject<Member[]>([]);
   private groupInvitations = new BehaviorSubject<Invitation[]>([]);
   private groupAPIs = new BehaviorSubject<any[]>([]);
+  private groupAPIProducts = new BehaviorSubject<any[]>([]);
   private groupApplications = new BehaviorSubject<any[]>([]);
   private destroyRef = inject(DestroyRef);
 
@@ -278,14 +296,17 @@ export class GroupComponent implements OnInit {
     this.groupForm = new FormGroup({
       name: new FormControl<string>(group.name, { validators: Validators.required }),
       defaultAPIRole: new FormControl<string>(group.roles ? group.roles.API : null),
+      defaultAPIProductRole: new FormControl<string>(group.roles ? group.roles['API_PRODUCT'] : null),
       defaultApplicationRole: new FormControl<string>(group.roles ? group.roles.APPLICATION : null),
       maxNumberOfMembers: new FormControl<number>(group.max_invitation),
       shouldAllowInvitationViaSearch: new FormControl<boolean>(group.system_invitation ? group.system_invitation : false),
       shouldAllowInvitationViaEmail: new FormControl<boolean>(group.email_invitation ? group.email_invitation : false),
       canAdminChangeAPIRole: new FormControl<boolean>(!group.lock_api_role),
+      canAdminChangeAPIProductRole: new FormControl<boolean>(!group.lock_api_product_role),
       canAdminChangeApplicationRole: new FormControl<boolean>(!group.lock_application_role),
       shouldNotifyWhenMemberAdded: new FormControl<boolean>(!group.disable_membership_notifications),
       shouldAddToNewAPIs: new FormControl<boolean>(group.event_rules ? this.checkEventRule(group, 'API_CREATE') : false),
+      shouldAddToNewAPIProducts: new FormControl<boolean>(group.event_rules ? this.checkEventRule(group, 'API_PRODUCT_CREATE') : false),
       shouldAddToNewApplications: new FormControl<boolean>(group.event_rules ? this.checkEventRule(group, 'APPLICATION_CREATE') : false),
     });
   }
@@ -293,6 +314,7 @@ export class GroupComponent implements OnInit {
   private initializeDependents() {
     this.initializeGroupMembers();
     this.initializeGroupAPIs();
+    this.initializeGroupAPIProducts();
     this.initializeGroupApplications();
   }
 
@@ -320,23 +342,37 @@ export class GroupComponent implements OnInit {
     );
   }
 
-  private initializeGroupAPIs() {
-    this.groupAPIs$ = this.groupService.getMemberships(this.groupId, 'api').pipe(
-      map(apis => apis.sort((a, b) => a.name.localeCompare(b.name))),
-      tap(apis => {
-        this.groupAPIs.next(apis);
-        this.filterGroupAPIs(this.apisDefaultFilters);
+  /**
+   * Loads group memberships for a given type, sorts by `name`, pushes to the collection, and reapplies table filters.
+   */
+  private initializeGroupMemberships(
+    membershipType: string,
+    collection: BehaviorSubject<any[]>,
+    defaultFilters: GioTableWrapperFilters,
+    filterCollection: (filters: GioTableWrapperFilters) => void,
+  ): Observable<any[]> {
+    return this.groupService.getMemberships(this.groupId, membershipType).pipe(
+      map(items => (Array.isArray(items) ? items : []).sort((a, b) => a.name.localeCompare(b.name))),
+      tap(sorted => {
+        collection.next(sorted);
+        filterCollection(defaultFilters);
       }),
     );
   }
 
+  private initializeGroupAPIs() {
+    this.groupAPIs$ = this.initializeGroupMemberships('api', this.groupAPIs, this.apisDefaultFilters, f => this.filterGroupAPIs(f));
+  }
+
+  private initializeGroupAPIProducts() {
+    this.groupAPIProducts$ = this.initializeGroupMemberships('api_product', this.groupAPIProducts, this.apiProductsDefaultFilters, f =>
+      this.filterGroupAPIProducts(f),
+    );
+  }
+
   private initializeGroupApplications() {
-    this.groupApplications$ = this.groupService.getMemberships(this.groupId, 'application').pipe(
-      map(applications => applications.sort((a, b) => a.name.localeCompare(b.name))),
-      tap(applications => {
-        this.groupApplications.next(applications);
-        this.filterGroupApplications(this.applicationsDefaultFilters);
-      }),
+    this.groupApplications$ = this.initializeGroupMemberships('application', this.groupApplications, this.applicationsDefaultFilters, f =>
+      this.filterGroupApplications(f),
     );
   }
 
@@ -376,6 +412,10 @@ export class GroupComponent implements OnInit {
       eventRules.push({ event: 'API_CREATE' });
     }
 
+    if (this.groupForm.controls.shouldAddToNewAPIProducts.value) {
+      eventRules.push({ event: 'API_PRODUCT_CREATE' });
+    }
+
     if (this.groupForm.controls.shouldAddToNewApplications.value) {
       eventRules.push({ event: 'APPLICATION_CREATE' });
     }
@@ -390,6 +430,12 @@ export class GroupComponent implements OnInit {
       roles['API'] = this.groupForm.controls.defaultAPIRole.value;
     } else {
       delete roles['API'];
+    }
+
+    if (this.groupForm.controls.defaultAPIProductRole.value) {
+      roles['API_PRODUCT'] = this.groupForm.controls.defaultAPIProductRole.value;
+    } else {
+      delete roles['API_PRODUCT'];
     }
 
     if (this.groupForm.controls.defaultApplicationRole.value) {
@@ -408,6 +454,7 @@ export class GroupComponent implements OnInit {
       name: formControls.name.value,
       max_invitation: formControls.maxNumberOfMembers.value,
       lock_api_role: !formControls.canAdminChangeAPIRole.value,
+      lock_api_product_role: !formControls.canAdminChangeAPIProductRole.value,
       lock_application_role: !formControls.canAdminChangeApplicationRole.value,
       system_invitation: formControls.shouldAllowInvitationViaSearch.value,
       email_invitation: formControls.shouldAllowInvitationViaEmail.value,
@@ -431,6 +478,16 @@ export class GroupComponent implements OnInit {
       .pipe(
         tap((roles: Role[]) => {
           this.defaultApplicationRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.roleService
+      .list('API_PRODUCT')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultAPIProductRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -712,6 +769,38 @@ export class GroupComponent implements OnInit {
       });
   }
 
+  addToExistingAPIProducts(group: Group): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Add group to existing API Products',
+          content: `You are trying to add the group to all the existing API Products. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
+        },
+        role: 'alertdialog',
+        id: 'confirmDialog',
+        hasBackdrop: true,
+        autoFocus: true,
+        width: GIO_DIALOG_WIDTH.SMALL,
+      })
+      .afterClosed()
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.groupService.addToExistingComponents(group.id, 'api_product')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.initializeGroupAPIProducts();
+          this.snackBarService.success(`Successfully added the group to existing API Products.`);
+        },
+        error: () => {
+          this.snackBarService.error(`Error occurred while adding the group to existing API Products.`);
+        },
+      });
+  }
+
   addToExistingApplications(group: Group): void {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
@@ -765,6 +854,13 @@ export class GroupComponent implements OnInit {
     this.noOfAPIs = filtered.unpaginatedLength;
   }
 
+  filterGroupAPIProducts(filters: GioTableWrapperFilters): void {
+    this.apiProductsDefaultFilters = { ...this.apiProductsDefaultFilters, ...filters };
+    const filtered = gioTableFilterCollection(this.groupAPIProducts.value, filters);
+    this.filteredAPIProducts = filtered.filteredCollection;
+    this.noOfAPIProducts = filtered.unpaginatedLength;
+  }
+
   filterGroupApplications(filters: GioTableWrapperFilters): void {
     this.applicationsDefaultFilters = { ...this.applicationsDefaultFilters, ...filters };
     const filtered = gioTableFilterCollection(this.groupApplications.value, filters);
@@ -781,11 +877,16 @@ export class GroupComponent implements OnInit {
     if (this.mode === 'edit' && !this.canUpdateGroup()) {
       this.groupForm.disable();
       this.disableAddGroupToExistingAPIs = true;
+      this.disableAddGroupToExistingAPIProducts = true;
       this.disableAddGroupToExistingApplications = true;
     }
 
     if (!this.group.value.lock_api_role) {
       this.groupForm.controls.defaultAPIRole.enable();
+    }
+
+    if (!this.group.value.lock_api_product_role) {
+      this.groupForm.controls.defaultAPIProductRole.enable();
     }
 
     if (!this.group.value.lock_application_role) {

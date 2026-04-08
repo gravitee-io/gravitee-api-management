@@ -27,6 +27,7 @@ export interface Group {
   updated_at?: number;
   max_invitation?: number;
   lock_api_role?: boolean;
+  lock_api_product_role?: boolean;
   lock_application_role?: boolean;
   system_invitation?: boolean;
   email_invitation?: boolean;
