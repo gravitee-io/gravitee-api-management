@@ -180,7 +180,6 @@ import io.gravitee.rest.api.service.exceptions.ApiMetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
-import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -895,7 +894,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         var apiEntity = switch (api.getDefinitionVersion()) {
             case V2 -> convertWithApiFlowsAndPlansAndApiCategories(executionContext, api, getPrimaryOwner(executionContext, api));
             case V4 -> apiSearchService.findById(executionContext, id);
-            default -> throw new BadNotificationConfigException();
+            default -> throw new IllegalStateException("Unsupported definition version: " + api.getDefinitionVersion());
         };
 
         var dataAsMap = objectMapper.convertValue(apiEntity, MAPPER_TYPE_REFERENCE);
