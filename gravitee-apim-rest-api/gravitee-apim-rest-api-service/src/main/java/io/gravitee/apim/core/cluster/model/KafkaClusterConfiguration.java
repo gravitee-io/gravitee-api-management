@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
-public enum ClusterType {
-    KAFKA_CLUSTER_CONNECTION,
-    KAFKA_CLUSTER,
-}
+import java.util.List;
+
+public record KafkaClusterConfiguration(List<KafkaClusterConnection> connections) {}

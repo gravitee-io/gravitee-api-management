@@ -22,6 +22,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -68,11 +69,22 @@ class ClustersResource_GetConfigurationSchemaTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_configuration_schema() {
+    void should_return_configuration_schema_default_type() {
         String schema = "{\"type\":\"object\",\"properties\":{\"protocol\":{\"type\":\"string\"}}}";
-        when(clusterConfigurationSchemaService.getConfigurationSchema()).thenReturn(schema);
+        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER_CONNECTION)).thenReturn(schema);
 
         final Response response = rootTarget().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(String.class)).isEqualTo(schema);
+    }
+
+    @Test
+    void should_return_configuration_schema_for_kafka_cluster_type() {
+        String schema = "{\"type\":\"object\",\"properties\":{\"connections\":{\"type\":\"array\"}}}";
+        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER)).thenReturn(schema);
+
+        final Response response = rootTarget().queryParam("type", "KAFKA_CLUSTER").request().get();
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         assertThat(response.readEntity(String.class)).isEqualTo(schema);

@@ -261,54 +261,41 @@
           }
         }
       }
-    },
-    "kafkaClusterConnection": {
-      "type": "object",
-      "properties": {
-        "bootstrapServers": {
-          "type": "string",
-          "title": "Bootstrap servers",
-          "description": "The Kafka bootstrap server address (e.g., kafka.example.com:9092)"
-        },
-        "security": {
-          "type": "object",
-          "title": "Security",
-          "properties": {
-            "protocol": {
-              "$ref": "#/definitions/securityProtocol"
-            },
-            "sasl": {
-              "$ref": "#/definitions/securitySasl"
-            },
-            "ssl": {
-              "$ref": "#/gioExternalDefinitions/sslOptions",
-              "gioConfig": {
-                "displayIf": {
-                  "$eq": {
-                    "value.security.protocol": ["SASL_SSL", "SSL"]
-                  }
-                }
-              }
-            }
-          },
-          "required": ["protocol"]
-        }
-      },
-      "required": ["bootstrapServers", "security"],
-      "additionalProperties": false
     }
   },
   "properties": {
-    "connections": {
-      "type": "array",
-      "title": "Kafka Cluster Connections",
-      "description": "List of Kafka cluster connections",
-      "items": {
-        "$ref": "#/definitions/kafkaClusterConnection"
+    "bootstrapServers": {
+      "type": "string",
+      "title": "Bootstrap servers",
+      "description": "The Kafka bootstrap server address (e.g., kafka.example.com:9092)"
+    },
+    "security": {
+      "type": "object",
+      "title": "Security",
+      "properties": {
+        "protocol": {
+          "$ref": "#/definitions/securityProtocol"
+        },
+        "sasl": {
+          "$ref": "#/definitions/securitySasl"
+        },
+        "ssl": {
+          "$ref": "#/gioExternalDefinitions/sslOptions",
+          "gioConfig": {
+            "displayIf": {
+              "$eq": {
+                "value.security.protocol": ["SASL_SSL", "SSL"]
+              }
+            }
+          }
+        }
       },
-      "minItems": 1
+      "required": ["protocol"]
     }
   },
-  "required": ["connections"],
+  "gioConfig": {
+    "uiBorder": "none"
+  },
+  "required": ["bootstrapServers", "security"],
   "additionalProperties": false
 }
