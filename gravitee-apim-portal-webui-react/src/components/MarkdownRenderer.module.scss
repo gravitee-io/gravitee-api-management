@@ -1,0 +1,54 @@
+.markdown {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1f2937;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 32px 0 16px;
+    color: #111827;
+    letter-spacing: -0.02em;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 28px 0 12px;
+    color: #111827;
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 24px 0 10px;
+    color: #111827;
+  }
+
+  p {
+    margin: 8px 0;
+  }
+
+  li {
+    margin: 4px 0 4px 20px;
+    list-style: disc;
+  }
+
+  strong {
+    font-weight: 600;
+    color: #111827;
+  }
+}
+
+.inlineCode {
+  font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+  font-size: 0.88em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #f3f4f6;
+  color: #e11d48;
+}

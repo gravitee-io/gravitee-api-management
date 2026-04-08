@@ -1,0 +1,25 @@
+.editorWrapper {
+  flex: 1;
+  padding: 32px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  :global(.bn-editor) {
+    max-width: var(--page-width, 760px);
+    margin: 0 auto;
+    padding: 0 24px;
+    overflow: visible;
+    transition: max-width 0.3s ease;
+  }
+
+  :global(.bn-block-group),
+  :global(.bn-block-outer),
+  :global(.bn-block) {
+    overflow: visible;
+  }
+
+  :global(.bn-block-content) {
+    width: 100%;
+    max-width: 100%;
+  }
+}

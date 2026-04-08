@@ -1,0 +1,54 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.editable {
+  &:hover .floatingToolbar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}
+
+.floatingToolbar {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.1s ease;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  &.active {
+    background: #eef2ff;
+    color: #6366f1;
+  }
+}

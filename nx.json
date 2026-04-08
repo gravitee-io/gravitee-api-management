@@ -13,7 +13,8 @@
             "!{projectRoot}/eslint.config.js",
             "!{projectRoot}/**/*.stories.@(js|jsx|ts|tsx|mdx)",
             "!{projectRoot}/.storybook/**/*",
-            "!{projectRoot}/tsconfig.storybook.json"
+            "!{projectRoot}/tsconfig.storybook.json",
+            "!{projectRoot}/src/test-setup.[jt]s"
         ],
         "sharedGlobals": ["{workspaceRoot}/.prettierrc", "{workspaceRoot}/tsconfig.base.json"]
     },
@@ -54,9 +55,18 @@
         },
         "lint": {
             "dependsOn": [
-                { "target": "lint-eslint", "params": "forward" },
-                { "target": "lint-license", "params": "forward" },
-                { "target": "lint-prettier", "params": "forward" }
+                {
+                    "target": "lint-eslint",
+                    "params": "forward"
+                },
+                {
+                    "target": "lint-license",
+                    "params": "forward"
+                },
+                {
+                    "target": "lint-prettier",
+                    "params": "forward"
+                }
             ],
             "cache": true
         },
@@ -72,6 +82,20 @@
                 "previewTargetName": "preview"
             },
             "include": ["gravitee-gamma/**"]
+        },
+        {
+            "plugin": "@nx/vite/plugin",
+            "options": {
+                "buildTargetName": "build",
+                "testTargetName": "test",
+                "serveTargetName": "serve",
+                "devTargetName": "dev",
+                "previewTargetName": "preview",
+                "serveStaticTargetName": "serve-static",
+                "typecheckTargetName": "typecheck",
+                "buildDepsTargetName": "build-deps",
+                "watchDepsTargetName": "watch-deps"
+            }
         }
     ],
     "generators": {
@@ -87,6 +111,21 @@
         },
         "@nx/angular:component": {
             "style": "scss"
+        },
+        "@nx/react": {
+            "application": {
+                "babel": true,
+                "style": "scss",
+                "linter": "none",
+                "bundler": "vite"
+            },
+            "component": {
+                "style": "scss"
+            },
+            "library": {
+                "style": "scss",
+                "linter": "none"
+            }
         }
     }
 }

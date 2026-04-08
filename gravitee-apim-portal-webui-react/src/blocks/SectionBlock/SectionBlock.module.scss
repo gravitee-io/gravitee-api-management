@@ -1,0 +1,458 @@
+.section {
+  position: relative;
+  border-radius: 0;
+  padding: 64px 48px;
+  overflow: hidden;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+// --- Variants ---
+
+.dark {
+  background: #111827;
+  color: #f9fafb;
+
+  .subtitle { color: rgba(255, 255, 255, 0.65); }
+
+  .itemIcon { color: rgba(255, 255, 255, 0.7); }
+  .itemTitle { color: #fff; }
+  .itemDesc { color: rgba(255, 255, 255, 0.55); }
+
+  .titleInput,
+  .subtitleInput {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    &::placeholder { color: rgba(255, 255, 255, 0.3); }
+  }
+
+  .itemTitleInput,
+  .itemDescInput,
+  .itemBtnLabelInput,
+  .itemBtnLinkInput {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    &::placeholder { color: rgba(255, 255, 255, 0.25); }
+  }
+
+  .controlBtn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    &:hover { background: rgba(255, 255, 255, 0.2); }
+  }
+
+  .addItemBtn {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.5);
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .itemControlBtn {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    &:hover { background: rgba(255, 255, 255, 0.2); }
+  }
+}
+
+.light {
+  background: #f8fafc;
+  color: #111827;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+
+  .subtitle { color: #6b7280; }
+  .itemIcon { color: #374151; }
+  .itemDesc { color: #6b7280; }
+}
+
+.gray {
+  background: #f3f4f6;
+  color: #111827;
+
+  .subtitle { color: #6b7280; }
+  .itemIcon { color: #374151; }
+  .itemDesc { color: #6b7280; }
+}
+
+.accent {
+  background: #7ec8c8;
+  color: #111827;
+
+  .subtitle { color: rgba(0, 0, 0, 0.65); }
+  .itemIcon { color: #1a3a3a; }
+  .itemDesc { color: rgba(0, 0, 0, 0.6); }
+
+  .controlBtn {
+    background: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.7);
+    &:hover { background: rgba(0, 0, 0, 0.15); }
+  }
+
+  .addItemBtn {
+    border-color: rgba(0, 0, 0, 0.15);
+    color: rgba(0, 0, 0, 0.5);
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.3);
+      color: rgba(0, 0, 0, 0.8);
+    }
+  }
+}
+
+.noBackground {
+  background: transparent;
+  color: #111827;
+
+  .subtitle { color: #6b7280; }
+  .itemIcon { color: #374151; }
+  .itemDesc { color: #6b7280; }
+}
+
+// --- Controls ---
+
+.floatingControls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+
+  .section:hover & {
+    opacity: 1;
+  }
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #6b7280;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
+// --- Content ---
+
+.content {
+  max-width: var(--page-width, 760px);
+  margin: 0 auto;
+  transition: max-width 0.3s ease;
+}
+
+.header,
+.headerEdit {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.title {
+  font-size: 40px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  line-height: 1.2 !important;
+  margin: 0 0 20px;
+}
+
+.subtitle {
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  margin: 0 auto !important;
+  max-width: 640px;
+  text-align: center !important;
+}
+
+.titleInput {
+  width: 100%;
+  text-align: center;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  color: inherit;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  outline: none;
+
+  &::placeholder { color: rgba(0, 0, 0, 0.25); }
+}
+
+.subtitleInput {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.6;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  color: inherit;
+  padding: 8px 16px;
+  outline: none;
+
+  &::placeholder { color: rgba(0, 0, 0, 0.25); }
+}
+
+// --- Grid ---
+
+.grid {
+  display: grid;
+  gap: 32px;
+}
+
+// --- Item ---
+
+.item {
+  position: relative;
+  padding: 8px 4px;
+}
+
+.itemControls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 3px;
+  z-index: 2;
+}
+
+.itemControlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.removeBtn {
+  &:hover {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+  }
+}
+
+.itemIcon {
+  margin-bottom: 16px;
+  line-height: 0;
+}
+
+.itemTitle {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+.itemDesc {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.itemTitleInput {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  color: inherit;
+  padding: 5px 8px;
+  margin-bottom: 8px;
+  outline: none;
+
+  &::placeholder { color: rgba(0, 0, 0, 0.25); }
+}
+
+.itemDescInput {
+  display: block;
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: inherit;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  color: inherit;
+  padding: 5px 8px;
+  outline: none;
+  resize: vertical;
+
+  &::placeholder { color: rgba(0, 0, 0, 0.25); }
+}
+
+// --- Item button (optional CTA) ---
+
+.itemBtnEdit {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.itemBtnLabelInput {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  color: inherit;
+  padding: 5px 8px;
+  outline: none;
+
+  &::placeholder { color: rgba(0, 0, 0, 0.25); }
+}
+
+.itemBtnLinkInput {
+  flex: 1;
+  font-size: 12px;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  color: inherit;
+  padding: 5px 8px;
+  outline: none;
+
+  &::placeholder { color: rgba(0, 0, 0, 0.25); }
+}
+
+.itemBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// --- Add item button ---
+
+.addItemBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 10px;
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.3);
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+// --- Resize handle ---
+
+.resizeHandle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+
+  .section:hover & {
+    opacity: 1;
+  }
+}
+
+.resizeActive {
+  opacity: 1 !important;
+}
+
+.resizeBar {
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.15);
+  transition: background 0.1s ease;
+
+  .resizeHandle:hover & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .resizeActive & {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.dark .resizeBar {
+  background: rgba(255, 255, 255, 0.4);
+
+  .resizeHandle:hover & {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .resizeActive & {
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.accent .resizeBar {
+  background: rgba(0, 0, 0, 0.15);
+
+  .resizeHandle:hover & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .resizeActive & {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}

@@ -1,0 +1,61 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s ease;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #fafafe;
+  }
+}
+
+.name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.description {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.mcpBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #eef2ff;
+  color: #6366f1;
+}
+
+.version {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}

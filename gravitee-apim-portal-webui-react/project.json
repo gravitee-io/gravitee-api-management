@@ -1,0 +1,9 @@
+{
+    "name": "gravitee-apim-portal-webui-react",
+    "$schema": "../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-apim-portal-webui-react/src",
+    "projectType": "application",
+    "tags": [],
+    "// targets": "to see all targets run: nx show project gravitee-apim-portal-webui-react --web",
+    "targets": {}
+}

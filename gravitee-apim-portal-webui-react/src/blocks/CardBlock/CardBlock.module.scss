@@ -1,0 +1,136 @@
+.card {
+  position: relative;
+  border-radius: 14px;
+  padding: 28px 24px;
+  margin: 4px 0;
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.white {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+
+  .iconWrapper { background: #f3f4f6; color: #6b7280; }
+  .subtitle { color: #6b7280; }
+}
+
+.blue {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a5f;
+
+  .iconWrapper { background: #dbeafe; color: #3b82f6; }
+  .subtitle { color: #64748b; }
+}
+
+.purple {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #3b0764;
+
+  .iconWrapper { background: #ede9fe; color: #8b5cf6; }
+  .subtitle { color: #6b7280; }
+}
+
+.green {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #14532d;
+
+  .iconWrapper { background: #dcfce7; color: #22c55e; }
+  .subtitle { color: #6b7280; }
+}
+
+.orange {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #78350f;
+
+  .iconWrapper { background: #fef3c7; color: #f59e0b; }
+  .subtitle { color: #92400e; }
+}
+
+.floatingControls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+
+  .card:hover & {
+    opacity: 1;
+  }
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.titleInput,
+.subtitleInput {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  color: inherit;
+  padding: 6px 10px;
+  outline: none;
+  margin-bottom: 6px;
+
+  &::placeholder {
+    color: rgba(0, 0, 0, 0.25);
+  }
+}
+
+.titleInput {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.subtitleInput {
+  font-size: 14px;
+}

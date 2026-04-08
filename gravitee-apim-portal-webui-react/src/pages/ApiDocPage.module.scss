@@ -1,0 +1,144 @@
+.page {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.headerInner {
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.breadcrumbLink {
+  color: #6b7280;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.1s;
+
+  &:hover {
+    color: #6366f1;
+  }
+}
+
+.separator {
+  color: #d1d5db;
+}
+
+.current {
+  color: #111827;
+  font-weight: 600;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid #f3f4f6;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.sidebarTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navLoading {
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 8px;
+}
+
+.navItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+
+  &:hover {
+    background: #f9fafb;
+    color: #374151;
+  }
+
+  &.active {
+    background: #eef2ff;
+    color: #6366f1;
+    font-weight: 600;
+  }
+}
+
+.main {
+  flex: 1;
+  padding: 40px 56px;
+  overflow-y: auto;
+  max-width: 800px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 64px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  color: #9ca3af;
+  font-size: 14px;
+  text-align: center;
+  padding: 64px 16px;
+}
