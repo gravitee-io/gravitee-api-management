@@ -1,0 +1,103 @@
+{
+  "id": "failover-dynamic-routing-group-capture",
+  "name": "failover-dynamic-routing-group-capture",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "perSubscription": false
+  },
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/default-group"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "second",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "second-endpoint",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/second-group"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "dynamic-routing-flow",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": ["GET"]
+        }
+      ],
+      "request": [
+        {
+          "name": "Dynamic routing",
+          "enabled": true,
+          "policy": "dynamic-routing",
+          "configuration": {
+            "rules": [
+              {
+                "pattern": "/(.*)",
+                "url": "{#endpoints['second']}/{#group[0]}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
