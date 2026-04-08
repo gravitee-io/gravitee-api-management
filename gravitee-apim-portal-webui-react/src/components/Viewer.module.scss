@@ -1,0 +1,119 @@
+.container {
+  flex: 1;
+  padding: 32px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  :global(.bn-editor) {
+    max-width: var(--page-width, 760px);
+    margin: 0 auto;
+    padding: 0 24px;
+    overflow: visible;
+    transition: max-width 0.3s ease;
+  }
+
+  :global(.bn-block-group),
+  :global(.bn-block-outer),
+  :global(.bn-block) {
+    overflow: visible;
+  }
+
+  :global(.bn-block-content) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  :global(.bn-editor) {
+    cursor: default;
+
+    *::selection {
+      background: transparent;
+    }
+
+    a,
+    button,
+    [role='button'],
+    [role='link'] {
+      cursor: pointer;
+    }
+  }
+
+  :global(.bn-block-outer),
+  :global(.bn-block),
+  :global(.bn-block-content) {
+    outline: none !important;
+    box-shadow: none !important;
+
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+
+  :global([data-content-type]) {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  :global(.bn-block-content[data-is-empty-and-focused]),
+  :global([data-node-selected]),
+  :global([data-is-selected]) {
+    outline: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.ProseMirror-selectednode) {
+    outline: none !important;
+    border: none !important;
+
+    > * {
+      outline: none !important;
+      border: none !important;
+    }
+  }
+
+  :global(.bn-block-content.ProseMirror-selectednode) > * {
+    outline: none !important;
+    border: none !important;
+  }
+
+  :global(.ProseMirror-selectednode) > :global(.bn-block-content) > * {
+    outline: none !important;
+    border: none !important;
+  }
+
+  :global(.bn-side-menu),
+  :global(.bn-drag-handle),
+  :global(.bn-block-handle) {
+    display: none !important;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 60vh;
+  color: #6b7280;
+  font-size: 15px;
+  text-align: center;
+}
+
+.editLink {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: #6366f1;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #4f46e5;
+  }
+}

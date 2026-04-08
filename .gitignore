@@ -99,3 +99,6 @@ CLAUDE.md
 DESIGN.md
 PRODUCT.md
 /.impeccable/*
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*

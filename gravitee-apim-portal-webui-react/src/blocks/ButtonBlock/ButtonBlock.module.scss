@@ -1,0 +1,101 @@
+.wrapper {
+  margin: 4px 0;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+
+  &.filled {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+
+    &:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+  }
+
+  &.outlined {
+    background: transparent;
+    color: #4f46e5;
+    border: 2px solid #4f46e5;
+
+    &:hover {
+      background: #eef2ff;
+    }
+  }
+
+  &.text {
+    background: transparent;
+    color: #4f46e5;
+    border: none;
+    padding: 12px 16px;
+
+    &:hover {
+      background: #f5f3ff;
+      border-radius: 8px;
+    }
+  }
+}
+
+.editRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.labelInput,
+.linkInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+
+  &:focus {
+    border-color: #6366f1;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.labelInput {
+  font-weight: 600;
+}
+
+.styleBtn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.1s;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+}
