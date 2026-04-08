@@ -36,7 +36,6 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -82,7 +81,6 @@ class DebugHttpProtocolVerticleTest {
     @DisplayName("Check that the verticle is still there")
     void lastChecks(Vertx vertx) {
         assertThat(vertx.deploymentIDs()).isNotEmpty().hasSize(1);
-        vertxHttpServer.instances().forEach(HttpServer::close);
     }
 
     @Test
