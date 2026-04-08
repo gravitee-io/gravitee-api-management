@@ -81,8 +81,9 @@ import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -1246,8 +1247,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
-        return mock(ApplicationCertificatesUpdateDomainService.class);
+    MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService() {
+        return mock(MtlsSubscriptionSyncDomainService.class);
+    }
+
+    @Bean
+    ClientCertificateDomainService clientCertificateDomainService() {
+        return mock(ClientCertificateDomainService.class);
     }
 
     @Bean

@@ -17,7 +17,7 @@ package io.gravitee.apim.core.application_certificate.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import lombok.RequiredArgsConstructor;
 
@@ -26,11 +26,21 @@ import lombok.RequiredArgsConstructor;
 public class UpdateClientCertificateUseCase {
 
     private final ClientCertificateCrudService clientCertificateCrudService;
-    private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private final ClientCertificateDomainService clientCertificateDomainService;
 
     public Output execute(Input input) {
+<<<<<<< HEAD
         ClientCertificate certificate = clientCertificateCrudService.update(input.clientCertificateId(), input.toUpdate());
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
+=======
+        if (input.applicationId().isPresent()) {
+            ClientCertificate existing = clientCertificateCrudService.findById(input.clientCertificateId());
+            if (!input.applicationId().get().equals(existing.applicationId())) {
+                throw new ClientCertificateNotFoundException(input.clientCertificateId());
+            }
+        }
+        var certificate = clientCertificateDomainService.update(input.clientCertificateId(), input.toUpdate());
+>>>>>>> e9f4e1856b (feat: rename ApplicationCertificatesUpdateDomainService to MtlsSubscriptionSyncDomainService)
         return new Output(certificate);
     }
 
