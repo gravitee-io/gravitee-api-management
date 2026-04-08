@@ -23,6 +23,7 @@ export enum RoleName {
 
 export enum RoleScope {
   API = 'API',
+  API_PRODUCT = 'API_PRODUCT',
   APPLICATION = 'APPLICATION',
   CLUSTER = 'CLUSTER',
   INTEGRATION = 'INTEGRATION',

@@ -41,6 +41,16 @@
             </mat-select>
           </mat-form-field>
 
+          <mat-form-field aria-hidden="false" aria-label="Select default api product role" class="group__form__field">
+            <mat-label>Default API Product Role</mat-label>
+            <mat-select formControlName="defaultAPIProductRole">
+              <mat-option></mat-option>
+              @for (role of defaultAPIProductRoles; track role.id) {
+                <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
           <mat-form-field aria-hidden="false" aria-label="Select default application role" class="group__form__field">
             <mat-label>Default Application Role</mat-label>
             <mat-select formControlName="defaultApplicationRole">
@@ -59,6 +69,16 @@
             gioFormSlideToggle
             aria-hidden="false"
             aria-label="Enable group admin to change default API role"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle class="group__form__actions">
+          <gio-form-label>Allow Group Admin to change default API Products role</gio-form-label>
+          <mat-slide-toggle
+            formControlName="canAdminChangeAPIProductRole"
+            gioFormSlideToggle
+            aria-hidden="false"
+            aria-label="Enable group admin to change default API Products role"
           ></mat-slide-toggle>
         </gio-form-slide-toggle>
 
@@ -92,6 +112,29 @@
               (click)="addToExistingAPIs(group)"
             >
               Add Group To Existing APIs
+            </button>
+          }
+        </div>
+
+        <div class="group__form__actions">
+          <gio-form-slide-toggle>
+            <gio-form-label>Automatically add group to new API Products</gio-form-label>
+            <mat-slide-toggle
+              formControlName="shouldAddToNewAPIProducts"
+              gioFormSlideToggle
+              aria-hidden="false"
+              aria-label="Enable to add group to new API Products automatically"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+
+          @if (mode === 'edit') {
+            <button
+              mat-raised-button
+              color="secondary"
+              [disabled]="disableAddGroupToExistingAPIProducts"
+              (click)="addToExistingAPIProducts(group)"
+            >
+              Add Group To Existing API Products
             </button>
           }
         </div>
@@ -227,6 +270,13 @@
                   <th mat-header-cell *matHeaderCellDef id="defaultApiRole">API Role</th>
                   <td mat-cell *matCellDef="let row">
                     <div>{{ row.roles['API'] }}</div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="defaultApiProductRole">
+                  <th mat-header-cell *matHeaderCellDef id="defaultApiProductRole">API Product Role</th>
+                  <td mat-cell *matCellDef="let row">
+                    <div>{{ row.roles['API_PRODUCT'] }}</div>
                   </td>
                 </ng-container>
 
@@ -392,6 +442,49 @@
             <tr mat-row *matRowDef="let row; columns: groupAPIColumnDefs"></tr>
             <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
               <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="groupAPIColumnDefs.length">No dependent APIs to display</td>
+            </tr>
+          </table>
+        </gio-table-wrapper>
+      }
+    </mat-card>
+
+    <mat-card class="group__card">
+      <mat-card-header>
+        <mat-card-title>API Products</mat-card-title>
+      </mat-card-header>
+      @if (groupAPIProducts$ | async; as data) {
+        <gio-table-wrapper
+          [length]="noOfAPIProducts"
+          [filters]="apiProductsDefaultFilters"
+          (filtersChange)="filterGroupAPIProducts($event)"
+        >
+          <table
+            mat-table
+            [dataSource]="filteredAPIProducts"
+            id="groupApiProductsDataTable"
+            aria-hidden="false"
+            aria-label="Group API Products Data Table"
+          >
+            <ng-container matColumnDef="apiProductName">
+              <th mat-header-cell *matHeaderCellDef id="apiProductName">Name</th>
+              <td mat-cell *matCellDef="let row">
+                <div>{{ row.name }}</div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="apiProductVersion">
+              <th mat-header-cell *matHeaderCellDef id="apiProductVersion">Version</th>
+              <td mat-cell *matCellDef="let row">
+                <div>{{ row.version }}</div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="groupAPIProductColumnDefs"></tr>
+            <tr mat-row *matRowDef="let row; columns: groupAPIProductColumnDefs"></tr>
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="groupAPIProductColumnDefs.length">
+                No dependent API Products to display
+              </td>
             </tr>
           </table>
         </gio-table-wrapper>
