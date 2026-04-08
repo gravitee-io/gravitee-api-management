@@ -14,6 +14,24 @@ const variantMap: Record<SectionVariant, string> = {
 
 const sectionVariants: SectionVariant[] = ['dark', 'light', 'gray', 'accent', 'none'];
 
+type ContentWidth = 'auto' | 'narrow' | 'medium' | 'wide';
+
+const contentWidthOptions: ContentWidth[] = ['auto', 'narrow', 'medium', 'wide'];
+
+const contentWidthValues: Record<ContentWidth, string | null> = {
+  auto: null,
+  narrow: '760px',
+  medium: '1080px',
+  wide: '1400px',
+};
+
+const contentWidthLabels: Record<ContentWidth, string> = {
+  auto: 'Auto',
+  narrow: 'Narrow',
+  medium: 'Medium',
+  wide: 'Wide',
+};
+
 const iconMap: Record<string, string> = {
   code: 'M16 18l6-6-6-6M8 6l-6 6 6 6',
   terminal: 'M4 17l6-6-6-6M12 19h8',
@@ -65,12 +83,13 @@ export const SectionBlock = createReactBlockSpec(
       columns: { default: '4' },
       items: { default: JSON.stringify(DEFAULT_ITEMS) },
       height: { default: '0' },
+      contentWidth: { default: 'auto' as ContentWidth },
     },
     content: 'none',
   },
   {
     render: ({ block, editor }) => {
-      const { title, subtitle, variant, columns, items: itemsJson, height } = block.props;
+      const { title, subtitle, variant, columns, items: itemsJson, height, contentWidth } = block.props;
       const isEditable = editor.isEditable;
       const items = parseItems(itemsJson);
       const cols = Number(columns) || 4;
@@ -113,6 +132,14 @@ export const SectionBlock = createReactBlockSpec(
         const idx = options.indexOf(cols);
         editor.updateBlock(block, { props: { columns: String(options[(idx + 1) % options.length]) } });
       };
+
+      const cycleContentWidth = () => {
+        const idx = contentWidthOptions.indexOf(contentWidth as ContentWidth);
+        editor.updateBlock(block, { props: { contentWidth: contentWidthOptions[(idx + 1) % contentWidthOptions.length] } });
+      };
+
+      const cw = contentWidth as ContentWidth;
+      const cwValue = contentWidthValues[cw];
 
       const updateItem = (index: number, field: keyof SectionItem, value: string) => {
         const updated = [...items];
@@ -180,10 +207,45 @@ export const SectionBlock = createReactBlockSpec(
                   )}
                 </svg>
               </button>
+              <button className={styles.controlBtn} onClick={cycleContentWidth} title={`Width: ${contentWidthLabels[cw]}`} type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  {cw === 'auto' && (
+                    <>
+                      <rect x="4" y="4" width="16" height="16" rx="1" />
+                      <line x1="12" y1="8" x2="12" y2="16" />
+                      <line x1="8" y1="12" x2="16" y2="12" />
+                    </>
+                  )}
+                  {cw === 'narrow' && (
+                    <>
+                      <line x1="5" y1="12" x2="9" y2="12" />
+                      <line x1="15" y1="12" x2="19" y2="12" />
+                      <polyline points="9 8 5 12 9 16" />
+                      <polyline points="15 8 19 12 15 16" />
+                    </>
+                  )}
+                  {cw === 'medium' && (
+                    <>
+                      <line x1="3" y1="12" x2="8" y2="12" />
+                      <line x1="16" y1="12" x2="21" y2="12" />
+                      <polyline points="8 8 3 12 8 16" />
+                      <polyline points="16 8 21 12 16 16" />
+                    </>
+                  )}
+                  {cw === 'wide' && (
+                    <>
+                      <line x1="1" y1="12" x2="7" y2="12" />
+                      <line x1="17" y1="12" x2="23" y2="12" />
+                      <polyline points="7 8 1 12 7 16" />
+                      <polyline points="17 8 23 12 17 16" />
+                    </>
+                  )}
+                </svg>
+              </button>
             </div>
           )}
 
-          <div className={styles.content}>
+          <div className={styles.content} style={cwValue ? { maxWidth: cwValue } : undefined}>
             {isEditable ? (
               <div className={styles.headerEdit}>
                 <input
