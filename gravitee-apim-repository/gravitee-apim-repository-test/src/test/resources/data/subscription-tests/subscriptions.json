@@ -99,6 +99,17 @@
     "createdAt": 1449022010870
   },
   {
+    "id": "sub-legacy-push",
+    "plan": "plan3",
+    "application": "app4",
+    "applicationName": "app4 name",
+    "api": "api1",
+    "environmentId": "other-env-2",
+    "status": "ACCEPTED",
+    "type": "PUSH",
+    "createdAt": 1669022010883
+  },
+  {
     "id":"sub-api-product-1",
     "plan": "plan4",
     "application": "app4",
