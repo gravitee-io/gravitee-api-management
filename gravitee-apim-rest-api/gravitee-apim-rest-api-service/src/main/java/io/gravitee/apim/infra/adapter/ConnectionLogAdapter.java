@@ -55,6 +55,10 @@ public interface ConnectionLogAdapter {
         if (metrics == null) {
             return;
         }
-        target.setMcpMethod((String) metrics.get(MCP_PROXY_METHOD_KEY));
+
+        Object mcpMethodObj = metrics.get(MCP_PROXY_METHOD_KEY);
+        if (mcpMethodObj instanceof String mcpMethod) {
+            target.setMcpMethod(mcpMethod);
+        }
     }
 }
