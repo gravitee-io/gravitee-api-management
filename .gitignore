@@ -89,5 +89,9 @@ gravitee-apim-e2e/ui-test/screenshots/
 CLAUDE.md
 .claude
 
+# Gamma 
+.cursor/rules/graphene.md
+.claude/graphene.md
+
 .specs
 .c4
