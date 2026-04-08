@@ -219,6 +219,7 @@ public interface DefaultRoleEntityDefinition {
             .put(ApiProductPermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiProductPermission.NOTIFICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(ApiProductPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .build()
     );
 
@@ -232,6 +233,7 @@ public interface DefaultRoleEntityDefinition {
             .put(ApiProductPermission.PLAN.getName(), new char[] { READ.getId() })
             .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { READ.getId() })
             .put(ApiProductPermission.NOTIFICATION.getName(), new char[] { READ.getId() })
+            .put(ApiProductPermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()
     );
 

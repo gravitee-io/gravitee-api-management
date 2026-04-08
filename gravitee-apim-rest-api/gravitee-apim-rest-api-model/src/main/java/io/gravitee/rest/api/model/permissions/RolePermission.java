@@ -118,7 +118,8 @@ public enum RolePermission {
     API_PRODUCT_DEFINITION(RoleScope.API_PRODUCT, ApiProductPermission.DEFINITION),
     API_PRODUCT_PLAN(RoleScope.API_PRODUCT, ApiProductPermission.PLAN),
     API_PRODUCT_SUBSCRIPTION(RoleScope.API_PRODUCT, ApiProductPermission.SUBSCRIPTION),
-    API_PRODUCT_NOTIFICATION(RoleScope.API_PRODUCT, ApiProductPermission.NOTIFICATION);
+    API_PRODUCT_NOTIFICATION(RoleScope.API_PRODUCT, ApiProductPermission.NOTIFICATION),
+    API_PRODUCT_MEMBER(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER);
 
     final RoleScope scope;
     final Permission permission;
