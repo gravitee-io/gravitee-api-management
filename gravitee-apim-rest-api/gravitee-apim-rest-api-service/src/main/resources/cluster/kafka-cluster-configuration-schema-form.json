@@ -265,6 +265,11 @@
     "kafkaClusterConnection": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "title": "Connection name",
+          "description": "A name to identify this connection"
+        },
         "bootstrapServers": {
           "type": "string",
           "title": "Bootstrap servers",
@@ -294,7 +299,7 @@
           "required": ["protocol"]
         }
       },
-      "required": ["bootstrapServers", "security"],
+      "required": ["name", "bootstrapServers", "security"],
       "additionalProperties": false
     }
   },

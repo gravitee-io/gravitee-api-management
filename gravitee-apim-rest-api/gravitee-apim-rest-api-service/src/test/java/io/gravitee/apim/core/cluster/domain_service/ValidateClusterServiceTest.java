@@ -124,7 +124,10 @@ class ValidateClusterServiceTest {
             .type(ClusterType.KAFKA_CLUSTER)
             .name("my-kafka-cluster")
             .configuration(
-                Map.of("connections", List.of(Map.of("bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT"))))
+                Map.of(
+                    "connections",
+                    List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
+                )
             )
             .build();
 
@@ -147,9 +150,43 @@ class ValidateClusterServiceTest {
         Cluster cluster = Cluster.builder()
             .type(ClusterType.KAFKA_CLUSTER)
             .name("my-kafka-cluster")
-            .configuration(Map.of("connections", List.of(Map.of("security", Map.of("protocol", "PLAINTEXT")))))
+            .configuration(Map.of("connections", List.of(Map.of("name", "conn-1", "security", Map.of("protocol", "PLAINTEXT")))))
             .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
+    }
+
+    @Test
+    void should_throw_when_kafka_cluster_connection_missing_name() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(
+                Map.of("connections", List.of(Map.of("bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT"))))
+            )
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
+    }
+
+    @Test
+    void should_throw_when_kafka_cluster_has_duplicate_connection_names() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(
+                Map.of(
+                    "connections",
+                    List.of(
+                        Map.of("name", "same-name", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")),
+                        Map.of("name", "same-name", "bootstrapServers", "kafka2:9092", "security", Map.of("protocol", "PLAINTEXT"))
+                    )
+                )
+            )
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("Connection names must be unique");
     }
 }
