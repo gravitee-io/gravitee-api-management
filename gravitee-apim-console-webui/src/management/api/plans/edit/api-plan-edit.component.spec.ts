@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -193,95 +193,99 @@ describe('ApiPlanEditComponent', () => {
         expectApiGetRequest(fakeApiV2({ id: API_ID }));
       });
 
-      it.each(['STAGING', 'PUBLISHED', 'DEPRECATED'])('should edit plan', async (status: PlanStatus) => {
-        PLAN.status = status;
-        expectPlanGetRequest(API_ID, PLAN);
+      it.each(['STAGING', 'PUBLISHED', 'DEPRECATED'])(
+        'should edit plan',
+        fakeAsync(async (status: PlanStatus) => {
+          PLAN.status = status;
+          expectPlanGetRequest(API_ID, PLAN);
 
-        const saveBar = await loader.getHarness(GioSaveBarHarness);
-        expect(await saveBar.isVisible()).toBe(false);
+          const saveBar = await loader.getHarness(GioSaveBarHarness);
+          expect(await saveBar.isVisible()).toBe(false);
 
-        const planForm = await loader.getHarness(ApiPlanFormHarness);
+          const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-        planForm
-          .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupListRequest([
-          fakeGroup({
-            id: 'group-a',
-            name: 'Group A',
-          }),
-        ]);
-        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
-          {
-            id: 'doc-1',
-            name: 'Doc 1',
-          },
-        ]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-
-        const nameInput = await planForm.getNameInput();
-        await nameInput.setValue('My plan edited');
-
-        expect(await saveBar.isVisible()).toBe(true);
-        await saveBar.clickSubmit();
-
-        expectPlanGetRequest(API_ID, PLAN);
-        const req = httpTestingController.expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN.id}`,
-          method: 'PUT',
-        });
-
-        expect(req.request.body).toEqual({
-          apiId: API_ID,
-          name: 'My plan edited',
-          description: 'Default plan',
-          characteristics: [],
-          excludedGroups: undefined,
-          status: PLAN.status,
-          validation: 'MANUAL',
-          tags: ['tag1'],
-          commentMessage: 'comment message',
-          commentRequired: false,
-          generalConditions: 'general conditions',
-          id: PLAN.id,
-          security: {
-            type: 'KEY_LESS',
-            configuration: undefined,
-          },
-          selectionRule: undefined,
-          definitionVersion: 'V2',
-          flows: [
+          planForm
+            .httpRequest(httpTestingController)
+            .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          planForm.httpRequest(httpTestingController).expectGroupListRequest([
+            fakeGroup({
+              id: 'group-a',
+              name: 'Group A',
+            }),
+          ]);
+          planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
             {
-              name: '',
-              pathOperator: {
-                path: '/',
-                operator: 'STARTS_WITH',
-              },
-              condition: '',
-              consumers: [],
-              methods: [],
-              pre: [
-                {
-                  name: 'Mock',
-                  description: 'Saying hello to the world',
-                  enabled: true,
-                  policy: 'mock',
-                  configuration: { content: 'Hello world', status: '200' },
-                },
-              ],
-              post: [],
-              enabled: true,
+              id: 'doc-1',
+              name: 'Doc 1',
             },
-          ],
-        } as PlanV2);
-        req.flush({});
-        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], {
-          queryParams: {
+          ]);
+          planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+
+          const nameInput = await planForm.getNameInput();
+          await nameInput.setValue('My plan edited');
+
+          expect(await saveBar.isVisible()).toBe(true);
+          await saveBar.clickSubmit();
+
+          expectPlanGetRequest(API_ID, PLAN);
+          const req = httpTestingController.expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN.id}`,
+            method: 'PUT',
+          });
+
+          expect(req.request.body).toEqual({
+            apiId: API_ID,
+            name: 'My plan edited',
+            description: 'Default plan',
+            characteristics: [],
+            excludedGroups: undefined,
             status: PLAN.status,
-          },
-          relativeTo: expect.anything(),
-        });
-      });
+            validation: 'MANUAL',
+            tags: ['tag1'],
+            commentMessage: 'comment message',
+            commentRequired: false,
+            generalConditions: 'general conditions',
+            id: PLAN.id,
+            security: {
+              type: 'KEY_LESS',
+              configuration: undefined,
+            },
+            selectionRule: undefined,
+            definitionVersion: 'V2',
+            flows: [
+              {
+                name: '',
+                pathOperator: {
+                  path: '/',
+                  operator: 'STARTS_WITH',
+                },
+                condition: '',
+                consumers: [],
+                methods: [],
+                pre: [
+                  {
+                    name: 'Mock',
+                    description: 'Saying hello to the world',
+                    enabled: true,
+                    policy: 'mock',
+                    configuration: { content: 'Hello world', status: '200' },
+                  },
+                ],
+                post: [],
+                enabled: true,
+              },
+            ],
+          } as PlanV2);
+          req.flush({});
+          expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], {
+            queryParams: {
+              status: PLAN.status,
+            },
+            relativeTo: expect.anything(),
+          });
+          flush();
+        }),
+      );
     });
 
     describe('Edit Kubernetes API', () => {
