@@ -252,9 +252,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     /**
-     * Fix APIM-12955: Escapes Lucene special characters in the query string.
-     * Quadruple backslashes are required to survive both Java and JSON parsing levels
-     * so that Lucene finally receives the mandatory single backslash escape (e.g., \( ).
+     * Escapes backslashes and forward slashes so they survive both JSON
+     * and Lucene parsing levels (fix APIM-12955).
+     *
+     * Parentheses are intentionally left unescaped to preserve Lucene
+     * grouping syntax (e.g., {@code status:(200 OR 400)}).
      */
     private String createSafeElasticsearchJsonQuery(final TabularQuery query) {
         String json = this.createElasticsearchJsonQuery(query);
@@ -263,12 +265,20 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             String filter = query.query().filter();
 
             if (!filter.isEmpty()) {
-                String escaped = filter.replace("\\", "\\\\\\\\").replace("/", "\\\\/").replace("(", "\\\\(").replace(")", "\\\\)");
+                String escaped = escapeForJsonLucene(filter);
 
                 // Targeted replacement within quotes to protect JSON structure
                 json = json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
             }
         }
         return json;
+    }
+
+    /**
+     * Escapes backslashes and forward slashes for safe embedding in a JSON
+     * {@code query_string} value that will be parsed by Lucene.
+     */
+    static String escapeForJsonLucene(String filter) {
+        return filter.replace("\\", "\\\\\\\\").replace("/", "\\\\/");
     }
 }
