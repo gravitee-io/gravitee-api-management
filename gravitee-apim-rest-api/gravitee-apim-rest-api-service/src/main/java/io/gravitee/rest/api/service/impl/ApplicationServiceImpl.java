@@ -32,8 +32,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -236,7 +236,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
     @Autowired
-    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private MtlsSubscriptionSyncDomainService applicationCertificatesUpdateDomainService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 

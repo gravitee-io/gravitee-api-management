@@ -34,9 +34,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
+import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -184,7 +184,7 @@ public class ApplicationService_UpdateTest {
     private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
     @Mock
-    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+    private MtlsSubscriptionSyncDomainService applicationCertificatesUpdateDomainService;
 
     private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
 
