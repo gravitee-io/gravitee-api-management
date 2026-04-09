@@ -1168,19 +1168,28 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
-            summary: List application members
+                - $ref: "#/components/parameters/applicationMembersQueryParam"
+            summary: List and search application members
             description: |
-                List application members.
+                List and search application members.
 
                 User must have the APPLICATION_MEMBER[READ] permission.
+                Pagination controls are always provided in the `links` object.
+                Search starts when `q` contains at least one character.
             operationId: getMembersByApplicationId
             responses:
                 200:
-                    description: List of members
+                    description: List of members with pagination links
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/MembersResponse"
+                400:
+                    description: Invalid pagination or search query parameter.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
                 403:
                     $ref: "#/components/responses/PermissionError"
                 404:
@@ -4073,6 +4082,14 @@ components:
             description: query string to be used in the search engine
             schema:
                 type: string
+        applicationMembersQueryParam:
+            name: q
+            in: query
+            required: false
+            description: Search phrase applied to the member Name field. Search starts when at least one character is provided.
+            schema:
+                type: string
+                minLength: 1
 
         # Connectors Expand
         connectorQueryParam:
@@ -6899,6 +6916,12 @@ components:
                     $ref: "#/components/schemas/Links"
 
     responses:
+        BadRequestError:
+            description: Bad Request
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
         InternalServerError:
             description: Internal Server Error
             content:
