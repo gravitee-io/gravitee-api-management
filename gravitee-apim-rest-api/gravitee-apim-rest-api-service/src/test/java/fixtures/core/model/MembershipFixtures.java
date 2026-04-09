@@ -25,6 +25,8 @@ import java.util.function.Supplier;
 
 public class MembershipFixtures {
 
+    private static final String APPLICATION_MEMBERSHIP_UUID = "00000000-0000-0000-0000-000000000001";
+
     private static final Supplier<Membership.MembershipBuilder> BASE = () ->
         Membership.builder()
             .id("membership-id")
@@ -41,6 +43,26 @@ public class MembershipFixtures {
 
     public static Membership anApiMembership(String apiId) {
         return BASE.get().referenceType(Membership.ReferenceType.API).referenceId(apiId).build();
+    }
+
+    public static Membership anApplicationMembership(String applicationId, String memberId, String roleId) {
+        return BASE.get()
+            .id(APPLICATION_MEMBERSHIP_UUID)
+            .referenceType(Membership.ReferenceType.APPLICATION)
+            .referenceId(applicationId)
+            .memberId(memberId)
+            .roleId(roleId)
+            .build();
+    }
+
+    public static Membership anApplicationMembership(String membershipId, String applicationId, String memberId, String roleId) {
+        return BASE.get()
+            .id(membershipId)
+            .referenceType(Membership.ReferenceType.APPLICATION)
+            .referenceId(applicationId)
+            .memberId(memberId)
+            .roleId(roleId)
+            .build();
     }
 
     public static Membership anApiPrimaryOwnerUserMembership(String apiId, String userId, String organizationId) {

@@ -17,9 +17,16 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.SearchApplicationMembersDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -36,12 +43,14 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -55,6 +64,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     private static final String MEMBER_2 = "my-member-2";
     private static final String UNKNOWN_MEMBER = "unknown-member";
 
+    @Autowired
+    private SearchApplicationMembersDomainService searchApplicationMembersDomainService;
+
+    @Autowired
+    private UserCrudServiceInMemory userCrudService;
+
     @Override
     protected String contextPath() {
         return "applications/";
@@ -63,6 +78,8 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() {
         resetAllMocks();
+        reset(searchApplicationMembersDomainService);
+        userCrudService.reset();
 
         MemberEntity memberEntity1 = new MemberEntity();
         memberEntity1.setId(MEMBER_1);
@@ -84,8 +101,18 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         doThrow(ApplicationNotFoundException.class)
             .when(applicationService)
             .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION);
+        doThrow(new ApplicationNotFoundException(UNKNOWN_APPLICATION))
+            .when(searchApplicationMembersDomainService)
+            .searchApplicationMembers(anyString(), eq(UNKNOWN_APPLICATION));
         doThrow(UserNotFoundException.class).when(userService).findById(GraviteeContext.getExecutionContext(), UNKNOWN_MEMBER);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        doAnswer(invocation ->
+            ((List<Membership>) invocation.getArgument(0)).stream()
+                .map(membership -> new Member().id(membership.getMemberId()))
+                .toList()
+        )
+            .when(memberMapper)
+            .convert(anyList(), anyList(), anyMap(), any());
     }
 
     @Test
@@ -102,6 +129,46 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Links links = membersResponse.getLinks();
         assertNotNull(links);
+    }
+
+    @Test
+    public void shouldSearchMembers() {
+        initSearchContext();
+
+        final Response response = target(APPLICATION)
+            .path("members")
+            .path("_search")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .request()
+            .post(Entity.json("{}"));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        assertEquals(2, membersResponse.getData().size());
+        assertTrue(
+            (MEMBER_1.equals(membersResponse.getData().get(0).getId()) && MEMBER_2.equals(membersResponse.getData().get(1).getId())) ||
+                (MEMBER_1.equals(membersResponse.getData().get(1).getId()) && MEMBER_2.equals(membersResponse.getData().get(0).getId()))
+        );
+        assertNotNull(membersResponse.getLinks());
+    }
+
+    @Test
+    public void shouldSearchMembersByDisplayName() {
+        initSearchContext();
+
+        final Response response = target(APPLICATION)
+            .path("members")
+            .path("_search")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .request()
+            .post(Entity.json("{\"filters\":{\"displayName\":\"-2\"}}"));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        assertEquals(1, membersResponse.getData().size());
+        assertEquals(MEMBER_2, membersResponse.getData().get(0).getId());
     }
 
     @Test
@@ -303,6 +370,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
+    @Test
+    public void shouldHaveNotFoundWhileSearchingMembers() {
+        final Response response = target(UNKNOWN_APPLICATION).path("members").path("_search").request().post(Entity.json("{}"));
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
     //404 POST /members
     @Test
     public void shouldHaveNotFoundWhileCreatingNewMemberUnknonwnApplication() {
@@ -422,5 +495,41 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
+    }
+
+    private void initSearchContext() {
+        var allMemberships = List.of(
+            Membership.builder()
+                .id("00000000-0000-0000-0000-000000000001")
+                .memberId(MEMBER_1)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId(APPLICATION)
+                .roleId("role-1")
+                .build(),
+            Membership.builder()
+                .id("00000000-0000-0000-0000-000000000002")
+                .memberId(MEMBER_2)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId(APPLICATION)
+                .roleId("role-2")
+                .build()
+        );
+        userCrudService.initWith(
+            List.of(
+                BaseUserEntity.builder().id(MEMBER_1).firstname(MEMBER_1).build(),
+                BaseUserEntity.builder().id(MEMBER_2).firstname(MEMBER_2).build()
+            )
+        );
+        when(roleService.findByIds(any())).thenReturn(Map.of("role-1", role("USER"), "role-2", role("OWNER")));
+
+        when(searchApplicationMembersDomainService.searchApplicationMembers(anyString(), eq(APPLICATION))).thenReturn(allMemberships);
+    }
+
+    private RoleEntity role(String name) {
+        var role = new RoleEntity();
+        role.setName(name);
+        return role;
     }
 }
