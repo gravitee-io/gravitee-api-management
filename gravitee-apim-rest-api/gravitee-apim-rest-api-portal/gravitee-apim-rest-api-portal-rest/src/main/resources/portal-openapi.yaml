@@ -1173,14 +1173,17 @@ paths:
                 List application members.
 
                 User must have the APPLICATION_MEMBER[READ] permission.
+                Pagination controls are always provided in the `links` object.
             operationId: getMembersByApplicationId
             responses:
                 200:
-                    description: List of members
+                    description: List of members with pagination links
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/MembersResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
                 403:
                     $ref: "#/components/responses/PermissionError"
                 404:
@@ -1209,6 +1212,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/members/_search:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            requestBody:
+                description: Use to search application members
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApplicationMembersSearchInput"
+            summary: Search application members
+            description: |
+                Search application members.
+
+                User must have the APPLICATION_MEMBER[READ] permission.
+                Pagination controls are always provided in the `links` object.
+            operationId: searchMembersByApplicationId
+            responses:
+                200:
+                    description: List of members with pagination links
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MembersResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
                 403:
                     $ref: "#/components/responses/PermissionError"
                 404:
@@ -4161,6 +4202,19 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        ApplicationMembersSearchInput:
+            type: object
+            description: Search input for application members. The filters object is extensible for future search attributes.
+            properties:
+                filters:
+                    $ref: "#/components/schemas/ApplicationMembersSearchFilters"
+        ApplicationMembersSearchFilters:
+            type: object
+            description: Search filters for application members.
+            properties:
+                displayName:
+                    type: string
+                    description: Search phrase applied to member display name. Search starts when at least one character is provided.
         SearchApplicationsLogsParams:
             type: object
             description: Search filters for application logs
@@ -6899,6 +6953,12 @@ components:
                     $ref: "#/components/schemas/Links"
 
     responses:
+        BadRequestError:
+            description: Bad Request
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
         InternalServerError:
             description: Internal Server Error
             content:
