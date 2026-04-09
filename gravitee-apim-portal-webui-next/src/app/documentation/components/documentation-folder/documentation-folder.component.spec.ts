@@ -18,7 +18,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
@@ -90,6 +90,7 @@ describe('DocumentationFolderComponent', () => {
     } as unknown as ApiService;
 
     await TestBed.configureTestingModule({
+      animationsEnabled: true,
       imports: [DocumentationFolderComponent, MatIconTestingModule, AppTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } },
@@ -104,6 +105,91 @@ describe('DocumentationFolderComponent', () => {
     fixture.componentRef.setInput('navItem', MOCK_ITEM);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationFolderComponentHarness);
   };
+
+  const initDeferredNavigationItems = async () => {
+    const itemsSubject = new Subject<PortalNavigationItem[]>();
+    queryParamsSubject = new BehaviorSubject<{ selectedId?: string }>({ selectedId: 'p1' });
+    routerSpy = {
+      navigate: jest.fn().mockImplementation((_, options) => {
+        if (options?.queryParams) queryParamsSubject.next(options.queryParams);
+        return Promise.resolve(true);
+      }),
+    } as unknown as jest.Mocked<Router>;
+
+    navigationServiceSpy = {
+      getNavigationItems: jest.fn().mockReturnValue(itemsSubject.asObservable()),
+      getNavigationItemContent: jest.fn().mockReturnValue(of({ content: MOCK_CONTENT, type: 'GRAVITEE_MARKDOWN' })),
+    } as unknown as PortalNavigationItemsService;
+
+    await TestBed.configureTestingModule({
+      animationsEnabled: true,
+      imports: [DocumentationFolderComponent, MatIconTestingModule, AppTestingModule],
+      providers: [
+        { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } },
+        { provide: Router, useValue: routerSpy },
+        { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
+        { provide: CurrentUserService, useValue: { isUserAuthenticated: signal(true) } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DocumentationFolderComponent);
+    fixture.componentRef.setInput('navItem', MOCK_ITEM);
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationFolderComponentHarness);
+    return itemsSubject;
+  };
+
+  describe('loading skeletons', () => {
+    it('should show sidenav, main content and breadcrumb skeletons while folder navigation items load', async () => {
+      const itemsSubject = await initDeferredNavigationItems();
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+      const sidenavSkeleton = await harness.getSidenavSkeleton();
+      const documentationSkeleton = await harness.getDocumentationSkeleton();
+      const breadcrumbSkeleton = await harness.getBreadcrumbSkeleton();
+
+      expect(sidenavSkeleton).not.toBeNull();
+      expect(documentationSkeleton).not.toBeNull();
+      expect(breadcrumbSkeleton).not.toBeNull();
+
+      expect(await harness.getTreeHarness()).toBeNull();
+      expect(await harness.getBreadcrumbs()).toBeNull();
+
+      itemsSubject.next(MOCK_CHILDREN);
+      itemsSubject.complete();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(await harness.getTreeHarness()).not.toBeNull();
+      expect(await harness.getBreadcrumbs()).not.toBeNull();
+      const viewer = await harness.getGmdViewer();
+      expect(viewer).not.toBeNull();
+      expect(await viewer!.getRenderedHtml()).toEqual(gmdViewerContent(MOCK_CONTENT));
+    });
+
+    it('should show documentation skeleton while page content loads after selecting another page', async () => {
+      await init();
+
+      const contentSubject = new Subject<{ content: string; type: string }>();
+      navigationServiceSpy.getNavigationItemContent = jest.fn().mockReturnValue(contentSubject.asObservable());
+
+      const tree = await harness.getTreeHarness();
+      await tree!.clickItemByTitle('Page 2');
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+      expect(await harness.getDocumentationSkeleton()).not.toBeNull();
+      expect(await harness.getSidenavSkeleton()).toBeNull();
+      expect(await harness.getBreadcrumbSkeleton()).toBeNull();
+
+      contentSubject.next({ content: 'Content of Page 2', type: 'GRAVITEE_MARKDOWN' });
+      contentSubject.complete();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const viewer = await harness.getGmdViewer();
+      expect(viewer).not.toBeNull();
+      expect(await viewer!.getRenderedHtml()).toEqual(gmdViewerContent('Content of Page 2'));
+    });
+  });
 
   describe('initial load', () => {
     describe('with content', () => {

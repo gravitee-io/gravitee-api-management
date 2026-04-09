@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<app-sidenav-layout [breadcrumbs]="breadcrumbs()">
+<app-sidenav-layout [breadcrumbs]="breadcrumbs()" [breadcrumbsLoading]="folderLoading()">
   @if (apiId()) {
     <div breadcrumbActions class="documentation-folder__breadcrumb-actions">
       @if (apiHasMcp()) {
@@ -33,8 +33,17 @@
     </div>
   }
   <div sidenavContent class="documentation-folder__sidenav__content">
-    @if (tree() && tree()!.length > 0) {
+    @if (folderLoading()) {
+      <app-sidenav-skeleton
+        animate.leave="documentation-folder__sidenav__skeleton--leave"
+        class="documentation-folder__sidenav__skeleton"
+        aria-busy="true"
+        i18n-aria-label="@@documentationTreeLoadingAria"
+        aria-label="Loading navigation"
+      />
+    } @else if (tree() && tree()!.length > 0) {
       <app-tree-component
+        animate.enter="documentation-folder__sidenav__tree-enter"
         class="documentation-folder__sidenav__tree"
         [tree]="tree()"
         [selectedId]="selectedId$ | async"
@@ -45,7 +54,20 @@
     }
   </div>
   <div class="documentation-folder__main-content" mainContent>
-    <app-navigation-item-content-viewer [pageContent]="folderData()?.selectedPageContent ?? null" />
+    @if (contentLoading()) {
+      <app-documentation-skeleton
+        class="documentation-folder__main-content__skeleton"
+        animate.leave="documentation-folder__main-content__skeleton--leave"
+        aria-busy="true"
+        i18n-aria-label="@@documentationContentLoadingAria"
+        aria-label="Loading content"
+      />
+    } @else {
+      <app-navigation-item-content-viewer
+        animate.enter="documentation-folder__main-content-enter"
+        [pageContent]="folderData()?.selectedPageContent ?? null"
+      />
+    }
   </div>
 </app-sidenav-layout>
 

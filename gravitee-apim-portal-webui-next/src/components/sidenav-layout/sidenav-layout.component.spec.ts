@@ -28,7 +28,7 @@ import { Breadcrumb } from '../breadcrumbs/breadcrumbs.component';
   standalone: true,
   imports: [SidenavLayoutComponent],
   template: `
-    <app-sidenav-layout [breadcrumbs]="breadcrumbs">
+    <app-sidenav-layout [breadcrumbs]="breadcrumbs" [breadcrumbsLoading]="breadcrumbsLoading">
       <div sidenavContent>Sidenav Content</div>
       <div breadcrumbActions>Breadcrumb Actions</div>
       <div mainContent>Main Content</div>
@@ -41,6 +41,7 @@ class TestHostComponent {
     { id: 'level2', label: 'Child' },
     { id: 'level3', label: 'Grandchild' },
   ];
+  breadcrumbsLoading = false;
 }
 
 describe('SidenavLayoutComponent', () => {
@@ -69,6 +70,16 @@ describe('SidenavLayoutComponent', () => {
   it('should display breadcrumbs', async () => {
     const breadcrumbs = await harness.getBreadcrumbs();
     expect(await breadcrumbs?.getText()).toContain('Parent/Child/Grandchild');
+  });
+
+  it('should show breadcrumb skeleton while breadcrumbs are loading', async () => {
+    fixture.componentInstance.breadcrumbsLoading = true;
+    fixture.detectChanges();
+
+    expect(await harness.getBreadcrumbs()).toBeNull();
+
+    const skeleton = await harness.getBreadcrumbSkeleton();
+    expect(skeleton).not.toBeNull();
   });
 
   it('should display breadcrumb actions', async () => {

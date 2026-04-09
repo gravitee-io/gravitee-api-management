@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/skeletons' as skeleton;
 @use '../../scss/theme' as app-theme;
 
 $sidenav-min-width: 275px;
@@ -90,6 +91,26 @@ $transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
       padding: 0 16px;
       border-bottom: 1px solid app-theme.$border-color;
       gap: 10px;
+
+      &__content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        width: fit-content;
+
+        &--enter {
+          @include skeleton.content-reveal-fade-in;
+        }
+      }
+
+      &__skeleton {
+        position: absolute;
+
+        &--leave {
+          @include skeleton.skeleton-fade-out;
+        }
+      }
 
       &__actions {
         display: flex;

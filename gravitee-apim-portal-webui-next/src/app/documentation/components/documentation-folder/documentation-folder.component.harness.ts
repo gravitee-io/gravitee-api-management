@@ -19,9 +19,12 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { TreeComponentHarness } from './tree/tree.component.harness';
+import { BreadcrumbSkeletonComponentHarness } from '../../../../components/breadcrumb-skeleton/breadcrumb-skeleton.component.harness';
 import { BreadcrumbsComponentHarness } from '../../../../components/breadcrumbs/breadcrumbs.component.harness';
+import { DocumentationSkeletonComponentHarness } from '../../../../components/documentation-skeleton/documentation-skeleton.component.harness';
 import { NavigationItemContentViewerHarness } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.harness';
 import { SidenavLayoutComponentHarness } from '../../../../components/sidenav-layout/sidenav-layout.component.harness';
+import { SidenavSkeletonComponentHarness } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component.harness';
 import { SidenavToggleButtonComponentHarness } from '../../../../components/sidenav-toggle-button/sidenav-toggle-button.component.harness';
 import { DivHarness } from '../../../../testing/div.harness';
 import { ApiTabToolsComponentHarness } from '../../../api/api-details/api-tab-tools/api-tab-tools.component.harness';
@@ -31,6 +34,8 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   private readonly getSidenavLayoutHarness = this.locatorFor(SidenavLayoutComponentHarness);
   private readonly getTree = this.locatorForOptional(TreeComponentHarness);
+  private readonly getSidenavSkeletonHarness = this.locatorForOptional(SidenavSkeletonComponentHarness);
+  private readonly getDocumentationSkeletonHarness = this.locatorForOptional(DocumentationSkeletonComponentHarness);
   private readonly getBreadcrumbsHarness = this.locatorForOptional(BreadcrumbsComponentHarness);
   private readonly getSidenavEmptyStateHarness = this.locatorForOptional(
     DivHarness.with({ selector: '.documentation-folder__sidenav__empty-state' }),
@@ -56,6 +61,19 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getBreadcrumbs(): Promise<BreadcrumbsComponentHarness | null> {
     return this.getBreadcrumbsHarness();
+  }
+
+  async getBreadcrumbSkeleton(): Promise<BreadcrumbSkeletonComponentHarness | null> {
+    const layout = await this.getSidenavLayoutHarness();
+    return layout.getBreadcrumbSkeleton();
+  }
+
+  async getSidenavSkeleton(): Promise<SidenavSkeletonComponentHarness | null> {
+    return this.getSidenavSkeletonHarness();
+  }
+
+  async getDocumentationSkeleton(): Promise<DocumentationSkeletonComponentHarness | null> {
+    return this.getDocumentationSkeletonHarness();
   }
 
   async getContentEmptyState(): Promise<DivHarness | null> {
