@@ -29,7 +29,23 @@
 <div class="sidenav-layout__container">
   <div class="sidenav-layout__container__breadcrumbs">
     <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
-    <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
+    <div class="sidenav-layout__container__breadcrumbs__content">
+      @if (breadcrumbsLoading()) {
+        <app-breadcrumb-skeleton
+          animate.leave="sidenav-layout__container__breadcrumbs__skeleton--leave"
+          class="sidenav-layout__container__breadcrumbs__skeleton"
+          aria-busy="true"
+          i18n-aria-label="@@documentationBreadcrumbsLoadingAria"
+          aria-label="Loading breadcrumbs"
+        />
+      } @else {
+        <app-breadcrumbs-component
+          animate.enter="sidenav-layout__container__breadcrumbs__content--enter"
+          class="sidenav-layout__container__breadcrumbs__content"
+          [breadcrumbs]="breadcrumbs()"
+        />
+      }
+    </div>
     <div class="sidenav-layout__container__breadcrumbs__actions">
       <ng-content select="[breadcrumbActions]" />
     </div>

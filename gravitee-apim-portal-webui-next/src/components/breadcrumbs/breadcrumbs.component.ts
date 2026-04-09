@@ -43,7 +43,7 @@ export interface Breadcrumb {
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
-        padding: 20px 0;
+        padding: 18px 0;
       }
 
       .breadcrumb-item {

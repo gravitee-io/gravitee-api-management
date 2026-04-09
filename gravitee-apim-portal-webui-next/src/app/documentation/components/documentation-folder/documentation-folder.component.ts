@@ -20,7 +20,7 @@ import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
+import { catchError, debounceTime, finalize, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -28,8 +28,10 @@ import { Api } from 'src/entities/api/api';
 
 import { TreeComponent } from './tree/tree.component';
 import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
+import { DocumentationSkeletonComponent } from '../../../../components/documentation-skeleton/documentation-skeleton.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
+import { SidenavSkeletonComponent } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
@@ -55,6 +57,8 @@ enum NavParamsChange {
     CdkTrapFocus,
     MobileClassDirective,
     SidenavLayoutComponent,
+    SidenavSkeletonComponent,
+    DocumentationSkeletonComponent,
     TreeComponent,
     GraviteeMarkdownViewerModule,
     NavigationItemContentViewerComponent,
@@ -75,6 +79,9 @@ export class DocumentationFolderComponent {
   selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
 
   folderData = toSignal<FolderData | undefined>(this.loadFolderData());
+  folderLoading = signal(false);
+  contentLoading = signal(false);
+
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
 
@@ -114,9 +121,17 @@ export class DocumentationFolderComponent {
       switchMap(([changedData, navId, selectedId]) => {
         switch (changedData) {
           case NavParamsChange.NAV_ID:
-            return this.loadChildrenAndContent(navId, selectedId);
+            this.folderLoading.set(true);
+            this.contentLoading.set(true);
+            return this.loadChildrenAndContent(navId, selectedId).pipe(
+              finalize(() => {
+                this.contentLoading.set(false);
+                this.folderLoading.set(false);
+              }),
+            );
           case NavParamsChange.PAGE_ID:
-            return this.loadContentOrRedirect(selectedId);
+            this.contentLoading.set(true);
+            return this.loadContentOrRedirect(selectedId).pipe(finalize(() => this.contentLoading.set(false)));
           default:
             return of(this.folderData());
         }
