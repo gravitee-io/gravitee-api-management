@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.service.v4.exception.EndpointGroupLlmProxyInvalidException.Validation.ALIASES_MISMATCH;
-import static io.gravitee.rest.api.service.v4.exception.EndpointGroupLlmProxyInvalidException.Validation.PROVIDER_MISMATCH;
 import static java.util.function.Predicate.not;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -110,7 +109,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             final ConnectorPluginEntity endpointConnector = endpointService.findById(endpointGroup.getType());
             validateEndpointGroupType(apiType, endpointGroup.getType(), endpointConnector);
             validateEndpointsExistence(endpointGroup);
-            validateLlmProxyProviderConsistency(endpointGroup);
+            validateLlmProxyAliasesConsistency(endpointGroup);
             validateServices(apiType, endpointGroup);
 
             if (endpointGroup.getSharedConfiguration() != null) {
@@ -217,52 +216,38 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateLlmProxyProviderConsistency(final AbstractEndpointGroup<? extends AbstractEndpoint> endpointGroup) {
+    private void validateLlmProxyAliasesConsistency(final AbstractEndpointGroup<? extends AbstractEndpoint> endpointGroup) {
         if (!LLM_PROXY_TYPE.equals(endpointGroup.getType())) {
             return;
         }
-        var llmValidationStream = stream(endpointGroup.getEndpoints())
-            .flatMap(endpoint -> extractLlmProxyProvider(endpoint.getConfiguration()))
+        var aliasesList = stream(endpointGroup.getEndpoints())
+            .flatMap(endpoint -> extractLlmProxyAliases(endpoint.getConfiguration()))
             .toList();
 
-        // all endpoints must have the same provider
-        long countDistinctProviders = llmValidationStream.stream().map(LLMValidation::provider).distinct().limit(2).count();
-        var validations = EnumSet.noneOf(EndpointGroupLlmProxyInvalidException.Validation.class);
-        if (countDistinctProviders > 1) {
-            validations.add(PROVIDER_MISMATCH);
-        }
-
         // all endpoints must have the same aliases
-        long count = llmValidationStream.stream().map(LLMValidation::aliases).distinct().limit(2).count();
+        long count = aliasesList.stream().distinct().limit(2).count();
         if (count > 1) {
-            validations.add(ALIASES_MISMATCH);
-        }
-        if (!validations.isEmpty()) {
-            throw new EndpointGroupLlmProxyInvalidException(endpointGroup.getName(), validations);
+            throw new EndpointGroupLlmProxyInvalidException(endpointGroup.getName(), EnumSet.of(ALIASES_MISMATCH));
         }
     }
 
-    private Stream<LLMValidation> extractLlmProxyProvider(final String configuration) {
+    private Stream<Set<String>> extractLlmProxyAliases(final String configuration) {
         if (configuration == null) {
             return Stream.empty();
         }
         try {
             JsonNode config = objectMapper.readTree(configuration);
-            JsonNode providerNode = config.path("provider");
-            String provider = providerNode.textValue();
 
             var aliases = stream(config.at("/models"))
                 .flatMap(model -> stream(model.at("/aliases")))
                 .map(JsonNode::textValue)
                 .filter(not(StringUtils::isBlank))
                 .collect(Collectors.toCollection(HashSet::new));
-            return Stream.ofNullable(new LLMValidation(provider, aliases));
+            return Stream.of(aliases);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("Failed to parse llm-proxy endpoint configuration", e);
         }
     }
-
-    private record LLMValidation(String provider, Set<String> aliases) {}
 
     private void validateAndSetHealthCheckConfiguration(Service healthCheck) {
         if (isBlank(healthCheck.getType())) {
