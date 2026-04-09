@@ -44,16 +44,9 @@
 
       @if (showConfiguration && providerSchema?.config) {
         <div class="endpoint-card__form__field">
-          @if (formGroup.dirty && (formGroup.errors?.providerMismatch || formGroup.errors?.aliasesMismatch)) {
+          @if (formGroup.dirty && formGroup.errors?.aliasesMismatch; as mismatch) {
             <gio-banner-error>
-              <ul>
-                @if (formGroup.errors?.providerMismatch; as mismatch) {
-                  <li>All endpoints in this group must use the same provider ({{ mismatch.expected }}).</li>
-                }
-                @if (formGroup.errors?.aliasesMismatch; as mismatch) {
-                  <li>All endpoints in this group must use the same list of aliases ({{ mismatch.expected.join(', ') }}).</li>
-                }
-              </ul>
+              All endpoints in this group must use the same list of aliases ({{ mismatch.expected.join(', ') }}).
             </gio-banner-error>
           }
           <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config" />

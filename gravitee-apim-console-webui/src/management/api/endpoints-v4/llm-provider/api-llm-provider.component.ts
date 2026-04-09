@@ -353,19 +353,8 @@ export class ApiLlmProviderComponent implements OnInit {
     if (this.mode === 'edit-endpoint' && existingEndpoints.length < 2) {
       return [];
     }
-    const expectedProvider = existingEndpoints[0]?.configuration?.provider;
-    if (!expectedProvider) {
-      return [];
-    }
     const expectedAliases = this.collectAliases(existingEndpoints[0]?.configuration?.models);
     return [
-      (control: AbstractControl): ValidationErrors | null => {
-        const provider = control.value?.configuration?.provider;
-        if (!provider) {
-          return null;
-        }
-        return provider === expectedProvider ? null : { providerMismatch: { expected: expectedProvider, actual: provider } };
-      },
       (control: AbstractControl): ValidationErrors | null => {
         const aliases = this.collectAliases(control.value?.configuration?.models);
         if (

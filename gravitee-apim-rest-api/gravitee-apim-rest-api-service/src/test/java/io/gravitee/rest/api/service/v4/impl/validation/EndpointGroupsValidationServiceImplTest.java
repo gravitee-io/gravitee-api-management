@@ -929,7 +929,7 @@ public class EndpointGroupsValidationServiceImplTest {
     class LLMProxyProviderConsistencyTest {
 
         @Test
-        public void should_throw_when_llm_proxy_endpoints_have_different_providers() {
+        public void should_not_throw_when_llm_proxy_endpoints_have_different_providers() {
             EndpointGroup endpointGroup = new EndpointGroup();
             endpointGroup.setName("llm-group-name");
             endpointGroup.setType("llm-proxy");
@@ -943,31 +943,6 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint2.setName("azure-endpoint");
             endpoint2.setType("llm-proxy");
             endpoint2.setConfiguration("{\"provider\":\"OPEN_AI_COMPATIBLE\"}");
-
-            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
-
-            assertThatExceptionOfType(EndpointGroupLlmProxyInvalidException.class)
-                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup)))
-                .withMessageContaining("provider")
-                .withMessageNotContaining("aliases")
-                .withMessageContaining("llm-group-name");
-        }
-
-        @Test
-        public void should_not_throw_when_llm_proxy_endpoints_have_same_provider() {
-            EndpointGroup endpointGroup = new EndpointGroup();
-            endpointGroup.setName("llm-group-name");
-            endpointGroup.setType("llm-proxy");
-
-            Endpoint endpoint1 = new Endpoint();
-            endpoint1.setName("openai-endpoint-1");
-            endpoint1.setType("llm-proxy");
-            endpoint1.setConfiguration("{\"provider\":\"OPEN_AI\"}");
-
-            Endpoint endpoint2 = new Endpoint();
-            endpoint2.setName("openai-endpoint-2");
-            endpoint2.setType("llm-proxy");
-            endpoint2.setConfiguration("{\"provider\":\"OPEN_AI\"}");
 
             endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
@@ -1132,7 +1107,6 @@ public class EndpointGroupsValidationServiceImplTest {
             assertThatExceptionOfType(EndpointGroupLlmProxyInvalidException.class)
                 .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup)))
                 .withMessageContaining("aliases")
-                .withMessageNotContaining("provider")
                 .withMessageContaining("llm-group-name");
         }
     }
