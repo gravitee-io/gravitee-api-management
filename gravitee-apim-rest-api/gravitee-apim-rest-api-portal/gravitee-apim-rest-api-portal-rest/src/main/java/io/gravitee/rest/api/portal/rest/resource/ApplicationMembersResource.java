@@ -15,16 +15,21 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.application.use_case.SearchApplicationMembersUseCase;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.portal.rest.mapper.ApplicationMembersSearchCriteriaMapper;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.portal.rest.model.ApplicationMembersSearchInput;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.MemberInput;
 import io.gravitee.rest.api.portal.rest.model.TransferOwnershipInput;
@@ -45,7 +50,9 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -67,6 +74,9 @@ public class ApplicationMembersResource extends AbstractResource {
     @Inject
     private MemberMapper memberMapper;
 
+    @Inject
+    private SearchApplicationMembersUseCase searchApplicationMembersUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
@@ -85,6 +95,42 @@ public class ApplicationMembersResource extends AbstractResource {
             .collect(Collectors.toList());
 
         return createListResponse(executionContext, membersList, paginationParam);
+    }
+
+    @POST
+    @Path("/_search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
+    public Response searchMembersByApplicationId(
+        @PathParam("applicationId") String applicationId,
+        @Valid @BeanParam PaginationParam paginationParam,
+        @Valid @NotNull(message = "Input must not be null.") ApplicationMembersSearchInput input
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var result = searchApplicationMembersUseCase.execute(
+            new SearchApplicationMembersUseCase.Input(
+                executionContext,
+                applicationId,
+                ApplicationMembersSearchCriteriaMapper.INSTANCE.toSearchCriteria(input),
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
+            )
+        );
+
+        var roleIds = result
+            .memberships()
+            .getContent()
+            .stream()
+            .map(Membership::getRoleId)
+            .filter(id -> id != null && !id.isBlank())
+            .collect(Collectors.toSet());
+        Map<String, RoleEntity> rolesById = roleIds.isEmpty() ? Map.of() : roleService.findByIds(roleIds);
+        List<Member> membersList = memberMapper.convert(result.memberships().getContent(), result.users(), rolesById, uriInfo);
+        Map<String, Map<String, Object>> metadata = new HashMap<>(
+            Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", result.memberships().getTotalElements())))
+        );
+
+        return createListResponse(executionContext, membersList, paginationParam, metadata);
     }
 
     @POST

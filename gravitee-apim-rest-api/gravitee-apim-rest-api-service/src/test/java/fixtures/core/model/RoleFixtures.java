@@ -125,6 +125,10 @@ public class RoleFixtures {
             .build();
     }
 
+    public static Role anApplicationRole(String roleId, String name) {
+        return Role.builder().id(roleId).name(name).scope(Role.Scope.APPLICATION).build();
+    }
+
     private static Role.RoleBuilder systemRoleBuilder() {
         return Role.builder()
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
