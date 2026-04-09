@@ -67,4 +67,10 @@ export class EnvLogsTableHarness extends ComponentHarness {
     const selector = `tbody tr:nth-of-type(${rowIndex + 1}) .diagnostics-container .gio-badge-warning`;
     return this.locatorForOptional(selector)();
   }
+
+  public async getApiProductSubtitle(rowIndex: number) {
+    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) .api-cell__product`;
+    const element = await this.locatorForOptional(selector)();
+    return element ? element.text() : null;
+  }
 }
