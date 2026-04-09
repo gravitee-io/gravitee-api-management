@@ -547,7 +547,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   onPublishToggle() {
-    this.handlePublishToggle(this.selectedNavigationItem()!.data);
+    this.checkUnsavedChangesAndRun(() => this.handlePublishToggle(this.selectedNavigationItem()!.data));
   }
 
   onDeleteSection(node: SectionNode): Observable<void> {
@@ -576,32 +576,30 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private handlePublishToggle(navItem: PortalNavigationItem): void {
-    this.checkUnsavedChangesAndRun(() => {
-      this.matDialog
-        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-          width: GIO_DIALOG_WIDTH.SMALL,
-          data: this.getPublishDialogData(navItem),
-          role: 'alertdialog',
-          id: 'managePublishNavigationItemConfirmDialog',
-        })
-        .afterClosed()
-        .pipe(
-          filter(confirmed => !!confirmed),
-          switchMap(() =>
-            this.update(navItem.id, {
-              ...navItem,
-              published: !navItem.published,
-            }),
-          ),
-          tap(() => this.refreshMenuList.next(1)),
-          catchError(() => {
-            this.snackBarService.error('Failed to update publication status');
-            return EMPTY;
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: this.getPublishDialogData(navItem),
+        role: 'alertdialog',
+        id: 'managePublishNavigationItemConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => !!confirmed),
+        switchMap(() =>
+          this.update(navItem.id, {
+            ...navItem,
+            published: !navItem.published,
           }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe();
-    });
+        ),
+        tap(() => this.refreshMenuList.next(1)),
+        catchError(() => {
+          this.snackBarService.error('Failed to update publication status');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {

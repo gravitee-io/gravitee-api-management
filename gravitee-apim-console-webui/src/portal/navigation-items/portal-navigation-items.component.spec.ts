@@ -1275,6 +1275,112 @@ describe('PortalNavigationItemsComponent', () => {
       });
     });
 
+    describe('with unsaved content changes', () => {
+      it('should show exactly one dialog at a time when Publish button is clicked', async () => {
+        const unpublishedNavItem = fakePortalNavigationPage({
+          id: 'nav-item-1',
+          title: 'Nav Item 1',
+          portalPageContentId: 'nav-item-1-content',
+          published: false,
+        });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+
+        await harness.setEditorContentText('Edited content');
+        await harness.clickPublishButton();
+
+        const openDialogsAfterClick = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterClick).toHaveLength(1);
+        await openDialogsAfterClick[0].confirm();
+
+        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterDiscard).toHaveLength(1);
+        await openDialogsAfterDiscard[0].confirm();
+
+        expectPutPortalNavigationItem('nav-item-1', { ...unpublishedNavItem, published: true }, fakePortalNavigationPage({}));
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+      });
+
+      it('should show exactly one dialog at a time when publish is triggered from More Actions', async () => {
+        const unpublishedNavItem = fakePortalNavigationPage({
+          id: 'nav-item-1',
+          title: 'Nav Item 1',
+          portalPageContentId: 'nav-item-1-content',
+          published: false,
+        });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+
+        await harness.setEditorContentText('Edited content');
+        await harness.publishNodeById('nav-item-1');
+
+        const openDialogsAfterClick = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterClick).toHaveLength(1);
+        await openDialogsAfterClick[0].confirm();
+
+        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterDiscard).toHaveLength(1);
+        await openDialogsAfterDiscard[0].confirm();
+
+        expectPutPortalNavigationItem('nav-item-1', { ...unpublishedNavItem, published: true }, fakePortalNavigationPage({}));
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+      });
+
+      it('should show exactly one dialog at a time when Unpublish button is clicked', async () => {
+        const publishedNavItem = fakePortalNavigationPage({
+          id: 'nav-item-1',
+          title: 'Nav Item 1',
+          portalPageContentId: 'nav-item-1-content',
+          published: true,
+        });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+
+        await harness.setEditorContentText('Edited content');
+        await harness.clickUnpublishButton();
+
+        const openDialogsAfterClick = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterClick).toHaveLength(1);
+        await openDialogsAfterClick[0].confirm();
+
+        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterDiscard).toHaveLength(1);
+        await openDialogsAfterDiscard[0].confirm();
+
+        expectPutPortalNavigationItem('nav-item-1', { ...publishedNavItem, published: false }, fakePortalNavigationPage({}));
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+      });
+
+      it('should show exactly one dialog at a time when unpublish is triggered from More Actions', async () => {
+        const publishedNavItem = fakePortalNavigationPage({
+          id: 'nav-item-1',
+          title: 'Nav Item 1',
+          portalPageContentId: 'nav-item-1-content',
+          published: true,
+        });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+
+        await harness.setEditorContentText('Edited content');
+        await harness.unpublishNodeById('nav-item-1');
+
+        const openDialogsAfterClick = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterClick).toHaveLength(1);
+        await openDialogsAfterClick[0].confirm();
+
+        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
+        expect(openDialogsAfterDiscard).toHaveLength(1);
+        await openDialogsAfterDiscard[0].confirm();
+
+        expectPutPortalNavigationItem('nav-item-1', { ...publishedNavItem, published: false }, fakePortalNavigationPage({}));
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'Original content');
+      });
+    });
+
     describe('unpublished navigation item with unpublished parent', () => {
       const unpublishedParent = fakePortalNavigationFolder({
         id: 'parent-folder-1',
