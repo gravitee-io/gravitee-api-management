@@ -76,7 +76,12 @@ import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
+import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
+import io.gravitee.apim.core.api_product.use_case.members.DeleteApiProductMemberUseCase;
+import io.gravitee.apim.core.api_product.use_case.members.GetApiProductMembersUseCase;
+import io.gravitee.apim.core.api_product.use_case.members.UpdateApiProductMemberUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
@@ -990,6 +995,32 @@ public class ResourceContextConfiguration {
     @Bean
     public VerifyApiProductNameUseCase verifyApiProductNameUseCase() {
         return mock(VerifyApiProductNameUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public VerifyApiProductExistsUseCase verifyApiProductExistsUseCase() {
+        return mock(VerifyApiProductExistsUseCase.class);
+    }
+
+    @Bean
+    public GetApiProductMembersUseCase getApiProductMembersUseCase() {
+        return mock(GetApiProductMembersUseCase.class);
+    }
+
+    @Bean
+    public AddApiProductMemberUseCase addApiProductMemberUseCase() {
+        return mock(AddApiProductMemberUseCase.class);
+    }
+
+    @Bean
+    public UpdateApiProductMemberUseCase updateApiProductMemberUseCase() {
+        return mock(UpdateApiProductMemberUseCase.class);
+    }
+
+    @Bean
+    public DeleteApiProductMemberUseCase deleteApiProductMemberUseCase() {
+        return mock(DeleteApiProductMemberUseCase.class);
     }
 
     @Bean

@@ -101,8 +101,11 @@ import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryService;
 import io.gravitee.apim.core.logs_engine.use_case.GetLogsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
+import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.member.query_service.MemberQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
@@ -994,6 +997,21 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService() {
         return mock(ApplicationPrimaryOwnerDomainService.class);
+    }
+
+    @Bean
+    public MembershipDomainService membershipDomainService() {
+        return mock(MembershipDomainService.class);
+    }
+
+    @Bean
+    public MemberDomainService memberDomainService() {
+        return mock(MemberDomainService.class);
+    }
+
+    @Bean
+    public MemberQueryService memberQueryService() {
+        return mock(MemberQueryService.class);
     }
 
     @Bean

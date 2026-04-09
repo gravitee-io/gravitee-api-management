@@ -95,6 +95,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Lazy
     @Autowired
+    private ApiProductsRepository apiProductsRepository;
+
+    @Lazy
+    @Autowired
     private EnvironmentRepository environmentRepository;
 
     @Lazy
@@ -230,9 +234,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                     }
                 }
             } else if (
-                auditEntity.getReferenceId() != null &&
-                (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name()) ||
-                    Audit.AuditReferenceType.API_PRODUCT.name().equals(auditEntity.getReferenceType().name()))
+                auditEntity.getReferenceId() != null && Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())
             ) {
                 metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
@@ -240,6 +242,24 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         Optional<Api> optApi = apiRepository.findById(auditEntity.getReferenceId());
                         if (optApi.isPresent()) {
                             metadata.put(metadataKey, optApi.get().getName());
+                        }
+                    } catch (TechnicalException e) {
+                        log.error("Error finding metadata {}", metadataKey);
+                        metadata.put(metadataKey, auditEntity.getReferenceId());
+                    }
+                }
+            } else if (
+                auditEntity.getReferenceId() != null &&
+                Audit.AuditReferenceType.API_PRODUCT.name().equals(auditEntity.getReferenceType().name())
+            ) {
+                metadataKey = "API_PRODUCT:" + auditEntity.getReferenceId() + ":name";
+                if (!metadata.containsKey(metadataKey)) {
+                    try {
+                        Optional<io.gravitee.repository.management.model.ApiProduct> optApiProduct = apiProductsRepository.findById(
+                            auditEntity.getReferenceId()
+                        );
+                        if (optApiProduct.isPresent()) {
+                            metadata.put(metadataKey, optApiProduct.get().getName());
                         }
                     } catch (TechnicalException e) {
                         log.error("Error finding metadata {}", metadataKey);

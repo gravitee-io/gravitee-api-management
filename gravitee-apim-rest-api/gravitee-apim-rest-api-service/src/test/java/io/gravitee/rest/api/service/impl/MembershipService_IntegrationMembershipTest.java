@@ -311,6 +311,9 @@ public class MembershipService_IntegrationMembershipTest {
             when(
                 roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
             ).thenReturn(Optional.of(new RoleEntity()));
+            when(
+                roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
+            ).thenReturn(Optional.of(new RoleEntity()));
             when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
@@ -368,6 +371,9 @@ public class MembershipService_IntegrationMembershipTest {
                 roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
             ).thenReturn(Optional.of(new RoleEntity()));
             when(
+                roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
+            ).thenReturn(Optional.of(new RoleEntity()));
+            when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                     EXISTING_USER_ID,
                     MembershipMemberType.USER,
@@ -400,6 +406,9 @@ public class MembershipService_IntegrationMembershipTest {
             ).thenReturn(Optional.of(new RoleEntity()));
             when(
                 roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
+            ).thenReturn(Optional.of(new RoleEntity()));
+            when(
+                roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
             ).thenReturn(Optional.of(new RoleEntity()));
             when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(

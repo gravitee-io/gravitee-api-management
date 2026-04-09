@@ -511,6 +511,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     referenceId
                 );
                 break;
+            case API_PRODUCT:
+                auditService.createApiProductAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(date)
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build(),
+                    referenceId
+                );
+                break;
             case APPLICATION:
                 auditService.createApplicationAuditLog(
                     executionContext,
@@ -856,6 +869,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             RoleEntity integrationPORole = roleService
                 .findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find Application Primary Owner role"));
+            RoleEntity apiProductPORole = roleService
+                .findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find API Product Primary Owner role"));
             Set<io.gravitee.repository.management.model.Membership> memberships =
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                     memberId,
@@ -872,6 +888,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             if (MembershipReferenceType.INTEGRATION.equals(referenceType)) {
                 assertNoPrimaryOwnerRemoval(integrationPORole, memberships);
+            }
+            if (MembershipReferenceType.API_PRODUCT.equals(referenceType)) {
+                assertNoPrimaryOwnerRemoval(apiProductPORole, memberships);
             }
 
             for (io.gravitee.repository.management.model.Membership membership : memberships) {
@@ -2013,6 +2032,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             RoleEntity appPORole = roleService
                 .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find APPLICATION Primary Owner role"));
+            RoleEntity apiProductPORole = roleService
+                .findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find API Product Primary Owner role"));
 
             Set<io.gravitee.repository.management.model.Membership> existingMemberships =
                 this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -2033,6 +2055,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 assertNoPrimaryOwnerRemoval(apiPORole, existingMemberships);
                 assertNoPrimaryOwnerRemoval(appPORole, existingMemberships);
                 assertNoPrimaryOwnerRemoval(integrationPORole, existingMemberships);
+                assertNoPrimaryOwnerRemoval(apiProductPORole, existingMemberships);
             }
 
             if (existingMemberships != null && !existingMemberships.isEmpty()) {
