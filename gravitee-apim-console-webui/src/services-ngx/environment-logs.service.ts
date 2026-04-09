@@ -25,6 +25,7 @@ export type EnvironmentApiLog = {
   apiId: string;
   apiName?: string;
   apiType?: LogApiType;
+  apiProductName?: string;
   timestamp: string;
   id: string;
   requestId: string;

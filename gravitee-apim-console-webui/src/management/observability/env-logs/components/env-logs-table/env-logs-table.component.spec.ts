@@ -131,4 +131,14 @@ describe('EnvLogsTableComponent', () => {
     const warningIcon = await logsTableHarness.getWarningIcon(2);
     expect(warningIcon).toBeTruthy();
   });
+
+  it('should display api product name as subtitle when present', async () => {
+    const subtitle = await logsTableHarness.getApiProductSubtitle(0);
+    expect(subtitle).toEqual('Standalone API');
+  });
+
+  it('should not display api product subtitle when api product name is absent', async () => {
+    const subtitle = await logsTableHarness.getApiProductSubtitle(1);
+    expect(subtitle).toBeNull();
+  });
 });
