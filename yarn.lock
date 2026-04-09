@@ -20589,6 +20589,7 @@ __metadata:
     jwt-decode: "npm:4.0.0"
     license-check-and-add: "npm:4.0.5"
     lodash: "npm:4.17.21"
+    lucide-react: "npm:1.6.0"
     marked: "npm:12.0.2"
     marked-alert: "npm:2.1.2"
     marked-emoji: "npm:1.4.3"
