@@ -19,6 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiProductV2Service } from './api-product-v2.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
+import { AddMember, Member, MembersResponse, UpdateMember } from '../entities/management-api-v2';
 import { ApiProduct, CreateApiProduct, UpdateApiProduct } from '../entities/management-api-v2/api-product';
 
 function fakeApiProduct(overrides?: Partial<ApiProduct>): ApiProduct {
@@ -370,6 +371,118 @@ describe('ApiProductV2Service', () => {
       });
 
       req.flush({ ok: false, reason: 'Name already exists' });
+    });
+  });
+
+  describe('getPermissions', () => {
+    it('should GET members/permissions for the API Product', done => {
+      const permissions = { MEMBER: 'CRUD', PLAN: 'R' };
+
+      apiProductV2Service.getPermissions('product-abc').subscribe(result => {
+        expect(result).toEqual(permissions);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members/permissions`,
+        method: 'GET',
+      });
+      req.flush(permissions);
+    });
+  });
+
+  describe('getPagedMembers', () => {
+    it('should GET members with default pagination', done => {
+      const response: MembersResponse = {
+        data: [{ id: 'm1', displayName: 'Alice', roles: [{ name: 'USER' }] } as Member],
+        pagination: { totalCount: 1, page: 1, perPage: 10 },
+      };
+
+      apiProductV2Service.getPagedMembers('product-abc').subscribe(result => {
+        expect(result.data).toHaveLength(1);
+        expect(result.pagination?.totalCount).toBe(1);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members?page=1&perPage=10`,
+        method: 'GET',
+      });
+      req.flush(response);
+    });
+
+    it('should GET members with custom page and perPage', done => {
+      const response: MembersResponse = { data: [], pagination: { totalCount: 0, page: 3, perPage: 25 } };
+
+      apiProductV2Service.getPagedMembers('product-abc', 3, 25).subscribe(result => {
+        expect(result.data).toEqual([]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members?page=3&perPage=25`,
+        method: 'GET',
+      });
+      req.flush(response);
+    });
+  });
+
+  describe('addMember', () => {
+    it('should POST with userId and roleName', done => {
+      const membership: AddMember = { userId: 'user-1', roleName: 'USER' };
+      const created: Member = { id: 'mem-1', displayName: 'Alice', roles: [{ name: 'USER' }] } as Member;
+
+      apiProductV2Service.addMember('product-abc', membership).subscribe(member => {
+        expect(member.id).toEqual('mem-1');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual(membership);
+      req.flush(created);
+    });
+
+    it('should POST with externalReference when no Gravitee user id', done => {
+      const membership: AddMember = { externalReference: 'idp-subject-99', roleName: 'USER' };
+
+      apiProductV2Service.addMember('product-abc', membership).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual(membership);
+      req.flush({ id: 'mem-ext', roles: [{ name: 'USER' }] } as Member);
+    });
+  });
+
+  describe('updateMember', () => {
+    it('should PUT roleName to members/{memberId}', done => {
+      const membership: UpdateMember = { memberId: 'mem-99', roleName: 'OWNER' };
+
+      apiProductV2Service.updateMember('product-abc', membership).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members/mem-99`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual({ roleName: 'OWNER' });
+      req.flush({ id: 'mem-99', roles: [{ name: 'OWNER' }] } as Member);
+    });
+  });
+
+  describe('deleteMember', () => {
+    it('should DELETE members/{memberId}', done => {
+      apiProductV2Service.deleteMember('product-abc', 'mem-1').subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-abc/members/mem-1`,
+        method: 'DELETE',
+      });
+      req.flush(null);
     });
   });
 });
