@@ -58,7 +58,7 @@
               <p class="next-gen-body" i18n="@@applicationTypeApplicationSettings">Application type</p>
               <mat-form-field appearance="outline">
                 <input matInput formControlName="appType" aria-label="Application type" data-testId="simple-type" />
-                <mat-hint i18n="@@hintApplicationTypeApplicationSettings">Type of the application (mobile, web, ...)</mat-hint>
+                <mat-hint i18n="@@hintApplicationTypeApplicationSettings">Type of the application (mobile, web, ...) </mat-hint>
               </mat-form-field>
             </div>
             <div class="settings-edit__form__field">
@@ -66,8 +66,8 @@
               <mat-form-field appearance="outline">
                 <input matInput formControlName="appClientId" aria-label="Client ID" data-testId="simple-clientId" />
                 <mat-hint i18n="@@hintClientIdApplicationSettings"
-                  >This field is required to subscribe to certain types of API Plan (OAuth2, JWT)</mat-hint
-                >
+                  >This field is required to subscribe to certain types of API Plan (OAuth2, JWT)
+                </mat-hint>
               </mat-form-field>
             </div>
           } @else if (application.settings.oauth) {
@@ -110,9 +110,9 @@
                     />
                   </mat-chip-grid>
                   <mat-hint i18n="@@hintRedirectUrisApplicationSettings"
-                    >URIs where the authorization server will send OAuth responses</mat-hint
-                  >
-                  <mat-error i18n="@@redirectUrisRequiredApplicationSettings">At least one redirect URI is required</mat-error>
+                    >URIs where the authorization server will send OAuth responses
+                  </mat-hint>
+                  <mat-error i18n="@@redirectUrisRequiredApplicationSettings">At least one redirect URI is required </mat-error>
                 </mat-form-field>
               </div>
             }
@@ -121,27 +121,23 @@
               <mat-form-field appearance="outline">
                 <mat-select formControlName="oauthGrantTypes" multiple aria-label="Grant types" data-testId="grantTypes">
                   @for (grantType of grantTypesList; track grantType) {
-                    <mat-option [value]="grantType.type" [disabled]="grantType.isDisabled">{{ grantType.name }}</mat-option>
+                    <mat-option [value]="grantType.type" [disabled]="grantType.isDisabled">{{ grantType.name }} </mat-option>
                   }
                 </mat-select>
                 <mat-hint i18n="@@hintGrantTypesApplicationSettings"
-                  >Grant types allowed for the client. Please set only grant types you need for security reasons</mat-hint
-                >
-                <mat-error i18n="@@grantTypesRequiredApplicationSettings">At least one grant type is required</mat-error>
+                  >Grant types allowed for the client. Please set only grant types you need for security reasons
+                </mat-hint>
+                <mat-error i18n="@@grantTypesRequiredApplicationSettings">At least one grant type is required </mat-error>
               </mat-form-field>
             </div>
           }
         </div>
 
         @if (mtlsEnabled) {
-          @if (certificates.isLoading()) {
-            <app-loader />
-          } @else if (showCertificates()) {
-            <app-application-tab-settings-certificates
-              [applicationId]="applicationId()"
-              [userApplicationPermissions]="userApplicationPermissions()"
-            />
-          }
+          <app-application-tab-settings-certificates
+            [applicationId]="applicationId()"
+            [userApplicationPermissions]="userApplicationPermissions()"
+          />
         }
 
         <div class="settings-edit__form__actions">
