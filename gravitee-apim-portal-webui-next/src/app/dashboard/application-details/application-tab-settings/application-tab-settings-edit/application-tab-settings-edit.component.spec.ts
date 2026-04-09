@@ -16,7 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
-import { of, Subject, throwError } from 'rxjs';
+import { of } from 'rxjs';
 
 import { ApplicationTabSettingsEditComponent } from './application-tab-settings-edit.component';
 import { fakeApplication, fakeSimpleApplicationType } from '../../../../../entities/application/application.fixture';
@@ -29,14 +29,13 @@ describe('ApplicationTabSettingsEditComponent', () => {
   const APPLICATION_ID = 'test-app-id';
   let fixture: ComponentFixture<ApplicationTabSettingsEditComponent>;
   let component: ApplicationTabSettingsEditComponent;
-  const mockList = jest.fn();
 
   async function init(configuration: object) {
     await TestBed.configureTestingModule({
       imports: [ApplicationTabSettingsEditComponent, NoopAnimationsModule],
       providers: [
         { provide: ConfigService, useValue: { configuration } },
-        { provide: ApplicationCertificateService, useValue: { list: mockList } },
+        { provide: ApplicationCertificateService, useValue: { list: jest.fn().mockReturnValue(of({ data: [] })) } },
         { provide: ApplicationService, useValue: { get: () => of(fakeApplication()), save: jest.fn() } },
         { provide: Router, useValue: { url: '/', navigate: jest.fn() } },
       ],
@@ -51,33 +50,8 @@ describe('ApplicationTabSettingsEditComponent', () => {
     await fixture.whenStable();
   }
 
-  async function initForLoadingState() {
-    await TestBed.configureTestingModule({
-      imports: [ApplicationTabSettingsEditComponent, NoopAnimationsModule],
-      providers: [
-        { provide: ConfigService, useValue: { configuration: { portalNext: { mtls: { enabled: true } } } } },
-        { provide: ApplicationCertificateService, useValue: { list: mockList } },
-        { provide: ApplicationService, useValue: { get: () => of(fakeApplication()), save: jest.fn() } },
-        { provide: Router, useValue: { url: '/', navigate: jest.fn() } },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ApplicationTabSettingsEditComponent);
-    component = fixture.componentInstance;
-    fixture.componentRef.setInput('applicationId', APPLICATION_ID);
-    fixture.componentRef.setInput('applicationTypeConfiguration', fakeSimpleApplicationType());
-    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions());
-    // Do NOT call whenStable() — rxResource with a never-emitting Subject keeps the zone unstable
-    fixture.detectChanges();
-  }
-
-  beforeEach(() => {
-    mockList.mockReset();
-  });
-
   describe('mtlsEnabled', () => {
     it('should return true when mtls is enabled', async () => {
-      mockList.mockReturnValue(of({}));
       await init({ portalNext: { mtls: { enabled: true } } });
 
       expect((component as unknown as { mtlsEnabled: boolean }).mtlsEnabled).toBe(true);
@@ -93,58 +67,6 @@ describe('ApplicationTabSettingsEditComponent', () => {
       await init({});
 
       expect((component as unknown as { mtlsEnabled: boolean }).mtlsEnabled).toBe(false);
-    });
-  });
-
-  describe('certificates', () => {
-    it('should not call certService.list when mtls is disabled', async () => {
-      await init({});
-
-      expect(mockList).not.toHaveBeenCalled();
-    });
-
-    it('should call certService.list with applicationId when mtls is enabled', async () => {
-      mockList.mockReturnValue(of({ metadata: { paginateMetaData: { totalElements: 0 } } }));
-      await init({ portalNext: { mtls: { enabled: true } } });
-
-      expect(mockList).toHaveBeenCalledWith(APPLICATION_ID, 1, 1);
-    });
-  });
-
-  describe('showCertificates', () => {
-    it('should return false when mtls is disabled', async () => {
-      await init({});
-
-      expect(component.showCertificates()).toBe(false);
-    });
-
-    it('should return false when certificate list is empty', async () => {
-      mockList.mockReturnValue(of({ metadata: { paginateMetaData: { totalElements: 0 } } }));
-      await init({ portalNext: { mtls: { enabled: true } } });
-
-      expect(component.showCertificates()).toBe(false);
-    });
-
-    it('should return true when certificates exist', async () => {
-      mockList.mockReturnValue(of({ metadata: { paginateMetaData: { totalElements: 2 } } }));
-      await init({ portalNext: { mtls: { enabled: true } } });
-
-      expect(component.showCertificates()).toBe(true);
-    });
-
-    it('should return true when certificate API fails (fail-open)', async () => {
-      mockList.mockReturnValue(throwError(() => new Error('API error')));
-      await init({ portalNext: { mtls: { enabled: true } } });
-
-      expect(component.showCertificates()).toBe(true);
-    });
-
-    it('should return false while certificates are still loading', async () => {
-      mockList.mockReturnValue(new Subject());
-      await initForLoadingState();
-
-      expect((component as unknown as { certificates: { isLoading: () => boolean } }).certificates.isLoading()).toBe(true);
-      expect(component.showCertificates()).toBe(false);
     });
   });
 });

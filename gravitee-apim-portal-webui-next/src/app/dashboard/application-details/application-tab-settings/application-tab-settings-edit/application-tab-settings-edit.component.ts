@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, inject, input, OnInit } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, inject, input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -30,9 +29,7 @@ import { isEqual } from 'lodash';
 import { map, Observable, of, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
-import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
-import { ClientCertificatesResponse } from '../../../../../entities/application/client-certificate';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
 import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
 import { ApplicationService } from '../../../../../services/application.service';
@@ -70,7 +67,6 @@ interface ApplicationGrantTypeVM {
   imports: [
     ApplicationTabSettingsCertificatesComponent,
     CopyCodeComponent,
-    LoaderComponent,
     MatButtonModule,
     MatCardModule,
     MatDivider,
@@ -96,18 +92,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   protected get mtlsEnabled(): boolean {
     return this.configService.configuration?.portalNext?.mtls?.enabled === true;
   }
-
-  protected readonly certificates = rxResource<ClientCertificatesResponse | undefined, string | null>({
-    params: () => (this.mtlsEnabled ? this.applicationId() : null),
-    stream: ({ params }) => (params ? this.certService.list(params, 1, 1) : of(undefined)),
-  });
-
-  showCertificates = computed(() => {
-    if (this.certificates.error()) return true;
-    const response = this.certificates.value();
-    if (!response) return false;
-    return (response.metadata?.paginateMetaData?.totalElements ?? 0) > 0;
-  });
 
   application$!: Observable<Application>;
 
