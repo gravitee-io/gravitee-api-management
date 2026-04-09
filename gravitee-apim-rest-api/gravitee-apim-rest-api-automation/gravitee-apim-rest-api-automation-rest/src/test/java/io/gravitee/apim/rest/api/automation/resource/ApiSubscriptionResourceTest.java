@@ -15,8 +15,12 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.ApiFixtures;
@@ -26,12 +30,18 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +63,9 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
     @Autowired
     private PlanCrudServiceInMemory planCrudService;
 
+    @Autowired
+    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+
     static final String HRID = "subscription-hrid";
     static final String API_HRID = "api-hrid";
     static final String APPLICATION_HRID = "application-hrid";
@@ -64,6 +77,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         apiCrudService.reset();
         applicationCrudService.reset();
         planCrudService.reset();
+        reset(importSubscriptionSpecUseCase);
     }
 
     @Nested
@@ -180,18 +194,22 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void should_delete_subscription_and_return_no_content() {
+            String apiId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId();
+            String applicationId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId();
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
-                        .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
-                        .applicationId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
+                        .apiId(apiId)
+                        .applicationId(applicationId)
                         .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
                         .build()
                 )
             );
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
 
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
             expectNoContent(HRID);
         }
 
@@ -208,6 +226,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
                         .build()
                 )
             );
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build()));
 
             apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).build()));
             expectNoContent(HRID, true);
@@ -231,6 +250,66 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         private void expectNotFound(String hrid) {
             try (var response = rootTarget().path(hrid).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
+            }
+        }
+    }
+
+    @Nested
+    class PutDeletePut {
+
+        @Test
+        void should_handle_put_delete_put_lifecycle() {
+            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionSpecUseCase.Output(
+                    SubscriptionCRDStatus.builder()
+                        .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
+                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                        .status(ACCEPTED.name())
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
+
+            String applicationId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId();
+            String apiId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId();
+            subscriptionCrudService.initWith(
+                List.of(
+                    SubscriptionFixtures.aSubscription()
+                        .toBuilder()
+                        .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
+                        .apiId(apiId)
+                        .applicationId(applicationId)
+                        .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
+                        .build()
+                )
+            );
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
+
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
+            // PUT: create/update subscription
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("subscription-with-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+
+            // DELETE: close subscription
+            try (var response = rootTarget().path(HRID).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(204);
+            }
+
+            // PUT again: should succeed (restore + update at domain service level)
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("subscription-with-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
             }
         }
     }
