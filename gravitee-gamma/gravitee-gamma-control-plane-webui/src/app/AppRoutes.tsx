@@ -20,29 +20,28 @@ import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { AboutPage } from '../pages/AboutPage';
 import { HomePage } from '../pages/HomePage';
+import { RouteLayout } from '../shared/components/RouteLayout';
 import { ShellLayout } from '../shared/components/ShellLayout';
 
-export function App() {
+export function AppRoutes() {
     const { modules, loading, error } = useGammaModules();
 
     return (
-        <React.Suspense fallback={<p>Loading…</p>}>
-            <Routes>
-                <Route element={<PublicOnlyRoute />}>
-                    <Route path="/login" element={<LoginPage />} />
-                </Route>
-                <Route element={<ProtectedRoute />}>
-                    <Route element={<ShellLayout modules={modules} />}>
+        <Routes>
+            <Route element={<PublicOnlyRoute />}>
+                <Route path="/login" element={<LoginPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+                <Route element={<ShellLayout modules={modules} />}>
+                    <Route element={<RouteLayout />}>
                         <Route path="/" element={<HomePage modules={modules} loading={loading} error={error} />} />
                         <Route path="/about" element={<AboutPage />} />
-                        {modules.map((m: GammaModule) => (
-                            <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
-                        ))}
                     </Route>
+                    {modules.map((m: GammaModule) => (
+                        <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
+                    ))}
                 </Route>
-            </Routes>
-        </React.Suspense>
+            </Route>
+        </Routes>
     );
 }
-
-export default App;

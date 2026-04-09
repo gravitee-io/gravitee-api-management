@@ -20,7 +20,7 @@ const config: ModuleFederationConfig = {
     exposes: {},
     remotes: [],
     shared: (libraryName, sharedConfig) => {
-        if (['react', 'react-dom', 'react-router-dom', 'zustand'].includes(libraryName)) {
+        if (['react', 'react-dom', 'react-router-dom', 'zustand', '@gravitee/graphene'].includes(libraryName)) {
             return {
                 singleton: true,
                 strictVersion: true,

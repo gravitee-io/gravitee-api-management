@@ -18,7 +18,7 @@ import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
-import App from './app/app';
+import { AppRoutes } from './app/AppRoutes';
 import { useAuthStore } from './features/auth';
 import { useEnvironmentStore } from './features/environment';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
@@ -51,7 +51,7 @@ initialize().then(() => {
                         )}
                     >
                         <Suspense fallback={<div>Loading…</div>}>
-                            <App />
+                            <AppRoutes />
                         </Suspense>
                     </ErrorBoundary>
                 </ThemeProvider>
