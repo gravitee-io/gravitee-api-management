@@ -225,6 +225,7 @@ export class EnvLogsComponent {
       api: log.apiName ?? log.apiId,
       apiId: log.apiId,
       apiType: log.apiType ? (API_TYPE_LABELS[log.apiType] ?? log.apiType) : undefined,
+      apiProductName: log.apiProductName ?? undefined,
       application: log.application?.name ?? log.application?.id ?? EMPTY_FIELD,
       method: log.method ?? EMPTY_FIELD,
       path: log.uri ?? EMPTY_FIELD,

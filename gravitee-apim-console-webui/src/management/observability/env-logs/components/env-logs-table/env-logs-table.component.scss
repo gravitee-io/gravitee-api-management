@@ -23,3 +23,13 @@
     text-decoration: none;
   }
 }
+
+.api-cell {
+  display: flex;
+  flex-direction: column;
+
+  &__product {
+    @include gio.caption-2();
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker);
+  }
+}
