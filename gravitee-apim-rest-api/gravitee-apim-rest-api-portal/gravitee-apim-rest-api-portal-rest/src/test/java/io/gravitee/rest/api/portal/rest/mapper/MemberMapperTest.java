@@ -98,7 +98,7 @@ public class MemberMapperTest {
         Member responseMember = memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo);
         assertNotNull(responseMember);
         assertEquals(now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
-        assertNull(responseMember.getId());
+        assertEquals(MEMBER_ID, responseMember.getId());
         assertEquals("OWNER", responseMember.getRole());
         assertEquals(now.toEpochMilli(), responseMember.getUpdatedAt().toInstant().toEpochMilli());
 

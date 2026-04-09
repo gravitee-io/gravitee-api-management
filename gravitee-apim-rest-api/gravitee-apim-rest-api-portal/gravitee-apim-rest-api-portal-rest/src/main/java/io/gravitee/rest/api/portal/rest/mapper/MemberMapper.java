@@ -44,6 +44,7 @@ public class MemberMapper {
     public Member convert(ExecutionContext executionContext, MemberEntity member, UriInfo uriInfo) {
         final Member memberItem = new Member();
 
+        memberItem.setId(member.getId());
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
 
         UserEntity userEntity = userService.findById(executionContext, member.getId());
