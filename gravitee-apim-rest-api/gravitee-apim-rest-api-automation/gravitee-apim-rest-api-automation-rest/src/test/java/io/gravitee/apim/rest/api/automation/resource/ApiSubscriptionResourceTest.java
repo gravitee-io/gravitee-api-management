@@ -34,6 +34,7 @@ import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
@@ -92,7 +93,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
                         SubscriptionFixtures.aSubscription()
                             .toBuilder()
                             .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
-                            .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
+                            .referenceId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
                             .applicationId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
                             .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
                             .build()
@@ -193,18 +194,22 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void should_delete_subscription_and_return_no_content() {
+            String apiId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId();
+            String applicationId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId();
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
-                        .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
-                        .applicationId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
+                        .referenceId(apiId)
+                        .applicationId(applicationId)
                         .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
                         .build()
                 )
             );
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
 
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
             expectNoContent(HRID);
         }
 
@@ -215,12 +220,13 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
                     SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(HRID)
-                        .apiId(API_HRID)
+                        .referenceId(API_HRID)
                         .applicationId(APPLICATION_HRID)
                         .planId(PLAN_HRID)
                         .build()
                 )
             );
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build()));
 
             apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).build()));
             expectNoContent(HRID, true);
@@ -265,18 +271,22 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 )
             );
 
+            String applicationId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId();
+            String apiId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId();
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
-                        .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
-                        .applicationId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
+                        .referenceId(apiId)
+                        .applicationId(applicationId)
                         .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
                         .build()
                 )
             );
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
 
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
             // PUT: create/update subscription
             try (
                 var response = rootTarget()
