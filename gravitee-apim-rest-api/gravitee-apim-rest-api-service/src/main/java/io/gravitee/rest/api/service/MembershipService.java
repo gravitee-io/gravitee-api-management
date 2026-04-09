@@ -252,6 +252,10 @@ public interface MembershipService {
 
     void deleteMemberForApi(ExecutionContext executionContext, String apiId, String memberId);
 
+    MemberEntity updateMembershipForApiProduct(ExecutionContext executionContext, String apiProductId, String memberId, String roleName);
+
+    void deleteMemberForApiProduct(ExecutionContext executionContext, String apiProductId, String memberId);
+
     void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId);
 
     MemberEntity createNewMembershipForIntegration(
