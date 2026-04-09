@@ -160,6 +160,9 @@ public class MembershipService_UpdateMembershipForApiTest {
         when(
             roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
         ).thenReturn(Optional.of(new RoleEntity()));
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
+        ).thenReturn(Optional.of(new RoleEntity()));
 
         MemberEntity updatedMember = membershipService.updateMembershipForApi(
             GraviteeContext.getExecutionContext(),

@@ -49,6 +49,7 @@ public class MembershipService_DeleteMemberTest {
     private static final String API_PO_ROLE_ID = "123";
     private static final String APPLICATION_PO_ROLE_ID = "222";
     private static final String INTEGRATION_PO_ROLE_ID = "333";
+    private static final String API_PRODUCT_PO_ROLE_ID = "444";
     private static final String MEMBER_ID = "456";
     private static final String API_ID = "789";
     private static final String APPLICATION_ID = "app#1";
@@ -95,6 +96,9 @@ public class MembershipService_DeleteMemberTest {
         );
         when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(
             primaryOwnerRole(RoleScope.INTEGRATION, INTEGRATION_PO_ROLE_ID)
+        );
+        when(roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(
+            primaryOwnerRole(RoleScope.API_PRODUCT, API_PRODUCT_PO_ROLE_ID)
         );
     }
 

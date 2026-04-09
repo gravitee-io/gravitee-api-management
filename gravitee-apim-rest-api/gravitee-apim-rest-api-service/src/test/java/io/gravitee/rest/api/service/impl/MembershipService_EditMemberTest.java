@@ -95,6 +95,7 @@ public class MembershipService_EditMemberTest {
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
         when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(Optional.of(new RoleEntity()));
         when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(appPrimaryOwnerRole());
+        when(roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(Optional.of(new RoleEntity()));
 
         Membership membership = new Membership();
         membership.setRoleId(API_PO_ROLE_ID);
@@ -127,6 +128,7 @@ public class MembershipService_EditMemberTest {
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
         when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(appPrimaryOwnerRole());
         when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(Optional.of(new RoleEntity()));
 
         Membership membership = new Membership();
         membership.setRoleId(APP_PO_ROLE_ID);

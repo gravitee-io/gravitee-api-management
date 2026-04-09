@@ -494,6 +494,144 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/members:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      tags:
+        - API Product Members
+      summary: List API Product members
+      description: |-
+        List user members for an API Product.
+
+        User must have the API_PRODUCT_MEMBER[READ] permission.
+      operationId: listApiProductMembers
+      responses:
+        "200":
+          $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/ForbiddenError'
+        "404":
+          description: API Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - API Product Members
+      summary: Add a member to an API Product
+      description: |-
+        Add a new member to an API Product with the given role. PRIMARY_OWNER cannot be assigned through this API.
+
+        Returns 400 when the user is already a member, or when PRIMARY_OWNER is requested.
+
+        User must have the API_PRODUCT_MEMBER[CREATE] permission.
+      operationId: addApiProductMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "./openapi-environments.yaml#/components/schemas/AddMember"
+        required: true
+      responses:
+        "201":
+          description: Member successfully added
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-environments.yaml#/components/schemas/Member"
+        "400":
+          $ref: '#/components/responses/BadRequestError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/ForbiddenError'
+        "404":
+          description: API Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/members/{memberId}:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - $ref: "./openapi-environments.yaml#/components/parameters/memberId"
+    put:
+      tags:
+        - API Product Members
+      summary: Update an API Product member
+      description: |-
+        Edit a member for an API Product.
+
+        Returns 400 when PRIMARY_OWNER is requested.
+
+        User must have the API_PRODUCT_MEMBER[UPDATE] permission.
+      operationId: updateApiProductMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "./openapi-environments.yaml#/components/schemas/UpdateMember"
+        required: true
+      responses:
+        "200":
+          description: Membership successfully edited
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-environments.yaml#/components/schemas/Member"
+        "400":
+          $ref: '#/components/responses/BadRequestError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/ForbiddenError'
+        "404":
+          description: API Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - API Product Members
+      summary: Remove an API Product member
+      description: |-
+        Remove one API Product member.
+
+        User must have the API_PRODUCT_MEMBER[DELETE] permission.
+      operationId: deleteApiProductMember
+      responses:
+        "204":
+          description: Membership successfully deleted
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/ForbiddenError'
+        "404":
+          description: API Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/members/permissions:
     parameters:
       - $ref: "#/components/parameters/envIdParam"

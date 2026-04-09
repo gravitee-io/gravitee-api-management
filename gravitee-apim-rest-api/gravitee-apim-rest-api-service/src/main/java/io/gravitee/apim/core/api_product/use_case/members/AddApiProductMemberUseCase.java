@@ -1,0 +1,64 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.api_product.use_case.members;
+
+import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
+
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
+import io.gravitee.apim.core.membership.model.AddMember;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
+import lombok.AllArgsConstructor;
+
+@UseCase
+@AllArgsConstructor
+public class AddApiProductMemberUseCase {
+
+    private final MembershipDomainService membershipDomainService;
+
+    public record Input(AddMember addMember, String apiProductId) {}
+
+    public record Output(MemberEntity createdMember) {}
+
+    public Output execute(Input input) {
+        validateMembership(input.addMember);
+
+        MemberEntity created = membershipDomainService.createNewMembership(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.API_PRODUCT,
+            input.apiProductId,
+            input.addMember.getUserId(),
+            input.addMember.getExternalReference(),
+            input.addMember.getRoleName()
+        );
+
+        return new Output(created);
+    }
+
+    private void validateMembership(AddMember addMember) {
+        if (PRIMARY_OWNER.name().equals(addMember.getRoleName())) {
+            throw new SinglePrimaryOwnerException(RoleScope.API_PRODUCT);
+        }
+        if (addMember.getUserId() == null && addMember.getExternalReference() == null) {
+            throw new InvalidDataException("Request must specify either userId or externalReference");
+        }
+    }
+}
