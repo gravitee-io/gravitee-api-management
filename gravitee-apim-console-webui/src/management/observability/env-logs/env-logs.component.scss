@@ -8,13 +8,15 @@
   @include gio-layout.gio-responsive-content-container;
 }
 
+.banner-warning {
+  margin-bottom: 24px;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .logs-section {
   border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-
-  // ::ng-deep is required because the M2 theme does not expose CSS custom properties
-  // for --mat-tab-header-divider-color (M3 only). The .mat-mdc-tab-header element is
-  // inside Angular Material's view encapsulation, so scoped styles cannot reach it.
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  }
 }
