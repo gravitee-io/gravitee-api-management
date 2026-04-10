@@ -23,10 +23,11 @@ import static java.util.Collections.emptyList;
 import static org.springframework.util.StringUtils.hasText;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.RecordComponent;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,9 +37,12 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.Getter;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -52,7 +56,7 @@ import org.springframework.jdbc.core.RowMapper;
 @CustomLog
 public class JdbcObjectMapper<T> {
 
-    private final Constructor<T> constructor;
+    private final Function<ResultSet, T> entityFactory;
 
     @Getter
     private final List<JdbcColumn> columns;
@@ -134,14 +138,7 @@ public class JdbcObjectMapper<T> {
 
         @Override
         public T mapRow(ResultSet rs, int i) {
-            try {
-                T item = constructor.newInstance();
-                setFromResultSet(item, rs);
-                return item;
-            } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException ex) {
-                log.error("Failed to construct {}", tableName);
-                throw new IllegalStateException("Failed to construct " + tableName, ex);
-            }
+            return entityFactory.apply(rs);
         }
     }
 
@@ -189,12 +186,7 @@ public class JdbcObjectMapper<T> {
         final String updateSql,
         final String tableName
     ) {
-        try {
-            this.constructor = clazz.getConstructor();
-        } catch (final Exception e) {
-            log.error("Unable to find default constructor for {}", tableName);
-            throw new IllegalStateException("Unable to find default constructor for " + tableName, e);
-        }
+        this.entityFactory = clazz.isRecord() ? recordFactory(clazz, tableName) : pojoFactory(clazz, tableName);
         this.tableName = tableName;
         this.columns = columns;
         this.idColumn = idColumn;
@@ -261,34 +253,17 @@ public class JdbcObjectMapper<T> {
     }
 
     public void setFromResultSet(final T item, final ResultSet rs) {
-        for (final JdbcColumn column : columns) {
+        decodedValues(item.getClass(), rs).forEach(entry -> {
             try {
-                Object value = rs.getObject(getDBName(column.name));
-                if (!rs.wasNull()) {
-                    if (value instanceof Clob) {
-                        Clob clob = (Clob) value;
-                        Reader reader = clob.getCharacterStream();
-                        final char[] buf = new char[128];
-                        int chars;
-                        StringBuilder rslt = new StringBuilder();
-                        while ((chars = reader.read(buf)) >= 0) {
-                            rslt.append(buf, 0, chars);
-                        }
-                        value = rslt.toString();
-                    }
-                    value = checkTypeAndConvert(item, column, value);
-                    column.setter.invoke(item, value);
-                }
-            } catch (SQLException ex) {
-                log.debug("Field {} is not part of the result set; {}", getDBName(column.name), ex.getMessage());
-            } catch (Exception ex) {
-                log.error("Failed to invoke setter {} on {}; {}", column.setter, item, ex.getMessage());
+                entry.column().setter.invoke(item, entry.value());
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                log.error("Failed to invoke setter {} on {}; {}", entry.column().setter, item, ex.getMessage());
             }
-        }
+        });
     }
 
-    private Object checkTypeAndConvert(final T item, final JdbcColumn column, final Object value) {
-        log.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
+    private Object checkTypeAndConvert(final Class<?> clazz, final JdbcColumn column, final Object value) {
+        log.trace("Converted {}.{} from {} to {}", getDBName(clazz.getSimpleName()), getDBName(column.name), value, value);
         if (column.javaType.isEnum() && (value instanceof String stringValue)) {
             return hasText(stringValue) ? Enum.valueOf(column.javaType, stringValue) : null;
         } else if (value instanceof Timestamp timestampValue) {
@@ -413,4 +388,74 @@ public class JdbcObjectMapper<T> {
             return emptyList();
         }
     }
+
+    private Function<ResultSet, T> pojoFactory(Class<T> clazz, String tableName) {
+        try {
+            var constructor = clazz.getConstructor();
+            return rs -> {
+                try {
+                    T item = constructor.newInstance();
+                    setFromResultSet(item, rs);
+                    return item;
+                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException ex) {
+                    log.error("Failed to construct {}", tableName);
+                    throw new IllegalStateException("Failed to construct " + tableName, ex);
+                }
+            };
+        } catch (final Exception e) {
+            log.error("Unable to find default constructor for {}", tableName);
+            throw new IllegalStateException("Unable to find default constructor for " + tableName, e);
+        }
+    }
+
+    private Function<ResultSet, T> recordFactory(Class<T> clazz, String tableName) {
+        Class<?>[] componentTypes = Arrays.stream(clazz.getRecordComponents()).map(RecordComponent::getType).toArray(Class<?>[]::new);
+
+        try {
+            var constructor = clazz.getDeclaredConstructor(componentTypes);
+            return rs -> {
+                try {
+                    Object[] constructorArgs = setFromResultSet(clazz, rs);
+                    return constructor.newInstance(constructorArgs);
+                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException ex) {
+                    log.error("Failed to construct {}", tableName);
+                    throw new IllegalStateException("Failed to construct " + tableName, ex);
+                }
+            };
+        } catch (final Exception e) {
+            log.error("Unable to find default constructor for {}", tableName);
+            throw new IllegalStateException("Unable to find default constructor for " + tableName, e);
+        }
+    }
+
+    private Object[] setFromResultSet(final Class<T> clazz, final ResultSet rs) {
+        return decodedValues(clazz, rs).map(ColValue::value).toArray();
+    }
+
+    private Stream<ColValue> decodedValues(final Class<?> clazz, final ResultSet rs) {
+        List<ColValue> values = new ArrayList<>(columns.size());
+        for (JdbcColumn column : columns) {
+            try {
+                Object value = rs.getObject(getDBName(column.name));
+                if (!rs.wasNull()) {
+                    if (value instanceof Clob clob) {
+                        Reader reader = clob.getCharacterStream();
+                        final char[] buf = new char[128];
+                        int chars;
+                        StringBuilder rslt = new StringBuilder();
+                        while ((chars = reader.read(buf)) >= 0) {
+                            rslt.append(buf, 0, chars);
+                        }
+                        value = rslt.toString();
+                    }
+                    values.add(new ColValue(column, checkTypeAndConvert(clazz, column, value)));
+                }
+            } catch (SQLException | IOException ex) {
+                log.debug("Field {} is not part of the result set; {}", getDBName(column.name), ex.getMessage());
+            }
+        }
+        return values.stream();
+    }
+
+    private record ColValue(JdbcColumn column, Object value) {}
 }

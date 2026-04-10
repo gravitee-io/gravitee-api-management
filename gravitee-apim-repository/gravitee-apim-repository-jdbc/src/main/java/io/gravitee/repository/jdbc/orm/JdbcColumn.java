@@ -36,14 +36,23 @@ public class JdbcColumn {
     public final Method setter;
 
     JdbcColumn(String name, int jdbcType, Class<?> owningClass, Class<?> fieldType) {
-        this.name = getAccessorName(name);
+        String accessorName = getAccessorName(name);
+        this.name = accessorName;
+        if (owningClass.isRecord() && accessorName.length() > 1) {
+            accessorName = Character.toLowerCase(accessorName.charAt(0)) + accessorName.substring(1);
+        }
         this.jdbcType = jdbcType;
         this.javaType = fieldType;
-        String getterName = "get";
-        if (fieldType == boolean.class) {
-            getterName = "is";
+        String getterName;
+        if (owningClass.isRecord()) {
+            getterName = accessorName;
+        } else {
+            getterName = "get";
+            if (fieldType == boolean.class) {
+                getterName = "is";
+            }
+            getterName += this.name;
         }
-        getterName += this.name;
 
         try {
             this.getter = owningClass.getMethod(getterName);
@@ -51,13 +60,17 @@ public class JdbcColumn {
             log.error("Method {} not found: ", getterName, ex);
             throw new IllegalStateException("Method " + owningClass.getSimpleName() + "." + getterName + " not found", ex);
         }
-        try {
-            this.setter = owningClass.getMethod("set" + this.name, fieldType);
-        } catch (NoSuchMethodException ex) {
-            throw new IllegalStateException(
-                "Method " + owningClass.getSimpleName() + ".set" + this.name + "( " + fieldType.getSimpleName() + ") not found",
-                ex
-            );
+        if (owningClass.isRecord()) {
+            this.setter = null;
+        } else {
+            try {
+                this.setter = owningClass.getMethod("set" + this.name, fieldType);
+            } catch (NoSuchMethodException ex) {
+                throw new IllegalStateException(
+                    "Method " + owningClass.getSimpleName() + ".set" + this.name + "( " + fieldType.getSimpleName() + ") not found",
+                    ex
+                );
+            }
         }
     }
 
