@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPre
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,9 +51,10 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         Node node,
         String port,
         GatewayConfiguration gatewayConfiguration,
-        ConnectionDrainManager connectionDrainManager
+        ConnectionDrainManager connectionDrainManager,
+        MeterRegistry meterRegistry
     ) {
-        super(transactionHandlerFactory, reporterService, eventProducer, node, port);
+        super(transactionHandlerFactory, reporterService, eventProducer, node, port, meterRegistry);
         this.traceContext = traceContext;
         this.xForwardProcessor = xForwardProcessor;
         this.gatewayConfiguration = gatewayConfiguration;
