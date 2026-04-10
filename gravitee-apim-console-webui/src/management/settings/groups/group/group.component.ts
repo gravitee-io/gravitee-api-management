@@ -71,6 +71,7 @@ export interface EditMemberDialogData {
   member: Member;
   members: Member[];
   defaultAPIRoles: Role[];
+  defaultAPIProductRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles: Role[];
   defaultClusterRoles: Role[];
@@ -85,6 +86,7 @@ export interface AddOrInviteMembersDialogData {
   group: Group;
   members: Member[];
   defaultAPIRoles: Role[];
+  defaultAPIProductRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles?: Role[];
   defaultClusterRoles?: Role[];
@@ -595,6 +597,7 @@ export class GroupComponent implements OnInit {
           member: member,
           members: this.groupMembers.value,
           defaultAPIRoles: this.defaultAPIRoles,
+          defaultAPIProductRoles: this.defaultAPIProductRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
           defaultClusterRoles: this.defaultClusterRoles,
@@ -632,6 +635,7 @@ export class GroupComponent implements OnInit {
           group: this.group.value,
           members: this.groupMembers.value,
           defaultAPIRoles: this.defaultAPIRoles,
+          defaultAPIProductRoles: this.defaultAPIProductRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
           defaultClusterRoles: this.defaultClusterRoles,
@@ -669,6 +673,7 @@ export class GroupComponent implements OnInit {
           group: this.group.value,
           members: this.groupMembers.value,
           defaultAPIRoles: this.defaultAPIRoles,
+          defaultAPIProductRoles: this.defaultAPIProductRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
         },
         role: 'alertdialog',

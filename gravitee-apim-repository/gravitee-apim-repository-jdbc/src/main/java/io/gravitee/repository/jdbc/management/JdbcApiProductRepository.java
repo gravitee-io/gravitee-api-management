@@ -210,6 +210,44 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     }
 
     @Override
+    public List<ApiProduct> search(ApiProductCriteria criteria) throws TechnicalException {
+        log.debug("JdbcApiProductRepository.search({})", criteria);
+        if (criteria == null) {
+            return new ArrayList<>(findAll());
+        }
+        try {
+            List<Object> args = new ArrayList<>();
+            boolean needApiJoin = criteria.getApiIds() != null && !criteria.getApiIds().isEmpty();
+            String clause = buildSearchIdsClause(criteria, args);
+
+            String sql = getOrm().getSelectAllSql() + " ap ";
+            if (needApiJoin) {
+                sql += "LEFT JOIN " + API_PRODUCT_APIS + " apa ON ap.id = apa.api_product_id ";
+            }
+            if (clause != null) {
+                sql += "WHERE " + clause + " ";
+            }
+            sql += "ORDER BY ap.id";
+
+            final boolean joinApiIds = needApiJoin;
+            List<ApiProduct> apiProducts = jdbcTemplate.query(
+                sql,
+                (ResultSet rs, int rowNum) -> {
+                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                    if (joinApiIds) addApiId(apiProduct, rs);
+                    return apiProduct;
+                },
+                args.toArray()
+            );
+            List<ApiProduct> aggregated = needApiJoin ? aggregateApiProducts(apiProducts) : apiProducts;
+            enrichWithGroupIds(aggregated);
+            return aggregated;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to search api products", ex);
+        }
+    }
+
+    @Override
     public Set<ApiProduct> findByApiId(String apiId) throws TechnicalException {
         log.debug("JdbcApiProductRepository.findByApiId({})", apiId);
         try {
@@ -319,6 +357,19 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     }
 
     @Override
+    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        log.debug("JdbcApiProductRepository.search({}, pageable)", criteria);
+        Page<String> idPage = searchIds(criteria != null ? List.of(criteria) : List.of(), pageable, sortable);
+        if (idPage.getContent().isEmpty()) {
+            return new Page<>(List.of(), pageable.pageNumber(), 0, idPage.getTotalElements());
+        }
+        Map<String, ApiProduct> byId = new LinkedHashMap<>();
+        findByIds(idPage.getContent()).forEach(p -> byId.put(p.getId(), p));
+        List<ApiProduct> ordered = idPage.getContent().stream().filter(byId::containsKey).map(byId::get).toList();
+        return new Page<>(ordered, pageable.pageNumber(), ordered.size(), idPage.getTotalElements());
+    }
+
+    @Override
     public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
         throws TechnicalException {
         log.debug("JdbcApiProductRepository.searchIds({})", apiProductCriteriaList);
@@ -399,6 +450,17 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
             clauses.add("apa.api_id IN (" + getOrm().buildInClause(new ArrayList<>(criteria.getApiIds())) + ")");
             args.addAll(criteria.getApiIds());
+        }
+        if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
+            List<String> groupList = new ArrayList<>(criteria.getGroups());
+            clauses.add(
+                "ap.id IN (SELECT api_product_id FROM " +
+                    API_PRODUCT_GROUPS +
+                    " WHERE group_id IN (" +
+                    getOrm().buildInClause(groupList) +
+                    "))"
+            );
+            args.addAll(groupList);
         }
         return clauses.isEmpty() ? null : String.join(" AND ", clauses);
     }

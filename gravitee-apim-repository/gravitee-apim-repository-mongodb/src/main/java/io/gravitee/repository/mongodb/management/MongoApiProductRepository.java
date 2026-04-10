@@ -125,6 +125,28 @@ public class MongoApiProductRepository implements ApiProductsRepository {
     }
 
     @Override
+    public List<ApiProduct> search(ApiProductCriteria criteria) throws TechnicalException {
+        log.debug("MongoApiProductRepository.search({})", criteria);
+        try {
+            return internalApiProductRepo.search(criteria).stream().map(mapper::map).collect(Collectors.toList());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to search api products", ex);
+        }
+    }
+
+    @Override
+    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        log.debug("MongoApiProductRepository.search({}, pageable)", criteria);
+        try {
+            Page<ApiProductMongo> page = internalApiProductRepo.search(criteria, pageable, sortable);
+            List<ApiProduct> content = page.getContent().stream().map(mapper::map).collect(Collectors.toList());
+            return new Page<>(content, page.getPageNumber(), content.size(), page.getTotalElements());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to search api products", ex);
+        }
+    }
+
+    @Override
     public Set<ApiProduct> findByApiId(String apiId) throws TechnicalException {
         log.debug("MongoApiProductRepository.findByApiId({})", apiId);
         try {

@@ -15,7 +15,7 @@
  */
 
 export interface GroupMembershipMemberRoleEntity {
-  scope: 'MANAGEMENT' | 'PORTAL' | 'API' | 'APPLICATION' | 'GROUP' | 'INTEGRATION' | 'CLUSTER';
+  scope: 'MANAGEMENT' | 'PORTAL' | 'API' | 'API_PRODUCT' | 'APPLICATION' | 'GROUP' | 'INTEGRATION' | 'CLUSTER';
   name?: string;
 }
 

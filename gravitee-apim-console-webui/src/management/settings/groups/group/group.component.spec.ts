@@ -416,18 +416,18 @@ describe('GroupComponent', () => {
       await editButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(4);
+      expect(matSelectHarnesses.length).toEqual(5);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       await apiRoleOptions[2].click();
-      await matSelectHarnesses[1].open();
-      const applicationRoleOptions = await matSelectHarnesses[1].getOptions({ text: /USER/ });
-      await applicationRoleOptions[0].click();
       await matSelectHarnesses[2].open();
-      const integrationRoleOptions = await matSelectHarnesses[2].getOptions();
-      await integrationRoleOptions[0].click();
+      const applicationRoleOptions = await matSelectHarnesses[2].getOptions({ text: /USER/ });
+      await applicationRoleOptions[0].click();
       await matSelectHarnesses[3].open();
-      const clusterRoleOptions = await matSelectHarnesses[3].getOptions();
+      const integrationRoleOptions = await matSelectHarnesses[3].getOptions();
+      await integrationRoleOptions[0].click();
+      await matSelectHarnesses[4].open();
+      const clusterRoleOptions = await matSelectHarnesses[4].getOptions();
       await clusterRoleOptions[0].click();
       const groupAdminHarness = await dialogHarness.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="groupAdmin"]' }));
       expect(await groupAdminHarness.isDisabled()).toEqual(false);
@@ -436,6 +436,7 @@ describe('GroupComponent', () => {
       await confirmButtonHarness.click();
       expectAddOrUpdateMembership('1', 'testmember1', [
         { name: 'REVIEWER', scope: 'API' },
+        { name: 'OWNER', scope: 'API_PRODUCT' },
         { name: 'USER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
@@ -542,6 +543,109 @@ describe('GroupComponent', () => {
     });
   });
 
+  describe('Group API Products', () => {
+    beforeEach(async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+    });
+
+    it('should display list of associated API Products', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#groupApiProductsDataTable' }));
+      const rows = await tableHarness.getRows();
+      expect(rows.length).toEqual(1);
+      const cell = await rows[0].getCells({ columnName: 'apiProductName' }).then(cells => cells[0]);
+      const text = await cell.getText();
+      expect(text).toEqual('Test API Product 1');
+    });
+
+    it('should show API Product role dropdown in Add Members dialog', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      await buttonHarness.click();
+      const menuHarness = await harnessLoader.getHarness(MatMenuHarness);
+      const userSearchMenuItem = await menuHarness.getHarness(
+        MatMenuItemHarness.with({ selector: '[aria-label="Click to invite user via search"]' }),
+      );
+      await userSearchMenuItem.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      expect(apiProductRoleSelect).toBeTruthy();
+      await apiProductRoleSelect.open();
+      const options = await apiProductRoleSelect.getOptions();
+      expect(options.length).toEqual(2);
+      expect(await options[0].getText()).toEqual('OWNER');
+      expect(await options[1].getText()).toEqual('USER');
+    });
+
+    it('should show API Product role dropdown in Edit Member dialog', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      expect(apiProductRoleSelect).toBeTruthy();
+      // Member has API_PRODUCT: 'OWNER' — verify it is pre-selected
+      const selectedOption = await apiProductRoleSelect.getValueText();
+      expect(selectedOption).toEqual('OWNER');
+    });
+
+    it('should include API Product role when saving member from Edit dialog', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      // Change API Product role to USER
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const apiProductOptions = await apiProductRoleSelect.getOptions({ text: 'USER' });
+      await apiProductOptions[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      expectAddOrUpdateMembership('1', 'testmember1', [
+        { name: 'OWNER', scope: 'API' },
+        { name: 'USER', scope: 'API_PRODUCT' },
+        { name: 'OWNER', scope: 'APPLICATION' },
+        { name: 'OWNER', scope: 'INTEGRATION' },
+        { name: 'USER', scope: 'CLUSTER' },
+      ]);
+    });
+  });
+
   describe('Search and invite users', () => {
     it('should initialize api and application default roles', async () => {
       await init(GROUP.id);
@@ -575,13 +679,14 @@ describe('GroupComponent', () => {
       await userSearchMenuItem.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(4);
+      // selects: API, API_PRODUCT, APPLICATION, INTEGRATION, CLUSTER
+      expect(matSelectHarnesses.length).toEqual(5);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
-      expect(await apiRoleOptions[3].isSelected()).toEqual(true);
-      await matSelectHarnesses[1].open();
-      const applicationRoleOptions = await matSelectHarnesses[1].getOptions();
-      expect(await applicationRoleOptions[0].isSelected()).toEqual(true);
+      expect(await apiRoleOptions[3].isSelected()).toEqual(true); // API='USER'
+      await matSelectHarnesses[2].open();
+      const applicationRoleOptions = await matSelectHarnesses[2].getOptions();
+      expect(await applicationRoleOptions[0].isSelected()).toEqual(true); // APPLICATION='OWNER'
     });
 
     it('should disable add users button when maximum allowed members have been added', async () => {
@@ -778,16 +883,18 @@ describe('GroupComponent', () => {
       await userSearchMenuItem.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(4);
+      // selects: API, API_PRODUCT, APPLICATION, INTEGRATION, CLUSTER
+      expect(matSelectHarnesses.length).toEqual(5);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
-      await apiRoleOptions[2].click();
-      await matSelectHarnesses[1].open();
-      const applicationRoleOptions = await matSelectHarnesses[1].getOptions();
-      await applicationRoleOptions[0].click();
+      await apiRoleOptions[2].click(); // REVIEWER
+      // [1] is API_PRODUCT — leave at default 'USER'
       await matSelectHarnesses[2].open();
-      const integrationRoleOptions = await matSelectHarnesses[2].getOptions();
-      await integrationRoleOptions[0].click();
+      const applicationRoleOptions = await matSelectHarnesses[2].getOptions();
+      await applicationRoleOptions[0].click(); // OWNER
+      await matSelectHarnesses[3].open();
+      const integrationRoleOptions = await matSelectHarnesses[3].getOptions();
+      await integrationRoleOptions[0].click(); // OWNER
       const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
       await autoCompleteHarness.enterText('test');
       const searchResults = await autoCompleteHarness.getOptions();
@@ -796,6 +903,7 @@ describe('GroupComponent', () => {
       await confirmButtonHarness.click();
       expectAddOrUpdateMembership('2', 'testmember2', [
         { name: 'REVIEWER', scope: 'API' },
+        { name: 'USER', scope: 'API_PRODUCT' },
         { name: 'OWNER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },

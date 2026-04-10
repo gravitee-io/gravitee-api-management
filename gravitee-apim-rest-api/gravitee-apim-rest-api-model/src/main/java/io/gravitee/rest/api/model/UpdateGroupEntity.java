@@ -41,6 +41,9 @@ public class UpdateGroupEntity {
     @JsonProperty("lock_api_role")
     private boolean lockApiRole;
 
+    @JsonProperty("lock_api_product_role")
+    private boolean lockApiProductRole;
+
     @JsonProperty("lock_application_role")
     private boolean lockApplicationRole;
 
@@ -91,6 +94,14 @@ public class UpdateGroupEntity {
 
     public void setLockApiRole(boolean lockApiRole) {
         this.lockApiRole = lockApiRole;
+    }
+
+    public boolean isLockApiProductRole() {
+        return lockApiProductRole;
+    }
+
+    public void setLockApiProductRole(boolean lockApiProductRole) {
+        this.lockApiProductRole = lockApiProductRole;
     }
 
     public boolean isLockApplicationRole() {

@@ -27,6 +27,15 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field aria-hidden="false" aria-label="Select default API product role">
+      <mat-label>Default API Product Role</mat-label>
+      <mat-select formControlName="defaultAPIProductRole" (selectionChange)="onChange()">
+        @for (role of defaultAPIProductRoles; track role.id) {
+          <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
     <mat-form-field aria-hidden="false" aria-label="Select default application role">
       <mat-label>Default Application Role</mat-label>
       <mat-select formControlName="defaultApplicationRole" (selectionChange)="onChange()">

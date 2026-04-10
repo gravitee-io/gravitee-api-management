@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_03_add_lock_api_product_role_to_groups
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}groups
+            columns:
+              - column:
+                  name: lock_api_product_role
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: true

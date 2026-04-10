@@ -21,6 +21,7 @@ export function fakeGroupMembership(attributes?: Partial<GroupMembership>): Grou
     roles: [
       { scope: 'GROUP', name: 'ADMIN' },
       { scope: 'API', name: 'USER' },
+      { scope: 'API_PRODUCT', name: 'USER' },
       { scope: 'APPLICATION', name: 'USER' },
     ],
   };

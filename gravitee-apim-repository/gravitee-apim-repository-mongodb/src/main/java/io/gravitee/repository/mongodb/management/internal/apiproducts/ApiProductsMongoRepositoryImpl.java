@@ -70,6 +70,39 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
     }
 
     @Override
+    public List<ApiProductMongo> search(ApiProductCriteria criteria) {
+        Query query = new Query();
+        if (criteria != null) {
+            fillQuery(query, List.of(criteria));
+        }
+        return mongoTemplate.find(query, ApiProductMongo.class);
+    }
+
+    @Override
+    public Page<ApiProductMongo> search(ApiProductCriteria criteria, Pageable pageable, Sortable sortable) {
+        requireNonNull(pageable, "Pageable must not be null");
+
+        Query query = new Query();
+        if (criteria != null) {
+            fillQuery(query, List.of(criteria));
+        }
+
+        Sort sort;
+        if (sortable == null) {
+            sort = Sort.by(ASC, "name");
+        } else {
+            Sort.Direction sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
+            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
+        }
+
+        long total = mongoTemplate.count(query, ApiProductMongo.class);
+        query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));
+
+        List<ApiProductMongo> results = mongoTemplate.find(query, ApiProductMongo.class);
+        return new Page<>(results, pageable.pageNumber(), results.size(), total);
+    }
+
+    @Override
     public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable) {
         requireNonNull(pageable, "Pageable must not be null");
 
@@ -123,6 +156,9 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
                 }
                 if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
                     list.add(where("apiIds").in(criteria.getApiIds()));
+                }
+                if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
+                    list.add(where("groups").in(criteria.getGroups()));
                 }
                 return list;
             })

@@ -29,6 +29,8 @@ import java.util.Set;
 public interface ApiProductsRepository extends CrudRepository<ApiProduct, String> {
     Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException;
     Set<ApiProduct> findByEnvironmentId(String environmentId) throws TechnicalException;
+    List<ApiProduct> search(ApiProductCriteria criteria) throws TechnicalException;
+    Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
     Set<ApiProduct> findByApiId(String apiId) throws TechnicalException;
     void removeApiFromAllApiProducts(String apiId) throws TechnicalException;
     Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException;

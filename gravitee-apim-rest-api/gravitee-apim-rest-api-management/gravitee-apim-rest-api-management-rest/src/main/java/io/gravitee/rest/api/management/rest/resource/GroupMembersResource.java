@@ -228,6 +228,7 @@ public class GroupMembersResource extends AbstractResource {
 
         for (GroupMembership membership : memberships) {
             RoleEntity previousApiRole = null;
+            RoleEntity previousApiProductRole = null;
             RoleEntity previousApplicationRole = null;
             RoleEntity previousGroupRole = null;
             RoleEntity previousIntegrationRole = null;
@@ -244,6 +245,9 @@ public class GroupMembersResource extends AbstractResource {
                     switch (role.getScope()) {
                         case API:
                             previousApiRole = role;
+                            break;
+                        case API_PRODUCT:
+                            previousApiProductRole = role;
                             break;
                         case APPLICATION:
                             previousApplicationRole = role;
@@ -311,6 +315,18 @@ public class GroupMembersResource extends AbstractResource {
                     updateRole(RoleScope.APPLICATION, roleName, previousApplicationRole, membership, executionContext);
                 }
 
+                RoleEntity apiProductRoleEntity = roleEntities.get(RoleScope.API_PRODUCT);
+                if (apiProductRoleEntity != null && !apiProductRoleEntity.equals(previousApiProductRole)) {
+                    String roleName = getRoleName(
+                        RoleScope.API_PRODUCT,
+                        apiProductRoleEntity,
+                        groupEntity,
+                        GroupEntity::isLockApiProductRole,
+                        hasPermission
+                    );
+                    updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
+                }
+
                 RoleEntity integrationRoleEntity = roleEntities.get(RoleScope.INTEGRATION);
                 if (integrationRoleEntity != null && !integrationRoleEntity.equals(previousIntegrationRole)) {
                     String roleName = getRoleName(RoleScope.INTEGRATION, integrationRoleEntity, groupEntity, e -> true, hasPermission);
@@ -331,6 +347,7 @@ public class GroupMembersResource extends AbstractResource {
                 // Delete if existing and new role is empty
                 var membershipId = membership.getId();
                 deleteIfNewAndPreviousRoleNull(apiRoleEntity, previousApiRole, membershipId);
+                deleteIfNewAndPreviousRoleNull(apiProductRoleEntity, previousApiProductRole, membershipId);
                 deleteIfNewAndPreviousRoleNull(applicationRoleEntity, previousApplicationRole, membershipId);
                 deleteIfNewAndPreviousRoleNull(integrationRoleEntity, previousIntegrationRole, membershipId);
                 deleteIfNewAndPreviousRoleNull(clusterRoleEntity, previousClusterRole, membershipId);
@@ -339,6 +356,7 @@ public class GroupMembersResource extends AbstractResource {
                 // Send notification
                 if (
                     previousApiRole == null &&
+                    previousApiProductRole == null &&
                     previousApplicationRole == null &&
                     previousGroupRole == null &&
                     previousIntegrationRole == null &&

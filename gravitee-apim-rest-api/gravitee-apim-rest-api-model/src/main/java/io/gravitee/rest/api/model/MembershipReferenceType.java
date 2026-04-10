@@ -30,7 +30,9 @@ public enum MembershipReferenceType {
     APPLICATION(EnumSet.of(RoleScope.APPLICATION)),
     API(EnumSet.of(RoleScope.API)),
     API_PRODUCT(EnumSet.of(RoleScope.API_PRODUCT)),
-    GROUP(EnumSet.of(RoleScope.GROUP, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION, RoleScope.CLUSTER)),
+    GROUP(
+        EnumSet.of(RoleScope.GROUP, RoleScope.API, RoleScope.API_PRODUCT, RoleScope.APPLICATION, RoleScope.INTEGRATION, RoleScope.CLUSTER)
+    ),
     ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
     ORGANIZATION(EnumSet.allOf(RoleScope.class)),
     PLATFORM(EnumSet.allOf(RoleScope.class)),

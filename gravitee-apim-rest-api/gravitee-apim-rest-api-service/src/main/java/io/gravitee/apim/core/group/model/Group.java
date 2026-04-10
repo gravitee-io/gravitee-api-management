@@ -35,6 +35,7 @@ public class Group {
     private ZonedDateTime updatedAt;
     private Integer maxInvitation;
     private boolean lockApiRole;
+    private boolean lockApiProductRole;
     private boolean lockApplicationRole;
     private boolean systemInvitation;
     private boolean emailInvitation;
