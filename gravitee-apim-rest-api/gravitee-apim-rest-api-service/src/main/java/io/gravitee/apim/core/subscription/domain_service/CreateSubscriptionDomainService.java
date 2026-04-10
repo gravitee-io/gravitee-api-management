@@ -50,6 +50,7 @@ public interface CreateSubscriptionDomainService {
         java.util.Map<String, String> metadata,
         io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
         Boolean generalConditionsAccepted,
-        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision
+        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
+        Boolean subscriptionFormMetadataValidationRequired
     );
 }

@@ -46,7 +46,8 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
         java.util.Map<String, String> metadata,
         io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
         Boolean generalConditionsAccepted,
-        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision
+        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
+        Boolean subscriptionFormMetadataValidationRequired
     ) {
         ExecutionContext executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
@@ -73,6 +74,9 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
         }
         if (generalConditionsContentRevision != null) {
             newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
+        }
+        if (subscriptionFormMetadataValidationRequired != null) {
+            newSubscriptionEntity.setSubscriptionFormMetadataValidationRequired(subscriptionFormMetadataValidationRequired);
         }
 
         return subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);

@@ -71,6 +71,7 @@ class CreateSubscriptionDomainServiceImplTest {
             Map.of("k", "v"),
             ApiKeyMode.EXCLUSIVE,
             null,
+            null,
             null
         );
 
@@ -97,7 +98,7 @@ class CreateSubscriptionDomainServiceImplTest {
             .build();
         when(subscriptionService.create(any(), any(), any())).thenReturn(new SubscriptionEntity());
 
-        cut.create(auditInfo, PLAN_ID, APP_ID, null, null, config, null, null, null, null);
+        cut.create(auditInfo, PLAN_ID, APP_ID, null, null, config, null, null, null, null, null);
 
         ArgumentCaptor<NewSubscriptionEntity> entityCaptor = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
         verify(subscriptionService).create(any(), entityCaptor.capture(), any());

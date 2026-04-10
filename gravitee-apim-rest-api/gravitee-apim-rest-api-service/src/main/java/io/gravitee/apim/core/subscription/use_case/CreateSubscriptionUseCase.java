@@ -71,7 +71,8 @@ public class CreateSubscriptionUseCase {
             input.metadata,
             input.apiKeyMode,
             input.generalConditionsAccepted,
-            input.generalConditionsContentRevision
+            input.generalConditionsContentRevision,
+            input.subscriptionFormMetadataValidationRequired
         );
 
         SubscriptionEntity createdSubscription = subscriptionCrudService.get(createdSubscriptionEntity.getId());
@@ -115,7 +116,8 @@ public class CreateSubscriptionUseCase {
         io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
         Boolean generalConditionsAccepted,
         io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
-        AuditInfo auditInfo
+        AuditInfo auditInfo,
+        Boolean subscriptionFormMetadataValidationRequired
     ) {}
 
     public record Output(SubscriptionEntity subscription) {}
