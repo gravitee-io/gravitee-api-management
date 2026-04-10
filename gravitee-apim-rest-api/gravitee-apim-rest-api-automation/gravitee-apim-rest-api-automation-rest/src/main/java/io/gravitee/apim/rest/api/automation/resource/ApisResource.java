@@ -78,7 +78,7 @@ public class ApisResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull LegacyAPIV4Spec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("legacyID") boolean legacyID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -102,7 +102,7 @@ public class ApisResource extends AbstractResource {
             ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
         );
 
-        if (legacyID) {
+        if (hridContainsUUID) {
             // As Automation API does not have any ID field,
             // GKO upgraded resources send the HRID as ID
             apiCRDSpec.setId(spec.getHrid());

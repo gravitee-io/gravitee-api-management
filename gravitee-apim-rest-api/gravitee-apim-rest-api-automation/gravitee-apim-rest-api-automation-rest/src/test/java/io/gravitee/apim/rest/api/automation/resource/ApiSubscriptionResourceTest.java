@@ -164,7 +164,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_get_subscription_from_known_legacy_id() {
+        void should_get_subscription_from_known_guid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
 
@@ -216,7 +216,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         private SubscriptionState expectEntity(String hrid, boolean legacy) {
             try (
                 var response = rootTarget()
-                    .queryParam("legacyID", legacy)
+                    .queryParam("hridContainsUUID", legacy)
                     .path(hrid)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -263,7 +263,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_delete_subscription_and_return_no_content_known_legacy_id() {
+        void should_delete_subscription_and_return_no_content_known_guid() {
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures.aSubscription()
@@ -292,7 +292,12 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         private void expectNoContent(String hrid, boolean legacy) {
             try (
-                var response = rootTarget().queryParam("legacyID", legacy).queryParam("legacyApiID", legacy).path(hrid).request().delete()
+                var response = rootTarget()
+                    .queryParam("hridContainsUUID", legacy)
+                    .queryParam("hridContainsApiUUID", legacy)
+                    .path(hrid)
+                    .request()
+                    .delete()
             ) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
