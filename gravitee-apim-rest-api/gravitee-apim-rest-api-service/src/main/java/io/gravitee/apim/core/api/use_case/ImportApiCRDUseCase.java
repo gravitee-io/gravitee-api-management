@@ -196,6 +196,8 @@ public class ImportApiCRDUseCase {
                 oneShotIndexation(sanitizedInput.auditInfo)
             );
 
+            createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
+
             var planNameIdMapping = sanitizedInput.spec
                 .getPlans()
                 .entrySet()
@@ -216,8 +218,6 @@ public class ImportApiCRDUseCase {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), sanitizedInput.spec().getMembers());
-
-            createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
@@ -244,6 +244,9 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            // Persist pages first so plan general-condition references are resolvable during API update.
+            createOrUpdatePages(input.spec.getPages(), existingApi.getId(), input.auditInfo);
+
             var validationResult = validateCRDDomainService
                 .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
                 .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
@@ -319,7 +322,8 @@ public class ImportApiCRDUseCase {
 
             membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), sanitizedInput.spec().getMembers());
 
-            createOrUpdatePages(sanitizedInput.spec.getPages(), updatedApi.getId(), sanitizedInput.auditInfo);
+            // Pages
+            // We just delete orphan pages in here. New/Updated pages are already applied at the begining of the update
             deleteRemovedPages(sanitizedInput.spec.getPages(), updatedApi.getId());
 
             apiMetadataDomainService.importApiMetadata(api.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
