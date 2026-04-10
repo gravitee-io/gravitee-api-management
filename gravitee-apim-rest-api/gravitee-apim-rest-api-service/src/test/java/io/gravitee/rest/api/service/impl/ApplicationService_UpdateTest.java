@@ -89,7 +89,6 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import jakarta.ws.rs.BadRequestException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -982,46 +981,6 @@ public class ApplicationService_UpdateTest {
         verify(clientCertificateCrudService).delete("removed-cert-id");
         verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
         verify(clientCertificateCrudService, never()).create(any(), any());
-    }
-
-    @Test
-    public void should_fail_updating_multiple_certificates_from_list() throws TechnicalException {
-        ApplicationSettings settings = new ApplicationSettings();
-        settings.setApp(new SimpleApplicationSettings());
-        Instant maxDate = Instant.now().plus(10, ChronoUnit.DAYS);
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
-                            "cert-1",
-                            null,
-                            Date.from(Instant.now().plus(5, ChronoUnit.DAYS)),
-                            VALID_PEM_1
-                        ),
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
-                            "cert-2",
-                            null,
-                            Date.from(maxDate),
-                            "another-pem-content"
-                        )
-                    )
-                )
-                .build()
-        );
-
-        when(updateApplication.getSettings()).thenReturn(settings);
-        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
-
-        when(subscriptionService.search(any(), any())).thenReturn(List.of(mock(SubscriptionEntity.class)));
-
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        assertThrows(SubscriptionEndsAfterClientCertificateException.class, () ->
-            applicationService.syncClientCertificates(executionContext, APPLICATION_ID, updateApplication)
-        );
-
-        verify(clientCertificateCrudService, never()).create(eq(APPLICATION_ID), any());
-        verify(clientCertificateCrudService, never()).update(any(), any());
     }
 
     @Test
