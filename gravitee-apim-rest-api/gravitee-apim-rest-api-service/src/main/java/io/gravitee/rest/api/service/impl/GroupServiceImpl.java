@@ -760,6 +760,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     removeIDPGroupMapping(groupId, updatedDate);
                 });
 
+            // Clean page accessControls on ALL API pages referencing this group,
+            // including pages on APIs not in the group's membership (missed by the loop above)
+            PageCriteria allApiPagesCriteria = new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).build();
+            removeGroupFromPages(groupId, updatedDate, allApiPagesCriteria);
+
             Set<String> applicationIds = new HashSet<>();
             applicationRepository
                 .findByGroups(Collections.singletonList(groupId))

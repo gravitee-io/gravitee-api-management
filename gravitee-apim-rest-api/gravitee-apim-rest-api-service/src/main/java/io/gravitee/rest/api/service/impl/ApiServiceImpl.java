@@ -2007,8 +2007,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
+            throw new TechnicalManagementException("An error occurs while trying to JSON serialize the API " + apiId, e);
         }
-        return "";
     }
 
     @Override
