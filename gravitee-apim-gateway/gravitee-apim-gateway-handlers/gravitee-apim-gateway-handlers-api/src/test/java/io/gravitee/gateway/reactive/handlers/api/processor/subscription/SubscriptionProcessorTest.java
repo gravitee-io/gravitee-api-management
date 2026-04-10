@@ -162,6 +162,32 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     }
 
     @Nested
+    class ApiProduct {
+
+        @Test
+        void should_set_api_product_id_on_metrics_when_subscription_has_api_product() {
+            var subscription = new Subscription();
+            subscription.setApiProductId("api-product-id");
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.metrics().getApiProductId()).isEqualTo("api-product-id");
+            assertThat(spyCtx.<String>getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT)).isEqualTo("api-product-id");
+        }
+
+        @Test
+        void should_not_overwrite_api_product_id_on_metrics_when_subscription_has_no_api_product() {
+            spyCtx.metrics().setApiProductId("pre-existing");
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.metrics().getApiProductId()).isEqualTo("pre-existing");
+        }
+    }
+
+    @Nested
     class ClientIdentifier {
 
         @Test
