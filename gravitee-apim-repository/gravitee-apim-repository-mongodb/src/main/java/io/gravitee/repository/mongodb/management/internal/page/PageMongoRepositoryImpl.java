@@ -96,6 +96,16 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
             if (criteria.getUseAutoFetch() != null) {
                 q.addCriteria(where("useAutoFetch").is(criteria.getUseAutoFetch().booleanValue()));
             }
+            if (criteria.getAccessControlGroupId() != null) {
+                q.addCriteria(
+                    where("accessControls").elemMatch(
+                        new Criteria().andOperator(
+                            where("referenceId").is(criteria.getAccessControlGroupId()),
+                            where("referenceType").is("GROUP")
+                        )
+                    )
+                );
+            }
         }
 
         q.with(Sort.by(ASC, "order"));
