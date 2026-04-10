@@ -1,7 +1,19 @@
 {
-    "name": "gravitee-gamma-module-apim",
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
-    "sourceRoot": "gravitee-gamma/gravitee-gamma-module-apim/src/main/ui",
-    "projectType": "application",
-    "tags": []
+  "name": "gravitee-gamma-module-apim",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "gravitee-gamma/gravitee-gamma-module-apim/src/main/ui",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "lint": {},
+    "lint-eslint": {
+      "options": {
+        "lintFilePatterns": [
+          "{projectRoot}/**/*.ts",
+          "{projectRoot}/**/*.tsx"
+        ]
+      }
+    },
+    "lint-license": {}
+  }
 }
