@@ -317,6 +317,7 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApiById(@PathParam("apiId") String apiId) {
         final GenericApiEntity apiEntity = getGenericApiEntityById(apiId, true);
         return apiResponse(apiEntity);

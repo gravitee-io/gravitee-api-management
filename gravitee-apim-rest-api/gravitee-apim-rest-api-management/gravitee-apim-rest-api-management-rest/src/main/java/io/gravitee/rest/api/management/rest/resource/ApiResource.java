@@ -173,6 +173,7 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApi() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApiEntity apiEntity = apiService.findById(executionContext, api);
@@ -212,6 +213,7 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApiPicture(@Context Request request) throws ApiNotFoundException {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         return getImageResponse(executionContext, request, apiService.getPicture(executionContext, api));
@@ -226,6 +228,7 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApiBackground(@Context Request request) throws ApiNotFoundException {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         return getImageResponse(executionContext, request, apiService.getBackground(executionContext, api));
@@ -428,6 +431,7 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiStateEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public ApiStateEntity isApiSynchronized() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         canReadApi(executionContext, api);

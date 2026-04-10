@@ -98,6 +98,7 @@ public class ApiMembersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApiMembersPermissions() {
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(
             GraviteeContext.getExecutionContext(),
