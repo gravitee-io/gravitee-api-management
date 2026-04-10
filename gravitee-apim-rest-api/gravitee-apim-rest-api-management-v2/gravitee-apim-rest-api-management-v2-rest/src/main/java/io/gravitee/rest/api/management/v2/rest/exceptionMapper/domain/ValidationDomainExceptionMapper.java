@@ -31,6 +31,7 @@ public class ValidationDomainExceptionMapper extends AbstractDomainExceptionMapp
         return new Error()
             .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
             .message(vde.getMessage())
+            .technicalCode(vde.getTechnicalCode())
             .parameters(vde.getParameters());
     }
 }

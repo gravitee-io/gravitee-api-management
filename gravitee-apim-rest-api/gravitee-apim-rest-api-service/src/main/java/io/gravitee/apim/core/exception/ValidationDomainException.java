@@ -23,17 +23,29 @@ import lombok.Getter;
 public class ValidationDomainException extends AbstractDomainException {
 
     private final Map<String, String> parameters = new HashMap<>();
+    private final String technicalCode;
 
     public ValidationDomainException(String message) {
+        this(message, (String) null);
+    }
+
+    public ValidationDomainException(String message, String technicalCode) {
         super(message);
+        this.technicalCode = technicalCode;
     }
 
     public ValidationDomainException(String message, Map<String, String> parameters) {
+        this(message, parameters, null);
+    }
+
+    public ValidationDomainException(String message, Map<String, String> parameters, String technicalCode) {
         super(message);
         this.parameters.putAll(parameters);
+        this.technicalCode = technicalCode;
     }
 
     public ValidationDomainException(String message, Throwable cause) {
         super(message, cause);
+        this.technicalCode = null;
     }
 }
