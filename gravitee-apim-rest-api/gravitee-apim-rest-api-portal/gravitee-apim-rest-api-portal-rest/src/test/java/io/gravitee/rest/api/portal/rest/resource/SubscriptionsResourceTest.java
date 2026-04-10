@@ -22,6 +22,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -212,6 +213,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals("{\"url\":\"my-url\"}", useCaseInput.configuration().getEntrypointConfiguration());
         assertEquals(ApiKeyMode.EXCLUSIVE, useCaseInput.apiKeyMode());
         assertEquals(API, useCaseInput.referenceId());
+        assertTrue(Boolean.TRUE.equals(useCaseInput.subscriptionFormMetadataValidationRequired()));
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
