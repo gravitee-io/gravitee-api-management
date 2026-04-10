@@ -4086,7 +4086,7 @@ components:
             name: q
             in: query
             required: false
-            description: Search phrase applied to the member Name field. Search starts when at least one character is provided.
+            description: Search phrase applied to the member displayName field. Search starts when at least one character is provided.
             schema:
                 type: string
                 minLength: 1

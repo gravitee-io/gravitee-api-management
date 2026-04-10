@@ -54,6 +54,10 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     private static final String MEMBER_1 = "my-member";
     private static final String MEMBER_2 = "my-member-2";
     private static final String UNKNOWN_MEMBER = "unknown-member";
+    private static final String MEMBER_1_DISPLAY_NAME = "John Smith";
+    private static final String MEMBER_2_DISPLAY_NAME = "Alice Brown";
+    private static final String MEMBER_1_EMAIL = "john.smith@example.com";
+    private static final String MEMBER_2_EMAIL = "alice.brown@example.com";
 
     @Override
     protected String contextPath() {
@@ -66,9 +70,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         MemberEntity memberEntity1 = new MemberEntity();
         memberEntity1.setId(MEMBER_1);
+        memberEntity1.setDisplayName(MEMBER_1_DISPLAY_NAME);
+        memberEntity1.setEmail(MEMBER_1_EMAIL);
 
         MemberEntity memberEntity2 = new MemberEntity();
         memberEntity2.setId(MEMBER_2);
+        memberEntity2.setDisplayName(MEMBER_2_DISPLAY_NAME);
+        memberEntity2.setEmail(MEMBER_2_EMAIL);
         doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(memberEntity2), any());
         doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(memberEntity1), any());
         doReturn(Sets.newSet(memberEntity1, memberEntity2))
@@ -115,6 +123,38 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Links links = membersResponse.getLinks();
         assertNotNull(links);
+    }
+
+    @Test
+    public void shouldGetMembersFilteredByDisplayName() {
+        final Response response = target(APPLICATION).path("members").queryParam("q", "john").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        assertEquals(1, membersResponse.getData().size());
+        assertEquals(MEMBER_1, membersResponse.getData().get(0).getId());
+    }
+
+    @Test
+    public void shouldGetMembersFilteredByDisplayNameIgnoringCase() {
+        final Response response = target(APPLICATION).path("members").queryParam("q", "ALICE").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        assertEquals(1, membersResponse.getData().size());
+        assertEquals(MEMBER_2, membersResponse.getData().get(0).getId());
+    }
+
+    @Test
+    public void shouldNotFilterMembersByEmail() {
+        final Response response = target(APPLICATION).path("members").queryParam("q", "example.com").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        assertEquals(0, membersResponse.getData().size());
+
+        Links links = membersResponse.getLinks();
+        assertNull(links);
     }
 
     @Test
