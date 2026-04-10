@@ -43,6 +43,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.domain_service.ApiDefinitionJsonPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -239,6 +240,7 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderServi
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import io.gravitee.rest.api.service.impl.ApiDefinitionJsonPatchDomainServiceImpl;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -643,6 +645,11 @@ public class ResourceContextConfiguration {
     @Bean
     public JsonPatchService jsonPatchService() {
         return mock(JsonPatchService.class);
+    }
+
+    @Bean
+    public ApiDefinitionJsonPatchDomainService apiDefinitionJsonPatchDomainService(JsonPatchService jsonPatchService) {
+        return new ApiDefinitionJsonPatchDomainServiceImpl(jsonPatchService);
     }
 
     @Bean

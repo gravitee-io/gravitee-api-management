@@ -43,6 +43,7 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
         Mockito.reset(
             apiSearchServiceV4,
             apiImagesService,
+            apiExportDomainService,
             exportApiUseCase,
             apiStateServiceV4,
             parameterService,
