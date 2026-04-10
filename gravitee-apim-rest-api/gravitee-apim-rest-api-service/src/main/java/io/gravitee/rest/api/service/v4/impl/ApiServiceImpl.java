@@ -536,7 +536,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updateApiEntity
                 .getPlans()
                 .forEach(plan -> {
-                    plan.setApiId(api.getId());
+                    plan.setReferenceId(api.getId());
+                    plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
                     planService.createOrUpdatePlan(executionContext, plan);
                 });
 
