@@ -23,14 +23,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.definition.model.HttpClientSslOptions;
-<<<<<<< HEAD
 import io.gravitee.definition.model.v4.ssl.SslOptions;
-=======
-import io.gravitee.plugin.configurations.http.HttpClientOptions;
-import io.gravitee.plugin.configurations.ssl.SslOptions;
 import java.util.ArrayList;
 import java.util.List;
->>>>>>> 916737fd72 (fix(migration): filter extraneous V2 fields in sharedConfigurationOverride during V2 to V4 migration)
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
