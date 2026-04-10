@@ -46,6 +46,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -72,19 +73,44 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
     public Response getMembersByApplicationId(
         @PathParam("applicationId") String applicationId,
+        @QueryParam("q") String query,
         @BeanParam PaginationParam paginationParam
     ) {
         //Does application exist ?
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         applicationService.findById(executionContext, applicationId);
 
+        String searchTerm = normalizeSearchTerm(query);
         List<Member> membersList = membershipService
             .getMembersByReference(executionContext, MembershipReferenceType.APPLICATION, applicationId)
             .stream()
+            .filter(member -> isMatchingDisplayName(member, searchTerm))
             .map(membership -> memberMapper.convert(executionContext, membership, uriInfo))
             .collect(Collectors.toList());
 
         return createListResponse(executionContext, membersList, paginationParam);
+    }
+
+    private String normalizeSearchTerm(String query) {
+        if (query == null) {
+            return null;
+        }
+
+        String trimmedQuery = query.trim();
+        if (trimmedQuery.isEmpty()) {
+            return null;
+        }
+
+        return trimmedQuery.toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isMatchingDisplayName(MemberEntity member, String searchTerm) {
+        if (searchTerm == null) {
+            return true;
+        }
+
+        String displayName = member.getDisplayName();
+        return displayName != null && displayName.toLowerCase(Locale.ROOT).contains(searchTerm);
     }
 
     @POST
