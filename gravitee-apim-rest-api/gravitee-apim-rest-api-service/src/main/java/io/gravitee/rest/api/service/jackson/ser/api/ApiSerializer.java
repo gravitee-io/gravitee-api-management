@@ -233,7 +233,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                         .collect(Collectors.toList());
                 }
 
-                // Replace group id by group name in access control list
+                // Replace group id by group name in access control list, skipping stale refs to deleted groups
                 pages.forEach(pageEntity -> {
                     if (pageEntity.getAccessControls() != null) {
                         pageEntity.setAccessControls(
@@ -243,13 +243,15 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 .filter(accessControlEntity ->
                                     accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
                                 )
-                                .peek(accessControlEntity ->
-                                    accessControlEntity.setReferenceId(
-                                        groupIdNameMap.computeIfAbsent(accessControlEntity.getReferenceId(), key ->
-                                            groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
-                                        )
-                                    )
-                                )
+                                .map(accessControlEntity -> {
+                                    String groupName = resolveGroupName(groupService, groupIdNameMap, accessControlEntity.getReferenceId());
+                                    if (groupName == null) {
+                                        return null;
+                                    }
+                                    accessControlEntity.setReferenceId(groupName);
+                                    return accessControlEntity;
+                                })
+                                .filter(Objects::nonNull)
                                 .collect(Collectors.toSet())
                         );
                     }
@@ -279,16 +281,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                             p
                                 .getExcludedGroups()
                                 .stream()
-                                .map(groupId ->
-                                    groupIdNameMap.computeIfAbsent(groupId, key -> {
-                                        try {
-                                            return groupService.findById(GraviteeContext.getExecutionContext(), key).getName();
-                                        } catch (GroupNotFoundException e) {
-                                            log.warn("Unable to find group {}", key);
-                                            return null;
-                                        }
-                                    })
-                                )
+                                .map(groupId -> resolveGroupName(groupService, groupIdNameMap, groupId))
                                 .filter(Objects::nonNull)
                                 .collect(Collectors.toList())
                         );
@@ -307,6 +300,26 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 }
             }
         }
+    }
+
+    /**
+     * Resolve a group ID to its name, caching results (including misses) in the provided map.
+     * Returns null if the group no longer exists. computeIfAbsent is unsafe here because it
+     * does not memoize null mappings, which would re-trigger findById for every stale ref.
+     */
+    private static String resolveGroupName(GroupService groupService, Map<String, String> groupIdNameMap, String groupId) {
+        if (groupIdNameMap.containsKey(groupId)) {
+            return groupIdNameMap.get(groupId);
+        }
+        String name;
+        try {
+            name = groupService.findById(GraviteeContext.getExecutionContext(), groupId).getName();
+        } catch (GroupNotFoundException e) {
+            log.warn("Group [{}] no longer exists, skipping from export", groupId);
+            name = null;
+        }
+        groupIdNameMap.put(groupId, name);
+        return name;
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) {

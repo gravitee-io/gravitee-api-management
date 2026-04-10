@@ -674,6 +674,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     where.add("p.use_auto_fetch = ?");
                     params.add(criteria.getUseAutoFetch());
                 }
+                if (criteria.getAccessControlGroupId() != null) {
+                    select += "inner join " + PAGE_ACL + " acl on p.id = acl.page_id ";
+                    where.add("acl.reference_id = ?");
+                    params.add(criteria.getAccessControlGroupId());
+                    where.add("acl.reference_type = ?");
+                    params.add("GROUP");
+                }
             }
 
             if (!where.toString().trim().isEmpty()) {

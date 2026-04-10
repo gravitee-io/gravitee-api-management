@@ -741,16 +741,17 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     //remove from API plans
                     removeFromAPIPlans(groupId, updatedDate, api.getId());
 
-                    //remove from API pages
-                    PageCriteria apiPageCriteria = new PageCriteria.Builder()
-                        .referenceId(api.getId())
-                        .referenceType(PageReferenceType.API.name())
-                        .build();
-                    removeGroupFromPages(groupId, updatedDate, apiPageCriteria);
-
                     //remove idp group mapping using this group
                     removeIDPGroupMapping(groupId, updatedDate);
                 });
+
+            // Clean page accessControls on every API page referencing this group, regardless of whether
+            // the API is still in the group's membership — covers stale refs that the loop above misses.
+            PageCriteria apiPagesWithGroupCriteria = new PageCriteria.Builder()
+                .referenceType(PageReferenceType.API.name())
+                .accessControlGroupId(groupId)
+                .build();
+            removeGroupFromPages(groupId, updatedDate, apiPagesWithGroupCriteria);
 
             Set<String> applicationIds = new HashSet<>();
             applicationRepository
