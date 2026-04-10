@@ -197,6 +197,8 @@ public class ImportApiCRDUseCase {
                 oneShotIndexation(input.auditInfo)
             );
 
+            createOrUpdatePages(input.spec.getPages(), createdApi.getId(), input.auditInfo);
+
             var planNameIdMapping = input.spec
                 .getPlans()
                 .entrySet()
@@ -212,8 +214,6 @@ public class ImportApiCRDUseCase {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), input.spec().getMembers());
-
-            createOrUpdatePages(input.spec.getPages(), createdApi.getId(), input.auditInfo);
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), input.spec.getMetadata(), input.auditInfo);
 
@@ -245,6 +245,9 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            // Persist pages first so plan general-condition references are resolvable during API update.
+            createOrUpdatePages(input.spec.getPages(), existingApi.getId(), input.auditInfo);
+
             Api updatedApi;
             if (existingApi.isNative()) {
                 updatedApi = updateNativeApiUseCase
@@ -312,7 +315,8 @@ public class ImportApiCRDUseCase {
 
             membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), input.spec().getMembers());
 
-            createOrUpdatePages(input.spec.getPages(), updatedApi.getId(), input.auditInfo);
+            // Pages
+            // We just delete orphan pages in here. New/Updated pages are already applied at the begining of the update
             deleteRemovedPages(input.spec.getPages(), updatedApi.getId());
 
             apiMetadataDomainService.importApiMetadata(api.getId(), input.spec.getMetadata(), input.auditInfo);
