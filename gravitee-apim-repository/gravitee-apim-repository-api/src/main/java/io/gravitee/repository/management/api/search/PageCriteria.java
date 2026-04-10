@@ -34,6 +34,7 @@ public class PageCriteria {
     private String parent;
     private Boolean rootParent;
     private Boolean useAutoFetch;
+    private String accessControlGroupId;
 
     private PageCriteria() {}
 
@@ -67,6 +68,10 @@ public class PageCriteria {
 
     public Boolean getUseAutoFetch() {
         return useAutoFetch;
+    }
+
+    public String getAccessControlGroupId() {
+        return accessControlGroupId;
     }
 
     public String getReferenceType() {
@@ -113,6 +118,10 @@ public class PageCriteria {
         this.useAutoFetch = useAutoFetch;
     }
 
+    private void setAccessControlGroupId(String accessControlGroupId) {
+        this.accessControlGroupId = accessControlGroupId;
+    }
+
     public void setVisibility(String visibility) {
         this.visibility = visibility;
     }
@@ -131,13 +140,25 @@ public class PageCriteria {
             Objects.equals(published, that.published) &&
             Objects.equals(visibility, that.visibility) &&
             Objects.equals(parent, that.parent) &&
-            Objects.equals(rootParent, that.rootParent)
+            Objects.equals(rootParent, that.rootParent) &&
+            Objects.equals(accessControlGroupId, that.accessControlGroupId)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(referenceId, referenceType, name, type, homepage, published, visibility, parent, rootParent);
+        return Objects.hash(
+            referenceId,
+            referenceType,
+            name,
+            type,
+            homepage,
+            published,
+            visibility,
+            parent,
+            rootParent,
+            accessControlGroupId
+        );
     }
 
     public static class Builder {
@@ -199,6 +220,11 @@ public class PageCriteria {
 
         public Builder withAutoFetch() {
             this.query.setUseAutoFetch(Boolean.TRUE);
+            return this;
+        }
+
+        public Builder accessControlGroupId(String groupId) {
+            this.query.setAccessControlGroupId(groupId);
             return this;
         }
     }
