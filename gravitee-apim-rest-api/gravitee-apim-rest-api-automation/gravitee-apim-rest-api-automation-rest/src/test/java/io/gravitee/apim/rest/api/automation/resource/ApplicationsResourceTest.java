@@ -73,18 +73,18 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_state_from_legacy_id() {
+        void should_return_state_from_guid() {
             when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenAnswer(call -> {
                 ImportApplicationCRDUseCase.Input input = call.getArgument(0, ImportApplicationCRDUseCase.Input.class);
                 return new ImportApplicationCRDUseCase.Output(
-                    ApplicationCRDStatus.builder().id(input.crd().getHrid()).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                    ApplicationCRDStatus.builder().id(input.crd().getId()).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
                 );
             });
 
-            var state = expectEntity("application-with-hrid.json", false, true);
+            var state = expectEntity("application-with-uuid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getHrid()).isEqualTo("application-hrid");
-                soft.assertThat(state.getId()).isEqualTo("application-hrid");
+                soft.assertThat(state.getHrid()).isEqualTo("application-id");
+                soft.assertThat(state.getId()).isEqualTo("application-id");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
@@ -138,11 +138,11 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         return expectEntity(spec, dryRun, false);
     }
 
-    private ApplicationState expectEntity(String spec, boolean dryRun, boolean legacy) {
+    private ApplicationState expectEntity(String spec, boolean dryRun, boolean hridContainsUUID) {
         try (
             var response = rootTarget()
                 .queryParam("dryRun", dryRun)
-                .queryParam("legacy", legacy)
+                .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(readJSON(spec)))

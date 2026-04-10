@@ -76,7 +76,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_get_application_from_known_legacy_id() {
+        void should_get_application_from_known_guid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
                 when(applicationService.findById(any(), any())).thenReturn(
@@ -131,7 +131,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_delete_application_and_return_no_content_with_valid_legacy_id() {
+        void should_delete_application_and_return_no_content_with_valid_guid() {
             expectNoContent(APPLICATION_ID, true);
 
             verify(applicationService, atLeastOnce()).archive(any(), eq(APPLICATION_ID));
@@ -151,7 +151,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid, boolean legacy) {
-            try (var response = rootTarget().queryParam("legacyID", legacy).path(hrid).request().delete()) {
+            try (var response = rootTarget().queryParam("hridContainsUUID", legacy).path(hrid).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }

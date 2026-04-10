@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class SharedPolicyGroupResourceTest extends AbstractResourceTest {
 
     static final String HRID = "spg-foo";
-    static final String LEGACY_ID = "raw-legacy-uuid";
+    static final String GUID = "raw-legacy-uuid";
 
     @Inject
     SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService;
@@ -89,9 +89,9 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
         sharedPolicyGroupCrudService.initWith(
             List.of(
                 SharedPolicyGroup.builder()
-                    .id(LEGACY_ID)
+                    .id(GUID)
                     .crossId("legacy-cross-id")
-                    .hrid(LEGACY_ID)
+                    .hrid(GUID)
                     .environmentId(ENVIRONMENT)
                     .organizationId(ORGANIZATION)
                     .build()
@@ -123,13 +123,13 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_get_shared_policy_group_from_known_legacy_id() {
+        void should_get_shared_policy_group_from_known_guid() {
             sharedPolicyGroupCrudService.reset();
             givenExistingSharedPolicyGroupWithLegacyId();
 
-            try (var response = rootTarget().path(LEGACY_ID).queryParam("legacyID", true).request().get()) {
+            try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().get()) {
                 var state = response.readEntity(SharedPolicyGroupState.class);
-                assertThat(state.getId()).isEqualTo(LEGACY_ID);
+                assertThat(state.getId()).isEqualTo(GUID);
             }
         }
 
@@ -163,12 +163,12 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
             }
 
             @Test
-            void should_delete_shared_policy_group_with_legacy_id() {
+            void should_delete_shared_policy_group_with_guid() {
                 sharedPolicyGroupCrudService.reset();
                 givenExistingSharedPolicyGroupWithLegacyId();
 
                 assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-                try (var response = rootTarget().path(LEGACY_ID).queryParam("legacyID", true).request().delete()) {
+                try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().delete()) {
                     assertThat(response.getStatus()).isEqualTo(204);
                 }
                 assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();

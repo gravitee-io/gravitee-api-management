@@ -71,7 +71,7 @@ public class ApplicationsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull ApplicationSpec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("legacyID") boolean legacyID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -92,7 +92,7 @@ public class ApplicationsResource extends AbstractResource {
             ApplicationMapper.INSTANCE.applicationSpecToApplicationCRDSpec(spec)
         );
 
-        if (legacyID) {
+        if (hridContainsUUID) {
             // As Automation API does not have any ID field,
             // GKO upgraded resources send the HRID as ID
             applicationCRDSpec.setId(applicationCRDSpec.getHrid());

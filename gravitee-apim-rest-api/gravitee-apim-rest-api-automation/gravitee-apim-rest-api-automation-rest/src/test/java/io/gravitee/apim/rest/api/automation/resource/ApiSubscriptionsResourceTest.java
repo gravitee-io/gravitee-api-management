@@ -75,7 +75,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_state_from_legacy_id() {
+        void should_return_state_from_guid() {
             when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
                 new ImportSubscriptionSpecUseCase.Output(
                     SubscriptionCRDStatus.builder()
@@ -109,10 +109,10 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         return expectEntity(spec, false);
     }
 
-    private SubscriptionState expectEntity(String spec, boolean legacy) {
+    private SubscriptionState expectEntity(String spec, boolean hridContainsUUID) {
         try (
             var response = rootTarget()
-                .queryParam("legacy", legacy)
+                .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(readJSON(spec)))

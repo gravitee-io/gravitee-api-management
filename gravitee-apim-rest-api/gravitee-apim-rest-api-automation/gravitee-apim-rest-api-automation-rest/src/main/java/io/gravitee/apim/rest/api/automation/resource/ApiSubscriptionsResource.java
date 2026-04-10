@@ -69,9 +69,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull SubscriptionSpec spec,
         @PathParam("apiHrid") String apiHrid,
-        @QueryParam("legacyID") boolean legacyID,
-        @QueryParam("legacyApiID") boolean legacyApiID,
-        @QueryParam("legacyAppID") boolean legacyAppID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID,
+        @QueryParam("hridContainsAppUUID") boolean hridContainsAppUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -91,13 +91,21 @@ public class ApiSubscriptionsResource extends AbstractResource {
         // Legacy mode means 'Hrid' fields contains GUID from GKO Status
         // that were preexisting in the kube cluster
         SubscriptionCRDSpec subscriptionCRDSpec = SubscriptionCRDSpec.builder()
-            .id(legacyID ? spec.getHrid() : HRIDToUUID.subscription().context(auditInfo).api(apiHrid).subscription(spec.getHrid()).id())
-            .applicationId(
-                legacyAppID ? spec.getApplicationHrid() : HRIDToUUID.application().context(auditInfo).hrid(spec.getApplicationHrid()).id()
+            .id(
+                hridContainsUUID
+                    ? spec.getHrid()
+                    : HRIDToUUID.subscription().context(auditInfo).api(apiHrid).subscription(spec.getHrid()).id()
             )
-            .referenceId(legacyApiID ? apiHrid : HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
+            .applicationId(
+                hridContainsAppUUID
+                    ? spec.getApplicationHrid()
+                    : HRIDToUUID.application().context(auditInfo).hrid(spec.getApplicationHrid()).id()
+            )
+            .referenceId(hridContainsApiUUID ? apiHrid : HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
             .referenceType(SubscriptionReferenceType.API)
-            .planId(legacyApiID ? spec.getPlanHrid() : HRIDToUUID.plan().context(auditInfo).api(apiHrid).plan(spec.getPlanHrid()).id())
+            .planId(
+                hridContainsApiUUID ? spec.getPlanHrid() : HRIDToUUID.plan().context(auditInfo).api(apiHrid).plan(spec.getPlanHrid()).id()
+            )
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
             .metadata(spec.getMetadata())
             .build();
