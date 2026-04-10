@@ -302,6 +302,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
             .generalConditionsAccepted(null)
             .generalConditionsContentRevision(null)
             .auditInfo(getAuditInfo())
+            .subscriptionFormMetadataValidationRequired(false)
             .build();
 
         CreateSubscriptionUseCase.Output output = createSubscriptionUseCase.execute(input);

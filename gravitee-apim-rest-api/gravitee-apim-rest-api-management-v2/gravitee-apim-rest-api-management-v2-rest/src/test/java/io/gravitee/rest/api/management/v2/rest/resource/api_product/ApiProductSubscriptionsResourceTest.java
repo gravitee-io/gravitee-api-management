@@ -468,6 +468,7 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(captor.getValue().planId()).isEqualTo("plan-1");
                 soft.assertThat(captor.getValue().applicationId()).isEqualTo("app-1");
                 soft.assertThat(captor.getValue().apiKeyMode()).isNull();
+                soft.assertThat(captor.getValue().subscriptionFormMetadataValidationRequired()).isFalse();
             });
             verify(acceptSubscriptionUseCase).execute(any());
         }

@@ -18,7 +18,10 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFormFixtures;
@@ -295,6 +298,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
             assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscription)).isInstanceOf(
@@ -315,6 +319,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of("email", "user@example.com"));
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
@@ -335,6 +340,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
@@ -353,6 +359,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
@@ -371,6 +378,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
@@ -381,6 +389,7 @@ public class SubscriptionValidationServiceImplTest {
             // storage is empty — no form registered for any environment
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
@@ -399,6 +408,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(null);
 
             assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscription)).isInstanceOf(
@@ -434,6 +444,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
             subscriptionConfig.setMetadata(Map.of());
 
             assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).isInstanceOf(
@@ -454,6 +465,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
             subscriptionConfig.setMetadata(Map.of("email", "user@example.com"));
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
@@ -472,6 +484,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
             subscriptionConfig.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
@@ -480,6 +493,7 @@ public class SubscriptionValidationServiceImplTest {
         @Test
         void should_not_validate_when_no_form_for_environment() {
             var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
             subscriptionConfig.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
@@ -498,6 +512,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
             subscriptionConfig.setMetadata(null);
 
             assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).isInstanceOf(
@@ -533,6 +548,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
             updateSubscription.setMetadata(Map.of());
 
             assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).isInstanceOf(
@@ -553,6 +569,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
             updateSubscription.setMetadata(Map.of("email", "user@example.com"));
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
@@ -571,6 +588,7 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
             updateSubscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
@@ -579,6 +597,7 @@ public class SubscriptionValidationServiceImplTest {
         @Test
         void should_not_validate_when_no_form_for_environment() {
             var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
             updateSubscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
@@ -597,11 +616,67 @@ public class SubscriptionValidationServiceImplTest {
             );
 
             var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
             updateSubscription.setMetadata(null);
 
             assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).isInstanceOf(
                 SubscriptionFormValidationException.class
             );
+        }
+    }
+
+    @Nested
+    class When_subscription_form_metadata_validation_disabled {
+
+        @BeforeEach
+        void beforeEach() {
+            clearInvocations(subscriptionMetadataSanitizer);
+            planEntity.setEnvironmentId(SubscriptionFormFixtures.ENVIRONMENT_ID);
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .enabled(true)
+                        .validationConstraints(
+                            SubscriptionFormConstraintsFactory.fromSchema(
+                                new SubscriptionFormSchema(
+                                    List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null))
+                                )
+                            )
+                        )
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+        }
+
+        @Test
+        void should_invoke_metadata_sanitizer_for_new_subscription_without_form_validation() {
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(false);
+            subscription.setMetadata(Map.of("note", "v"));
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
+            verify(subscriptionMetadataSanitizer, times(1)).sanitizeAndValidate(any());
+        }
+
+        @Test
+        void should_invoke_metadata_sanitizer_for_update_subscription_without_form_validation() {
+            var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(false);
+            updateSubscription.setMetadata(Map.of("note", "v"));
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
+            verify(subscriptionMetadataSanitizer, times(1)).sanitizeAndValidate(any());
+        }
+
+        @Test
+        void should_invoke_metadata_sanitizer_for_update_configuration_without_form_validation() {
+            var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(false);
+            subscriptionConfig.setMetadata(Map.of("note", "v"));
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
+            verify(subscriptionMetadataSanitizer, times(1)).sanitizeAndValidate(any());
         }
     }
 }

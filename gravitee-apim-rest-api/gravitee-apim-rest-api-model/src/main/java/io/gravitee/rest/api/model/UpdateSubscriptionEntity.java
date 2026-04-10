@@ -52,4 +52,11 @@ public class UpdateSubscriptionEntity {
     private SubscriptionConfigurationEntity configuration;
 
     private Map<String, String> metadata;
+
+    /**
+     * <strong>Temporary:</strong> remove once the Console supports the subscription form flow.
+     * Until then, {@code true} runs the subscription-form metadata validation (portal); {@code false}
+     * skips it for mAPI/Console requests.
+     */
+    private Boolean subscriptionFormMetadataValidationRequired = false;
 }
