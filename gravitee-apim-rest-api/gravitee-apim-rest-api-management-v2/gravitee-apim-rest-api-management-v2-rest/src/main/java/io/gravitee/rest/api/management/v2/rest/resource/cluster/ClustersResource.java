@@ -95,6 +95,7 @@ public class ClustersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
     public ClustersResponse searchClusters(
         @QueryParam("q") String q,
+        @QueryParam("type") ClusterType type,
         @BeanParam @Valid PaginationParam paginationParam,
         @QueryParam("sortBy") String sortBy
     ) {
@@ -103,6 +104,7 @@ public class ClustersResource extends AbstractResource {
         SearchClusterUseCase.Output result = searchClusterUseCase.execute(
             new SearchClusterUseCase.Input(
                 executionContext.getEnvironmentId(),
+                type,
                 q,
                 paginationParam.toPageable(),
                 sortBy,

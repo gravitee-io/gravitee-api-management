@@ -18,6 +18,7 @@ package io.gravitee.apim.core.cluster.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterSearchCriteria;
+import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
@@ -42,7 +43,15 @@ public class SearchClusterUseCase {
     private final PermissionDomainService permissionDomainService;
 
     @Builder
-    public record Input(String environmentId, String query, Pageable pageable, String sortBy, boolean isAdmin, String userId) {}
+    public record Input(
+        String environmentId,
+        ClusterType type,
+        String query,
+        Pageable pageable,
+        String sortBy,
+        boolean isAdmin,
+        String userId
+    ) {}
 
     public record Output(Page<Cluster> pageResult) {}
 
@@ -58,6 +67,10 @@ public class SearchClusterUseCase {
                 return new SearchClusterUseCase.Output(new Page<>(Collections.emptyList(), 1, 0, 0));
             }
             criteriaBuilder.ids(clustersIdsUserCanRead);
+        }
+
+        if (input.type != null) {
+            criteriaBuilder.type(input.type);
         }
 
         if (input.query != null && !input.query.isBlank()) {
