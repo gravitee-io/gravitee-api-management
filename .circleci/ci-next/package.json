@@ -1,0 +1,23 @@
+{
+  "name": "ci-next",
+  "version": "1.0.0",
+  "description": "Gravitee.io APIM - CI (next generation SDK)",
+  "private": true,
+  "engines": {
+    "node": "^20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "generate": "tsx src/generate.ts",
+    "test": "vitest run",
+    "test:update": "vitest run -u"
+  },
+  "devDependencies": {
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "tsx": "^4.19.0",
+    "typescript": "5.7.3",
+    "vitest": "^3.0.0",
+    "yaml": "^2.7.0"
+  }
+}

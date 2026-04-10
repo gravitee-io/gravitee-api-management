@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`job > serializes a parameterized job 1`] = `
+{
+  "docker": [
+    {
+      "image": "cimg/node:20",
+    },
+  ],
+  "parallelism": 3,
+  "parameters": {
+    "module": {
+      "default": "",
+      "description": "Module to test",
+      "type": "string",
+    },
+  },
+  "resource_class": "medium",
+  "steps": [
+    {
+      "run": {
+        "command": "npm test -- << parameters.module >>",
+        "name": "Test",
+      },
+    },
+  ],
+}
+`;
+
+exports[`job > serializes a simple job 1`] = `
+{
+  "docker": [
+    {
+      "image": "cimg/node:20",
+    },
+  ],
+  "resource_class": "large",
+  "steps": [
+    {
+      "checkout": {
+        "path": ".",
+      },
+    },
+    {
+      "run": {
+        "command": "npm run build",
+        "name": "Build",
+      },
+    },
+  ],
+}
+`;

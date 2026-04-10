@@ -1,0 +1,50 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`workflow > serializes a workflow with dependencies 1`] = `
+{
+  "jobs": [
+    {
+      "setup": {
+        "context": "my-context",
+        "name": "Setup",
+      },
+    },
+    {
+      "build": {
+        "context": [
+          "ctx1",
+          "ctx2",
+        ],
+        "name": "Build",
+        "requires": [
+          "Setup",
+        ],
+      },
+    },
+  ],
+}
+`;
+
+exports[`workflow > serializes a workflow with matrix 1`] = `
+{
+  "jobs": [
+    {
+      "test": {
+        "matrix": {
+          "parameters": {
+            "db": [
+              "mongo",
+              "postgres",
+            ],
+            "mode": [
+              "v3",
+              "v4",
+            ],
+          },
+        },
+        "name": "Test << matrix.db >>",
+      },
+    },
+  ],
+}
+`;

@@ -46,6 +46,11 @@ parameters:
         default: "/home/circleci/project/pom.xml"
         type: string
         description: "Path to pom.xml with APIM version"
+    ci_engine:
+        type: enum
+        enum: [ci, ci-next]
+        default: ci-next
+        description: "Which CI engine to use for config generation"
 jobs:
     generate-config:
         executor:
@@ -140,8 +145,117 @@ jobs:
             - continuation/continue:
                   configuration_path: /tmp/dynamicConfig.yml
 
+    generate-config-next:
+        executor:
+          name: node/default
+          tag: "22.12"
+        environment:
+            CI_ACTION: "<< pipeline.parameters.gio_action >>"
+            CI_DRY_RUN: "<< pipeline.parameters.dry_run >>"
+            CI_GRAVITEEIO_VERSION: "<< pipeline.parameters.graviteeio_version >>"
+            CI_DOCKER_TAG_AS_LATEST: "<< pipeline.parameters.docker_tag_as_latest >>"
+            APIM_VERSION_PATH: "<< pipeline.parameters.apim_version_path >>"
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - when:
+                  condition:
+                      not:
+                          or:
+                              - equal: ["master", << pipeline.git.branch >>]
+                              - matches:
+                                    pattern: "^[0-9]+\\.[0-9]+\\.x$"
+                                    value: << pipeline.git.branch >>
+                  steps:
+                      - run:
+                            name: Find base branch
+                            command: |
+                                if [ "x${GITHUB_TOKEN}" == "x" ]; then
+                                  echo "[GITHUB_TOKEN] is not set, can't find the base branch. Use 'master'"
+                                  echo "export GIT_BASE_BRANCH=master" >> $BASH_ENV
+                                fi;
+
+                                if [ "x${CIRCLE_PULL_REQUEST}" == "x" ]; then
+                                  echo "No opened pull request for this branch -> try to find the base branch with commits."
+                                  MAX_COMMITS=100
+                                  PATTERN="origin/master|origin/[0-9]+\.[0-9]+\.x"
+
+                                  for (( i = 0; i < MAX_COMMITS; i++ )); do
+                                    hash=$(git rev-parse HEAD~$i)
+                                    branch=$(git --no-pager branch -r --contains $hash | grep -oE $PATTERN || true)
+                                    if [ -n "$branch" ]; then
+                                      BASE_REF=$branch
+                                      COMMON_COMMIT=$hash
+                                      break
+                                    fi
+                                  done
+                                else
+                                  PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
+                                  PULL_REQUEST_RESPONSE_CONTENT=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL})
+
+                                  BASE_REF=origin/$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.ref // "master"')
+                                  COMMON_COMMIT=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.sha // ""')
+                                fi;
+
+                                if [ "x${BASE_REF}" == "x" ]; then
+                                  echo "No base branch found, stopping"
+                                  circleci step halt
+                                fi;
+
+                                echo "export GIT_BASE_BRANCH=${BASE_REF}" >> $BASH_ENV
+                                echo "The base branch is ${BASE_REF}"
+
+                                echo "export GIT_COMMON_COMMIT_HASH=${COMMON_COMMIT}" >> $BASH_ENV
+                                echo "The common commit hash is ${COMMON_COMMIT}"
+
+            - run:
+                  name: Enable Corepack
+                  command: sudo corepack enable yarn
+            - node/install-packages:
+                  app-dir: .circleci/ci-next
+                  pkg-manager: yarn
+            - run:
+                  name: Test ci-next
+                  working_directory: .circleci/ci-next
+                  command: yarn test
+            - run:
+                  name: Generate config
+                  working_directory: .circleci/ci-next
+                  command: |
+                      yarn generate /tmp/dynamicConfig.yml
+            - continuation/continue:
+                  configuration_path: /tmp/dynamicConfig.yml
+
+    test-ci-next:
+        executor:
+          name: node/default
+          tag: "22.12"
+        steps:
+            - checkout
+            - run:
+                  name: Enable Corepack
+                  command: sudo corepack enable yarn
+            - node/install-packages:
+                  app-dir: .circleci/ci-next
+                  pkg-manager: yarn
+            - run:
+                  name: Test ci-next
+                  working_directory: .circleci/ci-next
+                  command: yarn test
+
 workflows:
     dynamic-workflow:
+        when:
+            equal: [ci, << pipeline.parameters.ci_engine >>]
         jobs:
+            - test-ci-next
             - generate-config:
+                  context: cicd-orchestrator
+    dynamic-workflow-next:
+        when:
+            equal: [ci-next, << pipeline.parameters.ci_engine >>]
+        jobs:
+            - generate-config-next:
                   context: cicd-orchestrator
