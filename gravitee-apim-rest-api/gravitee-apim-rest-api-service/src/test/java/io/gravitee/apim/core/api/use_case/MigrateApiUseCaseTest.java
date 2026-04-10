@@ -1768,13 +1768,7 @@ class MigrateApiUseCaseTest {
             );
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2()
-            .toBuilder()
-            .id("plan-id")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .build();
+        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
         planCrudService.initWith(List.of(plan));
 
         // When
