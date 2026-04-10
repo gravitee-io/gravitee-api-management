@@ -136,6 +136,7 @@ public class SubscriptionResource extends AbstractResource {
 
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(subscriptionId);
+        updateSubscriptionConfigurationEntity.setSubscriptionFormMetadataValidationRequired(true);
         SubscriptionConfigurationInput subscriptionConfigurationInput = updateSubscriptionInput.getConfiguration();
 
         if (updateSubscriptionInput.getMetadata() != null) {

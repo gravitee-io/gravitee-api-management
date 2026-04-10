@@ -130,6 +130,7 @@ public class SubscriptionsResource extends AbstractResource {
                     .generalConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted())
                     .generalConditionsContentRevision(getPageRevisionId(subscriptionInput))
                     .auditInfo(auditInfo)
+                    .subscriptionFormMetadataValidationRequired(true)
                     .build()
             );
 

@@ -15,9 +15,6 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Map;
 import lombok.Getter;
@@ -46,6 +43,13 @@ public class NewSubscriptionEntity {
     private OriginContext.Origin origin = OriginContext.Origin.MANAGEMENT;
 
     private Map<String, String> metadata;
+
+    /**
+     * <strong>Temporary:</strong> remove once the Console supports the subscription form flow.
+     * Until then, {@code true} runs the subscription-form metadata validation (portal); {@code false}
+     * skips it for mAPI/Console requests.
+     */
+    private Boolean subscriptionFormMetadataValidationRequired = false;
 
     public NewSubscriptionEntity(String plan, String application) {
         this.application = application;

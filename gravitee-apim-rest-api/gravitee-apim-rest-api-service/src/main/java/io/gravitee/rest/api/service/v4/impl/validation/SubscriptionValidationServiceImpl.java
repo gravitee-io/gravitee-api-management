@@ -54,10 +54,49 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     @Override
     public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription) {
         subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
-        if (subscription.getMetadata() != null) {
-            subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
+        var metadata = subscription.getMetadata();
+        if (metadata != null) {
+            metadata = subscriptionMetadataSanitizer.sanitizeAndValidate(metadata);
+            subscription.setMetadata(metadata);
         }
-        validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, subscription.getMetadata());
+        if (Boolean.TRUE.equals(subscription.getSubscriptionFormMetadataValidationRequired())) {
+            validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, metadata);
+        }
+    }
+
+    @Override
+    public void validateAndSanitize(
+        final GenericPlanEntity genericPlanEntity,
+        final UpdateSubscriptionEntity subscription,
+        String applicationId
+    ) {
+        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
+        var metadata = subscription.getMetadata();
+        if (metadata != null) {
+            metadata = subscriptionMetadataSanitizer.sanitizeAndValidate(metadata);
+            subscription.setMetadata(metadata);
+        }
+        if (Boolean.TRUE.equals(subscription.getSubscriptionFormMetadataValidationRequired())) {
+            validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, metadata);
+        }
+    }
+
+    @Override
+    public void validateAndSanitize(
+        final GenericPlanEntity genericPlanEntity,
+        final UpdateSubscriptionConfigurationEntity subscriptionConfiguration
+    ) {
+        subscriptionConfiguration.setConfiguration(
+            validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscriptionConfiguration.getConfiguration())
+        );
+        var metadata = subscriptionConfiguration.getMetadata();
+        if (metadata != null) {
+            metadata = subscriptionMetadataSanitizer.sanitizeAndValidate(metadata);
+            subscriptionConfiguration.setMetadata(metadata);
+        }
+        if (Boolean.TRUE.equals(subscriptionConfiguration.getSubscriptionFormMetadataValidationRequired())) {
+            validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, metadata);
+        }
     }
 
     private void validateSubscriptionFormMetadataIfApplicable(
@@ -82,35 +121,6 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
             )
             .map(SubscriptionFormSubmissionValidator::new)
             .ifPresent(validator -> validator.validate(submitted));
-    }
-
-    @Override
-    public void validateAndSanitize(
-        final GenericPlanEntity genericPlanEntity,
-        final UpdateSubscriptionEntity subscription,
-        String applicationId
-    ) {
-        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
-        if (subscription.getMetadata() != null) {
-            subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
-        }
-        validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, subscription.getMetadata());
-    }
-
-    @Override
-    public void validateAndSanitize(
-        final GenericPlanEntity genericPlanEntity,
-        final UpdateSubscriptionConfigurationEntity subscriptionConfiguration
-    ) {
-        subscriptionConfiguration.setConfiguration(
-            validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscriptionConfiguration.getConfiguration())
-        );
-        if (subscriptionConfiguration.getMetadata() != null) {
-            subscriptionConfiguration.setMetadata(
-                subscriptionMetadataSanitizer.sanitizeAndValidate(subscriptionConfiguration.getMetadata())
-            );
-        }
-        validateSubscriptionFormMetadataIfApplicable(genericPlanEntity, subscriptionConfiguration.getMetadata());
     }
 
     private SubscriptionConfigurationEntity validateAndSanitizeSubscriptionConfiguration(
