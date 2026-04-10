@@ -233,7 +233,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                         .collect(Collectors.toList());
                 }
 
-                // Replace group id by group name in access control list
+                // Replace group id by group name in access control list, skipping stale refs to deleted groups
                 pages.forEach(pageEntity -> {
                     if (pageEntity.getAccessControls() != null) {
                         pageEntity.setAccessControls(
@@ -243,13 +243,24 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 .filter(accessControlEntity ->
                                     accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
                                 )
-                                .peek(accessControlEntity ->
-                                    accessControlEntity.setReferenceId(
-                                        groupIdNameMap.computeIfAbsent(accessControlEntity.getReferenceId(), key ->
-                                            groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
-                                        )
-                                    )
-                                )
+                                .filter(accessControlEntity -> {
+                                    String groupName = groupIdNameMap.computeIfAbsent(accessControlEntity.getReferenceId(), key -> {
+                                        try {
+                                            return groupService.findById(GraviteeContext.getExecutionContext(), key).getName();
+                                        } catch (GroupNotFoundException e) {
+                                            log.warn(
+                                                "Group [{}] referenced in page access control no longer exists, skipping from export",
+                                                key
+                                            );
+                                            return null;
+                                        }
+                                    });
+                                    if (groupName == null) {
+                                        return false;
+                                    }
+                                    accessControlEntity.setReferenceId(groupName);
+                                    return true;
+                                })
                                 .collect(Collectors.toSet())
                         );
                     }

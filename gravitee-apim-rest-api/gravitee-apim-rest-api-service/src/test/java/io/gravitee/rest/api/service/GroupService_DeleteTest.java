@@ -200,6 +200,10 @@ public class GroupService_DeleteTest {
 
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
 
+        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).build())).thenReturn(
+            Collections.emptyList()
+        );
+
         when(
             pageRepository.search(
                 new PageCriteria.Builder()
@@ -311,6 +315,11 @@ public class GroupService_DeleteTest {
         accessControlToRemove.setReferenceId(GROUP_ID);
         AccessControl accessControlToKeep = new AccessControl();
         page.setAccessControls(new HashSet<>(Set.of(accessControlToRemove, accessControlToKeep)));
+
+        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).build())).thenReturn(
+            Collections.emptyList()
+        );
+
         when(
             pageRepository.search(
                 new PageCriteria.Builder()
@@ -329,5 +338,91 @@ public class GroupService_DeleteTest {
         verify(applicationRepository).update(
             argThat(app -> app.getGroups().size() == 1 && !app.getGroups().contains(GROUP_ID) && app.getGroups().contains(ANOTHER_GROUP_ID))
         );
+    }
+
+    @Test
+    public void shouldDeleteGroupAccessControlFromPagesOnApisNotInGroup() throws Exception {
+        // This tests the exact bug from APIM-13541: API is NOT in the group's membership
+        // (not found by apiRepository.search(groups(groupId))), but has a page with
+        // accessControl referencing the group. The new cleanup pass should handle this.
+
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+
+        RoleEntity role = new RoleEntity();
+        role.setId("API_PRIMARY_OWNER_ID");
+        when(
+            roleService.findByScopeAndName(
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name(),
+                GraviteeContext.getExecutionContext().getOrganizationId()
+            )
+        ).thenReturn(Optional.of(role));
+
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                GROUP_ID,
+                MembershipReferenceType.API,
+                "API_PRIMARY_OWNER_ID"
+            )
+        ).thenReturn(Collections.emptySet());
+
+        // No APIs found by group membership search (the API is NOT in the group's groups[])
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
+                null,
+                new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                ApiFieldFilter.allFields()
+            )
+        ).thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
+
+        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
+
+        // But there IS a page on some API that references this group in accessControls
+        Page apiPageWithStaleRef = new Page();
+        apiPageWithStaleRef.setId("PAGE_ON_UNRELATED_API");
+        apiPageWithStaleRef.setReferenceId("UNRELATED_API_ID");
+        apiPageWithStaleRef.setReferenceType(PageReferenceType.API);
+        AccessControl staleAccessControl = new AccessControl();
+        staleAccessControl.setReferenceType("GROUP");
+        staleAccessControl.setReferenceId(GROUP_ID);
+        AccessControl validAccessControl = new AccessControl();
+        validAccessControl.setReferenceType("GROUP");
+        validAccessControl.setReferenceId("other-group-id");
+        apiPageWithStaleRef.setAccessControls(new HashSet<>(Set.of(staleAccessControl, validAccessControl)));
+
+        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).build())).thenReturn(
+            List.of(apiPageWithStaleRef)
+        );
+
+        when(
+            pageRepository.search(
+                new PageCriteria.Builder()
+                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .referenceType(PageReferenceType.ENVIRONMENT.name())
+                    .build()
+            )
+        ).thenReturn(Collections.emptyList());
+
+        groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
+
+        // Verify the stale accessControl was removed from the page, keeping the valid one
+        verify(pageRepository).update(
+            argThat(
+                p ->
+                    "PAGE_ON_UNRELATED_API".equals(p.getId()) &&
+                    p.getAccessControls().size() == 1 &&
+                    p
+                        .getAccessControls()
+                        .stream()
+                        .noneMatch(ac -> GROUP_ID.equals(ac.getReferenceId()))
+            )
+        );
+
+        verify(groupRepository, times(1)).delete(eq(GROUP_ID));
     }
 }
