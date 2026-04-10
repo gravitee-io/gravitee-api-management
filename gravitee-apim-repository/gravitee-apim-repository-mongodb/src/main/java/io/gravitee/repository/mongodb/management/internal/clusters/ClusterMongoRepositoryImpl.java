@@ -50,6 +50,10 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
             query.addCriteria(where("id").in(criteria.getIds()));
         }
 
+        if (criteria.getType() != null) {
+            query.addCriteria(where("type").is(criteria.getType()));
+        }
+
         if (criteria.getQuery() != null) {
             query.addCriteria(
                 new Criteria().orOperator(
