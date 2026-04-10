@@ -111,6 +111,7 @@ export class ClusterListComponent implements OnInit {
             toClustersSortByParam(this.filters.sort),
             this.filters.pagination.index,
             this.filters.pagination.size,
+            'KAFKA_CLUSTER_CONNECTION',
           ),
         ),
         map(pagedResult => {

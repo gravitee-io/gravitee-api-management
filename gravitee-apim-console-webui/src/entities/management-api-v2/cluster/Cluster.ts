@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ClusterType = 'KAFKA_CLUSTER_CONNECTION';
+export type ClusterType = 'KAFKA_CLUSTER_CONNECTION' | 'KAFKA_CLUSTER';
 
 export interface Cluster {
   id: string;
