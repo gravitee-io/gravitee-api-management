@@ -33,6 +33,7 @@ public class ApiProductCriteria {
     private String environmentId;
     private List<String> environments;
     private Collection<String> apiIds;
+    private Collection<String> groups;
 
     ApiProductCriteria(ApiProductCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -41,6 +42,7 @@ public class ApiProductCriteria {
         this.environmentId = builder.environmentId;
         this.environments = builder.environments;
         this.apiIds = builder.apiIds;
+        this.groups = builder.groups;
     }
 
     public Collection<String> getIds() {
@@ -67,6 +69,10 @@ public class ApiProductCriteria {
         return apiIds;
     }
 
+    public Collection<String> getGroups() {
+        return groups;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -78,13 +84,14 @@ public class ApiProductCriteria {
             Objects.equals(version, that.version) &&
             Objects.equals(environmentId, that.environmentId) &&
             Objects.equals(environments, that.environments) &&
-            Objects.equals(apiIds, that.apiIds)
+            Objects.equals(apiIds, that.apiIds) &&
+            Objects.equals(groups, that.groups)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, name, version, environmentId, environments, apiIds);
+        return Objects.hash(ids, name, version, environmentId, environments, apiIds, groups);
     }
 
     public static class Builder {
@@ -95,6 +102,7 @@ public class ApiProductCriteria {
         private String environmentId;
         private List<String> environments;
         private Collection<String> apiIds;
+        private Collection<String> groups;
 
         public ApiProductCriteria.Builder ids(String... id) {
             this.ids = id != null && id.length > 0 ? List.of(id) : null;
@@ -128,6 +136,11 @@ public class ApiProductCriteria {
 
         public ApiProductCriteria.Builder apiIds(Collection<String> apiIds) {
             this.apiIds = apiIds;
+            return this;
+        }
+
+        public ApiProductCriteria.Builder groups(Collection<String> groups) {
+            this.groups = groups;
             return this;
         }
 

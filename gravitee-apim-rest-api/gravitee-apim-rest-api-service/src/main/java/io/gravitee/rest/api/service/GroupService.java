@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.rest.api.model.ApiProductEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
@@ -52,6 +53,7 @@ public interface GroupService {
     Set<GroupEntity> findByUserAndEnvironment(String username, String environmentId);
     List<ApiEntity> getApis(final String environmentId, String groupId);
     List<ApplicationEntity> getApplications(String groupId);
+    List<ApiProductEntity> getApiProducts(final String environmentId, String groupId);
     int getNumberOfMembers(ExecutionContext executionContext, String groupId);
     boolean isUserAuthorizedToAccessApiData(GenericApiEntity api, List<String> excludedGroups, String username);
     GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);

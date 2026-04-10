@@ -29,7 +29,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -136,23 +135,13 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
             var criteria = new ApiProductCriteria.Builder().ids(ids).environmentId(environmentId).build();
             var sortable = new SortableBuilder().field("name").setAsc(true).build();
 
-            Page<String> idPage = apiProductRepository.searchIds(List.of(criteria), convert(pageable), sortable);
-            if (idPage.getContent().isEmpty()) {
-                return new Page<>(List.of(), pageable.getPageNumber(), pageable.getPageSize(), idPage.getTotalElements());
-            }
-
-            Map<String, io.gravitee.repository.management.model.ApiProduct> apiProductsById = new LinkedHashMap<>();
-            apiProductRepository
-                .findByIds(idPage.getContent())
-                .forEach(repoApiProduct -> apiProductsById.put(repoApiProduct.getId(), repoApiProduct));
-            List<ApiProduct> pageContent = idPage
-                .getContent()
-                .stream()
-                .filter(apiProductsById::containsKey)
-                .map(apiProductId -> ApiProductAdapter.INSTANCE.toModel(apiProductsById.get(apiProductId)))
-                .toList();
-
-            return new Page<>(pageContent, pageable.getPageNumber(), pageContent.size(), idPage.getTotalElements());
+            Page<io.gravitee.repository.management.model.ApiProduct> page = apiProductRepository.search(
+                criteria,
+                sortable,
+                convert(pageable)
+            );
+            List<ApiProduct> content = page.getContent().stream().map(ApiProductAdapter.INSTANCE::toModel).toList();
+            return new Page<>(content, pageable.getPageNumber(), content.size(), page.getTotalElements());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to search API Products by ids", e);
         }

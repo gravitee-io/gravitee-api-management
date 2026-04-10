@@ -74,6 +74,7 @@ export class EditMemberDialogComponent implements OnInit {
   member: Member = null;
   members: Member[] = [];
   defaultAPIRoles: Role[] = [];
+  defaultAPIProductRoles: Role[] = [];
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
   defaultClusterRoles: Role[] = [];
@@ -81,6 +82,7 @@ export class EditMemberDialogComponent implements OnInit {
     displayName: FormControl<string>;
     groupAdmin: FormControl<boolean>;
     defaultAPIRole: FormControl<string>;
+    defaultAPIProductRole: FormControl<string>;
     defaultApplicationRole: FormControl<string>;
     defaultIntegrationRole: FormControl<string>;
     defaultClusterRole: FormControl<string>;
@@ -120,6 +122,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.member = this.data.member;
     this.members = this.data.members;
     this.defaultAPIRoles = this.data.defaultAPIRoles;
+    this.defaultAPIProductRoles = this.data.defaultAPIProductRoles;
     this.defaultApplicationRoles = this.data.defaultApplicationRoles;
     this.defaultIntegrationRoles = this.data.defaultIntegrationRoles;
     this.defaultClusterRoles = this.data.defaultClusterRoles;
@@ -133,6 +136,7 @@ export class EditMemberDialogComponent implements OnInit {
         disabled: !this.group.system_invitation,
       }),
       defaultAPIRole: new FormControl<string>(this.member.roles['API']),
+      defaultAPIProductRole: new FormControl<string>(this.member.roles['API_PRODUCT']),
       defaultApplicationRole: new FormControl<string>(this.member.roles['APPLICATION']),
       defaultIntegrationRole: new FormControl<string>(this.member.roles['INTEGRATION']),
       defaultClusterRole: new FormControl<string>(this.member.roles['CLUSTER']),
@@ -161,6 +165,7 @@ export class EditMemberDialogComponent implements OnInit {
 
   private disableControlsForUser() {
     this.disableDefaultAPIRole();
+    this.disableDefaultAPIProductRole();
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
     this.disableDefaultClusterRole();
@@ -170,6 +175,12 @@ export class EditMemberDialogComponent implements OnInit {
   private disableDefaultAPIRole(): void {
     if (!this.canUpdateGroup() && this.group.lock_api_role) {
       this.editMemberForm.controls.defaultAPIRole.disable();
+    }
+  }
+
+  private disableDefaultAPIProductRole(): void {
+    if (!this.canUpdateGroup() && this.group.lock_api_product_role) {
+      this.editMemberForm.controls.defaultAPIProductRole.disable();
     }
   }
 
@@ -267,6 +278,10 @@ export class EditMemberDialogComponent implements OnInit {
         {
           name: defaultAPIRole,
           scope: 'API',
+        },
+        {
+          name: this.editMemberForm.controls.defaultAPIProductRole.value,
+          scope: 'API_PRODUCT',
         },
         {
           name: this.editMemberForm.controls.defaultApplicationRole.value,

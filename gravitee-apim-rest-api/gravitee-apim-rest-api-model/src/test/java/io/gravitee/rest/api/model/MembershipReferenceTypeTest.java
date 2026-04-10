@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -29,5 +30,20 @@ class MembershipReferenceTypeTest {
         RoleScope scope = type.findScope();
 
         assertThat(scope.name()).isEqualTo(type.name());
+    }
+
+    @Test
+    void group_allowedRoleScope_shouldIncludeApiProduct() {
+        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.API_PRODUCT)).isTrue();
+    }
+
+    @Test
+    void group_allowedRoleScope_shouldIncludeApi() {
+        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.API)).isTrue();
+    }
+
+    @Test
+    void group_allowedRoleScope_shouldIncludeApplication() {
+        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.APPLICATION)).isTrue();
     }
 }

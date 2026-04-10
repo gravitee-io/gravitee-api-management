@@ -67,6 +67,16 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
     }
 
     @Override
+    public List<ApiProduct> search(ApiProductCriteria criteria) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
+    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        return new Page<>(Collections.emptyList(), 0, 0, 0);
+    }
+
+    @Override
     public Set<ApiProduct> findByApiId(String apiId) throws TechnicalException {
         return Set.of();
     }

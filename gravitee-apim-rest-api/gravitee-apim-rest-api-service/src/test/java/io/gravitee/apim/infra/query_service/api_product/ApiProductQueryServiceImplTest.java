@@ -307,8 +307,8 @@ class ApiProductQueryServiceImplTest {
         }
 
         @Test
-        void should_return_empty_page_when_searchIds_returns_no_results() throws TechnicalException {
-            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(), 1, 0, 0));
+        void should_return_empty_page_when_search_returns_no_results() throws TechnicalException {
+            when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(), 1, 0, 0));
 
             Page<ApiProduct> result = service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10));
 
@@ -319,8 +319,7 @@ class ApiProductQueryServiceImplTest {
         @Test
         void should_return_products_for_current_page() throws TechnicalException {
             var repoApiProduct = buildRepositoryApiProduct();
-            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(API_PRODUCT_ID), 1, 1, 1));
-            when(apiProductRepository.findByIds(List.of(API_PRODUCT_ID))).thenReturn(Set.of(repoApiProduct));
+            when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(repoApiProduct), 1, 1, 1));
 
             Page<ApiProduct> result = service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10));
 
@@ -330,7 +329,7 @@ class ApiProductQueryServiceImplTest {
         }
 
         @Test
-        void should_respect_db_sort_order_from_searchIds() throws TechnicalException {
+        void should_respect_db_sort_order_from_search() throws TechnicalException {
             var productA = io.gravitee.repository.management.model.ApiProduct.builder()
                 .id("p-a")
                 .environmentId(ENV_ID)
@@ -347,9 +346,7 @@ class ApiProductQueryServiceImplTest {
                 .createdAt(new Date())
                 .updatedAt(new Date())
                 .build();
-            // DB returns IDs already sorted by name ASC
-            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of("p-a", "p-z"), 1, 2, 2));
-            when(apiProductRepository.findByIds(List.of("p-a", "p-z"))).thenReturn(Set.of(productA, productZ));
+            when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(productA, productZ), 1, 2, 2));
 
             Page<ApiProduct> result = service.searchByIds(Set.of("p-a", "p-z"), ENV_ID, new PageableImpl(1, 10));
 
@@ -366,9 +363,7 @@ class ApiProductQueryServiceImplTest {
                 .createdAt(new Date())
                 .updatedAt(new Date())
                 .build();
-            // DB handles pagination: page 2, size 2 → only "p-3", total 3
-            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of("p-3"), 2, 1, 3));
-            when(apiProductRepository.findByIds(List.of("p-3"))).thenReturn(Set.of(product3));
+            when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(product3), 2, 1, 3));
 
             Page<ApiProduct> result = service.searchByIds(Set.of("p-1", "p-2", "p-3"), ENV_ID, new PageableImpl(2, 2));
 
@@ -378,16 +373,8 @@ class ApiProductQueryServiceImplTest {
         }
 
         @Test
-        void should_throw_technical_exception_when_searchIds_fails() throws TechnicalException {
-            when(apiProductRepository.searchIds(any(), any(), any())).thenThrow(new TechnicalException("Database error"));
-            var throwable = catchThrowable(() -> service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10)));
-            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
-        }
-
-        @Test
-        void should_throw_technical_exception_when_findByIds_fails() throws TechnicalException {
-            when(apiProductRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(API_PRODUCT_ID), 1, 1, 1));
-            when(apiProductRepository.findByIds(List.of(API_PRODUCT_ID))).thenThrow(new TechnicalException("Database error"));
+        void should_throw_technical_exception_when_search_fails() throws TechnicalException {
+            when(apiProductRepository.search(any(), any(), any())).thenThrow(new TechnicalException("Database error"));
             var throwable = catchThrowable(() -> service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10)));
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }

@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
 import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -48,6 +49,7 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
+import io.gravitee.rest.api.model.ApiProductEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -421,6 +423,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updatedGroupEntity.setEventRules(group.getEventRules());
             updatedGroupEntity.setMaxInvitation(group.getMaxInvitation());
             updatedGroupEntity.setLockApiRole(group.isLockApiRole());
+            updatedGroupEntity.setLockApiProductRole(group.isLockApiProductRole());
             updatedGroupEntity.setLockApplicationRole(group.isLockApplicationRole());
             updatedGroupEntity.setSystemInvitation(group.isSystemInvitation());
             updatedGroupEntity.setEmailInvitation(group.isEmailInvitation());
@@ -1004,6 +1007,25 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
+    public List<ApiProductEntity> getApiProducts(final String environmentId, String groupId) {
+        try {
+            return apiProductsRepository
+                .search(new ApiProductCriteria.Builder().environmentId(environmentId).groups(List.of(groupId)).build())
+                .stream()
+                .map(apiProduct -> {
+                    ApiProductEntity entity = new ApiProductEntity();
+                    entity.setId(apiProduct.getId());
+                    entity.setName(apiProduct.getName());
+                    entity.setVersion(apiProduct.getVersion());
+                    return entity;
+                })
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find all API Products of group " + groupId, ex);
+        }
+    }
+
+    @Override
     public List<ApplicationEntity> getApplications(String groupId) {
         try {
             return applicationRepository
@@ -1045,6 +1067,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setUpdatedAt(entity.getUpdatedAt());
         group.setMaxInvitation(entity.getMaxInvitation());
         group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApiProductRole(entity.isLockApiProductRole());
         group.setLockApplicationRole(entity.isLockApplicationRole());
         group.setSystemInvitation(entity.isSystemInvitation());
         group.setEmailInvitation(entity.isEmailInvitation());
@@ -1073,6 +1096,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
         group.setMaxInvitation(entity.getMaxInvitation());
         group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApiProductRole(entity.isLockApiProductRole());
         group.setLockApplicationRole(entity.isLockApplicationRole());
         group.setSystemInvitation(entity.isSystemInvitation());
         group.setEmailInvitation(entity.isEmailInvitation());
@@ -1135,6 +1159,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setUpdatedAt(group.getUpdatedAt());
         entity.setMaxInvitation(group.getMaxInvitation());
         entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApiProductRole(group.isLockApiProductRole());
         entity.setLockApplicationRole(group.isLockApplicationRole());
         entity.setSystemInvitation(group.isSystemInvitation());
         entity.setEmailInvitation(group.isEmailInvitation());
@@ -1191,6 +1216,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setUpdatedAt(group.getUpdatedAt());
         entity.setMaxInvitation(group.getMaxInvitation());
         entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApiProductRole(group.isLockApiProductRole());
         entity.setLockApplicationRole(group.isLockApplicationRole());
         entity.setSystemInvitation(group.isSystemInvitation());
         entity.setEmailInvitation(group.isEmailInvitation());

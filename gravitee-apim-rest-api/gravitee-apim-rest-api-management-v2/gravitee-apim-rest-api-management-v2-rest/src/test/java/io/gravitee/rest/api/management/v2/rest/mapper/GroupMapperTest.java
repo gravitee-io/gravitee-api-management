@@ -49,6 +49,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getApplicationRole()).isEqualTo(groupEntity.getRoles().get(RoleScope.APPLICATION));
         assertThat(group.getLockApiRole()).isEqualTo(groupEntity.isLockApiRole());
         assertThat(group.getLockApplicationRole()).isEqualTo(groupEntity.isLockApplicationRole());
+        assertThat(group.getLockApiProductRole()).isEqualTo(groupEntity.isLockApiProductRole());
         assertThat(group.getSystemInvitation()).isEqualTo(groupEntity.isSystemInvitation());
         assertThat(group.getEmailInvitation()).isEqualTo(groupEntity.isEmailInvitation());
         assertThat(group.getDisableMembershipNotifications()).isEqualTo(groupEntity.isDisableMembershipNotifications());
@@ -161,6 +162,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getMaxInvitation()).isEqualTo(coreGroup.getMaxInvitation());
         assertThat(group.getLockApiRole()).isEqualTo(coreGroup.isLockApiRole());
         assertThat(group.getLockApplicationRole()).isEqualTo(coreGroup.isLockApplicationRole());
+        assertThat(group.getLockApiProductRole()).isEqualTo(coreGroup.isLockApiProductRole());
         assertThat(group.getSystemInvitation()).isEqualTo(coreGroup.isSystemInvitation());
         assertThat(group.getEmailInvitation()).isEqualTo(coreGroup.isEmailInvitation());
         assertThat(group.getDisableMembershipNotifications()).isEqualTo(coreGroup.isDisableMembershipNotifications());
@@ -217,6 +219,7 @@ public class GroupMapperTest extends AbstractMapperTest {
             .maxInvitation(10)
             .lockApiRole(true)
             .lockApplicationRole(false)
+            .lockApiProductRole(true)
             .systemInvitation(true)
             .emailInvitation(true)
             .disableMembershipNotifications(false)
@@ -258,6 +261,7 @@ public class GroupMapperTest extends AbstractMapperTest {
             .maxInvitation(10)
             .lockApiRole(true)
             .lockApplicationRole(false)
+            .lockApiProductRole(true)
             .systemInvitation(true)
             .emailInvitation(true)
             .disableMembershipNotifications(false)

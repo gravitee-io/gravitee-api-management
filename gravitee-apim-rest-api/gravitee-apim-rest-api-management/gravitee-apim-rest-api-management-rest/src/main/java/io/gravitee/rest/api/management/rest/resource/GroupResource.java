@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
+import io.gravitee.rest.api.model.ApiProductEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
@@ -138,13 +139,13 @@ public class GroupResource extends AbstractResource {
     @GET
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
-    @Operation(summary = "List APIs or applications linked to this group")
+    @Operation(summary = "List APIs, applications or API Products linked to this group")
     @ApiResponse(
         responseCode = "200",
         description = "Group memberships",
         content = @Content(
             mediaType = APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(oneOf = { ApiEntity.class, ApplicationEntity.class }))
+            array = @ArraySchema(schema = @Schema(oneOf = { ApiEntity.class, ApplicationEntity.class, ApiProductEntity.class }))
         )
     )
     @ApiResponse(responseCode = "204", description = "Group exist but there is no content to return because the type was not provided")
@@ -153,7 +154,7 @@ public class GroupResource extends AbstractResource {
         @Parameter(
             in = ParameterIn.QUERY,
             description = "Type of the group member",
-            schema = @Schema(allowableValues = { "api", "application" })
+            schema = @Schema(allowableValues = { "api", "application", "api_product" })
         ) @QueryParam("type") String type
     ) {
         // Check that group belongs to current environment
@@ -163,6 +164,8 @@ public class GroupResource extends AbstractResource {
             return Response.ok(groupService.getApis(GraviteeContext.getCurrentEnvironment(), group)).build();
         } else if ("application".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApplications(group)).build();
+        } else if ("api_product".equalsIgnoreCase(type)) {
+            return Response.ok(groupService.getApiProducts(GraviteeContext.getCurrentEnvironment(), group)).build();
         }
 
         return Response.noContent().build();
