@@ -65,7 +65,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull LegacySharedPolicyGroupSpec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("legacyID") boolean legacyID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -84,7 +84,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
         var sharedPolicyGroupCRD = SharedPolicyGroupMapper.INSTANCE.map(spec);
 
-        if (legacyID) {
+        if (hridContainsUUID) {
             // As Automation API does not have any ID field,
             // GKO upgraded resources send the HRID as ID
             sharedPolicyGroupCRD.setSharedPolicyGroupId(spec.getHrid());

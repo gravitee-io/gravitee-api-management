@@ -103,7 +103,7 @@ class ApiResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_get_api_from_known_legacy_id() {
+        void should_get_api_from_known_guid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
                 when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
@@ -322,6 +322,11 @@ class ApiResourceTest extends AbstractResourceTest {
     @Nested
     class DELETE {
 
+        @AfterEach
+        void tearDown() {
+            reset(apiService);
+        }
+
         @Test
         void should_delete_api_and_return_no_content() {
             expectNoContent(HRID);
@@ -330,7 +335,7 @@ class ApiResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_delete_api_and_return_no_content_with_valid_legacy_id() {
+        void should_delete_api_and_return_no_content_with_valid_guid() {
             expectNoContent(API_ID, true);
 
             verify(apiService, atLeastOnce()).delete(any(), eq(API_ID), eq(true));
@@ -347,8 +352,8 @@ class ApiResourceTest extends AbstractResourceTest {
             expectNoContent(hrid, false);
         }
 
-        private void expectNoContent(String hrid, boolean legacy) {
-            try (var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().delete()) {
+        private void expectNoContent(String hrid, boolean hridContainsUUID) {
+            try (var response = rootTarget().queryParam("hridContainsUUID", hridContainsUUID).path(hrid).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }

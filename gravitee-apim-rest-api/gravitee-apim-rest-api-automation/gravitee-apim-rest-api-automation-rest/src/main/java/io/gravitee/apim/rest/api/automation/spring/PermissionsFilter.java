@@ -47,9 +47,10 @@ import lombok.CustomLog;
 @CustomLog
 public class PermissionsFilter implements ContainerRequestFilter {
 
-    private static final String HRID_PARAM = "hrid";
-    private static final String API_HRID = "apiHrid";
-    private static final String LEGACY_PARAM = "legacy";
+    static final String HRID_PATH_PARAM = "hrid";
+    static final String API_HRID_PATH_PARAM = "apiHrid";
+    static final String HRID_CONTAINS_UUID_QUERY_PARAM = "hridContainsUUID";
+    static final String HRID_CONTAINS_API_QUERY_UUID_PARAM = "hridContainsUUID";
 
     @Context
     protected ResourceInfo resourceInfo;
@@ -79,7 +80,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
         return switch (permission.value().getScope()) {
             case ENVIRONMENT -> hasPermission(executionContext, permission, executionContext.getEnvironmentId());
             case API -> hasPermission(executionContext, permission, getApiHrid(requestContext));
-            case APPLICATION -> hasPermission(executionContext, permission, getPathParameter(requestContext, HRID_PARAM));
+            case APPLICATION -> hasPermission(executionContext, permission, getPathParameter(requestContext, HRID_PATH_PARAM));
             default -> false;
         };
     }
@@ -93,27 +94,32 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private String getPathParameter(ContainerRequestContext requestContext, String key) {
-        return getPathParameter(requestContext, key, isLegacy(requestContext));
+        return getPathParameter(requestContext, key, hridContainsUUID(requestContext, HRID_CONTAINS_API_QUERY_UUID_PARAM));
     }
 
-    private String getPathParameter(ContainerRequestContext requestContext, String key, boolean isLegacy) {
+    private String getApiHrid(ContainerRequestContext requestContext) {
+        String apiHrid = getPathParameter(
+            requestContext,
+            API_HRID_PATH_PARAM,
+            hridContainsUUID(requestContext, HRID_CONTAINS_API_QUERY_UUID_PARAM)
+        );
+        return apiHrid != null
+            ? apiHrid
+            : getPathParameter(requestContext, HRID_PATH_PARAM, hridContainsUUID(requestContext, HRID_CONTAINS_UUID_QUERY_PARAM));
+    }
+
+    private String getPathParameter(ContainerRequestContext requestContext, String key, boolean hridContainsUUID) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<String> pathParams = requestContext.getUriInfo().getPathParameters().get(key);
         if (CollectionUtils.isEmpty(pathParams)) {
             return null;
         }
 
-        return isLegacy ? pathParams.getFirst() : HRIDToUUID.api().context(executionContext).hrid(pathParams.getFirst()).id();
+        return hridContainsUUID ? pathParams.getFirst() : HRIDToUUID.api().context(executionContext).hrid(pathParams.getFirst()).id();
     }
 
-    private String getApiHrid(ContainerRequestContext requestContext) {
-        boolean legacy = isLegacy(requestContext);
-        String apiHrid = getPathParameter(requestContext, API_HRID, legacy);
-        return apiHrid != null ? apiHrid : getPathParameter(requestContext, HRID_PARAM, legacy);
-    }
-
-    private static boolean isLegacy(ContainerRequestContext requestContext) {
-        List<String> queryParams = requestContext.getUriInfo().getQueryParameters().get(LEGACY_PARAM);
+    private static boolean hridContainsUUID(ContainerRequestContext requestContext, String param) {
+        List<String> queryParams = requestContext.getUriInfo().getQueryParameters().get(param);
         return !CollectionUtils.isEmpty(queryParams) && Boolean.parseBoolean(queryParams.getFirst());
     }
 

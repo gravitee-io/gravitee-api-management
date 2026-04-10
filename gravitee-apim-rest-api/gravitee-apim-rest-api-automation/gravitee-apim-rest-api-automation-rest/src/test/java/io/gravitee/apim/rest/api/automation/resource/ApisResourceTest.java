@@ -86,7 +86,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_state_from_legacy_id() {
+        void should_return_state_from_guid() {
             when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call ->
                 new ImportApiCRDUseCase.Output(
                     ApiCRDStatus.builder()
@@ -232,7 +232,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_state_with_legacy_id() {
+        void should_return_state_with_guid() {
             when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
                 Validator.Result.ofValue(call.getArgument(0))
             );
@@ -240,10 +240,10 @@ class ApisResourceTest extends AbstractResourceTest {
             try (
                 var response = rootTarget()
                     .queryParam("dryRun", dryRun)
-                    .queryParam("legacyID", true)
+                    .queryParam("hridContainsUUID", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-legacy-id.json")));
+                    .put(Entity.json(readJSON("api-with-uuid.json")));
             ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(ApiV4State.class);
@@ -283,11 +283,11 @@ class ApisResourceTest extends AbstractResourceTest {
         return expectEntity(spec, dryRun, false);
     }
 
-    private ApiV4State expectEntity(String spec, boolean dryRun, boolean legacy) {
+    private ApiV4State expectEntity(String spec, boolean dryRun, boolean hridContainsUUID) {
         try (
             var response = rootTarget()
                 .queryParam("dryRun", dryRun)
-                .queryParam("legacyID", legacy)
+                .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(readJSON(spec)))

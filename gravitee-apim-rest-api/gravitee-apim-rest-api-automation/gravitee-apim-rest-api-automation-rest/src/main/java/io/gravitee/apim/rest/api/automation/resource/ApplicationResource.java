@@ -79,12 +79,12 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("legacyID") boolean legacyID) {
+    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
                 executionContext,
-                legacyID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id()
+                hridContainsUUID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id()
             );
 
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
@@ -142,11 +142,11 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("legacyID") boolean legacyID) {
+    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            String applicationId = legacyID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id();
+            String applicationId = hridContainsUUID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id();
             applicationService.archive(executionContext, applicationId);
             removeMetadata(applicationId);
         } catch (ApplicationNotFoundException e) {

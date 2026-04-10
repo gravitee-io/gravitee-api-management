@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.rest.api.automation.spring;
 
+import static io.gravitee.apim.rest.api.automation.spring.PermissionsFilter.API_HRID_PATH_PARAM;
+import static io.gravitee.apim.rest.api.automation.spring.PermissionsFilter.HRID_CONTAINS_API_QUERY_UUID_PARAM;
+import static io.gravitee.apim.rest.api.automation.spring.PermissionsFilter.HRID_CONTAINS_UUID_QUERY_PARAM;
+import static io.gravitee.apim.rest.api.automation.spring.PermissionsFilter.HRID_PATH_PARAM;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_DEFINITION;
@@ -34,6 +38,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -53,7 +58,7 @@ import org.mockito.MockitoAnnotations;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PermissionsFilterTest {
+class PermissionsFilterTest {
 
     @InjectMocks
     protected PermissionsFilter permissionFilter;
@@ -68,22 +73,19 @@ public class PermissionsFilterTest {
     protected ContainerRequestContext containerRequestContext;
 
     private static final String HRID = "test-hrid";
-    private static final String HRID_PARAM = "hrid";
-    private static final String API_HRID_PARAM = "apiHrid";
     private static final String API_HRID = "api-hrid";
-    private static final String LEGACY_PARAM = "legacy";
     private static final String ORGANIZATION_ID = "ORG_ID";
     private static final String ENVIRONMENT_ID = "DEFAULT";
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         GraviteeContext.cleanContext();
     }
 
@@ -98,10 +100,10 @@ public class PermissionsFilterTest {
             when(permissions.value()).thenReturn(new Permission[] { perm });
             UriInfo uriInfo = mock(UriInfo.class);
             MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-            map.put(HRID_PARAM, Collections.singletonList(HRID));
+            map.put(HRID_PATH_PARAM, Collections.singletonList(HRID));
             when(uriInfo.getPathParameters()).thenReturn(map);
             MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
-            queryParams.put(LEGACY_PARAM, Collections.singletonList("true"));
+            queryParams.put(HRID_CONTAINS_UUID_QUERY_PARAM, Collections.singletonList("true"));
             when(uriInfo.getQueryParameters()).thenReturn(queryParams);
             when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
             when(containerRequestContext.getMethod()).thenReturn("GET");
@@ -111,9 +113,10 @@ public class PermissionsFilterTest {
         void shouldThrowForbiddenExceptionWhenNoApiPermissions() {
             when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(HRID))).thenReturn(false);
 
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             assertThrows(
                 ForbiddenAccessException.class,
-                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
                 "You do not have sufficient rights to access this resource"
             );
         }
@@ -157,11 +160,12 @@ public class PermissionsFilterTest {
             when(permissions.value()).thenReturn(new Permission[] { perm });
             UriInfo uriInfo = mock(UriInfo.class);
             MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-            map.put(API_HRID_PARAM, Collections.singletonList(API_HRID));
-            map.put(HRID_PARAM, Collections.singletonList(HRID));
+            map.put(API_HRID_PATH_PARAM, Collections.singletonList(API_HRID));
+            map.put(HRID_PATH_PARAM, Collections.singletonList(HRID));
             when(uriInfo.getPathParameters()).thenReturn(map);
             MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
-            queryParams.put(LEGACY_PARAM, Collections.singletonList("true"));
+            queryParams.put(HRID_CONTAINS_UUID_QUERY_PARAM, Collections.singletonList("true"));
+            queryParams.put(HRID_CONTAINS_API_QUERY_UUID_PARAM, Collections.singletonList("true"));
             when(uriInfo.getQueryParameters()).thenReturn(queryParams);
             when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
             when(containerRequestContext.getMethod()).thenReturn("GET");
@@ -171,9 +175,10 @@ public class PermissionsFilterTest {
         void shouldThrowForbiddenExceptionWhenNoApiPermissions() {
             when(permissionService.hasPermission(any(), eq(API_SUBSCRIPTION), eq(API_HRID), eq(READ))).thenReturn(false);
 
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             assertThrows(
                 ForbiddenAccessException.class,
-                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
                 "You do not have sufficient rights to access this resource"
             );
         }
@@ -217,10 +222,10 @@ public class PermissionsFilterTest {
             when(permissions.value()).thenReturn(new Permission[] { perm });
             UriInfo uriInfo = mock(UriInfo.class);
             MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-            map.put(HRID_PARAM, Collections.singletonList(HRID));
+            map.put(HRID_PATH_PARAM, Collections.singletonList(HRID));
             when(uriInfo.getPathParameters()).thenReturn(map);
             MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
-            queryParams.put(LEGACY_PARAM, Collections.singletonList("true"));
+            queryParams.put(HRID_CONTAINS_UUID_QUERY_PARAM, Collections.singletonList("true"));
             when(uriInfo.getQueryParameters()).thenReturn(queryParams);
             when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
             when(containerRequestContext.getMethod()).thenReturn("GET");
@@ -230,9 +235,10 @@ public class PermissionsFilterTest {
         void shouldThrowForbiddenExceptionWhenNoApplicationPermissions() {
             when(permissionService.hasPermission(any(), eq(APPLICATION_DEFINITION), eq(HRID), eq(READ))).thenReturn(false);
 
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             assertThrows(
                 ForbiddenAccessException.class,
-                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
                 "You do not have sufficient rights to access this resource"
             );
         }
@@ -286,9 +292,10 @@ public class PermissionsFilterTest {
         void shouldThrowForbiddenExceptionWhenNoEnvironmentPermissions() {
             when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT_ID))).thenReturn(false);
 
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             assertThrows(
                 ForbiddenAccessException.class,
-                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
                 "You do not have sufficient rights to access this resource"
             );
         }
@@ -320,9 +327,10 @@ public class PermissionsFilterTest {
         void shouldThrowForbiddenExceptionWhenNoEnvironmentPermissions() {
             when(permissionService.hasPermission(any(), eq(ENVIRONMENT_SHARED_POLICY_GROUP), eq(ENVIRONMENT_ID))).thenReturn(false);
 
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             assertThrows(
                 ForbiddenAccessException.class,
-                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
                 "You do not have sufficient rights to access this resource"
             );
         }

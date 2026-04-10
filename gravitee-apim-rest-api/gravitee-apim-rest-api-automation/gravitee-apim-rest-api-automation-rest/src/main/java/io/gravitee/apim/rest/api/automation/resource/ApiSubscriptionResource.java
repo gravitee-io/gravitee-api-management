@@ -71,22 +71,22 @@ public class ApiSubscriptionResource extends AbstractResource {
     public Response getSubscriptionByHRID(
         @PathParam("apiHrid") String apiHrid,
         @PathParam("hrid") String hrid,
-        @QueryParam("legacyID") boolean legacyID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String subscriptionId = legacyID
+            String subscriptionId = hridContainsUUID
                 ? hrid
                 : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
-            if (legacyID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
+            if (hridContainsUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
                 throw new SubscriptionNotFoundException(apiHrid);
             }
 
             SubscriptionState subscriptionState = new SubscriptionState();
             subscriptionState.setId(subscriptionId);
-            if (!legacyID) {
+            if (!hridContainsUUID) {
                 subscriptionState.setHrid(hrid);
             }
             subscriptionState.setEnvironmentId(executionContext.getEnvironmentId());
@@ -119,17 +119,17 @@ public class ApiSubscriptionResource extends AbstractResource {
     public Response deleteSubscriptionByHrid(
         @PathParam("apiHrid") String apiHrid,
         @PathParam("hrid") String hrid,
-        @QueryParam("legacyID") boolean legacyID,
-        @QueryParam("legacyApiID") boolean legacyApiID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String subscriptionId = legacyID
+            String subscriptionId = hridContainsUUID
                 ? hrid
                 : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
-            if (legacyApiID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
+            if (hridContainsApiUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
                 throw new SubscriptionNotFoundException(apiHrid);
             }
 

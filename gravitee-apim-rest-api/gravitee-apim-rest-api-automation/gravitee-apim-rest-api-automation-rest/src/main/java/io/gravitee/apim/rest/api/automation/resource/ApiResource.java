@@ -82,13 +82,13 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApiByHRID(
         @PathParam("apiHrid") String apiHrid,
-        @QueryParam("legacyID") boolean legacyID,
-        @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRIDFromName
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        boolean hridContainsUUID = legacyID || setHRID;
+        hridContainsUUID = hridContainsUUID || setHRIDFromName;
         var input = new ExportApiCRDUseCase.Input(
             hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
             IDExportStrategy.ALL,
@@ -97,7 +97,7 @@ public class ApiResource extends AbstractResource {
 
         try {
             ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
-            if (setHRID) {
+            if (setHRIDFromName) {
                 if (apiCRDSpec.getHrid() == null || isUUID(apiCRDSpec.getHrid())) {
                     apiCRDSpec.setHrid(nameToHRID(apiCRDSpec.getName()));
                 }
@@ -105,7 +105,7 @@ public class ApiResource extends AbstractResource {
             }
             ApiV4Spec apiV4Spec = ApiMapper.INSTANCE.apiCRDSpecToApiV4Spec(ApiCRDMapper.INSTANCE.map(apiCRDSpec));
             SharedPolicyGroupIdHelper.removeSharedPolicyGroupId(apiV4Spec);
-            if (setHRID) {
+            if (setHRIDFromName) {
                 SharedPolicyGroupIdHelper.addHRID(apiV4Spec);
                 // now that hrid are populated from the CRD map that uses names as keys,
                 // we need to format them to be compliant with the previous transformation
@@ -137,13 +137,13 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacyID") boolean legacy) {
+    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
             apiServiceV4.delete(
                 GraviteeContext.getExecutionContext(),
-                legacy ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
+                hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
                 true
             );
         } catch (ApiNotFoundException e) {
