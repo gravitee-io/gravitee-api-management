@@ -16,13 +16,17 @@
 package io.gravitee.repository.mongodb.management.internal.page;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -72,6 +76,27 @@ class PageMongoRepositoryImplTest {
             MAPPER.readTree(
                 """
                 {"$set":{"homepage":false}}
+                """
+            )
+        );
+    }
+
+    @Test
+    @SneakyThrows
+    void searchByAccessControlGroupId() {
+        PageMongoRepositoryImpl repository = buildRepository();
+        when(mongoTemplate.find(any(Query.class), eq(PageMongo.class))).thenReturn(Collections.emptyList());
+
+        PageCriteria criteria = new PageCriteria.Builder().referenceType("API").accessControlGroupId("my-group").build();
+        repository.search(criteria);
+
+        verify(mongoTemplate).find(queryCaptor.capture(), eq(PageMongo.class));
+
+        JsonNode jsonQuery = MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery).isEqualTo(
+            MAPPER.readTree(
+                """
+                {"referenceType":"API","accessControls":{"$elemMatch":{"$and":[{"referenceId":"my-group"},{"referenceType":"GROUP"}]}}}
                 """
             )
         );

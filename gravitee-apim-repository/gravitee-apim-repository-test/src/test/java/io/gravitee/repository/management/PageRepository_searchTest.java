@@ -156,4 +156,35 @@ public class PageRepository_searchTest extends AbstractManagementRepositoryTest 
         assertEquals(1, pages.size());
         assertEquals("FindApiPage", pages.iterator().next().getId());
     }
+
+    @Test
+    public void shouldFindPagesByAccessControlGroupId() throws Exception {
+        List<Page> pages = pageRepository.search(new PageCriteria.Builder().accessControlGroupId("grp1").build());
+        assertNotNull(pages);
+        assertEquals(1, pages.size());
+        assertEquals("FindApiPage", pages.get(0).getId());
+    }
+
+    @Test
+    public void shouldFindPagesByAccessControlGroupIdAndReferenceType() throws Exception {
+        List<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceType("API").accessControlGroupId("grp2").build());
+        assertNotNull(pages);
+        assertEquals(1, pages.size());
+        assertEquals("FindApiPage", pages.get(0).getId());
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenAccessControlGroupIdNotFound() throws Exception {
+        List<Page> pages = pageRepository.search(new PageCriteria.Builder().accessControlGroupId("non-existent-group").build());
+        assertNotNull(pages);
+        assertEquals(0, pages.size());
+    }
+
+    @Test
+    public void shouldNotMatchRoleAccessControlWhenSearchingByGroupId() throws Exception {
+        // "role1" exists as a ROLE access control on FindApiPage, not as a GROUP
+        List<Page> pages = pageRepository.search(new PageCriteria.Builder().accessControlGroupId("role1").build());
+        assertNotNull(pages);
+        assertEquals(0, pages.size());
+    }
 }
