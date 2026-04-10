@@ -33,6 +33,11 @@ import { ApimFeature } from '../../shared/components/gio-license/gio-license-dat
 const clusterRoutes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
+    redirectTo: 'kafka-connections',
+  },
+  {
+    path: 'kafka-connections',
     component: ClusterListComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     canDeactivate: [ClusterGuard.clearPermissions],
@@ -44,7 +49,7 @@ const clusterRoutes: Routes = [
     },
   },
   {
-    path: ':clusterId',
+    path: 'kafka-connections/:clusterId',
     component: ClusterNavigationComponent,
     canActivate: [ClusterGuard.loadPermissions],
     canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
