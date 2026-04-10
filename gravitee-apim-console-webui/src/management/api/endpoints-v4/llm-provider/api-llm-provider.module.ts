@@ -27,10 +27,12 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { ApiLlmProviderComponent } from './api-llm-provider.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 
 @NgModule({
   declarations: [ApiLlmProviderComponent],
@@ -46,11 +48,13 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     MatIconModule,
     MatInputModule,
     MatProgressBarModule,
+    MatRadioModule,
     MatSelectModule,
     MatSnackBarModule,
 
     GioFormJsonSchemaModule,
     GioGoBackButtonModule,
+    GioSelectionListModule,
   ],
 })
 export class ApiLlmProviderModule {}
