@@ -35,7 +35,7 @@ public class JdbcColumn {
     public final Method getter;
     public final Method setter;
 
-    JdbcColumn(String name, int jdbcType, Class owningClass, Class fieldType) {
+    JdbcColumn(String name, int jdbcType, Class<?> owningClass, Class<?> fieldType) {
         this.name = getAccessorName(name);
         this.jdbcType = jdbcType;
         this.javaType = fieldType;
@@ -62,7 +62,7 @@ public class JdbcColumn {
     }
 
     private static String getAccessorName(final String name) {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         final Matcher m = Pattern.compile("_(\\w)").matcher(capitalize(name));
         while (m.find()) {
             m.appendReplacement(sb, m.group(1).toUpperCase());
@@ -71,7 +71,7 @@ public class JdbcColumn {
     }
 
     public static String getDBName(final String name) {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         final Matcher m = Pattern.compile("([A-Z])").matcher(name);
         while (m.find()) {
             m.appendReplacement(sb, (m.start() == 0 ? "" : '_') + m.group(1).toLowerCase());

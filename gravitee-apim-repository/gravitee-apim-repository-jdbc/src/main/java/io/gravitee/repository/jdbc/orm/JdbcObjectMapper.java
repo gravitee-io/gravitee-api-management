@@ -86,11 +86,10 @@ public class JdbcObjectMapper<T> {
 
         BatchStringSetter(Object parentId, Collection<String> values) {
             this.parentId = parentId;
-            if (values instanceof List) {
-                this.values = (List) values;
-            } else {
-                this.values = new ArrayList<>(values);
-            }
+            this.values = switch (values) {
+                case List<String> list -> list;
+                default -> new ArrayList<>(values);
+            };
         }
 
         @Override
@@ -148,11 +147,11 @@ public class JdbcObjectMapper<T> {
 
     public static class Builder<T> {
 
-        private Class<T> clazz;
-        private String idColumn;
-        private String tableName;
+        private final Class<T> clazz;
+        private final String idColumn;
+        private final String tableName;
         private String updateSql;
-        private List<JdbcColumn> columns = new ArrayList<>();
+        private final List<JdbcColumn> columns = new ArrayList<>();
 
         private Builder(final Class<T> value, final String tableName, String idColumn) {
             this.clazz = value;
@@ -165,7 +164,7 @@ public class JdbcObjectMapper<T> {
             return this;
         }
 
-        public Builder<T> addColumn(String name, int jdbcType, Class fieldType) {
+        public Builder<T> addColumn(String name, int jdbcType, Class<?> fieldType) {
             this.columns.add(new JdbcColumn(name, jdbcType, clazz, fieldType));
             return this;
         }
@@ -220,7 +219,7 @@ public class JdbcObjectMapper<T> {
         return new Psc(updateSql, item, ids);
     }
 
-    public boolean buildInCondition(boolean first, StringBuilder query, String column, Collection args) {
+    public boolean buildInCondition(boolean first, StringBuilder query, String column, Collection<?> args) {
         if ((args != null) && !args.isEmpty()) {
             query.append(first ? " where " : " and ");
             first = false;
@@ -231,13 +230,13 @@ public class JdbcObjectMapper<T> {
         return first;
     }
 
-    public String buildInClause(Collection data) {
+    public String buildInClause(Collection<?> data) {
         StringBuilder builder = new StringBuilder();
         buildInClause(builder, data);
         return builder.toString();
     }
 
-    private void buildInClause(StringBuilder builder, Collection data) {
+    private void buildInClause(StringBuilder builder, Collection<?> data) {
         boolean first = true;
         for (int i = 0; i < data.size(); i++) {
             if (!first) {
@@ -248,12 +247,12 @@ public class JdbcObjectMapper<T> {
         }
     }
 
-    public int setArguments(PreparedStatement stmt, Collection data, int idx) throws SQLException {
+    public int setArguments(PreparedStatement stmt, Collection<?> data, int idx) throws SQLException {
         for (Object item : data) {
             log.trace("Setting {} to {}", idx, item);
 
-            if (item instanceof Enum) {
-                stmt.setString(idx++, ((Enum) item).name());
+            if (item instanceof Enum<?> enumItem) {
+                stmt.setString(idx++, enumItem.name());
             } else {
                 stmt.setObject(idx++, item);
             }
@@ -290,15 +289,9 @@ public class JdbcObjectMapper<T> {
 
     private Object checkTypeAndConvert(final T item, final JdbcColumn column, final Object value) {
         log.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
-        if (column.javaType.isEnum() && (value instanceof String)) {
-            final String stringValue = (String) value;
-            if (hasText(stringValue)) {
-                return Enum.valueOf(column.javaType, stringValue);
-            } else {
-                return null;
-            }
-        } else if (value instanceof Timestamp) {
-            final Timestamp timestampValue = (Timestamp) value;
+        if (column.javaType.isEnum() && (value instanceof String stringValue)) {
+            return hasText(stringValue) ? Enum.valueOf(column.javaType, stringValue) : null;
+        } else if (value instanceof Timestamp timestampValue) {
             if (column.javaType == Date.class) {
                 return new Date(timestampValue.getTime());
             }
@@ -361,15 +354,14 @@ public class JdbcObjectMapper<T> {
                     }
                 } else if (column.javaType.isEnum() && (column.jdbcType == Types.NVARCHAR)) {
                     stmt.setString(idx, value.toString());
-                } else if (value instanceof Date) {
-                    final Date date = (Date) value;
+                } else if (value instanceof Date date) {
                     stmt.setTimestamp(idx, new Timestamp(date.getTime()));
-                } else if (value instanceof Instant) {
-                    stmt.setTimestamp(idx, Timestamp.from((Instant) value));
-                } else if (value instanceof InputStream && column.jdbcType == Types.BLOB) {
-                    stmt.setBlob(idx, (InputStream) value);
-                } else if (value instanceof byte[] && column.jdbcType == Types.BLOB) {
-                    stmt.setBytes(idx, (byte[]) value);
+                } else if (value instanceof Instant instant) {
+                    stmt.setTimestamp(idx, Timestamp.from(instant));
+                } else if (value instanceof InputStream is && column.jdbcType == Types.BLOB) {
+                    stmt.setBlob(idx, is);
+                } else if (value instanceof byte[] array && column.jdbcType == Types.BLOB) {
+                    stmt.setBytes(idx, array);
                 } else {
                     stmt.setObject(idx, value);
                 }
