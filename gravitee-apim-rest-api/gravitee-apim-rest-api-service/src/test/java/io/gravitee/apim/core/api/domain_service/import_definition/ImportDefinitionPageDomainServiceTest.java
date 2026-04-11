@@ -84,6 +84,37 @@ class ImportDefinitionPageDomainServiceTest {
     }
 
     @Test
+    void should_update_page_using_stored_id_when_cross_id_matches_but_imported_id_differs() {
+        var crossId = "same-cross-id";
+        var storedId = "stored-page-id";
+        var wrongImportedId = "generated-import-id";
+        var createdAt = Instant.parse("2020-10-12T10:15:30Z");
+        var existingInDb = PageFixtures.aPage()
+            .toBuilder()
+            .id(storedId)
+            .crossId(crossId)
+            .createdAt(Date.from(createdAt))
+            .updatedAt(Date.from(createdAt))
+            .content("old")
+            .build();
+        initializer.pageCrudServiceInMemory.createDocumentationPage(existingInDb);
+        initializer.pageQueryServiceInMemory.initWith(List.of(existingInDb));
+
+        var importedWithWrongId = existingInDb.toBuilder().id(wrongImportedId).content("new body").build();
+        service.upsertPages(API_ID, List.of(importedWithWrongId), AUDIT_INFO);
+
+        assertThat(initializer.pageCrudServiceInMemory.storage())
+            .hasSize(1)
+            .first()
+            .satisfies(p -> {
+                assertThat(p.getId()).isEqualTo(storedId);
+                assertThat(p.getCrossId()).isEqualTo(crossId);
+                assertThat(p.getContent()).isEqualTo("new body");
+                assertThat(p.getUpdatedAt()).isEqualTo(INSTANT_NOW);
+            });
+    }
+
+    @Test
     void should_update_new_page() {
         var createdAt = Instant.parse("2020-10-12T10:15:30Z");
         var pageToUpdate = PageFixtures.aPage().toBuilder().createdAt(Date.from(createdAt)).updatedAt(null).build();
