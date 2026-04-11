@@ -15,65 +15,114 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <mat-card-content>
-    <div class="card__header">
-      <div class="card__header__title">
-        <h3 data-testid="api_product_members_title">Members</h3>
-        <p data-testid="api_product_members_description">
-          Manage who can interact with your API Product through the API Management console
-        </p>
-      </div>
-      <div class="card__header__actions">
-        <button class="card__header__actions__button" mat-stroked-button color="basic" type="button" disabled>Transfer ownership</button>
-        <button class="card__header__actions__button" mat-raised-button type="button" disabled aria-label="Manage groups">
-          Manage groups
-        </button>
-        <button class="card__header__actions__button" mat-raised-button color="primary" type="button" disabled>
-          <mat-icon svgIcon="gio:plus"></mat-icon> Add members
-        </button>
-      </div>
-    </div>
+<form [formGroup]="form">
+  @if (membersLoadState(); as state) {
+    <mat-card>
+      <mat-card-content>
+        <div class="card__header">
+          <div class="card__header__title">
+            <h3 data-testid="api_product_members_title">Members</h3>
+            <p data-testid="api_product_members_description">
+              Manage who can interact with your API Product through the API Management console
+            </p>
+          </div>
+          <div class="card__header__actions">
+            <button class="card__header__actions__button" mat-raised-button type="button" disabled>Transfer ownership</button>
+            <button class="card__header__actions__button" mat-raised-button type="button" disabled aria-label="Manage groups">
+              Manage groups
+            </button>
+            <button
+              *gioPermission="{ anyOf: ['api_product-member-c'] }"
+              class="card__header__actions__button"
+              mat-raised-button
+              color="primary"
+              type="button"
+              data-testid="api_product_members_add_button"
+              [disabled]="isReadOnly"
+              (click)="openAddMemberDialog(state.memberIds)"
+            >
+              <mat-icon svgIcon="gio:plus"></mat-icon> Add members
+            </button>
+          </div>
+        </div>
 
-    <form [formGroup]="notifyForm">
-      <gio-form-slide-toggle class="card__enable-notification-toggle">
-        Notify members when they are added to the API Product
-        <mat-slide-toggle
-          gioFormSlideToggle
-          formControlName="isNotificationsEnabled"
-          aria-label="Enable notifications when members are added to this API Product"
-        ></mat-slide-toggle>
-      </gio-form-slide-toggle>
-    </form>
+        <gio-form-slide-toggle class="card__enable-notification-toggle">
+          Notify members when they are added to the API Product
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="isNotificationsEnabled"
+            aria-label="Enable notifications when members are added to this API Product"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
+      <gio-table-wrapper
+        [disableSearchInput]="true"
+        [length]="state.totalCount"
+        [filters]="tableFilters()"
+        (filtersChange)="onFiltersChanged($event)"
+        [paginationPageSizeOptions]="[10, 20, 50, 100]"
+      >
+        <table mat-table [dataSource]="allRows()" class="card__table" formGroupName="members" aria-label="Direct members table">
+          <ng-container matColumnDef="picture">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let member">
+              <gio-avatar [src]="member.picture" [name]="member.displayName" [size]="24" [roundedBorder]="true"></gio-avatar>
+            </td>
+          </ng-container>
 
-    <gio-table-wrapper
-      [disableSearchInput]="true"
-      [length]="membersTableDSUnpaginatedLength"
-      [filters]="filters"
-      (filtersChange)="onFiltersChanged($event)"
-      [paginationPageSizeOptions]="[10, 20, 50, 100]"
-    >
-      <table mat-table [dataSource]="[]" class="card__table" aria-label="Direct members table">
-        <ng-container matColumnDef="picture">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let member">
-            <gio-avatar [src]="member.picture" [name]="member.displayName" [size]="24" [roundedBorder]="true"></gio-avatar>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="displayName">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let member">{{ member.displayName }}</td>
-        </ng-container>
-        <ng-container matColumnDef="role">
-          <th mat-header-cell *matHeaderCellDef>Role</th>
-          <td mat-cell *matCellDef="let member">{{ member.role }}</td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        <tr class="mat-mdc-no-data-row" *matNoDataRow>
-          <td [attr.colspan]="displayedColumns.length">No members found</td>
-        </tr>
-      </table>
-    </gio-table-wrapper>
-  </mat-card-content>
-</mat-card>
+          <ng-container matColumnDef="displayName">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.isPrimaryOwner">
+              {{ member.displayName }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let member">
+              <mat-form-field>
+                <mat-select [formControlName]="member.id">
+                  @for (roleName of roleNames; track roleName) {
+                    <mat-option [value]="roleName" [disabled]="roleName === 'PRIMARY_OWNER' && !member.isPrimaryOwner">{{
+                      roleName
+                    }}</mat-option>
+                  }
+                </mat-select>
+                @if (roleFieldShowsRequiredError()[member.id]) {
+                  <mat-error>Role is required.</mat-error>
+                }
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="delete">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let member">
+              @if (!member.isPrimaryOwner && !member.isPending) {
+                <div class="action-cell">
+                  <button type="button" mat-icon-button aria-label="Remove member" (click)="removeMember(member)">
+                    <mat-icon svgIcon="gio:trash"></mat-icon>
+                  </button>
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <tr class="mat-mdc-no-data-row" *matNoDataRow>
+            <td [attr.colspan]="displayedColumns.length">
+              @if (state.isLoading) {
+                <span data-testid="api_product_members_table_loading">Loading members…</span>
+              } @else {
+                <span data-testid="api_product_members_table_empty">No members found</span>
+              }
+            </td>
+          </tr>
+        </table>
+      </gio-table-wrapper>
+    </mat-card>
+
+    <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSave()"></gio-save-bar>
+  }
+</form>

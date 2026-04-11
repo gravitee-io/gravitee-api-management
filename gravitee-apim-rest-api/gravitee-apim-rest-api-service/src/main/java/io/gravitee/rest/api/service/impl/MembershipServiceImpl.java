@@ -2116,6 +2116,39 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public MemberEntity updateMembershipForApiProduct(
+        ExecutionContext executionContext,
+        String apiProductId,
+        String memberId,
+        String roleName
+    ) {
+        MemberEntity membership = null;
+        MemberEntity userMember = getUserMember(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.API_PRODUCT,
+            apiProductId,
+            memberId
+        );
+
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
+            MembershipReferenceType.API_PRODUCT,
+            apiProductId
+        );
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(memberId, null, MembershipMemberType.USER);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API_PRODUCT, roleName);
+
+        if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+            membership = updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+        }
+        return membership;
+    }
+
+    @Override
+    public void deleteMemberForApiProduct(ExecutionContext executionContext, String apiProductId, String memberId) {
+        deleteReferenceMember(executionContext, MembershipReferenceType.API_PRODUCT, apiProductId, MembershipMemberType.USER, memberId);
+    }
+
+    @Override
     public void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId) {
         deleteReferenceMember(executionContext, MembershipReferenceType.APPLICATION, applicationId, MembershipMemberType.USER, memberId);
     }

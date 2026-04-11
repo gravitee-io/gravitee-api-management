@@ -30,6 +30,7 @@ import {
   UpdateApiProduct,
   VerifyApiProductDeployResponse,
 } from '../entities/management-api-v2/api-product';
+import { AddMember, Member, MembersResponse, UpdateMember } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -257,5 +258,40 @@ export class ApiProductV2Service {
    */
   getPermissions(apiProductId: string): Observable<Record<string, string>> {
     return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/permissions`);
+  }
+
+  /**
+   * Get paginated list of members for an API Product
+   * Calls GET /environments/{envId}/api-products/{apiProductId}/members
+   */
+  getPagedMembers(apiProductId: string, page = 1, perPage = 10): Observable<MembersResponse> {
+    const params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
+    return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members`, { params });
+  }
+
+  /**
+   * Add a member to an API Product
+   * Calls POST /environments/{envId}/api-products/{apiProductId}/members
+   */
+  addMember(apiProductId: string, membership: AddMember): Observable<Member> {
+    return this.http.post<Member>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members`, membership);
+  }
+
+  /**
+   * Update a member's role on an API Product
+   * Calls PUT /environments/{envId}/api-products/{apiProductId}/members/{memberId}
+   */
+  updateMember(apiProductId: string, membership: UpdateMember): Observable<Member> {
+    return this.http.put<Member>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/${membership.memberId}`, {
+      roleName: membership.roleName,
+    });
+  }
+
+  /**
+   * Remove a member from an API Product
+   * Calls DELETE /environments/{envId}/api-products/{apiProductId}/members/{memberId}
+   */
+  deleteMember(apiProductId: string, memberId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/${memberId}`);
   }
 }
