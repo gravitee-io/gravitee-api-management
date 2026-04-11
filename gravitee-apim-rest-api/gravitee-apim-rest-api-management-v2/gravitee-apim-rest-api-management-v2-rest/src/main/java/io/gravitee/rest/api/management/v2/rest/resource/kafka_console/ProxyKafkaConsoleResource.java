@@ -284,6 +284,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
             new SearchClusterUseCase.Input(
                 executionContext.getEnvironmentId(),
                 null,
+                null,
                 new PageableImpl(1, 1000),
                 "name",
                 isAdmin(),

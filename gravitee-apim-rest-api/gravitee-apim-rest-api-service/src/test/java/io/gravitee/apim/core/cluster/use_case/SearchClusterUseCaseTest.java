@@ -27,6 +27,7 @@ import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -55,11 +56,11 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_search_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
@@ -71,7 +72,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_search_not_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-1"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, false, "member-1"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -87,7 +88,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void sould_search_not_admin_no_membership_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "unknown-member"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, false, "unknown-member"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -101,11 +102,11 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     void should_search_admin_with_pageable_no_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, pageable, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, pageable, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
@@ -118,11 +119,11 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     void should_search_admin_no_pageable_with_sort_by() {
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
@@ -136,11 +137,11 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         Pageable pageable = new PageableImpl(2, 5);
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, pageable, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, pageable, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
@@ -154,7 +155,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         Pageable pageable = new PageableImpl(1, 10);
         String query = "Cluster 1";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, query, pageable, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, query, pageable, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -181,7 +182,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                 )
             )
             .thenReturn(false);
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-2"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, false, "member-2"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(1),
@@ -204,7 +205,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                 )
             )
             .thenReturn(true);
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-1"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, false, "member-1"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
@@ -247,6 +248,22 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                         .get()
                         .getConfiguration()
                 ).isNull()
+        );
+    }
+
+    @Test
+    void should_search_by_type_kafka_cluster() {
+        Pageable pageable = new PageableImpl(1, 10);
+        var result = searchClusterUseCase.execute(
+            new SearchClusterUseCase.Input(ENV_ID, ClusterType.KAFKA_CLUSTER, null, pageable, null, true, "admin")
+        );
+        assertAll(
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(2),
+            () ->
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).containsExactlyInAnyOrder(
+                    "Kafka Cluster A",
+                    "Kafka Cluster B"
+                )
         );
     }
 
@@ -386,6 +403,24 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
+        Cluster kafkaClusterA = Cluster.builder()
+            .id("kafka-cluster-a")
+            .name("Kafka Cluster A")
+            .type(ClusterType.KAFKA_CLUSTER)
+            .createdAt(INSTANT_NOW)
+            .description("A Kafka Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .build();
+        Cluster kafkaClusterB = Cluster.builder()
+            .id("kafka-cluster-b")
+            .name("Kafka Cluster B")
+            .type(ClusterType.KAFKA_CLUSTER)
+            .createdAt(INSTANT_NOW)
+            .description("Another Kafka Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .build();
         List<Cluster> clusters = List.of(
             cluster1,
             cluster2,
@@ -401,7 +436,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             cluster12,
             cluster13,
             cluster14,
-            cluster15
+            cluster15,
+            kafkaClusterA,
+            kafkaClusterB
         );
         clusterQueryService.initWith(clusters);
         return clusters;

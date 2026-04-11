@@ -58,6 +58,10 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
             stream = stream.filter(cluster -> criteria.getIds().contains(cluster.getId()));
         }
 
+        if (criteria.getType() != null) {
+            stream = stream.filter(cluster -> criteria.getType().equals(cluster.getType()));
+        }
+
         if (criteria.getQuery() != null && !criteria.getQuery().isBlank()) {
             stream = stream.filter(
                 cluster ->
