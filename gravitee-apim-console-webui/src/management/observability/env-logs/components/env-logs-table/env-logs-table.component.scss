@@ -23,3 +23,14 @@
     text-decoration: none;
   }
 }
+
+.api-cell {
+  display: flex;
+  flex-direction: column;
+
+  &__product {
+    font-size: 12px;
+    line-height: 1.4;
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker);
+  }
+}

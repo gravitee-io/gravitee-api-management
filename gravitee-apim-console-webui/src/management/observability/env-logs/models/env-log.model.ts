@@ -48,6 +48,8 @@ export type EnvLog = {
   apiId: string;
   /** Short asset type label for the table column (e.g. "HTTP", "LLM", "MCP"). Mapped from the backend LogApiType enum. */
   apiType?: string;
+  /** API Product name displayed as subtitle under the API name in the logs table */
+  apiProductName?: string;
   /** Application name */
   application: string;
   /** HTTP method (GET, POST, etc.) */
