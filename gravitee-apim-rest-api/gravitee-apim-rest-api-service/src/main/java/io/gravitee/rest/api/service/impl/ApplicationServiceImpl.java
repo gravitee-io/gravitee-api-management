@@ -132,7 +132,6 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -716,29 +715,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             updateApplicationEntity.getName(),
             updateApplicationEntity.getSettings()
         );
-
-        // Find MTLS subscriptions that end after the certificate that ends the farthest (if any)
-        var maxEndDate = incoming
-            .stream()
-            .map(CreateClientCertificate::endsAt)
-            .map(Optional::ofNullable)
-            .mapToLong(end -> end.map(Date::getTime).orElse(Long.MAX_VALUE))
-            .max();
-        if (maxEndDate.isPresent()) {
-            // Queries active MTLS subscriptions ending after the latest certificate
-            var subscriptionEndingTooLate = subscriptionService.search(
-                executionContext,
-                SubscriptionQuery.builder()
-                    .applications(Set.of(applicationId))
-                    .planSecurityTypes(Set.of(Plan.PlanSecurityType.MTLS.name()))
-                    .endingAtAfter(maxEndDate.getAsLong())
-                    .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PENDING, SubscriptionStatus.PAUSED))
-                    .build()
-            );
-            if (!subscriptionEndingTooLate.isEmpty()) {
-                throw new SubscriptionEndsAfterClientCertificateException();
-            }
-        }
 
         // Get all currently active certificates, sorted by creation date desc
         var existing = clientCertificateCrudService
