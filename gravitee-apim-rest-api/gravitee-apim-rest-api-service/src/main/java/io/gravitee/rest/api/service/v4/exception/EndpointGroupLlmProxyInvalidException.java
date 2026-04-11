@@ -43,12 +43,7 @@ public class EndpointGroupLlmProxyInvalidException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        if (validations.size() == 1 && validations.contains(Validation.PROVIDER_MISMATCH)) {
-            return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same provider.";
-        } else if (validations.size() == 1 && validations.contains(Validation.ALIASES_MISMATCH)) {
-            return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same aliases.";
-        }
-        return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same provider and aliases.";
+        return "All endpoints in llm-proxy endpoint group [" + groupName + "] must have the same aliases.";
     }
 
     @Override
@@ -62,7 +57,6 @@ public class EndpointGroupLlmProxyInvalidException extends AbstractManagementExc
     }
 
     public enum Validation {
-        PROVIDER_MISMATCH,
         ALIASES_MISMATCH,
     }
 }
