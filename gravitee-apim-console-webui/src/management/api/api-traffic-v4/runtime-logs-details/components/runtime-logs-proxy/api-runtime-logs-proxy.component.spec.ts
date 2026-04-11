@@ -16,7 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
@@ -186,6 +186,21 @@ describe('ApiRuntimeLogsProxyComponent', () => {
       { key: 'X-Header-Multiple', value: 'first-header,second-header' },
     ]);
     expect(await logHarness.getBodies()).toEqual(['entrypoint-only-body', 'endpoint-only-body']);
+  });
+
+  it('should navigate to parent route when clicking the back button', async () => {
+    await initComponent();
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigateByUrl');
+
+    expectApiWithConnectionLog(fakeConnectionLogDetail({ apiId: API_ID, requestId: REQUEST_ID }));
+    expectApiMetric(fakeApiMetricResponse({ apiId: API_ID, requestId: REQUEST_ID }));
+
+    const backButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Back to logs"]');
+    backButton.click();
+
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should display nothing when connection log is not found', async () => {

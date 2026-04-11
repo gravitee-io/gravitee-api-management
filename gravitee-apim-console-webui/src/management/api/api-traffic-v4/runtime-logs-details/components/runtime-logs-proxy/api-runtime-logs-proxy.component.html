@@ -15,7 +15,9 @@
     limitations under the License.
 
 -->
-<a mat-flat-button routerLink=".." aria-label="Back to logs"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a>
+<button mat-flat-button routerLink=".." queryParamsHandling="preserve" aria-label="Back to logs">
+  <mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs
+</button>
 <div class="mat-h2">Log</div>
 <div class="card__container">
   <api-proxy-request-metric-overview [metric]="apiMetricsDetail()" [apiType]="apiType()" />
