@@ -26,11 +26,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 public class MongoFactoryTest {
 
     private static final String PROPERTY_PREFIX = "management.mongodb.";
+    private static final String NEW_PROPERTY_PREFIX = "repositories.management.mongodb.";
 
     private MongoFactory mongoFactory;
     private MockEnvironment environment;
@@ -39,6 +42,27 @@ public class MongoFactoryTest {
     public void setUp() {
         environment = new MockEnvironment();
         mongoFactory = new MongoFactory(environment, "management");
+    }
+
+    /**
+     * Simulates the RepositoryAliasPropertySource from gravitee-plugin-repository.
+     * For any key starting with a known scope (e.g. "management."), it checks
+     * "repositories." + key first.
+     */
+    private void registerAliasPropertySource() {
+        environment
+            .getPropertySources()
+            .addFirst(
+                new PropertySource<Object>("repositoryAlias") {
+                    @Override
+                    public Object getProperty(String name) {
+                        if (name.startsWith("management.") || name.startsWith("analytics.") || name.startsWith("ratelimit.")) {
+                            return environment.getProperty("repositories." + name);
+                        }
+                        return null;
+                    }
+                }
+            );
     }
 
     @Test
@@ -335,5 +359,109 @@ public class MongoFactoryTest {
     @Test
     public void isSingletonShouldReturnTrue() {
         assertThat(mongoFactory.isSingleton()).isTrue();
+    }
+
+    @Test
+    public void should_use_new_prefix_for_cluster_settings_when_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        environment.setProperty(NEW_PROPERTY_PREFIX + "host", "newhost");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "port", "27117");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "serverSelectionTimeout", "500");
+
+        ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
+
+        assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("newhost", 27117)));
+        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(500);
+    }
+
+    @Test
+    public void should_use_new_prefix_for_socket_settings_when_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        environment.setProperty(NEW_PROPERTY_PREFIX + "connectTimeout", "200");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "socketTimeout", "300");
+
+        SocketSettings socketSettings = mongoFactory.buildSocketSettings();
+
+        assertThat(socketSettings.getConnectTimeout(TimeUnit.MILLISECONDS)).isEqualTo(200);
+        assertThat(socketSettings.getReadTimeout(TimeUnit.MILLISECONDS)).isEqualTo(300);
+    }
+
+    @Test
+    public void should_use_new_prefix_for_client_settings_with_credentials_when_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        environment.setProperty(NEW_PROPERTY_PREFIX + "username", "newuser");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "password", "newpass");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "authSource", "admin");
+
+        MongoClientSettings settings = mongoFactory.buildClientSettingsFromProperties(false);
+
+        assertThat(settings.getCredential()).isEqualTo(MongoCredential.createCredential("newuser", "admin", "newpass".toCharArray()));
+    }
+
+    @Test
+    public void should_use_new_prefix_for_uri_when_alias_property_source_is_registered() throws Exception {
+        registerAliasPropertySource();
+        environment.setProperty(NEW_PROPERTY_PREFIX + "uri", "mongodb://remotehost:27017/gravitee");
+
+        MongoClient mongoClient = mongoFactory.getObject();
+
+        assertThat(mongoClient).isNotNull();
+        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts()).isEqualTo(
+            List.of(new ServerAddress("remotehost", 27017))
+        );
+    }
+
+    @Test
+    public void should_prefer_new_prefix_over_old_prefix_when_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        // Old prefix values
+        environment.setProperty(PROPERTY_PREFIX + "host", "oldhost");
+        environment.setProperty(PROPERTY_PREFIX + "port", "27017");
+        // New prefix values (should win)
+        environment.setProperty(NEW_PROPERTY_PREFIX + "host", "newhost");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "port", "27117");
+
+        ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
+
+        assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("newhost", 27117)));
+    }
+
+    @Test
+    public void should_fallback_to_old_prefix_when_new_prefix_not_set_and_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        // Only old prefix set
+        environment.setProperty(PROPERTY_PREFIX + "host", "oldhost");
+        environment.setProperty(PROPERTY_PREFIX + "port", "27117");
+
+        ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
+
+        assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("oldhost", 27117)));
+    }
+
+    @Test
+    public void should_use_new_prefix_for_multiple_servers_when_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        environment.setProperty(NEW_PROPERTY_PREFIX + "servers[0].host", "mongo1");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "servers[0].port", "27017");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "servers[1].host", "mongo2");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "servers[1].port", "27018");
+
+        ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
+
+        assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("mongo1", 27017), new ServerAddress("mongo2", 27018)));
+    }
+
+    @Test
+    public void should_use_new_prefix_for_connection_pool_settings_when_alias_property_source_is_registered() {
+        registerAliasPropertySource();
+        environment.setProperty(NEW_PROPERTY_PREFIX + "connectionsPerHost", "50");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "minConnectionsPerHost", "5");
+        environment.setProperty(NEW_PROPERTY_PREFIX + "maxWaitTime", "5000");
+
+        ConnectionPoolSettings poolSettings = mongoFactory.buildConnectionPoolSettings(false);
+
+        assertThat(poolSettings.getMaxSize()).isEqualTo(50);
+        assertThat(poolSettings.getMinSize()).isEqualTo(5);
+        assertThat(poolSettings.getMaxWaitTime(TimeUnit.MILLISECONDS)).isEqualTo(5000);
     }
 }

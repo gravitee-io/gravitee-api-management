@@ -15,18 +15,19 @@ tests:
           - matchRegex:
                 path: data["gravitee.yml"]
                 pattern: |
-                    management:
-                      type: http
-                      http:
-                        url: https://bridge-server.example.com
-                        keepAlive: true
-                        idleTimeout: 60000
-                        connectTimeout: 5000
-                        keepAliveTimeout: 10000
-                        useCompression: true
-                        followRedirects: false
-                        clearTextUpgrade: true
-                        version: HTTP_1_1
+                    repositories:
+                      management:
+                        type: http
+                        http:
+                          url: https://bridge-server.example.com
+                          keepAlive: true
+                          idleTimeout: 60000
+                          connectTimeout: 5000
+                          keepAliveTimeout: 10000
+                          useCompression: true
+                          followRedirects: false
+                          clearTextUpgrade: true
+                          version: HTTP_1_1
 
     - it: Set non default values URL
       template: gateway/gateway-configmap.yaml
@@ -83,52 +84,53 @@ tests:
           - matchRegex:
                 path: data["gravitee.yml"]
                 pattern: |
-                    management:
-                      type: http
-                      http:
-                        url: https://bridge-server.example.com
-                        keepAlive: false
-                        idleTimeout: 1
-                        connectTimeout: 2
-                        keepAliveTimeout: 3
-                        useCompression: false
-                        followRedirects: true
-                        clearTextUpgrade: false
-                        version: HTTP_2
-                        connectionRetry:
-                          delaySec: 1
-                          maxDelaySec: 30
-                          backoffFactor: 0.5
-                        proxy:
-                          enabled: true
-                          host: proxy.com
-                          port: 3128
-                          type: HTTP
-                          useSystemProxy: true
-                        authentication:
-                          basic:
-                            password: bar
-                            username: foo
-                          type: basic
-                        ssl:
-                          trustAll: true
-                          verifyHostname: false
-                          keystore:
-                            alias: foo
-                            certContent: secrets://kubernetes/http-repo-secret:tls.cert
-                            certPath: \${gravitee.home}/security/client-cert.pem
-                            content: secrets://kubernetes/http-repo-secret:keystore
-                            keyContent: secrets://kubernetes/http-repo-secret:tls.key
-                            keyPath: \${gravitee.home}/security/client-key.pem
-                            password: secret
-                            path: \${gravitee.home}/security/keystore.jks
-                            type: jks
-                          truststore:
-                            alias: bar
-                            content: secrets://kubernetes/http-repo-secret:truststore
-                            password: secret
-                            path: \${gravitee.home}/security/truststore.jks
-                            type: jks
+                    repositories:
+                      management:
+                        type: http
+                        http:
+                          url: https://bridge-server.example.com
+                          keepAlive: false
+                          idleTimeout: 1
+                          connectTimeout: 2
+                          keepAliveTimeout: 3
+                          useCompression: false
+                          followRedirects: true
+                          clearTextUpgrade: false
+                          version: HTTP_2
+                          connectionRetry:
+                            delaySec: 1
+                            maxDelaySec: 30
+                            backoffFactor: 0.5
+                          proxy:
+                            enabled: true
+                            host: proxy.com
+                            port: 3128
+                            type: HTTP
+                            useSystemProxy: true
+                          authentication:
+                            basic:
+                              password: bar
+                              username: foo
+                            type: basic
+                          ssl:
+                            trustAll: true
+                            verifyHostname: false
+                            keystore:
+                              alias: foo
+                              certContent: secrets://kubernetes/http-repo-secret:tls.cert
+                              certPath: \${gravitee.home}/security/client-cert.pem
+                              content: secrets://kubernetes/http-repo-secret:keystore
+                              keyContent: secrets://kubernetes/http-repo-secret:tls.key
+                              keyPath: \${gravitee.home}/security/client-key.pem
+                              password: secret
+                              path: \${gravitee.home}/security/keystore.jks
+                              type: jks
+                            truststore:
+                              alias: bar
+                              content: secrets://kubernetes/http-repo-secret:truststore
+                              password: secret
+                              path: \${gravitee.home}/security/truststore.jks
+                              type: jks
     - it: Set legacy config
       template: gateway/gateway-configmap.yaml
       set:
@@ -146,26 +148,27 @@ tests:
           - matchRegex:
                 path: data["gravitee.yml"]
                 pattern: |
-                    management:
-                      type: http
-                      http:
-                        url: https://bridge-server.example.com
-                        keepAlive: true
-                        idleTimeout: 60000
-                        connectTimeout: 5000
-                        keepAliveTimeout: 10000
-                        useCompression: true
-                        followRedirects: false
-                        clearTextUpgrade: true
-                        version: HTTP_1_1
-                        authentication:
-                          type: basic
-                          basic:
-                            username: foo
-                            password: bar
-                        ssl:
-                          trustAll: true
-                          verifyHostname: true
+                    repositories:
+                      management:
+                        type: http
+                        http:
+                          url: https://bridge-server.example.com
+                          keepAlive: true
+                          idleTimeout: 60000
+                          connectTimeout: 5000
+                          keepAliveTimeout: 10000
+                          useCompression: true
+                          followRedirects: false
+                          clearTextUpgrade: true
+                          version: HTTP_1_1
+                          authentication:
+                            type: basic
+                            basic:
+                              username: foo
+                              password: bar
+                          ssl:
+                            trustAll: true
+                            verifyHostname: true
     - it: Set legacy config trustall
       template: gateway/gateway-configmap.yaml
       set:
@@ -181,18 +184,19 @@ tests:
           - matchRegex:
                 path: data["gravitee.yml"]
                 pattern: |
-                    management:
-                      type: http
-                      http:
-                        url: https://bridge-server.example.com
-                        keepAlive: true
-                        idleTimeout: 60000
-                        connectTimeout: 5000
-                        keepAliveTimeout: 10000
-                        useCompression: true
-                        followRedirects: false
-                        clearTextUpgrade: true
-                        version: HTTP_1_1
-                        ssl:
-                          trustAll: false
-                          verifyHostname: true
+                    repositories:
+                      management:
+                        type: http
+                        http:
+                          url: https://bridge-server.example.com
+                          keepAlive: true
+                          idleTimeout: 60000
+                          connectTimeout: 5000
+                          keepAliveTimeout: 10000
+                          useCompression: true
+                          followRedirects: false
+                          clearTextUpgrade: true
+                          version: HTTP_1_1
+                          ssl:
+                            trustAll: false
+                            verifyHostname: true
