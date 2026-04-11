@@ -14,16 +14,17 @@ Key design decisions:
 
 Before any module can be loaded, the host app resolves its runtime configuration:
 
-1. **Fetch `/constants.json`** -- returns `{ gammaBaseURL }`, the management API root (e.g. `http://localhost:8083/gamma`).
+1. **Fetch `/constants.json`** -- returns `{ gammaBaseURL }`, the Gamma API root (e.g. `http://localhost:8083/gamma`).
 2. **Fetch `{gammaBaseURL}/ui/bootstrap`** -- returns `{ gammaBaseURL, managementBaseURL, organizationId }` with the resolved Gamma URL, management URL and the current organization.
+3. **Initialize authentication** -- the auth store is initialized so the user session is ready before rendering.
 
-The resulting `BootstrapConfig` (`managementBaseURL`, `organizationId`, `gammaBaseURL`) is provided to the React tree via `BootstrapContext`.
+The resulting `BootstrapConfig` (`managementBaseURL`, `organizationId`, `gammaBaseURL`) is stored in a Zustand store accessible throughout the app via `useBootstrapStore`.
 
-**Source:** `src/bootstrap/bootstrap.service.ts`
+**Source:** `src/shared/config/bootstrap.store.ts`, `src/bootstrap.tsx`
 
 ## Module discovery
 
-The `useGammaModules` hook fetches the module list and registers remotes.
+The `useGammaModules` hook fetches the module list and registers remotes. It depends on the bootstrap config and the authenticated user -- modules are only fetched once the user is logged in.
 
 ### 1. Fetch the module list
 
@@ -60,15 +61,17 @@ Each parsed module is registered with `@module-federation/runtime`:
 registerRemotes(
     parsed.map(m => ({
         name: m.remoteName,
-        entry: `${gammaBaseURL}/organizations/${organizationId}/modules/${m.id}/assets/mf-manifest.json`,
+        entry:
+            DEV_MODULE_ENTRIES[m.id] ??
+            `${gammaBaseURL}/organizations/${organizationId}/modules/${m.id}/assets/mf-manifest.json`,
     })),
     { force: true },
 );
 ```
 
-The `entry` points to the module's `mf-manifest.json` served by the backend. `force: true` allows re-registration if the hook re-runs.
+The `entry` points to the module's `mf-manifest.json` served by the backend (or a local dev server URL when using `DEV_MODULE_ENTRIES`). `force: true` allows re-registration if the hook re-runs.
 
-**Source:** `src/gamma-modules/use-gamma-modules.ts`, `src/gamma-modules/gamma-module.ts`
+**Source:** `src/features/modules/hooks/useGammaModules.ts`, `src/features/modules/modules.types.ts`
 
 ## Module loading
 
@@ -94,27 +97,42 @@ When `loadRemote()` is called, the Module Federation runtime:
 2. Resolves the exposed module's chunk URLs from the manifest.
 3. Loads the JavaScript chunks and returns the module's default export.
 
-**Source:** `src/gamma-modules/remote-module-loader.tsx`
+**Source:** `src/features/modules/components/RemoteModuleRoute.tsx`
 
 ## Routing
 
-Dynamic routes are generated in `App` from the discovered modules:
+Dynamic routes are generated in `AppRoutes` from the discovered modules:
 
 ```tsx
-{
-    modules.map(m => <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />);
-}
+<Routes>
+    <Route element={<PublicOnlyRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+    </Route>
+    <Route element={<ProtectedRoute />}>
+        <Route element={<ShellLayout modules={modules} />}>
+            <Route element={<RouteLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<AboutPage />} />
+            </Route>
+            {modules.map(m => (
+                <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
+            ))}
+        </Route>
+    </Route>
+</Routes>
 ```
 
 Each module gets a route at `/{moduleId}/*`:
 
 - The `/*` wildcard allows the remote module to define its own sub-routes.
-- Routes are nested inside a `<ProtectedRoute />` layout route (authentication guard).
-- The entire `<Routes>` tree is wrapped in `<React.Suspense fallback={<p>Loading...</p>}>`, which shows the fallback while any lazy module is being fetched.
+- Routes are nested inside `<ProtectedRoute />` (authentication guard) and `<ShellLayout />` (app shell).
+- `ShellLayout` provides the sidebar with an app switcher (to navigate between modules), a content header with breadcrumbs, and layout slots via `@gravitee/graphene`'s `LayoutSlotsProvider`.
+- `RouteLayout` provides breadcrumb and navigation slots for host-level pages.
+- The entire tree is wrapped in `<React.Suspense fallback={<div>Loading...</div>}>` at the root, which shows the fallback while any lazy module is being fetched.
 
 The home page (`/`) lists all discovered modules as navigation links.
 
-**Source:** `src/app/app.tsx`
+**Source:** `src/app/AppRoutes.tsx`, `src/shared/components/ShellLayout.tsx`
 
 ## Shared dependencies
 
@@ -125,10 +143,26 @@ The home page (`/`) lists all discovered modules as navigation links.
 | `react`            | Yes       | Yes            |
 | `react-dom`        | Yes       | Yes            |
 | `react-router-dom` | Yes       | Yes            |
+| `zustand`          | Yes       | Yes            |
+| `@gravitee/graphene` | Yes     | Yes            |
 
-All other libraries are **not shared** (`shared` callback returns `false`). This ensures the host and all remotes use the exact same instance of React and the router, avoiding context mismatches.
+All other libraries are **not shared** (`shared` callback returns `false`). This ensures the host and all remotes use the exact same instance of React, the router, the state manager, and the design system, avoiding context mismatches.
 
 **Source:** `module-federation.config.ts`
+
+## Development mode
+
+The `DEV_MODULE_ENTRIES` environment variable allows overriding module manifest URLs to point to local dev servers. This is useful when developing a module locally alongside the host.
+
+Format: comma-separated `id=url` pairs:
+
+```bash
+DEV_MODULE_ENTRIES="gamma-module-apim=http://localhost:3001/mf-manifest.json"
+```
+
+When set, the hook uses the provided URL instead of the backend-served manifest for matching module IDs.
+
+**Source:** `src/features/modules/hooks/useGammaModules.ts`
 
 ## Request flow
 
@@ -136,15 +170,16 @@ All other libraries are **not shared** (`shared` callback returns `false`). This
 Browser                          Host App                         Backend (Gamma API)
   |                                 |                                     |
   |--- GET /constants.json -------->|                                     |
-  |<-- { baseURL } ----------------|                                     |
+  |<-- { gammaBaseURL } ------------|                                     |
   |                                 |                                     |
-  |--- GET {baseURL}/v2/ui/bootstrap ---------------------------------->|
-  |<-- { baseURL, organizationId } ------------------------------------|
+  |--- GET {gammaBaseURL}/ui/bootstrap --------------------------------->|
+  |<-- { gammaBaseURL, managementBaseURL, organizationId } --------------|
   |                                 |                                     |
-  |            derive gammaBaseURL = baseURL.replace(/management, /gamma) |
+  |     initialize auth store       |                                     |
+  |     render AppRoutes            |                                     |
   |                                 |                                     |
   |--- GET {gammaBaseURL}/organizations/{orgId}/modules --------------->|
-  |<-- GammaModuleResponse[] -------------------------------------=-----|
+  |<-- GammaModuleResponse[] -------------------------------------------|
   |                                 |                                     |
   |     parseModule() for each      |                                     |
   |     registerRemotes()           |                                     |
@@ -164,12 +199,13 @@ Browser                          Host App                         Backend (Gamma
 
 ## Key files
 
-| File                                         | Role                                                         |
-| -------------------------------------------- | ------------------------------------------------------------ |
-| `src/bootstrap/bootstrap.service.ts`         | Fetches runtime config, derives `gammaBaseURL`               |
-| `src/bootstrap/bootstrap-context.tsx`        | React context providing `BootstrapConfig` to the tree        |
-| `src/gamma-modules/gamma-module.ts`          | `GammaModuleResponse` / `GammaModule` types, `parseModule()` |
-| `src/gamma-modules/use-gamma-modules.ts`     | `useGammaModules` hook -- fetches modules, registers remotes |
-| `src/gamma-modules/remote-module-loader.tsx` | `getOrCreateLazyModule()`, `RemoteModuleRoute` component     |
-| `src/app/app.tsx`                            | Root component with dynamic route generation                 |
-| `module-federation.config.ts`                | Shared dependency configuration                              |
+| File                                                    | Role                                                           |
+| ------------------------------------------------------- | -------------------------------------------------------------- |
+| `src/shared/config/bootstrap.store.ts`                  | Zustand store for runtime config (`BootstrapConfig`)           |
+| `src/features/modules/modules.types.ts`                 | `GammaModuleResponse` / `GammaModule` types, `parseModule()`  |
+| `src/features/modules/hooks/useGammaModules.ts`         | `useGammaModules` hook -- fetches modules, registers remotes  |
+| `src/features/modules/components/RemoteModuleRoute.tsx` | `getOrCreateLazyModule()`, `RemoteModuleRoute` component      |
+| `src/app/AppRoutes.tsx`                                 | Root routes with dynamic module route generation               |
+| `src/shared/components/ShellLayout.tsx`                 | App shell with sidebar, app switcher, and layout slots         |
+| `src/bootstrap.tsx`                                     | App initialization, store setup, React root                    |
+| `module-federation.config.ts`                           | Shared dependency configuration                                |

@@ -330,6 +330,7 @@
         <gravitee-policy-pii-filtering.version>1.0.0</gravitee-policy-pii-filtering.version>
         <gravitee-policy-native-ipfiltering.version>1.0.0</gravitee-policy-native-ipfiltering.version>
         <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
+        <gravitee-gamma-module-aim.version>1.0.0-alpha.1</gravitee-gamma-module-aim.version>
     </properties>
 
     <scm>
@@ -395,6 +396,7 @@
                                     <exclude>gravitee-apim-perf/**</exclude>
                                     <exclude>gravitee-apim-webui-libs/**</exclude>
                                     <exclude>gravitee-gamma-control-plane-webui/**</exclude>
+                                    <exclude>gravitee-gamma-module-apim/src/main/ui/**</exclude>
                                     <exclude>helm/**</exclude>
                                 </excludes>
                             </licenseSet>

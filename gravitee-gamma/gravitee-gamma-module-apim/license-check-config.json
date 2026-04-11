@@ -1,0 +1,72 @@
+{
+    "ignore": [
+        "*",
+        ".*",
+        ".*/**",
+        "**/.*",
+        "**/.*/**",
+        "**/*.adoc",
+        "**/*.eot",
+        "**/*.generated.*",
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.scss",
+        "**/*.spec.ts.snap",
+        "**/*.svg",
+        "**/*.ttf",
+        "**/*.woff",
+        "**/*.woff2",
+        "**/.DS_Store",
+        "**/Thumbs.db",
+        "**/coverage/**",
+        "**/dist/**",
+        "**/node_modules/**",
+        "**/storybook-static/**",
+        ".gitignore",
+        ".prettierignore",
+        ".tmp/**",
+        ".vscode/**",
+        "LICENSE.txt",
+        "docker/**",
+        "index.js",
+        "node/**",
+        "src/index.js",
+        "src/libraries/**",
+        "src/main/java/**",
+        "src/main/resources/**",
+        "src/test/java/**",
+        "yarn.lock"
+    ],
+    "license": "LICENSE_TEMPLATE.txt",
+    "licenseFormats": {
+        "js|ts|scss|less|php|as|c|java|cpp|go|cto|acl": {
+            "prepend": "/*",
+            "append": " */",
+            "eachLine": {
+                "prepend": " * "
+            }
+        },
+        "css": {
+            "prepend": "/**",
+            "append": " */",
+            "eachLine": {
+                "prepend": " * "
+            }
+        },
+        "html": {
+            "prepend": "<!--\n",
+            "append": "\n-->",
+            "eachLine": {
+                "prepend": "    "
+            }
+        },
+        "txt": {}
+    },
+    "defaultFormat": {
+        "prepend": "/*",
+        "append": " */",
+        "eachLine": {
+            "prepend": " * "
+        }
+    }
+}
