@@ -144,6 +144,7 @@ public class SubscriptionProcessor implements Processor {
             }
             if (subscription.getApiProductId() != null) {
                 ctx.setAttribute(ATTR_API_PRODUCT, subscription.getApiProductId());
+                metrics.setApiProductId(subscription.getApiProductId());
             }
             ctx
                 .getTemplateEngine()
