@@ -516,7 +516,13 @@ describe('OrgSettingsUserDetailComponent', () => {
               name: 'Group A',
               environmentId: 'envAlphaId',
               environmentName: 'Environment Alpha',
-              roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER', INTEGRATION: 'ROLE_INTEGRATION_OWNER' },
+              roles: {
+                GROUP: 'ADMIN',
+                API: 'ROLE_API',
+                APPLICATION: 'ROLE_APP_OWNER',
+                INTEGRATION: 'ROLE_INTEGRATION_OWNER',
+                API_PRODUCT: 'ROLE_API_PRODUCT_USER',
+              },
             },
           ],
         },
@@ -526,6 +532,7 @@ describe('OrgSettingsUserDetailComponent', () => {
         api: [fakeRole({ id: 'roleApiId', name: 'ROLE_API' })],
         application: [fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }), fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' })],
         integration: [fakeRole({ id: 'roleIntegrationOwnerId', name: 'ROLE_INTEGRATION_OWNER' })],
+        apiProduct: [fakeRole({ id: 'roleApiProductUserId', name: 'ROLE_API_PRODUCT_USER' })],
       },
     );
 
@@ -534,11 +541,13 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const groupAdminCheckbox = await (await (await groupsTable.getRows())[0].getCells())[1].getHarness(MatCheckboxHarness);
     const apiRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[2].getHarness(MatSelectHarness);
-    const applicationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[3].getHarness(MatSelectHarness);
-    const integrationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[4].getHarness(MatSelectHarness);
+    const apiProductRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[3].getHarness(MatSelectHarness);
+    const applicationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[4].getHarness(MatSelectHarness);
+    const integrationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[5].getHarness(MatSelectHarness);
 
     expect(await groupAdminCheckbox.isChecked()).toBe(true);
     expect(await apiRoleSelect.getValueText()).toBe('ROLE_API');
+    expect(await apiProductRoleSelect.getValueText()).toBe('ROLE_API_PRODUCT_USER');
     expect(await applicationRoleSelect.getValueText()).toBe('ROLE_APP_OWNER');
     expect(await integrationRoleSelect.getValueText()).toBe('ROLE_INTEGRATION_OWNER');
 
@@ -548,12 +557,22 @@ describe('OrgSettingsUserDetailComponent', () => {
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     await saveBar.clickSubmit();
 
-    expectAddOrUpdateGroupMembershipRequest('groupA', [
-      fakeGroupMembership({
-        id: user.id,
-        roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }],
-      }),
-    ]);
+    expectAddOrUpdateGroupMembershipRequest(
+      'groupA',
+      [fakeGroupMembership({ id: user.id, roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }] })],
+      [
+        {
+          id: user.id,
+          roles: [
+            { scope: 'GROUP', name: '' },
+            { scope: 'API', name: 'ROLE_API' },
+            { scope: 'APPLICATION', name: 'ROLE_APP_USER' },
+            { scope: 'INTEGRATION', name: 'ROLE_INTEGRATION_OWNER' },
+            { scope: 'API_PRODUCT', name: 'ROLE_API_PRODUCT_USER' },
+          ],
+        },
+      ],
+    );
   });
 
   it('should delete user from group after confirm dialog', async () => {
@@ -572,7 +591,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     const membershipsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__memberships-card' }));
     const groupsTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="Groups table"]' }));
 
-    const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[5].getHarness(MatButtonHarness);
+    const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[6].getHarness(MatButtonHarness);
 
     await deleteUserGroupButton.click();
 
@@ -611,6 +630,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
     expectRolesListRequest('INTEGRATION');
+    expectRolesListRequest('API_PRODUCT');
 
     const groupIdSelect = await dialog.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
     await groupIdSelect.open();
@@ -637,6 +657,7 @@ describe('OrgSettingsUserDetailComponent', () => {
           { name: null, scope: 'API' },
           { name: null, scope: 'APPLICATION' },
           { name: null, scope: 'INTEGRATION' },
+          { name: null, scope: 'API_PRODUCT' },
         ],
       },
     ]);
@@ -824,6 +845,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       api?: Role[];
       application?: Role[];
       integration?: Role[];
+      apiProduct?: Role[];
     } = {},
   ) {
     expectUserTokensGetRequest(user, tokens);
@@ -845,6 +867,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectRolesListRequest('API', roles.api || []);
     expectRolesListRequest('APPLICATION', roles.application || []);
     expectRolesListRequest('INTEGRATION', roles.integration || []);
+    expectRolesListRequest('API_PRODUCT', roles.apiProduct || []);
     expectRolesListRequest('ENVIRONMENT', roles.environment || []);
   }
 
@@ -885,9 +908,12 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectAddOrUpdateGroupMembershipRequest(groupId: string, groupMembership: GroupMembership[] = []) {
+  function expectAddOrUpdateGroupMembershipRequest(groupId: string, groupMembership: GroupMembership[] = [], expectedBody?: unknown) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members`);
     expect(req.request.method).toEqual('POST');
+    if (expectedBody) {
+      expect(req.request.body).toEqual(expectedBody);
+    }
     req.flush(groupMembership);
     fixture.detectChanges();
   }

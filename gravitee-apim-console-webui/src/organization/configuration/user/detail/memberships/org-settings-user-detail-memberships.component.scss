@@ -47,6 +47,7 @@ $border-color: mat.m2-get-color-from-palette($foreground, divider);
     }
 
     .mat-mdc-cell.mat-column-apiRoles,
+    .mat-mdc-cell.mat-column-apiProductRole,
     .mat-mdc-cell.mat-column-applicationRole,
     .mat-mdc-cell.mat-column-integrationRole {
       mat-form-field {

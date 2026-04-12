@@ -91,7 +91,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   private groupsRolesFormGroup: UntypedFormGroup;
 
   // Store initial group roles from the memberships sub-component
-  private membershipInitialGroupRoles: Record<string, { GROUP?: string; API?: string; APPLICATION?: string; INTEGRATION?: string }> = {};
+  private membershipInitialGroupRoles: Record<
+    string,
+    { GROUP?: string; API?: string; APPLICATION?: string; INTEGRATION?: string; API_PRODUCT?: string }
+  > = {};
 
   tokensTableDS: TokenDS[];
   tokensTableDisplayedColumns = ['name', 'createdAt', 'lastUseAt', 'action'];
@@ -225,7 +228,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           mergeMap(groupId => {
             const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as UntypedFormGroup;
             if (groupRolesFormGroup.dirty) {
-              const { GROUP, API, APPLICATION, INTEGRATION } = groupRolesFormGroup.getRawValue();
+              const { GROUP, API, APPLICATION, INTEGRATION, API_PRODUCT } = groupRolesFormGroup.getRawValue();
 
               return this.groupService.addOrUpdateMemberships(groupId, [
                 {
@@ -235,6 +238,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
                     { scope: 'API' as const, name: API },
                     { scope: 'APPLICATION' as const, name: APPLICATION },
                     { scope: 'INTEGRATION' as const, name: INTEGRATION },
+                    { scope: 'API_PRODUCT' as const, name: API_PRODUCT },
                   ],
                 },
               ]);

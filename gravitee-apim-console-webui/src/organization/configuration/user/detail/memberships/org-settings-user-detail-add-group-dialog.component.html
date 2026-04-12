@@ -49,6 +49,16 @@
           </mat-form-field>
 
           <mat-form-field>
+            <mat-label>API Product Role</mat-label>
+            <mat-select formControlName="apiProductRole" aria-label="API Product role">
+              <mat-option>-- None --</mat-option>
+              @for (apiProductRole of apiProductRoles(); track apiProductRole.name) {
+                <mat-option [disabled]="apiProductRole.system" [value]="apiProductRole.name">{{ apiProductRole.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
             <mat-label>Application Role</mat-label>
             <mat-select formControlName="applicationRole" aria-label="Application role">
               <mat-option>-- None --</mat-option>

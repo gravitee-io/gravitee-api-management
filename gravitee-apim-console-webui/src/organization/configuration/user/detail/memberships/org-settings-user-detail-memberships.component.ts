@@ -101,9 +101,10 @@ export class OrgSettingsUserDetailMembershipsComponent {
   readonly apiRoles = toSignal(this.roleService.list('API').pipe(shareReplay(1)), { initialValue: [] });
   readonly applicationRoles = toSignal(this.roleService.list('APPLICATION').pipe(shareReplay(1)), { initialValue: [] });
   readonly integrationRoles = toSignal(this.roleService.list('INTEGRATION').pipe(shareReplay(1)), { initialValue: [] });
+  readonly apiProductRoles = toSignal(this.roleService.list('API_PRODUCT').pipe(shareReplay(1)), { initialValue: [] });
 
   groupsRolesFormGroup: UntypedFormGroup;
-  groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'applicationRole', 'integrationRole', 'delete'];
+  groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'apiProductRole', 'applicationRole', 'integrationRole', 'delete'];
   apisTableDisplayedColumns = [...DEFAULT_RESOURCE_TABLE_COLUMNS];
   apiProductsTableDisplayedColumns = [...DEFAULT_RESOURCE_TABLE_COLUMNS];
   applicationsTableDisplayedColumns = ['name'];
@@ -134,7 +135,8 @@ export class OrgSettingsUserDetailMembershipsComponent {
   private initialGroups: MembershipGroupDS[] = [];
 
   // Store initial group roles to compare changes
-  initialGroupRoles: Record<string, { GROUP?: string; API?: string; APPLICATION?: string; INTEGRATION?: string }> = {};
+  initialGroupRoles: Record<string, { GROUP?: string; API?: string; APPLICATION?: string; INTEGRATION?: string; API_PRODUCT?: string }> =
+    {};
 
   constructor() {
     effect(() => {
@@ -247,6 +249,7 @@ export class OrgSettingsUserDetailMembershipsComponent {
                   { scope: 'API' as const, name: groupeAdded.apiRole },
                   { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
                   { scope: 'INTEGRATION' as const, name: groupeAdded.integrationRole },
+                  { scope: 'API_PRODUCT' as const, name: groupeAdded.apiProductRole },
                 ],
               },
             ],
@@ -376,6 +379,7 @@ export class OrgSettingsUserDetailMembershipsComponent {
           API: group.roles['API'],
           APPLICATION: group.roles['APPLICATION'],
           INTEGRATION: group.roles['INTEGRATION'],
+          API_PRODUCT: group.roles['API_PRODUCT'],
         };
 
         return {
@@ -414,6 +418,10 @@ export class OrgSettingsUserDetailMembershipsComponent {
         }),
         INTEGRATION: new UntypedFormControl({
           value: group.roles['INTEGRATION'],
+          disabled: this.userStatus() !== 'ACTIVE' || this.isReadOnly(),
+        }),
+        API_PRODUCT: new UntypedFormControl({
+          value: group.roles['API_PRODUCT'],
           disabled: this.userStatus() !== 'ACTIVE' || this.isReadOnly(),
         }),
       },

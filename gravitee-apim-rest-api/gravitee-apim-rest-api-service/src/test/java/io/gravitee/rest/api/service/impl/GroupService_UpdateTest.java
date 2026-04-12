@@ -237,6 +237,46 @@ public class GroupService_UpdateTest {
     }
 
     @Test
+    public void shouldUpdateGroupWithApiProductDefaultRole() throws Exception {
+        UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
+        updatedGroupEntity.setName("my-group-name");
+        updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder().put(RoleScope.API_PRODUCT, "USER").build());
+
+        final Group group = new Group();
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        ).thenReturn(true);
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
+
+        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
+
+        verify(membershipService).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                membershipReference ->
+                    membershipReference.getType() == MembershipReferenceType.API_PRODUCT && membershipReference.getId() == null
+            ),
+            argThat(
+                membershipMember ->
+                    membershipMember.getMemberId().equals(GROUP_ID) &&
+                    membershipMember.getReference() == null &&
+                    membershipMember.getMemberType() == MembershipMemberType.GROUP
+            ),
+            argThat(membershipRole -> membershipRole.getScope() == RoleScope.API_PRODUCT && membershipRole.getName().equals("USER"))
+        );
+    }
+
+    @Test
     public void shouldNotReindexApisIfGroupIsNotPrimaryOwner() throws Exception {
         UpdateGroupEntity updateGroup = new UpdateGroupEntity();
         updateGroup.setName("Updated Name");
