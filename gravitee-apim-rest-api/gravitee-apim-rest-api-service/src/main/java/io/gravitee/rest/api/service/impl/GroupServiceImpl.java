@@ -207,9 +207,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             List<String> allGroupIds = all.stream().map(Group::getId).toList();
 
-            // Batch-fetch GROUP->API and GROUP->APPLICATION memberships (2 queries instead of 3*N)
+            // Batch-fetch GROUP->API, GROUP->APPLICATION, and GROUP->API_PRODUCT memberships
             Set<MembershipEntity> apiMemberships = Set.of();
             Set<MembershipEntity> appMemberships = Set.of();
+            Set<MembershipEntity> apiProductMemberships = Set.of();
             if (!allGroupIds.isEmpty()) {
                 apiMemberships = membershipService.getMembershipsByMembersAndReference(
                     MembershipMemberType.GROUP,
@@ -221,6 +222,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     allGroupIds,
                     MembershipReferenceType.APPLICATION
                 );
+                apiProductMemberships = membershipService.getMembershipsByMembersAndReference(
+                    MembershipMemberType.GROUP,
+                    allGroupIds,
+                    MembershipReferenceType.API_PRODUCT
+                );
             }
 
             // Build default role maps (memberships where referenceId is null)
@@ -229,6 +235,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .filter(m -> m.getReferenceId() == null)
                 .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
             Map<String, String> defaultAppRoleByGroup = appMemberships
+                .stream()
+                .filter(m -> m.getReferenceId() == null)
+                .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
+            Map<String, String> defaultApiProductRoleByGroup = apiProductMemberships
                 .stream()
                 .filter(m -> m.getReferenceId() == null)
                 .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
@@ -247,7 +257,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             final List<GroupEntity> groups = all
                 .stream()
-                .map(group -> mapWithBatchData(group, defaultApiRoleByGroup, defaultAppRoleByGroup, poGroupIds))
+                .map(group ->
+                    mapWithBatchData(group, defaultApiRoleByGroup, defaultAppRoleByGroup, defaultApiProductRoleByGroup, poGroupIds)
+                )
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toList());
 
@@ -482,7 +494,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         Map<RoleScope, String> formerRoles,
         Map<RoleScope, String> newRoles
     ) throws TechnicalException {
-        RoleScope[] groupRoleScopes = { RoleScope.API, RoleScope.APPLICATION };
+        RoleScope[] groupRoleScopes = { RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT };
         for (RoleScope roleScope : groupRoleScopes) {
             if (
                 formerRoles != null &&
@@ -721,6 +733,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             membershipService.deleteReferenceMember(
                 executionContext,
                 MembershipReferenceType.APPLICATION,
+                null,
+                MembershipMemberType.GROUP,
+                groupId
+            );
+
+            //remove default group API_PRODUCT role
+            membershipService.deleteReferenceMember(
+                executionContext,
+                MembershipReferenceType.API_PRODUCT,
                 null,
                 MembershipMemberType.GROUP,
                 groupId
@@ -1149,6 +1170,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (defaultApiRole != null) {
             roles.put(RoleScope.API, defaultApiRole.getName());
         }
+        RoleEntity defaultApiProductRole = getDefaultRole(group.getId(), RoleScope.API_PRODUCT);
+        if (defaultApiProductRole != null) {
+            roles.put(RoleScope.API_PRODUCT, defaultApiProductRole.getName());
+        }
         RoleEntity defaultApplicationRole = getDefaultRole(group.getId(), RoleScope.APPLICATION);
         if (defaultApplicationRole != null) {
             roles.put(RoleScope.APPLICATION, defaultApplicationRole.getName());
@@ -1177,6 +1202,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         Group group,
         Map<String, String> defaultApiRoleIdByGroup,
         Map<String, String> defaultAppRoleIdByGroup,
+        Map<String, String> defaultApiProductRoleIdByGroup,
         Set<String> poGroupIds
     ) {
         if (group == null) {
@@ -1209,6 +1235,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         String appRoleId = defaultAppRoleIdByGroup.get(group.getId());
         if (appRoleId != null) {
             roles.put(RoleScope.APPLICATION, roleService.findById(appRoleId).getName());
+        }
+        String apiProductRoleId = defaultApiProductRoleIdByGroup.get(group.getId());
+        if (apiProductRoleId != null) {
+            roles.put(RoleScope.API_PRODUCT, roleService.findById(apiProductRoleId).getName());
         }
         entity.setRoles(roles);
 

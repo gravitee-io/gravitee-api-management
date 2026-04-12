@@ -85,6 +85,22 @@
                   </td>
                 </ng-container>
 
+                <!-- API Product Role Column -->
+                <ng-container matColumnDef="apiProductRole">
+                  <th mat-header-cell *matHeaderCellDef id="apiProductRole">API Product Role</th>
+                  <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+                    <mat-form-field>
+                      <mat-label>API Product role</mat-label>
+                      <mat-select [id]="group.id" [aria-label]="'API Product roles for ' + group.id" formControlName="API_PRODUCT">
+                        <mat-option>-- None --</mat-option>
+                        @for (role of apiProductRoles(); track role.name) {
+                          <mat-option [disabled]="role.system" [value]="role.name">{{ role.name }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </td>
+                </ng-container>
+
                 <!-- Application Role Column -->
                 <ng-container matColumnDef="applicationRole">
                   <th mat-header-cell *matHeaderCellDef id="applicationRole">Application Role</th>

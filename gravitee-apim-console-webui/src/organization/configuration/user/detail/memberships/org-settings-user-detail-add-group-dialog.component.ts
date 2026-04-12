@@ -31,6 +31,7 @@ export type OrgSettingsUserDetailAddGroupDialogReturn = {
   apiRole: string;
   applicationRole?: string;
   integrationRole?: string;
+  apiProductRole?: string;
   isAdmin?: boolean;
 };
 
@@ -64,6 +65,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
   readonly apiRoles = toSignal(this.roleService.list('API').pipe(shareReplay(1)), { initialValue: [] });
   readonly applicationRoles = toSignal(this.roleService.list('APPLICATION').pipe(shareReplay(1)), { initialValue: [] });
   readonly integrationRoles = toSignal(this.roleService.list('INTEGRATION').pipe(shareReplay(1)), { initialValue: [] });
+  readonly apiProductRoles = toSignal(this.roleService.list('API_PRODUCT').pipe(shareReplay(1)), { initialValue: [] });
 
   constructor() {
     this.addGroupForm = new UntypedFormGroup(
@@ -73,6 +75,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
         apiRole: new UntypedFormControl(null),
         applicationRole: new UntypedFormControl(null),
         integrationRole: new UntypedFormControl(null),
+        apiProductRole: new UntypedFormControl(null),
       },
       [leastOneGroupRoleIsRequiredValidator],
     );

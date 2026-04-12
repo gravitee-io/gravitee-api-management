@@ -241,6 +241,14 @@ public class GroupService_DeleteTest {
             eq(GROUP_ID)
         );
 
+        verify(membershipService, times(1)).deleteReferenceMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.API_PRODUCT),
+            eq(null),
+            eq(MembershipMemberType.GROUP),
+            eq(GROUP_ID)
+        );
+
         verify(eventManager, times(1)).publishEvent(
             eq(ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE),
             any(ApplicationAlertMembershipEvent.class)

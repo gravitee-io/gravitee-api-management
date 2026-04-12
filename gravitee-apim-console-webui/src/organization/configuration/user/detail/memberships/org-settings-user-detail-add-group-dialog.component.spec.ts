@@ -83,6 +83,10 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_INTEGRATION_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_INTEGRATION_ADMIN' }),
     ]);
+    expectRolesListRequest('API_PRODUCT', [
+      fakeRole({ id: 'roleApiProductUserId', name: 'ROLE_API_PRODUCT_USER' }),
+      fakeRole({ id: 'roleApiProductAdminId', name: 'ROLE_API_PRODUCT_ADMIN' }),
+    ]);
 
     const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
     expect(await submitButton.isDisabled()).toBeTruthy();
@@ -99,12 +103,16 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
     const integrationRoleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=integrationRole' }));
     await integrationRoleSelect.clickOptions({ text: 'ROLE_INTEGRATION_ADMIN' });
 
+    const apiProductRoleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=apiProductRole' }));
+    await apiProductRoleSelect.clickOptions({ text: 'ROLE_API_PRODUCT_USER' });
+
     await submitButton.click();
 
     expect(matDialogRefMock.close).toHaveBeenCalledWith({
       apiRole: 'ROLE_API_USER',
       applicationRole: 'ROLE_APPLICATION_ADMIN',
       integrationRole: 'ROLE_INTEGRATION_ADMIN',
+      apiProductRole: 'ROLE_API_PRODUCT_USER',
       groupId: 'group-a',
       groupName: 'Group A',
       isAdmin: null,
