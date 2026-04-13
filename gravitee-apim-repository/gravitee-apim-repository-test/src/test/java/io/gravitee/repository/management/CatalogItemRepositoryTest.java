@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.catalog.Model;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class CatalogItemRepositoryTest extends AbstractManagementRepositoryTest 
     public void should_create_and_find_model_item() throws Exception {
         var id = UUID.randomUUID().toString();
         var sourceId = UUID.randomUUID().toString();
-        var now = Instant.now();
+        var now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         var item = new Model(id, sourceId, now, "gpt-4", "GPT-4 large language model");
 
         catalogItemRepository.create(item);

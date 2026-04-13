@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.catalog.LlmProvider;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public class CatalogSourceRepositoryTest extends AbstractManagementRepositoryTes
     @Test
     public void should_create_and_find_llm_provider_source() throws Exception {
         var id = UUID.randomUUID().toString();
-        var now = Instant.now();
+        var now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         var source = new LlmProvider(id, now, "OpenAI", "sk-test-key");
 
         catalogSourceRepository.create(source);
