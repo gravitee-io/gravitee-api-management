@@ -24,6 +24,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.catalog.CatalogItem;
+import io.gravitee.repository.management.model.catalog.CatalogSource;
+import io.gravitee.repository.management.model.catalog.LlmProvider;
+import io.gravitee.repository.management.model.catalog.Model;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.media.api.MediaRepository;
 import jakarta.inject.Inject;
@@ -248,6 +252,12 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected SubscriptionFormRepository subscriptionFormRepository;
 
+    @Inject
+    protected CatalogSourceRepository catalogSourceRepository;
+
+    @Inject
+    protected CatalogItemRepository catalogItemRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         switch (object) {
             case Application application -> applicationRepository.create(application);
@@ -334,6 +344,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             );
             case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
+            case CatalogSource catalogSource -> catalogSourceRepository.create(catalogSource);
+            case CatalogItem catalogItem -> catalogItemRepository.create(catalogItem);
             case null, default -> {}
         }
     }

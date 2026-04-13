@@ -19,5 +19,6 @@ import java.time.Instant;
 
 public sealed interface CatalogItem permits Model {
     String id();
+    String sourceId();
     Instant createdAt();
 }

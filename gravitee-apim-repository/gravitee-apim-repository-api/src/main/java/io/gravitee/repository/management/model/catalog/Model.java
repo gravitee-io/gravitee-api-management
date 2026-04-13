@@ -17,4 +17,4 @@ package io.gravitee.repository.management.model.catalog;
 
 import java.time.Instant;
 
-public record Model(String id, Instant createdAt, String name, String description) implements CatalogItem {}
+public record Model(String id, String sourceId, Instant createdAt, String name, String description) implements CatalogItem {}
