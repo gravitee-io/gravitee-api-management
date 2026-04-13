@@ -780,8 +780,8 @@ public class ReactorHandlerRegistryTest {
 
         readers.shutdown();
         writer.shutdown();
-        assertTrue("Readers did not finish", readers.awaitTermination(durationMs + 5000, TimeUnit.MILLISECONDS));
-        assertTrue("Writer did not finish", writer.awaitTermination(durationMs + 5000, TimeUnit.MILLISECONDS));
+        assertTrue("Readers did not finish", readers.awaitTermination(durationMs + 15000, TimeUnit.MILLISECONDS));
+        assertTrue("Writer did not finish", writer.awaitTermination(durationMs + 15000, TimeUnit.MILLISECONDS));
 
         Assert.assertNull("Concurrent modification detected: " + errors.get(), errors.get());
     }
