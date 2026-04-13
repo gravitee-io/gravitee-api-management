@@ -74,4 +74,9 @@ export class EnvLogsDetailsHarness extends ComponentHarness {
     }
     return false;
   }
+
+  async getApiProductName(): Promise<string | null> {
+    const apiProductRow = await this.locatorForOptional('[data-testid="more-details-api-product"]')();
+    return apiProductRow ? (await apiProductRow.text()).trim() : null;
+  }
 }

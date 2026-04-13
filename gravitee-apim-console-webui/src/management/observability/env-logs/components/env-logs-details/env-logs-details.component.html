@@ -79,6 +79,9 @@
                 <dl class="card__section__kv">
                   <env-logs-details-row label="Application">{{ log.application ?? '—' }}</env-logs-details-row>
                   <env-logs-details-row label="Plan">{{ log.plan?.name ?? '—' }}</env-logs-details-row>
+                  <env-logs-details-row label="API Product" dataTestId="more-details-api-product">{{
+                    log.apiProductName ?? '—'
+                  }}</env-logs-details-row>
                   <env-logs-details-row label="Endpoint">{{ log.endpoint ?? '—' }}</env-logs-details-row>
                 </dl>
               </mat-expansion-panel>
