@@ -66,7 +66,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
         entry(Audit.AuditReferenceType.APPLICATION, AuditReferenceType.APPLICATION),
         entry(Audit.AuditReferenceType.API, AuditReferenceType.API),
-        entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT)
+        entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT),
+        entry(Audit.AuditReferenceType.DASHBOARD, AuditReferenceType.DASHBOARD)
     );
 
     @Lazy
