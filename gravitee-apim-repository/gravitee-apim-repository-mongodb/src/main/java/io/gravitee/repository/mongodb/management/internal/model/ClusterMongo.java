@@ -29,6 +29,7 @@ public class ClusterMongo extends Auditable {
     @Id
     private String id;
 
+    private String crossId;
     private String environmentId;
     private String organizationId;
     private String type;

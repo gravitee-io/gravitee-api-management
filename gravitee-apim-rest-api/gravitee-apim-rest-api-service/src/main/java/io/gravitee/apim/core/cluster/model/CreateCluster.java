@@ -29,6 +29,7 @@ import lombok.Setter;
 public class CreateCluster {
 
     private ClusterType type;
+    private String crossId;
     private String name;
     private String description;
     private Object configuration;

@@ -17,6 +17,7 @@ export type ClusterType = 'KAFKA_CLUSTER_CONNECTION' | 'KAFKA_CLUSTER';
 
 export interface Cluster {
   id: string;
+  crossId: string;
   type: ClusterType;
   name: string;
   description?: string;
@@ -32,6 +33,7 @@ export interface KafkaClusterConnectionConfiguration {
 }
 
 export interface KafkaClusterConnection {
+  crossId?: string;
   name: string;
   bootstrapServers?: string;
   security?: unknown;

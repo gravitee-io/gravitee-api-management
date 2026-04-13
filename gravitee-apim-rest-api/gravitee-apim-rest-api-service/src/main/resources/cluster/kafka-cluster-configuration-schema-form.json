@@ -265,6 +265,11 @@
     "kafkaClusterConnection": {
       "type": "object",
       "properties": {
+        "crossId": {
+          "type": "string",
+          "title": "Cross ID",
+          "description": "Portable identifier for cross-environment references. Auto-generated from name if not provided."
+        },
         "name": {
           "type": "string",
           "title": "Connection name",

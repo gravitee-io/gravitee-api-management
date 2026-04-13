@@ -164,6 +164,7 @@ export class KafkaClusterListComponent implements OnInit {
 
           return this.clusterService.create({
             type: 'KAFKA_CLUSTER',
+            crossId: result.crossId,
             name: result.name,
             description: result.description,
             configuration: {

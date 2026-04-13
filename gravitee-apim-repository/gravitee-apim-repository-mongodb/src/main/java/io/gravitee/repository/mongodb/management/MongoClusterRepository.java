@@ -90,7 +90,13 @@ public class MongoClusterRepository implements ClusterRepository {
 
     @Override
     public Set<Cluster> findAll() throws TechnicalException {
-        throw new IllegalStateException("Not implemented");
+        return internalClusterMongoRepo.findAll().stream().map(mapper::map).collect(java.util.stream.Collectors.toSet());
+    }
+
+    @Override
+    public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
+        log.debug("Find cluster by crossId [{}] and environmentId [{}]", crossId, environmentId);
+        return Optional.ofNullable(internalClusterMongoRepo.findByCrossIdAndEnvironmentId(crossId, environmentId)).map(mapper::map);
     }
 
     @Override

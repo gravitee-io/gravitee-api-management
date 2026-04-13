@@ -48,6 +48,14 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
     }
 
     @Override
+    public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
+        return storage
+            .stream()
+            .filter(cluster -> crossId.equals(cluster.getCrossId()) && environmentId.equals(cluster.getEnvironmentId()))
+            .findFirst();
+    }
+
+    @Override
     public Page<Cluster> search(ClusterSearchCriteria criteria, Pageable pageable, Optional<Sortable> sortable) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();

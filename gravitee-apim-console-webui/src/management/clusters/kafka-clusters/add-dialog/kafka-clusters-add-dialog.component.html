@@ -29,6 +29,12 @@
     </mat-form-field>
 
     <mat-form-field class="form-field">
+      <mat-label>Cross ID</mat-label>
+      <input #crossIdInput type="text" aria-label="Cross ID" matInput formControlName="crossId" [maxLength]="256" />
+      <mat-hint>Auto-generated from name if left empty</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
       <mat-label>Description</mat-label>
       <textarea #descriptionInput matInput formControlName="description" [maxLength]="1024"></textarea>
       <mat-hint align="end">{{ descriptionInput.value.length }}/1024</mat-hint>

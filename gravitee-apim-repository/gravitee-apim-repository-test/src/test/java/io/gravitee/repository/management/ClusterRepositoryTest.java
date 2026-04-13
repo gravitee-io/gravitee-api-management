@@ -45,6 +45,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
         Cluster cluster = clusterRepository.findById("cluster-id-1").orElseThrow();
         assertAll(
             () -> assertThat(cluster.getId()).isEqualTo("cluster-id-1"),
+            () -> assertThat(cluster.getCrossId()).isEqualTo("cluster-1"),
             () -> assertThat(cluster.getCreatedAt()).isEqualTo(Instant.ofEpochSecond(1753711100)),
             () -> assertThat(cluster.getUpdatedAt()).isNull(),
             () -> assertThat(cluster.getEnvironmentId()).isEqualTo("env-1"),
@@ -60,6 +61,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_create() throws Exception {
         final Cluster cluster = Cluster.builder()
             .id("cluster-id")
+            .crossId("my-cluster")
             // Because by default, PostgreSQL's timestamp type (without with time zone) supports up to 6 digits of fractional seconds (microsecond precision),
             // while Java's Instant supports up to nanoseconds (9 digits).
             .createdAt(Instant.now().truncatedTo(ChronoUnit.MICROS))
@@ -75,6 +77,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertAll(
             () -> assertThat(createdCluster.getId()).isEqualTo(cluster.getId()),
+            () -> assertThat(createdCluster.getCrossId()).isEqualTo(cluster.getCrossId()),
             () -> assertThat(createdCluster.getCreatedAt()).isEqualTo(cluster.getCreatedAt()),
             () -> assertThat(createdCluster.getUpdatedAt()).isNull(),
             () -> assertThat(createdCluster.getEnvironmentId()).isEqualTo(cluster.getEnvironmentId()),
@@ -214,6 +217,27 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
         Cluster updatedCluster = clusterRepository.findById(clusterId).orElseThrow();
         assertThat(updatedCluster.getGroups()).isEqualTo(Set.of("group-3", "group-4"));
+    }
+
+    @Test
+    public void should_find_by_crossId_and_environment_id() throws Exception {
+        Optional<Cluster> found = clusterRepository.findByCrossIdAndEnvironmentId("cluster-1", "env-1");
+        assertThat(found).isPresent();
+        assertThat(found.get().getId()).isEqualTo("cluster-id-1");
+        assertThat(found.get().getCrossId()).isEqualTo("cluster-1");
+        assertThat(found.get().getEnvironmentId()).isEqualTo("env-1");
+    }
+
+    @Test
+    public void should_return_empty_when_crossId_not_found() throws Exception {
+        Optional<Cluster> found = clusterRepository.findByCrossIdAndEnvironmentId("non-existing", "env-1");
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    public void should_return_empty_when_crossId_exists_in_different_environment() throws Exception {
+        Optional<Cluster> found = clusterRepository.findByCrossIdAndEnvironmentId("cluster-1", "env-2");
+        assertThat(found).isEmpty();
     }
 
     @Test

@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.utils;
 
+import java.text.Normalizer;
+import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +34,18 @@ public final class StringUtils {
 
     public static boolean isNotEmpty(@Nullable CharSequence cs) {
         return !isEmpty(cs);
+    }
+
+    private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^a-z0-9-]");
+    private static final Pattern MULTIPLE_DASHES = Pattern.compile("-{2,}");
+
+    public static String slugify(@Nullable String input) {
+        if (input == null) return null;
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        String slug = NON_ALPHANUMERIC.matcher(normalized.toLowerCase().replace(' ', '-')).replaceAll("");
+        slug = MULTIPLE_DASHES.matcher(slug).replaceAll("-");
+        slug = slug.replaceAll("^-|-$", "");
+        return slug;
     }
 
     public static String appendCurlyBraces(String selectionRule) {

@@ -21,6 +21,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -35,6 +36,7 @@ public class ValidateClusterService {
     private final JsonSchemaChecker jsonSchemaChecker;
     private final ClusterConfigurationSchemaService clusterConfigurationSchemaService;
     private final ObjectMapper objectMapper;
+    private final ClusterQueryService clusterQueryService;
 
     public void validate(Cluster cluster) {
         if (StringUtils.isEmpty(cluster.getName())) {
@@ -56,6 +58,29 @@ public class ValidateClusterService {
 
         if (cluster.getType() == ClusterType.KAFKA_CLUSTER) {
             validateUniqueConnectionNames(cluster);
+            validateUniqueConnectionCrossIds(cluster);
+        }
+    }
+
+    public void validateForCreate(Cluster cluster) {
+        validate(cluster);
+        validateCrossIdUniqueness(cluster);
+    }
+
+    public void validateForUpdate(Cluster existingCluster, Cluster updatedCluster) {
+        validate(updatedCluster);
+        if (existingCluster.getCrossId() != null && !existingCluster.getCrossId().equals(updatedCluster.getCrossId())) {
+            throw new InvalidDataException("CrossId is immutable and cannot be changed after creation.");
+        }
+    }
+
+    private void validateCrossIdUniqueness(Cluster cluster) {
+        if (StringUtils.isEmpty(cluster.getCrossId())) {
+            throw new InvalidDataException("CrossId is required.");
+        }
+        var existing = clusterQueryService.findByCrossIdAndEnvironmentId(cluster.getCrossId(), cluster.getEnvironmentId());
+        if (existing.isPresent() && !existing.get().getId().equals(cluster.getId())) {
+            throw new InvalidDataException("A cluster with crossId '" + cluster.getCrossId() + "' already exists in this environment.");
         }
     }
 
@@ -73,6 +98,27 @@ public class ValidateClusterService {
 
         if (!duplicates.isEmpty()) {
             throw new InvalidDataException("Connection names must be unique. Duplicates found: " + duplicates);
+        }
+    }
+
+    private void validateUniqueConnectionCrossIds(Cluster cluster) {
+        var config = cluster.getKafkaClusterConfiguration(objectMapper);
+        if (config.connections() == null || config.connections().isEmpty()) {
+            return;
+        }
+        var duplicates = config
+            .connections()
+            .stream()
+            .filter(c -> c.crossId() != null)
+            .collect(Collectors.groupingBy(c -> c.crossId(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(e -> e.getKey())
+            .toList();
+
+        if (!duplicates.isEmpty()) {
+            throw new InvalidDataException("Connection crossIds must be unique within a cluster. Duplicates found: " + duplicates);
         }
     }
 }

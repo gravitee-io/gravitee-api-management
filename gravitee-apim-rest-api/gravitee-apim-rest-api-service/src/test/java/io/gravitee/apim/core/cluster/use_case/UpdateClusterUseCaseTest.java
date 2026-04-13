@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterCrudServiceInMemory;
+import inmemory.ClusterQueryServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
@@ -50,19 +51,34 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
     private UpdateClusterUseCase updateClusterUseCase;
     private final ClusterCrudService clusterCrudService = new ClusterCrudServiceInMemory();
+    private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private Cluster existingCluster;
 
     @BeforeEach
     void setUp() {
         var jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
         var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
-        var validateClusterService = new ValidateClusterService(jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper());
+        var validateClusterService = new ValidateClusterService(
+            jsonSchemaChecker,
+            clusterConfigurationSchemaService,
+            objectMapper,
+            clusterQueryService
+        );
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
+        updateClusterUseCase = new UpdateClusterUseCase(
+            clusterCrudService,
+            validateClusterService,
+            auditService,
+            permissionDomainService,
+            objectMapper
+        );
+        clusterQueryService.reset();
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
+            .crossId("cluster-1")
             .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
             .name("Cluster 1")
             .createdAt(INSTANT_NOW)
@@ -160,6 +176,18 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
             );
+    }
+
+    @Test
+    void should_preserve_crossId_on_update() {
+        // Given
+        var toUpdate = UpdateCluster.builder().name("New Name").build();
+
+        // When
+        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then - crossId remains unchanged
+        assertThat(updatedCluster.cluster().getCrossId()).isEqualTo("cluster-1");
     }
 
     @Test

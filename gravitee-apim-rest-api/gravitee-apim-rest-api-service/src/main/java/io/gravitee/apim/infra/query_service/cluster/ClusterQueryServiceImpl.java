@@ -51,4 +51,9 @@ public class ClusterQueryServiceImpl implements ClusterQueryService {
 
         return result.map(clusterAdapter::fromRepository);
     }
+
+    @Override
+    public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
+        return clusterRepository.findByCrossIdAndEnvironmentId(crossId, environmentId).map(clusterAdapter::fromRepository);
+    }
 }
