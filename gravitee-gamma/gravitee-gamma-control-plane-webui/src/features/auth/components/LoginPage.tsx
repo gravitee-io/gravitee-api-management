@@ -26,24 +26,30 @@ import {
     Field,
     FieldLabel,
     Input,
+    Separator,
     Spinner,
     cn,
 } from '@gravitee/graphene';
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useLogin } from '../auth.selectors';
+import { useIdentityProviders, useLogin } from '../auth.selectors';
+import { useAuthStore } from '../auth.store';
+import type { SocialIdentityProvider } from '../auth.types';
+import { getProviderTextColor } from '../idp.utils';
+import { IdpIcon } from './IdpIcons';
 
 export function LoginPage() {
     const login = useLogin();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const identityProviders = useIdentityProviders();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: FormEvent) => {
+    const handleSubmit = async (e: SubmitEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -54,6 +60,15 @@ export function LoginPage() {
             setError('Login failed! Check username and password.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleIdpLogin = async (providerId: string) => {
+        const redirect = searchParams.get('redirect') || '/';
+        try {
+            await useAuthStore.getState().loginWithProvider(providerId, redirect);
+        } catch {
+            setError('Failed to start identity provider authentication.');
         }
     };
 
@@ -115,8 +130,47 @@ export function LoginPage() {
                             )}
                         </Button>
                     </form>
+
+                    {identityProviders.length > 0 && (
+                        <>
+                            <div className="my-4 flex items-center gap-3">
+                                <Separator className="flex-1" />
+                                <span className="text-muted-foreground text-sm">or</span>
+                                <Separator className="flex-1" />
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                {identityProviders.map(provider => (
+                                    <IdpButton
+                                        key={provider.id}
+                                        provider={provider}
+                                        onClick={() => handleIdpLogin(provider.id)}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+function IdpButton({ provider, onClick }: { provider: SocialIdentityProvider; onClick: () => void }) {
+    const hasColor = Boolean(provider.color);
+    const colorStyle = hasColor ? { backgroundColor: provider.color, color: getProviderTextColor(provider.color) } : {};
+
+    return (
+        <Button
+            type="button"
+            variant="outline"
+            className="w-full gap-2"
+            size="lg"
+            style={colorStyle}
+            onClick={onClick}
+        >
+            <IdpIcon type={provider.type} className="size-5 shrink-0" />
+            <span className="flex-1 text-center">Sign in with {provider.name}</span>
+        </Button>
     );
 }

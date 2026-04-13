@@ -19,3 +19,23 @@ export interface CurrentUser {
     firstname: string;
     lastname: string;
 }
+
+export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC';
+
+export interface SocialIdentityProvider {
+    id: string;
+    name: string;
+    description?: string;
+    clientId: string;
+    type: IdentityProviderType;
+    authorizationEndpoint: string;
+    tokenIntrospectionEndpoint?: string;
+    userLogoutEndpoint?: string;
+    scopeDelimiter?: string;
+    requiredUrlParams?: Record<string, string>;
+    optionalUrlParams?: Record<string, string>;
+    scopes?: string[];
+    display?: string;
+    color?: string;
+    emailRequired?: boolean;
+}
