@@ -301,4 +301,60 @@ describe('EnvLogsDetailsComponent', () => {
     expect(await harness.hasHeadersSection()).toBe(false);
     expect(await harness.getStatusBadgeText()).toBe('200');
   });
+
+  it('should display API Product name in the More Details panel when present', async () => {
+    const { fixture: f, harness } = await createComponent();
+
+    const responseWithProduct: SearchLogsResponse = {
+      ...MOCK_SEARCH_RESPONSE,
+      data: [{ ...MOCK_SEARCH_RESPONSE.data[0], apiProductName: 'My API Product' }],
+    };
+
+    expectSearchRequest().flush(responseWithProduct);
+    expectDetailRequest().flush(MOCK_DETAIL);
+    expectMetricsRequest().flush(MOCK_METRICS);
+    f.detectChanges();
+
+    await harness.expandMoreDetails();
+    f.detectChanges();
+
+    expect(await harness.getApiProductName()).toBe('My API Product');
+  });
+
+  it('should show a dash in the API Product row in the More Details panel when absent', async () => {
+    const { fixture: f, harness } = await createComponent();
+
+    flushRequests();
+    f.detectChanges();
+
+    await harness.expandMoreDetails();
+    f.detectChanges();
+
+    expect(await harness.getApiProductName()).toBe('—');
+  });
+
+  it('should resolve api display name from apiName when present', async () => {
+    const { fixture: f } = await createComponent();
+
+    const responseWithApiName: SearchLogsResponse = {
+      ...MOCK_SEARCH_RESPONSE,
+      data: [{ ...MOCK_SEARCH_RESPONSE.data[0], apiName: 'Pokémon API' }],
+    };
+
+    expectSearchRequest().flush(responseWithApiName);
+    expectDetailRequest().flush(MOCK_DETAIL);
+    expectMetricsRequest().flush(MOCK_METRICS);
+    f.detectChanges();
+
+    expect(f.componentInstance.log()?.api).toBe('Pokémon API');
+  });
+
+  it('should fall back to apiId for api display name when apiName is absent', async () => {
+    const { fixture: f } = await createComponent();
+
+    flushRequests();
+    f.detectChanges();
+
+    expect(f.componentInstance.log()?.api).toBe(apiId);
+  });
 });
