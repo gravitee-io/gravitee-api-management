@@ -25,13 +25,15 @@ import { GioFormJsonSchemaModule, GioIconsModule } from '@gravitee/ui-particles-
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FORMLY_CONFIG, FormlyModule } from '@ngx-formly/core';
 
+import { ClusterConnectionTypeComponent } from './cluster-connection-type.component';
+import { ClusterTypeComponent } from './cluster-type.component';
 import { ResourceTypeComponent } from './resource-type.component';
 import { ResourceTypeService } from './resource-type.service';
 
 import { GioSafePipeModule } from '../../utils/safe.pipe.module';
 
 @NgModule({
-  declarations: [ResourceTypeComponent],
+  declarations: [ResourceTypeComponent, ClusterTypeComponent, ClusterConnectionTypeComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -58,6 +60,14 @@ import { GioSafePipeModule } from '../../utils/safe.pipe.module';
           {
             name: 'resource-type',
             component: ResourceTypeComponent,
+          },
+          {
+            name: 'cluster-type',
+            component: ClusterTypeComponent,
+          },
+          {
+            name: 'cluster-connection-type',
+            component: ClusterConnectionTypeComponent,
           },
         ],
       },
