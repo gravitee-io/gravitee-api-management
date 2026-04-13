@@ -18,7 +18,7 @@ import { KAFKA_EXPLORER_BASE_URL } from '@gravitee/gravitee-kafka-explorer';
 import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { ClusterNavigationComponent } from './kafka-connections/cluster-navigation/cluster-navigation.component';
+import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
 import { ClusterGeneralComponent } from './kafka-connections/details/general/cluster-general.component';
 import { ClusterConfigurationComponent } from './kafka-connections/details/configuration/cluster-configuration.component';
 import { ClusterListComponent } from './kafka-connections/list/cluster-list.component';
@@ -114,6 +114,38 @@ const clusterRoutes: Routes = [
         anyOf: ['environment-cluster-r'],
       },
     },
+  },
+  {
+    path: 'kafka-clusters/:clusterId',
+    component: ClusterNavigationComponent,
+    canActivate: [ClusterGuard.loadPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
+    canDeactivate: [ClusterGuard.clearPermissions],
+    children: [
+      {
+        path: '',
+        redirectTo: 'general',
+        pathMatch: 'full',
+      },
+      {
+        path: 'general',
+        component: ClusterGeneralComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'user-permissions',
+        component: ClusterUserPermissionsComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-member-r'],
+          },
+        },
+      },
+    ],
   },
 ];
 
