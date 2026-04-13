@@ -83,7 +83,7 @@ export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url:
 
 export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
-    useAuthStore.setState({ user: null, loading: false, initialized: false });
+    useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
     useEnvironmentStore.setState({ organizationId: '', environmentId: 'DEFAULT' });
     localStorage.clear();
 }

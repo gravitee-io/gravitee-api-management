@@ -16,10 +16,13 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import type { SocialIdentityProvider } from '../../features/auth/auth.types';
+
 export interface BootstrapConfig {
     managementBaseURL: string;
     gammaBaseURL: string;
     organizationId: string;
+    identityProviders: SocialIdentityProvider[];
 }
 
 interface BootstrapState {
@@ -54,11 +57,27 @@ export const useBootstrapStore = create<BootstrapState>()(
                     if (!bootstrapRes.ok) throw new Error(`Failed to fetch bootstrap config: ${bootstrapRes.status}`);
                     const bootstrap = await bootstrapRes.json();
 
+                    const managementBaseURL = sanitizeBaseURL(bootstrap.managementBaseURL);
+                    const organizationId = bootstrap.organizationId as string;
+
+                    let identityProviders: SocialIdentityProvider[] = [];
+                    try {
+                        const idpRes = await fetch(
+                            `${managementBaseURL}/organizations/${organizationId}/social-identities`,
+                        );
+                        if (idpRes.ok) {
+                            identityProviders = await idpRes.json();
+                        }
+                    } catch {
+                        // Non-fatal: login page will still work with username/password
+                    }
+
                     set({
                         config: {
-                            managementBaseURL: sanitizeBaseURL(bootstrap.managementBaseURL),
+                            managementBaseURL,
                             gammaBaseURL: sanitizeBaseURL(bootstrap.gammaBaseURL),
-                            organizationId: bootstrap.organizationId,
+                            organizationId,
+                            identityProviders,
                         },
                         loading: false,
                     });
