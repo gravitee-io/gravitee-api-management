@@ -24,6 +24,7 @@ import { ClusterConfigurationComponent } from './kafka-connections/details/confi
 import { ClusterListComponent } from './kafka-connections/list/cluster-list.component';
 import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
 import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
+import { KafkaClusterConfigurationComponent } from './kafka-clusters/details/configuration/kafka-cluster-configuration.component';
 import { ClusterGuard } from './cluster.guard';
 
 import { Constants } from '../../entities/Constants';
@@ -133,6 +134,15 @@ const clusterRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'configuration',
+        component: KafkaClusterConfigurationComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-configuration-r'],
           },
         },
       },

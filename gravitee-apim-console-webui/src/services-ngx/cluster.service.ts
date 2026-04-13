@@ -68,7 +68,11 @@ export class ClusterService {
     return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/permissions`);
   }
 
-  getConfigurationSchema(): Observable<unknown> {
-    return this.http.get<unknown>(`${this.constants.env.v2BaseURL}/clusters/schema/configuration`);
+  getConfigurationSchema(type?: ClusterType): Observable<unknown> {
+    let params = new HttpParams();
+    if (type) {
+      params = params.append('type', type);
+    }
+    return this.http.get<unknown>(`${this.constants.env.v2BaseURL}/clusters/schema/configuration`, { params });
   }
 }

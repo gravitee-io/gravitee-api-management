@@ -104,21 +104,20 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
           ];
 
           if (cluster.type === 'KAFKA_CLUSTER_CONNECTION') {
-            tabs.push(
-              {
-                displayName: 'Explorer',
-                routerLink: 'explorer',
-                permissions: ['cluster-definition-r'],
-                license: explorerLicense,
-                iconRight$: explorerIconRight$,
-              },
-              {
-                displayName: 'Configuration',
-                routerLink: 'configuration',
-                permissions: ['cluster-configuration-r'],
-              },
-            );
+            tabs.push({
+              displayName: 'Explorer',
+              routerLink: 'explorer',
+              permissions: ['cluster-definition-r'],
+              license: explorerLicense,
+              iconRight$: explorerIconRight$,
+            });
           }
+
+          tabs.push({
+            displayName: 'Configuration',
+            routerLink: 'configuration',
+            permissions: ['cluster-configuration-r'],
+          });
 
           tabs.push({
             displayName: 'User Permissions',

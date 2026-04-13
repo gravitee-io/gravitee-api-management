@@ -203,8 +203,9 @@ export const expectGetClusterPermissionsRequest = (
   req.flush(permissions);
 };
 
-export const expectGetConfigurationSchemaRequest = (httpTestingController: HttpTestingController, schema: unknown = {}) => {
-  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/schema/configuration`);
+export const expectGetConfigurationSchemaRequest = (httpTestingController: HttpTestingController, schema: unknown = {}, type?: string) => {
+  const queryParams = type ? `?type=${type}` : '';
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/schema/configuration${queryParams}`);
   expect(req.request.method).toEqual('GET');
   req.flush(schema);
 };

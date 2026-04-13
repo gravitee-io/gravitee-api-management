@@ -32,9 +32,9 @@ import { Cluster, UpdateCluster } from '../../../../../entities/management-api-v
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
-  selector: 'cluster-configuration',
-  templateUrl: './cluster-configuration.component.html',
-  styleUrls: ['./cluster-configuration.component.scss'],
+  selector: 'kafka-cluster-configuration',
+  templateUrl: './kafka-cluster-configuration.component.html',
+  styleUrls: ['./kafka-cluster-configuration.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -49,14 +49,14 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
     GioIconsModule,
   ],
 })
-export class ClusterConfigurationComponent implements OnInit {
+export class KafkaClusterConfigurationComponent implements OnInit {
   public initialCluster: Cluster;
   public configForm: FormGroup<{
     config: FormControl<unknown>;
   }>;
   public isLoadingData = true;
   public isReadOnly = false;
-  public securityJsonSchema: unknown;
+  public configurationJsonSchema: unknown;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
@@ -69,12 +69,12 @@ export class ClusterConfigurationComponent implements OnInit {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-configuration-u']);
     forkJoin([
       this.clusterService.get(this.activatedRoute.snapshot.params.clusterId),
-      this.clusterService.getConfigurationSchema('KAFKA_CLUSTER_CONNECTION'),
+      this.clusterService.getConfigurationSchema('KAFKA_CLUSTER'),
     ])
       .pipe(
         tap(([cluster, schema]) => {
           this.initialCluster = cluster;
-          this.securityJsonSchema = schema;
+          this.configurationJsonSchema = schema;
           this.isLoadingData = false;
 
           this.configForm = new FormGroup({
@@ -96,7 +96,7 @@ export class ClusterConfigurationComponent implements OnInit {
     this.clusterService
       .update(this.initialCluster.id, configToUpdate)
       .pipe(
-        tap(() => this.snackBarService.success('Cluster configuration successfully updated!')),
+        tap(() => this.snackBarService.success('Kafka Cluster configuration successfully updated!')),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
