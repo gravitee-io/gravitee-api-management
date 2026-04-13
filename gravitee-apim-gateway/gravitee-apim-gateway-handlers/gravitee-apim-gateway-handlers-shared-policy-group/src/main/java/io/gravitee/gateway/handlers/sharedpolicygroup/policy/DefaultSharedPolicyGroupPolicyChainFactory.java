@@ -30,8 +30,9 @@ import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import lombok.CustomLog;
 
 @CustomLog
@@ -65,28 +66,34 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     public HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
         final String key = getSharedPolicyGroupKey(sharedPolicyGroupPolicyId, environmentId, steps, phase);
         HttpPolicyChain policyChain = policyChains.get(key);
-
         if (policyChain == null) {
-            final List<HttpPolicy> policies = steps
-                .stream()
-                .filter(Step::isEnabled)
-                .filter(step -> {
-                    final boolean hasNestedSharedPolicyGroup = step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID);
-                    if (hasNestedSharedPolicyGroup) {
-                        log.warn("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored", step.getName());
-                    }
-                    return !hasNestedSharedPolicyGroup;
-                })
-                .map(this::buildPolicyMetadata)
-                .map(policyMetadata -> (HttpPolicy) policyManager.create(phase, policyMetadata))
-                .filter(Objects::nonNull)
-                .toList();
-
-            policyChain = new HttpPolicyChain(sharedPolicyGroupPolicyId, policies, phase);
-            policyChain.addHooks(policyHooks);
+            policyChain = buildPolicyChain(sharedPolicyGroupPolicyId, steps, phase);
             policyChains.put(key, policyChain);
         }
+        return policyChain;
+    }
 
+    private HttpPolicyChain buildPolicyChain(final String id, final List<Step> steps, final ExecutionPhase phase) {
+        final List<HttpPolicy> policies = new ArrayList<>(steps.size());
+        final Map<HttpPolicy, String> descriptions = new IdentityHashMap<>();
+        for (Step step : steps) {
+            if (!step.isEnabled()) continue;
+            if (step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID)) {
+                log.warn("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored", step.getName());
+            } else {
+                HttpPolicy policy = (HttpPolicy) policyManager.create(phase, buildPolicyMetadata(step));
+                if (policy != null) {
+                    policies.add(policy);
+                    String desc = step.getDescription();
+                    if (desc != null && !desc.isBlank()) descriptions.put(policy, desc);
+                }
+            }
+        }
+        HttpPolicyChain policyChain = new HttpPolicyChain(id, policies, phase);
+        policyChain.addHooks(policyHooks);
+        if (!descriptions.isEmpty()) {
+            policyChain.setPolicyDescriptions(descriptions);
+        }
         return policyChain;
     }
 
