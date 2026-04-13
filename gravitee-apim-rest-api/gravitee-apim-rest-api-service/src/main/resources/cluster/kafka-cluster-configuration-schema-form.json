@@ -311,7 +311,7 @@
       "items": {
         "$ref": "#/definitions/kafkaClusterConnection"
       },
-      "minItems": 1
+      "minItems": 0
     }
   },
   "required": ["connections"],

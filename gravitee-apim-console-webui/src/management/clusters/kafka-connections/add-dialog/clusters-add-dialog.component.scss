@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
 
-import { ClusterRoutingModule } from './cluster-routing.module';
-import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 500px;
+}
 
-@NgModule({
-  imports: [ClusterUserPermissionsComponent, ClusterRoutingModule],
-})
-export class ClusterModule {}
+.form-field {
+  width: 100%;
+}

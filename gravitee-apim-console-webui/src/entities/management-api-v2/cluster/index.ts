@@ -20,3 +20,4 @@ export * from './CreateCluster.fixture';
 export * from './UpdateCluster';
 export * from './UpdateCluster.fixture';
 export * from './ClustersSortByParam';
+export * from './ClusterTransferOwnership';

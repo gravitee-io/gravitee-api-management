@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-
-import { ClusterRoutingModule } from './cluster-routing.module';
-import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
-
-@NgModule({
-  imports: [ClusterUserPermissionsComponent, ClusterRoutingModule],
-})
-export class ClusterModule {}
+export interface TransferOwnership {
+  newPrimaryOwnerId: string;
+  userReference: string;
+  currentPrimaryOwnerNewRole: string;
+}

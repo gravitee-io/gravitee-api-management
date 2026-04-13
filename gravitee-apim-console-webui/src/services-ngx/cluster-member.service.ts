@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AddMember, Member, MembersResponse, UpdateMember } from 'src/entities/management-api-v2';
+import { AddMember, Member, MembersResponse, TransferOwnership, UpdateMember } from 'src/entities/management-api-v2';
 
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { TransferOwnership } from '../management/clusters/details/user-permissions/transfer-ownership/cluster-transfer-ownership-dialog.component';
 
 @Injectable({
   providedIn: 'root',

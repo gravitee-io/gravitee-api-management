@@ -135,14 +135,14 @@ class ValidateClusterServiceTest {
     }
 
     @Test
-    void should_throw_when_kafka_cluster_has_no_connections() {
+    void should_pass_when_kafka_cluster_has_empty_connections() {
         Cluster cluster = Cluster.builder()
             .type(ClusterType.KAFKA_CLUSTER)
             .name("my-kafka-cluster")
             .configuration(Map.of("connections", List.of()))
             .build();
 
-        assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
 
     @Test

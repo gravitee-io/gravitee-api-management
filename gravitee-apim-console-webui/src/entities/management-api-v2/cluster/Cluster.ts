@@ -20,13 +20,23 @@ export interface Cluster {
   type: ClusterType;
   name: string;
   description?: string;
-  configuration: KafkaClusterConfiguration;
+  configuration: KafkaClusterConnectionConfiguration | KafkaClusterConfiguration;
   updatedAt: Date;
   createdAt: Date;
   groups: string[];
 }
 
-export interface KafkaClusterConfiguration {
+export interface KafkaClusterConnectionConfiguration {
   bootstrapServers?: string;
   security?: unknown;
+}
+
+export interface KafkaClusterConnection {
+  name: string;
+  bootstrapServers?: string;
+  security?: unknown;
+}
+
+export interface KafkaClusterConfiguration {
+  connections?: KafkaClusterConnection[];
 }

@@ -18,11 +18,12 @@ import { KAFKA_EXPLORER_BASE_URL } from '@gravitee/gravitee-kafka-explorer';
 import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
-import { ClusterGeneralComponent } from './details/general/cluster-general.component';
-import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
-import { ClusterListComponent } from './list/cluster-list.component';
-import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
+import { ClusterNavigationComponent } from './kafka-connections/cluster-navigation/cluster-navigation.component';
+import { ClusterGeneralComponent } from './kafka-connections/details/general/cluster-general.component';
+import { ClusterConfigurationComponent } from './kafka-connections/details/configuration/cluster-configuration.component';
+import { ClusterListComponent } from './kafka-connections/list/cluster-list.component';
+import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
+import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
 import { ClusterGuard } from './cluster.guard';
 
 import { Constants } from '../../entities/Constants';
@@ -102,6 +103,17 @@ const clusterRoutes: Routes = [
         },
       },
     ],
+  },
+  {
+    path: 'kafka-clusters',
+    component: KafkaClusterListComponent,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
+    data: {
+      useAngularMaterial: true,
+      permissions: {
+        anyOf: ['environment-cluster-r'],
+      },
+    },
   },
 ];
 
