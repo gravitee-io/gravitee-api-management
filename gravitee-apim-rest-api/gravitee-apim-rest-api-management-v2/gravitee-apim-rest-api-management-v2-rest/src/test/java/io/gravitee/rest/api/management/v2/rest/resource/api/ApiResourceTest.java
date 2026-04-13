@@ -53,7 +53,9 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
             apiWorkflowStateService,
             roleService,
             apiDuplicatorService,
-            apiDuplicateService
+            apiDuplicateService,
+            updateApiDefinitionUseCase,
+            oaiToUpdateApiUseCase
         );
         GraviteeContext.cleanContext();
 

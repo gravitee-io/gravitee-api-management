@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import fakes.FakeApiImagesService;
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
@@ -34,22 +35,31 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -146,6 +156,77 @@ class ImportDefinitionUpdateDomainServiceTest {
     }
 
     @Test
+    public void should_preserve_existing_properties_when_proxy_api_updated_with_oas_import_having_no_properties() {
+        List<Property> existingProperties = new ArrayList<>(
+            List.of(Property.builder().key("existing-key").value("existing-value").build())
+        );
+        var baseProxyApi = ApiFixtures.aProxyApiV4();
+        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue()).setProperties(existingProperties);
+        var existingApi = baseProxyApi
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+        // OAS import produces no Gravitee-specific properties
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
+            .build();
+
+        var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
+
+        assertThat(updated).isNotNull();
+        assertThat(((io.gravitee.definition.model.v4.Api) updated.getApiDefinitionValue()).getProperties())
+            .usingRecursiveComparison()
+            .isEqualTo(existingProperties);
+    }
+
+    @Test
+    public void should_preserve_existing_properties_when_native_api_updated_with_oas_import_having_no_properties() {
+        List<Property> existingProperties = new ArrayList<>(
+            List.of(Property.builder().key("existing-key").value("existing-value").build())
+        );
+        var baseNativeApi = ApiFixtures.aNativeApi();
+        ((NativeApi) baseNativeApi.getApiDefinitionValue()).setProperties(existingProperties);
+        var existingApi = baseNativeApi
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+        var apiExport = ApiExport.builder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .name("updated name")
+            .type(ApiType.NATIVE)
+            // No properties — simulating OAS import
+            .build();
+
+        when(
+            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                any(),
+                any(),
+                any(),
+                eq(TARGET_ENVIRONMENT_ID),
+                eq(ORGANIZATION_ID)
+            )
+        ).thenAnswer(invocation -> invocation.getArgument(1));
+
+        var importDefinition = ImportDefinition.builder().apiExport(apiExport).build();
+
+        var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
+
+        assertThat(updated).isNotNull();
+        assertThat(updated.getApiDefinitionNativeV4().getProperties()).usingRecursiveComparison().isEqualTo(existingProperties);
+    }
+
+    @Test
     void should_throw_an_exception_when_api_not_supported() {
         var existingApi = ApiFixtures.aLLMProxyApiV4().toBuilder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).build();
         var importDefinition = ImportDefinition.builder()
@@ -217,6 +298,159 @@ class ImportDefinitionUpdateDomainServiceTest {
         assertThat(apiImagesService.apiPictures.get(PROMOTED_API_ID)).isEqualTo(picture);
         assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
         assertNativeApiMatchExport(updated, apiExport);
+    }
+
+    @Nested
+    class PlansUpsert {
+
+        private final PlanWithFlows anApiKeyPlan = PlanWithFlows.builder()
+            .crossId("api-key-cross-id")
+            .name("API Key Plan")
+            .apiId(PROMOTED_API_ID)
+            .type(Plan.PlanType.API)
+            .referenceType(Plan.ReferenceType.API)
+            .referenceId(PROMOTED_API_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .definitionVersion(DefinitionVersion.V4)
+            .planDefinitionHttpV4(
+                io.gravitee.definition.model.v4.plan.Plan.builder()
+                    .security(PlanSecurity.builder().type("api-key").build())
+                    .mode(PlanMode.STANDARD)
+                    .build()
+            )
+            .flows(List.of())
+            .build();
+
+        @BeforeEach
+        void stubApiService() {
+            when(apiService.update(any(), eq(PROMOTED_API_ID), any(), any(Boolean.class), any())).thenAnswer(inv ->
+                io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(PROMOTED_API_ID).name("api name").apiVersion("1.0").build()
+            );
+        }
+
+        @Test
+        void should_create_plan_when_not_present_in_saved_plans() {
+            var existingApi = ApiFixtures.aProxyApiV4()
+                .toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
+            apiCrudServiceInMemory.initWith(List.of(existingApi));
+            apiQueryServiceInMemory.initWith(List.of(existingApi));
+            // no saved plans
+
+            var importDefinition = ImportDefinition.builder()
+                .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("api name").build())
+                .plans(Set.of(anApiKeyPlan))
+                .build();
+
+            service.update(importDefinition, existingApi, AUDIT_INFO);
+
+            var savedPlans = importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
+                PROMOTED_API_ID
+            );
+            assertThat(savedPlans)
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    assertThat(p.getCrossId()).isEqualTo("api-key-cross-id");
+                    assertThat(p.getName()).isEqualTo("API Key Plan");
+                    assertThat(p.getApiId()).isEqualTo(PROMOTED_API_ID);
+                });
+        }
+
+        @Test
+        void should_update_plan_when_matching_by_crossId() {
+            var existingApi = ApiFixtures.aProxyApiV4()
+                .toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
+            apiCrudServiceInMemory.initWith(List.of(existingApi));
+            apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+            var savedPlan = PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .crossId("api-key-cross-id")
+                .apiId(PROMOTED_API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(PROMOTED_API_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .name("Old Name")
+                .build();
+            importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.initWith(List.of(savedPlan));
+            importDefinitionUpdateInitializer.planDomainServiceInitializer.planQueryServiceInMemory.initWith(List.of(savedPlan));
+
+            var incomingPlan = anApiKeyPlan.toBuilder().id(savedPlan.getId()).name("Updated Name").build();
+            var importDefinition = ImportDefinition.builder()
+                .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("api name").build())
+                .plans(Set.of(incomingPlan))
+                .build();
+
+            service.update(importDefinition, existingApi, AUDIT_INFO);
+
+            var savedPlans = importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
+                PROMOTED_API_ID
+            );
+            assertThat(savedPlans)
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    assertThat(p.getId()).isEqualTo(savedPlan.getId());
+                    assertThat(p.getCrossId()).isEqualTo("api-key-cross-id");
+                    assertThat(p.getName()).isEqualTo("Updated Name");
+                });
+        }
+
+        @Test
+        void should_delete_plan_absent_from_import_definition() {
+            var existingApi = ApiFixtures.aProxyApiV4()
+                .toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
+            apiCrudServiceInMemory.initWith(List.of(existingApi));
+            apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+            var planToKeep = PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .crossId("api-key-cross-id")
+                .apiId(PROMOTED_API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(PROMOTED_API_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
+            var planToDelete = PlanFixtures.HttpV4.aKeyless()
+                .toBuilder()
+                .crossId("keyless-to-delete")
+                .apiId(PROMOTED_API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(PROMOTED_API_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
+            importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.initWith(
+                List.of(planToKeep, planToDelete)
+            );
+            importDefinitionUpdateInitializer.planDomainServiceInitializer.planQueryServiceInMemory.initWith(
+                List.of(planToKeep, planToDelete)
+            );
+
+            // import only contains planToKeep — planToDelete is absent
+            var importDefinition = ImportDefinition.builder()
+                .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("api name").build())
+                .plans(Set.of(anApiKeyPlan.toBuilder().id(planToKeep.getId()).build()))
+                .build();
+
+            service.update(importDefinition, existingApi, AUDIT_INFO);
+
+            var savedPlans = importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
+                PROMOTED_API_ID
+            );
+            assertThat(savedPlans).hasSize(1).extracting(Plan::getCrossId).containsOnly("api-key-cross-id");
+        }
     }
 
     private static void assertNativeApiMatchExport(Api api, ApiExport apiExport) {
