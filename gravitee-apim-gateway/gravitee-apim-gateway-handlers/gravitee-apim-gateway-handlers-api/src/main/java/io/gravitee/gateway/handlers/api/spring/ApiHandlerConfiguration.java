@@ -306,7 +306,8 @@ public class ApiHandlerConfiguration {
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        ReporterService reporterService
     ) {
         return new TcpApiReactorFactory(
             configuration,
@@ -317,7 +318,8 @@ public class ApiHandlerConfiguration {
             openTelemetryConfiguration,
             openTelemetryFactory,
             instrumenterTracerFactories,
-            gatewayConfiguration
+            gatewayConfiguration,
+            reporterService
         );
     }
 }
