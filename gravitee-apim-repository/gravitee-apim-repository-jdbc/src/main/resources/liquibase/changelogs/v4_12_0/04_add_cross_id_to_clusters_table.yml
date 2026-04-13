@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_04_add_cross_id_to_clusters_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}clusters
+            columns:
+              - column:
+                  name: cross_id
+                  type: nvarchar(256)

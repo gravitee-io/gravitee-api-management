@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import inmemory.ClusterQueryServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
@@ -37,12 +38,19 @@ import org.junit.jupiter.api.Test;
 class ValidateClusterServiceTest {
 
     private ValidateClusterService validateClusterService;
+    private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
 
     @BeforeEach
     void setUp() {
         JsonSchemaChecker jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
         ClusterConfigurationSchemaService clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
-        validateClusterService = new ValidateClusterService(jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper());
+        validateClusterService = new ValidateClusterService(
+            jsonSchemaChecker,
+            clusterConfigurationSchemaService,
+            new ObjectMapper(),
+            clusterQueryService
+        );
+        clusterQueryService.reset();
     }
 
     private static Map<String, Object> validConfig() {
@@ -188,5 +196,182 @@ class ValidateClusterServiceTest {
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
             .isInstanceOf(InvalidDataException.class)
             .hasMessageContaining("Connection names must be unique");
+    }
+
+    @Test
+    void should_throw_when_crossId_is_not_unique_in_environment() {
+        Cluster existingCluster = Cluster.builder()
+            .id("existing-id")
+            .crossId("my-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+        clusterQueryService.initWith(List.of(existingCluster));
+
+        Cluster newCluster = Cluster.builder()
+            .id("new-id")
+            .crossId("my-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster 2")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validateForCreate(newCluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("A cluster with crossId 'my-cluster' already exists");
+    }
+
+    @Test
+    void should_pass_when_crossId_is_unique_in_environment() {
+        Cluster existingCluster = Cluster.builder()
+            .id("existing-id")
+            .crossId("my-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+        clusterQueryService.initWith(List.of(existingCluster));
+
+        Cluster newCluster = Cluster.builder()
+            .id("new-id")
+            .crossId("my-other-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Other Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        assertThatCode(() -> validateClusterService.validateForCreate(newCluster)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_pass_when_same_crossId_in_different_environment() {
+        Cluster existingCluster = Cluster.builder()
+            .id("existing-id")
+            .crossId("my-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+        clusterQueryService.initWith(List.of(existingCluster));
+
+        Cluster newCluster = Cluster.builder()
+            .id("new-id")
+            .crossId("my-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-2")
+            .configuration(validConfig())
+            .build();
+
+        assertThatCode(() -> validateClusterService.validateForCreate(newCluster)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_throw_when_crossId_is_empty() {
+        Cluster cluster = Cluster.builder()
+            .id("new-id")
+            .crossId("")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validateForCreate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("CrossId is required.");
+    }
+
+    @Test
+    void should_throw_when_kafka_cluster_has_duplicate_connection_crossIds() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(
+                Map.of(
+                    "connections",
+                    List.of(
+                        Map.of(
+                            "crossId",
+                            "same-cross-id",
+                            "name",
+                            "conn-1",
+                            "bootstrapServers",
+                            "kafka1:9092",
+                            "security",
+                            Map.of("protocol", "PLAINTEXT")
+                        ),
+                        Map.of(
+                            "crossId",
+                            "same-cross-id",
+                            "name",
+                            "conn-2",
+                            "bootstrapServers",
+                            "kafka2:9092",
+                            "security",
+                            Map.of("protocol", "PLAINTEXT")
+                        )
+                    )
+                )
+            )
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("Connection crossIds must be unique within a cluster");
+    }
+
+    @Test
+    void should_throw_when_crossId_is_changed_on_update() {
+        Cluster existingCluster = Cluster.builder()
+            .id("cluster-id")
+            .crossId("original-cross-id")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        Cluster updatedCluster = Cluster.builder()
+            .id("cluster-id")
+            .crossId("modified-cross-id")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validateForUpdate(existingCluster, updatedCluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("CrossId is immutable");
+    }
+
+    @Test
+    void should_pass_when_crossId_is_unchanged_on_update() {
+        Cluster existingCluster = Cluster.builder()
+            .id("cluster-id")
+            .crossId("my-cross-id")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        Cluster updatedCluster = Cluster.builder()
+            .id("cluster-id")
+            .crossId("my-cross-id")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("Updated Name")
+            .environmentId("env-1")
+            .configuration(validConfig())
+            .build();
+
+        assertThatCode(() -> validateClusterService.validateForUpdate(existingCluster, updatedCluster)).doesNotThrowAnyException();
     }
 }

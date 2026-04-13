@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterCrudServiceInMemory;
+import inmemory.ClusterQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -55,8 +56,10 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     private final String ROLE_ID = "role-id";
 
     private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
+    private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
     private final MembershipCrudService membershipCrudService = new MembershipCrudServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private CreateClusterUseCase createClusterUseCase;
 
@@ -64,15 +67,22 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     void setUp() {
         var jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
         var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
-        var validateClusterService = new ValidateClusterService(jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper());
+        var validateClusterService = new ValidateClusterService(
+            jsonSchemaChecker,
+            clusterConfigurationSchemaService,
+            objectMapper,
+            clusterQueryService
+        );
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         createClusterUseCase = new CreateClusterUseCase(
             clusterCrudService,
             validateClusterService,
             auditService,
             membershipCrudService,
-            roleQueryService
+            roleQueryService,
+            objectMapper
         );
+        clusterQueryService.reset();
         initRoles();
     }
 
@@ -89,6 +99,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         // Then
         var expected = Cluster.builder()
             .id(GENERATED_UUID)
+            .crossId("cluster-1")
             .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
             .name(name)
             .createdAt(INSTANT_NOW)
@@ -195,7 +206,82 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         // Then
         assertThat(output.cluster().getType()).isEqualTo(ClusterType.KAFKA_CLUSTER);
         assertThat(output.cluster().getName()).isEqualTo(name);
-        assertThat(output.cluster().getConfiguration()).isEqualTo(configuration);
+        assertThat(output.cluster().getCrossId()).isEqualTo("kafka-cluster");
+        var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
+        var connections = (List<Map<String, Object>>) config.get("connections");
+        assertThat(connections).hasSize(1);
+        assertThat(connections.get(0).get("crossId")).isEqualTo("conn-1");
+        assertThat(connections.get(0).get("name")).isEqualTo("conn-1");
+    }
+
+    @Test
+    void should_create_with_explicit_crossId() {
+        String name = "Cluster 1";
+        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        var toCreate = CreateCluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .crossId("custom-cross-id")
+            .name(name)
+            .configuration(configuration)
+            .build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.cluster().getCrossId()).isEqualTo("custom-cross-id");
+    }
+
+    @Test
+    void should_generate_crossId_from_name_when_not_provided() {
+        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        var toCreate = CreateCluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Super Cluster!!")
+            .configuration(configuration)
+            .build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.cluster().getCrossId()).isEqualTo("my-super-cluster");
+    }
+
+    @Test
+    void should_throw_when_crossId_already_exists_in_environment() {
+        Cluster existingCluster = Cluster.builder()
+            .id("existing-id")
+            .crossId("my-cluster")
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
+            .build();
+        clusterQueryService.initWith(List.of(existingCluster));
+
+        var toCreate = CreateCluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .crossId("my-cluster")
+            .name("Another Cluster")
+            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
+            .build();
+
+        Assertions.assertThatThrownBy(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("A cluster with crossId 'my-cluster' already exists");
+    }
+
+    @Test
+    void should_generate_connection_crossIds_for_kafka_cluster() {
+        Object configuration = Map.of(
+            "connections",
+            List.of(Map.of("name", "Primary Connection", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
+        );
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name("Kafka Cluster").configuration(configuration).build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
+        var connections = (List<Map<String, Object>>) config.get("connections");
+        assertThat(connections.get(0).get("crossId")).isEqualTo("primary-connection");
     }
 
     private void initRoles() {

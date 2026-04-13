@@ -25,7 +25,7 @@ import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
 export type KafkaClustersAddDialogData = undefined;
-export type KafkaClustersAddDialogResult = undefined | { name: string; description?: string };
+export type KafkaClustersAddDialogResult = undefined | { name: string; crossId?: string; description?: string };
 
 @Component({
   selector: 'kafka-clusters-add-dialog',
@@ -37,6 +37,7 @@ export type KafkaClustersAddDialogResult = undefined | { name: string; descripti
 export class KafkaClustersAddDialogComponent {
   protected formGroup: FormGroup<{
     name: FormControl<string>;
+    crossId: FormControl<string>;
     description: FormControl<string>;
   }>;
   protected isValid$: Observable<boolean>;
@@ -44,6 +45,7 @@ export class KafkaClustersAddDialogComponent {
   constructor(public dialogRef: MatDialogRef<KafkaClustersAddDialogComponent, KafkaClustersAddDialogResult>) {
     this.formGroup = new FormGroup({
       name: new FormControl('', Validators.required),
+      crossId: new FormControl(''),
       description: new FormControl(''),
     });
 
@@ -59,6 +61,7 @@ export class KafkaClustersAddDialogComponent {
     }
     this.dialogRef.close({
       name: this.formGroup.get('name').value,
+      crossId: this.formGroup.get('crossId').value || undefined,
       description: this.formGroup.get('description').value,
     });
   }

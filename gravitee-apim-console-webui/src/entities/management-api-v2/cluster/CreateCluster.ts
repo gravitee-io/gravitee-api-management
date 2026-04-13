@@ -15,4 +15,4 @@
  */
 import { Cluster } from './Cluster';
 
-export type CreateCluster = Pick<Cluster, 'type' | 'name' | 'description' | 'configuration'>;
+export type CreateCluster = Pick<Cluster, 'type' | 'name' | 'description' | 'configuration'> & { crossId?: string };

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.cluster.use_case;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -24,12 +25,17 @@ import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterType;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConnection;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 
@@ -41,6 +47,7 @@ public class UpdateClusterUseCase {
     private final ValidateClusterService validateClusterService;
     private final AuditDomainService auditService;
     private final PermissionDomainService permissionDomainService;
+    private final ObjectMapper objectMapper;
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
@@ -61,15 +68,48 @@ public class UpdateClusterUseCase {
             input.updateCluster().setConfiguration(null);
         }
 
+        if (input.updateCluster().getConfiguration() != null && clusterToUpdate.getType() == ClusterType.KAFKA_CLUSTER) {
+            input.updateCluster().setConfiguration(generateConnectionCrossIds(input.updateCluster().getConfiguration()));
+        }
+
+        Cluster existingClusterSnapshot = Cluster.builder()
+            .id(clusterToUpdate.getId())
+            .crossId(clusterToUpdate.getCrossId())
+            .type(clusterToUpdate.getType())
+            .name(clusterToUpdate.getName())
+            .environmentId(clusterToUpdate.getEnvironmentId())
+            .organizationId(clusterToUpdate.getOrganizationId())
+            .build();
+
         clusterToUpdate.update(input.updateCluster());
 
-        validateClusterService.validate(clusterToUpdate);
+        validateClusterService.validateForUpdate(existingClusterSnapshot, clusterToUpdate);
 
         Cluster updatedCluster = clusterCrudService.update(clusterToUpdate);
 
         createAuditLog(clusterToUpdate, updatedCluster, input.auditInfo());
 
         return new Output(updatedCluster);
+    }
+
+    private Object generateConnectionCrossIds(Object configuration) {
+        var config = objectMapper.convertValue(configuration, KafkaClusterConfiguration.class);
+        if (config.connections() == null || config.connections().isEmpty()) {
+            return configuration;
+        }
+        List<KafkaClusterConnection> updatedConnections = config
+            .connections()
+            .stream()
+            .map(conn ->
+                new KafkaClusterConnection(
+                    StringUtils.isEmpty(conn.crossId()) ? StringUtils.slugify(conn.name()) : conn.crossId(),
+                    conn.name(),
+                    conn.bootstrapServers(),
+                    conn.security()
+                )
+            )
+            .toList();
+        return objectMapper.convertValue(new KafkaClusterConfiguration(updatedConnections), Object.class);
     }
 
     private void createAuditLog(Cluster clusterBeforeUpdate, Cluster updatedCluster, AuditInfo auditInfo) {

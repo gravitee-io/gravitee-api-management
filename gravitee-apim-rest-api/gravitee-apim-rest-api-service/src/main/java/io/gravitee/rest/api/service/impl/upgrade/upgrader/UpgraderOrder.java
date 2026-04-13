@@ -66,6 +66,7 @@ public class UpgraderOrder {
     public static final int TENANT_KEY_UPGRADER = 717;
     public static final int SUBSCRIPTION_FORM_CONSTRAINTS_UPGRADER = 718;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
+    public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
     public static final int API_PRODUCT_ROLES_UPGRADER = 950;
     public static final int API_PRODUCT_MEMBER_PERMISSION_UPGRADER = 951;

@@ -572,4 +572,9 @@ public class InMemoryConfiguration {
     public SubscriptionFormElResolverInMemory subscriptionFormElResolver() {
         return new SubscriptionFormElResolverInMemory();
     }
+
+    @Bean
+    public ClusterQueryServiceInMemory clusterQueryService() {
+        return new ClusterQueryServiceInMemory();
+    }
 }

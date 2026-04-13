@@ -1394,6 +1394,9 @@ components:
       properties:
         type:
           $ref: "#/components/schemas/ClusterType"
+        crossId:
+          type: string
+          description: Portable identifier for cross-environment references. Auto-generated from name if not provided.
         name:
           type: string
         description:
@@ -1406,6 +1409,9 @@ components:
       properties:
         id:
           type: string
+        crossId:
+          type: string
+          description: Portable identifier for cross-environment references. Immutable after creation.
         type:
           $ref: "#/components/schemas/ClusterType"
         createdAt:

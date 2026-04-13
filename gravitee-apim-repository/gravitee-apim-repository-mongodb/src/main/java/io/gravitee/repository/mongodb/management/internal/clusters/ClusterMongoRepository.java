@@ -22,6 +22,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClusterMongoRepository extends MongoRepository<ClusterMongo, String>, ClusterMongoRepositoryCustom {
+    ClusterMongo findByCrossIdAndEnvironmentId(String crossId, String environmentId);
+
     @Query(value = "{ 'environmentId': ?0 }", delete = true)
     void deleteByEnvironmentId(String environmentId);
 

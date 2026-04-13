@@ -29,6 +29,7 @@ export class KafkaClustersAddDialogHarness extends ComponentHarness {
 
   protected _title = this.locatorForOptional(MatDialogSection.TITLE);
   protected nameInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+  protected crossIdInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="crossId"]' }));
   protected descriptionInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="description"]' }));
 
   public async cancel(): Promise<void> {
@@ -41,6 +42,13 @@ export class KafkaClustersAddDialogHarness extends ComponentHarness {
   }
   public async getName() {
     return await this.nameInput().then(input => input.getValue());
+  }
+
+  public async setCrossId(text: string) {
+    await this.crossIdInput().then(input => input.setValue(text));
+  }
+  public async getCrossId() {
+    return await this.crossIdInput().then(input => input.getValue());
   }
 
   public async setDescription(text: string) {

@@ -166,6 +166,29 @@ describe('KafkaClusterListComponent', () => {
       type: 'KAFKA_CLUSTER',
       name: 'New Kafka Cluster',
       description: 'A new kafka cluster',
+      crossId: undefined,
+      configuration: {
+        connections: [],
+      },
+    });
+  });
+
+  it('should create a new kafka cluster with explicit crossId', async () => {
+    await componentHarness.clickAddButton();
+
+    const dialogHarness = await rootLoader.getHarness(KafkaClustersAddDialogHarness);
+
+    await dialogHarness.setName('New Kafka Cluster');
+    await dialogHarness.setCrossId('my-custom-cross-id');
+    await dialogHarness.setDescription('A new kafka cluster');
+
+    await dialogHarness.create();
+
+    expectCreateClusterRequest(httpTestingController, {
+      type: 'KAFKA_CLUSTER',
+      crossId: 'my-custom-cross-id',
+      name: 'New Kafka Cluster',
+      description: 'A new kafka cluster',
       configuration: {
         connections: [],
       },

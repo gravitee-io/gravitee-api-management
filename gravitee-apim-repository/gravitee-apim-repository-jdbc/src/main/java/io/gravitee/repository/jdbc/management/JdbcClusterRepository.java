@@ -61,6 +61,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
     protected JdbcObjectMapper<Cluster> buildOrm() {
         return JdbcObjectMapper.builder(Cluster.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Instant.class)
             .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
@@ -117,6 +118,23 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             log.error("Failed to update cluster:", ex);
             throw new TechnicalException("Failed to update cluster", ex);
         }
+    }
+
+    @Override
+    public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
+        log.debug("JdbcClusterRepository.findByCrossIdAndEnvironmentId({}, {})", crossId, environmentId);
+        var result = jdbcTemplate.query(
+            getOrm().getSelectAllSql() + " WHERE cross_id = ? AND environment_id = ?",
+            getOrm().getRowMapper(),
+            crossId,
+            environmentId
+        );
+        if (result.isEmpty()) {
+            return Optional.empty();
+        }
+        Cluster cluster = result.get(0);
+        addGroups(cluster);
+        return Optional.of(cluster);
     }
 
     @Override

@@ -1,6 +1,7 @@
 [
   {
     "id": "cluster-id-1",
+    "crossId": "cluster-1",
     "createdAt": 1753711100,
     "environmentId": "env-1",
     "organizationId": "org-1",
@@ -11,6 +12,7 @@
   },
   {
     "id": "cluster-id-2",
+    "crossId": "cluster-no-2",
     "createdAt": 1753711100,
     "environmentId": "env-1",
     "organizationId": "org-1",
@@ -20,6 +22,7 @@
   },
   {
     "id": "cluster-id-3",
+    "crossId": "3-cluster",
     "createdAt": 1753711100,
     "environmentId": "env-2",
     "organizationId": "org-1",
@@ -29,6 +32,7 @@
   },
   {
     "id": "cluster-id-4",
+    "crossId": "cluster-4",
     "createdAt": 1753711100,
     "environmentId": "env-2",
     "organizationId": "org-1",
@@ -38,6 +42,7 @@
   },
   {
     "id": "cluster-id-5",
+    "crossId": "no-5-cluster",
     "createdAt": 1753711100,
     "environmentId": "env-3",
     "organizationId": "org-2",
@@ -47,6 +52,7 @@
   },
   {
     "id": "cluster-id-6",
+    "crossId": "cluster-6",
     "createdAt": 1753711100,
     "environmentId": "env-3",
     "organizationId": "org-2",
@@ -56,6 +62,7 @@
   },
   {
     "id": "cluster-id-7",
+    "crossId": "cluster-7",
     "createdAt": 1753711100,
     "environmentId": "env-2",
     "organizationId": "org-1",
@@ -65,6 +72,7 @@
   },
   {
     "id": "cluster-id-8",
+    "crossId": "8-cluster",
     "createdAt": 1753711100,
     "environmentId": "env-1",
     "organizationId": "org-1",
@@ -74,6 +82,7 @@
   },
   {
     "id": "cluster-id-9",
+    "crossId": "cluster-9",
     "createdAt": 1753711100,
     "environmentId": "env-2",
     "organizationId": "org-1",
@@ -83,6 +92,7 @@
   },
   {
     "id": "cluster-id-10",
+    "crossId": "cluster-10",
     "createdAt": 1753711100,
     "environmentId": "env-1",
     "organizationId": "org-1",

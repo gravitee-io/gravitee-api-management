@@ -24,4 +24,5 @@ import java.util.Optional;
 
 public interface ClusterQueryService {
     Page<Cluster> search(ClusterSearchCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
+    Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId);
 }

@@ -27,6 +27,8 @@ import java.util.Set;
 public interface ClusterRepository extends CrudRepository<Cluster, String> {
     Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
 
+    Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId);
+
     void updateGroups(String clusterId, Set<String> groups);
 
     void deleteByEnvironmentId(String environmentId) throws TechnicalException;

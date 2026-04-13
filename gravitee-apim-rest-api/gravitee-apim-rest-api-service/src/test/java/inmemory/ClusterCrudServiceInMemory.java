@@ -63,6 +63,7 @@ public class ClusterCrudServiceInMemory extends AbstractCrudServiceInMemory<Clus
             Cluster cluster = storage.get(index.getAsInt());
             Cluster updatedCluster = Cluster.builder()
                 .id(cluster.getId())
+                .crossId(cluster.getCrossId())
                 .name(cluster.getName())
                 .description(cluster.getDescription())
                 .environmentId(cluster.getEnvironmentId())

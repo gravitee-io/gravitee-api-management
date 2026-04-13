@@ -31,6 +31,7 @@ import lombok.Setter;
 public class Cluster {
 
     private String id;
+    private String crossId;
     private Instant createdAt;
     private Instant updatedAt;
     private String environmentId;
