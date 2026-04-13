@@ -15,8 +15,13 @@
  */
 package io.gravitee.apim.plugin.apiservice.healthcheck.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import static io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthCheckService.HTTP_HEALTH_CHECK_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -29,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -55,6 +61,7 @@ import io.vertx.rxjava3.core.Vertx;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -432,6 +439,45 @@ public class HttpHealthCheckServiceTest {
         private Configuration configuration;
 
         @Test
+        public void buildRequestOptions_should_use_configured_Host_header_value_for_RequestOptions_host() throws Exception {
+            // Unit test for buildRequestOptions (APIM-13512).
+            // RequestOptions.host controls the HTTP/2 ":authority" pseudo-header AND is the fallback for the
+            // HTTP/1.1 "Host" header when the headers map does not already contain one.
+            // When the user configures "Host: custom-host.example.com" in the HC headers, RequestOptions.host
+            // must be updated to that value; otherwise HTTP/2 traffic reaches the backend with the wrong authority.
+            //
+            // With the current bug: setHost(target.getHost()) is called after copying user headers,
+            // so RequestOptions.host is always the target URL's host — the custom Host is silently ignored.
+            // After the fix: when user headers contain a "Host" entry, RequestOptions.host must equal that value.
+            when(deploymentContext.getComponent(Api.class)).thenReturn(api);
+
+            hcConfig.setTarget("http://actual-backend.example.com:8080/health");
+            hcConfig.setAssertion("{#response.status == 200}");
+            hcConfig.setMethod(HttpMethod.GET);
+            hcConfig.setHeaders(List.of(new HttpHeader("Host", "custom-host.example.com")));
+
+            final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfig, deploymentContext);
+
+            final HttpHealthCheckService cut = new HttpHealthCheckService(api, deploymentContext, gatewayConfig);
+
+            // Access the private buildRequestOptions via reflection.
+            java.lang.reflect.Method method = HttpHealthCheckService.class.getDeclaredMethod(
+                "buildRequestOptions",
+                io.gravitee.gateway.reactive.api.context.ExecutionContext.class,
+                HttpHealthCheckServiceConfiguration.class
+            );
+            method.setAccessible(true);
+            io.vertx.core.http.RequestOptions options = (io.vertx.core.http.RequestOptions) method.invoke(cut, ctx, hcConfig);
+
+            // Bug: options.getHost() returns "actual-backend.example.com" because setHost(target.getHost())
+            // overwrites any previously stored host — the custom "Host" header value is never applied.
+            // After fix: options.getHost() must equal "custom-host.example.com".
+            Assertions.assertThat(options.getHost())
+                .as("RequestOptions.host must equal the user-configured Host header value")
+                .isEqualTo("custom-host.example.com");
+        }
+
+        @Test
         public void should_call_target_using_instance_of_httpClient() throws Exception {
             when(deploymentContext.getComponent(Api.class)).thenReturn(api);
             when(deploymentContext.getComponent(Node.class)).thenReturn(node);
@@ -494,6 +540,70 @@ public class HttpHealthCheckServiceTest {
                         reportable.isSuccess()
                 )
             );
+        }
+
+        @Test
+        public void should_send_custom_host_header_when_configured() throws Exception {
+            // The Host header explicitly configured in the health check must be sent to the backend.
+            // Bug (APIM-13512): buildRequestOptions() calls requestOptions.setHost(target.getHost()) AFTER
+            // copying user headers, so the custom Host value is overwritten by the target URL's host.
+            when(deploymentContext.getComponent(Api.class)).thenReturn(api);
+            when(deploymentContext.getComponent(Node.class)).thenReturn(node);
+            when(deploymentContext.getComponent(ReporterService.class)).thenReturn(reporterService);
+            when(deploymentContext.getComponent(AlertEventProducer.class)).thenReturn(alertEventProducer);
+            when(deploymentContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
+            when(deploymentContext.getComponent(Configuration.class)).thenReturn(configuration);
+
+            // Stub responds to any GET /health — we verify the Host header in the main thread after the run.
+            wiremock.stubFor(get("/health").willReturn(ok()));
+
+            hcConfig.setTarget("http://localhost:" + wiremock.getPort() + "/health");
+            hcConfig.setSchedule("* * * * * *");
+            hcConfig.setAssertion("{#response.status == 200}");
+            hcConfig.setMethod(HttpMethod.GET);
+            hcConfig.setSuccessThreshold(1);
+            hcConfig.setFailureThreshold(1);
+            // Configure a custom Host header — it must override the host derived from the target URL.
+            hcConfig.setHeaders(List.of(new HttpHeader("Host", "custom-host.example.com")));
+
+            when(pluginConfigurationHelper.readConfiguration(any(), any())).thenReturn(hcConfig);
+
+            final var services = new EndpointServices();
+            when(endpoint.getServices()).thenReturn(services);
+            when(endpoint.getType()).thenReturn(ENDPOINT_TYPE);
+            when(endpoint.getName()).thenReturn(ENDPOINT_NAME);
+
+            final var managedEndpoint = new DefaultManagedEndpoint(endpoint, managedEndpointGroup, endpointConnector);
+            when(endpointManager.all()).thenReturn(List.of(managedEndpoint));
+
+            final Service healthCheck = new Service();
+            healthCheck.setEnabled(true);
+            healthCheck.setOverrideConfiguration(true);
+            healthCheck.setType(HTTP_HEALTH_CHECK_TYPE);
+            services.setHealthCheck(healthCheck);
+
+            when(managedEndpointGroup.getDefinition()).thenReturn(new EndpointGroup());
+
+            // Wait for at least one health check run.
+            CountDownLatch latch = new CountDownLatch(1);
+            doAnswer(invoker -> {
+                latch.countDown();
+                return null;
+            })
+                .when(reporterService)
+                .report(any());
+
+            final var cut = new HttpHealthCheckService(api, deploymentContext, gatewayConfig);
+            cut.start();
+
+            assertTrue(latch.await(10, TimeUnit.SECONDS), "Health check did not fire within timeout");
+            cut.stop();
+
+            // Verify the Host header that WireMock actually received.
+            // With the bug: setHost(target.getHost()) overwrites the configured header,
+            // so WireMock receives "Host: localhost:<port>" → this verify FAILS.
+            // After the fix: WireMock receives "Host: custom-host.example.com" → this verify PASSES.
+            wiremock.verify(getRequestedFor(urlEqualTo("/health")).withHeader("Host", equalTo("custom-host.example.com")));
         }
 
         @Test
