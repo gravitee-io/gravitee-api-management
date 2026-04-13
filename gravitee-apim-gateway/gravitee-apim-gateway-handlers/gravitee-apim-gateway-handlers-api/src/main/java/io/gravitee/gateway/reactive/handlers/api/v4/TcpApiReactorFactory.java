@@ -88,7 +88,8 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
             entrypointConnectorPluginManager,
             endpointManager,
             requestTimeoutConfiguration,
-            createTracingContext(api)
+            createTracingContext(api),
+            gatewayConfiguration
         );
     }
 

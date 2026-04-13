@@ -21,9 +21,12 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_CO
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_METHOD;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_SNI;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.CLIENT_IDENTIFIER_HEADER_PROPERTY;
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -40,6 +43,7 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.TcpEndpointInvoker;
+import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
@@ -48,6 +52,8 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.logging.LogEntry;
 import io.gravitee.node.logging.LogEntryFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.gravitee.reporter.api.v4.metric.NoopMetrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Optional;
@@ -76,6 +82,8 @@ public class TcpApiReactor extends AbstractApiReactor {
     private Lifecycle.State lifecycleState;
     private AnalyticsContext analyticsContext;
     private final TcpInvoker defaultInvoker;
+    private final GatewayConfiguration gatewayConfiguration;
+    private final String clientIdentifierHeader;
 
     public TcpApiReactor(
         Api api,
@@ -85,7 +93,8 @@ public class TcpApiReactor extends AbstractApiReactor {
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointManager endpointManager,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
-        TracingContext tracingContext
+        TracingContext tracingContext,
+        GatewayConfiguration gatewayConfiguration
     ) {
         super(
             configuration,
@@ -104,6 +113,12 @@ public class TcpApiReactor extends AbstractApiReactor {
             null
         );
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
+        this.gatewayConfiguration = gatewayConfiguration;
+        this.clientIdentifierHeader = configuration.getProperty(
+            CLIENT_IDENTIFIER_HEADER_PROPERTY,
+            String.class,
+            DEFAULT_CLIENT_IDENTIFIER_HEADER
+        );
     }
 
     @Override
@@ -122,12 +137,13 @@ public class TcpApiReactor extends AbstractApiReactor {
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
+        initMetrics(ctx);
+        prepareMetrics(ctx);
 
         // TODO specific Tcp API Request processor chain factory that contains SubscriptionProcessor in beforeApi chain
         return new CompletableReactorChain(handleEntrypointRequest(ctx))
-            // configure backend call
+            .chainWith(SubscriptionProcessor.instance(clientIdentifierHeader).execute(ctx))
             .chainWith(defaultInvoker.invoke(ctx))
-            // setup timeout
             .chainWith(upstream -> timeout(upstream, ctx))
             // handle response
             .chainWith(handleEntrypointResponse(ctx))
@@ -135,6 +151,36 @@ public class TcpApiReactor extends AbstractApiReactor {
             .chainWith(ctx.response().end(ctx))
             .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
             .doFinally(pendingRequests::decrementAndGet);
+    }
+
+    private void initMetrics(MutableExecutionContext ctx) {
+        if (!analyticsContext.isEnabled()) {
+            ctx.metrics(new NoopMetrics());
+            return;
+        }
+        var request = ctx.request();
+        Metrics.MetricsBuilder<?, ?> builder = Metrics.builder()
+            .timestamp(request.timestamp())
+            .requestId(request.id())
+            .transactionId(request.transactionId())
+            .remoteAddress(request.remoteAddress())
+            .localAddress(request.localAddress())
+            .host(request.host());
+        gatewayConfiguration.tenant().ifPresent(builder::tenant);
+        gatewayConfiguration.zone().ifPresent(builder::zone);
+        ctx.metrics(builder.enabled(true).build());
+    }
+
+    private void prepareMetrics(MutableExecutionContext ctx) {
+        Metrics metrics = ctx.metrics();
+        if (!metrics.isEnabled()) {
+            return;
+        }
+        metrics.setApiId(api.getId());
+        metrics.setApiName(api.getName());
+        metrics.setApiType(api.getDefinition().getType().getLabel());
+        metrics.setOrganizationId(api.getOrganizationId());
+        metrics.setEnvironmentId(api.getEnvironmentId());
     }
 
     @Override

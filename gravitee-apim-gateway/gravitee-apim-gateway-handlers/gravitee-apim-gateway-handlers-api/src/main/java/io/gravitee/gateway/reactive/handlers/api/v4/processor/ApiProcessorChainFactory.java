@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.processor;
 
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.CLIENT_IDENTIFIER_HEADER_PROPERTY;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.definition.model.Cors;
@@ -69,7 +70,7 @@ public class ApiProcessorChainFactory {
         this.configuration = configuration;
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
         this.clientIdentifierHeader = configuration.getProperty(
-            "handlers.request.client.header",
+            CLIENT_IDENTIFIER_HEADER_PROPERTY,
             String.class,
             DEFAULT_CLIENT_IDENTIFIER_HEADER
         );

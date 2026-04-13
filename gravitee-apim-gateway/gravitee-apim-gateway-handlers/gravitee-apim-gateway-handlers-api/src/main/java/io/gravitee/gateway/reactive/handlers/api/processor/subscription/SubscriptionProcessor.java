@@ -47,6 +47,7 @@ public class SubscriptionProcessor implements Processor {
 
     public static final String ID = "processor-subscription";
     public static final String ATTR_API_PRODUCT = ExecutionContext.ATTR_PREFIX + "apiProduct";
+    public static final String CLIENT_IDENTIFIER_HEADER_PROPERTY = "handlers.request.client.header";
     public static final String DEFAULT_CLIENT_IDENTIFIER_HEADER = "X-Gravitee-Client-Identifier";
     static final String APPLICATION_ANONYMOUS = "1";
     static final String PLAN_ANONYMOUS = "1";
