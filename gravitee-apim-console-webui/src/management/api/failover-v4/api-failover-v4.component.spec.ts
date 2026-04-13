@@ -320,7 +320,7 @@ describe('ApiV4FailoverComponent', () => {
     });
   });
 
-  it('should use 30s default slowCallDuration for LLM_PROXY APIs', async () => {
+  it('should use 120s default slowCallDuration for LLM_PROXY APIs', async () => {
     const api = fakeApiV4({
       id: API_ID,
       type: 'LLM_PROXY',
@@ -328,7 +328,7 @@ describe('ApiV4FailoverComponent', () => {
     expectApiGetRequest(api);
 
     const slowCallDurationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="slowCallDuration"]' }));
-    expect(await slowCallDurationInput.getValue()).toEqual('30000');
+    expect(await slowCallDurationInput.getValue()).toEqual('120000');
   });
 
   it('should use 2s default slowCallDuration for non-LLM_PROXY APIs', async () => {
