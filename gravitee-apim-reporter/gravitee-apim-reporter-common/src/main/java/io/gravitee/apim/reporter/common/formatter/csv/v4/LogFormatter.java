@@ -70,6 +70,8 @@ public class LogFormatter extends SingleValueFormatter<Log> {
             LogFormatter.log.error("Unable to process endpoint response", e);
         }
 
+        appendString(buffer, log.getApiProductId(), true);
+
         return buffer;
     }
 }
