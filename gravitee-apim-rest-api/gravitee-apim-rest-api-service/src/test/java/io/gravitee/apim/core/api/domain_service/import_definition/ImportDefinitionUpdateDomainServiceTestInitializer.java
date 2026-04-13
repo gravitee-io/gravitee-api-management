@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.domain_service.import_definition;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
@@ -37,21 +39,19 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
-import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
-import io.gravitee.apim.infra.domain_service.api.ApiImagesServiceProviderImpl;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
-import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -62,6 +62,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     public final ApiService apiService = mock(ApiService.class);
     public final CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     public final ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
+    public final ApiImportDomainService apiImportDomainService = mock(ApiImportDomainService.class);
 
     // In Memory
     public ApiCrudServiceInMemory apiCrudServiceInMemory;
@@ -90,7 +91,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     // Sub entities initializers
     private final ImportDefinitionMetadataDomainServiceTestInitializer metadataDomainServiceInitializer =
         new ImportDefinitionMetadataDomainServiceTestInitializer();
-    private final ImportDefinitionPlanDomainServiceTestInitializer planDomainServiceInitializer =
+    public final ImportDefinitionPlanDomainServiceTestInitializer planDomainServiceInitializer =
         new ImportDefinitionPlanDomainServiceTestInitializer();
     private final ImportDefinitionPageDomainServiceTestInitializer pageDomainServiceTestInitializer =
         new ImportDefinitionPageDomainServiceTestInitializer();
@@ -101,6 +102,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
 
     public ImportDefinitionUpdateDomainServiceTestInitializer(ApiCrudServiceInMemory apiCrudService) {
         apiCrudServiceInMemory = Objects.requireNonNullElseGet(apiCrudService, ApiCrudServiceInMemory::new);
+
+        doNothing().when(apiImportDomainService).createMembers(any(), any());
+        doNothing().when(apiImportDomainService).createMedias(any(), any(), any());
 
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
             apiQueryServiceInMemory,
@@ -149,7 +153,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             apiPrimaryOwnerDomainService,
             metadataDomainServiceInitializer.initialize(),
             planDomainServiceInitializer.initialize(environmentId),
-            pageDomainServiceTestInitializer.initialize()
+            pageDomainServiceTestInitializer.initialize(),
+            apiImportDomainService
         );
     }
 
@@ -171,10 +176,15 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         ).forEach(InMemoryAlternative::reset);
 
         metadataDomainServiceInitializer.tearDown();
+        planDomainServiceInitializer.tearDown();
+        pageDomainServiceTestInitializer.tearDown();
 
         reset(apiService);
         reset(categoryDomainService);
         reset(validateApiDomainService);
+        reset(apiImportDomainService);
+        doNothing().when(apiImportDomainService).createMembers(any(), any());
+        doNothing().when(apiImportDomainService).createMedias(any(), any(), any());
 
         apiImagesServiceProvider.reset();
     }

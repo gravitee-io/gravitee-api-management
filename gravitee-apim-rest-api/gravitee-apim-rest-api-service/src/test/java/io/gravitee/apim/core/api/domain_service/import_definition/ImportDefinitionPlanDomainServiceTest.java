@@ -209,4 +209,134 @@ class ImportDefinitionPlanDomainServiceTest {
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
         assertThat(apiPlans).hasSize(1).extracting(Plan::getCrossId).containsExactlyInAnyOrder(planToUpdate.getCrossId());
     }
+
+    @Test
+    @SneakyThrows
+    void should_update_api_plan_when_export_has_plan_id_but_no_cross_id() {
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
+            .toBuilder()
+            .crossId("plan-cross-for-db-only")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
+
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(
+            PlanWithFlows.builder()
+                .id(planToUpdate.getId())
+                .crossId(null)
+                .apiId(planToUpdate.getApiId())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(planToUpdate.getEnvironmentId())
+                .definitionVersion(planToUpdate.getDefinitionVersion())
+                .type(planToUpdate.getType())
+                .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
+                .name("updated after re-import without crossId in export")
+                .flows(List.of(FlowFixtures.aMessageFlowV4().toBuilder().id("flow-after-reimport").build()))
+                .build()
+        );
+
+        service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
+
+        var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
+        assertThat(apiPlans)
+            .hasSize(1)
+            .first()
+            .satisfies(updatedPlan -> {
+                assertThat(updatedPlan.getId()).isEqualTo(planToUpdate.getId());
+                assertThat(updatedPlan.getName()).isEqualTo("updated after re-import without crossId in export");
+                assertThat(updatedPlan.getCrossId()).isEqualTo("plan-cross-for-db-only");
+            });
+
+        assertThat(initializer.flowCrudServiceInMemory.getPlanV4Flows(planToUpdate.getId()))
+            .extracting(Flow::getId)
+            .containsOnly("flow-after-reimport");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_preserve_reference_id_when_imported_plan_has_null_reference_fields() {
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
+            .toBuilder()
+            .crossId("plan-cross-for-db-only")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
+
+        // Simulate import payload where referenceId/referenceType are absent (as produced by toHttpPlanWithFlows)
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(
+            PlanWithFlows.builder()
+                .id(planToUpdate.getId())
+                .crossId(null)
+                .referenceId(null)
+                .referenceType(null)
+                .definitionVersion(planToUpdate.getDefinitionVersion())
+                .type(planToUpdate.getType())
+                .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
+                .name("updated without reference fields in payload")
+                .flows(Collections.emptyList())
+                .build()
+        );
+
+        service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
+
+        // Plan must still be findable by API id (referenceId must not have been nulled out)
+        var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
+        assertThat(apiPlans)
+            .hasSize(1)
+            .first()
+            .satisfies(updatedPlan -> {
+                assertThat(updatedPlan.getId()).isEqualTo(planToUpdate.getId());
+                assertThat(updatedPlan.getReferenceId()).isEqualTo(API_ID);
+                assertThat(updatedPlan.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
+                assertThat(updatedPlan.getName()).isEqualTo("updated without reference fields in payload");
+            });
+    }
+
+    @Test
+    @SneakyThrows
+    void should_update_by_plan_id_when_import_cross_id_does_not_match_any_saved_plan() {
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
+            .toBuilder()
+            .crossId("stored-cross-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
+
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(
+            PlanWithFlows.builder()
+                .id(planToUpdate.getId())
+                .crossId("stale-or-wrong-cross-id-from-export")
+                .apiId(planToUpdate.getApiId())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(planToUpdate.getEnvironmentId())
+                .definitionVersion(planToUpdate.getDefinitionVersion())
+                .type(planToUpdate.getType())
+                .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
+                .name("updated via id fallback")
+                .flows(Collections.emptyList())
+                .build()
+        );
+
+        service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
+
+        var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
+        assertThat(apiPlans)
+            .hasSize(1)
+            .first()
+            .satisfies(p -> {
+                assertThat(p.getId()).isEqualTo(planToUpdate.getId());
+                assertThat(p.getName()).isEqualTo("updated via id fallback");
+            });
+    }
 }

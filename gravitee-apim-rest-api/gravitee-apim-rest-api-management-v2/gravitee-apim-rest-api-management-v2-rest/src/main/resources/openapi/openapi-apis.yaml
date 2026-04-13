@@ -561,6 +561,66 @@ paths:
                                 $ref: "#/components/schemas/ExportApiV4"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/_import/definition:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        put:
+            tags:
+                - APIs
+            summary: Update API from definition
+            description: |-
+                Update an existing API by importing a Gravitee API definition.<br>
+                This definition can be retrieved from `GET /environments/{envId}/apis/{apiId}/_export/definition`
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: updateApiWithDefinition
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ExportApiV4"
+                required: true
+            responses:
+                "200":
+                    description: API successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/_import/swagger:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        put:
+            tags:
+                - APIs
+            summary: Update API from OpenAPI descriptor
+            description: |-
+                Update an existing API by importing an OpenAPI (Swagger) descriptor.<br>
+                The descriptor payload must be a valid OpenAPI 2.x or 3.x document in JSON or YAML format.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: updateApiFromSwagger
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportSwaggerDescriptor"
+                required: true
+            responses:
+                "200":
+                    description: API successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/_start:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -3722,6 +3782,15 @@ components:
                 withOASValidationPolicy:
                     type: boolean
                     description: Add an OpenAPI Specification validation policy based on OpenAPI specification.
+                withPolicies:
+                    type: array
+                    description: Policy visitor IDs to apply during OpenAPI import.
+                    items:
+                        type: string
+                    uniqueItems: true
+                withPolicyPaths:
+                    type: boolean
+                    description: Create a flow for each path declared in the OpenAPI specification.
 
         UpdateApi:
             oneOf:
