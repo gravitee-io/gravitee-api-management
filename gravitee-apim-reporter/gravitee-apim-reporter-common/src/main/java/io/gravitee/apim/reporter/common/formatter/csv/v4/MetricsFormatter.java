@@ -66,11 +66,8 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
         appendLong(buffer, metrics.getGatewayResponseTimeMs());
         appendLong(buffer, metrics.getGatewayLatencyMs());
         appendString(buffer, metrics.getSecurityType() != null ? metrics.getSecurityType().name() : null);
-        appendString(
-            buffer,
-            metrics.getSecurityToken() != null ? metrics.getApiId() : null,
-            customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty()
-        );
+        appendString(buffer, metrics.getSecurityToken() != null ? metrics.getApiId() : null);
+        appendString(buffer, metrics.getApiProductId(), customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty());
         appendAdditional(metrics, buffer);
 
         for (Iterator<String> i = customMetrics.keySet().iterator(); i.hasNext(); ) {
