@@ -15,25 +15,35 @@
     limitations under the License.
 
 -->
-<mat-card class="import">
-  <mat-card-header>
-    <mat-card-title>Import API</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <form [formGroup]="form">
-      <div class="import__row">
-        <h3>API format</h3>
-        <gio-form-selection-inline formControlName="format">
-          @for (format of formats; track format.value) {
-            <gio-form-selection-inline-card [value]="format.value">
-              <gio-form-selection-inline-card-content [icon]="format.icon">
-                <gio-card-content-title>{{ format.label }}</gio-card-content-title>
-              </gio-form-selection-inline-card-content>
-            </gio-form-selection-inline-card>
-          }
-        </gio-form-selection-inline>
-      </div>
 
+<div [class.import--page]="!isUpdateMode">
+  <mat-card class="import">
+    <mat-card-content>
+      <h2>{{ isUpdateMode ? 'Update API' : 'Import API' }}</h2>
+      <ng-container [ngTemplateOutlet]="formContent"></ng-container>
+    </mat-card-content>
+    <mat-card-actions>
+      <ng-container [ngTemplateOutlet]="formActions"></ng-container>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<ng-template #formContent>
+  <form [formGroup]="form">
+    <div class="import__row">
+      <h3>API format</h3>
+      <gio-form-selection-inline formControlName="format">
+        @for (format of formats; track format.value) {
+          <gio-form-selection-inline-card [value]="format.value">
+            <gio-form-selection-inline-card-content [icon]="format.icon">
+              <gio-card-content-title>{{ format.label }}</gio-card-content-title>
+            </gio-form-selection-inline-card-content>
+          </gio-form-selection-inline-card>
+        }
+      </gio-form-selection-inline>
+    </div>
+
+    @if (showFileSource) {
       <div class="import__row">
         <h3>File source</h3>
         <gio-form-selection-inline formControlName="source">
@@ -50,60 +60,63 @@
           }
         </gio-form-selection-inline>
       </div>
+    }
 
-      <div class="import__row">
-        <h3>File</h3>
-        <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']" (onFilePicked)="onImportFile($event)">
-          <div class="import__file-picker">
-            <mat-icon svgIcon="gio:upload"></mat-icon>
-            <p class="mat-body-strong">Drag and drop a file</p>
-            <p class="mat-body">Supported file formats: yml, yaml, json</p>
-          </div>
-        </api-import-file-picker>
-        @if (form.hasError('mismatchFileFormat')) {
-          <gio-banner-error>The file does not match the selected API format</gio-banner-error>
-        }
-      </div>
+    <div class="import__row">
+      <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']" (onFilePicked)="onImportFile($event)">
+        <div class="import__file-picker">
+          <mat-icon svgIcon="gio:upload"></mat-icon>
+          <p class="mat-body-strong">Drag and drop a file</p>
+          <p class="mat-body">Supported file formats: yml, yaml, json</p>
+        </div>
+      </api-import-file-picker>
+      @if (form.hasError('mismatchFileFormat')) {
+        <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+      }
+    </div>
 
-      <div class="import__row">
-        <h3>Options</h3>
+    <div class="import__row">
+      <h3>Options</h3>
+      <gio-form-slide-toggle
+        ><gio-form-label>Create documentation page from spec</gio-form-label>This will add a documentation page for this API using the
+        OpenAPI spec used during the import. This page will be published automatically (you can change this later).<mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="withDocumentation"
+          aria-label="Toggle to create documentation page"
+          name="withDocumentation"
+        ></mat-slide-toggle
+      ></gio-form-slide-toggle>
+
+      @if (hasOasValidationPolicy()) {
         <gio-form-slide-toggle
-          ><gio-form-label>Create documentation page from spec</gio-form-label>This will add a documentation page for this API using the
-          OpenAPI spec used during the import. This page will be published automatically (you can change this later).<mat-slide-toggle
+          ><gio-form-label>Add OpenAPI Specification Validation</gio-form-label>This will add an OpenAPI Specification validation policy
+          with all options enabled (you can change this later).
+          <mat-slide-toggle
             gioFormSlideToggle
-            formControlName="withDocumentation"
-            aria-label="Toggle to create documentation page"
-            name="withDocumentation"
+            formControlName="withOASValidationPolicy"
+            name="withOASValidationPolicy"
+            aria-label="Toggle to add OpenAPI Specification Validation"
           ></mat-slide-toggle
         ></gio-form-slide-toggle>
+      }
+    </div>
+  </form>
+</ng-template>
 
-        @if (hasOasValidationPolicy()) {
-          <gio-form-slide-toggle
-            ><gio-form-label>Add OpenAPI Specification Validation</gio-form-label>This will add an OpenAPI Specification validation policy
-            with all options enabled (you can change this later).
-            <mat-slide-toggle
-              gioFormSlideToggle
-              formControlName="withOASValidationPolicy"
-              name="withOASValidationPolicy"
-              aria-label="Toggle to add OpenAPI Specification Validation"
-            ></mat-slide-toggle
-          ></gio-form-slide-toggle>
-        }
-      </div>
-
-      <div class="import__row">
-        <button
-          mat-raised-button
-          color="primary"
-          class="import__save-button"
-          aria-label="Import API"
-          [disabled]="form.invalid || !importType"
-          (click)="import()"
-        >
-          Import API
-        </button>
-        <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
-      </div>
-    </form>
-  </mat-card-content>
-</mat-card>
+<ng-template #formActions>
+  <button
+    mat-raised-button
+    color="primary"
+    class="import__save-button"
+    [attr.aria-label]="isUpdateMode ? 'Update API' : 'Import API'"
+    [disabled]="form.invalid || !importType"
+    (click)="import()"
+  >
+    {{ isUpdateMode ? 'Update API' : 'Import API' }}
+  </button>
+  @if (isUpdateMode) {
+    <button mat-button aria-label="Cancel" (click)="cancel()">Cancel</button>
+  } @else {
+    <a mat-button routerLink="../.." aria-label="Cancel">Cancel</a>
+  }
+</ng-template>

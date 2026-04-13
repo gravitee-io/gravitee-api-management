@@ -140,8 +140,16 @@ export class ApiV2Service {
       );
   }
 
-  import(importApi: any): Observable<ApiV4> {
+  import(importApi: string): Observable<ApiV4> {
     return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/definition`, importApi, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  importUpdate(apiId: string, importApi: string): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/definition`, importApi, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -150,6 +158,14 @@ export class ApiV2Service {
 
   importSwaggerApi(descriptor: ImportSwaggerDescriptor) {
     return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/swagger`, descriptor, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  importSwaggerApiUpdate(apiId: string, descriptor: ImportSwaggerDescriptor) {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/swagger`, descriptor, {
       headers: {
         'Content-Type': 'application/json',
       },
