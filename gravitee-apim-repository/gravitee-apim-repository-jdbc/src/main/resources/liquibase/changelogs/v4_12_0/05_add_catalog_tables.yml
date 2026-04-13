@@ -1,0 +1,99 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_00_add_catalog_source_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}catalog_sources
+            columns:
+              - column:
+                  name: id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: definition
+                  type: clob
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}catalog_sources
+            columnNames: id
+            tableName: ${gravitee_prefix}catalog_sources
+        - createIndex:
+            indexName: idx_${gravitee_prefix}catalog_sources_kind
+            tableName: ${gravitee_prefix}catalog_sources
+            columns:
+              - column:
+                  name: kind
+        - createIndex:
+            indexName: idx_${gravitee_prefix}catalog_sources_created_at
+            tableName: ${gravitee_prefix}catalog_sources
+            columns:
+              - column:
+                  name: created_at
+
+  - changeSet:
+      id: 4.12.0_00_add_catalog_item_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}catalog_items
+            columns:
+              - column:
+                  name: id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: definition
+                  type: clob
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}catalog_items
+            columnNames: id
+            tableName: ${gravitee_prefix}catalog_items
+        - createIndex:
+            indexName: idx_${gravitee_prefix}catalog_items_kind
+            tableName: ${gravitee_prefix}catalog_items
+            columns:
+              - column:
+                  name: kind
+        - createIndex:
+            indexName: idx_${gravitee_prefix}catalog_items_source_id
+            tableName: ${gravitee_prefix}catalog_items
+            columns:
+              - column:
+                  name: source_id
+        - createIndex:
+            indexName: idx_${gravitee_prefix}catalog_items_created_at
+            tableName: ${gravitee_prefix}catalog_items
+            columns:
+              - column:
+                  name: created_at
