@@ -1,0 +1,11 @@
+# https://taskfile.dev
+version: '3'
+
+tasks:
+  check:
+    desc: Run format check, lint, and tests for gravitee-dev
+    dir: gravitee-dev
+    cmds:
+      - ruff format --check .
+      - ruff check .
+      - uv run pytest

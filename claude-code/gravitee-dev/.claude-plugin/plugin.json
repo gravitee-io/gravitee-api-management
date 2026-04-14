@@ -1,0 +1,10 @@
+{
+  "name": "gravitee-dev",
+  "description": "Planning skills and safety hooks for Gravitee development workflows. Includes conversational planning (/gravitee-dev:gravitee-plan) that outputs validated implementation plans for the gravitee-dev CLI.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Gravitee.io"
+  },
+  "repository": "https://github.com/gravitee-io/gravitee-devic-framework-samples",
+  "license": "Apache-2.0"
+}

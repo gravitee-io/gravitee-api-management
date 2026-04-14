@@ -1,0 +1,18 @@
+{
+  "name": "guard-tests",
+  "description": "TDD guardrail: blocks edits to committed test files, enforcing test immutability",
+  "version": "1.0.0",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/guard-tests.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

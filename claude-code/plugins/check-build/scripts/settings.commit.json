@@ -1,0 +1,30 @@
+{
+  "model": "sonnet",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git log *)",
+      "Bash(git reset HEAD *)"
+    ],
+    "deny": [
+      "Write",
+      "Edit",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(git rebase *)",
+      "Bash(git merge *)",
+      "Bash(rm *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(sudo *)"
+    ]
+  }
+}

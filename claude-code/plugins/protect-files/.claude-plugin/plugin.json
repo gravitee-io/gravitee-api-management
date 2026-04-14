@@ -1,0 +1,18 @@
+{
+  "name": "protect-files",
+  "description": "Blocks Edit/Write on sensitive files (secrets, lock files, build artifacts, IDE config)",
+  "version": "1.0.0",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/protect-files.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

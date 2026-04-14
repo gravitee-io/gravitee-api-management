@@ -1,0 +1,5 @@
+{
+  "name": "gravitee-java",
+  "description": "Gravitee Java project scaffolding: Maven, CircleCI, plugin structure, Kafka policy",
+  "version": "1.0.0"
+}

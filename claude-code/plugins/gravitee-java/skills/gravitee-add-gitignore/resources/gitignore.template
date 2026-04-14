@@ -1,0 +1,49 @@
+! .gitignore
+
+# Maven
+target/
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDEs
+.idea/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gravitee specific
+gravitee.*.log.*/*.log
+**/.logs
+.working/
+docker/quick-setup/**/.data
+docker/quick-setup/**/.plugins
+docker/quick-setup/**/.license
+docker/quick-setup/**/.driver
+
+# Node/UI (if applicable)
+**/node_modules/
+**/dist/
+**/dist-tsc/
+**/.tmp/
+**/coverage/
+**/npm-debug.log
+
+# Testing
+gravitee-apim-e2e/ui-test/videos/
+gravitee-apim-e2e/ui-test/screenshots/
+
+# Snyk
+**/.dccache
+
+# A2A
+models/

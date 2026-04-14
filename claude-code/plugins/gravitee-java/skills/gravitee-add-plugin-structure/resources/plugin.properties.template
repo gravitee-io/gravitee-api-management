@@ -1,0 +1,7 @@
+id=${pluginId}
+name=${pluginDisplayName}
+version=${project.version}
+description=${project.description}
+class=${mainClass}
+type=${pluginType}
+category=${category}
