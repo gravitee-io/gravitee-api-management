@@ -41,6 +41,33 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_find_all() throws Exception {
+        Set<Cluster> clusters = clusterRepository.findAll();
+        assertThat(clusters).hasSize(10);
+        assertThat(clusters)
+            .extracting(Cluster::getId)
+            .containsExactlyInAnyOrder(
+                "cluster-id-1",
+                "cluster-id-2",
+                "cluster-id-3",
+                "cluster-id-4",
+                "cluster-id-5",
+                "cluster-id-6",
+                "cluster-id-7",
+                "cluster-id-8",
+                "cluster-id-9",
+                "cluster-id-10"
+            );
+        // Verify groups are populated
+        Cluster clusterWithGroups = clusters
+            .stream()
+            .filter(c -> "cluster-id-1".equals(c.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertThat(clusterWithGroups.getGroups()).isEqualTo(Set.of("group-1", "group-2"));
+    }
+
+    @Test
     public void should_find_by_id() throws Exception {
         Cluster cluster = clusterRepository.findById("cluster-id-1").orElseThrow();
         assertAll(
