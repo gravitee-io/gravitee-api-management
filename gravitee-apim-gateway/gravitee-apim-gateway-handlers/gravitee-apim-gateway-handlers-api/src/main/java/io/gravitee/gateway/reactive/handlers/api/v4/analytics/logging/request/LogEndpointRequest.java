@@ -41,8 +41,8 @@ public class LogEndpointRequest extends LogRequest {
     public void setupCapture(HttpExecutionContextInternal ctx) {
         if (loggingContext.isOtelLogsEnabled()) {
             var tracer = ctx.getTracer();
-            this.setTraceId(tracer != null ? tracer.traceId() : null);
-            this.setSpanId(tracer != null ? tracer.spanId() : null);
+            this.setTraceId(tracer.traceId());
+            this.setSpanId(tracer.spanId());
         }
 
         final Buffer buffer = Buffer.buffer();

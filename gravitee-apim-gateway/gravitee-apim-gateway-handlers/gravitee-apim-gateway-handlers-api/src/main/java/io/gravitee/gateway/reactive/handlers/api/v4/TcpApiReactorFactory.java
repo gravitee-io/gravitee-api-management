@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
+import io.gravitee.common.util.Version;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -36,6 +37,7 @@ import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -96,11 +98,12 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
         boolean tracingEnabled = isApiTracingEnabled(api);
         if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
-                api.getId(),
-                api.getName(),
+                node.id(),
+                node.application(),
                 "API_V4_TCP",
-                api.getApiVersion(),
+                Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories,
+                Map.of("gravitee.api.id", api.getId(), "gravitee.api.name", api.getName()),
                 TracingRedactionMapper.toRedactionConfig(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));

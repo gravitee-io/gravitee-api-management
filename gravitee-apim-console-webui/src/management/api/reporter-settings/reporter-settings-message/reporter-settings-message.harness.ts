@@ -42,6 +42,7 @@ export class ReporterSettingsMessageHarness extends ComponentHarness {
   private getSamplingValueFormField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=sampling_value]' }));
   private getTracingEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingEnabled"]' }));
   private getTracingVerboseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingVerbose"]' }));
+  private getOtelLogsEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="otelLogsEnabled"]' }));
 
   public isEnabledChecked = async () => (await this.getEnabledToggle()).isChecked();
   public toggleEnabled = async () => (await this.getEnabledToggle()).toggle();
@@ -211,4 +212,7 @@ export class ReporterSettingsMessageHarness extends ComponentHarness {
   public isTracingVerboseChecked = async () => (await this.getTracingVerboseToggle()).isChecked();
   public toggleTracingVerbose = async () => (await this.getTracingVerboseToggle()).toggle();
   public isTracingVerboseDisabled = async () => (await this.getTracingVerboseToggle()).isDisabled();
+  public isOtelLogsEnabledChecked = async () => (await this.getOtelLogsEnabledToggle()).isChecked();
+  public toggleOtelLogsEnabled = async () => (await this.getOtelLogsEnabledToggle()).toggle();
+  public isOtelLogsEnabledDisabled = async () => (await this.getOtelLogsEnabledToggle()).isDisabled();
 }

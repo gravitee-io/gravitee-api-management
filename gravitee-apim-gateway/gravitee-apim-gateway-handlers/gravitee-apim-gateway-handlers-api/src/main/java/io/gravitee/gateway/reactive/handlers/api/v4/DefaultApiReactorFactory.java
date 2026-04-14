@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.Version;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -70,6 +71,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -423,11 +425,12 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         boolean tracingEnabled = isApiTracingEnabled(api);
         if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
-                api.getId(),
+                node.id(),
                 node.application(),
                 serviceNameSpace,
-                api.getApiVersion(),
+                Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories,
+                Map.of("gravitee.api.id", api.getId(), "gravitee.api.name", api.getName()),
                 TracingRedactionMapper.toRedactionConfig(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));

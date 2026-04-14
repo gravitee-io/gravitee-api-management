@@ -14,19 +14,6 @@
  * limitations under the License.
  */
 
-import { LoggingV4 } from './loggingV4';
-import { OtelLogsV4 } from './otelLogsV4';
-import { Sampling } from './sampling';
-import { TracingV4 } from './tracingV4';
-
-export interface Analytics {
-  /**
-   * Whether analytics is enabled.
-   */
-  enabled?: boolean;
-  sampling?: Sampling;
-  logging?: LoggingV4;
-  tracing?: TracingV4;
-  reporterMetricsEnabled?: boolean;
-  otelLogs?: OtelLogsV4;
+export interface OtelLogsV4 {
+  enabled: boolean;
 }

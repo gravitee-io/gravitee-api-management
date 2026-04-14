@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -219,6 +220,40 @@ class LogEndpointRequestTest {
 
         assertNull(cut.getHeaders());
         assertThat(cut.getBody()).isEqualTo("BODY NOT CAPTURED");
+    }
+
+    @Test
+    void should_capture_traceId_and_spanId_from_tracer() {
+        var mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
+        when(mockTracer.spanId()).thenReturn("def456spanId0000");
+        when(ctx.getTracer()).thenReturn(mockTracer);
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(false);
+        when(loggingContext.endpointRequestPayload()).thenReturn(false);
+
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(null, false);
+
+        assertThat(cut.getTraceId()).isEqualTo("abc123traceId00000000000000000000");
+        assertThat(cut.getSpanId()).isEqualTo("def456spanId0000");
+    }
+
+    @Test
+    void should_set_empty_traceId_and_spanId_when_noop_tracer() {
+        var noopTracer = mock(Tracer.class);
+        when(noopTracer.traceId()).thenReturn("");
+        when(noopTracer.spanId()).thenReturn("");
+        when(ctx.getTracer()).thenReturn(noopTracer);
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(false);
+        when(loggingContext.endpointRequestPayload()).thenReturn(false);
+
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(null, false);
+
+        assertThat(cut.getTraceId()).isEmpty();
+        assertThat(cut.getSpanId()).isEmpty();
     }
 
     private void triggerRequestToBackend(HttpHeaders backendHeaders, boolean expectCaptureBody) {

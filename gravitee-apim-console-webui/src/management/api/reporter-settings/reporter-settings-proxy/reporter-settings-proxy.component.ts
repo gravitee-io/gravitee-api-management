@@ -45,6 +45,7 @@ type DefaultConfiguration = {
   condition: string;
   tracingEnabled: boolean;
   tracingVerbose: boolean;
+  otelLogsEnabled: boolean;
 };
 
 @Component({
@@ -132,6 +133,9 @@ export class ReporterSettingsProxyComponent implements OnInit {
                     }
                   : {}),
               },
+              otelLogs: {
+                enabled: configurationValues.otelLogsEnabled,
+              },
             },
           };
 
@@ -181,6 +185,10 @@ export class ReporterSettingsProxyComponent implements OnInit {
         value: api.analytics?.tracing?.verbose ?? false,
         disabled: !analyticsEnabled || !api.analytics?.tracing?.enabled || isReadOnly,
       }),
+      otelLogsEnabled: new UntypedFormControl({
+        value: api.analytics?.otelLogs?.enabled ?? false,
+        disabled: !analyticsEnabled || !api.analytics?.tracing?.enabled || isReadOnly,
+      }),
       endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: !analyticsEnabled || isReadOnly }),
       request: new UntypedFormControl({
         value: api.analytics?.logging?.phase?.request,
@@ -208,8 +216,10 @@ export class ReporterSettingsProxyComponent implements OnInit {
 
     if (!analyticsEnabled || !this.form.get('tracingEnabled').value || isReadOnly) {
       this.form.get('tracingVerbose').disable();
+      this.form.get('otelLogsEnabled').disable();
     } else {
       this.form.get('tracingVerbose').enable();
+      this.form.get('otelLogsEnabled').enable();
     }
 
     this.handleTracingEnabledChanges();
@@ -224,6 +234,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
             this.form.get('tracingEnabled').enable();
             if (this.form.get('tracingEnabled').value) {
               this.form.get('tracingVerbose').enable();
+              this.form.get('otelLogsEnabled').enable();
             }
           } else {
             this.form.get('entrypoint').disable();
@@ -235,6 +246,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
             this.form.get('condition').disable();
             this.form.get('tracingEnabled').disable();
             this.form.get('tracingVerbose').disable();
+            this.disableAndUncheck('otelLogsEnabled');
           }
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -262,8 +274,10 @@ export class ReporterSettingsProxyComponent implements OnInit {
         tap((tracingEnabled: boolean) => {
           if (!tracingEnabled) {
             this.form.get('tracingVerbose').disable();
+            this.disableAndUncheck('otelLogsEnabled');
           } else {
             this.form.get('tracingVerbose').enable();
+            this.form.get('otelLogsEnabled').enable();
           }
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -290,5 +304,10 @@ export class ReporterSettingsProxyComponent implements OnInit {
     this.form.get('payload').disable();
     this.form.get('condition').setValue('');
     this.form.get('condition').disable();
+  }
+
+  private disableAndUncheck(controlName: string): void {
+    this.form.get(controlName).setValue(false);
+    this.form.get(controlName).disable();
   }
 }

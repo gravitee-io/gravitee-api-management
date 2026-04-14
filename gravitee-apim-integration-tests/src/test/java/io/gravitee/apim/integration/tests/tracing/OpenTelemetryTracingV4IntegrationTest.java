@@ -164,7 +164,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 var client = container.client(vertx.getDelegate());
                 var response = client
                     .get("/api/traces")
-                    .addQueryParam("service", "my-api-v4")
+                    .addQueryParam("service", "gio-apim-gateway")
                     .send()
                     .toCompletionStage()
                     .toCompletableFuture()
@@ -220,7 +220,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 var client = container.client(vertx.getDelegate());
                 var response = client
                     .get("/api/traces")
-                    .addQueryParam("service", "my-api")
+                    .addQueryParam("service", "gio-apim-gateway")
                     .send()
                     .toCompletionStage()
                     .toCompletableFuture()

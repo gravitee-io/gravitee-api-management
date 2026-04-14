@@ -133,6 +133,9 @@ export class ReporterSettingsMessageComponent implements OnInit {
               enabled: formValues.tracingEnabled,
               verbose: formValues.tracingVerbose,
             },
+            otelLogs: {
+              enabled: formValues.otelLogsEnabled,
+            },
             sampling: sampling,
           };
           return this.apiService.update(api.id, { ...api, analytics });
@@ -178,6 +181,10 @@ export class ReporterSettingsMessageComponent implements OnInit {
       }),
       tracingVerbose: new UntypedFormControl({
         value: api.analytics?.tracing?.verbose ?? false,
+        disabled: !analyticsEnabled || !api.analytics?.tracing?.enabled || isReadOnly,
+      }),
+      otelLogsEnabled: new UntypedFormControl({
+        value: api.analytics?.otelLogs?.enabled ?? false,
         disabled: !analyticsEnabled || !api.analytics?.tracing?.enabled || isReadOnly,
       }),
       request: new UntypedFormControl({
@@ -244,6 +251,10 @@ export class ReporterSettingsMessageComponent implements OnInit {
                 if (!loggingModeDisabled) {
                   control.enable();
                 }
+              } else if (key === 'otelLogsEnabled' || key === 'tracingVerbose') {
+                if (this.form.get('tracingEnabled').value) {
+                  control.enable();
+                }
               } else {
                 control.enable();
               }
@@ -265,8 +276,10 @@ export class ReporterSettingsMessageComponent implements OnInit {
       .subscribe(tracingEnabled => {
         if (tracingEnabled) {
           this.form.get('tracingVerbose').enable();
+          this.form.get('otelLogsEnabled').enable();
         } else {
           this.disableAndUncheck('tracingVerbose');
+          this.disableAndUncheck('otelLogsEnabled');
         }
       });
   }

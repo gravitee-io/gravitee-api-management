@@ -56,7 +56,7 @@ public class LoggingContext implements ConditionSupplier {
 
     @Override
     public String getCondition() {
-        return logging != null ? logging.getCondition() : null;
+        return logging != null ? logging.getCondition() : "";
     }
 
     public boolean entrypointRequest() {

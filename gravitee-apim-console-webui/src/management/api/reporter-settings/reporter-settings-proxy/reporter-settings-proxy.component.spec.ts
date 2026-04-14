@@ -128,6 +128,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
             condition: 'condition',
           },
           tracing: { enabled: false, verbose: false },
+          otelLogs: { enabled: false },
         },
       });
     });
@@ -365,6 +366,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
             enabled: true,
             verbose: true,
           },
+          otelLogs: { enabled: false },
         },
       });
     });
@@ -418,10 +420,61 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
               ],
             },
           },
+          otelLogs: { enabled: false },
         },
       });
     });
 
+    it('should re-enable otelLogsEnabled when analytics enabled is toggled back on while tracingEnabled is active', async () => {
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(false);
+
+      await componentHarness.toggleEnabled();
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(true);
+
+      await componentHarness.toggleEnabled();
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(false);
+    });
+
+    it('should disable otelLogsEnabled when tracingEnabled is toggled off', async () => {
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(false);
+
+      await componentHarness.toggleTracingEnabled();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isOtelLogsEnabledChecked()).toBe(false);
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(true);
+    });
+
+    it('should enable otelLogsEnabled when tracingEnabled is toggled on', async () => {
+      await initComponent(apiWithTracingDisabled);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(true);
+
+      await componentHarness.toggleTracingEnabled();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(false);
+    });
+
+    it('should save otelLogs enabled setting', async () => {
+      await initComponent(apiWithTracingDisabled);
+
+      await componentHarness.toggleTracingEnabled();
+      await componentHarness.toggleOtelLogsEnabled();
+      await componentHarness.clickOnSaveButton();
+
+      expectApiGetRequest(apiWithTracingDisabled);
+      expectApiPutRequest({
+        ...apiWithTracingDisabled,
+        analytics: {
+          ...apiWithTracingDisabled.analytics,
+          tracing: { enabled: true, verbose: false },
+          otelLogs: { enabled: true },
+        },
+      });
+    });
     it('should discard changes in OpenTelemetry controls', async () => {
       await componentHarness.toggleTracingEnabled();
       await componentHarness.toggleTracingVerbose();
@@ -472,6 +525,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
               rules: [{ attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } }],
             },
           },
+          otelLogs: { enabled: false },
         },
       });
     });
@@ -507,6 +561,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
             enabled: true,
             verbose: true,
           },
+          otelLogs: { enabled: false },
         },
       });
     });

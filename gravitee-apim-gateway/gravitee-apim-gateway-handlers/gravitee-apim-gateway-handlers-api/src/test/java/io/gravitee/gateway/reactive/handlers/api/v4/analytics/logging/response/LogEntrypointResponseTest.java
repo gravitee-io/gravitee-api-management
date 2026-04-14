@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -162,6 +164,39 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+    }
+
+    @Test
+    void should_capture_traceId_and_spanId_from_tracer() {
+        var mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
+        when(mockTracer.spanId()).thenReturn("def456spanId0000");
+        when(ctx.getTracer()).thenReturn(mockTracer);
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
+        when(response.status()).thenReturn(200);
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+
+        assertThat(logResponse.getTraceId()).isEqualTo("abc123traceId00000000000000000000");
+        assertThat(logResponse.getSpanId()).isEqualTo("def456spanId0000");
+    }
+
+    @Test
+    void should_set_null_traceId_and_spanId_when_tracer_is_null() {
+        when(ctx.getTracer()).thenReturn(null);
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
+        when(response.status()).thenReturn(200);
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+
+        assertNull(logResponse.getTraceId());
+        assertNull(logResponse.getSpanId());
     }
 
     @Test
