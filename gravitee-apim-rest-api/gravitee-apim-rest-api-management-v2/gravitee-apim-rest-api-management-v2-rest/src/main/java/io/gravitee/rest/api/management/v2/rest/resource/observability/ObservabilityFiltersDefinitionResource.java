@@ -13,34 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.logs;
+package io.gravitee.rest.api.management.v2.rest.resource.observability;
 
-import io.gravitee.apim.core.logs_engine.use_case.GetLogsFilterDefinitionsUseCase;
-import io.gravitee.rest.api.management.v2.rest.mapper.LogsDefinitionMapper;
-import io.gravitee.rest.api.management.v2.rest.model.logs.engine.LogsFilterSpecsResponse;
+import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
+import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsDefinitionMapper;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-/**
- * @author GraviteeSource Team
- */
-public class LogsDefinitionResource {
+public class ObservabilityFiltersDefinitionResource {
 
     @Inject
-    GetLogsFilterDefinitionsUseCase getLogsFilterDefinitions;
+    GetAnalyticsFilterDefinitionsUseCase getAnalyticsFilterDefinitions;
 
-    @Path("/filters")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public LogsFilterSpecsResponse getFilterDefinitions() {
-        return LogsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getLogsFilterDefinitions.execute().specs());
+    public FilterSpecsResponse getFilterDefinitions() {
+        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getAnalyticsFilterDefinitions.execute().specs());
     }
 }

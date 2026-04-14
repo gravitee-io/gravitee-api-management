@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.logs_engine.use_case;
+package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.logs_engine.model.LogsFilterSpec;
-import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryService;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import java.util.List;
 
-/**
- * @author GraviteeSource Team
- */
 @UseCase
-public class GetLogsFilterDefinitionsUseCase {
+public class GetAnalyticsFilterDefinitionsUseCase {
 
-    private final LogsDefinitionQueryService definition;
+    private final AnalyticsDefinitionQueryService definition;
 
-    public GetLogsFilterDefinitionsUseCase(LogsDefinitionQueryService definition) {
+    public GetAnalyticsFilterDefinitionsUseCase(AnalyticsDefinitionQueryService definition) {
         this.definition = definition;
     }
 
-    public record Output(List<LogsFilterSpec> specs) {}
+    public record Output(List<FilterSpec> specs) {}
 
     public Output execute() {
-        return new Output(definition.getFilters());
+        return new Output(definition.getAllFilters());
     }
 }

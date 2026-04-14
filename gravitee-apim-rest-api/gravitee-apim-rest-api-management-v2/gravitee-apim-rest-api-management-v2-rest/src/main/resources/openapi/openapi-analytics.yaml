@@ -237,6 +237,52 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
+    /environments/{envId}/observability/filters/definition:
+        get:
+            operationId: queryObservabilityFilterDefinitions
+            summary: Query available filter definitions for observability
+            description: |
+                Returns the full list of available filter definitions that can be applied to observability queries, including their operators, types, and value constraints.
+            tags:
+                - definition
+            parameters:
+                - $ref: "#/components/parameters/EnvId"
+            responses:
+                "200":
+                    description: |
+                        The response contains a list of all available filter definitions for observability features, including their supported operators, types, and optional enum values or ranges.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FilterSpecsResponse"
+                            examples:
+                                filter-definitions:
+                                    summary: Filter Definitions
+                                    value:
+                                        data:
+                                            - name: "API"
+                                              label: "API"
+                                              type: "KEYWORD"
+                                              operators: ["EQ", "IN"]
+                                            - name: "HTTP_STATUS"
+                                              label: "Status Code"
+                                              type: "NUMBER"
+                                              operators: ["EQ", "LTE", "GTE"]
+                                              range:
+                                                  min: 100
+                                                  max: 599
+                                            - name: "API_TYPE"
+                                              label: "API Type"
+                                              type: "ENUM"
+                                              operators: ["EQ", "IN"]
+                                              enumValues: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP"]
+                "500":
+                    description: Internal server error while getting filter definitions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
     /environments/{envId}/analytics/measures:
         post:
             operationId: queryMeasures

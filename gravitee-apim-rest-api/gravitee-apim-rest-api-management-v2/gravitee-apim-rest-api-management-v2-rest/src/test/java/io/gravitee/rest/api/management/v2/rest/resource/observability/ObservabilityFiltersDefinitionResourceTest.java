@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.logs;
+package io.gravitee.rest.api.management.v2.rest.resource.observability;
 
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.management.v2.rest.model.logs.engine.LogsFilterSpec;
-import io.gravitee.rest.api.management.v2.rest.model.logs.engine.LogsFilterSpecsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -29,11 +30,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author GraviteeSource Team
- */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class LogsDefinitionResourceTest extends AbstractResourceTest {
+class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "my-env";
 
@@ -59,28 +57,28 @@ class LogsDefinitionResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/logs";
+        return "/environments/" + ENVIRONMENT + "/observability/filters/definition";
     }
 
     @Test
     void should_return_filter_definitions() {
-        var response = rootTarget().path("definition").path("filters").request().get();
+        var response = rootTarget().request().get();
 
         assertThat(response)
             .hasStatus(200)
-            .asEntity(LogsFilterSpecsResponse.class)
-            .extracting(LogsFilterSpecsResponse::getData)
-            .satisfies(filters -> assertThat(filters).hasSize(11));
+            .asEntity(FilterSpecsResponse.class)
+            .extracting(FilterSpecsResponse::getData)
+            .satisfies(filters -> assertThat(filters).hasSize(36));
     }
 
     @Test
     void should_return_filter_definitions_with_correct_structure() {
-        var response = rootTarget().path("definition").path("filters").request().get();
+        var response = rootTarget().request().get();
 
         assertThat(response)
             .hasStatus(200)
-            .asEntity(LogsFilterSpecsResponse.class)
-            .extracting(LogsFilterSpecsResponse::getData)
+            .asEntity(FilterSpecsResponse.class)
+            .extracting(FilterSpecsResponse::getData)
             .satisfies(filters -> {
                 var apiFilter = filters
                     .stream()
@@ -88,26 +86,30 @@ class LogsDefinitionResourceTest extends AbstractResourceTest {
                     .findFirst()
                     .orElseThrow();
                 assertThat(apiFilter.getLabel()).isEqualTo("API");
-                assertThat(apiFilter.getType()).isEqualTo(LogsFilterSpec.TypeEnum.KEYWORD);
-                assertThat(apiFilter.getOperators()).isNotEmpty();
-
-                var responseTimeFilter = filters
-                    .stream()
-                    .filter(f -> f.getName().getValue().equals("RESPONSE_TIME"))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(responseTimeFilter.getLabel()).isEqualTo("Response Time");
-                assertThat(responseTimeFilter.getType()).isEqualTo(LogsFilterSpec.TypeEnum.NUMBER);
-                assertThat(responseTimeFilter.getOperators()).isNotEmpty();
+                assertThat(apiFilter.getType()).isEqualTo(FilterSpec.TypeEnum.KEYWORD);
+                assertThat(apiFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IN);
 
                 var httpStatusFilter = filters
                     .stream()
                     .filter(f -> f.getName().getValue().equals("HTTP_STATUS"))
                     .findFirst()
                     .orElseThrow();
+                assertThat(httpStatusFilter.getLabel()).isEqualTo("Status Code");
+                assertThat(httpStatusFilter.getType()).isEqualTo(FilterSpec.TypeEnum.NUMBER);
+                assertThat(httpStatusFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.LTE, Operator.GTE);
                 assertThat(httpStatusFilter.getRange()).isNotNull();
                 assertThat(httpStatusFilter.getRange().getMin()).isEqualTo(100);
                 assertThat(httpStatusFilter.getRange().getMax()).isEqualTo(599);
+
+                var apiTypeFilter = filters
+                    .stream()
+                    .filter(f -> f.getName().getValue().equals("API_TYPE"))
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(apiTypeFilter.getLabel()).isEqualTo("API Type");
+                assertThat(apiTypeFilter.getType()).isEqualTo(FilterSpec.TypeEnum.ENUM);
+                assertThat(apiTypeFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IN);
+                assertThat(apiTypeFilter.getEnumValues()).containsExactlyInAnyOrder("HTTP_PROXY", "LLM", "MESSAGE", "MCP");
             });
     }
 }

@@ -44,8 +44,8 @@ import io.gravitee.rest.api.management.v2.rest.resource.installation.Environment
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResource;
-import io.gravitee.rest.api.management.v2.rest.resource.logs.LogsDefinitionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.logs.LogsSearchResource;
+import io.gravitee.rest.api.management.v2.rest.resource.observability.ObservabilityFiltersDefinitionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ApiServicesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
@@ -83,7 +83,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(AnalyticsDefinitionResource.class);
         register(AnalyticsComputationResource.class);
         register(LogsSearchResource.class);
-        register(LogsDefinitionResource.class);
+        register(ObservabilityFiltersDefinitionResource.class);
 
         // Resources deprecated at root level
         register(EndpointsResource.class);
