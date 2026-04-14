@@ -45,6 +45,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProc
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
@@ -119,8 +120,6 @@ import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
-import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryService;
-import io.gravitee.apim.core.logs_engine.use_case.GetLogsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
@@ -207,7 +206,6 @@ import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSett
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
-import io.gravitee.apim.infra.domain_service.logs_engine.definition.LogsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -1193,13 +1191,10 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public LogsDefinitionQueryService logsDefinitionQueryService() {
-        return new LogsDefinitionYAMLQueryService();
-    }
-
-    @Bean
-    public GetLogsFilterDefinitionsUseCase getLogsFilterDefinitionsUseCase(LogsDefinitionQueryService logsDefinitionQueryService) {
-        return new GetLogsFilterDefinitionsUseCase(logsDefinitionQueryService);
+    public GetAnalyticsFilterDefinitionsUseCase getAnalyticsFilterDefinitionsUseCase(
+        AnalyticsDefinitionQueryService analyticsDefinitionQueryService
+    ) {
+        return new GetAnalyticsFilterDefinitionsUseCase(analyticsDefinitionQueryService);
     }
 
     @Bean

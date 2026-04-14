@@ -13,9 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.logs_engine.model;
+package io.gravitee.rest.api.management.v2.rest.resource.observability;
 
-/**
- * @author GraviteeSource Team
- */
-public record LogsDefinition(LogsDefinitionSpec spec) {}
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
+
+public class ObservabilityResource {
+
+    @Context
+    private ResourceContext resourceContext;
+
+    @Path("/filters/definition")
+    public ObservabilityFiltersDefinitionResource getFiltersDefinitionResource() {
+        return resourceContext.getResource(ObservabilityFiltersDefinitionResource.class);
+    }
+}

@@ -30,6 +30,8 @@ public interface AnalyticsDefinitionQueryService {
 
     List<MetricSpec> getMetrics(ApiSpec.Name apiSpecName);
 
+    List<FilterSpec> getAllFilters();
+
     List<FilterSpec> getFilters(MetricSpec.Name metricSpecName);
 
     List<FacetSpec> getFacets(MetricSpec.Name metricSpecName);

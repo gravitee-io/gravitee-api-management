@@ -53,6 +53,11 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     }
 
     @Override
+    public List<FilterSpec> getAllFilters() {
+        return spec.filters();
+    }
+
+    @Override
     public List<FilterSpec> getFilters(MetricSpec.Name metricSpecName) {
         var metric = getMetricByName(metricSpecName);
         return spec
