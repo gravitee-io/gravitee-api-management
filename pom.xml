@@ -52,7 +52,7 @@
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>9.0.0-alpha.4</gravitee-bom.version>
         <gravitee-alert-api.version>3.0.0</gravitee-alert-api.version>
-        <gravitee-cockpit-api.version>3.11.0</gravitee-cockpit-api.version>
+        <gravitee-cockpit-api.version>3.12.0-gamma-access-point-SNAPSHOT</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.3.1</gravitee-cloud-initializer.version>
         <logback-ecs-encoder.version>1.7.0</logback-ecs-encoder.version>
         <gravitee-common.version>5.0.0-alpha.1</gravitee-common.version>
