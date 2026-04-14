@@ -203,6 +203,13 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
     }
 
     @Override
+    public Set<Cluster> findAll() throws TechnicalException {
+        Set<Cluster> clusters = super.findAll();
+        clusters.forEach(this::addGroups);
+        return clusters;
+    }
+
+    @Override
     public Optional<Cluster> findById(String id) throws io.gravitee.repository.exceptions.TechnicalException {
         Optional<Cluster> opt = super.findById(id);
         opt.ifPresent(this::addGroups);
