@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { HttpTestingController } from '@angular/common/http/testing';
+
+import { ApiImportV4DialogComponent } from './api-import-v4-dialog.component';
+
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakePolicyPlugin } from '../../../entities/management-api-v2';
+
+describe('ApiImportV4DialogComponent', () => {
+  let httpTestingController: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, ApiImportV4DialogComponent, GioTestingModule],
+      providers: [
+        { provide: MAT_DIALOG_DATA, useValue: { apiId: 'api-id', apiName: 'Test API' } },
+        { provide: MatDialogRef, useValue: { close: jest.fn() } },
+      ],
+    }).compileComponents();
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  it('should create', () => {
+    const fixture = TestBed.createComponent(ApiImportV4DialogComponent);
+    fixture.detectChanges();
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`,
+        method: 'GET',
+      })
+      .flush([fakePolicyPlugin({ id: 'oas-validation' })]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+});

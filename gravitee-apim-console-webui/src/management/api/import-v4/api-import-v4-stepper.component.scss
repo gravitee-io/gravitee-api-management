@@ -1,0 +1,168 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  display: block;
+}
+
+.import-stepper {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  &__heading {
+    margin: 0;
+  }
+
+  &__step2-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 16px;
+
+    @media (max-width: 904px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__step2-left {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__step2-col-heading {
+    flex: 0 0 auto;
+    margin: 0 0 12px;
+  }
+
+  &__step2-right-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__source-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  &__step2-right {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__file-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 0 16px;
+    text-align: center;
+
+    mat-icon {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  &__remote {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__field {
+    width: 100%;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  &__actions-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  &__review {
+    max-width: 100%;
+  }
+
+  &__review-header {
+    padding-bottom: 16px;
+
+    &__subtitle {
+      @include mat.m2-typography-level($typography, headline-6);
+      margin: 0 0 8px;
+    }
+
+    &__hint {
+      @include mat.m2-typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      margin: 0;
+    }
+  }
+
+  &__review-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__review-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-radius: 6px;
+    padding: 16px;
+
+    &__title {
+      margin: 0;
+    }
+  }
+
+  &__review-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &__row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 12px;
+    }
+
+    &__key {
+      @include mat.m2-typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    }
+
+    &__value {
+      @include mat.m2-typography-level($typography, subtitle-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+      line-height: 22px;
+
+      &--break {
+        word-break: break-word;
+      }
+    }
+  }
+}

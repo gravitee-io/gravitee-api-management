@@ -55,6 +55,7 @@ import { ApiGeneralInfoAgentCardComponent } from './api-general-info-agent-card/
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioApiImportDialogModule } from '../component/gio-api-import-dialog/gio-api-import-dialog.module';
+import { ApiImportV4DialogComponent } from '../import-v4/api-import-v4-dialog.component';
 import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
@@ -98,6 +99,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     GioFormSlideToggleModule,
     GioCircularPercentageModule,
     GioApiImportDialogModule,
+    ApiImportV4DialogComponent,
     GioBannerModule,
     GioLicenseBannerModule,
     ApiGeneralInfoAgentCardComponent,

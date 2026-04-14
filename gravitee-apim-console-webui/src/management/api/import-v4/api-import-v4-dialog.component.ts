@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, Inject, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { ApiImportV4StepperComponent } from './api-import-v4-stepper.component';
-import { ApiImportV4WizardPayload } from './api-import-v4-wizard.model';
+import { ApiImportV4DialogData, ApiImportV4WizardPayload } from './api-import-v4-wizard.model';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -30,18 +29,16 @@ import { ApiV4 } from '../../../entities/management-api-v2';
 
 
 @Component({
-  selector: 'api-import-v4',
-  imports: [ApiImportV4StepperComponent, MatCardModule],
-  templateUrl: './api-import-v4.component.html',
-  styleUrl: './api-import-v4.component.scss',
+  selector: 'api-import-v4-dialog',
+  imports: [ApiImportV4StepperComponent, MatDialogModule],
+  templateUrl: './api-import-v4-dialog.component.html',
+  styleUrl: './api-import-v4-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApiImportV4Component {
+export class ApiImportV4DialogComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly apiV2Service = inject(ApiV2Service);
   private readonly snackBarService = inject(SnackBarService);
-  private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly policyV2Service = inject(PolicyV2Service);
 
   protected readonly hasOasValidationPolicy = toSignal(
@@ -49,9 +46,10 @@ export class ApiImportV4Component {
     { initialValue: false },
   );
 
-  protected onCancelNavigation(): void {
-    this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
-  }
+  constructor(
+    private readonly dialogRef: MatDialogRef<ApiImportV4DialogComponent, string | undefined>,
+    @Inject(MAT_DIALOG_DATA) readonly data: ApiImportV4DialogData,
+  ) {}
 
   protected onImportRequested(payload: ApiImportV4WizardPayload): void {
     const request$ = this.buildImportRequest(payload);
@@ -62,7 +60,7 @@ export class ApiImportV4Component {
       .pipe(
         tap(createdApi => {
           this.snackBarService.success('API imported successfully');
-          this.router.navigate([`../../${createdApi.id}`], { relativeTo: this.activatedRoute });
+          this.dialogRef.close(createdApi.id);
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message ?? 'An error occurred while importing the API');
@@ -71,6 +69,10 @@ export class ApiImportV4Component {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  protected onCancelled(): void {
+    this.dialogRef.close(undefined);
   }
 
   private buildImportRequest(payload: ApiImportV4WizardPayload): Observable<ApiV4> | null {

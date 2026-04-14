@@ -1,0 +1,14 @@
+:host {
+  --mat-dialog-supporting-text-color: #000;
+}
+
+.api-import-v4-dialog__subtitle {
+  margin: 0 0 8px;
+  color: var(--mat-dialog-supporting-text-color);
+}
+
+.api-import-v4-dialog__content {
+  min-width: min(100%, 720px);
+  max-height: min(90vh, 800px);
+  padding-top: 8px;
+}

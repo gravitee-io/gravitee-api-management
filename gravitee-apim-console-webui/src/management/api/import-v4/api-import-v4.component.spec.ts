@@ -31,6 +31,15 @@ describe('ImportV4Component', () => {
   const apiJson = JSON.stringify(fakeApiV4({ definitionVersion: 'V4' }));
   const openApiJson = JSON.stringify({ openapi: '3.1.0' });
 
+  function flushPolicies(policies: PolicyPlugin[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`,
+        method: 'GET',
+      })
+      .flush(policies);
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, ApiImportV4Component, GioTestingModule],
@@ -40,10 +49,13 @@ describe('ImportV4Component', () => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiImportV4Harness);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+    flushPolicies([fakePolicyPlugin({ id: 'oas-validation' })]);
+    fixture.detectChanges();
   });
 
-  it('should not be able to save when form is invalid', async () => {
-    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+  it('should disable Next on the file step when no file is selected', async () => {
+    await componentHarness.clickNext();
+    expect(await componentHarness.isNextDisabled()).toBeTruthy();
   });
 
   it('should import an API V4', async () => {
@@ -51,11 +63,14 @@ describe('ImportV4Component', () => {
     const importDefinition = JSON.stringify({ api: apiV4 });
 
     await componentHarness.selectFormat('gravitee');
-    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    await componentHarness.clickNext();
     await componentHarness.selectSource('local');
-    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    expect(await componentHarness.isNextDisabled()).toBeTruthy();
 
     await componentHarness.pickFiles([new File([importDefinition], 'gravitee-api-definition.json', { type: 'application/json' })]);
+    expect(await componentHarness.isNextDisabled()).toBeFalsy();
+
+    await componentHarness.clickNext();
     expect(await componentHarness.isSaveDisabled()).toBeFalsy();
 
     await componentHarness.save();
@@ -69,11 +84,16 @@ describe('ImportV4Component', () => {
     const importDefinition = 'openapi: 3.1.0';
 
     await componentHarness.selectFormat('openapi');
-    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    await componentHarness.clickNext();
     await componentHarness.selectSource('local');
-    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    expect(await componentHarness.isNextDisabled()).toBeTruthy();
 
     await componentHarness.pickFiles([new File([importDefinition], 'openapi.yml', { type: 'application/x-yaml' })]);
+    expect(await componentHarness.isNextDisabled()).toBeFalsy();
+
+    await componentHarness.clickNext();
+    expect(await componentHarness.isNextDisabled()).toBeFalsy();
+    await componentHarness.clickNext();
     expect(await componentHarness.isSaveDisabled()).toBeFalsy();
 
     await componentHarness.save();
@@ -83,26 +103,17 @@ describe('ImportV4Component', () => {
     });
   });
 
-  it('should allow documentation import only when OpenAPI specification type is selected', async () => {
-    expectGetPolicies([fakePolicyPlugin({ id: 'oas-validation' })]);
-
+  it('should expose OpenAPI option toggles on the options step', async () => {
     await componentHarness.selectFormat('openapi');
-    await componentHarness.selectSource('local');
+    await componentHarness.clickNext();
+    await componentHarness.pickFiles([new File(['openapi: 3.0.0'], 'openapi.yml', { type: 'application/x-yaml' })]);
+    await componentHarness.clickNext();
+
     expect(await componentHarness.isDocumentationImportSelected()).toBeTruthy();
     expect(await componentHarness.isDocumentationImportDisabled()).toBeFalsy();
     expect(await componentHarness.isOASValidationPolicyImportSelected()).toBeTruthy();
     expect(await componentHarness.isOASValidationPolicyImportDisabled()).toBeFalsy();
 
-    await componentHarness.selectFormat('gravitee');
-    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
-    expect(await componentHarness.isDocumentationImportDisabled()).toBeTruthy();
-    expect(await componentHarness.isDocumentationImportSelected()).toBeFalsy();
-    expect(await componentHarness.isOASValidationPolicyImportDisabled()).toBeTruthy();
-    expect(await componentHarness.isOASValidationPolicyImportSelected()).toBeFalsy();
-
-    await componentHarness.selectFormat('openapi');
-    expect(await componentHarness.isDocumentationImportDisabled()).toBeFalsy();
-    expect(await componentHarness.isDocumentationImportSelected()).toBeTruthy();
     await componentHarness.toggleDocumentationImport();
     expect(await componentHarness.isDocumentationImportSelected()).toBeFalsy();
     await componentHarness.toggleOASValidationPolicyImport();
@@ -112,31 +123,22 @@ describe('ImportV4Component', () => {
   });
 
   it.each`
-    fileName           | importDefinition    | type                    | selectedFormat
-    ${'openapi.json'}  | ${openApiJson}      | ${'application/json'}   | ${'gravitee'}
+    fileName           | importDefinition     | type                    | selectedFormat
+    ${'openapi.json'}  | ${openApiJson}       | ${'application/json'}   | ${'gravitee'}
     ${'openapi.yml'}   | ${'openapi: 3.1.0'} | ${'application/x-yaml'} | ${'gravitee'}
     ${'openapi.yaml'}  | ${'openapi: 3.1.0'} | ${'application/x-yaml'} | ${'gravitee'}
-    ${'gravitee.json'} | ${apiJson}          | ${'application/json'}   | ${'openapi'}
+    ${'gravitee.json'} | ${apiJson}           | ${'application/json'}   | ${'openapi'}
   `(
     'should display an error when file is $fileName and selected format is $selectedFormat',
     async ({ fileName, importDefinition, type, selectedFormat }) => {
       await componentHarness.selectFormat(selectedFormat);
-      expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+      await componentHarness.clickNext();
       await componentHarness.selectSource('local');
-      expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+      expect(await componentHarness.isNextDisabled()).toBeTruthy();
 
       await componentHarness.pickFiles([new File([importDefinition], fileName, { type })]);
-      expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+      expect(await componentHarness.isNextDisabled()).toBeTruthy();
       expect(await componentHarness.isFormatErrorBannerDisplayed()).toBeTruthy();
     },
   );
-
-  function expectGetPolicies(policies: PolicyPlugin[]) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`,
-        method: 'GET',
-      })
-      .flush(policies);
-  }
 });

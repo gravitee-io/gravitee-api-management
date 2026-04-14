@@ -13,13 +13,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<h1 class="import__title">Import API</h1>
-<mat-card class="import__card">
-  <mat-card-content>
-    <api-import-v4-stepper
-      [hasOasValidationPolicy]="hasOasValidationPolicy()"
-      (importRequested)="onImportRequested($event)"
-      (cancelled)="onCancelNavigation()"
-    />
-  </mat-card-content>
-</mat-card>
+<h2 mat-dialog-title>Import API</h2>
+<mat-dialog-content class="api-import-v4-dialog__content">
+  <p class="mat-body api-import-v4-dialog__subtitle">{{ data.apiName }}</p>
+  <api-import-v4-stepper
+    [hasOasValidationPolicy]="hasOasValidationPolicy()"
+    (importRequested)="onImportRequested($event)"
+    (cancelled)="onCancelled()"
+  />
+</mat-dialog-content>

@@ -1,0 +1,229 @@
+<!--
+  Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<mat-stepper class="import-stepper" color="accent" [disableRipple]="true" [linear]="true">
+  <mat-step [stepControl]="step1Group">
+    <ng-template matStepLabel>Select API format</ng-template>
+    <div class="import-stepper__content" [formGroup]="step1Group">
+      <h3 class="import-stepper__heading">API format</h3>
+      <gio-form-selection-inline formControlName="apiFormat">
+        @for (format of formats; track format.value) {
+          <gio-form-selection-inline-card [value]="format.value">
+            <gio-form-selection-inline-card-content [icon]="format.icon">
+              <gio-card-content-title>{{ format.label }}</gio-card-content-title>
+            </gio-form-selection-inline-card-content>
+          </gio-form-selection-inline-card>
+        }
+      </gio-form-selection-inline>
+    </div>
+    <div class="import-stepper__actions">
+      <button mat-stroked-button type="button" (click)="onCancelClick()">Cancel</button>
+      <div class="import-stepper__actions-nav">
+        <button mat-flat-button color="primary" type="button" matStepperNext [disabled]="step1Group.invalid">Next</button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step [stepControl]="step2Group">
+    <ng-template matStepLabel>Configure file source</ng-template>
+    <div class="import-stepper__content" [formGroup]="step2Group">
+      <h3 class="import-stepper__heading">File source</h3>
+      <div class="import-stepper__step2-columns">
+        <div class="import-stepper__step2-left">
+          <div class="import-stepper__step2-col-heading mat-subtitle-2">Source</div>
+          <gio-form-selection-inline class="import-stepper__source-inline" formControlName="fileSourceType">
+            @for (source of sources; track source.value) {
+              <gio-form-selection-inline-card [value]="source.value">
+                <gio-form-selection-inline-card-content [icon]="source.icon">
+                  <gio-card-content-title>{{ source.label }}</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+            }
+          </gio-form-selection-inline>
+        </div>
+        <div class="import-stepper__step2-right">
+          @if (step2Group.controls.fileSourceType.value === 'local') {
+            <div class="import-stepper__step2-col-heading mat-subtitle-2">File</div>
+            <div class="import-stepper__step2-right-body">
+              @for (_ of [filePickerKey()]; track filePickerKey()) {
+                <api-import-file-picker [allowedFileExtensions]="allowedFileExtensions()" (onFilePicked)="onFilePicked($event)">
+                  <div class="import-stepper__file-picker">
+                    <mat-icon svgIcon="gio:upload" />
+                    <p class="mat-body-strong">Drag and drop a file</p>
+                    <p class="mat-body">Supported file formats: {{ allowedFileExtensions().join(', ') }}</p>
+                  </div>
+                </api-import-file-picker>
+              }
+              @if (step2Group.hasError('mismatchFileFormat')) {
+                <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+              }
+            </div>
+          }
+
+          @if (step2Group.controls.fileSourceType.value === 'remote') {
+            <div class="import-stepper__step2-col-heading mat-subtitle-2">Remote source</div>
+            <div class="import-stepper__remote import-stepper__step2-right-body">
+              <mat-form-field class="import-stepper__field" appearance="outline">
+                <mat-label>URL</mat-label>
+                <input matInput formControlName="remoteUrl" type="url" autocomplete="off" />
+                @if (step2Group.controls.remoteUrl.hasError('required')) {
+                  <mat-error>URL is required</mat-error>
+                }
+                @if (step2Group.controls.remoteUrl.hasError('pattern')) {
+                  <mat-error>Enter a valid http(s) URL</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="import-stepper__field" appearance="outline">
+                <mat-label>Authorization header (optional)</mat-label>
+                <input matInput formControlName="remoteAuthorizationHeader" type="text" autocomplete="off" />
+              </mat-form-field>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="import-stepper__actions">
+      <button mat-stroked-button type="button" (click)="onCancelClick()">Cancel</button>
+      <div class="import-stepper__actions-nav">
+        <button mat-stroked-button type="button" matStepperPrevious>Previous</button>
+        <button mat-flat-button color="primary" type="button" matStepperNext [disabled]="step2Group.invalid">Next</button>
+      </div>
+    </div>
+  </mat-step>
+
+  @if (showOptionsStep()) {
+    <mat-step [stepControl]="step3Group">
+      <ng-template matStepLabel>Options</ng-template>
+      <div class="import-stepper__content" [formGroup]="step3Group">
+        <h3 class="import-stepper__heading">Options</h3>
+        @if (apiFormat() === 'openapi' || apiFormat() === 'wsdl') {
+          <gio-form-slide-toggle>
+            <gio-form-label>Create documentation page from spec</gio-form-label>
+            This will add a documentation page for this API using the spec used during the import. This page will be published automatically
+            (you can change this later).
+            <mat-slide-toggle
+              gioFormSlideToggle
+              formControlName="createDocPage"
+              aria-label="Toggle to create documentation page"
+            />
+          </gio-form-slide-toggle>
+        }
+        @if (hasOasValidationPolicy() && apiFormat() === 'openapi') {
+          <gio-form-slide-toggle>
+            <gio-form-label>Add OpenAPI Specification Validation</gio-form-label>
+            This will add an OpenAPI Specification validation policy with all options enabled (you can change this later).
+            <mat-slide-toggle
+              gioFormSlideToggle
+              formControlName="addSpecValidation"
+              aria-label="Toggle to add OpenAPI Specification Validation"
+            />
+          </gio-form-slide-toggle>
+        }
+      </div>
+      <div class="import-stepper__actions">
+        <button mat-stroked-button type="button" (click)="onCancelClick()">Cancel</button>
+        <div class="import-stepper__actions-nav">
+          <button mat-stroked-button type="button" matStepperPrevious>Previous</button>
+          <button mat-flat-button color="primary" type="button" matStepperNext [disabled]="step3Group.invalid">Next</button>
+        </div>
+      </div>
+    </mat-step>
+  }
+
+  <mat-step [stepControl]="step4Group">
+    <ng-template matStepLabel>Review and import</ng-template>
+    <div class="import-stepper__content import-stepper__review">
+      <div class="import-stepper__review-header">
+        <div class="import-stepper__review-header__subtitle">Review your import</div>
+        <p class="import-stepper__review-header__hint">Verify all settings before importing your API definition.</p>
+      </div>
+
+      <div class="import-stepper__review-body">
+        <div class="import-stepper__review-panel">
+          <div class="mat-h3 import-stepper__review-panel__title">Configuration</div>
+          <div class="import-stepper__review-info">
+            <div class="import-stepper__review-info__row">
+              <span class="import-stepper__review-info__key">Format:</span>
+              <span class="import-stepper__review-info__value">{{ apiFormatLabel() }}</span>
+            </div>
+            <div class="import-stepper__review-info__row">
+              <span class="import-stepper__review-info__key">Source:</span>
+              <span class="import-stepper__review-info__value">{{
+                step2Group.controls.fileSourceType.value === 'local' ? 'Local file' : 'Remote source'
+              }}</span>
+            </div>
+            @if (step2Group.controls.fileSourceType.value === 'remote') {
+              <div class="import-stepper__review-info__row">
+                <span class="import-stepper__review-info__key">URL:</span>
+                <span class="import-stepper__review-info__value import-stepper__review-info__value--break">{{
+                  step2Group.controls.remoteUrl.value
+                }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (showOptionsStep()) {
+          <div class="import-stepper__review-panel">
+            <div class="mat-h3 import-stepper__review-panel__title">Options</div>
+            <div class="import-stepper__review-info">
+              @if (apiFormat() === 'openapi' || apiFormat() === 'wsdl') {
+                <div class="import-stepper__review-info__row">
+                  <span class="import-stepper__review-info__key">Documentation page:</span>
+                  @if (step3Group.controls.createDocPage.value) {
+                    <span class="gio-badge-success">Enabled</span>
+                  } @else {
+                    <span class="gio-badge-neutral">Disabled</span>
+                  }
+                </div>
+              }
+              @if (hasOasValidationPolicy() && apiFormat() === 'openapi') {
+                <div class="import-stepper__review-info__row">
+                  <span class="import-stepper__review-info__key">OpenAPI validation:</span>
+                  @if (step3Group.controls.addSpecValidation.value) {
+                    <span class="gio-badge-success">Enabled</span>
+                  } @else {
+                    <span class="gio-badge-neutral">Disabled</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="import-stepper__actions">
+      <button mat-stroked-button type="button" (click)="onCancelClick()">Cancel</button>
+      <div class="import-stepper__actions-nav">
+        <button mat-stroked-button type="button" matStepperPrevious>Previous</button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          aria-label="Import API"
+          [disabled]="
+            step1Group.invalid ||
+            step2Group.invalid ||
+            (showOptionsStep() && !step3Group.disabled && step3Group.invalid) ||
+            step4Group.invalid
+          "
+          (click)="onImportClick()"
+        >
+          Import API
+        </button>
+      </div>
+    </div>
+  </mat-step>
+</mat-stepper>

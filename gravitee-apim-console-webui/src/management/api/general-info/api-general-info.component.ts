@@ -51,6 +51,8 @@ import { CategoryService } from '../../../services-ngx/category.service';
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioApiImportDialogComponent, GioApiImportDialogData } from '../component/gio-api-import-dialog/gio-api-import-dialog.component';
+import { ApiImportV4DialogComponent } from '../import-v4/api-import-v4-dialog.component';
+import { ApiImportV4DialogData } from '../import-v4/api-import-v4-wizard.model';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
@@ -401,6 +403,30 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   }
 
   importApi() {
+    if (this.api.definitionVersion === 'V4') {
+      this.matDialog
+        .open<ApiImportV4DialogComponent, ApiImportV4DialogData, string | undefined>(ApiImportV4DialogComponent, {
+          data: { apiId: this.apiId, apiName: this.api.name },
+          width: GIO_DIALOG_WIDTH.LARGE,
+          role: 'alertdialog',
+          id: 'importApiV4Dialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter(apiId => !!apiId),
+          tap(() => {
+            this.refresh$.next();
+          }),
+          catchError(err => {
+            this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+      return;
+    }
+
     this.policyService
       .listSwaggerPolicies()
       .pipe(

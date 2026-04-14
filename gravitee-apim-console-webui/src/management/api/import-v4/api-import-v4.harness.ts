@@ -17,33 +17,59 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { GioFormFilePickerInputHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatStepperHarness } from '@angular/material/stepper/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiImportV4Harness extends ComponentHarness {
-  static hostSelector = 'api-api-import-v4';
+  static hostSelector = 'api-import-v4';
 
-  private getFormatSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="format"]' }));
-  private getSourceSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="source"]' }));
+  private getFormatSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="apiFormat"]' }));
+  private getSourceSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="fileSourceType"]' }));
   private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
-  private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
-  private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
+  private getStepper = this.locatorFor(MatStepperHarness);
+  private getImportButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
   private getFormatErrorBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
-  private getImportDocumentationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="withDocumentation"]' }));
+  private getImportDocumentationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="createDocPage"]' }));
   private getImportOASValidationPolicyToggle = this.locatorFor(
-    MatSlideToggleHarness.with({ selector: '[formControlName="withOASValidationPolicy"]' }),
+    MatSlideToggleHarness.with({ selector: '[formControlName="addSpecValidation"]' }),
   );
 
+  private async getSelectedStepNextButton(): Promise<MatButtonHarness> {
+    const stepper = await this.getStepper();
+    const selectedSteps = await stepper.getSteps({ selected: true });
+    const step = selectedSteps[0];
+    return step.getHarness(MatButtonHarness.with({ selector: 'button[matStepperNext]' }));
+  }
+
+  private async getSelectedStepCancelButton(): Promise<MatButtonHarness> {
+    const stepper = await this.getStepper();
+    const selectedSteps = await stepper.getSteps({ selected: true });
+    const step = selectedSteps[0];
+    return step.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+  }
+
+  public async clickNext() {
+    const btn = await this.getSelectedStepNextButton();
+    return btn.click();
+  }
+
+  public async isNextDisabled() {
+    const btn = await this.getSelectedStepNextButton();
+    return btn.isDisabled();
+  }
+
   public async save() {
-    return this.getSaveButton().then(btn => btn.click());
+    return this.getImportButton().then(btn => btn.click());
   }
 
   public async isSaveDisabled() {
-    return this.getSaveButton().then(btn => btn.isDisabled());
+    return this.getImportButton().then(btn => btn.isDisabled());
   }
 
   public async cancel() {
-    return this.getCancelButton().then(btn => btn.click());
+    const btn = await this.getSelectedStepCancelButton();
+    return btn.click();
   }
 
   public async selectFormat(format: string) {
