@@ -37,4 +37,7 @@ public class ClusterMongo extends Auditable {
     private String description;
     private String definition;
     private List<String> groups;
+    private String lifecycleState;
+    private java.time.Instant deployedAt;
+    private Integer version;
 }

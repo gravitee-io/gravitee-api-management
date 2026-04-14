@@ -29,6 +29,7 @@ export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
       },
     },
     groups: [],
+    lifecycleState: 'UNDEPLOYED',
     updatedAt: new Date('2023-01-01T00:00:00Z'),
     createdAt: new Date('2023-01-01T00:00:00Z'),
     ...overrides,

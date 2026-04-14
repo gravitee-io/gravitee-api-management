@@ -41,4 +41,7 @@ public class Cluster {
     private String type;
     private String definition;
     private Set<String> groups;
+    private String lifecycleState;
+    private Instant deployedAt;
+    private Integer version;
 }

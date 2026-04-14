@@ -41,6 +41,9 @@ public class Cluster {
     private String description;
     private Object configuration;
     private Set<String> groups;
+    private ClusterLifecycleState lifecycleState;
+    private Instant deployedAt;
+    private Integer version;
 
     public KafkaClusterConnectionConfiguration getKafkaClusterConnectionConfiguration(ObjectMapper objectMapper) {
         return objectMapper.convertValue(this.configuration, KafkaClusterConnectionConfiguration.class);
@@ -61,5 +64,23 @@ public class Cluster {
         if (updateCluster.getConfiguration() != null) {
             this.configuration = updateCluster.getConfiguration();
         }
+        if (this.lifecycleState == ClusterLifecycleState.DEPLOYED) {
+            this.lifecycleState = ClusterLifecycleState.PENDING;
+        }
+    }
+
+    public void deploy() {
+        this.lifecycleState = ClusterLifecycleState.DEPLOYED;
+        this.version = this.version != null ? this.version + 1 : 1;
+        Instant now = TimeProvider.instantNow();
+        this.deployedAt = now;
+        this.updatedAt = now;
+    }
+
+    public void undeploy() {
+        this.lifecycleState = ClusterLifecycleState.UNDEPLOYED;
+        Instant now = TimeProvider.instantNow();
+        this.deployedAt = now;
+        this.updatedAt = now;
     }
 }

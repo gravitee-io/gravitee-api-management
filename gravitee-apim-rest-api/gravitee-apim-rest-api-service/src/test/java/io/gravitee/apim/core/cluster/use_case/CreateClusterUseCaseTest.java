@@ -31,6 +31,7 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaSe
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.model.CreateCluster;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
@@ -107,6 +108,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
             .environmentId(ENV_ID)
             .organizationId(ORG_ID)
             .configuration(configuration)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
             .build();
 
         assertThat(output.cluster()).usingRecursiveComparison().isEqualTo(expected);
