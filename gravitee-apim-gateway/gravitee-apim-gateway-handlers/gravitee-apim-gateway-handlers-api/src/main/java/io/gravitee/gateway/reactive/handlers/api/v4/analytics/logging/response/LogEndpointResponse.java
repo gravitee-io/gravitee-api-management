@@ -60,6 +60,12 @@ public class LogEndpointResponse extends LogResponse {
     }
 
     public void finalizeCapture(HttpExecutionContextInternal ctx) {
+        if (loggingContext.isOtelLogsEnabled()) {
+            var tracer = ctx.getTracer();
+            this.setTraceId(tracer != null ? tracer.traceId() : null);
+            this.setSpanId(tracer != null ? tracer.spanId() : null);
+        }
+
         if (isLogHeaders()) {
             this.setHeaders(response.headers());
             response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());

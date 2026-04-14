@@ -424,7 +424,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
                 api.getId(),
-                api.getName(),
+                node.application(),
                 serviceNameSpace,
                 api.getApiVersion(),
                 instrumenterTracerFactories,

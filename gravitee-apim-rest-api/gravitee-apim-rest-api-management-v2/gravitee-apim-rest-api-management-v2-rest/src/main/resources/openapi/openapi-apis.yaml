@@ -3263,6 +3263,9 @@ components:
                         Enable the connection-metrics reporter on the gateway. Only applicable to Native v4 APIs; ignored on HTTP v4 requests and omitted from HTTP v4 responses.
                         Server-side default for Native v4 on create is `true`.
                         Independent of the parent `enabled` flag: event-metrics reporting and the connection-metrics reporter are gated separately.
+                    default: true
+                otelLogs:
+                    $ref: "#/components/schemas/OtelLogsV4"
         Api:
             oneOf:
                 - $ref: "#/components/schemas/ApiV2"
@@ -5010,6 +5013,12 @@ components:
                     description: PARTIAL only — number of trailing characters to keep visible.
                     default: 0
                     minimum: 0
+        OtelLogsV4:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: Enable OpenTelemetry log export for this API (payload capture with traceId/spanId correlation).
         ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object

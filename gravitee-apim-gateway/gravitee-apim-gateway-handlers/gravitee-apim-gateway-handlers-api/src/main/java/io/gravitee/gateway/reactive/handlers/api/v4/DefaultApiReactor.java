@@ -66,6 +66,7 @@ import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.InvokerTracingHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
@@ -740,6 +741,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         LoggingContext loggingContext = Optional.ofNullable(api.getDefinition().getAnalytics())
             .map(analytics -> {
                 var context = new LoggingContext(analytics.getLogging());
+                context.setOtelLogsEnabled(AnalyticsUtils.isOtelLogsEnabled(analytics));
                 context.setMaxSizeLogMessage(loggingMaxSize);
                 context.setExcludedResponseTypes(loggingExcludedResponseType);
                 context.setLogGuardService(logGuardService);

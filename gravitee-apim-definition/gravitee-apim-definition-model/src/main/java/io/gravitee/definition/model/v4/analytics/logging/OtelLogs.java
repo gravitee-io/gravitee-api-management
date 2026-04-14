@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.analytics;
+package io.gravitee.definition.model.v4.analytics.logging;
 
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
-import io.gravitee.definition.model.v4.analytics.logging.OtelLogs;
-import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
-import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,22 +24,15 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
-@Builder(toBuilder = true)
 @Setter
 @ToString
 @EqualsAndHashCode
-@Schema(name = "AnalyticsV4")
-public class Analytics implements Serializable {
+@Schema(name = "OtelLogsV4")
+public class OtelLogs implements Serializable {
 
-    private boolean enabled = true;
-    private Sampling messageSampling;
-    private Logging logging;
-    private Tracing tracing;
-    private OtelLogs otelLogs;
+    private boolean enabled;
 }
