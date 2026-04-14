@@ -83,10 +83,10 @@ public class GroupServiceImplTest {
     private EventManager eventManager;
 
     @Test
-    public void search_hasNotPermissionCreateUpdateDelete() {
+    public void search_should_return_all_groups_and_mark_administered_as_manageable_when_user_is_group_admin() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         int pageNumber = 1;
-        int pageSize = 2;
+        int pageSize = 4;
         Pageable pageable = new PageableImpl(pageNumber, pageSize);
         String searchTerm = "test";
 
@@ -108,10 +108,7 @@ public class GroupServiceImplTest {
             Optional.of(roleEntity)
         );
 
-        Set<MembershipEntity> memberships = Set.of(
-            MembershipEntity.builder().id("m1").referenceId("gr1").build(),
-            MembershipEntity.builder().id("m2").referenceId("gr2").build()
-        );
+        Set<MembershipEntity> memberships = Set.of(MembershipEntity.builder().id("m1").referenceId("gr1").build());
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 eq(MembershipMemberType.USER),
@@ -121,27 +118,114 @@ public class GroupServiceImplTest {
             )
         ).thenReturn(memberships);
 
-        GroupCriteria groupCriteria = GroupCriteria.builder()
-            .environmentId(executionContext.getEnvironmentId())
-            .query(searchTerm)
-            .idIn(Set.of("gr1", "gr2"))
-            .build();
-        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
-        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 13);
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
+        List<Group> groups = List.of(
+            Group.builder().id("gr1").build(),
+            Group.builder().id("gr2").build(),
+            Group.builder().id("gr3").build()
+        );
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 3);
         when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
 
-        Page<GroupEntity> searchResult = service.search(executionContext, pageable, "test");
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
 
         assertAll(
-            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
-            () -> assertThat(searchResult.getTotalElements()).isEqualTo(13),
-            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
-            () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
+            () -> assertThat(searchResult.getContent()).hasSize(3),
+            () -> assertThat(searchResult.getContent().stream().map(GroupEntity::getId).toList()).containsExactly("gr1", "gr2", "gr3"),
+            () -> assertThat(searchResult.getContent().get(0).isManageable()).isTrue(),
+            () -> assertThat(searchResult.getContent().get(1).isManageable()).isFalse(),
+            () -> assertThat(searchResult.getContent().get(2).isManageable()).isFalse()
         );
     }
 
     @Test
-    public void search_hasPermissionCreateUpdateDelete() {
+    public void search_should_return_all_groups_with_manageable_false_when_user_is_not_group_admin() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 4;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        ).thenReturn(false);
+
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+
+        RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId())).thenReturn(
+            Optional.of(roleEntity)
+        );
+
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                any(),
+                eq(MembershipReferenceType.GROUP),
+                eq(roleEntity.getId())
+            )
+        ).thenReturn(Set.of());
+
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
+        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
+        when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).hasSize(2),
+            () -> assertThat(searchResult.getContent().stream().noneMatch(GroupEntity::isManageable)).isTrue()
+        );
+    }
+
+    @Test
+    public void search_should_return_all_groups_with_manageable_false_when_group_admin_role_does_not_exist() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 4;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        ).thenReturn(false);
+
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId())).thenReturn(
+            Optional.empty()
+        );
+
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
+        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
+        when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).hasSize(2),
+            () -> assertThat(searchResult.getContent().stream().noneMatch(GroupEntity::isManageable)).isTrue()
+        );
+    }
+
+    @Test
+    public void search_should_return_all_groups_with_manageable_true_when_user_has_cud_permissions() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         int pageNumber = 1;
         int pageSize = 2;
@@ -161,16 +245,17 @@ public class GroupServiceImplTest {
 
         GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
         List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
-        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 13);
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
         when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
-        Page<GroupEntity> searchResult = service.search(executionContext, pageable, "test");
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
 
         assertAll(
-            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
-            () -> assertThat(searchResult.getTotalElements()).isEqualTo(13),
+            () -> assertThat(searchResult.getContent()).hasSize(2),
+            () -> assertThat(searchResult.getContent().stream().allMatch(GroupEntity::isManageable)).isTrue(),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
             () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
             () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
         );
