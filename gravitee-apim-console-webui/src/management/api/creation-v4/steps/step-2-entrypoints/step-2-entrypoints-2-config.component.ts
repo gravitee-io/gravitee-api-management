@@ -192,6 +192,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
     switch (this.apiType) {
       case 'MESSAGE':
+      case 'NATIVE':
         this.stepService.goToNextStep({
           groupNumber: 3,
           component: Step3Endpoints1ListComponent,
@@ -201,7 +202,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       case 'MCP_PROXY':
       case 'LLM_PROXY':
       case 'A2A_PROXY':
-      case 'NATIVE':
         this.stepService.goToNextStep({
           groupNumber: 3,
           component: Step3Endpoints2ConfigComponent,

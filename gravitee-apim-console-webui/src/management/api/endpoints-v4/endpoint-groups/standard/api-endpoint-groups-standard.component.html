@@ -26,7 +26,7 @@
               <mat-icon [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
               {{ plugins?.get(group.type)?.name }}
             </span>
-            @if (group.type !== 'native-kafka') {
+            @if (group.type !== 'native-kafka' && group.type !== 'native-kafka-cluster') {
               <span class="gio-badge-accent">
                 <mat-icon svgIcon="gio:share-2"></mat-icon>
                 {{ group.loadBalancerType }}

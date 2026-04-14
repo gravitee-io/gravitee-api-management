@@ -121,6 +121,24 @@ describe('ApiEndpointGroupsStandardComponent', () => {
     ],
   };
 
+  const kafkaClusterGroup: EndpointGroupV4 = {
+    name: 'cluster-group',
+    type: 'native-kafka-cluster',
+    loadBalancer: { type: 'WEIGHTED_RANDOM' },
+    endpoints: [
+      {
+        name: 'cluster endpoint',
+        type: 'native-kafka-cluster',
+        weight: 1,
+        inheritConfiguration: true,
+        configuration: {
+          clusterCrossId: 'my-kafka-cluster',
+          connectionCrossId: 'primary',
+        },
+      },
+    ],
+  };
+
   const a2aGroup: EndpointGroupV4 = {
     name: 'A2A Proxy',
     type: 'a2a-proxy',
@@ -209,6 +227,17 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       expect(await warningFailoverBanner[0].getText()).toContain(
         'Failover is enabled but it is not supported for Kafka endpoints. Use the native Kafka Failover by providing multiple bootstrap servers.',
       );
+    });
+
+    it('should display native-kafka-cluster endpoint with cluster and connection crossIds', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        type: 'NATIVE',
+        endpointGroups: [kafkaClusterGroup],
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.getTableRows(0)).toEqual([['', 'cluster endpoint', 'my-kafka-cluster / primary', '']]);
     });
 
     it('should allow to create another endpoint group for a NATIVE api', async () => {

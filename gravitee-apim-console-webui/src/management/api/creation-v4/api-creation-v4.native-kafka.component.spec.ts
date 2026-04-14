@@ -170,6 +170,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_1_EndpointsList(nativeKafkaEndpoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
@@ -204,6 +205,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_1_EndpointsList(nativeKafkaEndpoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
@@ -242,6 +244,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_1_EndpointsList(nativeKafkaEndpoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
 
       const plansList = await harnessLoader.getHarness(Step4Security1PlansHarness);
@@ -280,6 +283,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_1_EndpointsList(nativeKafkaEndpoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
@@ -295,6 +299,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_1_EndpointsList(nativeKafkaEndpoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
 
       const plansList = await harnessLoader.getHarness(Step4Security1PlansHarness);

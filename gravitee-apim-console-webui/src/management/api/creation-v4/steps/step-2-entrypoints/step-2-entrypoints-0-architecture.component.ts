@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { combineLatest, Observable, Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntil, tap } from 'rxjs/operators';
@@ -165,12 +165,10 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   private doSaveKafka() {
-    combineLatest([
-      this.connectorPluginsV2Service.getEntrypointPlugin('native-kafka'),
-      this.connectorPluginsV2Service.getEndpointPlugin('native-kafka'),
-    ])
+    this.connectorPluginsV2Service
+      .getEntrypointPlugin('native-kafka')
       .pipe(
-        tap(([nativeKafkaEntrypoint, nativeKafkaEndpoint]) => {
+        tap(nativeKafkaEntrypoint => {
           this.stepService.validStep(previousPayload => ({
             ...previousPayload,
             selectedEntrypoints: [
@@ -180,15 +178,6 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
                 icon: this.iconService.registerSvg(nativeKafkaEntrypoint.id, nativeKafkaEntrypoint.icon),
                 supportedListenerType: nativeKafkaEntrypoint.supportedListenerType,
                 deployed: nativeKafkaEntrypoint.deployed,
-              },
-            ],
-            selectedEndpoints: [
-              {
-                id: nativeKafkaEndpoint.id,
-                name: nativeKafkaEndpoint.name,
-                icon: this.iconService.registerSvg(nativeKafkaEndpoint.id, nativeKafkaEndpoint.icon),
-                supportedListenerType: nativeKafkaEndpoint.supportedListenerType,
-                deployed: nativeKafkaEndpoint.deployed,
               },
             ],
             architecture: 'KAFKA',

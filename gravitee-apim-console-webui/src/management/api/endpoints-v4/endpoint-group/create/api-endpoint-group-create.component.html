@@ -19,7 +19,7 @@
   <mat-card>
     <mat-card-content>
       <mat-stepper [linear]="true">
-        <mat-step *ngIf="apiType === 'MESSAGE'" state="type" [stepControl]="createForm.get('type')">
+        <mat-step *ngIf="apiType === 'MESSAGE' || apiType === 'NATIVE'" state="type" [stepControl]="createForm.get('type')">
           <ng-template matStepperIcon="type">
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
           </ng-template>
@@ -47,7 +47,7 @@
             <ng-container *ngIf="apiType === 'PROXY' || apiType === 'LLM_PROXY'">
               <ng-container *ngTemplateOutlet="exitButton"></ng-container>
             </ng-container>
-            <button *ngIf="apiType === 'MESSAGE'" mat-stroked-button type="button" matStepperPrevious>Back</button>
+            <button *ngIf="apiType === 'MESSAGE' || apiType === 'NATIVE'" mat-stroked-button type="button" matStepperPrevious>Back</button>
             <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('general').invalid" matStepperNext>
               Validate general information
             </button>

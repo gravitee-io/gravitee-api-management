@@ -88,7 +88,10 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           this.generalForm.get('name').addValidators([isEndpointNameUnique(apiV4)]);
           this.apiType = apiV4.type;
           this.isNativeKafka = apiV4.type === 'NATIVE' && apiV4.listeners.some(listener => listener.type === 'KAFKA');
-          this.requiredQos = apiV4.listeners.flatMap(listener => listener.entrypoints).flatMap(entrypoint => entrypoint.qos);
+          this.requiredQos = apiV4.listeners
+            .flatMap(listener => listener.entrypoints)
+            .flatMap(entrypoint => entrypoint.qos)
+            .filter(qos => !!qos);
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
           }
@@ -96,8 +99,8 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('llm-proxy');
           }
           if (this.isNativeKafka) {
-            this.endpointGroupTypeForm.get('endpointGroupType').setValue('native-kafka');
             this.generalForm.get('loadBalancerType').removeValidators(Validators.required);
+            this.generalForm.get('loadBalancerType').updateValueAndValidity();
           }
           this.changeDetectorRef.detectChanges();
         },

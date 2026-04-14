@@ -117,6 +117,8 @@ const toGeneralColumnName = (api: ApiV4, endpointGroup: EndpointGroupV4): string
       return 'Target URL';
     case 'NATIVE.native-kafka':
       return 'Bootstrap Servers';
+    case 'NATIVE.native-kafka-cluster':
+      return 'Cluster';
     case 'MESSAGE.kafka':
       return 'Bootstrap Servers';
   }
@@ -128,6 +130,13 @@ const toGeneralInfo = (api: ApiV4, endpoint: EndpointV4): string | undefined => 
       return get(endpoint.configuration, 'target', '');
     case 'NATIVE.native-kafka':
       return get(endpoint.configuration, 'bootstrapServers', '');
+    case 'NATIVE.native-kafka-cluster': {
+      const cluster = get(endpoint.configuration, 'clusterCrossId', '');
+      const connection = get(endpoint.configuration, 'connectionCrossId', '');
+      // TODO: maybe retrieve and display cluster and connection names instead of ids for better readability
+      // And display warning if cluster or connection is not found
+      return connection ? `${cluster} / ${connection}` : cluster;
+    }
     case 'MESSAGE.kafka':
       return get(endpoint.configuration, 'bootstrapServers', '');
   }
