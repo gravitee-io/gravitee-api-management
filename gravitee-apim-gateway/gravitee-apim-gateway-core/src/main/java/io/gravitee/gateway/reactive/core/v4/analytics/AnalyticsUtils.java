@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.logging.OtelLogs;
 import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.report.guard.LogGuardService;
@@ -80,8 +81,19 @@ public class AnalyticsUtils {
             Logging logging = analytics.getLogging();
             if (logging != null) {
                 final LoggingMode loggingMode = logging.getMode();
-                return loggingMode != null && loggingMode.isEnabled();
+                if (loggingMode != null && loggingMode.isEnabled()) {
+                    return true;
+                }
             }
+            return isOtelLogsEnabled(analytics);
+        }
+        return false;
+    }
+
+    public static boolean isOtelLogsEnabled(final Analytics analytics) {
+        if (analytics != null && analytics.isEnabled()) {
+            OtelLogs otelLogs = analytics.getOtelLogs();
+            return otelLogs != null && otelLogs.isEnabled();
         }
         return false;
     }

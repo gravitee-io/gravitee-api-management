@@ -42,6 +42,11 @@ public class LoggingContext implements ConditionSupplier {
     @Setter
     private LogGuardService logGuardService;
 
+    /** When true, payload capture is enabled for all 4 directions regardless of ES logging configuration. */
+    @Getter
+    @Setter
+    private boolean otelLogsEnabled = false;
+
     private final LoggableContentType loggableContentType;
 
     public LoggingContext(Logging logging) {
@@ -51,55 +56,67 @@ public class LoggingContext implements ConditionSupplier {
 
     @Override
     public String getCondition() {
-        return logging.getCondition();
+        return logging != null ? logging.getCondition() : null;
     }
 
     public boolean entrypointRequest() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest();
+        return otelLogsEnabled || (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isRequest());
     }
 
     public boolean entrypointResponse() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse();
+        return otelLogsEnabled || (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isResponse());
     }
 
     public boolean endpointRequest() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isRequest();
+        return otelLogsEnabled || (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isRequest());
     }
 
     public boolean endpointResponse() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isResponse();
+        return otelLogsEnabled || (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isResponse());
     }
 
     public boolean entrypointRequestHeaders() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
+        return logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
     }
 
     public boolean entrypointRequestPayload() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isPayload();
+        return (
+            otelLogsEnabled ||
+            (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isPayload())
+        );
     }
 
     public boolean endpointRequestHeaders() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
+        return logging != null && logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
     }
 
     public boolean endpointRequestPayload() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isPayload();
+        return (
+            otelLogsEnabled ||
+            (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isPayload())
+        );
     }
 
     public boolean entrypointResponseHeaders() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
+        return logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
     }
 
     public boolean entrypointResponsePayload() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isPayload();
+        return (
+            otelLogsEnabled ||
+            (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isPayload())
+        );
     }
 
     public boolean endpointResponseHeaders() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
+        return logging != null && logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
     }
 
     public boolean endpointResponsePayload() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isPayload();
+        return (
+            otelLogsEnabled ||
+            (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isPayload())
+        );
     }
 
     public String getExcludedResponseTypes() {

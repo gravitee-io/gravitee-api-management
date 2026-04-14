@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -180,5 +182,38 @@ class LogEntrypointRequestTest {
 
         assertNull(logRequest.getHeaders());
         assertThat(logRequest.getBody()).isEqualTo("BODY NOT CAPTURED");
+    }
+
+    @Test
+    void should_capture_traceId_and_spanId_from_tracer() {
+        var mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
+        when(mockTracer.spanId()).thenReturn("def456spanId0000");
+        when(ctx.getTracer()).thenReturn(mockTracer);
+        when(request.method()).thenReturn(io.gravitee.common.http.HttpMethod.GET);
+        when(request.uri()).thenReturn(URI);
+        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
+        when(loggingContext.entrypointRequestPayload()).thenReturn(false);
+
+        final var logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture(ctx);
+
+        assertThat(logRequest.getTraceId()).isEqualTo("abc123traceId00000000000000000000");
+        assertThat(logRequest.getSpanId()).isEqualTo("def456spanId0000");
+    }
+
+    @Test
+    void should_set_null_traceId_and_spanId_when_tracer_is_null() {
+        when(ctx.getTracer()).thenReturn(null);
+        when(request.method()).thenReturn(io.gravitee.common.http.HttpMethod.GET);
+        when(request.uri()).thenReturn(URI);
+        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
+        when(loggingContext.entrypointRequestPayload()).thenReturn(false);
+
+        final var logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture(ctx);
+
+        assertNull(logRequest.getTraceId());
+        assertNull(logRequest.getSpanId());
     }
 }
