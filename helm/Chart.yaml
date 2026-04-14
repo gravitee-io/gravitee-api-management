@@ -29,4 +29,8 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: added
+      description: 'Add support for jdbc.driverSource=preinstalled for custom APIM images with pre-baked JDBC drivers.'
+    - kind: fixed
+      description: 'Validate jdbc.driverSource values during chart rendering and fail on unsupported values.'

@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.11.2
+- Add support for `jdbc.driverSource=preinstalled` to use JDBC drivers already baked into custom API and Gateway runtime images, without JDBC runtime provisioning.
+- Validate `jdbc.driverSource` values during chart rendering and fail on unsupported values.
+
 ### 4.10.0
 - Allow to configure Expression Language whitelist.
 - Improve redis rate limit configuration to allow username for acl configuration [issues/10966](https://github.com/gravitee-io/issues/issues/10966).
