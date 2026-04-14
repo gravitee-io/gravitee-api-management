@@ -238,6 +238,6 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
   }
 
   private getDefaultSlowCallDuration(apiType: ApiType): number {
-    return apiType === 'LLM_PROXY' ? 30_000 : 2000;
+    return apiType === 'LLM_PROXY' ? 120_000 : 2000;
   }
 }

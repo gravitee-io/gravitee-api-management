@@ -516,6 +516,7 @@ paths:
         - $ref: "#/components/parameters/perPageParam"
         - $ref: "#/components/parameters/clusterSortByParam"
         - $ref: "#/components/parameters/clusterSearchParam"
+        - $ref: "#/components/parameters/clusterTypeParam"
       responses:
         "200":
           $ref: "#/components/responses/ClustersResponse"
@@ -2520,6 +2521,14 @@ components:
       schema:
         type: string
         example: my cluster
+    clusterTypeParam:
+      name: type
+      in: query
+      required: false
+      description: |-
+        Filter clusters by type.
+      schema:
+        $ref: "#/components/schemas/ClusterType"
 
     # Instances
     instanceId:

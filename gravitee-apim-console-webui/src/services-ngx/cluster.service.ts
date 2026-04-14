@@ -17,7 +17,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
-import { Cluster, ClustersSortByParam, CreateCluster, PagedResult, UpdateCluster } from '../entities/management-api-v2';
+import { Cluster, ClustersSortByParam, ClusterType, CreateCluster, PagedResult, UpdateCluster } from '../entities/management-api-v2';
 import { Constants } from '../entities/Constants';
 
 @Injectable({
@@ -27,7 +27,7 @@ export class ClusterService {
   private readonly http = inject(HttpClient);
   private readonly constants = inject(Constants);
 
-  list(searchQuery?: string, sortBy?: ClustersSortByParam, page = 1, perPage = 25): Observable<PagedResult<Cluster>> {
+  list(searchQuery?: string, sortBy?: ClustersSortByParam, page = 1, perPage = 25, type?: ClusterType): Observable<PagedResult<Cluster>> {
     let params = new HttpParams();
     params = params.append('page', page);
     params = params.append('perPage', perPage);
@@ -36,6 +36,9 @@ export class ClusterService {
     }
     if (sortBy) {
       params = params.append('sortBy', sortBy);
+    }
+    if (type) {
+      params = params.append('type', type);
     }
 
     return this.http.get<PagedResult<Cluster>>(`${this.constants.env.v2BaseURL}/clusters`, { params });
@@ -65,7 +68,11 @@ export class ClusterService {
     return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/permissions`);
   }
 
-  getConfigurationSchema(): Observable<unknown> {
-    return this.http.get<unknown>(`${this.constants.env.v2BaseURL}/clusters/schema/configuration`);
+  getConfigurationSchema(type?: ClusterType): Observable<unknown> {
+    let params = new HttpParams();
+    if (type) {
+      params = params.append('type', type);
+    }
+    return this.http.get<unknown>(`${this.constants.env.v2BaseURL}/clusters/schema/configuration`, { params });
   }
 }

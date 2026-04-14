@@ -19,10 +19,12 @@ import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
-import { ClusterGeneralComponent } from './details/general/cluster-general.component';
-import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
-import { ClusterListComponent } from './list/cluster-list.component';
-import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
+import { ClusterGeneralComponent } from './kafka-connections/details/general/cluster-general.component';
+import { ClusterConfigurationComponent } from './kafka-connections/details/configuration/cluster-configuration.component';
+import { ClusterListComponent } from './kafka-connections/list/cluster-list.component';
+import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
+import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
+import { KafkaClusterConfigurationComponent } from './kafka-clusters/details/configuration/kafka-cluster-configuration.component';
 import { ClusterGuard } from './cluster.guard';
 
 import { Constants } from '../../entities/Constants';
@@ -33,6 +35,11 @@ import { ApimFeature } from '../../shared/components/gio-license/gio-license-dat
 const clusterRoutes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
+    redirectTo: 'kafka-connections',
+  },
+  {
+    path: 'kafka-connections',
     component: ClusterListComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     canDeactivate: [ClusterGuard.clearPermissions],
@@ -44,7 +51,7 @@ const clusterRoutes: Routes = [
     },
   },
   {
-    path: ':clusterId',
+    path: 'kafka-connections/:clusterId',
     component: ClusterNavigationComponent,
     canActivate: [ClusterGuard.loadPermissions],
     canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
@@ -84,6 +91,58 @@ const clusterRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'user-permissions',
+        component: ClusterUserPermissionsComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-member-r'],
+          },
+        },
+      },
+    ],
+  },
+  {
+    path: 'kafka-clusters',
+    component: KafkaClusterListComponent,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
+    data: {
+      useAngularMaterial: true,
+      permissions: {
+        anyOf: ['environment-cluster-r'],
+      },
+    },
+  },
+  {
+    path: 'kafka-clusters/:clusterId',
+    component: ClusterNavigationComponent,
+    canActivate: [ClusterGuard.loadPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
+    canDeactivate: [ClusterGuard.clearPermissions],
+    children: [
+      {
+        path: '',
+        redirectTo: 'general',
+        pathMatch: 'full',
+      },
+      {
+        path: 'general',
+        component: ClusterGeneralComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'configuration',
+        component: KafkaClusterConfigurationComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-configuration-r'],
           },
         },
       },

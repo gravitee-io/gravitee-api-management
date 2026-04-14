@@ -16,11 +16,12 @@
 import type { CurrentUser } from '../features/auth/auth.types';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
-export const TEST_CONFIG = {
+export const TEST_CONFIG: BootstrapConfig = {
     managementBaseURL: 'http://api.test/management',
     organizationId: 'test-org',
     gammaBaseURL: 'http://api.test/gamma',
-} as const;
+    identityProviders: [],
+};
 
 export const TEST_MANAGEMENT_BASE = `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}`;
 

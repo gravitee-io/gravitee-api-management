@@ -17,7 +17,10 @@ export default {
     displayName: 'gravitee-gamma-control-plane-webui',
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['./src/test-setup.ts'],
-    transformIgnorePatterns: ['/node_modules/(?!(until-async)/)'],
+    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene)/)'],
+    moduleNameMapper: {
+        '^@gravitee/graphene$': '<rootDir>/../../node_modules/@gravitee/graphene/dist/index.js',
+    },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
         '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],

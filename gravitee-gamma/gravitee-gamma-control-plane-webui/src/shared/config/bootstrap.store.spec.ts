@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { useBootstrapStore } from './bootstrap.store';
-import { TEST_CONFIG } from '../../testing/factories';
-import { trackHandler, respondWithError, resetAllStores } from '../../testing/helpers';
+import type { SocialIdentityProvider } from '../../features/auth';
+import { TEST_CONFIG, TEST_MANAGEMENT_BASE } from '../../testing/factories';
+import { trackHandler, respondWithError, respondWith, resetAllStores } from '../../testing/helpers';
 
 describe('bootstrapStore', () => {
     beforeEach(() => {
@@ -46,5 +47,32 @@ describe('bootstrapStore', () => {
         await expect(useBootstrapStore.getState().initialize()).rejects.toThrow();
         expect(useBootstrapStore.getState().error).toBeTruthy();
         expect(useBootstrapStore.getState().config).toBeNull();
+    });
+
+    it('should fetch and store identity providers', async () => {
+        const providers: SocialIdentityProvider[] = [
+            {
+                id: 'google-idp',
+                name: 'Google',
+                clientId: 'google-client-id',
+                type: 'GOOGLE',
+                authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+                scopes: ['openid', 'profile', 'email'],
+                color: '#4285F4',
+            },
+        ];
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/social-identities`, providers);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.identityProviders).toEqual(providers);
+    });
+
+    it('should default to empty array when social-identities fetch fails', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/social-identities`, 500);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.identityProviders).toEqual([]);
     });
 });

@@ -15,7 +15,7 @@
  */
 import { http, HttpResponse } from 'msw';
 
-import { TEST_CONFIG } from '../factories';
+import { TEST_CONFIG, TEST_MANAGEMENT_BASE } from '../factories';
 
 export const bootstrapHandlers = [
     http.get('/constants.json', () => HttpResponse.json({ gammaBaseURL: TEST_CONFIG.gammaBaseURL })),
@@ -26,4 +26,5 @@ export const bootstrapHandlers = [
             gammaBaseURL: TEST_CONFIG.gammaBaseURL,
         }),
     ),
+    http.get(`${TEST_MANAGEMENT_BASE}/social-identities`, () => HttpResponse.json([])),
 ];

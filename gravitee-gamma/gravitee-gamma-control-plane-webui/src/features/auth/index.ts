@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { useUser, useIsAuthenticated, useLogin, useLogout } from './auth.selectors';
+export { useUser, useIsAuthenticated, useLogin, useLogout, useIdentityProviders } from './auth.selectors';
 export { useAuthStore } from './auth.store';
-export type { CurrentUser as User } from './auth.types';
+export type { CurrentUser as User, SocialIdentityProvider, IdentityProviderType } from './auth.types';
 export { LoginPage } from './components/LoginPage';
 export { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';

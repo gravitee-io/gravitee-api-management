@@ -95,35 +95,42 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
             .isMissingFeature$(explorerLicense.feature)
             .pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
 
+          const tabs: MenuItem[] = [
+            {
+              displayName: 'General',
+              routerLink: 'general',
+              permissions: ['cluster-definition-r'],
+            },
+          ];
+
+          if (cluster.type === 'KAFKA_CLUSTER_CONNECTION') {
+            tabs.push({
+              displayName: 'Explorer',
+              routerLink: 'explorer',
+              permissions: ['cluster-definition-r'],
+              license: explorerLicense,
+              iconRight$: explorerIconRight$,
+            });
+          }
+
+          tabs.push({
+            displayName: 'Configuration',
+            routerLink: 'configuration',
+            permissions: ['cluster-configuration-r'],
+          });
+
+          tabs.push({
+            displayName: 'User Permissions',
+            routerLink: 'user-permissions',
+            permissions: ['cluster-member-r'],
+          });
+
           this.subMenuItems = this.filterMenuByPermission([
             {
               displayName: 'General',
               routerLink: '',
               permissions: ['cluster-definition-r'],
-              tabs: this.filterMenuByPermission([
-                {
-                  displayName: 'General',
-                  routerLink: 'general',
-                  permissions: ['cluster-definition-r'],
-                },
-                {
-                  displayName: 'Explorer',
-                  routerLink: 'explorer',
-                  permissions: ['cluster-definition-r'],
-                  license: explorerLicense,
-                  iconRight$: explorerIconRight$,
-                },
-                {
-                  displayName: 'Configuration',
-                  routerLink: 'configuration',
-                  permissions: ['cluster-configuration-r'],
-                },
-                {
-                  displayName: 'User Permissions',
-                  routerLink: 'user-permissions',
-                  permissions: ['cluster-member-r'],
-                },
-              ]),
+              tabs: this.filterMenuByPermission(tabs),
             },
           ]);
 

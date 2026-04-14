@@ -145,6 +145,78 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
             );
     }
 
+    @Test
+    void should_set_policy_descriptions_when_steps_have_descriptions() {
+        final Policy policy1 = fakePolicy("policy-1");
+        final Policy policy2 = fakePolicy("policy-2");
+        final List<Step> steps = List.of(
+            Step.builder().policy("policy-1").description("description-1").enabled(true).build(),
+            Step.builder().policy("policy-2").description("description-2").enabled(true).build()
+        );
+        when(policyManager.create(any(), any())).thenReturn(policy1).thenReturn(policy2);
+
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
+
+        assertThat(result.getPolicyDescriptions())
+            .isNotNull()
+            .hasSize(2)
+            .containsEntry(policy1, "description-1")
+            .containsEntry(policy2, "description-2");
+    }
+
+    @Test
+    void should_not_set_descriptions_when_steps_have_no_descriptions() {
+        final List<Step> steps = List.of(Step.builder().policy("policy-1").enabled(true).build());
+        when(policyManager.create(any(), any())).thenAnswer(answer -> fakePolicy(answer.<PolicyMetadata>getArgument(1).getName()));
+
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
+
+        assertThat(result.getPolicyDescriptions()).isNull();
+    }
+
+    @Test
+    void should_not_include_description_for_disabled_step() {
+        final Policy policy = fakePolicy("policy-1");
+        final List<Step> steps = List.of(
+            Step.builder().policy("policy-disabled").description("should-not-appear").enabled(false).build(),
+            Step.builder().policy("policy-1").description("description-1").enabled(true).build()
+        );
+        when(policyManager.create(any(), any())).thenReturn(policy);
+
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
+
+        assertThat(result.getPolicyDescriptions()).isNotNull().hasSize(1).containsEntry(policy, "description-1");
+    }
+
+    @Test
+    void should_not_include_description_for_nested_spg_step() {
+        final Policy policy = fakePolicy("policy-1");
+        final List<Step> steps = List.of(
+            Step.builder().policy(SharedPolicyGroupPolicy.POLICY_ID).description("should-not-appear").enabled(true).build(),
+            Step.builder().policy("policy-1").description("description-1").enabled(true).build()
+        );
+        when(policyManager.create(any(), any())).thenReturn(policy);
+
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
+
+        assertThat(result.getPolicyDescriptions()).isNotNull().hasSize(1).containsEntry(policy, "description-1");
+    }
+
+    @Test
+    void should_only_include_descriptions_for_steps_that_have_them() {
+        final Policy policyWithDesc = fakePolicy("policy-with-desc");
+        final Policy policyWithoutDesc = fakePolicy("policy-without-desc");
+        final List<Step> steps = List.of(
+            Step.builder().policy("policy-with-desc").description("description-1").enabled(true).build(),
+            Step.builder().policy("policy-without-desc").enabled(true).build()
+        );
+        when(policyManager.create(any(), any())).thenReturn(policyWithDesc).thenReturn(policyWithoutDesc);
+
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
+
+        assertThat(result.getPolicyDescriptions()).isNotNull().hasSize(1).containsEntry(policyWithDesc, "description-1");
+    }
+
     public static Stream<Arguments> provideTestData() {
         return Stream.of(
             Arguments.of(List.of(Step.builder().policy("policy").enabled(true).build()), ExecutionPhase.REQUEST),

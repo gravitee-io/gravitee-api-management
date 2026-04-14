@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ClusterType = 'KAFKA_CLUSTER_CONNECTION';
+export type ClusterType = 'KAFKA_CLUSTER_CONNECTION' | 'KAFKA_CLUSTER';
 
 export interface Cluster {
   id: string;
   type: ClusterType;
   name: string;
   description?: string;
-  configuration: KafkaClusterConfiguration;
+  configuration: KafkaClusterConnectionConfiguration | KafkaClusterConfiguration;
   updatedAt: Date;
   createdAt: Date;
   groups: string[];
 }
 
-export interface KafkaClusterConfiguration {
+export interface KafkaClusterConnectionConfiguration {
   bootstrapServers?: string;
   security?: unknown;
+}
+
+export interface KafkaClusterConnection {
+  name: string;
+  bootstrapServers?: string;
+  security?: unknown;
+}
+
+export interface KafkaClusterConfiguration {
+  connections?: KafkaClusterConnection[];
 }

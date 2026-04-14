@@ -310,7 +310,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
 
         // First time, add filters to URL
-        expectRouterUrlChange(2, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, period: '-5m', from: expectedFrom, to: expectedTo });
 
         await componentHarness.removePeriodChip();
         expectApiWithLogs(total, { perPage, page: 1 });
@@ -812,6 +812,41 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getStatusesInputChips()).toEqual(['200', '202']);
       });
     });
+
+    describe('there is a period filter in the url', () => {
+      const fakeNow = moment('2023-10-05T00:00:00.000Z');
+
+      it('should init the form with period preselected and restore it on back navigation', async () => {
+        jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-05T00:00:00.000Z').getTime());
+
+        const expectedTo = fakeNow.valueOf();
+        const expectedFrom = expectedTo - 60 * 60 * 1000; // Last 1 Hour
+
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                period: '-1h',
+                from: expectedFrom,
+                to: expectedTo,
+              },
+            },
+          },
+        }).compileComponents();
+
+        await initComponent();
+        expectPlanList();
+        expectApiWithLogs(10, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo });
+        expectEntrypointListGet();
+        expectApiWithLogEnabled();
+
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        expect(await periodSelectInput.getValueText()).toEqual('Last 1 Hour');
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: Last 1 Hour');
+      });
+    });
   });
 
   function expectApiWithLogEnabled(modifier?: Partial<ApiV4>) {
@@ -956,6 +991,7 @@ describe('ApiRuntimeLogsComponent', () => {
         methods: null,
         mcpMethods: null,
         statuses: null,
+        period: null,
         from: null,
         to: null,
         errorKeys: null,

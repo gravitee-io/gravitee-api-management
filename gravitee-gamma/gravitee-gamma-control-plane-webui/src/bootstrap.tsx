@@ -31,6 +31,12 @@ async function initialize() {
     useEnvironmentStore.getState().setEnvironment(config.organizationId, 'DEFAULT');
 
     await useAuthStore.getState().initialize();
+
+    // If we just completed an OAuth callback, redirect to the intended URL
+    const oauthRedirectUrl = useAuthStore.getState().oauthRedirectUrl;
+    if (oauthRedirectUrl) {
+        window.history.replaceState({}, '', oauthRedirectUrl);
+    }
 }
 
 initialize().then(() => {

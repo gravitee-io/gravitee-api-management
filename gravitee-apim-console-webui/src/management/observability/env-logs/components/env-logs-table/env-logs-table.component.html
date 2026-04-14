@@ -52,7 +52,12 @@
   </ng-template>
 
   <ng-template #apiTemplate let-log>
-    {{ log.api || '—' }}
+    <span class="api-cell">
+      <span class="api-cell__name">{{ log.api || '—' }}</span>
+      @if (log.apiProductName) {
+        <span class="api-cell__product">{{ log.apiProductName }}</span>
+      }
+    </span>
   </ng-template>
 
   <ng-template #pathTemplate let-log>
