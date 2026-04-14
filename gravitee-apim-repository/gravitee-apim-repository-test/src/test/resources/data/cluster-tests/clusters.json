@@ -8,7 +8,10 @@
     "name": "cluster-1",
     "description": "The cluster no 1",
     "definition": "Cluster 1 definition",
-    "groups": [ "group-1", "group-2" ]
+    "groups": [ "group-1", "group-2" ],
+    "lifecycleState": "DEPLOYED",
+    "deployedAt": 1753711100,
+    "version": 1
   },
   {
     "id": "cluster-id-2",

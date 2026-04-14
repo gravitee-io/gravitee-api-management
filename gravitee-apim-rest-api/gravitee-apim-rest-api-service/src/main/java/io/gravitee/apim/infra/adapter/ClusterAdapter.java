@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.ClusterType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -31,6 +32,7 @@ public abstract class ClusterAdapter {
 
     @Mapping(target = "definition", source = "cluster", qualifiedByName = "mapDefinition")
     @Mapping(target = "type", source = "type", qualifiedByName = "mapTypeToString")
+    @Mapping(target = "lifecycleState", source = "lifecycleState", qualifiedByName = "mapLifecycleStateToString")
     public abstract io.gravitee.repository.management.model.Cluster toRepository(Cluster cluster);
 
     @Named("mapTypeToString")
@@ -50,9 +52,20 @@ public abstract class ClusterAdapter {
         return mapper.writeValueAsString(clusterDefinition);
     }
 
+    @Named("mapLifecycleStateToString")
+    public String mapLifecycleStateToString(ClusterLifecycleState state) {
+        return state != null ? state.name() : null;
+    }
+
     @Mapping(target = "configuration", source = "cluster", qualifiedByName = "mapConfiguration")
     @Mapping(target = "type", source = "type", qualifiedByName = "mapTypeFromString")
+    @Mapping(target = "lifecycleState", source = "lifecycleState", qualifiedByName = "mapLifecycleStateFromString")
     public abstract Cluster fromRepository(io.gravitee.repository.management.model.Cluster cluster);
+
+    @Named("mapLifecycleStateFromString")
+    public ClusterLifecycleState mapLifecycleStateFromString(String state) {
+        return state != null ? ClusterLifecycleState.valueOf(state) : ClusterLifecycleState.UNDEPLOYED;
+    }
 
     @Named("mapTypeFromString")
     public ClusterType mapTypeFromString(String type) {

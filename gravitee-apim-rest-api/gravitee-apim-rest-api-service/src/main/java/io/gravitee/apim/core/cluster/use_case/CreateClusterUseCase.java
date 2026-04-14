@@ -25,6 +25,7 @@ import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.model.CreateCluster;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
@@ -80,6 +81,7 @@ public class CreateClusterUseCase {
             .updatedAt(now)
             .environmentId(input.auditInfo().environmentId())
             .organizationId(input.auditInfo().organizationId())
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
             .build();
 
         validateClusterService.validateForCreate(clusterToCreate);

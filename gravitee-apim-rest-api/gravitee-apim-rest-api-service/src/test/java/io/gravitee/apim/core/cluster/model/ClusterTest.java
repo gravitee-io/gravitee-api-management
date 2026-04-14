@@ -104,4 +104,61 @@ public class ClusterTest {
 
         assertThat(connectionConfig.bootstrapServers()).isEqualTo("localhost:9092");
     }
+
+    @Test
+    public void deploy_should_set_deployed_state_and_increment_version() {
+        Cluster cluster = Cluster.builder().id("cluster-1").lifecycleState(ClusterLifecycleState.UNDEPLOYED).build();
+
+        cluster.deploy();
+
+        assertAll(
+            () -> assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED),
+            () -> assertThat(cluster.getVersion()).isEqualTo(1),
+            () -> assertThat(cluster.getDeployedAt()).isNotNull(),
+            () -> assertThat(cluster.getUpdatedAt()).isNotNull()
+        );
+    }
+
+    @Test
+    public void deploy_should_increment_existing_version() {
+        Cluster cluster = Cluster.builder().id("cluster-1").lifecycleState(ClusterLifecycleState.PENDING).version(2).build();
+
+        cluster.deploy();
+
+        assertThat(cluster.getVersion()).isEqualTo(3);
+        assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
+    }
+
+    @Test
+    public void undeploy_should_set_undeployed_state() {
+        Cluster cluster = Cluster.builder().id("cluster-1").lifecycleState(ClusterLifecycleState.DEPLOYED).version(1).build();
+
+        cluster.undeploy();
+
+        assertAll(
+            () -> assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED),
+            () -> assertThat(cluster.getDeployedAt()).isNotNull(),
+            () -> assertThat(cluster.getUpdatedAt()).isNotNull(),
+            () -> assertThat(cluster.getVersion()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    public void update_should_transition_deployed_to_pending() {
+        Cluster cluster = Cluster.builder().id("cluster-1").name("Original").lifecycleState(ClusterLifecycleState.DEPLOYED).build();
+
+        cluster.update(UpdateCluster.builder().name("Updated").build());
+
+        assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
+        assertThat(cluster.getName()).isEqualTo("Updated");
+    }
+
+    @Test
+    public void update_should_keep_undeployed_state() {
+        Cluster cluster = Cluster.builder().id("cluster-1").name("Original").lifecycleState(ClusterLifecycleState.UNDEPLOYED).build();
+
+        cluster.update(UpdateCluster.builder().name("Updated").build());
+
+        assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+    }
 }

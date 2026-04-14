@@ -80,7 +80,10 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             () -> assertThat(cluster.getName()).isEqualTo("cluster-1"),
             () -> assertThat(cluster.getDescription()).isEqualTo("The cluster no 1"),
             () -> assertThat(cluster.getDefinition()).isEqualTo("Cluster 1 definition"),
-            () -> assertThat(cluster.getGroups()).isEqualTo(Set.of("group-1", "group-2"))
+            () -> assertThat(cluster.getGroups()).isEqualTo(Set.of("group-1", "group-2")),
+            () -> assertThat(cluster.getLifecycleState()).isEqualTo("DEPLOYED"),
+            () -> assertThat(cluster.getDeployedAt()).isEqualTo(Instant.ofEpochSecond(1753711100)),
+            () -> assertThat(cluster.getVersion()).isEqualTo(1)
         );
     }
 

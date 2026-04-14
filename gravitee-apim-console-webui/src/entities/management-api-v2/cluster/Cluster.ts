@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export type ClusterType = 'KAFKA_CLUSTER_CONNECTION' | 'KAFKA_CLUSTER';
+export type ClusterLifecycleState = 'UNDEPLOYED' | 'DEPLOYED' | 'PENDING';
 
 export interface Cluster {
   id: string;
@@ -25,6 +26,9 @@ export interface Cluster {
   updatedAt: Date;
   createdAt: Date;
   groups: string[];
+  lifecycleState?: ClusterLifecycleState;
+  deployedAt?: Date;
+  version?: number;
 }
 
 export interface KafkaClusterConnectionConfiguration {

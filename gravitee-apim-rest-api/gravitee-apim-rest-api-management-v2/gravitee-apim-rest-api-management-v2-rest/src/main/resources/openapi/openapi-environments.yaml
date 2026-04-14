@@ -1430,6 +1430,17 @@ components:
           type: array
           items:
             type: string
+        lifecycleState:
+          type: string
+          enum: [ UNDEPLOYED, DEPLOYED, PENDING ]
+          description: Current lifecycle state of the cluster.
+        deployedAt:
+          type: string
+          format: date-time
+          description: Last deployment or undeployment timestamp.
+        version:
+          type: integer
+          description: Deployment version, incremented on each deploy.
     UpdateCluster:
       type: object
       properties:
