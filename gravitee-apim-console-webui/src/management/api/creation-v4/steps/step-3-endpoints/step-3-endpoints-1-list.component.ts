@@ -76,11 +76,14 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       selectedEndpointsIds: this.formBuilder.control(currentSelectedEndpointIds, [Validators.required]),
     });
 
+    const apiType = this.stepService.payload.type ?? 'MESSAGE';
+
     this.connectorPluginsV2Service
-      .listEndpointPluginsByApiType('MESSAGE')
+      .listEndpointPluginsByApiType(apiType)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(endpointPlugins => {
-        const requiredQoS = this.stepService.payload.selectedEntrypoints.map(e => e.selectedQos);
+        const requiredQoS =
+          apiType === 'NATIVE' ? [] : (this.stepService.payload.selectedEntrypoints ?? []).map(e => e.selectedQos).filter(qos => !!qos);
         this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, requiredQoS, this.iconService);
         this.shouldUpgrade = this.connectorPluginsV2Service.selectedPluginsNotAvailable(currentSelectedEndpointIds, this.endpoints);
 

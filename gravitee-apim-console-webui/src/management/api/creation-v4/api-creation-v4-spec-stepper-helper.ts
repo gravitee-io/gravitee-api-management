@@ -67,14 +67,6 @@ export class ApiCreationV4SpecStepperHelper {
           supportedListenerType: 'KAFKA',
         }),
       );
-      this.httpExpects.expectEndpointGetRequest(
-        fakeConnectorPlugin({
-          id: 'native-kafka',
-          supportedApiType: 'NATIVE',
-          name: 'Native Kafka Endpoint',
-          supportedListenerType: 'KAFKA',
-        }),
-      );
     }
   }
 

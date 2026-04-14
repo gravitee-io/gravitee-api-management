@@ -181,6 +181,24 @@ const ENDPOINT_LIST = [
     supportedApiType: 'MESSAGE',
     supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
+  {
+    id: 'native-kafka',
+    name: 'Broker',
+    description: 'Native Kafka endpoint using inline bootstrap servers',
+    icon: 'kafka-icon',
+    deployed: true,
+    supportedApiType: 'NATIVE',
+    supportedQos: [],
+  },
+  {
+    id: 'native-kafka-cluster',
+    name: 'Cluster',
+    description: 'Native Kafka endpoint referencing a Kafka Cluster by crossId',
+    icon: 'kafka-icon',
+    deployed: true,
+    supportedApiType: 'NATIVE',
+    supportedQos: [],
+  },
 ];
 const ENTRYPOINT_LIST: ConnectorPlugin[] = [
   {
@@ -243,7 +261,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
     expectApiGet();
     fixture.detectChanges();
 
-    if (api.type === 'MESSAGE') {
+    if (api.type === 'MESSAGE' || api.type === 'NATIVE') {
       expectEndpointListGet();
     }
   };
@@ -589,17 +607,17 @@ describe('ApiEndpointGroupCreateComponent', () => {
   describe('V4 API - Native Kafka', () => {
     beforeEach(async () => {
       await initComponent(fakeNativeKafkaApiV4({ id: API_ID }));
-
-      expectConfigurationSchemaGet('native-kafka', fakeKafkaSchema);
-      expectSharedConfigurationSchemaGet('native-kafka', {
-        $schema: 'http://json-schema.org/draft-07/schema#',
-        type: 'object',
-        properties: {},
-      });
     });
 
     describe('When creating a native-kafka endpoint group', () => {
       it('should be possible', async () => {
+        // Select endpoint type
+        await fillOutAndValidateEndpointSelection('native-kafka', fakeKafkaSchema, {
+          $schema: 'http://json-schema.org/draft-07/schema#',
+          type: 'object',
+          properties: {},
+        });
+
         // Fill General information
         expect(await harness.isGeneralStepSelected()).toEqual(true);
         await harness.setNameValue(ENDPOINT_GROUP_NAME);
@@ -689,12 +707,12 @@ describe('ApiEndpointGroupCreateComponent', () => {
     return step.then(foundStep => foundStep.isSelected());
   }
 
-  async function fillOutAndValidateEndpointSelection(type = 'kafka'): Promise<void> {
+  async function fillOutAndValidateEndpointSelection(type = 'kafka', schema?: any, sharedSchema?: any): Promise<void> {
     expect(await harness.isEndpointGroupTypeStepSelected()).toEqual(true);
     await harness.selectEndpointGroup(type);
     if (type !== 'mock') {
-      expectConfigurationSchemaGet(type);
-      expectSharedConfigurationSchemaGet(type);
+      expectConfigurationSchemaGet(type, schema);
+      expectSharedConfigurationSchemaGet(type, sharedSchema);
     }
     await harness.validateEndpointGroupSelection();
     expect(await harness.isEndpointGroupTypeStepSelected()).toEqual(false);
