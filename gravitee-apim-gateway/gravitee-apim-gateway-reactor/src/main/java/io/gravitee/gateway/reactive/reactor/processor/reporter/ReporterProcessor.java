@@ -82,6 +82,7 @@ public class ReporterProcessor implements Processor {
                         if (log != null) {
                             log.setApiId(metrics.getApiId());
                             log.setApiName(metrics.getApiName());
+                            log.setApiProductId(metrics.getApiProductId());
                             log.setRequestEnded(metrics.isRequestEnded());
                             reporterService.report(log);
                         }

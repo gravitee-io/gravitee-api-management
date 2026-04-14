@@ -128,6 +128,21 @@ class ReporterProcessorTest extends AbstractProcessorTest {
         }
 
         @Test
+        void should_set_api_product_id_on_log_when_metrics_has_api_product_id() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setApiProductId("product-id");
+            ctx.metrics().setLog(Log.builder().build());
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertThat(ctx.metrics().getLog().getApiProductId()).isEqualTo("product-id");
+        }
+
+        @Test
         void should_execute_report_actions_when_analytics_and_log_are_enabled() {
             // Given
             when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
