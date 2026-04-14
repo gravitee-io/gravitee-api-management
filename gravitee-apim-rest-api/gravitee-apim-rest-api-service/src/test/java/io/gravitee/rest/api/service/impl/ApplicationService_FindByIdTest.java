@@ -148,6 +148,39 @@ public class ApplicationService_FindByIdTest {
         );
     }
 
+    @Test
+    public void shouldFindByIdWithNullCertName() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getName()).thenReturn("app-1");
+
+        ClientCertificate clientCertificate = new ClientCertificate(
+            "id",
+            "crossId",
+            APPLICATION_ID,
+            null,
+            null,
+            null,
+            Date.from(Instant.now()),
+            null,
+            "certificate",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(List.of(clientCertificate));
+
+        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        assertNotNull(applicationEntity);
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificates()).hasSize(1);
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isNull();
+    }
+
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());

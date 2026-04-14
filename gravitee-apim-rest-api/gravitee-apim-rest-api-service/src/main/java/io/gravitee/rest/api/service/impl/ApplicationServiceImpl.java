@@ -1467,7 +1467,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .toList();
 
             if (!list.isEmpty()) {
-                if (list.size() == 1 && list.getFirst().name().equals(application.getName())) {
+                if (list.size() == 1 && Objects.equals(list.getFirst().name(), application.getName())) {
                     // This is a nasty trick to comply with upgraded application
                     // or legacy management or application in APIs (using the certificate singular instead of the list)
                     settings.setTls(
