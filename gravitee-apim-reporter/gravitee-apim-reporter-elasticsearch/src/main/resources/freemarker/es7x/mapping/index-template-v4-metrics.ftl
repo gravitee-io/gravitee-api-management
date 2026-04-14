@@ -32,6 +32,9 @@
             "api-name": {
                 "type": "keyword"
             },
+            "api-product-id": {
+                "type": "keyword"
+            },
             "request-id": {
                 "type": "keyword"
             },

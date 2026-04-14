@@ -15,6 +15,9 @@
   </#if>
   ,"api-id":"${log.getApiId()}"
   ,"api-name":"${log.getApiName()?j_string}"
+  <#if log.getApiProductId()??>
+  ,"api-product-id":"${log.getApiProductId()?j_string}"
+  </#if>
   ,"request-id":"${log.getRequestId()}"
   <#if log.getClientIdentifier()??>
   ,"client-identifier":"${log.getClientIdentifier()}"
