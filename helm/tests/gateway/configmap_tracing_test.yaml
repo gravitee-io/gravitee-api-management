@@ -84,3 +84,24 @@ tests:
             \s         type: pem
             \s       verifyHostname: true
             \s     type: grpc
+  - it: Enable opentelemetry tracing with kafka tracedApiKeys
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          opentelemetry:
+            enabled: true
+            kafka:
+              tracedApiKeys:
+                - PRODUCE
+                - FETCH
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s opentelemetry:
+            \s   enabled: true
+            \s   kafka:
+            \s     tracedApiKeys:
+            \s     - PRODUCE
+            \s     - FETCH
