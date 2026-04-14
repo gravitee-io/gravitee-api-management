@@ -95,6 +95,14 @@ describe('ApiPlanFormComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  const suppressObjectUnsubscribedError = (event: ErrorEvent) => {
+    if ((event.error as Error)?.name === 'ObjectUnsubscribedError') {
+      event.preventDefault();
+    }
+  };
+  beforeEach(() => window.addEventListener('error', suppressObjectUnsubscribedError));
+  afterEach(() => window.removeEventListener('error', suppressObjectUnsubscribedError));
+
   const configureTestingModule = (mode: 'create' | 'edit', planFormType: PlanFormType, api?: Api, apiType?: ApiType) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
@@ -129,6 +137,7 @@ describe('ApiPlanFormComponent', () => {
   };
 
   afterEach(() => {
+    fixture.destroy();
     httpTestingController.verify();
   });
 

@@ -41,6 +41,14 @@ describe('ApiProviderComponent', () => {
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
 
+  const suppressObjectUnsubscribedError = (event: ErrorEvent) => {
+    if ((event.error as Error)?.name === 'ObjectUnsubscribedError') {
+      event.preventDefault();
+    }
+  };
+  beforeEach(() => window.addEventListener('error', suppressObjectUnsubscribedError));
+  afterEach(() => window.removeEventListener('error', suppressObjectUnsubscribedError));
+
   const fakeSnackBarService = {
     error: jest.fn(),
     success: jest.fn(),
@@ -99,6 +107,7 @@ describe('ApiProviderComponent', () => {
   };
 
   afterEach(() => {
+    fixture.destroy();
     jest.clearAllMocks();
     httpTestingController.verify();
   });
