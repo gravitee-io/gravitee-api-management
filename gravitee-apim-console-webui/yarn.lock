@@ -3388,9 +3388,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:16.4.1":
-  version: 16.4.1
-  resolution: "@gravitee/ui-particles-angular@npm:16.4.1"
+"@gravitee/ui-particles-angular@npm:16.4.2":
+  version: 16.4.2
+  resolution: "@gravitee/ui-particles-angular@npm:16.4.2"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3419,7 +3419,7 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/d7f509f252995596e6f3ea23241d14e765dc9380466067c8b2187a3ecf94c45eb897e4ee51d4deaf3fe948289e64b976acd07284920bc7ae5013b1a7e2a227b6
+  checksum: 10c0/72f22b7d7988bea5c374c024b9dbebe31f938a7b58ed363379ff84acb84f3027f61896a5eab1b2d1287df4428c0ba961d1998d42217b068129d163ab003df04a
   languageName: node
   linkType: hard
 
@@ -12828,7 +12828,7 @@ __metadata:
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
     "@gravitee/ui-analytics": "npm:16.4.1"
     "@gravitee/ui-components": "npm:4.4.0"
-    "@gravitee/ui-particles-angular": "npm:16.4.1"
+    "@gravitee/ui-particles-angular": "npm:16.4.2"
     "@gravitee/ui-policy-studio-angular": "npm:16.4.1"
     "@gravitee/ui-schematics": "npm:16.4.1"
     "@highcharts/map-collection": "npm:1.1.4"
