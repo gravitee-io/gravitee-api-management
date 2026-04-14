@@ -47,6 +47,7 @@ import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -171,16 +172,15 @@ class TcpApiReactorFactoryTest {
             when(api.getDefinition()).thenReturn(def);
             when(api.getId()).thenReturn("api-id");
             when(api.getName()).thenReturn("api-name");
-            when(api.getApiVersion()).thenReturn("1.0");
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(
+                openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), any(Map.class), any(RedactionConfig.class))
+            ).thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api);
 
             ArgumentCaptor<RedactionConfig> captor = ArgumentCaptor.forClass(RedactionConfig.class);
-            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), captor.capture());
+            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), any(Map.class), captor.capture());
             assertThat(captor.getValue().rules()).hasSize(1);
             assertThat(captor.getValue().rules().get(0).attributeNamePattern()).isEqualTo("enduser.id");
             assertThat(captor.getValue().rules().get(0).maskingStrategy()).isInstanceOf(FullMaskingStrategy.class);

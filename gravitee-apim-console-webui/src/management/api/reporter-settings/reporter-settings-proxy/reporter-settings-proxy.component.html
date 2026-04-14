@@ -106,6 +106,12 @@
           Enable only for deep debugging - increases trace size significantly.
           <mat-slide-toggle gioFormSlideToggle formControlName="tracingVerbose"></mat-slide-toggle>
         </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>OTel Logs</gio-form-label>
+          Emit request and response payloads as OpenTelemetry log records correlated to the active trace. Enables log-to-trace linking in
+          Grafana and other OTel-compatible backends.
+          <mat-slide-toggle gioFormSlideToggle formControlName="otelLogsEnabled"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </div>
     </mat-card-content>
 

@@ -167,6 +167,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           ...testApi.analytics,
           logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
           tracing: { enabled: true, verbose: false },
+          otelLogs: { enabled: false },
         },
       });
     });
@@ -195,6 +196,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         analytics: {
           ...testApi.analytics,
           logging: { ...testApi.analytics.logging, mode: { entrypoint: false, endpoint: false } },
+          otelLogs: { enabled: false },
         },
       });
     });
@@ -258,6 +260,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           mode: { entrypoint: true, endpoint: false },
           phase: { request: true, response: true },
         },
+        otelLogs: { enabled: false },
       },
     });
   });
@@ -293,6 +296,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           mode: { entrypoint: true, endpoint: true },
           phase: { request: false, response: false },
         },
+        otelLogs: { enabled: false },
       },
     });
   });
@@ -322,6 +326,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           mode: { entrypoint: true, endpoint: true },
           content: { messagePayload: true, messageHeaders: true, messageMetadata: true, headers: true },
         },
+        otelLogs: { enabled: false },
       },
     });
   });
@@ -345,6 +350,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           condition: 'request condition',
           messageCondition: 'message condition',
         },
+        otelLogs: { enabled: false },
       },
     });
   });
@@ -365,6 +371,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         analytics: {
           ...testApi.analytics,
           sampling: { type: 'PROBABILITY', value: '0.5' },
+          otelLogs: { enabled: false },
         },
       });
     });
@@ -522,130 +529,49 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           condition: 'request condition',
           messageCondition: 'message condition',
         },
-        tracing: {
-          enabled: false,
-          verbose: false,
-        },
+        tracing: { enabled: false, verbose: false },
         sampling: { type: 'COUNT', value: '50' },
       },
     });
 
-    const apiWithTracingEnabled = fakeApiV4({
-      id: API_ID,
-      analytics: {
-        enabled: true,
-        tracing: {
-          enabled: true,
-          verbose: true,
-        },
-      },
+    it('should initialize otelLogsEnabled as enabled and unchecked when message API tracing is active', async () => {
+      await initComponent();
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(false);
+      expect(await componentHarness.isOtelLogsEnabledChecked()).toBe(false);
     });
 
-    const apiWithTracingEnabledAndVerboseFalse = fakeApiV4({
-      id: API_ID,
-      analytics: {
-        enabled: true,
-        tracing: {
-          enabled: true,
-          verbose: false,
-        },
-      },
-    });
-
-    beforeEach(async () => {
-      await initComponent(apiWithTracingEnabled);
-    });
-
-    it('should reflect the initial state of OpenTelemetry controls', async () => {
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
-      expect(await componentHarness.isTracingVerboseDisabled()).toStrictEqual(false);
-    });
-
-    it('should disable tracingVerbose when tracingEnabled is toggled off from enabled state where tracingVerbose was enabled', async () => {
-      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toBe(true);
-      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
+    it('should disable otelLogsEnabled when tracingEnabled is switched off on a message API', async () => {
+      await initComponent();
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(false);
 
       await componentHarness.toggleTracingEnabled();
 
-      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+      expect(await componentHarness.isOtelLogsEnabledChecked()).toBe(false);
+      expect(await componentHarness.isOtelLogsEnabledDisabled()).toBe(true);
     });
 
-    it('should disable tracingVerbose when tracingEnabled is toggled off from enabled state where tracingVerbose was disabled', async () => {
-      await initComponent(apiWithTracingEnabledAndVerboseFalse);
-
-      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
-
-      await componentHarness.toggleTracingEnabled();
-
-      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
-    });
-
-    it('should enable tracingVerbose when tracingEnabled is toggled on from disabled state, with tracingVerbose set to false', async () => {
+    it('should persist otelLogs.enabled in message API analytics on save', async () => {
       await initComponent(apiWithTracingDisabled);
-
-      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
-
       await componentHarness.toggleTracingEnabled();
-
-      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
-      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
-    });
-
-    it('should save API proxy OpenTelemetry settings', async () => {
-      await initComponent(apiWithTracingDisabled);
-
-      await componentHarness.toggleTracingEnabled();
-      await componentHarness.toggleTracingVerbose();
-
+      await componentHarness.toggleOtelLogsEnabled();
       await componentHarness.saveSettings();
 
-      expectApiGetRequest(apiWithTracingDisabled);
-      expectApiPutRequest({
+      expectOtelApiGetRequest(apiWithTracingDisabled);
+      expectOtelApiPutRequest({
         ...apiWithTracingDisabled,
         analytics: {
           ...apiWithTracingDisabled.analytics,
-          tracing: {
-            enabled: true,
-            verbose: true,
-          },
+          tracing: { enabled: true, verbose: false },
+          otelLogs: { enabled: true },
         },
       });
     });
 
-    it('should discard changes in OpenTelemetry controls', async () => {
-      await componentHarness.toggleTracingEnabled();
-      await componentHarness.toggleTracingVerbose();
-
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
-
-      await componentHarness.resetSettings();
-
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
-    });
-
-    function expectApiGetRequest(api: ApiV4) {
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-          method: 'GET',
-        })
-        .flush(api);
+    function expectOtelApiGetRequest(api: ApiV4) {
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     }
 
-    function expectApiPutRequest(api: ApiV4) {
+    function expectOtelApiPutRequest(api: ApiV4) {
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
       expect(req.request.body).toStrictEqual(api);
       req.flush(api);

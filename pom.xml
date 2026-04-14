@@ -61,7 +61,7 @@
         <gravitee-exchange.version>3.0.0-alpha.2</gravitee-exchange.version>
         <gravitee-expression-language.version>4.3.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>6.0.0-alpha.4</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>6.0.0-alpha.5</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.2.0</gravitee-json-validation.version>
         <gravitee-kubernetes.version>4.0.0-alpha.1</gravitee-kubernetes.version>
@@ -71,7 +71,7 @@
         <gravitee-plugin.version>5.1.2</gravitee-plugin.version>
         <gravitee-plugin-common-configurations.version>1.3.0</gravitee-plugin-common-configurations.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
-        <gravitee-reporter-api.version>2.2.0</gravitee-reporter-api.version>
+        <gravitee-reporter-api.version>2.3.0</gravitee-reporter-api.version>
         <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
         <gravitee-resource-auth-provider-api.version>1.3.0</gravitee-resource-auth-provider-api.version>
         <gravitee-resource-cache-provider-api.version>2.1.0</gravitee-resource-cache-provider-api.version>
@@ -265,6 +265,7 @@
         <!-- Gateway Only -->
         <gravitee-reporter-tcp.version>5.0.0-alpha.1</gravitee-reporter-tcp.version>
         <gravitee-reporter-cloud.version>4.0.0-alpha.1</gravitee-reporter-cloud.version>
+        <gravitee-reporter-otel.version>1.0.0</gravitee-reporter-otel.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>3.0.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
@@ -577,6 +578,7 @@
                 </property>
             </activation>
             <modules>
+                <module>gravitee-apim-definition</module>
                 <module>gravitee-apim-gateway</module>
             </modules>
         </profile>
