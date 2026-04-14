@@ -95,3 +95,5 @@ CLAUDE.md
 
 .specs
 .c4
+
+.docs/**/specs/
