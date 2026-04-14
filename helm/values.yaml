@@ -1881,6 +1881,10 @@ gateway:
 #        compression: none
 #        headers:
 #          - X-Custom-Header: value
+#      kafka:
+#        tracedApiKeys:
+#          - PRODUCE
+#          - FETCH
 #        timeout: 10000
 #        ssl:
 #          trustall: false
