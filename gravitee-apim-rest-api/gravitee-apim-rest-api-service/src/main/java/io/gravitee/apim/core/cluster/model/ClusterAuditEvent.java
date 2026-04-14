@@ -22,4 +22,6 @@ public enum ClusterAuditEvent implements AuditEvent {
     CLUSTER_UPDATED,
     CLUSTER_DELETED,
     CLUSTER_GROUPS_UPDATED,
+    CLUSTER_DEPLOYED,
+    CLUSTER_UNDEPLOYED,
 }
