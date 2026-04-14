@@ -286,9 +286,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public io.gravitee.common.data.domain.Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query) {
         String environmentId = executionContext.getEnvironmentId();
-        GroupCriteria.GroupCriteriaBuilder groupCriteriaBuilder = GroupCriteria.builder().environmentId(environmentId).query(query);
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(environmentId).query(query).build();
+        io.gravitee.common.data.domain.Page<Group> groups = groupRepository.search(groupCriteria, convert(pageable));
+        io.gravitee.common.data.domain.Page<GroupEntity> result = groups.map(this::map);
+
         if (
-            !permissionService.hasPermission(
+            permissionService.hasPermission(
                 executionContext,
                 RolePermission.ENVIRONMENT_GROUP,
                 executionContext.getEnvironmentId(),
@@ -297,13 +300,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 DELETE
             )
         ) {
+            result.getContent().forEach(groupEntity -> groupEntity.setManageable(true));
+        } else {
             Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(
                 RoleScope.GROUP,
                 SystemRole.ADMIN.name(),
                 executionContext.getOrganizationId()
             );
             if (optGroupAdminSystemRole.isPresent()) {
-                Set<String> groupIds = membershipService
+                Set<String> manageableGroupIds = membershipService
                     .getMembershipsByMemberAndReferenceAndRole(
                         MembershipMemberType.USER,
                         getAuthenticatedUsername(),
@@ -313,11 +318,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     .stream()
                     .map(MembershipEntity::getReferenceId)
                     .collect(Collectors.toSet());
-                groupCriteriaBuilder.idIn(groupIds);
+                result.getContent().forEach(groupEntity -> groupEntity.setManageable(manageableGroupIds.contains(groupEntity.getId())));
             }
         }
-        io.gravitee.common.data.domain.Page<Group> groups = groupRepository.search(groupCriteriaBuilder.build(), convert(pageable));
-        return groups.map(this::map);
+        return result;
     }
 
     @Override
