@@ -408,6 +408,61 @@ public class MembershipService_TransferOwnershipTest {
     }
 
     @Test
+    public void shouldNotRemoveGroupFromApiProductWhenTransferringOwnershipFromGroup() throws TechnicalException {
+        String apiProductId = "api-product-id-1";
+        String apiProductPoRoleId = "API_PRODUCT_PRIMARY_OWNER";
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(apiProductPoRoleId);
+        poRole.setScope(RoleScope.API_PRODUCT);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        lenient()
+            .when(roleService.findScopeByMembershipReferenceType(io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT))
+            .thenReturn(RoleScope.API_PRODUCT);
+        lenient().when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API_PRODUCT)).thenReturn(poRole);
+        lenient()
+            .when(roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
+            .thenReturn(Optional.of(poRole));
+
+        // Group is the current primary owner of the API Product
+        Membership groupPoMembership = new Membership();
+        groupPoMembership.setId("ap-membership-id-1");
+        groupPoMembership.setReferenceType(MembershipReferenceType.API_PRODUCT);
+        groupPoMembership.setRoleId(apiProductPoRoleId);
+        groupPoMembership.setReferenceId(apiProductId);
+        groupPoMembership.setMemberId(GROUP_ID);
+        groupPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
+
+        lenient()
+            .when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API_PRODUCT, apiProductId, apiProductPoRoleId))
+            .thenReturn(Set.of(groupPoMembership));
+        // Allow repository lookups for role assignment/removal to return empty (no pre-existing roles)
+        lenient()
+            .when(
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(any(), any(), any(), any(), any())
+            )
+            .thenReturn(Set.of());
+
+        RoleEntity fallbackRole = new RoleEntity();
+        fallbackRole.setId("API_PRODUCT_USER");
+        fallbackRole.setName("USER");
+        fallbackRole.setScope(RoleScope.API_PRODUCT);
+
+        membershipService.transferOwnership(
+            EXECUTION_CONTEXT,
+            io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT,
+            RoleScope.API_PRODUCT,
+            apiProductId,
+            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+            List.of(fallbackRole)
+        );
+
+        // removeGroup must NOT be called for API_PRODUCT — only API references trigger the group cleanup
+        verify(apiGroupService, never()).removeGroup(any(), any(), any());
+    }
+
+    @Test
     public void shouldDoNothingWhenTransferringOwnershipToSameOwner() throws TechnicalException {
         RoleEntity poRole = new RoleEntity();
         poRole.setId(API_PRIMARY_OWNER_ROLE_ID);

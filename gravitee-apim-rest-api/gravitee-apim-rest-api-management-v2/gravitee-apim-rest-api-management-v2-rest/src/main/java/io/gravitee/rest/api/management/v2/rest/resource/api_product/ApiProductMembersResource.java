@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
+import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.DeleteApiProductMemberUseCase;
@@ -22,7 +23,9 @@ import io.gravitee.apim.core.api_product.use_case.members.GetApiProductMembersUs
 import io.gravitee.apim.core.api_product.use_case.members.UpdateApiProductMemberUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.MembershipMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AddMember;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
@@ -74,6 +77,9 @@ public class ApiProductMembersResource extends AbstractResource {
 
     @Inject
     private DeleteApiProductMemberUseCase deleteApiProductMemberUseCase;
+
+    @Inject
+    private TransferApiProductOwnershipUseCase transferApiProductOwnershipUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -157,6 +163,18 @@ public class ApiProductMembersResource extends AbstractResource {
             }
         }
         return Response.ok(permissions).build();
+    }
+
+    @POST
+    @Path("/_transfer-ownership")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response transferApiProductOwnership(@Valid @NotNull ApiProductTransferOwnership transferOwnership) {
+        verifyApiProductInCurrentEnvironment();
+        transferApiProductOwnershipUseCase.execute(
+            new TransferApiProductOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), apiProductId)
+        );
+        return Response.noContent().build();
     }
 
     private void verifyApiProductInCurrentEnvironment() {

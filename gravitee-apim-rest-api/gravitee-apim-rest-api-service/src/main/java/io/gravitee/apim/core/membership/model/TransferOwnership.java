@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.membership.model;
 
+import io.gravitee.apim.core.member.model.MembershipMemberType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,4 +32,5 @@ public class TransferOwnership {
     private String newPrimaryOwnerId;
     private String userReference;
     private String currentPrimaryOwnerNewRole;
+    private MembershipMemberType memberType;
 }

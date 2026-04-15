@@ -1993,8 +1993,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     }
                 }
             } else if (previousPrimaryOwner.getMemberType() == MembershipMemberType.GROUP) {
-                // remove this group from the api's group list
-                apiGroupService.removeGroup(executionContext, itemId, previousPrimaryOwner.getMemberId());
+                // remove this group from the api's group list (only relevant for API references)
+                if (membershipReferenceType == MembershipReferenceType.API) {
+                    apiGroupService.removeGroup(executionContext, itemId, previousPrimaryOwner.getMemberId());
+                }
             }
         }
     }

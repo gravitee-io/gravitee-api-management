@@ -22,6 +22,8 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static jakarta.ws.rs.client.Entity.json;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.DeleteApiProductMemberUseCase;
@@ -39,6 +42,7 @@ import io.gravitee.apim.core.api_product.use_case.members.GetApiProductMembersUs
 import io.gravitee.apim.core.api_product.use_case.members.UpdateApiProductMemberUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AddMember;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
@@ -59,6 +63,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +74,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class ApiProductMembersResourceTest extends AbstractResourceTest {
 
@@ -89,6 +95,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
     @Inject
     private DeleteApiProductMemberUseCase deleteApiProductMemberUseCase;
+
+    @Inject
+    private TransferApiProductOwnershipUseCase transferApiProductOwnershipUseCase;
 
     @Override
     protected String contextPath() {
@@ -120,7 +129,8 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             getApiProductMembersUseCase,
             addApiProductMemberUseCase,
             updateApiProductMemberUseCase,
-            deleteApiProductMemberUseCase
+            deleteApiProductMemberUseCase,
+            transferApiProductOwnershipUseCase
         );
     }
 
@@ -427,6 +437,61 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(NO_CONTENT_204);
             verify(deleteApiProductMemberUseCase).execute(
                 argThat(input -> API_PRODUCT_ID.equals(input.apiProductId()) && MEMBER_ID.equals(input.memberId()))
+            );
+        }
+    }
+
+    @Nested
+    class TransferOwnershipTest {
+
+        private WebTarget target;
+
+        @BeforeEach
+        void setup() {
+            target = rootTarget("_transfer-ownership");
+            givenApiProductExists();
+        }
+
+        @Test
+        void should_return_204_on_successful_transfer() {
+            when(transferApiProductOwnershipUseCase.execute(any())).thenReturn(new TransferApiProductOwnershipUseCase.Output());
+
+            Response response = target.request().post(json(new ApiProductTransferOwnership()));
+
+            assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
+        }
+
+        @Test
+        void should_return_204_on_successful_group_transfer() {
+            when(transferApiProductOwnershipUseCase.execute(any())).thenReturn(new TransferApiProductOwnershipUseCase.Output());
+
+            // Send userType=GROUP via raw map — the generated model gains this field after regeneration
+            var body = Map.of("newPrimaryOwnerId", "group-1", "userType", "GROUP", "currentPrimaryOwnerNewRole", "USER");
+
+            Response response = target.request().post(json(body));
+
+            assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
+
+            var captor = ArgumentCaptor.forClass(TransferApiProductOwnershipUseCase.Input.class);
+            verify(transferApiProductOwnershipUseCase).execute(captor.capture());
+            assertThat(captor.getValue().transferOwnership().getMemberType()).isEqualTo(
+                io.gravitee.apim.core.member.model.MembershipMemberType.GROUP
+            );
+        }
+
+        @Test
+        void should_return_404_when_api_product_not_found() {
+            givenApiProductMissing();
+
+            Response response = target.request().post(json(new ApiProductTransferOwnership()));
+
+            assertThat(response).hasStatus(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.API_PRODUCT_MEMBER, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
+                target.request().post(json(new ApiProductTransferOwnership()))
             );
         }
     }
