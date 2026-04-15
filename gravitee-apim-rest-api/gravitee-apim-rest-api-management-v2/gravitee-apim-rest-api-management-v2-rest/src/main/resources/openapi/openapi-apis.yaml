@@ -7375,6 +7375,7 @@ components:
                 - ALERT_NOTIFICATION
                 - DEBUG_API
                 - DEPLOY_API_PRODUCT
+                - DEPLOY_CLUSTER
                 - DEPLOY_SHARED_POLICY_GROUP
                 - GATEWAY_STARTED
                 - GATEWAY_STOPPED
@@ -7388,6 +7389,7 @@ components:
                 - STOP_API
                 - STOP_DICTIONARY
                 - UNDEPLOY_API_PRODUCT
+                - UNDEPLOY_CLUSTER
                 - UNDEPLOY_SHARED_POLICY_GROUP
                 - UNPUBLISH_API
                 - UNPUBLISH_API_RESULT

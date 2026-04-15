@@ -18,7 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UndeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
@@ -37,6 +39,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -71,6 +74,12 @@ public class ClusterResource extends AbstractResource {
 
     @Inject
     private GetClusterPermissionsUseCase getClusterPermissionsUseCase;
+
+    @Inject
+    private DeployClusterUseCase deployClusterUseCase;
+
+    @Inject
+    private UndeployClusterUseCase undeployClusterUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -171,6 +180,56 @@ public class ClusterResource extends AbstractResource {
             new GetClusterPermissionsUseCase.Input(isAuthenticated(), isAdmin(), getAuthenticatedUser(), clusterId)
         );
         return Response.ok(output.permissions()).build();
+    }
+
+    @POST
+    @Path("_deploy")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    public Response deployCluster() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo.builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor.builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        var output = deployClusterUseCase.execute(new DeployClusterUseCase.Input(clusterId, audit));
+
+        return Response.ok().entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
+    }
+
+    @POST
+    @Path("_undeploy")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    public Response undeployCluster() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo.builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor.builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        var output = undeployClusterUseCase.execute(new UndeployClusterUseCase.Input(clusterId, audit));
+
+        return Response.ok().entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
     }
 
     @Path("members")

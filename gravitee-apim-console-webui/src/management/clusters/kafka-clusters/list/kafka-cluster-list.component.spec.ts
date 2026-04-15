@@ -105,8 +105,8 @@ describe('KafkaClusterListComponent', () => {
     const table = await componentHarness.getTable();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Production Kafka Cluster', 'Main production cluster', 'Jan 1, 2023, 12:00:00 AM', ''],
-      ['Staging Kafka Cluster', 'Staging environment', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Production Kafka Cluster UNDEPLOYED', 'Main production cluster', 'Jan 1, 2023, 12:00:00 AM', '-', ''],
+      ['Staging Kafka Cluster UNDEPLOYED', 'Staging environment', 'Jan 1, 2023, 12:00:00 AM', '-', ''],
     ]);
   });
 
@@ -127,8 +127,8 @@ describe('KafkaClusterListComponent', () => {
     const getTableWrapper = await componentHarness.getTableWrapper();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Production Kafka Cluster', 'Main production cluster', 'Jan 1, 2023, 12:00:00 AM', ''],
-      ['Staging Kafka Cluster', 'Staging environment', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Production Kafka Cluster UNDEPLOYED', 'Main production cluster', 'Jan 1, 2023, 12:00:00 AM', '-', ''],
+      ['Staging Kafka Cluster UNDEPLOYED', 'Staging environment', 'Jan 1, 2023, 12:00:00 AM', '-', ''],
     ]);
 
     await getTableWrapper.setSearchValue('Production');
@@ -148,7 +148,7 @@ describe('KafkaClusterListComponent', () => {
     );
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Production Kafka Cluster', 'Main production cluster', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Production Kafka Cluster UNDEPLOYED', 'Main production cluster', 'Jan 1, 2023, 12:00:00 AM', '-', ''],
     ]);
   });
 

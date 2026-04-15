@@ -44,7 +44,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ClusterService } from '../../../../services-ngx/cluster.service';
-import { ClustersSortByParam } from '../../../../entities/management-api-v2';
+import { ClusterLifecycleState, ClustersSortByParam } from '../../../../entities/management-api-v2';
 
 type PageTableVM = {
   items: {
@@ -52,6 +52,8 @@ type PageTableVM = {
     name: string;
     description: string;
     updatedAt: Date;
+    lifecycleState?: ClusterLifecycleState;
+    deployedAt?: Date;
   }[];
   totalItems: number;
   isLoading: boolean;
@@ -87,7 +89,7 @@ export class KafkaClusterListComponent implements OnInit {
 
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
-  protected displayedColumns: string[] = ['name', 'description', 'lastUpdated', 'actions'];
+  protected displayedColumns: string[] = ['name', 'description', 'lastUpdated', 'lastDeployed', 'actions'];
   protected filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
@@ -127,6 +129,8 @@ export class KafkaClusterListComponent implements OnInit {
             name: cluster.name,
             description: cluster.description ?? '',
             updatedAt: cluster.updatedAt,
+            lifecycleState: cluster.lifecycleState,
+            deployedAt: cluster.deployedAt,
           }));
 
           this.pageTableVM$.next({

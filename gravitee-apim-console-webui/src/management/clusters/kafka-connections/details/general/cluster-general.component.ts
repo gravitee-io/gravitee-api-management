@@ -116,6 +116,26 @@ export class ClusterGeneralComponent implements OnInit {
       .subscribe(() => this.ngOnInit());
   }
 
+  deployCluster() {
+    this.clusterService
+      .deploy(this.activatedRoute.snapshot.params.clusterId)
+      .pipe(
+        tap(() => this.snackBarService.success('Cluster deployed successfully!')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  undeployCluster() {
+    this.clusterService
+      .undeploy(this.activatedRoute.snapshot.params.clusterId)
+      .pipe(
+        tap(() => this.snackBarService.success('Cluster undeployed successfully!')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
   deleteCluster() {
     this.matDialog
       .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {

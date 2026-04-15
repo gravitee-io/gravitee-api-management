@@ -577,6 +577,42 @@ paths:
           description: Cluster deleted
         default:
           $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/_deploy:
+    parameters:
+      - $ref: "#/components/parameters/clusterIdParam"
+    post:
+      tags:
+        - Clusters
+      summary: Deploy a cluster
+      description: Deploy the cluster to the gateway. Sets lifecycle state to DEPLOYED and increments version.
+      operationId: deployCluster
+      responses:
+        "200":
+          description: Cluster deployed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/_undeploy:
+    parameters:
+      - $ref: "#/components/parameters/clusterIdParam"
+    post:
+      tags:
+        - Clusters
+      summary: Undeploy a cluster
+      description: Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+      operationId: undeployCluster
+      responses:
+        "200":
+          description: Cluster undeployed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        default:
+          $ref: "#/components/responses/Error"
   /clusters/{clusterId}/groups:
     parameters:
       - $ref: "#/components/parameters/clusterId"
