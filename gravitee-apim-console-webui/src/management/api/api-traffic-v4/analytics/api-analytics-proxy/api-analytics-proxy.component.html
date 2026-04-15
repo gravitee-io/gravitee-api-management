@@ -31,6 +31,16 @@
     <!-- Row 1: Timeframe filter bar -->
     <api-analytics-filters-bar></api-analytics-filters-bar>
 
+    @if (apiAnalyticsVM.isAllNewWidgetsEmpty) {
+      <gio-card-empty-state
+        class="page-empty-state-banner"
+        data-testid="page-empty-state-banner"
+        icon="bar-chart-2"
+        title="No data for this timeframe"
+        subtitle="Try a different timeframe to view analytics data."
+      ></gio-card-empty-state>
+    }
+
     <!-- Row 2: Stats cards -->
     <api-analytics-stats-cards class="stats-cards"></api-analytics-stats-cards>
 

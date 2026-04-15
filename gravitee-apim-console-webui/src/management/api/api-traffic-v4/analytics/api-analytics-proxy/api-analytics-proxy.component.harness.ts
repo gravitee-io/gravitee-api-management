@@ -24,6 +24,7 @@ export class ApiAnalyticsProxyHarness extends ComponentHarness {
 
   protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
   protected loaderElement = this.locatorForOptional('.loader gio-loader');
+  protected pageEmptyStateBanner = this.locatorForOptional('[data-testid="page-empty-state-banner"]');
   protected requestStats = (title: string) => this.locatorForOptional(ApiAnalyticsRequestStatsHarness.with({ title }));
   protected responseStatusRanges = (title: string) => this.locatorForOptional(ApiAnalyticsResponseStatusRangesHarness.with({ title }));
 
@@ -35,6 +36,10 @@ export class ApiAnalyticsProxyHarness extends ComponentHarness {
 
   async isLoaderDisplayed(): Promise<boolean> {
     return (await this.loaderElement()) !== null;
+  }
+
+  async isPageEmptyStateBannerDisplayed(): Promise<boolean> {
+    return (await this.pageEmptyStateBanner()) !== null;
   }
 
   async getRequestStatsHarness(title: string): Promise<ApiAnalyticsRequestStatsHarness> {

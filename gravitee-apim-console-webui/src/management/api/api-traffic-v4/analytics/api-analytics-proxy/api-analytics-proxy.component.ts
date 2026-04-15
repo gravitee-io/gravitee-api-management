@@ -16,9 +16,9 @@
 import { Component } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
-import { combineLatest, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, forkJoin, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { catchError, filter, map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { toNumber } from 'lodash';
 
@@ -41,10 +41,13 @@ import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-a
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 import { ApiAnalyticsStatsCardsComponent } from '../components/api-analytics-stats-cards/api-analytics-stats-cards.component';
 import { ApiAnalyticsStatusPieComponent } from '../components/api-analytics-status-pie/api-analytics-status-pie.component';
+import { CountResponse, GroupByResponse, StatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsResponse';
+import { TimeRangeParams } from '../../../../../shared/utils/timeFrameRanges';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
+  isAllNewWidgetsEmpty?: boolean;
   requestStats?: AnalyticsRequestStats;
   responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
 };
@@ -68,28 +71,30 @@ type ApiAnalyticsVM = {
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
+  private readonly apiId = this.activatedRoute.snapshot.params.apiId;
+
   private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsV2Service
-    .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
+    .getRequestsCount(this.apiId)
     .pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
   private getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
-    this.apiAnalyticsV2Service.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
+    this.apiAnalyticsV2Service.getAverageConnectionDuration(this.apiId).pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
   private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsV2Service
-    .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
+    .getResponseStatusRanges(this.apiId)
     .pipe(
       map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
 
   public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
-    this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
+    this.apiService.getLastApiFetch(this.apiId).pipe(onlyApiV4Filter()),
     this.apiAnalyticsV2Service.timeRangeFilter(),
   ]).pipe(
     map(([api]) => {
@@ -97,7 +102,13 @@ export class ApiAnalyticsProxyComponent {
     }),
     switchMap(({ isAnalyticsEnabled }) => {
       if (isAnalyticsEnabled) {
-        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
+        return combineLatest([this.analyticsData$, this.newWidgetsEmptyState$]).pipe(
+          map(([analyticsData, newWidgetsEmptyState]) => ({
+            isAnalyticsEnabled: true,
+            isAllNewWidgetsEmpty: newWidgetsEmptyState.isAllEmpty,
+            ...analyticsData,
+          })),
+        );
       }
       return of({ isAnalyticsEnabled: false });
     }),
@@ -130,6 +141,55 @@ export class ApiAnalyticsProxyComponent {
       },
     })),
   );
+
+  private newWidgetsEmptyState$: Observable<{ isLoading: boolean; isAllEmpty: boolean }> = this.apiAnalyticsV2Service
+    .timeRangeFilter()
+    .pipe(
+      filter((timeRange): timeRange is TimeRangeParams => !!timeRange),
+      switchMap(({ from, to }) =>
+        forkJoin({
+          count: this.apiAnalyticsV2Service
+            .getAnalytics(this.apiId, { type: 'COUNT', from, to })
+            .pipe(catchError(() => of<CountResponse | null>(null))),
+          gatewayResponseTime: this.apiAnalyticsV2Service
+            .getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'gateway-response-time-ms' })
+            .pipe(catchError(() => of<StatsResponse | null>(null))),
+          upstreamResponseTime: this.apiAnalyticsV2Service
+            .getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'endpoint-response-time-ms' })
+            .pipe(catchError(() => of<StatsResponse | null>(null))),
+          contentLength: this.apiAnalyticsV2Service
+            .getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'request-content-length' })
+            .pipe(catchError(() => of<StatsResponse | null>(null))),
+          statusPie: this.apiAnalyticsV2Service
+            .getAnalytics(this.apiId, { type: 'GROUP_BY', field: 'status', size: 10, from, to })
+            .pipe(catchError(() => of<GroupByResponse | null>(null))),
+        }).pipe(
+          map((responses) => {
+            const hasError = Object.values(responses).some((response) => response === null);
+            if (hasError) {
+              return { isLoading: false, isAllEmpty: false };
+            }
+
+            const countResponse = responses.count as CountResponse;
+            const gatewayResponseTime = responses.gatewayResponseTime as StatsResponse;
+            const upstreamResponseTime = responses.upstreamResponseTime as StatsResponse;
+            const contentLength = responses.contentLength as StatsResponse;
+            const statusPie = responses.statusPie as GroupByResponse;
+
+            const isAllEmpty =
+              countResponse.count === 0 &&
+              gatewayResponseTime.count === 0 &&
+              upstreamResponseTime.count === 0 &&
+              contentLength.count === 0 &&
+              Object.keys(statusPie.values ?? {}).length === 0;
+
+            return { isLoading: false, isAllEmpty };
+          }),
+          startWith({ isLoading: true, isAllEmpty: false }),
+        ),
+      ),
+      startWith({ isLoading: true, isAllEmpty: false }),
+    );
 
   constructor(
     private readonly apiService: ApiV2Service,

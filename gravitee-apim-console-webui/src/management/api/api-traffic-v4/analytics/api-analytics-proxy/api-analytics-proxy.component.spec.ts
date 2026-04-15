@@ -102,7 +102,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
-      expectNewWidgetRequests();
+      expectNewWidgetRequests({ occurrences: 2 });
     });
 
     it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
@@ -232,8 +232,27 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
-      expectNewWidgetRequests();
+      expectNewWidgetRequests({ occurrences: 2 });
     });
+  });
+
+  it('should display page-level empty-state banner when all new widgets are empty', async () => {
+    await initComponent();
+    expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+    expectApiGetResponseStatusOvertime();
+    expectApiGetResponseTimeOverTime();
+    expectNewWidgetRequests({
+      occurrences: 2,
+      countResponse: fakeCountResponse({ count: 0 }),
+      statsResponse: fakeStatsResponse({ count: 0, min: 0, max: 0, avg: 0, sum: 0 }),
+      groupByResponse: fakeGroupByResponse({ values: {}, metadata: {} }),
+    });
+    expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+    expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+    expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    fixture.detectChanges();
+
+    expect(await componentHarness.isPageEmptyStateBannerDisplayed()).toBeTruthy();
   });
 
   describe('Query parameters for enabled analytics', () => {
@@ -260,7 +279,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
-      expectNewWidgetRequests();
+      expectNewWidgetRequests({ occurrences: 2 });
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
@@ -323,30 +342,44 @@ describe('ApiAnalyticsProxyComponent', () => {
    * Flushes the 5 HTTP requests fired by the new US-07 stats cards and US-08 status pie
    * widgets when the time range filter is set.
    */
-  function expectNewWidgetRequests() {
+  function expectNewWidgetRequests({
+    occurrences = 1,
+    countResponse = fakeCountResponse(),
+    statsResponse = fakeStatsResponse(),
+    groupByResponse = fakeGroupByResponse(),
+  }: {
+    occurrences?: number;
+    countResponse?: ReturnType<typeof fakeCountResponse>;
+    statsResponse?: ReturnType<typeof fakeStatsResponse>;
+    groupByResponse?: ReturnType<typeof fakeGroupByResponse>;
+  } = {}) {
     const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
+    const countReqs = httpTestingController.match((r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'COUNT');
+    expect(countReqs.length).toBe(occurrences);
+    countReqs.forEach((req) => req.flush(countResponse));
 
-    const countReq = httpTestingController.expectOne((r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'COUNT');
-    countReq.flush(fakeCountResponse());
-
-    const gatewayReq = httpTestingController.expectOne(
+    const gatewayReqs = httpTestingController.match(
       (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'gateway-response-time-ms',
     );
-    gatewayReq.flush(fakeStatsResponse());
+    expect(gatewayReqs.length).toBe(occurrences);
+    gatewayReqs.forEach((req) => req.flush(statsResponse));
 
-    const upstreamReq = httpTestingController.expectOne(
+    const upstreamReqs = httpTestingController.match(
       (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'endpoint-response-time-ms',
     );
-    upstreamReq.flush(fakeStatsResponse());
+    expect(upstreamReqs.length).toBe(occurrences);
+    upstreamReqs.forEach((req) => req.flush(statsResponse));
 
-    const contentReq = httpTestingController.expectOne(
+    const contentReqs = httpTestingController.match(
       (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'request-content-length',
     );
-    contentReq.flush(fakeStatsResponse());
+    expect(contentReqs.length).toBe(occurrences);
+    contentReqs.forEach((req) => req.flush(statsResponse));
 
-    const groupByReq = httpTestingController.expectOne(
+    const groupByReqs = httpTestingController.match(
       (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'GROUP_BY' && r.params.get('field') === 'status',
     );
-    groupByReq.flush(fakeGroupByResponse());
+    expect(groupByReqs.length).toBe(occurrences);
+    groupByReqs.forEach((req) => req.flush(groupByResponse));
   }
 });
