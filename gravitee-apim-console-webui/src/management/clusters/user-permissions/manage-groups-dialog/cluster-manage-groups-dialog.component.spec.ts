@@ -22,13 +22,10 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { ClusterManageGroupsDialogComponent } from './cluster-manage-groups-dialog.component';
 import { ClusterManageGroupsDialogHarness } from './cluster-manage-groups-dialog.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
-import {
-  GioTestingPermission,
-  GioTestingPermissionProvider,
-} from '../../../../../../shared/components/gio-permission/gio-permission.service';
-import { expectGetClusterRequest, expectUpdateGroupsRequest } from '../../../../../../services-ngx/cluster.service.spec';
-import { fakeBaseGroup, fakeCluster, fakeGroupsResponse } from '../../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { expectGetClusterRequest, expectUpdateGroupsRequest } from '../../../../services-ngx/cluster.service.spec';
+import { fakeBaseGroup, fakeCluster, fakeGroupsResponse } from '../../../../entities/management-api-v2';
 
 describe('ClusterManageGroupsDialogComponent (harness)', () => {
   let httpTestingController: HttpTestingController;

@@ -19,10 +19,10 @@ import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
-import { ClusterGeneralComponent } from './kafka-connections/details/general/cluster-general.component';
+import { ClusterGeneralComponent } from './general/cluster-general.component';
+import { ClusterUserPermissionsComponent } from './user-permissions/cluster-user-permissions.component';
 import { ClusterConfigurationComponent } from './kafka-connections/details/configuration/cluster-configuration.component';
 import { ClusterListComponent } from './kafka-connections/list/cluster-list.component';
-import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
 import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
 import { KafkaClusterConfigurationComponent } from './kafka-clusters/details/configuration/kafka-cluster-configuration.component';
 import { ClusterGuard } from './cluster.guard';

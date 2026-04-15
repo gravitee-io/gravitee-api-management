@@ -21,10 +21,10 @@ import { GioAvatarModule, GioLoaderModule } from '@gravitee/ui-particles-angular
 import { NgIf } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { GroupV2Service } from '../../../../../../services-ngx/group-v2.service';
-import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { UsersService } from '../../../../../../services-ngx/users.service';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { UsersService } from '../../../../services-ngx/users.service';
 
 export type Group = {
   id: string;
