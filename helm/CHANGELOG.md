@@ -4,7 +4,11 @@
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
 ### 4.11.2
-- Add support for `jdbc.driverSource=preinstalled` to use JDBC drivers already baked into custom API and Gateway runtime images, without JDBC runtime provisioning.
+- Improve JDBC driver delivery options in the Helm chart:
+  - `auto` uses bundled PostgreSQL, MariaDB, and SQL Server drivers, and uses startup download for MySQL and other custom JDBC families
+  - `image` allows using a dedicated customer-provided JDBC image instead of downloading the driver at startup
+  - `download` keeps the explicit startup download mode
+  - `preinstalled` allows using JDBC drivers already baked into custom API and Gateway runtime images, without JDBC runtime provisioning
 - Validate `jdbc.driverSource` values during chart rendering and fail on unsupported values.
 
 ### 4.10.0
