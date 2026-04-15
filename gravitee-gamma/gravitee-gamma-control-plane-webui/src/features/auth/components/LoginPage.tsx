@@ -141,11 +141,7 @@ export function LoginPage() {
 
                             <div className="flex flex-col gap-3">
                                 {identityProviders.map(provider => (
-                                    <IdpButton
-                                        key={provider.id}
-                                        provider={provider}
-                                        onClick={() => handleIdpLogin(provider.id)}
-                                    />
+                                    <IdpButton key={provider.id} provider={provider} onClick={() => handleIdpLogin(provider.id)} />
                                 ))}
                             </div>
                         </>
@@ -161,14 +157,7 @@ function IdpButton({ provider, onClick }: { provider: SocialIdentityProvider; on
     const colorStyle = hasColor ? { backgroundColor: provider.color, color: getProviderTextColor(provider.color) } : {};
 
     return (
-        <Button
-            type="button"
-            variant="outline"
-            className="w-full gap-2"
-            size="lg"
-            style={colorStyle}
-            onClick={onClick}
-        >
+        <Button type="button" variant="outline" className="w-full gap-2" size="lg" style={colorStyle} onClick={onClick}>
             <IdpIcon type={provider.type} className="size-5 shrink-0" />
             <span className="flex-1 text-center">Sign in with {provider.name}</span>
         </Button>

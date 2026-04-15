@@ -62,9 +62,7 @@ export const useBootstrapStore = create<BootstrapState>()(
 
                     let identityProviders: SocialIdentityProvider[] = [];
                     try {
-                        const idpRes = await fetch(
-                            `${managementBaseURL}/organizations/${organizationId}/social-identities`,
-                        );
+                        const idpRes = await fetch(`${managementBaseURL}/organizations/${organizationId}/social-identities`);
                         if (idpRes.ok) {
                             identityProviders = await idpRes.json();
                         }
