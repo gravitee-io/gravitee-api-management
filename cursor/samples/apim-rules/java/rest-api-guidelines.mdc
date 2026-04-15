@@ -1,0 +1,281 @@
+---
+globs: 
+  - "**/gravitee-apim-*/**/*.java"
+alwaysApply: false
+description: "REST API design: endpoints, HTTP methods, URL naming (kebab-case), pagination, filtering, search patterns, response formats. Use when working with REST controllers, API resources, HTTP endpoints, @RestController, @RequestMapping, or discussing API design."
+---
+
+# Gravitee REST API Guidelines
+
+These guidelines ensure APIs are developer-friendly, efficient, and sustainable through consistent patterns and web standards (HTTP, REST, JSON).
+
+## Prescriptive Guidance
+
+- ✅ **DO** - Adopt this pattern
+- ☑️ **YOU SHOULD** - Strongly recommended
+- ✔️ **YOU MAY** - Consider if appropriate
+- ⚠️ **YOU SHOULD NOT** - Avoid unless necessary
+- ⛔ **DO NOT** - Never use this pattern
+
+## RESTful Design
+
+### Content-Type
+
+✅ **DO** accept and produce `application/json` by default
+
+✔️ **YOU MAY** support specific content types if needed:
+- `text/plain`, `image/*`, `application/xml`, etc.
+
+### Case Conventions
+
+According to RFC3986, URIs are case-sensitive (except scheme and host).
+
+✅ **DO** use lower kebab-case (spinal-case) for URI paths
+
+```
+GET /api/v1/environment-groups
+POST /api/v1/api-definitions
+```
+
+✅ **DO** use lowerCamelCase for query parameters
+
+```
+GET /apis?pageSize=10&sortBy=name
+```
+
+### OpenAPI Specification
+
+✅ **DO** use UpperCamelCase for entity names
+
+✅ **DO** use lowerCamelCase for entity properties
+
+```json
+{
+  "ApiDefinition": {
+    "properties": {
+      "apiId": "string",
+      "createdAt": "timestamp",
+      "definitionVersion": "string"
+    }
+  }
+}
+```
+
+## Resource Naming
+
+### Use Plural Nouns
+
+✅ **DO** use plural names for resources
+
+```
+GET /apis
+GET /applications
+POST /subscriptions
+```
+
+### Avoid Action Verbs
+
+Actions are determined by HTTP verbs (GET, POST, PATCH, DELETE).
+
+**Convert actions to resources when possible:**
+
+✅ **DO** convert actions to entities
+
+```
+# Instead of "deploy API"
+POST /apis/1234/deployments
+
+# Instead of "publish API"
+POST /apis/1234/publications
+```
+
+**If action cannot be converted:**
+
+☑️ **YOU SHOULD** prefix action with underscore
+
+```
+POST /apis/1234/_publish
+POST /documents/1234/_validate
+```
+
+## Resource Granularity
+
+✅ **DO** limit JSON response to maximum 2 levels of nested objects
+
+✅ **DO** limit sub-resources to maximum 2 levels
+
+```
+# Good - 2 levels
+GET /environments/default/apis
+
+# Avoid - 3+ levels
+GET /organizations/acme/environments/default/apis
+```
+
+**Balance between:**
+- Too many requests (under-fetching)
+- Responses too large (over-fetching)
+
+## Schemas
+
+✅ **DO** use the same schema for create, update, and read operations
+
+The schema for an entity must be consistent. Operation-specific rules are documented in the resource description.
+
+**Example:**
+
+```json
+// Same schema for POST, PATCH, GET
+{
+  "name": "string",
+  "description": "string",
+  "status": "STARTED|STOPPED"  // Read-only on GET, required on POST
+}
+```
+
+## Pagination
+
+### Request Parameters
+
+✅ **DO** support `page` and `perPage` query parameters on all list endpoints
+
+- `page` - Page number (first page is 1)
+- `perPage` - Maximum items per page
+
+**Default values are required when not provided.**
+
+```
+GET /apis?page=2&perPage=25
+```
+
+### Response Format
+
+✅ **DO** include pagination metadata in response body
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 2,
+    "perPage": 25,
+    "pageCount": 10,
+    "pageItemsCount": 25,
+    "totalCount": 250
+  }
+}
+```
+
+## Filtering and Search
+
+### Simple Filtering
+
+✅ **DO** use entity fields as query parameters for simple filtering
+
+```
+GET /apis?status=PUBLISHED&type=ASYNC
+GET /applications?owner=john.doe
+```
+
+Works well for:
+- Enumerated fields
+- Exact value matches
+
+⛔ **DO NOT** use complex query strings on GET resources
+
+```
+# Wrong
+GET /apis?filter=(status==PUBLISHED)AND(name~'test')
+```
+
+### Advanced Search
+
+For complex filtering (date ranges, partial matches, etc.), use the `_search` action resource.
+
+✅ **DO** expose `_search` action resource for complex queries
+
+**Query parameter** - simple term search:
+
+```
+GET /apis/_search?query=payment
+
+# Searches in predefined fields (documented in API)
+```
+
+**AdvancedQuery parameter** - expression-based filtering:
+
+```
+GET /apis/_search?advancedQuery=status==PUBLISHED;createdAt>2024-01-01
+
+# Uses specific grammar for complex filters
+```
+
+### POST for Long Queries
+
+✔️ **YOU MAY** support POST for `_search` if URLs could be too long
+
+```
+POST /apis/_search
+{
+  "query": "payment",
+  "filters": {
+    "status": ["PUBLISHED", "DEPRECATED"],
+    "tags": ["billing", "checkout"]
+  }
+}
+```
+
+### Pagination on Search
+
+✅ **DO** apply pagination on `_search` resources
+
+```
+GET /apis/_search?query=payment&page=1&perPage=10
+```
+
+The result of `GET /apis/_search` must accept the same pagination parameters as `GET /apis`.
+
+## Sorting
+
+☑️ **YOU SHOULD** use `sortBy` query parameter for sorting
+
+```
+GET /apis?sortBy=name
+GET /apis?sortBy=-createdAt  # Descending with minus prefix
+```
+
+## Error Management
+
+Document errors with consistent format across all endpoints.
+
+**Standard error response:**
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid API definition",
+    "details": [
+      {
+        "field": "name",
+        "message": "Name is required"
+      }
+    ]
+  }
+}
+```
+
+## HATEOAS
+
+☑️ **YOU SHOULD** return useful links in responses
+
+```json
+{
+  "id": "api-123",
+  "name": "Payment API",
+  "_links": {
+    "self": "/apis/api-123",
+    "deploy": "/apis/api-123/deployments",
+    "analytics": "/apis/api-123/analytics"
+  }
+}
+```

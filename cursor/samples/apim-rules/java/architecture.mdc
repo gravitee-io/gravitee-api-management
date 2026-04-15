@@ -1,0 +1,40 @@
+---
+globs: 
+  - "**/gravitee-apim-*/**/*.java"
+alwaysApply: true
+description: "Core APIM architecture: naming conventions (UseCase, CrudService, DomainService), onion architecture (domain/infra separation), package structure (core/infra), ArchUnit tests. Always apply for Java development."
+---
+
+# Java Architecture Rules
+
+## Naming Conventions
+
+Enforced by ArchUnit tests in `gravitee-apim-rest-api-service/src/test/java/architecture/`:
+
+| Type            | Interface        | Implementation       |
+| --------------- | ---------------- | -------------------- |
+| Use Cases       | -                | `*UseCase`           |
+| CRUD Services   | `*CrudService`   | `*CrudServiceImpl`   |
+| Domain Services | `*DomainService` | `*DomainServiceImpl` |
+
+## Package Structure (Onion Architecture)
+
+```
+io.gravitee.apim.core.{domain}
+├── model/           # Domain entities
+├── usecase/         # Application services/use cases
+├── crud_service/    # CRUD service interfaces
+├── query_service/   # Query service interfaces
+└── domain_service/  # Domain service interfaces
+
+io.gravitee.apim.infra.{domain}
+├── crud_service/    # CRUD implementations
+├── adapter/         # External adapters
+└── ...
+```
+
+## Architectural Rules
+
+- Domain layer has NO dependencies on infrastructure
+- Use cases orchestrate domain services
+- Infrastructure adapters implement domain interfaces

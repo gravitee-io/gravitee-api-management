@@ -1,0 +1,46 @@
+---
+globs: 
+  - "**/gravitee-apim-*/**/*.java"
+  - "**/pom.xml"
+alwaysApply: false
+description: "Code formatting (Prettier, indentation, line width), license headers (Apache 2.0), environment variables, main entry points (GatewayContainer, GraviteeApisContainer). Use when formatting code, configuring environment, or setting up project."
+---
+
+# Code Style & Configuration
+
+## Code Style Standards
+
+- **Prettier**: 140 print width, 4-space tabs
+- **License**: Apache 2.0 license headers required
+- **Javadoc**: Use `@author` tags in class documentation
+
+## Main Entry Points
+
+| Component | Main Class                                              | Module                                        |
+| --------- | ------------------------------------------------------- | --------------------------------------------- |
+| Gateway   | `io.gravitee.gateway.standalone.GatewayContainer`       | `gravitee-apim-gateway-standalone-container`  |
+| REST API  | `io.gravitee.rest.api.standalone.GraviteeApisContainer` | `gravitee-apim-rest-api-standalone-container` |
+
+## Environment Variables
+
+Common environment variables for local development:
+
+```bash
+# MongoDB (default for local)
+gravitee_management_mongodb_uri=mongodb://localhost:27017/gravitee
+
+# Elasticsearch
+gravitee_reporters_elasticsearch_endpoints_0=http://localhost:9200
+
+# JDBC (PostgreSQL alternative)
+GRAVITEE_MANAGEMENT_TYPE=jdbc
+GRAVITEE_MANAGEMENT_JDBC_URL=jdbc:postgresql://localhost:5432/gravitee
+```
+
+## Integration Tests
+
+Integration tests are managed via Taskfile. See `Taskfile.dist.yml` and use:
+
+```bash
+task integration-test
+```

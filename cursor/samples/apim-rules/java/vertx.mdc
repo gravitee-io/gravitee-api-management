@@ -1,0 +1,38 @@
+---
+globs: 
+globs:
+  - "**/gravitee-apim-*/**/*.java"
+alwaysApply: true
+description: "Critical Vert.x patterns: non-blocking (NEVER Thread.sleep, blocking I/O), Verticles, async patterns (Future, Promise, RxJava), event loop protection. Always apply - blocking code breaks Gateway."
+---
+
+# Vert.x & Non-Blocking Rules
+
+> ⚠️ **The Gateway uses Vert.x event loops. NEVER block the main thread.**
+
+## Key Patterns
+
+- Use `Verticle` pattern for async services (healthcheck, sync, discovery)
+- All I/O must be async: `Future`, `Promise`, RxJava, reactive streams
+- Policy execution must be non-blocking
+- Use `-Dvertx.options.maxEventLoopExecuteTime=1000000000000` for debugging
+
+## Common Verticles
+
+- `EndpointHealthcheckVerticle` - Health checks
+- `EndpointDiscoveryVerticle` - Service discovery
+- `DebugHttpProtocolVerticle` - Debug mode
+
+## Anti-Patterns (AVOID)
+
+```java
+// ❌ BLOCKING - will freeze event loop
+Thread.sleep(1000);
+someBlockingHttpCall();
+file.readSync();
+
+// ✅ NON-BLOCKING
+vertx.setTimer(1000, id -> { ... });
+webClient.get(...).send().onSuccess(resp -> { ... });
+vertx.fileSystem().readFile(...).onSuccess(buffer -> { ... });
+```

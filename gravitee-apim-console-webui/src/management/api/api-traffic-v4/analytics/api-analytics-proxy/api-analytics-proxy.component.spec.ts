@@ -36,6 +36,7 @@ import { AnalyticsResponseStatusOvertime } from '../../../../../entities/managem
 import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
 import { fakeAnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime.fixture';
+import { fakeCountResponse, fakeGroupByResponse, fakeStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsResponse.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -101,6 +102,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+      expectNewWidgetRequests();
     });
 
     it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
@@ -230,6 +232,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+      expectNewWidgetRequests();
     });
   });
 
@@ -257,6 +260,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+      expectNewWidgetRequests();
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
@@ -313,5 +317,36 @@ describe('ApiAnalyticsProxyComponent', () => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);
+  }
+
+  /**
+   * Flushes the 5 HTTP requests fired by the new US-07 stats cards and US-08 status pie
+   * widgets when the time range filter is set.
+   */
+  function expectNewWidgetRequests() {
+    const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
+
+    const countReq = httpTestingController.expectOne((r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'COUNT');
+    countReq.flush(fakeCountResponse());
+
+    const gatewayReq = httpTestingController.expectOne(
+      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'gateway-response-time-ms',
+    );
+    gatewayReq.flush(fakeStatsResponse());
+
+    const upstreamReq = httpTestingController.expectOne(
+      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'endpoint-response-time-ms',
+    );
+    upstreamReq.flush(fakeStatsResponse());
+
+    const contentReq = httpTestingController.expectOne(
+      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'request-content-length',
+    );
+    contentReq.flush(fakeStatsResponse());
+
+    const groupByReq = httpTestingController.expectOne(
+      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'GROUP_BY' && r.params.get('field') === 'status',
+    );
+    groupByReq.flush(fakeGroupByResponse());
   }
 });

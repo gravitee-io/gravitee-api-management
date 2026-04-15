@@ -1,0 +1,222 @@
+---
+globs: 
+  - "**/gravitee-apim-*/**/*.java"
+alwaysApply: false
+description: "Exception handling, try-catch, logging (log.error, log.warn), diagnostics (ctx.warnWith, ctx.interruptWith), RxJava error handling (.doOnError, .onErrorResumeNext), cause chains. Use when working with exceptions, error handling, logging, diagnostics, or troubleshooting failures."
+---
+
+# Error Handling & Diagnostics
+
+## Diagnostic Reporting (APIM 4.9+)
+
+Comprehensive diagnostic reporting for V4 and V2 APIs with visibility in Console UI.
+
+### Adding Warnings
+
+Use `ctx.warnWith()` to report warnings that don't interrupt the request flow.
+
+**Basic Warning:**
+
+```java
+ctx.warnWith(new Diagnostic("WARN_CODE", "Warning message"));
+```
+
+**Warning with Cause (CRITICAL - Always include when possible):**
+
+```java
+ctx.warnWith(new Diagnostic("WARN_CODE", "Warning message").cause(exception));
+```
+
+### Adding Failures
+
+Use `ctx.interruptWith()` to report errors that interrupt the request flow.
+
+**Basic Failure:**
+
+```java
+ctx.interruptWith(new Diagnostic("ERROR_CODE", "Error message"));
+```
+
+**Failure with Cause (CRITICAL - Always include when possible):**
+
+```java
+ctx.interruptWith(new Diagnostic("ERROR_CODE", "Error message").cause(exception));
+```
+
+### Why .cause() is Critical
+
+Including `.cause(exception)` provides:
+
+- **Root Cause Analysis**: Most specific cause message is preserved
+- **Formatted Messages**: DiagnosticReportHelper extracts meaningful information
+- **Automatic Formatting**: Exception names are prettified
+
+**Without .cause():**
+
+```
+Generic error message only
+```
+
+**With .cause(throwable):**
+
+```
+Error message
+  Caused by: SpecificException: Detailed reason
+    at com.example.Class.method(Class.java:42)
+```
+
+### Component Context
+
+Diagnostics automatically capture component context from the execution scope. Ensure your component is properly registered.
+
+### Best Practices
+
+✅ **DO:**
+
+- Always include `.cause(exception)` when available
+- Use specific error codes
+- Provide actionable error messages
+- Test diagnostic visibility in Console UI
+
+❌ **DON'T:**
+
+- Omit exception causes
+- Use generic error messages
+- Log and report the same error (choose one)
+- Include sensitive data in messages
+
+## Exception & Logging Best Practices
+
+### Log Exceptions Only Once
+
+The most common mistake is logging the same exception multiple times as it propagates through layers:
+
+```java
+// ❌ WRONG - Logs 3 times for the same error
+// Repository layer
+catch (Exception e) {
+    log.error("Database error", e);
+    throw e;
+}
+
+// Service layer
+catch (Exception e) {
+    log.error("Service error", e);
+    throw e;
+}
+
+// REST layer
+catch (Exception e) {
+    log.error("API error", e);
+    return Response.error();
+}
+```
+
+```java
+// ✅ CORRECT - Log once at the highest level
+// Repository layer
+catch (Exception e) {
+    throw e;  // Just propagate
+}
+
+// Service layer
+catch (Exception e) {
+    throw e;  // Just propagate
+}
+
+// REST layer
+catch (Exception e) {
+    log.error("Failed to update API page", e);  // Log once with context
+    return Response.error();
+}
+```
+
+**Benefits:**
+
+- Reduces log noise
+- Easier troubleshooting
+- Complete context in single log entry
+
+### When to Log at Intermediary Levels
+
+Acceptable scenarios for logging before rethrowing:
+
+**Non-propagated exceptions:**
+
+```java
+catch (Exception e) {
+    log.warn("Optional operation failed, continuing", e);
+    // Exception handled, not rethrown
+    return defaultValue;
+}
+```
+
+**Additional context (wrap, don't log):**
+
+```java
+catch (IOException e) {
+    throw new DataAccessException("Failed to read file: " + filename, e);
+    // New exception with context, original cause preserved
+}
+```
+
+### RxJava Exception Handling
+
+With RxJava, `.doOnError()` for logging is **log-and-propagate**:
+
+```java
+// ❌ WRONG - Logs and propagates (will be logged again upstream)
+return rxService.getData()
+    .doOnError(e -> log.error("Service error", e))  // Logs here
+    .onErrorResumeNext(e -> Single.error(e));       // Propagates
+
+// ✅ CORRECT - Either log OR propagate
+return rxService.getData()
+    .onErrorResumeNext(e -> {
+        log.error("Service error, using fallback", e);  // Log only if handling
+        return Single.just(fallbackValue);
+    });
+
+// ✅ CORRECT - Just propagate, let caller log
+return rxService.getData()
+    .onErrorResumeNext(e -> Single.error(
+        new ServiceException("Data fetch failed", e)
+    ));
+```
+
+### Choosing the Right Log Level
+
+**ERROR level:**
+
+Use when operation fails and cannot complete successfully.
+
+```java
+catch (Exception e) {
+    log.error("Failed to update API configuration", e);
+    throw new TechnicalManagementException("Update failed");
+}
+```
+
+**WARN or INFO levels:**
+
+Use for expected or gracefully handled exceptions.
+
+```java
+// Expected authentication failure
+catch (AuthenticationException e) {
+    log.info("Authentication failed for user: {}", username);  // Not an error
+    return Response.status(401).build();
+}
+
+// Retryable operation
+catch (TemporaryException e) {
+    log.warn("Temporary failure, will retry", e);
+    scheduleRetry();
+}
+```
+
+**Rule of thumb:**
+
+- User authentication failures → INFO
+- Expected business rule violations → WARN
+- System/infrastructure failures → ERROR
