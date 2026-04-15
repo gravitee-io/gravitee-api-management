@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -434,6 +435,211 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     assertThat(r.getType()).isEqualTo(ApiAnalyticsCountResponse.TypeEnum.COUNT);
                     assertThat(r.getCount()).isEqualTo(0L);
                 });
+        }
+
+        // ── US-02 validation tests (ACs 1–12) ────────────────────────────────
+
+        // AC 1 — missing type
+        @Test
+        void should_return_400_when_type_is_missing() {
+            final Response response = rootTarget().queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("type is required");
+        }
+
+        // AC 2 — unknown type value
+        @Test
+        void should_return_400_when_type_is_unknown() {
+            final Response response = rootTarget()
+                .queryParam("type", "INVALID_TYPE")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Unknown analytics type 'INVALID_TYPE'. Allowed values: COUNT, STATS, GROUP_BY, DATE_HISTO");
+        }
+
+        // AC 3 — missing from
+        @Test
+        void should_return_400_when_from_is_missing() {
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("to", TO).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("from is required");
+        }
+
+        // AC 3 — missing to
+        @Test
+        void should_return_400_when_to_is_missing() {
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("from", FROM).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("to is required");
+        }
+
+        // AC 4 — from equals to
+        @Test
+        void should_return_400_when_from_equals_to() {
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", FROM)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        // AC 4 — from after to
+        @Test
+        void should_return_400_when_from_is_after_to() {
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", TO)
+                .queryParam("to", FROM)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        // AC 5 — window > 366 days
+        @Test
+        void should_return_400_when_window_exceeds_366_days() {
+            long from = 0L;
+            long to = java.time.Duration.ofDays(367).toMillis();
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", from)
+                .queryParam("to", to)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        // AC 6 — future to is accepted (no 400)
+        @Test
+        void should_accept_future_to_timestamp() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.requestsCount = RequestsCount.builder().total(0L).build();
+
+            long futureFrom = java.time.Instant.now().toEpochMilli();
+            long futureTo = java.time.Instant.now().plusSeconds(3600).toEpochMilli();
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", futureFrom)
+                .queryParam("to", futureTo)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(OK_200);
+        }
+
+        // AC 7 — STATS without field
+        @Test
+        void should_return_400_when_stats_has_no_field() {
+            final Response response = rootTarget()
+                .queryParam("type", "STATS")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("field is required for STATS");
+        }
+
+        // AC 8 — field not in allowed set
+        @Test
+        void should_return_400_when_stats_field_is_unknown() {
+            final Response response = rootTarget()
+                .queryParam("type", "STATS")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "unknown-field")
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        // AC 9 — DATE_HISTO without interval
+        @Test
+        void should_return_400_when_date_histo_has_no_interval() {
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("interval is required for DATE_HISTO");
+        }
+
+        // AC 10 — interval <= 0
+        @Test
+        void should_return_400_when_interval_is_zero() {
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .queryParam("interval", 0)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        // AC 11 — invalid order value
+        @Test
+        void should_return_400_when_order_is_invalid() {
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("order", "SIDEWAYS")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("order must be ASC or DESC, got 'SIDEWAYS'");
         }
     }
 

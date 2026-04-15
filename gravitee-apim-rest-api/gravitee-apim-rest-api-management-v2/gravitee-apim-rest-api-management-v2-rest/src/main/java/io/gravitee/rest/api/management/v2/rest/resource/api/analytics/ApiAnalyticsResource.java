@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
-import io.gravitee.apim.core.analytics.model.AnalyticsType;
 import io.gravitee.apim.core.analytics.use_case.GetApiAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
@@ -77,18 +76,30 @@ public class ApiAnalyticsResource extends AbstractResource {
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
 
     /**
-     * Unified analytics endpoint — dispatches to the correct ES aggregation based on {@code type}.
-     * US-01: COUNT only. STATS, GROUP_BY, DATE_HISTO added in US-03/04.
+     * Unified analytics endpoint — all validation is centralised in the use case (US-02).
+     * US-01: COUNT. US-03/04: STATS, GROUP_BY, DATE_HISTO.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public Object getApiAnalytics(@QueryParam("type") String type, @QueryParam("from") Long from, @QueryParam("to") Long to) {
-        var analyticsType = AnalyticsType.valueOf(type);
-        var fromInstant = from != null ? Instant.ofEpochMilli(from) : null;
-        var toInstant = to != null ? Instant.ofEpochMilli(to) : null;
-
-        var input = new GetApiAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), analyticsType, fromInstant, toInstant);
+    public Object getApiAnalytics(
+        @QueryParam("type") String type,
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to,
+        @QueryParam("field") String field,
+        @QueryParam("interval") Long interval,
+        @QueryParam("order") String order
+    ) {
+        var input = new GetApiAnalyticsUseCase.Input(
+            apiId,
+            GraviteeContext.getCurrentEnvironment(),
+            type,
+            from != null ? Instant.ofEpochMilli(from) : null,
+            to != null ? Instant.ofEpochMilli(to) : null,
+            field,
+            interval,
+            order
+        );
 
         var output = getApiAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
 
