@@ -33,8 +33,11 @@ import static org.mockito.Mockito.when;
 import assertions.MAPIAssertions;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UndeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
@@ -80,6 +83,12 @@ class ClusterResourceTest extends AbstractResourceTest {
     @Inject
     private GetClusterPermissionsUseCase getClusterPermissionsUseCase;
 
+    @Inject
+    private DeployClusterUseCase deployClusterUseCase;
+
+    @Inject
+    private UndeployClusterUseCase undeployClusterUseCase;
+
     @Autowired
     private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
 
@@ -107,7 +116,7 @@ class ClusterResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(updateClusterUseCase, deleteClusterUseCase, getClusterPermissionsUseCase);
+        reset(updateClusterUseCase, deleteClusterUseCase, getClusterPermissionsUseCase, deployClusterUseCase, undeployClusterUseCase);
     }
 
     @Nested
@@ -276,6 +285,78 @@ class ClusterResourceTest extends AbstractResourceTest {
                 soft.assertThat(input.groups()).containsExactlyInAnyOrder("G1", "G2");
                 soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
             });
+        }
+    }
+
+    @Nested
+    class DeployClusterTest {
+
+        @Test
+        void should_deploy_cluster() {
+            Cluster deployedCluster = Cluster.builder()
+                .id(CLUSTER_ID)
+                .name("Cluster 1")
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .version(1)
+                .build();
+            when(deployClusterUseCase.execute(any())).thenReturn(new DeployClusterUseCase.Output(deployedCluster));
+
+            try (Response response = rootTarget().path("_deploy").request().post(json(""))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+                assertThat(cluster.getLifecycleState().name()).isEqualTo("DEPLOYED");
+            }
+
+            var captor = ArgumentCaptor.forClass(DeployClusterUseCase.Input.class);
+            verify(deployClusterUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.clusterId()).isEqualTo(CLUSTER_ID);
+                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
+            });
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().path("_deploy").request().post(json(""))
+            );
+        }
+    }
+
+    @Nested
+    class UndeployClusterTest {
+
+        @Test
+        void should_undeploy_cluster() {
+            Cluster undeployedCluster = Cluster.builder()
+                .id(CLUSTER_ID)
+                .name("Cluster 1")
+                .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                .version(1)
+                .build();
+            when(undeployClusterUseCase.execute(any())).thenReturn(new UndeployClusterUseCase.Output(undeployedCluster));
+
+            try (Response response = rootTarget().path("_undeploy").request().post(json(""))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+                assertThat(cluster.getLifecycleState().name()).isEqualTo("UNDEPLOYED");
+            }
+
+            var captor = ArgumentCaptor.forClass(UndeployClusterUseCase.Input.class);
+            verify(undeployClusterUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.clusterId()).isEqualTo(CLUSTER_ID);
+                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
+            });
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().path("_undeploy").request().post(json(""))
+            );
         }
     }
 

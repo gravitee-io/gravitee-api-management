@@ -41,6 +41,19 @@
             <dl class="gio-description-list">
               <dt>Cross ID</dt>
               <dd>{{ initialCluster.crossId }}</dd>
+              <dt>Status</dt>
+              <dd>
+                <span
+                  class="gio-badge-{{
+                    initialCluster.lifecycleState === 'DEPLOYED'
+                      ? 'success'
+                      : initialCluster.lifecycleState === 'PENDING'
+                        ? 'warning'
+                        : 'neutral'
+                  }}"
+                  >{{ initialCluster.lifecycleState }}</span
+                >
+              </dd>
               <dt>Created</dt>
               <dd>{{ initialCluster.createdAt | date: 'medium' }}</dd>
               <dt>Updated</dt>
@@ -57,6 +70,17 @@
       <mat-card-content>
         <h3 class="danger-card__title">Danger Zone</h3>
         <div class="danger-card__actions">
+          <div class="danger-card__actions__action" *ngIf="initialCluster.lifecycleState !== 'DEPLOYED'">
+            <span> Deploy this Cluster to the gateway. </span>
+            <button type="button" mat-raised-button color="primary" (click)="deployCluster()">Deploy</button>
+          </div>
+          <div
+            class="danger-card__actions__action"
+            *ngIf="initialCluster.lifecycleState === 'DEPLOYED' || initialCluster.lifecycleState === 'PENDING'"
+          >
+            <span> Undeploy this Cluster from the gateway. </span>
+            <button type="button" mat-button color="warn" (click)="undeployCluster()">Undeploy</button>
+          </div>
           <div class="danger-card__actions__action">
             <span class="gv-form-danger-text"> Delete this Cluster. </span>
             <button type="button" mat-button color="warn" (click)="deleteCluster()">Delete</button>

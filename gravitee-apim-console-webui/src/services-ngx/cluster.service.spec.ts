@@ -181,6 +181,26 @@ export const expectDeleteClusterRequest = (httpTestingController: HttpTestingCon
   req.flush({});
 };
 
+export const expectDeployClusterRequest = (
+  httpTestingController: HttpTestingController,
+  clusterId: string,
+  clusterDeployed: Cluster = fakeCluster(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}/_deploy`);
+  expect(req.request.method).toEqual('POST');
+  req.flush(clusterDeployed);
+};
+
+export const expectUndeployClusterRequest = (
+  httpTestingController: HttpTestingController,
+  clusterId: string,
+  clusterUndeployed: Cluster = fakeCluster(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}/_undeploy`);
+  expect(req.request.method).toEqual('POST');
+  req.flush(clusterUndeployed);
+};
+
 export const expectUpdateGroupsRequest = (
   httpTestingController: HttpTestingController,
   clusterId: string,

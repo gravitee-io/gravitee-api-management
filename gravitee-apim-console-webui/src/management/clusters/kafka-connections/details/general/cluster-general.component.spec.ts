@@ -29,10 +29,12 @@ import { GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import {
   expectDeleteClusterRequest,
+  expectDeployClusterRequest,
   expectGetClusterRequest,
+  expectUndeployClusterRequest,
   expectUpdateClusterRequest,
 } from '../../../../../services-ngx/cluster.service.spec';
-import { fakeCluster, fakeUpdateCluster } from '../../../../../entities/management-api-v2';
+import { ClusterType, fakeCluster, fakeUpdateCluster } from '../../../../../entities/management-api-v2';
 
 describe('ClusterGeneralComponent', () => {
   const CLUSTER_ID = 'clusterId';
@@ -45,7 +47,7 @@ describe('ClusterGeneralComponent', () => {
 
   let permissions: string[];
 
-  beforeEach(async () => {
+  async function initComponent(type: ClusterType = 'KAFKA_CLUSTER_CONNECTION') {
     permissions = ['cluster-definition-u', 'cluster-definition-d'];
 
     await TestBed.configureTestingModule({
@@ -77,63 +79,98 @@ describe('ClusterGeneralComponent', () => {
       httpTestingController,
       fakeCluster({
         id: CLUSTER_ID,
+        type,
       }),
     );
     fixture.detectChanges();
-  });
+  }
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should initialize the form with cluster data', async () => {
-    expect(await clusterGeneralHarness.getNameValue()).toBe('Cluster Name');
-    expect(await clusterGeneralHarness.getDescriptionValue()).toBe('A test cluster');
+  describe('with KAFKA_CLUSTER_CONNECTION type', () => {
+    beforeEach(async () => {
+      await initComponent('KAFKA_CLUSTER_CONNECTION');
+    });
+
+    it('should initialize the form with cluster data', async () => {
+      expect(await clusterGeneralHarness.getNameValue()).toBe('Cluster Name');
+      expect(await clusterGeneralHarness.getDescriptionValue()).toBe('A test cluster');
+    });
+
+    it('should validate the form correctly', async () => {
+      // Clear the name field (which is required)
+      await clusterGeneralHarness.setNameValue('');
+
+      expect(await clusterGeneralHarness.isFormValid()).toBe(false);
+
+      await clusterGeneralHarness.setNameValue('New Cluster Name');
+
+      expect(await clusterGeneralHarness.isFormValid()).toBe(true);
+    });
+
+    it('should submit the form and update the cluster', async () => {
+      await clusterGeneralHarness.setNameValue('Updated Cluster Name');
+      await clusterGeneralHarness.setDescriptionValue('Updated Description');
+
+      await clusterGeneralHarness.submitForm();
+
+      expectUpdateClusterRequest(
+        httpTestingController,
+        CLUSTER_ID,
+        fakeUpdateCluster({
+          name: 'Updated Cluster Name',
+          description: 'Updated Description',
+        }),
+      );
+
+      // Trigger new NgOnInit to refresh the data
+      expectGetClusterRequest(
+        httpTestingController,
+        fakeCluster({
+          id: CLUSTER_ID,
+        }),
+      );
+    });
+
+    it('should delete the cluster', async () => {
+      await clusterGeneralHarness.clickDeleteButton();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
+
+      expectDeleteClusterRequest(httpTestingController, CLUSTER_ID);
+
+      expect(router.navigate).toHaveBeenCalledWith(['../../'], expect.anything());
+    });
   });
 
-  it('should validate the form correctly', async () => {
-    // Clear the name field (which is required)
-    await clusterGeneralHarness.setNameValue('');
+  describe('with KAFKA_CLUSTER type', () => {
+    beforeEach(async () => {
+      await initComponent('KAFKA_CLUSTER');
+    });
 
-    expect(await clusterGeneralHarness.isFormValid()).toBe(false);
+    it('should deploy the cluster', async () => {
+      await clusterGeneralHarness.clickDeployButton();
 
-    await clusterGeneralHarness.setNameValue('New Cluster Name');
+      expectDeployClusterRequest(httpTestingController, CLUSTER_ID, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
 
-    expect(await clusterGeneralHarness.isFormValid()).toBe(true);
-  });
+      // Trigger new NgOnInit to refresh the data
+      expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
+    });
 
-  it('should submit the form and update the cluster', async () => {
-    await clusterGeneralHarness.setNameValue('Updated Cluster Name');
-    await clusterGeneralHarness.setDescriptionValue('Updated Description');
+    it('should undeploy the cluster when deployed', async () => {
+      // First deploy to get DEPLOYED state
+      await clusterGeneralHarness.clickDeployButton();
+      expectDeployClusterRequest(httpTestingController, CLUSTER_ID, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
+      expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
+      fixture.detectChanges();
 
-    await clusterGeneralHarness.submitForm();
-
-    expectUpdateClusterRequest(
-      httpTestingController,
-      CLUSTER_ID,
-      fakeUpdateCluster({
-        name: 'Updated Cluster Name',
-        description: 'Updated Description',
-      }),
-    );
-
-    // Trigger new NgOnInit to refresh the data
-    expectGetClusterRequest(
-      httpTestingController,
-      fakeCluster({
-        id: CLUSTER_ID,
-      }),
-    );
-  });
-
-  it('should delete the cluster', async () => {
-    await clusterGeneralHarness.clickDeleteButton();
-
-    const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
-    await confirmDialog.confirm();
-
-    expectDeleteClusterRequest(httpTestingController, CLUSTER_ID);
-
-    expect(router.navigate).toHaveBeenCalledWith(['../../'], expect.anything());
+      // Now undeploy
+      await clusterGeneralHarness.clickUndeployButton();
+      expectUndeployClusterRequest(httpTestingController, CLUSTER_ID, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'UNDEPLOYED' }));
+      expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'UNDEPLOYED' }));
+    });
   });
 });

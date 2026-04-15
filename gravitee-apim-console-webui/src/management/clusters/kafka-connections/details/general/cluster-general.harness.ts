@@ -60,4 +60,25 @@ export class ClusterGeneralHarness extends ComponentHarness {
     const deleteButton = await this.getDeleteButton();
     return deleteButton.click();
   }
+
+  private getDeployButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Deploy' }));
+  private getUndeployButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Undeploy' }));
+
+  async clickDeployButton(): Promise<void> {
+    const btn = await this.getDeployButton();
+    return btn?.click();
+  }
+
+  async clickUndeployButton(): Promise<void> {
+    const btn = await this.getUndeployButton();
+    return btn?.click();
+  }
+
+  async isDeployButtonVisible(): Promise<boolean> {
+    return (await this.getDeployButton()) !== null;
+  }
+
+  async isUndeployButtonVisible(): Promise<boolean> {
+    return (await this.getUndeployButton()) !== null;
+  }
 }
