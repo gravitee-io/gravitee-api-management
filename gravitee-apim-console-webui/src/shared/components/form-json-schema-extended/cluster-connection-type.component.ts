@@ -19,7 +19,7 @@ import { combineLatest, Observable, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 import { ClusterService } from '../../../services-ngx/cluster.service';
-import { KafkaClusterConnection } from '../../../entities/management-api-v2';
+import { DeployedClusterConnection } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'cluster-connection-type',
@@ -28,7 +28,7 @@ import { KafkaClusterConnection } from '../../../entities/management-api-v2';
   standalone: false,
 })
 export class ClusterConnectionTypeComponent extends FieldType<FieldTypeConfig> implements OnInit {
-  filteredConnections$: Observable<KafkaClusterConnection[]>;
+  filteredConnections$: Observable<DeployedClusterConnection[]>;
   connectionNotFound$: Observable<boolean>;
 
   constructor(private readonly clusterService: ClusterService) {
@@ -43,20 +43,20 @@ export class ClusterConnectionTypeComponent extends FieldType<FieldTypeConfig> i
       return;
     }
 
+    const allClusters$ = this.clusterService.listDeployed().pipe(
+      catchError(() => of([])),
+      shareReplay(1),
+    );
+
     this.filteredConnections$ = clusterCrossIdControl.valueChanges.pipe(
       startWith(clusterCrossIdControl.value),
       switchMap(crossId => {
-        if (!crossId) {
-          return of([]);
-        }
-        return this.clusterService.list(crossId, undefined, 1, 50, 'KAFKA_CLUSTER').pipe(
-          map(result => {
-            const cluster = result.data?.find(c => c.crossId === crossId);
-            if (!cluster || !cluster.configuration) return [];
-            const config = cluster.configuration as { connections?: KafkaClusterConnection[] };
-            return config.connections ?? [];
+        if (!crossId) return of([]);
+        return allClusters$.pipe(
+          map(clusters => {
+            const cluster = clusters.find(c => c.crossId === crossId);
+            return cluster?.connections ?? [];
           }),
-          catchError(() => of([])),
         );
       }),
       shareReplay(1),

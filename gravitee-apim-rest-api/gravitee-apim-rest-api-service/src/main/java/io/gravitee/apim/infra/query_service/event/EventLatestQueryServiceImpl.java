@@ -25,6 +25,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -59,6 +61,29 @@ public class EventLatestQueryServiceImpl implements EventLatestQueryService {
                 "An error occurs while trying to find latest event for entity [" + entityId + "]: " + e.getMessage(),
                 e
             );
+        }
+    }
+
+    @Override
+    public List<Event> findAllByTypeAndEnvironments(
+        Set<io.gravitee.rest.api.model.EventType> eventTypes,
+        Set<String> environments,
+        Event.EventProperties groupBy
+    ) {
+        try {
+            List<EventType> repoEventTypes = eventTypes
+                .stream()
+                .map(et -> EventType.valueOf(et.name()))
+                .collect(Collectors.toList());
+            List<io.gravitee.repository.management.model.Event> events = eventLatestRepository.search(
+                EventCriteria.builder().types(repoEventTypes).environments(environments).build(),
+                io.gravitee.repository.management.model.Event.EventProperties.valueOf(groupBy.name()),
+                null,
+                null
+            );
+            return events.stream().map(EventAdapter.INSTANCE::map).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new TechnicalManagementException("An error occurs while trying to find latest events: " + e.getMessage(), e);
         }
     }
 }

@@ -28,7 +28,9 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
@@ -61,6 +63,9 @@ class ClustersResourceTest extends AbstractResourceTest {
     @Inject
     private SearchClusterUseCase searchClusterUseCase;
 
+    @Inject
+    private GetDeployedClustersUseCase getDeployedClustersUseCase;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENV_ID + "/clusters";
@@ -85,7 +90,7 @@ class ClustersResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(createClusterUseCase);
+        reset(createClusterUseCase, getDeployedClustersUseCase);
     }
 
     @Nested
@@ -245,6 +250,47 @@ class ClustersResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+        }
+    }
+
+    @Nested
+    class GetDeployedClustersTest {
+
+        @Test
+        void should_return_deployed_clusters() {
+            var deployedClusters = List.of(
+                DeployedCluster.builder()
+                    .crossId("my-cluster")
+                    .name("My Cluster")
+                    .version(1)
+                    .connections(List.of(DeployedCluster.DeployedClusterConnection.builder().crossId("primary").name("Primary").build()))
+                    .build()
+            );
+            when(getDeployedClustersUseCase.execute(any())).thenReturn(new GetDeployedClustersUseCase.Output(deployedClusters));
+
+            final Response response = rootTarget().path("deployed").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var result = response.readEntity(List.class);
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        void should_return_empty_list_when_no_deployed_clusters() {
+            when(getDeployedClustersUseCase.execute(any())).thenReturn(new GetDeployedClustersUseCase.Output(List.of()));
+
+            final Response response = rootTarget().path("deployed").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var result = response.readEntity(List.class);
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("deployed").request().get()
+            );
         }
     }
 }
