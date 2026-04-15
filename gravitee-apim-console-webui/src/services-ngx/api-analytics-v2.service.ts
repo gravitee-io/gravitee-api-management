@@ -25,6 +25,8 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
+import { AnalyticsQueryParams } from '../entities/management-api-v2/analytics/analyticsQueryParams';
+import { AnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsResponse';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
@@ -45,6 +47,20 @@ export class ApiAnalyticsV2Service {
   }
   public setTimeRangeFilter(timeRangeParams: TimeRangeParams) {
     this.timeRangeFilter$.next(timeRangeParams);
+  }
+
+  /**
+   * Unified analytics endpoint (US-01).
+   * Serialises all params as query strings — no request body.
+   * The return type is narrowed by `params.type` at the call site.
+   */
+  getAnalytics(apiId: string, params: AnalyticsQueryParams): Observable<AnalyticsResponse> {
+    // Filter out undefined/null fields so they are not serialised as "undefined"
+    const httpParams = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null)) as Record<
+      string,
+      string | number | boolean
+    >;
+    return this.http.get<AnalyticsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`, { params: httpParams });
   }
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
