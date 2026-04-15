@@ -30,6 +30,10 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggrega
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -58,4 +62,10 @@ public interface AnalyticsRepository {
     Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria);
 
     Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria);
+
+    /** ES {@code stats} aggregation on a single field (US-03). */
+    Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQueryCriteria criteria);
+
+    /** ES {@code terms} aggregation on a single field (US-03 GROUP_BY). */
+    Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQueryCriteria criteria);
 }
