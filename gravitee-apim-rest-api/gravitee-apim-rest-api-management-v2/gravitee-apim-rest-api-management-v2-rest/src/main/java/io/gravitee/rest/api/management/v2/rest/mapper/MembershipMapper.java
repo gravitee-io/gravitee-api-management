@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.ClusterTransferOwnership;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -24,4 +26,7 @@ public interface MembershipMapper {
     MembershipMapper INSTANCE = Mappers.getMapper(MembershipMapper.class);
 
     io.gravitee.apim.core.membership.model.TransferOwnership map(ClusterTransferOwnership transferOwnership);
+
+    @Mapping(source = "userType", target = "memberType")
+    io.gravitee.apim.core.membership.model.TransferOwnership map(ApiProductTransferOwnership transferOwnership);
 }

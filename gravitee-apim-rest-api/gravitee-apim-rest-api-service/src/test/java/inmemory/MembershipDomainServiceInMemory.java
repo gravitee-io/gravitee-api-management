@@ -89,6 +89,8 @@ public class MembershipDomainServiceInMemory extends AbstractServiceInMemory<Mem
             newPrimaryOwner.setReferenceType(MembershipReferenceType.valueOf(roleScope.name()));
             newPrimaryOwner.setReferenceId(itemId);
             newPrimaryOwner.setRoles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").build()));
+            io.gravitee.apim.core.member.model.MembershipMemberType coreType = transferOwnership.getMemberType();
+            newPrimaryOwner.setType(coreType != null ? MembershipMemberType.valueOf(coreType.name()) : MembershipMemberType.USER);
             storage.add(newPrimaryOwner);
         }
     }

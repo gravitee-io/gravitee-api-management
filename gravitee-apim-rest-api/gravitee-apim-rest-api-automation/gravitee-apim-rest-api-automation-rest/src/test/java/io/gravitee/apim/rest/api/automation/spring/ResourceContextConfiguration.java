@@ -28,6 +28,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.MembershipDomainServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;

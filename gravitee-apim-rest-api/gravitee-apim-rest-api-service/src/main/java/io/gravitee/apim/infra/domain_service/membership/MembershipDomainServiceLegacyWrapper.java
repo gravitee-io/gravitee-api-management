@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,6 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
 
     private final MembershipService legacyService;
     private final RoleService roleService;
-    private final MembershipService membershipService;
 
     @Override
     public Map<String, char[]> getUserMemberPermissions(
@@ -62,10 +62,13 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
                 GraviteeContext.getExecutionContext().getOrganizationId()
             )
             .ifPresent(newRoles::add);
+        MembershipMemberType memberType = transferOwnership.getMemberType() != null
+            ? MembershipMemberType.valueOf(transferOwnership.getMemberType().name())
+            : MembershipMemberType.USER;
         MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(
             transferOwnership.getNewPrimaryOwnerId(),
             transferOwnership.getUserReference(),
-            MembershipMemberType.USER
+            memberType
         );
         legacyService.transferOwnership(
             GraviteeContext.getExecutionContext(),
@@ -86,7 +89,7 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
         String externalReference,
         String roleName
     ) {
-        return membershipService.createNewMembership(
+        return legacyService.createNewMembership(
             executionContext,
             MembershipReferenceType.valueOf(referenceType.name()),
             referenceId,
@@ -99,6 +102,11 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
     private void validateTransferOwnership(TransferOwnership transferOwnership) {
         if ("PRIMARY_OWNER".equals(transferOwnership.getCurrentPrimaryOwnerNewRole())) {
             throw new TransferOwnershipNotAllowedException(transferOwnership.getCurrentPrimaryOwnerNewRole());
+        }
+        boolean hasOwnerId = transferOwnership.getNewPrimaryOwnerId() != null && !transferOwnership.getNewPrimaryOwnerId().isBlank();
+        boolean hasUserRef = transferOwnership.getUserReference() != null && !transferOwnership.getUserReference().isBlank();
+        if (!hasOwnerId && !hasUserRef) {
+            throw new InvalidDataException("Transfer ownership requires either newPrimaryOwnerId or userReference to be provided.");
         }
     }
 }

@@ -668,6 +668,31 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/members/_transfer-ownership:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    post:
+      tags:
+        - API Product Members
+      summary: Transfer API Product ownership
+      description: |-
+        Transfer the ownership of the API Product to a user, group, or an existing member.
+        Return a 404 HTTP Error if API Product cannot be found.
+        User must have the API_PRODUCT_MEMBER[UPDATE] permission.
+      operationId: transferApiProductOwnership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiProductTransferOwnership"
+        required: true
+      responses:
+        "204":
+          description: Ownership has been transferred successfully
+        default:
+          $ref: "#/components/responses/Error"
+
   /environments/{envId}/api-products/{apiProductId}/deployments/_verify:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -2090,6 +2115,21 @@ components:
       enum:
         - USER
         - GROUP
+
+    ApiProductTransferOwnership:
+      type: object
+      properties:
+        newPrimaryOwnerId:
+          type: string
+          description: The new primary owner ID (user's or group's technical identifier). Can be null if userReference is defined.
+        userReference:
+          type: string
+          description: The new primary owner reference from an identity provider. Can be null if newPrimaryOwnerId is defined.
+        userType:
+          $ref: "#/components/schemas/MembershipMemberType"
+        currentPrimaryOwnerNewRole:
+          type: string
+          description: The name of the role that will be assigned to the current primary owner after the transfer.
 
     Error:
       type: object
