@@ -50,4 +50,12 @@ public class BaseConnectionLog {
     private String errorComponentName;
     private String errorComponentType;
     private List<ConnectionDiagnosticModel> warnings;
+    /** The ID of the API Product associated with this connection log entry. Null when no product is associated. */
+    private String apiProductId;
+
+    /**
+     * Resolved from {@code apiProductId} by {@code SearchApiV4ConnectionLogsUseCase} via {@code ApiProductQueryService}.
+     * This field is intentionally null in the data foundation layer and will be populated in APIM-13545 ST-3.
+     */
+    private String apiProductName;
 }
