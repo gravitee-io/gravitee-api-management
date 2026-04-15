@@ -52,6 +52,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * REST resource exposing analytics endpoints for a single API.
+ *
+ * <p>The unified {@code GET /analytics} endpoint delegates all validation and dispatching to
+ * {@link GetApiAnalyticsUseCase} to keep the resource layer focused on HTTP mapping only.</p>
+ */
 public class ApiAnalyticsResource extends AbstractResource {
 
     @PathParam("apiId")
@@ -80,7 +86,7 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     /**
      * Unified analytics endpoint — all validation is centralised in the use case (US-02).
-     * US-01: COUNT. US-03/04: STATS, GROUP_BY, DATE_HISTO.
+     * Currently returns COUNT and DATE_HISTO shapes.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -132,6 +138,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         };
     }
 
+    /** Returns request counts for the selected time range. */
     @Path("/requests-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -149,6 +156,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .orElseThrow(() -> new NotFoundException("No requests count found for api: " + apiId));
     }
 
+    /** Returns average number of messages per request. */
     @Path("/average-messages-per-request")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -169,6 +177,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .orElseThrow(() -> new NotFoundException("No average message per request found for api: " + apiId));
     }
 
+    /** Returns average client connection duration. */
     @Path("/average-connection-duration")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -189,6 +198,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .orElseThrow(() -> new NotFoundException("No connection duration found for api: " + apiId));
     }
 
+    /** Returns response status distribution grouped by range. */
     @Path("/response-status-ranges")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -203,6 +213,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .orElseThrow(() -> new NotFoundException("No response status ranges found for api: " + apiId));
     }
 
+    /** Returns response-time evolution over time buckets. */
     @Path("/response-time-over-time")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -227,6 +238,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .blockingGet();
     }
 
+    /** Returns response-status evolution over time buckets. */
     @Path("/response-status-overtime")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -239,6 +251,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         var result = searchResponseStatusOverTimeUseCase.execute(GraviteeContext.getExecutionContext(), request).responseStatusOvertime();
 
         if (result == null) {
+            // Keep payload shape stable for clients that always bind `data`/`timeRange` keys.
             return new ApiAnalyticsResponseStatusOvertimeResponse();
         }
 

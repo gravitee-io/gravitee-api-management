@@ -40,27 +40,44 @@ import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 
+/**
+ * Repository contract for analytics aggregations backed by API log data.
+ *
+ * <p>The API is intentionally query-oriented: each method maps to one aggregation strategy
+ * (count, stats, terms/group-by, histogram, top hits, etc.) so use cases can request only
+ * the data shape they need.</p>
+ */
 public interface AnalyticsRepository {
+    /** Returns request count aggregates for a single API over a time range. */
     Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
 
+    /** Returns average messages-per-request aggregates. */
     Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query);
 
+    /** Returns average connection-duration aggregates. */
     Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query);
 
     @NonNull
+    /** Returns response status range aggregates (1xx..5xx buckets). */
     Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(QueryContext queryContext, ResponseStatusQueryCriteria query);
 
+    /** Returns top APIs by hit count. */
     Optional<TopHitsAggregate> searchTopHitsApi(QueryContext queryContext, TopHitsQueryCriteria criteria);
 
     @NonNull
+    /** Returns response time over time-series points. */
     Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query);
 
+    /** Returns response-status evolution over time buckets. */
     ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query);
 
+    /** Returns request/response latency aggregates. */
     RequestResponseTimeAggregate searchRequestResponseTimes(QueryContext queryContext, RequestResponseTimeQueryCriteria query);
 
+    /** Returns top applications by hit count. */
     Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria);
 
+    /** Returns top failed APIs by error count. */
     Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria);
 
     /** ES {@code stats} aggregation on a single field (US-03). */

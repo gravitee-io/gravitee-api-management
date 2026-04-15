@@ -147,6 +147,8 @@ export class ApiAnalyticsProxyComponent {
     .pipe(
       filter((timeRange): timeRange is TimeRangeParams => !!timeRange),
       switchMap(({ from, to }) =>
+        // We recompute a page-level empty signal from raw widget queries so the parent can
+        // render one global empty banner without coupling child component internals.
         forkJoin({
           count: this.apiAnalyticsV2Service
             .getAnalytics(this.apiId, { type: 'COUNT', from, to })
@@ -167,6 +169,8 @@ export class ApiAnalyticsProxyComponent {
           map((responses) => {
             const hasError = Object.values(responses).some((response) => response === null);
             if (hasError) {
+              // Preserve partial-failure behavior: individual widgets show their own errors,
+              // while the page-level empty banner stays hidden.
               return { isLoading: false, isAllEmpty: false };
             }
 

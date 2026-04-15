@@ -39,6 +39,10 @@ const TIMEFRAME_OPTIONS: TimeframeOption[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsTimeframeComponent implements OnInit {
+  /**
+   * Emits the absolute timeframe chosen by the user.
+   * Timestamps are generated at click time so all widgets refresh against the same range.
+   */
   @Output()
   timeframeChange = new EventEmitter<{ from: number; to: number }>();
 

@@ -42,9 +42,12 @@ export class ApiAnalyticsV2Service {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
+  /** Exposes the current dashboard time range used by all analytics widgets. */
   public timeRangeFilter(): Observable<TimeRangeParams> {
     return this.timeRangeFilter$.asObservable();
   }
+
+  /** Updates the shared dashboard time range and triggers downstream refreshes. */
   public setTimeRangeFilter(timeRangeParams: TimeRangeParams) {
     this.timeRangeFilter$.next(timeRangeParams);
   }
@@ -53,6 +56,9 @@ export class ApiAnalyticsV2Service {
    * Unified analytics endpoint (US-01).
    * Serialises all params as query strings — no request body.
    * The return type is narrowed by `params.type` at the call site.
+   */
+  /**
+   * Calls the unified analytics endpoint for COUNT / STATS / GROUP_BY / DATE_HISTO.
    */
   getAnalytics(apiId: string, params: AnalyticsQueryParams): Observable<AnalyticsResponse> {
     // Filter out undefined/null fields so they are not serialised as "undefined"
@@ -63,6 +69,7 @@ export class ApiAnalyticsV2Service {
     return this.http.get<AnalyticsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`, { params: httpParams });
   }
 
+  /** Calls the legacy requests-count endpoint bound to the shared time range filter. */
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
@@ -73,6 +80,7 @@ export class ApiAnalyticsV2Service {
     );
   }
 
+  /** Calls the legacy average-connection-duration endpoint bound to the shared time range filter. */
   getAverageConnectionDuration(apiId: string): Observable<AnalyticsAverageConnectionDuration> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
@@ -83,6 +91,7 @@ export class ApiAnalyticsV2Service {
     );
   }
 
+  /** Calls the legacy average-messages-per-request endpoint bound to the shared time range filter. */
   getAverageMessagesPerRequest(apiId: string): Observable<AnalyticsAverageMessagesPerRequest> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
@@ -93,6 +102,7 @@ export class ApiAnalyticsV2Service {
     );
   }
 
+  /** Calls the legacy response-status-ranges endpoint bound to the shared time range filter. */
   getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
@@ -103,6 +113,7 @@ export class ApiAnalyticsV2Service {
     );
   }
 
+  /** Calls the legacy response-status-overtime endpoint bound to the shared time range filter. */
   getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
@@ -113,6 +124,7 @@ export class ApiAnalyticsV2Service {
     );
   }
 
+  /** Calls the legacy response-time-over-time endpoint bound to the shared time range filter. */
   getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
