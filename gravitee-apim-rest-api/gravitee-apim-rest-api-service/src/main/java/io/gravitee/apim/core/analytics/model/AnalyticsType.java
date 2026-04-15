@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createChatModel } from "../lib/llm/provider.js";
-import type { AgentInput, AgentOutput } from "../types/agent.js";
+package io.gravitee.apim.core.analytics.model;
 
-const SYSTEM_PROMPT = `You are a specialized worker agent for <SKILL_DESCRIPTION>.
-Complete the user's task and provide a clear response.`;
-
-export const executeSkill = async (input: AgentInput): Promise<AgentOutput> => {
-  const model = createChatModel();
-
-  const response = await model.invoke([
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: input.instructions },
-  ]);
-
-  return {
-    result: response.content as string,
-    metadata: {},
-  };
-};
+/**
+ * Discriminator for the unified analytics query endpoint.
+ * Each value maps to a distinct Elasticsearch aggregation strategy.
+ */
+public enum AnalyticsType {
+    COUNT,
+    STATS,
+    GROUP_BY,
+    DATE_HISTO,
+}

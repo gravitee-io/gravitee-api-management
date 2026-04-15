@@ -2015,6 +2015,68 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Analytics
+    /environments/{envId}/apis/{apiId}/analytics:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - name: type
+              in: query
+              required: true
+              description: "The analytics query type."
+              schema:
+                  type: string
+                  enum: [COUNT, STATS, GROUP_BY, DATE_HISTO]
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+            - name: field
+              in: query
+              required: false
+              description: "The field to aggregate on. Required for STATS, GROUP_BY and DATE_HISTO."
+              schema:
+                  type: string
+            - name: interval
+              in: query
+              required: false
+              description: "Bucket interval in milliseconds. Required for DATE_HISTO."
+              schema:
+                  type: integer
+                  format: int64
+            - name: size
+              in: query
+              required: false
+              description: "Maximum number of buckets returned (GROUP_BY). Default 10, max 100."
+              schema:
+                  type: integer
+                  default: 10
+            - name: order
+              in: query
+              required: false
+              description: "Sort order for GROUP_BY buckets."
+              schema:
+                  type: string
+                  enum: [ASC, DESC]
+                  default: DESC
+        get:
+            tags:
+                - API Analytics
+            summary: Get unified API Analytics
+            description: |-
+                Unified analytics endpoint. The response shape is determined by the `type` parameter.
+
+                - `COUNT` — returns `{ "type": "COUNT", "count": <long> }`
+                - `STATS` — returns aggregate statistics for the requested `field`
+                - `GROUP_BY` — returns bucketed counts grouped by `field`
+                - `DATE_HISTO` — returns time-bucketed counts for charting trends
+
+                User must have the API_ANALYTICS[READ] permission.
+                TCP Proxy APIs are not supported.
+            operationId: getApiAnalytics
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2762,6 +2824,25 @@ paths:
 
 components:
     schemas:
+        # ── Unified analytics response schemas (US-01+) ──────────────────────
+        ApiAnalyticsCountResponse:
+            type: object
+            description: "Unified analytics response for type=COUNT."
+            required:
+                - type
+                - count
+            properties:
+                type:
+                    type: string
+                    enum: [COUNT]
+                    description: "Discriminator — always 'COUNT' for this variant."
+                    example: COUNT
+                count:
+                    type: integer
+                    format: int64
+                    description: "Total number of requests in the requested time window."
+                    example: 1234
+        # ────────────────────────────────────────────────────────────────────
         Analytics:
             type: object
             properties:
@@ -8228,7 +8309,17 @@ components:
                         items:
                             $ref: "#/components/schemas/ExposedEntrypoint"
 
-        # Analytics
+        # Unified Analytics (US-01+)
+        ApiAnalyticsResponse:
+            description: Unified analytics response. Shape depends on the `type` query parameter.
+            content:
+                application/json:
+                    schema:
+                        oneOf:
+                            - $ref: "#/components/schemas/ApiAnalyticsCountResponse"
+                        discriminator:
+                            propertyName: type
+        # Analytics (legacy bespoke endpoints)
         ApiAnalyticsRequestsCountResponse:
             description: Analytics for requests count by entrypoint
             content:

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsType;
+import io.gravitee.apim.core.analytics.use_case.GetApiAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -25,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
@@ -53,6 +56,9 @@ public class ApiAnalyticsResource extends AbstractResource {
     private String apiId;
 
     @Inject
+    private GetApiAnalyticsUseCase getApiAnalyticsUseCase;
+
+    @Inject
     private SearchRequestsCountAnalyticsUseCase searchRequestsCountAnalyticsUseCase;
 
     @Inject
@@ -69,6 +75,29 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    /**
+     * Unified analytics endpoint — dispatches to the correct ES aggregation based on {@code type}.
+     * US-01: COUNT only. STATS, GROUP_BY, DATE_HISTO added in US-03/04.
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public Object getApiAnalytics(@QueryParam("type") String type, @QueryParam("from") Long from, @QueryParam("to") Long to) {
+        var analyticsType = AnalyticsType.valueOf(type);
+        var fromInstant = from != null ? Instant.ofEpochMilli(from) : null;
+        var toInstant = to != null ? Instant.ofEpochMilli(to) : null;
+
+        var input = new GetApiAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), analyticsType, fromInstant, toInstant);
+
+        var output = getApiAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        return switch (output) {
+            case GetApiAnalyticsUseCase.CountOutput co -> new ApiAnalyticsCountResponse()
+                .type(ApiAnalyticsCountResponse.TypeEnum.COUNT)
+                .count(co.count());
+        };
+    }
 
     @Path("/requests-count")
     @GET

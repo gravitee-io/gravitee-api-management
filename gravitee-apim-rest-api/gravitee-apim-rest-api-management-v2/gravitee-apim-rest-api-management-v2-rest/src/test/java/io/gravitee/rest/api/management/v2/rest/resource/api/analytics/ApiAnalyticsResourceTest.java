@@ -27,6 +27,7 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
@@ -354,6 +355,84 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .isNotNull()
                 .satisfies(output -> {
                     assertThat(output).hasSize(2).containsExactly(1L, 2L);
+                });
+        }
+    }
+
+    @Nested
+    class GetApiAnalytics {
+
+        private static final long FROM = 1_728_981_738_000L;
+        private static final long TO = 1_729_068_138_000L;
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_count_for_type_COUNT() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.requestsCount = RequestsCount.builder().total(42L).build();
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsCountResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getType()).isEqualTo(ApiAnalyticsCountResponse.TypeEnum.COUNT);
+                    assertThat(r.getCount()).isEqualTo(42L);
+                });
+        }
+
+        @Test
+        void should_return_zero_count_when_no_data() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            // fakeAnalyticsQueryService.requestsCount left null → searchRequestsCount returns Optional.empty()
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsCountResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getType()).isEqualTo(ApiAnalyticsCountResponse.TypeEnum.COUNT);
+                    assertThat(r.getCount()).isEqualTo(0L);
                 });
         }
     }
