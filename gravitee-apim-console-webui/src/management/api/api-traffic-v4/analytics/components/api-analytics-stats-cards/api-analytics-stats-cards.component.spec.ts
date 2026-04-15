@@ -23,10 +23,7 @@ import { ApiAnalyticsStatsCardsHarness } from './api-analytics-stats-cards.compo
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
-import {
-  fakeCountResponse,
-  fakeStatsResponse,
-} from '../../../../../../entities/management-api-v2/analytics/analyticsResponse.fixture';
+import { fakeCountResponse, fakeStatsResponse } from '../../../../../../entities/management-api-v2/analytics/analyticsResponse.fixture';
 
 const API_ID = 'test-api-id';
 const BASE_URL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
@@ -223,22 +220,22 @@ describe('ApiAnalyticsStatsCardsComponent', () => {
   }
 
   function flushCountRequest(body?: ReturnType<typeof fakeCountResponse>) {
-    const req = httpTestingController.expectOne(
-      (r) => r.url === BASE_URL && r.method === 'GET' && r.params.get('type') === 'COUNT',
-    );
+    const req = httpTestingController.expectOne((r) => r.url === BASE_URL && r.method === 'GET' && r.params.get('type') === 'COUNT');
     req.flush(body ?? fakeCountResponse());
   }
 
   function flushCountWithError() {
-    const req = httpTestingController.expectOne(
-      (r) => r.url === BASE_URL && r.method === 'GET' && r.params.get('type') === 'COUNT',
-    );
+    const req = httpTestingController.expectOne((r) => r.url === BASE_URL && r.method === 'GET' && r.params.get('type') === 'COUNT');
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
   }
 
   function flushGatewayRequest(body?: ReturnType<typeof fakeStatsResponse>) {
     const req = httpTestingController.expectOne(
-      (r) => r.url === BASE_URL && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'gateway-response-time-ms',
+      (r) =>
+        r.url === BASE_URL &&
+        r.method === 'GET' &&
+        r.params.get('type') === 'STATS' &&
+        r.params.get('field') === 'gateway-response-time-ms',
     );
     req.flush(body ?? fakeStatsResponse());
   }
@@ -246,7 +243,10 @@ describe('ApiAnalyticsStatsCardsComponent', () => {
   function flushUpstreamRequest(body?: ReturnType<typeof fakeStatsResponse>) {
     const req = httpTestingController.expectOne(
       (r) =>
-        r.url === BASE_URL && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'endpoint-response-time-ms',
+        r.url === BASE_URL &&
+        r.method === 'GET' &&
+        r.params.get('type') === 'STATS' &&
+        r.params.get('field') === 'endpoint-response-time-ms',
     );
     req.flush(body ?? fakeStatsResponse());
   }

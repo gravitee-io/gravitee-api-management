@@ -89,44 +89,38 @@ export class ApiAnalyticsStatsCardsComponent {
   }
 
   private fetchGatewayResponseTime(from: number, to: number): Observable<StatCardDisplay> {
-    return this.analyticsService
-      .getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'gateway-response-time-ms' })
-      .pipe(
-        map((r) => {
-          const stats = r as StatsResponse;
-          return stats.count === 0
-            ? { label: 'Avg Gateway Response Time', status: 'empty' as const }
-            : { label: 'Avg Gateway Response Time', status: 'loaded' as const, displayValue: `${Math.round(stats.avg)} ms` };
-        }),
-        catchError(() => of({ label: 'Avg Gateway Response Time', status: 'error' as const })),
-      );
+    return this.analyticsService.getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'gateway-response-time-ms' }).pipe(
+      map((r) => {
+        const stats = r as StatsResponse;
+        return stats.count === 0
+          ? { label: 'Avg Gateway Response Time', status: 'empty' as const }
+          : { label: 'Avg Gateway Response Time', status: 'loaded' as const, displayValue: `${Math.round(stats.avg)} ms` };
+      }),
+      catchError(() => of({ label: 'Avg Gateway Response Time', status: 'error' as const })),
+    );
   }
 
   private fetchUpstreamResponseTime(from: number, to: number): Observable<StatCardDisplay> {
-    return this.analyticsService
-      .getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'endpoint-response-time-ms' })
-      .pipe(
-        map((r) => {
-          const stats = r as StatsResponse;
-          return stats.count === 0
-            ? { label: 'Avg Upstream Response Time', status: 'empty' as const }
-            : { label: 'Avg Upstream Response Time', status: 'loaded' as const, displayValue: `${Math.round(stats.avg)} ms` };
-        }),
-        catchError(() => of({ label: 'Avg Upstream Response Time', status: 'error' as const })),
-      );
+    return this.analyticsService.getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'endpoint-response-time-ms' }).pipe(
+      map((r) => {
+        const stats = r as StatsResponse;
+        return stats.count === 0
+          ? { label: 'Avg Upstream Response Time', status: 'empty' as const }
+          : { label: 'Avg Upstream Response Time', status: 'loaded' as const, displayValue: `${Math.round(stats.avg)} ms` };
+      }),
+      catchError(() => of({ label: 'Avg Upstream Response Time', status: 'error' as const })),
+    );
   }
 
   private fetchContentLength(from: number, to: number): Observable<StatCardDisplay> {
-    return this.analyticsService
-      .getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'request-content-length' })
-      .pipe(
-        map((r) => {
-          const stats = r as StatsResponse;
-          return stats.count === 0
-            ? { label: 'Avg Content Length', status: 'empty' as const }
-            : { label: 'Avg Content Length', status: 'loaded' as const, displayValue: humanizeBytes(stats.avg) };
-        }),
-        catchError(() => of({ label: 'Avg Content Length', status: 'error' as const })),
-      );
+    return this.analyticsService.getAnalytics(this.apiId, { type: 'STATS', from, to, field: 'request-content-length' }).pipe(
+      map((r) => {
+        const stats = r as StatsResponse;
+        return stats.count === 0
+          ? { label: 'Avg Content Length', status: 'empty' as const }
+          : { label: 'Avg Content Length', status: 'loaded' as const, displayValue: humanizeBytes(stats.avg) };
+      }),
+      catchError(() => of({ label: 'Avg Content Length', status: 'error' as const })),
+    );
   }
 }

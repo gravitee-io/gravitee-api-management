@@ -28,11 +28,7 @@
       }
       @case ('loaded') {
         <div class="status-pie-card__chart">
-          <gio-chart-pie
-            [input]="vm.chartData"
-            inputDescription="Requests"
-            totalInputDescription="Total requests"
-          ></gio-chart-pie>
+          <gio-chart-pie [input]="vm.chartData" inputDescription="Requests" totalInputDescription="Total requests"></gio-chart-pie>
         </div>
       }
       @case ('empty') {

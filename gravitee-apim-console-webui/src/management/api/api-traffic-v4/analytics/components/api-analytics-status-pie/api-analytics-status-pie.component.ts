@@ -27,11 +27,7 @@ import { GroupByResponse } from '../../../../../../entities/management-api-v2/an
 import { GioChartPieInput } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 
-type StatusPieVM =
-  | { status: 'loading' }
-  | { status: 'loaded'; chartData: GioChartPieInput[] }
-  | { status: 'empty' }
-  | { status: 'error' };
+type StatusPieVM = { status: 'loading' } | { status: 'loaded'; chartData: GioChartPieInput[] } | { status: 'empty' } | { status: 'error' };
 
 const STATUS_COLORS: Record<string, string> = {
   '1': '#bbb',

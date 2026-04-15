@@ -160,10 +160,12 @@ describe('ApiAnalyticsV2Service', () => {
       it('should serialise DATE_HISTO params including interval and return DateHistoResponse', (done) => {
         const expected = fakeDateHistoResponse();
 
-        service.getAnalytics(apiId, { type: 'DATE_HISTO', from: FROM, to: TO, field: 'status', interval: 3_600_000 }).subscribe((result) => {
-          expect(result).toEqual(expected);
-          done();
-        });
+        service
+          .getAnalytics(apiId, { type: 'DATE_HISTO', from: FROM, to: TO, field: 'status', interval: 3_600_000 })
+          .subscribe((result) => {
+            expect(result).toEqual(expected);
+            done();
+          });
 
         const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url === BASE_URL);
         expect(req.request.params.get('type')).toBe('DATE_HISTO');

@@ -36,7 +36,11 @@ import { AnalyticsResponseStatusOvertime } from '../../../../../entities/managem
 import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
 import { fakeAnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime.fixture';
-import { fakeCountResponse, fakeGroupByResponse, fakeStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsResponse.fixture';
+import {
+  fakeCountResponse,
+  fakeGroupByResponse,
+  fakeStatsResponse,
+} from '../../../../../entities/management-api-v2/analytics/analyticsResponse.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -359,19 +363,25 @@ describe('ApiAnalyticsProxyComponent', () => {
     countReqs.forEach((req) => req.flush(countResponse));
 
     const gatewayReqs = httpTestingController.match(
-      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'gateway-response-time-ms',
+      (r) =>
+        r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'gateway-response-time-ms',
     );
     expect(gatewayReqs.length).toBe(occurrences);
     gatewayReqs.forEach((req) => req.flush(statsResponse));
 
     const upstreamReqs = httpTestingController.match(
-      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'endpoint-response-time-ms',
+      (r) =>
+        r.url === baseUrl &&
+        r.method === 'GET' &&
+        r.params.get('type') === 'STATS' &&
+        r.params.get('field') === 'endpoint-response-time-ms',
     );
     expect(upstreamReqs.length).toBe(occurrences);
     upstreamReqs.forEach((req) => req.flush(statsResponse));
 
     const contentReqs = httpTestingController.match(
-      (r) => r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'request-content-length',
+      (r) =>
+        r.url === baseUrl && r.method === 'GET' && r.params.get('type') === 'STATS' && r.params.get('field') === 'request-content-length',
     );
     expect(contentReqs.length).toBe(occurrences);
     contentReqs.forEach((req) => req.flush(statsResponse));
