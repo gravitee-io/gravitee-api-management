@@ -27,14 +27,14 @@ import { ClusterTransferOwnershipDialogHarness } from './transfer-ownership/clus
 import { ClusterUserPermissionsHarness } from './cluster-user-permissions.harness';
 import { ClusterUserPermissionsComponent } from './cluster-user-permissions.component';
 
-import { GioTestingModule, CONSTANTS_TESTING } from '../../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { fakeRole } from '../../../../../entities/role/role.fixture';
-import { fakeBaseGroup, fakeCluster, fakeGroupsResponse, GroupsResponse, MembersResponse } from '../../../../../entities/management-api-v2';
-import { GioUsersSelectorHarness } from '../../../../../shared/components/gio-users-selector/gio-users-selector.harness';
-import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
-import { expectGetClusterRequest } from '../../../../../services-ngx/cluster.service.spec';
-import { fakeMember } from '../../../../../entities/management-api-v2/member/member.fixture';
+import { GioTestingModule, CONSTANTS_TESTING } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { fakeRole } from '../../../entities/role/role.fixture';
+import { fakeBaseGroup, fakeCluster, fakeGroupsResponse, GroupsResponse, MembersResponse } from '../../../entities/management-api-v2';
+import { GioUsersSelectorHarness } from '../../../shared/components/gio-users-selector/gio-users-selector.harness';
+import { fakeSearchableUser } from '../../../entities/user/searchableUser.fixture';
+import { expectGetClusterRequest } from '../../../services-ngx/cluster.service.spec';
+import { fakeMember } from '../../../entities/management-api-v2/member/member.fixture';
 
 describe('ClusterUserPermissionsComponent', () => {
   const CLUSTER_ID = 'cluster-id';

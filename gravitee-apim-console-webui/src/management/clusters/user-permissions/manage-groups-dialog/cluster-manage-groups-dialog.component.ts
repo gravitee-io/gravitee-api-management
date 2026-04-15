@@ -31,10 +31,10 @@ import { map, startWith } from 'rxjs/operators';
 import { AsyncPipe, NgForOf } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ClusterService } from '../../../../../../services-ngx/cluster.service';
-import { GroupV2Service } from '../../../../../../services-ngx/group-v2.service';
-import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { GioPermissionModule } from '../../../../../../shared/components/gio-permission/gio-permission.module';
+import { ClusterService } from '../../../../services-ngx/cluster.service';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 export type ClusterManageGroupsDialogData = {
   clusterId: string;

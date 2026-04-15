@@ -41,24 +41,24 @@ import {
   TransferOwnershipDialogData,
 } from './transfer-ownership/cluster-transfer-ownership-dialog.component';
 
-import { ClusterMemberService } from '../../../../../services-ngx/cluster-member.service';
+import { ClusterMemberService } from '../../../services-ngx/cluster-member.service';
 import {
   GioUsersSelectorComponent,
   GioUsersSelectorData,
-} from '../../../../../shared/components/gio-users-selector/gio-users-selector.component';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { UsersService } from '../../../../../services-ngx/users.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { RoleService } from '../../../../../services-ngx/role.service';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { Role } from '../../../../../entities/role/role';
-import { Member } from '../../../../../entities/management-api-v2';
-import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
-import { ClusterService } from '../../../../../services-ngx/cluster.service';
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioUsersSelectorModule } from '../../../../../shared/components/gio-users-selector/gio-users-selector.module';
+} from '../../../shared/components/gio-users-selector/gio-users-selector.component';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { UsersService } from '../../../services-ngx/users.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { RoleService } from '../../../services-ngx/role.service';
+import { SearchableUser } from '../../../entities/user/searchableUser';
+import { Role } from '../../../entities/role/role';
+import { Member } from '../../../entities/management-api-v2';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GroupV2Service } from '../../../services-ngx/group-v2.service';
+import { ClusterService } from '../../../services-ngx/cluster.service';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioUsersSelectorModule } from '../../../shared/components/gio-users-selector/gio-users-selector.module';
 
 interface MemberDataSource {
   id: string;

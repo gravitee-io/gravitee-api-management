@@ -34,11 +34,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ClusterService } from '../../../../../services-ngx/cluster.service';
-import { Cluster } from '../../../../../entities/management-api-v2';
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { ClusterService } from '../../../services-ngx/cluster.service';
+import { Cluster } from '../../../entities/management-api-v2';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'cluster-general',

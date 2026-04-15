@@ -25,16 +25,16 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ClusterGeneralComponent } from './cluster-general.component';
 import { ClusterGeneralHarness } from './cluster-general.harness';
 
-import { GioTestingModule } from '../../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import {
   expectDeleteClusterRequest,
   expectDeployClusterRequest,
   expectGetClusterRequest,
   expectUndeployClusterRequest,
   expectUpdateClusterRequest,
-} from '../../../../../services-ngx/cluster.service.spec';
-import { ClusterType, fakeCluster, fakeUpdateCluster } from '../../../../../entities/management-api-v2';
+} from '../../../services-ngx/cluster.service.spec';
+import { ClusterType, fakeCluster, fakeUpdateCluster } from '../../../entities/management-api-v2';
 
 describe('ClusterGeneralComponent', () => {
   const CLUSTER_ID = 'clusterId';
@@ -154,7 +154,11 @@ describe('ClusterGeneralComponent', () => {
     it('should deploy the cluster', async () => {
       await clusterGeneralHarness.clickDeployButton();
 
-      expectDeployClusterRequest(httpTestingController, CLUSTER_ID, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
+      expectDeployClusterRequest(
+        httpTestingController,
+        CLUSTER_ID,
+        fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }),
+      );
 
       // Trigger new NgOnInit to refresh the data
       expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
@@ -163,13 +167,21 @@ describe('ClusterGeneralComponent', () => {
     it('should undeploy the cluster when deployed', async () => {
       // First deploy to get DEPLOYED state
       await clusterGeneralHarness.clickDeployButton();
-      expectDeployClusterRequest(httpTestingController, CLUSTER_ID, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
+      expectDeployClusterRequest(
+        httpTestingController,
+        CLUSTER_ID,
+        fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }),
+      );
       expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'DEPLOYED' }));
       fixture.detectChanges();
 
       // Now undeploy
       await clusterGeneralHarness.clickUndeployButton();
-      expectUndeployClusterRequest(httpTestingController, CLUSTER_ID, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'UNDEPLOYED' }));
+      expectUndeployClusterRequest(
+        httpTestingController,
+        CLUSTER_ID,
+        fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'UNDEPLOYED' }),
+      );
       expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, type: 'KAFKA_CLUSTER', lifecycleState: 'UNDEPLOYED' }));
     });
   });

@@ -16,7 +16,7 @@
 import { NgModule } from '@angular/core';
 
 import { ClusterRoutingModule } from './cluster-routing.module';
-import { ClusterUserPermissionsComponent } from './kafka-connections/details/user-permissions/cluster-user-permissions.component';
+import { ClusterUserPermissionsComponent } from './user-permissions/cluster-user-permissions.component';
 
 @NgModule({
   imports: [ClusterUserPermissionsComponent, ClusterRoutingModule],

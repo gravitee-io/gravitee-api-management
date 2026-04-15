@@ -25,11 +25,11 @@ import { CommonModule, NgForOf } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 
-import { GioPermissionModule } from '../../../../../../shared/components/gio-permission/gio-permission.module';
-import { SearchableUser } from '../../../../../../entities/user/searchableUser';
-import { Role } from '../../../../../../entities/role/role';
-import { Member, TransferOwnership } from '../../../../../../entities/management-api-v2';
-import { GioFormUserAutocompleteModule } from '../../../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
+import { Role } from '../../../../entities/role/role';
+import { Member, TransferOwnership } from '../../../../entities/management-api-v2';
+import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 
 export interface TransferOwnershipDialogData {
   roles: Role[];
