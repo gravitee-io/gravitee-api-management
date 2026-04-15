@@ -48,4 +48,5 @@ public class Metrics {
     private String errorComponentType;
     private List<ConnectionDiagnostic> warnings;
     private Map<String, Object> additionalMetrics;
+    private String apiProductId;
 }

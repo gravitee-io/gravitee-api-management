@@ -53,4 +53,12 @@ public class BaseConnectionLog {
     private List<ConnectionDiagnosticModel> warnings;
     private Map<String, Object> additionalMetrics;
     private String mcpMethod;
+    /** The ID of the API Product associated with this connection log entry. Null when no product is associated. */
+    private String apiProductId;
+
+    /**
+     * Human-readable API Product name. Resolved at the use-case layer via {@code ApiProductQueryService}.
+     * Intentionally null until APIM-13545 ST-3 is merged.
+     */
+    private String apiProductName;
 }

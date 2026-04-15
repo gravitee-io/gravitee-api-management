@@ -36,5 +36,6 @@ public record SearchLogsFilters(
     List<Range> responseTimeRanges,
     String uri,
     String bodyText,
-    Set<String> errorKeys
+    Set<String> errorKeys,
+    Set<String> apiProductIds
 ) {}

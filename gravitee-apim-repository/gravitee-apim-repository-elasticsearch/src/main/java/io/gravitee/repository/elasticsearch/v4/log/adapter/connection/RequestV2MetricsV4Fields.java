@@ -55,6 +55,7 @@ public class RequestV2MetricsV4Fields {
     public static final Field ENTRYPOINT_ID = new Field(null, "entrypoint-id");
     public static final Field REQUEST_ENDED = new Field(null, "request-ended");
     public static final Field ENDPOINT = new Field("endpoint", "endpoint");
+    public static final Field API_PRODUCT_ID = new Field("api-product-id");
 
     public record Field(String v2Request, String v4Metrics) {
         public Field(String v4Metrics) {
