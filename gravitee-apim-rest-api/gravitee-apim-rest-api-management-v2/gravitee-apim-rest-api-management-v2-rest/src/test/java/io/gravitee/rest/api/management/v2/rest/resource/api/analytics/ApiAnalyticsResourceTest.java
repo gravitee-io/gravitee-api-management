@@ -437,6 +437,66 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 });
         }
 
+        @Test
+        void should_return_date_histo_for_type_DATE_HISTO() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.responseStatusOvertime =
+                ResponseStatusOvertime
+                    .builder()
+                    .timeRange(
+                        new ResponseStatusOvertime.TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), Duration.ofHours(1))
+                    )
+                    .data(Map.of("200", List.of(10L, 12L), "500", List.of(1L)))
+                    .build();
+
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .queryParam("interval", 3_600_000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(OK_200);
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> payload = response.readEntity(Map.class);
+
+            assertThat(payload.get("type")).isEqualTo("DATE_HISTO");
+            assertThat(payload).containsKeys("timestamp", "values");
+            assertThat((List<?>) payload.get("timestamp")).isNotEmpty();
+
+            @SuppressWarnings("unchecked")
+            final List<Map<String, Object>> values = (List<Map<String, Object>>) payload.get("values");
+            assertThat(values).isNotEmpty();
+            assertThat(values)
+                .allSatisfy(series -> {
+                    assertThat(series).containsKeys("field", "buckets", "metadata");
+                });
+        }
+
+        @Test
+        void should_return_empty_date_histo_when_no_data() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.responseStatusOvertime = null;
+
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .queryParam("interval", 3_600_000L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(OK_200);
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> payload = response.readEntity(Map.class);
+            assertThat(payload.get("type")).isEqualTo("DATE_HISTO");
+            assertThat(payload.get("timestamp")).isEqualTo(List.of());
+            assertThat(payload.get("values")).isEqualTo(List.of());
+        }
+
         // ── US-02 validation tests (ACs 1–12) ────────────────────────────────
 
         // AC 1 — missing type

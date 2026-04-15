@@ -47,6 +47,9 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class ApiAnalyticsResource extends AbstractResource {
@@ -107,6 +110,25 @@ public class ApiAnalyticsResource extends AbstractResource {
             case GetApiAnalyticsUseCase.CountOutput co -> new ApiAnalyticsCountResponse()
                 .type(ApiAnalyticsCountResponse.TypeEnum.COUNT)
                 .count(co.count());
+            case GetApiAnalyticsUseCase.DateHistoOutput dho -> {
+                List<Map<String, Object>> values = dho
+                    .values()
+                    .stream()
+                    .map(series -> {
+                        Map<String, Object> value = new LinkedHashMap<>();
+                        value.put("field", series.field());
+                        value.put("buckets", series.buckets());
+                        value.put("metadata", series.metadata());
+                        return value;
+                    })
+                    .toList();
+
+                Map<String, Object> response = new LinkedHashMap<>();
+                response.put("type", "DATE_HISTO");
+                response.put("timestamp", dho.timestamp());
+                response.put("values", values);
+                yield response;
+            }
         };
     }
 

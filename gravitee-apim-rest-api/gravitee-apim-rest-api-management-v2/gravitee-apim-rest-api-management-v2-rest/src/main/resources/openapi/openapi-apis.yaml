@@ -2842,6 +2842,52 @@ components:
                     format: int64
                     description: "Total number of requests in the requested time window."
                     example: 1234
+        ApiAnalyticsDateHistoSeries:
+            type: object
+            required:
+                - field
+                - buckets
+                - metadata
+            properties:
+                field:
+                    type: string
+                    description: Series key (for example, an HTTP status code).
+                    example: "200"
+                buckets:
+                    type: array
+                    description: Request counts aligned with the top-level timestamp array.
+                    items:
+                        type: integer
+                        format: int64
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: Metadata associated to the series key.
+                    example: { "name": "200" }
+        ApiAnalyticsDateHistoResponse:
+            type: object
+            description: "Unified analytics response for type=DATE_HISTO."
+            required:
+                - type
+                - timestamp
+                - values
+            properties:
+                type:
+                    type: string
+                    enum: [DATE_HISTO]
+                    description: "Discriminator — always 'DATE_HISTO' for this variant."
+                    example: DATE_HISTO
+                timestamp:
+                    type: array
+                    description: Epoch-millisecond bucket start times.
+                    items:
+                        type: integer
+                        format: int64
+                values:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiAnalyticsDateHistoSeries"
         # ────────────────────────────────────────────────────────────────────
         Analytics:
             type: object
@@ -8317,6 +8363,7 @@ components:
                     schema:
                         oneOf:
                             - $ref: "#/components/schemas/ApiAnalyticsCountResponse"
+                            - $ref: "#/components/schemas/ApiAnalyticsDateHistoResponse"
                         discriminator:
                             propertyName: type
         # Analytics (legacy bespoke endpoints)

@@ -27,7 +27,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,6 +67,7 @@ public class GetApiAnalyticsUseCase {
 
         return switch (type) {
             case COUNT -> executeCount(executionContext, input);
+            case DATE_HISTO -> executeDateHisto(executionContext, input);
             default -> throw new IllegalArgumentException("Unsupported analytics type: " + type);
         };
     }
@@ -194,6 +198,70 @@ public class GetApiAnalyticsUseCase {
             .orElse(new CountOutput(0L));
     }
 
+    private DateHistoOutput executeDateHisto(ExecutionContext ctx, Input input) {
+        var response = analyticsQueryService.searchResponseStatusOvertime(
+            ctx,
+            new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                List.of(input.apiId()),
+                input.from(),
+                input.to(),
+                Duration.ofMillis(input.interval()),
+                List.of(DefinitionVersion.V4)
+            )
+        );
+
+        if (response == null || response.timeRange() == null || response.data() == null || response.data().isEmpty()) {
+            return new DateHistoOutput(List.of(), List.of());
+        }
+
+        List<Long> timestamps = buildTimestamps(
+            response.timeRange().from(),
+            response.timeRange().to(),
+            response.timeRange().interval()
+        );
+        if (timestamps.isEmpty()) {
+            return new DateHistoOutput(List.of(), List.of());
+        }
+
+        List<DateHistoSerieOutput> values = response
+            .data()
+            .entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByKey(Comparator.naturalOrder()))
+            .map(entry -> new DateHistoSerieOutput(entry.getKey(), alignBuckets(entry.getValue(), timestamps.size()), Map.of("name", entry.getKey())))
+            .toList();
+
+        return new DateHistoOutput(timestamps, values);
+    }
+
+    private static List<Long> buildTimestamps(Instant from, Instant to, Duration interval) {
+        long fromMs = from.toEpochMilli();
+        long toMs = to.toEpochMilli();
+        long intervalMs = interval.toMillis();
+
+        if (intervalMs <= 0 || fromMs >= toMs) {
+            return List.of();
+        }
+
+        List<Long> timestamps = new ArrayList<>();
+        for (long current = fromMs; current < toMs; current += intervalMs) {
+            timestamps.add(current);
+        }
+        return timestamps;
+    }
+
+    private static List<Long> alignBuckets(List<Long> buckets, int expectedSize) {
+        List<Long> aligned = new ArrayList<>(expectedSize);
+        for (int i = 0; i < expectedSize; i++) {
+            if (buckets != null && i < buckets.size() && buckets.get(i) != null) {
+                aligned.add(buckets.get(i));
+            } else {
+                aligned.add(0L);
+            }
+        }
+        return aligned;
+    }
+
     // ── API validation ────────────────────────────────────────────────────────
 
     private void validateApiRequirements(Input input) {
@@ -246,7 +314,11 @@ public class GetApiAnalyticsUseCase {
      * Sealed output hierarchy — one subtype per {@link AnalyticsType}.
      * US-03/04 will add StatsOutput, GroupByOutput, DateHistoOutput.
      */
-    public sealed interface Output permits GetApiAnalyticsUseCase.CountOutput {}
+    public sealed interface Output permits GetApiAnalyticsUseCase.CountOutput, GetApiAnalyticsUseCase.DateHistoOutput {}
 
     public record CountOutput(long count) implements Output {}
+
+    public record DateHistoOutput(List<Long> timestamp, List<DateHistoSerieOutput> values) implements Output {}
+
+    public record DateHistoSerieOutput(String field, List<Long> buckets, Map<String, String> metadata) {}
 }
