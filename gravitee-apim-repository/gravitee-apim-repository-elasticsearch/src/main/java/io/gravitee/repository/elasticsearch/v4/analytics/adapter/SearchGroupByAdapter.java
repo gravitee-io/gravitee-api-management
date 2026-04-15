@@ -55,15 +55,9 @@ public class SearchGroupByAdapter {
         String esOrder = criteria.order().equalsIgnoreCase("ASC") ? "asc" : "desc";
 
         // Primary sort on count, secondary on key ascending for stable tie-breaking (AC 5)
-        var orderArray = MAPPER
-            .createArrayNode()
-            .add(json().put("_count", esOrder))
-            .add(json().put("_key", "asc"));
+        var orderArray = MAPPER.createArrayNode().add(json().put("_count", esOrder)).add(json().put("_key", "asc"));
 
-        var termsAgg = json()
-            .put("field", criteria.field())
-            .put("size", criteria.size())
-            .set("order", orderArray);
+        var termsAgg = json().put("field", criteria.field()).put("size", criteria.size()).set("order", orderArray);
 
         return json()
             .put("size", 0)

@@ -197,6 +197,24 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
     }
 
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQueryCriteria criteria) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = SearchStatsAdapter.adaptQuery(criteria);
+
+        log.debug("Search stats query: {}", esQuery);
+        return this.client.search(index, null, esQuery).map(SearchStatsAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQueryCriteria criteria) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = SearchGroupByAdapter.adaptQuery(criteria);
+
+        log.debug("Search group by query: {}", esQuery);
+        return this.client.search(index, null, esQuery).map(SearchGroupByAdapter::adaptResponse).blockingGet();
+    }
+
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {
         var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
         return definitionVersions

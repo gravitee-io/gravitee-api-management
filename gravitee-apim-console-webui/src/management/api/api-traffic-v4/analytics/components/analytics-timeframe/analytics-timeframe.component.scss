@@ -1,0 +1,11 @@
+.timeframe-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button.selected {
+  background: var(--gv-theme-neutral-color-dark, #5f7384);
+  border-color: var(--gv-theme-neutral-color-dark, #5f7384);
+  color: var(--gv-theme-neutral-color-lightest, #ffffff);
+}

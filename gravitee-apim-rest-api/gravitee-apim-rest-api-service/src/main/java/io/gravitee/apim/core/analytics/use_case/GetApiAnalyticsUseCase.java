@@ -210,25 +210,27 @@ public class GetApiAnalyticsUseCase {
             )
         );
 
-        if (response == null || response.timeRange() == null || response.data() == null || response.data().isEmpty()) {
+        if (response == null || response.getTimeRange() == null || response.getData() == null || response.getData().isEmpty()) {
             return new DateHistoOutput(List.of(), List.of());
         }
 
         List<Long> timestamps = buildTimestamps(
-            response.timeRange().from(),
-            response.timeRange().to(),
-            response.timeRange().interval()
+            response.getTimeRange().from(),
+            response.getTimeRange().to(),
+            response.getTimeRange().interval()
         );
         if (timestamps.isEmpty()) {
             return new DateHistoOutput(List.of(), List.of());
         }
 
         List<DateHistoSerieOutput> values = response
-            .data()
+            .getData()
             .entrySet()
             .stream()
             .sorted(Map.Entry.comparingByKey(Comparator.naturalOrder()))
-            .map(entry -> new DateHistoSerieOutput(entry.getKey(), alignBuckets(entry.getValue(), timestamps.size()), Map.of("name", entry.getKey())))
+            .map(entry ->
+                new DateHistoSerieOutput(entry.getKey(), alignBuckets(entry.getValue(), timestamps.size()), Map.of("name", entry.getKey()))
+            )
             .toList();
 
         return new DateHistoOutput(timestamps, values);
