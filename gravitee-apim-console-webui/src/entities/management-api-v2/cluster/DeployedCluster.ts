@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './Cluster';
-export * from './Cluster.fixture';
-export * from './CreateCluster';
-export * from './CreateCluster.fixture';
-export * from './UpdateCluster';
-export * from './UpdateCluster.fixture';
-export * from './ClustersSortByParam';
-export * from './ClusterTransferOwnership';
-export * from './DeployedCluster';
+export interface DeployedCluster {
+  crossId: string;
+  name: string;
+  description?: string;
+  deployedAt?: Date;
+  version?: number;
+  connections: DeployedClusterConnection[];
+}
+
+export interface DeployedClusterConnection {
+  crossId: string;
+  name: string;
+}

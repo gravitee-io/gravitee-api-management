@@ -17,7 +17,15 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
-import { Cluster, ClustersSortByParam, ClusterType, CreateCluster, PagedResult, UpdateCluster } from '../entities/management-api-v2';
+import {
+  Cluster,
+  ClustersSortByParam,
+  ClusterType,
+  CreateCluster,
+  DeployedCluster,
+  PagedResult,
+  UpdateCluster,
+} from '../entities/management-api-v2';
 import { Constants } from '../entities/Constants';
 
 @Injectable({
@@ -74,6 +82,10 @@ export class ClusterService {
 
   undeploy(id: string): Observable<Cluster> {
     return this.http.post<Cluster>(`${this.constants.env.v2BaseURL}/clusters/${id}/_undeploy`, {});
+  }
+
+  listDeployed(): Observable<DeployedCluster[]> {
+    return this.http.get<DeployedCluster[]>(`${this.constants.env.v2BaseURL}/clusters/deployed`);
   }
 
   getConfigurationSchema(type?: ClusterType): Observable<unknown> {

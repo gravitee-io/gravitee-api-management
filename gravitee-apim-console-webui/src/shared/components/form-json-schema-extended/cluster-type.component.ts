@@ -19,7 +19,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 import { ClusterService } from '../../../services-ngx/cluster.service';
-import { Cluster, ClusterType } from '../../../entities/management-api-v2';
+import { DeployedCluster } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'cluster-type',
@@ -28,7 +28,7 @@ import { Cluster, ClusterType } from '../../../entities/management-api-v2';
   standalone: false,
 })
 export class ClusterTypeComponent extends FieldType<FieldTypeConfig> implements OnInit {
-  filteredClusters$: Observable<Cluster[]>;
+  filteredClusters$: Observable<DeployedCluster[]>;
   clusterNotFound$: Observable<boolean>;
 
   constructor(private readonly clusterService: ClusterService) {
@@ -36,16 +36,11 @@ export class ClusterTypeComponent extends FieldType<FieldTypeConfig> implements 
   }
 
   ngOnInit() {
-    const clusterType: ClusterType = this.props?.clusterType ?? this.field?.props?.clusterType ?? 'KAFKA_CLUSTER';
-
-    // All clusters of this type (for validation)
-    const allClusters$ = this.clusterService.list('', undefined, 1, 9999, clusterType).pipe(
-      map(result => result.data ?? []),
+    const allClusters$ = this.clusterService.listDeployed().pipe(
       catchError(() => of([])),
       shareReplay(1),
     );
 
-    // Filtered clusters for autocomplete dropdown
     this.filteredClusters$ = this.formControl.valueChanges.pipe(
       startWith(this.formControl.value ?? ''),
       switchMap(term => {
@@ -58,7 +53,6 @@ export class ClusterTypeComponent extends FieldType<FieldTypeConfig> implements 
       }),
     );
 
-    // Validation: check if current value matches a known crossId
     this.clusterNotFound$ = this.formControl.valueChanges.pipe(
       startWith(this.formControl.value ?? ''),
       switchMap(term => {

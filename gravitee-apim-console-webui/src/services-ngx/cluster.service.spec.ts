@@ -201,6 +201,12 @@ export const expectUndeployClusterRequest = (
   req.flush(clusterUndeployed);
 };
 
+export const expectListDeployedClustersRequest = (httpTestingController: HttpTestingController, deployedClusters: any[] = []) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/deployed`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(deployedClusters);
+};
+
 export const expectUpdateGroupsRequest = (
   httpTestingController: HttpTestingController,
   clusterId: string,

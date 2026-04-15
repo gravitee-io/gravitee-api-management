@@ -19,7 +19,9 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.model.ClusterType;
+import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
@@ -45,7 +47,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import lombok.CustomLog;
 
 @CustomLog
@@ -62,6 +66,9 @@ public class ClustersResource extends AbstractResource {
 
     @Inject
     private ClusterConfigurationSchemaService clusterConfigurationSchemaService;
+
+    @Inject
+    private GetDeployedClustersUseCase getDeployedClustersUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -123,6 +130,16 @@ public class ClustersResource extends AbstractResource {
                 )
             )
             .links(computePaginationLinks(result.pageResult().getTotalElements(), paginationParam));
+    }
+
+    @GET
+    @Path("deployed")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    public Response getDeployedClusters() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = getDeployedClustersUseCase.execute(new GetDeployedClustersUseCase.Input(executionContext.getEnvironmentId()));
+        return Response.ok(output.deployedClusters()).build();
     }
 
     @GET

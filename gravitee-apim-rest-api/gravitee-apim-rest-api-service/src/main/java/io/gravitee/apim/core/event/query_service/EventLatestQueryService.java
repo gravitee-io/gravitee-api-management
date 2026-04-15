@@ -17,7 +17,9 @@ package io.gravitee.apim.core.event.query_service;
 
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Port for querying the event_latest store, which holds exactly one
@@ -33,4 +35,6 @@ public interface EventLatestQueryService {
      * @return the single latest event, or empty if none has been recorded yet
      */
     Optional<Event> findLatestByEntityId(String entityId, EventType eventType, Event.EventProperties propertyKey);
+
+    List<Event> findAllByTypeAndEnvironments(Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy);
 }

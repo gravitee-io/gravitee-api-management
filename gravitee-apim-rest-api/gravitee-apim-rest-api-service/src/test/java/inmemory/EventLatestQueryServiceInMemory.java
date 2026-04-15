@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EventLatestQueryServiceInMemory implements EventLatestQueryService, InMemoryAlternative<Event> {
 
@@ -39,6 +41,16 @@ public class EventLatestQueryServiceInMemory implements EventLatestQueryService,
             .filter(event -> eventType.name().equals(event.getType() != null ? event.getType().name() : null))
             .filter(event -> entityId.equals(event.getProperties().getOrDefault(propertyKey, null)))
             .max(Comparator.comparing(event -> event.getUpdatedAt() != null ? event.getUpdatedAt() : event.getCreatedAt()));
+    }
+
+    @Override
+    public List<Event> findAllByTypeAndEnvironments(Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy) {
+        Set<String> typeNames = eventTypes.stream().map(Enum::name).collect(Collectors.toSet());
+        return storage
+            .stream()
+            .filter(event -> event.getType() != null && typeNames.contains(event.getType().name()))
+            .filter(event -> event.getEnvironments() != null && event.getEnvironments().stream().anyMatch(environments::contains))
+            .collect(Collectors.toList());
     }
 
     @Override
