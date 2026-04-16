@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene';
+import { Button } from '@gravitee/graphene-core';
 import { Link } from 'react-router-dom';
 
 import type { GammaModule } from '../features/modules';

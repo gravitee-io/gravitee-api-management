@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { BreadcrumbEntry } from '@gravitee/graphene';
+import type { BreadcrumbEntry } from '@gravitee/graphene-core';
 import type { NavigateFunction } from 'react-router-dom';
 
 /**
  * Builds a linear breadcrumb trail for ContentHeader / useLayoutConfig.
- * Signature matches the utility we intend to ship in @gravitee/graphene later — replace this import when available.
+ * Signature matches the utility we intend to ship in @gravitee/graphene-core later — replace this import when available.
  */
 export function buildLinearBreadcrumbs(
     navigate: NavigateFunction,

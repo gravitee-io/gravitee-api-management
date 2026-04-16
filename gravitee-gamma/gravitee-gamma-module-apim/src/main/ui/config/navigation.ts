@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene';
+import type { NavGroup } from '@gravitee/graphene-core';
 
 import { Activity, Boxes, Computer, Settings } from 'lucide-react';
 
