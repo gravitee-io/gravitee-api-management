@@ -209,6 +209,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                 customComponentProvider.add(Api.class, api);
                 customComponentProvider.add(ReactableApi.class, api);
 
+                final DefaultReferenceRegister referenceRegister = referenceRegister();
+                deploymentContext.templateVariableProviders(v3TemplateVariableProviders(api, referenceRegister));
+
                 final ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(
                     api,
                     applicationContext.getBean(ResourceClassLoaderFactory.class),
@@ -218,8 +221,6 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                 );
 
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
-
-                final DefaultReferenceRegister referenceRegister = referenceRegister();
                 final GroupLifecycleManager groupLifecycleManager = groupLifecyleManager(
                     api,
                     referenceRegister,
