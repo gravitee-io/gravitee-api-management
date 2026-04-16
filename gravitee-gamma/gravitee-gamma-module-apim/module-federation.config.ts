@@ -20,7 +20,17 @@ const config: ModuleFederationConfig = {
     exposes: {
         './App': './src/main/ui/federation.tsx',
     },
-    // Must match the shared config in the host app (gamma-control-plane-webui)
+    remotes: [],
+    additionalShared: [
+        [
+            '@gravitee/gamma-modules-sdk',
+            {
+                singleton: true,
+                requiredVersion: false,
+                strictVersion: false,
+            },
+        ],
+    ],
     shared: (libraryName, sharedConfig) => {
         if (['react', 'react-dom', 'react-router-dom', '@gravitee/graphene'].includes(libraryName)) {
             return {
