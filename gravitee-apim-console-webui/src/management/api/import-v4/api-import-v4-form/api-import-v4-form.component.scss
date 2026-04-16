@@ -1,0 +1,186 @@
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.api-import-v4-form {
+  display: block;
+}
+
+.select-api-format {
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+  }
+}
+
+.stepper-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+.configure-file-source {
+  &__body {
+    margin-top: 24px;
+
+    h3 {
+      margin: 0 0 16px;
+    }
+  }
+
+  &__main {
+    display: grid;
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+
+    @media (max-width: 904px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__col-heading {
+    display: block;
+    margin: 0 0 12px;
+  }
+
+  &__col--sources {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__col--detail {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 100%;
+  }
+
+  /**
+   * `gio-form-selection-inline` host defaults to
+   * `grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))` (@gravitee/ui-particles-angular),
+   * which places cards side-by-side in a wide step. One column stacks Local / Remote like step 1.
+   */
+  &__source-selection {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  &__detail-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  &__detail-panel--file {
+    border: 1px dashed currentColor;
+    border-radius: 4px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  &__detail-panel--remote {
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+
+  &__field {
+    width: 100%;
+  }
+
+  &__file-picker {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 200px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+  }
+
+  &__actions-right {
+    @extend .stepper-actions-right;
+  }
+}
+
+.options-step {
+  &__body {
+    margin-top: 24px;
+
+    h3 {
+      margin: 0 0 8px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+  }
+
+  &__actions-right {
+    @extend .stepper-actions-right;
+  }
+}
+
+.review-import-step {
+  margin-top: 24px;
+
+  h2 {
+    margin: 0 0 8px;
+  }
+
+  p {
+    margin: 0 0 16px;
+  }
+
+  &__section {
+    margin-bottom: 16px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  &__value {
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+  }
+
+  &__actions-right {
+    @extend .stepper-actions-right;
+  }
+}
