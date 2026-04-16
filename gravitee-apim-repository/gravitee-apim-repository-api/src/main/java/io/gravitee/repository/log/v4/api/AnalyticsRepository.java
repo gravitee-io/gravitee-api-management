@@ -30,6 +30,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
@@ -96,4 +98,6 @@ public interface AnalyticsRepository {
     TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
 
     MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query);
+
+    FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
 }

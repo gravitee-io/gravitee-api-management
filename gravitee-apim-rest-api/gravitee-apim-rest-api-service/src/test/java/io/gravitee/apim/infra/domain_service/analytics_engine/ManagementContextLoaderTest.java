@@ -199,7 +199,6 @@ class ManagementContextLoaderTest {
         @Test
         void should_return_empty_when_no_apis_are_authorized() {
             when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(Collections.emptySet());
-            when(apiRepository.search(any(), any())).thenReturn(Collections.emptyList());
 
             var context = contextLoader.load(auditInfo);
 
@@ -210,6 +209,7 @@ class ManagementContextLoaderTest {
             assertThat(context.authorizedApiIds()).isEmpty();
             assertThat(context.apiNamesById()).isEmpty();
             assertThat(context.apiIdsByType()).isEmpty();
+            verify(apiRepository, never()).search(any(), any());
         }
     }
 }

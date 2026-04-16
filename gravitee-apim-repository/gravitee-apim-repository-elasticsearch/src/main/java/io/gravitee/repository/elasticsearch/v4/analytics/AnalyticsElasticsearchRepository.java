@@ -49,6 +49,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseS
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.StatsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FacetsResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterValuesQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterValuesResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFacetsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPMeasuresQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPTimeSeriesQueryAdapter;
@@ -64,6 +66,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
@@ -113,6 +117,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
     private final TimeSeriesResponseAdapter timeSeriesResponseAdapter = new TimeSeriesResponseAdapter();
     private final MessageMeasuresQueryAdapter messageMeasuresQueryAdapter = new MessageMeasuresQueryAdapter();
+    private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
+    private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -406,6 +412,16 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         }
 
         return searchMessageConnectionRequestIDs(query, httpIndex, nextAfterKey, accumulatedRequestIDs, iteration + 1);
+    }
+
+    @Override
+    public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = filterValuesQueryAdapter.adapt(query);
+
+        log.debug("Filter values query: {}", esQuery);
+
+        return client.search(index, null, esQuery).map(filterValuesResponseAdapter::adapt).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

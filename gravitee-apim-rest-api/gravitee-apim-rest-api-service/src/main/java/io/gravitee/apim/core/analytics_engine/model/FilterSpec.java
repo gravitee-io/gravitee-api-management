@@ -26,7 +26,8 @@ public record FilterSpec(
     FilterType type,
     List<String> enumValues,
     NumberRange range,
-    List<FilterOperator> operators
+    List<FilterOperator> operators,
+    List<ApiSpec.Name> apis
 ) {
     public enum Name {
         API,

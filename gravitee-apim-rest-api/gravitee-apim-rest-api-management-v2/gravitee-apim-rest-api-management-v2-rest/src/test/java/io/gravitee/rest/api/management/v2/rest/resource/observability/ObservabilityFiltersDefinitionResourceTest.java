@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.observability;
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
@@ -110,6 +111,25 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                 assertThat(apiTypeFilter.getType()).isEqualTo(FilterSpec.TypeEnum.ENUM);
                 assertThat(apiTypeFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IN);
                 assertThat(apiTypeFilter.getEnumValues()).containsExactlyInAnyOrder("HTTP_PROXY", "LLM", "MESSAGE", "MCP");
+            });
+    }
+
+    @Test
+    void should_return_filter_definitions_with_api_types() {
+        var response = rootTarget().request().get();
+
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(FilterSpecsResponse.class)
+            .extracting(FilterSpecsResponse::getData)
+            .satisfies(filters -> {
+                var apiFilter = filters
+                    .stream()
+                    .filter(f -> f.getName().getValue().equals("API"))
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(apiFilter.getApiTypes()).isNotNull();
+                assertThat(apiFilter.getApiTypes()).isNotEmpty();
             });
     }
 }

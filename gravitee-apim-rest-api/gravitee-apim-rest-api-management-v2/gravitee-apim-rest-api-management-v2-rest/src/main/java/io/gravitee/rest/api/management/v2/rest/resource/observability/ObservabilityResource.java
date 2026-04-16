@@ -28,4 +28,9 @@ public class ObservabilityResource {
     public ObservabilityFiltersDefinitionResource getFiltersDefinitionResource() {
         return resourceContext.getResource(ObservabilityFiltersDefinitionResource.class);
     }
+
+    @Path("/filters/{filterName}/values")
+    public ObservabilityFilterValuesResource getFilterValuesResource() {
+        return resourceContext.getResource(ObservabilityFilterValuesResource.class);
+    }
 }

@@ -23,8 +23,12 @@ import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.infra.domain_service.observability.YAMLDefinitionLoader;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,7 +39,35 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     private final AnalyticsDefinitionSpec spec;
 
     public AnalyticsDefinitionYAMLQueryService() {
-        spec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
+        var rawSpec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
+        spec = enrichFiltersWithApiTypes(rawSpec);
+    }
+
+    private static AnalyticsDefinitionSpec enrichFiltersWithApiTypes(AnalyticsDefinitionSpec rawSpec) {
+        Map<FilterSpec.Name, Set<ApiSpec.Name>> apisByFilter = new EnumMap<>(FilterSpec.Name.class);
+        for (var metric : rawSpec.metrics()) {
+            for (var filterName : metric.filters()) {
+                apisByFilter.computeIfAbsent(filterName, k -> EnumSet.noneOf(ApiSpec.Name.class)).addAll(metric.apis());
+            }
+        }
+
+        var enrichedFilters = rawSpec
+            .filters()
+            .stream()
+            .map(f ->
+                new FilterSpec(
+                    f.name(),
+                    f.label(),
+                    f.type(),
+                    f.enumValues(),
+                    f.range(),
+                    f.operators(),
+                    List.copyOf(apisByFilter.getOrDefault(f.name(), Set.of()))
+                )
+            )
+            .toList();
+
+        return new AnalyticsDefinitionSpec(rawSpec.apis(), rawSpec.metrics(), enrichedFilters, rawSpec.facets());
     }
 
     @Override

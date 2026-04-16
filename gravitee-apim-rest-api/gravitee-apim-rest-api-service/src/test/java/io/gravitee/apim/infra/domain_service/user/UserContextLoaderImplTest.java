@@ -183,7 +183,6 @@ class UserContextLoaderImplTest {
         void should_return_empty_list_when_no_apis_are_authorized() {
             // Given
             when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(Collections.emptySet());
-            when(apiRepository.search(any(), any())).thenReturn(Collections.emptyList());
 
             // When
             var context = userContextLoader.loadApis(new UserContext(auditInfo));
@@ -195,6 +194,7 @@ class UserContextLoaderImplTest {
 
             assertThat(context.apis()).hasValue(Collections.emptyList());
             assertThat(context.apiNameById()).hasValue(Collections.emptyMap());
+            verify(apiRepository, never()).search(any(), any());
         }
     }
 }

@@ -283,6 +283,112 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
+    /environments/{envId}/observability/filters/{filterName}/values:
+        get:
+            operationId: getObservabilityFilterValues
+            summary: Get values for an observability filter
+            description: |
+                Returns a paginated list of distinct values for a given filter within an optional time range.
+                - ENUM filters return their static enum values.
+                - KEYWORD filters return distinct values from the analytics data store.
+                - NUMBER and STRING filters are not supported and return 400.
+            tags:
+                - definition
+            parameters:
+                - $ref: "#/components/parameters/EnvId"
+                - name: filterName
+                  in: path
+                  required: true
+                  description: The filter name for which to retrieve values
+                  schema:
+                      $ref: "#/components/schemas/FilterName"
+                - name: from
+                  in: query
+                  required: false
+                  description: Start of the time range (epoch milliseconds). Only applies to KEYWORD filters.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: to
+                  in: query
+                  required: false
+                  description: End of the time range (epoch milliseconds). Only applies to KEYWORD filters.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: page
+                  in: query
+                  required: false
+                  description: Page number (starting from 1)
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 10000
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: Number of items per page
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 10
+                - name: query
+                  in: query
+                  required: false
+                  description: |
+                    Optional search string (case-insensitive). For ENUM filters, matches enum labels by substring.
+                    For KEYWORD filters backed by analytics data (Elasticsearch), matches the stored keyword value exactly.
+                    For ID-based filters (API, APPLICATION, PLAN), matches display names by substring.
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: A paginated list of filter values.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FilterValuesResponse"
+                            examples:
+                                keyword-values:
+                                    summary: KEYWORD filter values (direct-value)
+                                    value:
+                                        data:
+                                            - value: "gateway-1"
+                                            - value: "gateway-2"
+                                        pagination:
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 2
+                                            totalCount: 2
+                                enum-values:
+                                    summary: ENUM filter values
+                                    value:
+                                        data:
+                                            - value: "GET"
+                                            - value: "POST"
+                                            - value: "PUT"
+                                        pagination:
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 3
+                                            totalCount: 3
+                "400":
+                    description: |
+                        The filter type does not support value listing (NUMBER or STRING filters).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "500":
+                    description: Internal server error while getting filter values.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
     /environments/{envId}/analytics/measures:
         post:
             operationId: queryMeasures
@@ -1411,11 +1517,18 @@ components:
                     example:
                         min: 100
                         max: 600
+                apiTypes:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiName"
+                    description: List of API types this filter applies to, derived from the metrics that reference it.
+                    example: ["HTTP_PROXY", "LLM"]
             example:
                 name: "API"
                 label: "API"
                 type: "KEYWORD"
                 operators: ["EQ", "IN"]
+                apiTypes: ["HTTP_PROXY", "MESSAGE", "LLM", "MCP"]
 
         MetricSpec:
             type: object
@@ -1533,6 +1646,44 @@ components:
                       range:
                           min: 100
                           max: 600
+
+        FilterValueItem:
+            type: object
+            required:
+                - value
+            description: A single filter value, optionally with an associated ID for ID-based filters (e.g. API, APPLICATION, PLAN).
+            properties:
+                value:
+                    type: string
+                    description: The display value of the filter option.
+                    example: "gateway-1"
+                id:
+                    type: string
+                    description: The unique identifier associated with the value, present for ID-based filters.
+                    example: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+
+        FilterValuesResponse:
+            type: object
+            description: A paginated list of filter values.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FilterValueItem"
+                    description: List of filter values for the current page
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            example:
+                data:
+                    - value: "gateway-1"
+                    - value: "gateway-2"
+                    - value: "gateway-3"
+                pagination:
+                    page: 1
+                    perPage: 10
+                    pageCount: 1
+                    pageItemsCount: 3
+                    totalCount: 3
 
         MetricSpecsResponse:
             type: object

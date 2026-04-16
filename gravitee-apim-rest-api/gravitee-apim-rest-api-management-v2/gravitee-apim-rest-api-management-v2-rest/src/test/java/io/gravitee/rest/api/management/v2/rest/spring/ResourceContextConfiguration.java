@@ -42,12 +42,15 @@ import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -89,6 +92,7 @@ import io.gravitee.apim.core.api_product.use_case.members.UpdateApiProductMember
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
@@ -140,6 +144,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
@@ -1232,6 +1237,35 @@ public class ResourceContextConfiguration {
         AnalyticsDefinitionQueryService analyticsDefinitionQueryService
     ) {
         return new GetAnalyticsFilterDefinitionsUseCase(analyticsDefinitionQueryService);
+    }
+
+    @Bean
+    public FilterValuesQueryService filterValuesQueryService() {
+        return mock(FilterValuesQueryService.class);
+    }
+
+    @Bean
+    public FilterValueNameResolver filterValueNameResolver() {
+        return mock(FilterValueNameResolver.class);
+    }
+
+    @Bean
+    public GetFilterValuesUseCase getFilterValuesUseCase(
+        AnalyticsDefinitionQueryService analyticsDefinitionQueryService,
+        FilterValuesQueryService filterValuesQueryService,
+        FilterValueNameResolver filterValueNameResolver,
+        AnalyticsQueryContextLoader analyticsQueryContextLoader,
+        io.gravitee.apim.core.application.query_service.ApplicationQueryService applicationQueryService,
+        io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService
+    ) {
+        return new GetFilterValuesUseCase(
+            analyticsDefinitionQueryService,
+            filterValuesQueryService,
+            filterValueNameResolver,
+            analyticsQueryContextLoader,
+            applicationQueryService,
+            planQueryService
+        );
     }
 
     @Bean
