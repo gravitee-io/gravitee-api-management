@@ -71,7 +71,8 @@
                 "serveStaticTargetName": "serve-static",
                 "previewTargetName": "preview"
             },
-            "include": ["gravitee-gamma/**"]
+            "include": ["gravitee-gamma/**"],
+            "exclude": ["gravitee-gamma/packages/**"]
         }
     ],
     "generators": {
