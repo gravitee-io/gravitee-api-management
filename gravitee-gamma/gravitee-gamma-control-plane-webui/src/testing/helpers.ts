@@ -15,7 +15,9 @@
  */
 import { http, HttpResponse, JsonBodyType } from 'msw';
 
-import { buildBootstrapConfig } from './factories';
+import { permissionService } from '@gravitee/gamma-modules-sdk';
+
+import { buildBootstrapConfig, TEST_MANAGEMENT_BASE } from './factories';
 import { server } from './server';
 import { useAuthStore } from '../features/auth/auth.store';
 import { useEnvironmentStore } from '../features/environment/environment.store';
@@ -85,6 +87,7 @@ export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
     useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
     useEnvironmentStore.setState({ organizationId: '', environmentId: 'DEFAULT' });
+    permissionService.reset();
     localStorage.clear();
 }
 
@@ -94,4 +97,12 @@ export function seedBootstrap(overrides: Partial<BootstrapConfig> = {}) {
         loading: false,
         error: null,
     });
+}
+
+/**
+ * Overrides the default environment permissions MSW handler for a single test.
+ * Reset automatically by `server.resetHandlers()` in afterEach.
+ */
+export function fakePermissions(permissions: Record<string, string[]>) {
+    server.use(http.get(`${TEST_MANAGEMENT_BASE}/environments/DEFAULT/permissions`, () => HttpResponse.json(permissions)));
 }

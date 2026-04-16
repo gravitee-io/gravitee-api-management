@@ -20,6 +20,7 @@ export default {
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene)/)'],
     moduleNameMapper: {
         '^@gravitee/graphene$': '<rootDir>/../../node_modules/@gravitee/graphene/dist/index.js',
+        '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',

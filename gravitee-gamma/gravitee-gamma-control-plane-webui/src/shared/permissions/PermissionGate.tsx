@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+import type { ReactElement, ReactNode } from 'react';
 
-import { TEST_MANAGEMENT_BASE, buildUser } from '../factories';
+import type { PermissionCheck } from './types';
+import { useHasPermission } from './useHasPermission';
 
-export const authHandlers = [
-    http.get(`${TEST_MANAGEMENT_BASE}/user`, () =>
-        HttpResponse.json(
-            buildUser({
-                roles: [{ scope: 'ORGANIZATION', permissions: { USER: ['R'] } }],
-            }),
-        ),
-    ),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/login`, () => new HttpResponse(null, { status: 200 })),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/logout`, () => new HttpResponse(null, { status: 200 })),
-];
+export type PermissionGateProps = PermissionCheck & {
+    readonly children: ReactNode;
+    readonly fallback?: ReactNode;
+};
+
+export function PermissionGate(props: PermissionGateProps): ReactElement | null {
+    const allowed = useHasPermission(props.anyOf ? { anyOf: props.anyOf } : { allOf: props.allOf ?? [] });
+
+    if (!allowed) {
+        return <>{props.fallback ?? null}</>;
+    }
+
+    return <>{props.children}</>;
+}

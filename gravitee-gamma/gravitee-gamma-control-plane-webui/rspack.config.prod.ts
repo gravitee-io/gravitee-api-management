@@ -22,6 +22,9 @@ import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
 
 import baseConfig from './module-federation.config';
 
+/** Overrides the stub from @gravitee/gamma-modules-sdk package with the real implementation. */
+const gammaModulesSdkEntry = join(__dirname, 'src/shared/gamma-modules-sdk.ts');
+
 const prodConfig: ModuleFederationConfig = {
     ...baseConfig,
     remotes: [],
@@ -31,6 +34,11 @@ export default {
     output: {
         path: join(__dirname, './dist'),
         publicPath: 'auto',
+    },
+    resolve: {
+        alias: {
+            '@gravitee/gamma-modules-sdk': gammaModulesSdkEntry,
+        },
     },
     experiments: {
         css: false,

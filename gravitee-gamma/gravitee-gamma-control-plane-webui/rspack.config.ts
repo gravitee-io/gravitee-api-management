@@ -22,10 +22,18 @@ import { DefinePlugin } from '@rspack/core';
 
 import config from './module-federation.config';
 
+/** Overrides the stub from @gravitee/gamma-modules-sdk package with the real implementation. */
+const gammaModulesSdkEntry = join(__dirname, 'src/shared/gamma-modules-sdk.ts');
+
 export default {
     output: {
         path: join(__dirname, './dist'),
         publicPath: 'auto',
+    },
+    resolve: {
+        alias: {
+            '@gravitee/gamma-modules-sdk': gammaModulesSdkEntry,
+        },
     },
     experiments: {
         css: false,

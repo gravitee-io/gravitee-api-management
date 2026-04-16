@@ -1,8 +1,12 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
+        "baseUrl": ".",
         "outDir": "../../dist/out-tsc",
-        "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
+        "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
+        "paths": {
+            "@gravitee/gamma-modules-sdk": ["./src/shared/gamma-modules-sdk.ts"]
+        }
     },
     "exclude": [
         "src/**/*.spec.ts",
@@ -16,5 +20,5 @@
         "jest.config.ts",
         "src/test-setup.ts"
     ],
-    "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+    "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
 }
