@@ -246,7 +246,6 @@
         <gravitee-policy-http-redirect.version>1.0.2</gravitee-policy-http-redirect.version>
 
         <gravitee-resource-cache.version>3.0.0</gravitee-resource-cache.version>
-        <gravitee-resource-oauth2-provider-generic.version>5.0.0</gravitee-resource-oauth2-provider-generic.version>
         <gravitee-resource-oauth2-provider-am.version>4.0.1</gravitee-resource-oauth2-provider-am.version>
         <gravitee-resource-oauth2-provider-entra-id.version>1.0.1</gravitee-resource-oauth2-provider-entra-id.version>
         <gravitee-resource-oauth2-provider-generic.version>5.0.1</gravitee-resource-oauth2-provider-generic.version>
