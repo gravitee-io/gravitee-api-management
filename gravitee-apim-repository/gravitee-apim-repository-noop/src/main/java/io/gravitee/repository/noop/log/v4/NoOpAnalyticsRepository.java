@@ -31,6 +31,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
@@ -159,5 +161,10 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     @Override
     public MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query) {
         return null;
+    }
+
+    @Override
+    public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
+        return new FilterValuesResult(Collections.emptyList(), null, 0);
     }
 }

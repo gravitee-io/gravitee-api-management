@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -70,6 +71,18 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
 
         if (!isAdmin()) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
+            if (userApiIds.isEmpty()) {
+                // Align with ApiServiceImpl.findAll: empty scope must not widen to "all APIs in environment"
+                // (ApiCriteria with empty ids does not apply an id filter in the repository).
+                return new AnalyticsQueryContext(
+                    auditInfo,
+                    executionContext,
+                    Collections.emptySet(),
+                    Collections.emptyMap(),
+                    Collections.emptyMap(),
+                    Collections.emptyMap()
+                );
+            }
             apiCriteriaBuilder.ids(userApiIds);
         }
 

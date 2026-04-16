@@ -41,9 +41,11 @@ import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
@@ -1092,6 +1094,16 @@ public class ResourceContextConfiguration {
     @Bean
     public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
         return mock(AnalyticsQueryContextLoader.class);
+    }
+
+    @Bean
+    public FilterValuesQueryService filterValuesQueryService() {
+        return mock(FilterValuesQueryService.class);
+    }
+
+    @Bean
+    public FilterValueNameResolver filterValueNameResolver() {
+        return mock(FilterValueNameResolver.class);
     }
 
     @Bean

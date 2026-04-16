@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -68,7 +69,9 @@ public class UserContextLoaderImpl implements UserContextLoader {
 
         if (!isAdmin()) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
-
+            if (userApiIds.isEmpty()) {
+                return context.withApis(Collections.emptyList()).withApiNamesById(Collections.emptyMap());
+            }
             apiCriteriaBuilder.ids(userApiIds);
         }
 

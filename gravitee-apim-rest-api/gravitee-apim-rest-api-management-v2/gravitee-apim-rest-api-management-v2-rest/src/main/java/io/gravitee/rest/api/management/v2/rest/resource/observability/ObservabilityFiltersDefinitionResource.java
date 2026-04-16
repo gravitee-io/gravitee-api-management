@@ -18,24 +18,25 @@ package io.gravitee.rest.api.management.v2.rest.resource.observability;
 import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsDefinitionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.rest.annotation.Permission;
-import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-public class ObservabilityFiltersDefinitionResource {
+public class ObservabilityFiltersDefinitionResource extends AbstractResource {
 
     @Inject
     GetAnalyticsFilterDefinitionsUseCase getAnalyticsFilterDefinitions;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public FilterSpecsResponse getFilterDefinitions() {
+        if (!canReadDashboards()) {
+            throw new ForbiddenAccessException();
+        }
+
         return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getAnalyticsFilterDefinitions.execute().specs());
     }
 }

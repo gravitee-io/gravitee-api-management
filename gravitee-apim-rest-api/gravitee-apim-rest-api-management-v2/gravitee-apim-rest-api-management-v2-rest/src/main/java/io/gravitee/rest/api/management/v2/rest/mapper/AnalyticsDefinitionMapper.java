@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics_engine.model.FilterValue;
+import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.observability.model.NumberRange;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpec;
@@ -23,6 +27,8 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpecs
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecRange;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValueItem;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValuesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpecsResponse;
 import java.util.List;
@@ -62,11 +68,30 @@ public interface AnalyticsDefinitionMapper {
     @Mapping(source = "to", target = "max")
     FilterSpecRange mapRange(NumberRange range);
 
+    @Mapping(source = "apis", target = "apiTypes")
     FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics_engine.model.FilterSpec filterSpec);
+
+    ApiName mapApiSpecName(io.gravitee.apim.core.analytics_engine.model.ApiSpec.Name name);
+
+    List<ApiName> mapApiSpecNames(List<io.gravitee.apim.core.analytics_engine.model.ApiSpec.Name> names);
 
     List<FilterSpec> mapFilterSpecs(List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs);
 
     default FilterSpecsResponse toFilterSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs) {
         return new FilterSpecsResponse().data(mapFilterSpecs(filterSpecs));
+    }
+
+    FilterValueItem mapFilterValue(FilterValue filterValue);
+
+    List<FilterValueItem> mapFilterValues(List<FilterValue> filterValues);
+
+    default FilterValuesResponse toFilterValuesResponse(FilterValuesPage page, int pageNumber, int perPage) {
+        var data = mapFilterValues(page.data());
+        var pagination = new Pagination()
+            .page(pageNumber)
+            .perPage(perPage)
+            .pageItemsCount(data.size())
+            .totalCount(page.totalFilteredCount());
+        return new FilterValuesResponse().data(data).pagination(pagination);
     }
 }
