@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';

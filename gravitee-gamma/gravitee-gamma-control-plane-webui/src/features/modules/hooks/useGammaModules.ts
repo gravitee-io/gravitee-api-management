@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { registerRemotes } from '@module-federation/runtime';
-import React from 'react';
+import { useState, useEffect } from 'react';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
@@ -36,11 +36,11 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
     const gammaBaseURL = useBootstrapStore(s => s.config?.gammaBaseURL ?? '');
     const organizationId = useBootstrapStore(s => s.config?.organizationId ?? '');
     const user = useAuthStore(s => s.user);
-    const [modules, setModules] = React.useState<GammaModule[]>([]);
-    const [loading, setLoading] = React.useState(true);
-    const [error, setError] = React.useState<Error | null>(null);
+    const [modules, setModules] = useState<GammaModule[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!gammaBaseURL || !organizationId) {
             return;
         }

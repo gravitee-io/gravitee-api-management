@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 import { loadRemote } from '@module-federation/runtime';
-import React from 'react';
+import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
 
 import type { GammaModule } from '../modules.types';
 
-const lazyComponentCache = new Map<string, React.LazyExoticComponent<React.ComponentType>>();
+const lazyComponentCache = new Map<string, LazyExoticComponent<ComponentType>>();
 
-export function getOrCreateLazyModule(remoteName: string, exposedModule: string): React.LazyExoticComponent<React.ComponentType> {
+export function getOrCreateLazyModule(remoteName: string, exposedModule: string): LazyExoticComponent<ComponentType> {
     const cacheKey = `${remoteName}/${exposedModule}`;
     let cached = lazyComponentCache.get(cacheKey);
     if (!cached) {
-        cached = React.lazy(async () => {
-            const mod = await loadRemote<{ default: React.ComponentType }>(`${remoteName}/${exposedModule}`);
+        cached = lazy(async () => {
+            const mod = await loadRemote<{ default: ComponentType }>(`${remoteName}/${exposedModule}`);
             if (!mod) throw new Error(`Failed to load remote module: ${remoteName}/${exposedModule}`);
             return mod;
         });
