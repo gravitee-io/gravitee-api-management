@@ -43,10 +43,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
-import java.lang.reflect.Method;
-import java.net.URL;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -527,21 +527,14 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler handler = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Access the protected method via reflection (it lives in EndpointRuleHandler superclass).
-        Method method = handler
-            .getClass()
-            .getSuperclass()
-            .getDeclaredMethod("prepareHttpClientRequest", URL.class, HealthCheckStep.class);
+        Method method = handler.getClass().getSuperclass().getDeclaredMethod("prepareHttpClientRequest", URL.class, HealthCheckStep.class);
         method.setAccessible(true);
         RequestOptions options = (RequestOptions) method.invoke(handler, new URL("http://localhost:8080/health"), step);
 
         // Bug: options.getHost() returns "localhost" because setHost(target.getHost()) was never overridden
         // by the user-configured "Host" header value.
         // After fix: options.getHost() must equal "custom-host.example.com".
-        assertEquals(
-            "custom-host.example.com",
-            options.getHost(),
-            "RequestOptions.host must equal the user-configured Host header value"
-        );
+        assertEquals("custom-host.example.com", options.getHost(), "RequestOptions.host must equal the user-configured Host header value");
     }
 
     @Test

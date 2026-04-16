@@ -331,12 +331,23 @@ public class HttpHealthCheckService implements ApiService {
         final URL target = VertxHttpClientFactory.buildUrl(hcConfiguration.getTarget());
 
         final boolean isSsl = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
+        final int targetPort = VertxHttpClientFactory.getPort(target, isSsl);
+        final String customHost = requestOptions.getHeaders() != null
+            ? requestOptions.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST)
+            : null;
+        final String effectiveHost = (customHost != null && !customHost.isBlank()) ? customHost : target.getHost();
         requestOptions
             .setMethod(HttpMethod.valueOf(request.method().name()))
             .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
-            .setPort(VertxHttpClientFactory.getPort(target, isSsl))
+            .setPort(targetPort)
             .setSsl(isSsl)
-            .setHost(target.getHost());
+            .setHost(effectiveHost);
+
+        if (customHost != null && !customHost.isBlank()) {
+            // Pin the TCP connection to the actual backend so that the custom Host value
+            // only affects the HTTP Host header and not the connection address.
+            requestOptions.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(targetPort, target.getHost()));
+        }
 
         ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(requestOptions, target.getHost(), target.getDefaultPort()));
 

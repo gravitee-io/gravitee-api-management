@@ -20,9 +20,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import static io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthCheckService.HTTP_HEALTH_CHECK_TYPE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
@@ -34,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -61,8 +61,8 @@ import io.vertx.rxjava3.core.Vertx;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -123,8 +123,8 @@ public class HttpHealthCheckServiceTest {
 
     @BeforeEach
     public void setup() {
-        when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
-        when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
+        lenient().when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
+        lenient().when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
         lenient().when(gatewayConfig.healthCheckJitterInMs()).thenReturn(900);
 
         apiDefinition.setId(API_ID);

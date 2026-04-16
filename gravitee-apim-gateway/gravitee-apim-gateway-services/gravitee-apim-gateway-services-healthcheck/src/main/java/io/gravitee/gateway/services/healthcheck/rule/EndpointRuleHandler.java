@@ -183,6 +183,14 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
                     options.putHeader(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
                 });
+
+            final String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+            if (customHost != null && !customHost.isBlank()) {
+                // Pin the TCP connection to the actual backend so that the custom Host value
+                // only affects the HTTP Host header and not the connection address.
+                options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(port, request.getHost()));
+                options.setHost(customHost);
+            }
         }
 
         return options;
