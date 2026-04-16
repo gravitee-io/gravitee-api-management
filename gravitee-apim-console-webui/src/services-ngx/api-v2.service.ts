@@ -156,6 +156,28 @@ export class ApiV2Service {
     });
   }
 
+  /**
+   * Updates an existing v4 API from a Gravitee export document (same shape as {@link export}).
+   */
+  updateApiFromDefinition(apiId: string, definition: unknown): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/definition`, definition, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  /**
+   * Updates an existing v4 API from an OpenAPI / Swagger descriptor.
+   */
+  updateApiFromSwagger(apiId: string, descriptor: ImportSwaggerDescriptor): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/swagger`, descriptor, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
   exportCRD(apiId: string): Observable<Blob> {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/crd`, {
       responseType: 'blob',

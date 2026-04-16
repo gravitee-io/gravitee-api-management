@@ -44,6 +44,7 @@ import {
   ApiGeneralInfoIncludedInDialogComponent,
   ApiGeneralInfoIncludedInDialogData,
 } from './api-general-info-included-in-dialog/api-general-info-included-in-dialog.component';
+import { ApiImportV4FormDialogComponent, ApiImportV4FormDialogData } from './api-import-v4-form-dialog/api-import-v4-form-dialog.component';
 
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
@@ -404,6 +405,31 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   }
 
   importApi() {
+    if (this.api.definitionVersion === 'V4') {
+      this.matDialog
+        .open<ApiImportV4FormDialogComponent, ApiImportV4FormDialogData, string | undefined>(ApiImportV4FormDialogComponent, {
+          data: { apiId: this.apiId, apiName: this.api.name },
+          width: GIO_DIALOG_WIDTH.LARGE,
+          maxHeight: '90vh',
+          role: 'dialog',
+          id: 'importApiV4Dialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter(apiId => !!apiId),
+          tap(() => {
+            this.refresh$.next();
+          }),
+          catchError(err => {
+            this.snackBarService.error(err.error?.message ?? err.message ?? 'An error occurred while importing the API.');
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+      return;
+    }
+
     this.policyService
       .listSwaggerPolicies()
       .pipe(
@@ -414,7 +440,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
                 apiId: this.apiId,
                 policies,
               },
-              role: 'alertdialog',
+              role: 'dialog',
               id: 'importApiDialog',
             })
             .afterClosed(),

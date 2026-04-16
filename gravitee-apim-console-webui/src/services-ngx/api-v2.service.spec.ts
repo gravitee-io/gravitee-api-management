@@ -607,6 +607,42 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('updateApiFromSwagger', () => {
+    it('should PUT to the API-scoped swagger import endpoint', done => {
+      const apiId = 'existing-api';
+      const descriptor = { payload: '{}', withDocumentation: true };
+
+      apiV2Service.updateApiFromSwagger(apiId, descriptor).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_import/swagger`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(descriptor);
+      req.flush(null);
+    });
+  });
+
+  describe('updateApiFromDefinition', () => {
+    it('should PUT to the API-scoped definition import endpoint', done => {
+      const apiId = 'existing-api';
+      const definition = { api: { id: apiId, definitionVersion: 'V4' } };
+
+      apiV2Service.updateApiFromDefinition(apiId, definition).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_import/definition`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(definition);
+      req.flush(null);
+    });
+  });
+
   describe('refreshLastApiFetch', () => {
     it('should refresh the API', () => {
       const fakeApi = fakeApiV4({ id: 'my-api-id' });

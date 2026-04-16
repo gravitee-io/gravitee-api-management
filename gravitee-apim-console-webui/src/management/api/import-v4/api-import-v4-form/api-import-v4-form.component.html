@@ -17,103 +17,103 @@
 -->
 
 <div class="import-api-v4-form" data-testid="api-import-v4-form-root">
-    @if (!embeddedInDialog()) {
-      <div class="page-header">
-        <h1 class="page-header__page-title">Import API</h1>
-      </div>
+  @if (!embeddedInDialog()) {
+    <div class="page-header">
+      <h1 class="page-header__page-title">Import API</h1>
+    </div>
+  }
+
+  <ng-template
+    #stepperFooter
+    let-btnBack="btnBack"
+    let-btnPrimary="btnPrimary"
+    let-useMatNext="useMatNext"
+    let-btnDisabled="btnDisabled"
+    let-cancelAsDismiss="cancelAsDismiss"
+  >
+    @if (cancelAsDismiss) {
+      <button mat-button type="button" (click)="onDismiss()">Cancel</button>
+    } @else {
+      <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
     }
-
-    <ng-template
-      #stepperFooter
-      let-btnBack="btnBack"
-      let-btnPrimary="btnPrimary"
-      let-useMatNext="useMatNext"
-      let-btnDisabled="btnDisabled"
-      let-cancelAsDismiss="cancelAsDismiss"
-    >
-      @if (cancelAsDismiss) {
-        <button mat-button type="button" (click)="onDismiss()">Cancel</button>
-      } @else {
-        <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
+    <div class="stepper-actions-right">
+      @if (btnBack) {
+        <button mat-raised-button type="button" (click)="goStepperPrevious()">{{ btnBack }}</button>
       }
-      <div class="stepper-actions-right">
-        @if (btnBack) {
-          <button mat-raised-button type="button" (click)="goStepperPrevious()">{{ btnBack }}</button>
-        }
-        @if (useMatNext) {
-          <button mat-raised-button color="primary" type="button" [disabled]="btnDisabled" (click)="goStepperNext()">
-            {{ btnPrimary }}
-          </button>
-        }
-        @if (!useMatNext && btnPrimary) {
-          <button mat-raised-button color="primary" type="button" [disabled]="btnDisabled" (click)="importApi()">{{ btnPrimary }}</button>
-        }
-      </div>
-    </ng-template>
-  
-    <mat-card>
-      <mat-stepper linear color="accent" [disableRipple]="true">
-        <!-- step 1-->
-        <mat-step [stepControl]="selectApiFormatForm">
-          <form [formGroup]="selectApiFormatForm" class="select-api-format">
-            <div class="select-api-format__body">
-              <ng-template matStepLabel>Select API format</ng-template>
-              <h3>API format</h3>
-              <gio-form-selection-inline formControlName="format">
-                @for (format of formats; track format.value) {
-                  <gio-form-selection-inline-card
-                    [value]="format.value"
-                    [disabled]="format.value === 'wsdl'"
-                    [matTooltip]="format.value === 'wsdl' ? 'Coming soon' : null"
-                  >
-                    <gio-form-selection-inline-card-content [icon]="format.icon">
-                      <gio-card-content-title>{{ format.label }}</gio-card-content-title>
-                    </gio-form-selection-inline-card-content>
-                  </gio-form-selection-inline-card>
-                }
-              </gio-form-selection-inline>
-            </div>
-            <div class="select-api-format__actions">
-              <ng-container
-                [ngTemplateOutlet]="stepperFooter"
-                [ngTemplateOutletContext]="{
-                  btnBack: null,
-                  btnPrimary: 'Next',
-                  useMatNext: true,
-                  btnDisabled: !selectApiFormatForm.valid,
-                  cancelAsDismiss: embeddedInDialog(),
-                }"
-              ></ng-container>
-            </div>
-          </form>
-        </mat-step>
-  
-        <!-- step 2 -->
-        <mat-step [stepControl]="configureFileSourceForm">
-          <form [formGroup]="configureFileSourceForm" class="configure-file-source">
-            <ng-template matStepLabel>Configure file source</ng-template>
-            <div class="configure-file-source__body">
-              <h3>File source</h3>
-              <div class="configure-file-source__main">
-                <div class="configure-file-source__col configure-file-source__col--sources">
-                  <span class="configure-file-source__col-heading">Source</span>
-                  <gio-form-selection-inline formControlName="source" class="configure-file-source__source-selection">
-                    @for (source of sources; track source.value) {
-                      <gio-form-selection-inline-card
-                        [value]="source.value"
-                      >
-                        <gio-form-selection-inline-card-content [icon]="source.icon">
-                          <gio-card-content-title>{{ source.label }}</gio-card-content-title>
-                        </gio-form-selection-inline-card-content>
-                      </gio-form-selection-inline-card>
-                    }
-                  </gio-form-selection-inline>
-                </div>
+      @if (useMatNext) {
+        <button mat-raised-button color="primary" type="button" [disabled]="btnDisabled" (click)="goStepperNext()">
+          {{ btnPrimary }}
+        </button>
+      }
+      @if (!useMatNext && btnPrimary) {
+        <button mat-raised-button color="primary" type="button" [disabled]="btnDisabled" (click)="importApi()">{{ btnPrimary }}</button>
+      }
+    </div>
+  </ng-template>
 
-                <div class="configure-file-source__col configure-file-source__col--detail">
-                  @if (configureFileSourceForm.controls.source.value === 'local') {
-                    <span class="configure-file-source__col-heading">File</span>
-                    <div class="configure-file-source__detail-panel configure-file-source__detail-panel--file">
+  <mat-card>
+    <mat-stepper linear color="accent" [disableRipple]="true">
+      <!-- step 1-->
+      <mat-step [stepControl]="selectApiFormatForm">
+        <form [formGroup]="selectApiFormatForm" class="select-api-format">
+          <div class="select-api-format__body">
+            <ng-template matStepLabel>Select API format</ng-template>
+            <h3>API format</h3>
+            <gio-form-selection-inline formControlName="format">
+              @for (format of formats; track format.value) {
+                <gio-form-selection-inline-card
+                  [value]="format.value"
+                  [disabled]="format.value === 'wsdl'"
+                  [matTooltip]="format.value === 'wsdl' ? 'Coming soon' : null"
+                >
+                  <gio-form-selection-inline-card-content [icon]="format.icon">
+                    <gio-card-content-title>{{ format.label }}</gio-card-content-title>
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+              }
+            </gio-form-selection-inline>
+          </div>
+          <div class="select-api-format__actions">
+            <ng-container
+              [ngTemplateOutlet]="stepperFooter"
+              [ngTemplateOutletContext]="{
+                btnBack: null,
+                btnPrimary: 'Next',
+                useMatNext: true,
+                btnDisabled: !selectApiFormatForm.valid,
+                cancelAsDismiss: embeddedInDialog(),
+              }"
+            ></ng-container>
+          </div>
+        </form>
+      </mat-step>
+
+      <!-- step 2 -->
+      <mat-step [stepControl]="configureFileSourceForm">
+        <form [formGroup]="configureFileSourceForm" class="configure-file-source">
+          <ng-template matStepLabel>Configure file source</ng-template>
+          <div class="configure-file-source__body">
+            <h3>File source</h3>
+            <div class="configure-file-source__main">
+              <div class="configure-file-source__col configure-file-source__col--sources">
+                <span class="configure-file-source__col-heading">Source</span>
+                <gio-form-selection-inline formControlName="source" class="configure-file-source__source-selection">
+                  @for (source of sources; track source.value) {
+                    <gio-form-selection-inline-card [value]="source.value">
+                      <gio-form-selection-inline-card-content [icon]="source.icon">
+                        <gio-card-content-title>{{ source.label }}</gio-card-content-title>
+                      </gio-form-selection-inline-card-content>
+                    </gio-form-selection-inline-card>
+                  }
+                </gio-form-selection-inline>
+              </div>
+
+              <div class="configure-file-source__col configure-file-source__col--detail">
+                @if (configureFileSourceForm.controls.source.value === 'local') {
+                  <span class="configure-file-source__col-heading">File</span>
+                  <div class="configure-file-source__detail-panel configure-file-source__detail-panel--file">
+                    <!-- Remount when format changes: gio-form-file-picker/native accept may not refresh if only inputs change. -->
+                    @for (pickerKey of [importFormat() ?? 'gravitee']; track pickerKey) {
                       <api-import-file-picker [allowedFileExtensions]="allowedImportFileExtensions()" (onFilePicked)="onImportFile($event)">
                         <div class="configure-file-source__file-picker">
                           <mat-icon svgIcon="gio:upload"></mat-icon>
@@ -121,165 +121,172 @@
                           <p class="mat-body">Supported file formats: {{ allowedImportFileExtensionsLabel() }}</p>
                         </div>
                       </api-import-file-picker>
-                      @if (configureFileSourceForm.hasError('mismatchFileFormat')) {
-                        <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+                    }
+                    @if (configureFileSourceForm.hasError('mismatchFileFormat')) {
+                      <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+                    }
+                  </div>
+                } @else {
+                  <span class="configure-file-source__col-heading">Remote source</span>
+                  <div class="configure-file-source__detail-panel configure-file-source__detail-panel--remote">
+                    <mat-form-field appearance="outline" class="configure-file-source__field" subscriptSizing="dynamic">
+                      <mat-label>URL</mat-label>
+                      <input matInput formControlName="remoteUrl" type="url" autocomplete="off" />
+                      @if (
+                        configureFileSourceForm.controls.remoteUrl.hasError('required') &&
+                        configureFileSourceForm.controls.remoteUrl.touched
+                      ) {
+                        <mat-error>URL is required</mat-error>
                       }
-                    </div>
-                  } @else {
-                    <span class="configure-file-source__col-heading">Remote source</span>
-                    <div class="configure-file-source__detail-panel configure-file-source__detail-panel--remote">
-                      <mat-form-field appearance="outline" class="configure-file-source__field" subscriptSizing="dynamic">
-                        <mat-label>URL</mat-label>
-                        <input matInput formControlName="remoteUrl" type="url" autocomplete="off" />
-                        @if (configureFileSourceForm.controls.remoteUrl.hasError('required') && configureFileSourceForm.controls.remoteUrl.touched) {
-                          <mat-error>URL is required</mat-error>
-                        }
-                        @if (configureFileSourceForm.controls.remoteUrl.hasError('invalidHttpUrl') && configureFileSourceForm.controls.remoteUrl.touched) {
-                          <mat-error>Use a valid http(s) URL</mat-error>
-                        }
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="configure-file-source__field" subscriptSizing="dynamic">
-                        <mat-label>Authorization header (optional)</mat-label>
-                        <input matInput formControlName="authorizationHeader" type="text" autocomplete="off" />
-                      </mat-form-field>
-                    </div>
-                  }
-                </div>
+                      @if (
+                        configureFileSourceForm.controls.remoteUrl.hasError('invalidHttpUrl') &&
+                        configureFileSourceForm.controls.remoteUrl.touched
+                      ) {
+                        <mat-error>Use a valid http(s) URL</mat-error>
+                      }
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="configure-file-source__field" subscriptSizing="dynamic">
+                      <mat-label>Authorization header (optional)</mat-label>
+                      <input matInput formControlName="authorizationHeader" type="text" autocomplete="off" />
+                    </mat-form-field>
+                  </div>
+                }
               </div>
             </div>
-            <div class="configure-file-source__actions">
+          </div>
+          <div class="configure-file-source__actions">
+            <ng-container
+              [ngTemplateOutlet]="stepperFooter"
+              [ngTemplateOutletContext]="{
+                btnBack: 'Back',
+                btnPrimary: 'Next',
+                useMatNext: true,
+                btnDisabled: !configureFileSourceForm.valid,
+                cancelAsDismiss: embeddedInDialog(),
+              }"
+            ></ng-container>
+          </div>
+        </form>
+      </mat-step>
+
+      <!-- step 3 — skipped for Gravitee definition (same idea as legacy api-import-v4: options only for spec-based imports). -->
+      @if (showImportOptionsStep()) {
+        <mat-step [stepControl]="optionsForm">
+          <form [formGroup]="optionsForm" class="options-step">
+            <ng-template matStepLabel>Options</ng-template>
+            <div class="options-step__body">
+              <h3>Options</h3>
+              <gio-form-slide-toggle>
+                <gio-form-label>Create documentation page from spec</gio-form-label>
+                This will add a documentation page for this API using the OpenAPI spec used during the import. This page will be published
+                automatically (you can change this later).
+                <mat-slide-toggle
+                  gioFormSlideToggle
+                  formControlName="withDocumentation"
+                  aria-label="Toggle to create documentation page"
+                  name="withDocumentation"
+                ></mat-slide-toggle>
+              </gio-form-slide-toggle>
+
+              @if (hasOasValidationPolicy()) {
+                <gio-form-slide-toggle>
+                  <gio-form-label>Add OpenAPI Specification Validation</gio-form-label>
+                  This will add an OpenAPI Specification validation policy with all options enabled (you can change this later).
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="withOASValidationPolicy"
+                    name="withOASValidationPolicy"
+                    aria-label="Toggle to add OpenAPI Specification Validation"
+                  ></mat-slide-toggle>
+                </gio-form-slide-toggle>
+              }
+            </div>
+            <div class="options-step__actions">
               <ng-container
                 [ngTemplateOutlet]="stepperFooter"
                 [ngTemplateOutletContext]="{
-                  btnBack: 'Back',
+                  btnBack: 'Previous',
                   btnPrimary: 'Next',
                   useMatNext: true,
-                  btnDisabled: !configureFileSourceForm.valid,
+                  btnDisabled: !optionsForm.valid,
                   cancelAsDismiss: embeddedInDialog(),
                 }"
               ></ng-container>
             </div>
           </form>
         </mat-step>
+      }
 
-        <!-- step 3 — skipped for Gravitee definition (same idea as legacy api-import-v4: options only for spec-based imports). -->
-        @if (showImportOptionsStep()) {
-          <mat-step [stepControl]="optionsForm">
-            <form [formGroup]="optionsForm" class="options-step">
-              <ng-template matStepLabel>Options</ng-template>
-              <div class="options-step__body">
-                <h3>Options</h3>
-                <gio-form-slide-toggle>
-                  <gio-form-label>Create documentation page from spec</gio-form-label>
-                  This will add a documentation page for this API using the OpenAPI spec used during the import. This page will be published
-                  automatically (you can change this later).
-                  <mat-slide-toggle
-                    gioFormSlideToggle
-                    formControlName="withDocumentation"
-                    aria-label="Toggle to create documentation page"
-                    name="withDocumentation"
-                  ></mat-slide-toggle>
-                </gio-form-slide-toggle>
+      <!-- step 4 -->
+      <mat-step>
+        <div class="review-import-step">
+          <ng-template matStepLabel>Review and import</ng-template>
+          <h2>{{ reviewStepTitle() }}</h2>
+          <p>{{ reviewStepDescription() }}</p>
 
-                @if (hasOasValidationPolicy()) {
-                  <gio-form-slide-toggle>
-                    <gio-form-label>Add OpenAPI Specification Validation</gio-form-label>
-                    This will add an OpenAPI Specification validation policy with all options enabled (you can change this later).
-                    <mat-slide-toggle
-                      gioFormSlideToggle
-                      formControlName="withOASValidationPolicy"
-                      name="withOASValidationPolicy"
-                      aria-label="Toggle to add OpenAPI Specification Validation"
-                    ></mat-slide-toggle>
-                  </gio-form-slide-toggle>
+          <mat-card class="review-import-step__section">
+            <mat-card-content>
+              <h3>Configuration</h3>
+              <div class="review-import-step__row">
+                <span>Format:</span><strong class="review-import-step__value">{{ selectedFormatLabel() }}</strong>
+              </div>
+              <div class="review-import-step__row">
+                <span>Source:</span><strong class="review-import-step__value">{{ selectedSourceLabel() }}</strong>
+              </div>
+              @if (configureFileSourceForm.controls.source.value === 'remote') {
+                <div class="review-import-step__row">
+                  <span>URL:</span
+                  ><strong class="review-import-step__value">{{ configureFileSourceForm.controls.remoteUrl.value || '—' }}</strong>
+                </div>
+                @if (configureFileSourceForm.controls.authorizationHeader.value) {
+                  <div class="review-import-step__row">
+                    <span>Authorization header:</span><strong class="review-import-step__value">Provided</strong>
+                  </div>
                 }
-              </div>
-              <div class="options-step__actions">
-                <ng-container
-                  [ngTemplateOutlet]="stepperFooter"
-                  [ngTemplateOutletContext]="{
-                    btnBack: 'Previous',
-                    btnPrimary: 'Next',
-                    useMatNext: true,
-                    btnDisabled: !optionsForm.valid,
-                    cancelAsDismiss: embeddedInDialog(),
-                  }"
-                ></ng-container>
-              </div>
-            </form>
-          </mat-step>
-        }
+              }
+            </mat-card-content>
+          </mat-card>
 
-        <!-- step 4 -->
-        <mat-step>
-          <div class="review-import-step">
-            <ng-template matStepLabel>Review and import</ng-template>
-            <h2>{{ reviewStepTitle() }}</h2>
-            <p>{{ reviewStepDescription() }}</p>
-
+          @if (showImportOptionsStep()) {
             <mat-card class="review-import-step__section">
               <mat-card-content>
-                <h3>Configuration</h3>
+                <h3>Options</h3>
                 <div class="review-import-step__row">
-                  <span>Format:</span><strong class="review-import-step__value">{{ selectedFormatLabel() }}</strong>
-                </div>
-                <div class="review-import-step__row">
-                  <span>Source:</span><strong class="review-import-step__value">{{ selectedSourceLabel() }}</strong>
-                </div>
-                @if (configureFileSourceForm.controls.source.value === 'remote') {
-                  <div class="review-import-step__row">
-                    <span>URL:</span><strong class="review-import-step__value">{{ configureFileSourceForm.controls.remoteUrl.value || '—' }}</strong>
-                  </div>
-                  @if (configureFileSourceForm.controls.authorizationHeader.value) {
-                    <div class="review-import-step__row">
-                      <span>Authorization header:</span><strong class="review-import-step__value">Provided</strong>
-                    </div>
+                  <span>Documentation page:</span>
+                  @if (optionsForm.controls.withDocumentation.value) {
+                    <span class="gio-badge-success">Enabled</span>
+                  } @else {
+                    <span class="gio-badge-neutral">Disabled</span>
                   }
-                }
-              </mat-card-content>
-            </mat-card>
-
-            @if (showImportOptionsStep()) {
-              <mat-card class="review-import-step__section">
-                <mat-card-content>
-                  <h3>Options</h3>
+                </div>
+                @if (hasOasValidationPolicy()) {
                   <div class="review-import-step__row">
-                    <span>Documentation page:</span>
-                    @if (optionsForm.controls.withDocumentation.value) {
+                    <span>OpenAPI validation:</span>
+                    @if (optionsForm.controls.withOASValidationPolicy.value) {
                       <span class="gio-badge-success">Enabled</span>
                     } @else {
                       <span class="gio-badge-neutral">Disabled</span>
                     }
                   </div>
-                  @if (hasOasValidationPolicy()) {
-                    <div class="review-import-step__row">
-                      <span>OpenAPI validation:</span>
-                      @if (optionsForm.controls.withOASValidationPolicy.value) {
-                        <span class="gio-badge-success">Enabled</span>
-                      } @else {
-                        <span class="gio-badge-neutral">Disabled</span>
-                      }
-                    </div>
-                  }
-                </mat-card-content>
-              </mat-card>
-            }
+                }
+              </mat-card-content>
+            </mat-card>
+          }
 
-            <div class="review-import-step__actions">
-              <ng-container
-                [ngTemplateOutlet]="stepperFooter"
-                [ngTemplateOutletContext]="{
-                  btnBack: 'Previous',
-                  btnPrimary: primaryImportActionLabel(),
-                  useMatNext: false,
-                  btnDisabled: !canSubmitImport(),
-                  cancelAsDismiss: embeddedInDialog(),
-                }"
-              ></ng-container>
-            </div>
+          <div class="review-import-step__actions">
+            <ng-container
+              [ngTemplateOutlet]="stepperFooter"
+              [ngTemplateOutletContext]="{
+                btnBack: 'Previous',
+                btnPrimary: primaryImportActionLabel(),
+                useMatNext: false,
+                btnDisabled: !canSubmitImport() || importInProgress(),
+                cancelAsDismiss: embeddedInDialog(),
+              }"
+            ></ng-container>
           </div>
-        </mat-step>
-      </mat-stepper>
-    </mat-card>
-  </div>
-  
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </mat-card>
+</div>

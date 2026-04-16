@@ -51,6 +51,7 @@ import { ApiGeneralInfoExportV2DialogComponent } from './api-general-info-export
 import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
 import { ApiGeneralInfoExportV4DialogComponent } from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.component';
 import { ApiGeneralInfoAgentCardComponent } from './api-general-info-agent-card/api-general-info-agent-card.component';
+import { ApiImportV4FormDialogComponent } from './api-import-v4-form-dialog/api-import-v4-form-dialog.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
@@ -101,6 +102,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     GioBannerModule,
     GioLicenseBannerModule,
     ApiGeneralInfoAgentCardComponent,
+    ApiImportV4FormDialogComponent,
   ],
 })
 export class ApiGeneralInfoModule {}
