@@ -710,4 +710,130 @@ class SearchMetricsQueryAdapterTest {
             assertThat(hasErrorKeysFilter).isFalse();
         }
     }
+
+    @Nested
+    class NativeKafkaFilters {
+
+        @Test
+        void should_add_kafka_client_id_filter() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaClientIds(Set.of("my-consumer")).build())
+                .build();
+
+            var termsValues = extractTermsValues(query, "additional-metrics.keyword_native-kafka_client-id");
+
+            assertThat(termsValues).containsExactlyInAnyOrder("my-consumer");
+        }
+
+        @Test
+        void should_add_kafka_client_id_filter_with_multiple_values() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaClientIds(Set.of("consumer-a", "consumer-b")).build())
+                .build();
+
+            var termsValues = extractTermsValues(query, "additional-metrics.keyword_native-kafka_client-id");
+
+            assertThat(termsValues).containsExactlyInAnyOrder("consumer-a", "consumer-b");
+        }
+
+        @Test
+        void should_not_add_kafka_client_id_filter_when_set_is_empty() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaClientIds(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(query, "additional-metrics.keyword_native-kafka_client-id")).isFalse();
+        }
+
+        @Test
+        void should_add_kafka_consumer_group_id_filter() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaConsumerGroupIds(Set.of("my-group")).build())
+                .build();
+
+            var termsValues = extractTermsValues(query, "additional-metrics.keyword_native-kafka_consumer-group-id");
+
+            assertThat(termsValues).containsExactlyInAnyOrder("my-group");
+        }
+
+        @Test
+        void should_add_kafka_consumer_group_id_filter_with_multiple_values() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaConsumerGroupIds(Set.of("group-a", "group-b")).build())
+                .build();
+
+            var termsValues = extractTermsValues(query, "additional-metrics.keyword_native-kafka_consumer-group-id");
+
+            assertThat(termsValues).containsExactlyInAnyOrder("group-a", "group-b");
+        }
+
+        @Test
+        void should_not_add_kafka_consumer_group_id_filter_when_set_is_empty() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaConsumerGroupIds(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(query, "additional-metrics.keyword_native-kafka_consumer-group-id")).isFalse();
+        }
+
+        @Test
+        void should_add_both_kafka_client_id_and_consumer_group_id_filters() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(
+                    MetricsQuery.Filter.builder()
+                        .nativeKafkaClientIds(Set.of("consumer-a"))
+                        .nativeKafkaConsumerGroupIds(Set.of("group-a"))
+                        .build()
+                )
+                .build();
+
+            var clientIdValues = extractTermsValues(query, "additional-metrics.keyword_native-kafka_client-id");
+            var groupIdValues = extractTermsValues(query, "additional-metrics.keyword_native-kafka_consumer-group-id");
+
+            assertThat(clientIdValues).containsExactly("consumer-a");
+            assertThat(groupIdValues).containsExactly("group-a");
+        }
+
+        private List<Object> extractTermsValues(MetricsQuery query, String field) {
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+            return mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .filter(clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(field))
+                .findFirst()
+                .map(clause -> clause.getJsonObject("terms").getJsonArray(field).getList())
+                .orElseThrow(() -> new AssertionError("No terms clause found for field: " + field));
+        }
+
+        private boolean hasTermsOn(MetricsQuery query, String field) {
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var queryNode = result.getJsonObject("query");
+            if (queryNode == null || queryNode.getJsonObject("bool") == null) {
+                return false;
+            }
+            var mustClauses = queryNode.getJsonObject("bool").getJsonArray("must");
+            if (mustClauses == null) {
+                return false;
+            }
+            return mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(field));
+        }
+    }
 }

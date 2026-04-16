@@ -382,4 +382,109 @@ class SearchApiV4ConnectionLogsUseCaseTest {
             soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
         });
     }
+
+    @Test
+    void should_filter_by_native_kafka_client_id() {
+        logStorageService.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures
+                    .aConnectionLog("req1")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-A"))
+                    .build(),
+                connectionLogFixtures
+                    .aConnectionLog("req2")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-B"))
+                    .build()
+            )
+        );
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().nativeKafkaClientIds(Set.of("consumer-A")).build())
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(1);
+            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
+        });
+    }
+
+    @Test
+    void should_filter_by_native_kafka_client_id_and_consumer_group_id() {
+        logStorageService.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures
+                    .aConnectionLog("req1")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(
+                        Map.of("keyword_native-kafka_client-id", "consumer-A", "keyword_native-kafka_consumer-group-id", "group-A")
+                    )
+                    .build(),
+                connectionLogFixtures
+                    .aConnectionLog("req2")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(
+                        Map.of("keyword_native-kafka_client-id", "consumer-A", "keyword_native-kafka_consumer-group-id", "group-B")
+                    )
+                    .build(),
+                connectionLogFixtures
+                    .aConnectionLog("req3")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(
+                        Map.of("keyword_native-kafka_client-id", "consumer-B", "keyword_native-kafka_consumer-group-id", "group-A")
+                    )
+                    .build()
+            )
+        );
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(
+                API_ID,
+                SearchLogsFilters.builder()
+                    .nativeKafkaClientIds(Set.of("consumer-A"))
+                    .nativeKafkaConsumerGroupIds(Set.of("group-A"))
+                    .build()
+            )
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(1);
+            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
+        });
+    }
+
+    @Test
+    void should_filter_by_native_kafka_consumer_group_id() {
+        logStorageService.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures
+                    .aConnectionLog("req1")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(Map.of("keyword_native-kafka_consumer-group-id", "group-A"))
+                    .build(),
+                connectionLogFixtures
+                    .aConnectionLog("req2")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(Map.of("keyword_native-kafka_consumer-group-id", "group-B"))
+                    .build()
+            )
+        );
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().nativeKafkaConsumerGroupIds(Set.of("group-A")).build())
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(1);
+            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
+        });
+    }
 }

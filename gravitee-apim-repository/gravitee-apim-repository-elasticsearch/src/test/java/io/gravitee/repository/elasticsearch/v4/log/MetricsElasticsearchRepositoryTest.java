@@ -244,7 +244,11 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
-                MetricsQuery.builder().page(1).size(10).filter(Filter.builder().from(from).build()).build(),
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(10)
+                    .filter(Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).from(from).build())
+                    .build(),
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
@@ -550,7 +554,24 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
-                MetricsQuery.builder().page(1).size(20).filter(Filter.builder().from(from).build()).build(),
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        Filter.builder()
+                            .from(from)
+                            .apiIds(
+                                Set.of(
+                                    "f1608475-dd77-4603-a084-75dd775603e9",
+                                    "48bddce0-11ea-4ff4-bddc-e011ea5ff4be",
+                                    "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab",
+                                    "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
+                                    "e2c0ecd5-893a-458d-80ec-d5893ab58d12"
+                                )
+                            )
+                            .build()
+                    )
+                    .build(),
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
@@ -558,7 +579,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             assertThat(result.data())
                 .extracting(Metrics::getRequestId)
                 .contains(
-                    // V4
+                    // V4 HTTP
                     "e71f2ae0-7673-4d7e-9f2a-e076730d7e69",
                     "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48",
                     "26c61cfc-a4cc-4272-861c-fca4cc2272ab",
@@ -907,6 +928,82 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "4a6895d5-a1bc-4041-a895-d5a1bce041ae", null, null);
 
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    class KafkaConnectionMetrics {
+
+        @Test
+        void should_return_kafka_connection_logs_filtered_by_api() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder().filter(Filter.builder().apiIds(Set.of("kafka-api-001")).build()).size(10).build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.data()).extracting(Metrics::getEntrypointId).containsOnly("native-kafka");
+        }
+
+        @Test
+        void should_filter_by_native_kafka_client_ids() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .filter(
+                        Filter.builder().apiIds(Set.of("kafka-api-001")).nativeKafkaClientIds(Set.of("consumer-A", "consumer-C")).build()
+                    )
+                    .size(10)
+                    .build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(3);
+            assertThat(result.data())
+                .extracting(Metrics::getRequestId)
+                .containsExactlyInAnyOrder("kafka-conn-001", "kafka-conn-001", "kafka-conn-004");
+        }
+
+        @Test
+        void should_filter_by_both_client_id_and_consumer_group_id() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .filter(
+                        Filter.builder()
+                            .apiIds(Set.of("kafka-api-001"))
+                            .nativeKafkaClientIds(Set.of("consumer-A"))
+                            .nativeKafkaConsumerGroupIds(Set.of("group-alpha"))
+                            .build()
+                    )
+                    .size(10)
+                    .build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(1);
+            assertThat(result.data()).extracting(Metrics::getRequestId).containsExactly("kafka-conn-001");
+        }
+
+        @Test
+        void should_return_additional_metrics_for_kafka_connections() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .filter(Filter.builder().apiIds(Set.of("kafka-api-001")).nativeKafkaClientIds(Set.of("consumer-C")).build())
+                    .size(10)
+                    .build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(1);
+            var metrics = result.data().getFirst();
+            assertThat(metrics.getAdditionalMetrics())
+                .containsEntry("keyword_native-kafka_client-id", "consumer-C")
+                .containsEntry("keyword_native-kafka_operations", "FETCH,JOIN_GROUP")
+                .containsEntry("keyword_native-kafka_consumer-group-id", "group-beta");
         }
     }
 }

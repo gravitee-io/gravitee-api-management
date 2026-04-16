@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -274,6 +275,24 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         if (StringUtils.hasLength(uri)) {
             var normalizedUri = getNormalizedUri(uri);
             predicate = predicate.and(connectionLog -> connectionLog.getUri().startsWith(normalizedUri));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.nativeKafkaClientIds())) {
+            predicate = predicate.and(connectionLog -> {
+                var metrics = connectionLog.getAdditionalMetrics();
+                if (metrics == null) return false;
+                var clientId = metrics.get(ConnectionLogAdapter.NATIVE_KAFKA_CLIENT_ID_KEY);
+                return clientId != null && logsFilters.nativeKafkaClientIds().contains(clientId.toString());
+            });
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.nativeKafkaConsumerGroupIds())) {
+            predicate = predicate.and(connectionLog -> {
+                var metrics = connectionLog.getAdditionalMetrics();
+                if (metrics == null) return false;
+                var groupId = metrics.get(ConnectionLogAdapter.NATIVE_KAFKA_CONSUMER_GROUP_ID_KEY);
+                return groupId != null && logsFilters.nativeKafkaConsumerGroupIds().contains(groupId.toString());
+            });
         }
 
         return predicate;

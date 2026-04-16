@@ -2434,6 +2434,12 @@ paths:
                 - $ref: "#/components/parameters/applicationIds"
                 - $ref: "#/components/parameters/planIds"
                 - $ref: "#/components/parameters/methods"
+                - $ref: "#/components/parameters/mcpMethods"
+                - $ref: "#/components/parameters/statuses"
+                - $ref: "#/components/parameters/entrypointIds"
+                - $ref: "#/components/parameters/errorKeys"
+                - $ref: "#/components/parameters/nativeKafkaClientIds"
+                - $ref: "#/components/parameters/nativeKafkaConsumerGroupIds"
             tags:
                 - API Analytics
             summary: Get API logs
@@ -8866,6 +8872,61 @@ components:
                 type: array
                 items:
                     type: integer
+        entrypointIds:
+            name: entrypointIds
+            description: Filter connection logs by entrypoint ID (e.g. `http-proxy`, `native-kafka`).
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
+        mcpMethods:
+            name: mcpMethods
+            description: Filter connection logs by MCP method name.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
+        errorKeys:
+            name: errorKeys
+            description: |-
+                Filter connection logs by error key.
+                For Native Kafka APIs, the value is `CONNECTION_ERROR`.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
+        nativeKafkaClientIds:
+            name: nativeKafkaClientIds
+            description: |-
+                Filter connection logs by Kafka client ID.
+                Multiple values are OR'd; combining with other filters uses AND semantics.
+                Relevant for Native Kafka APIs; returns empty results for non-Kafka APIs.
+            in: query
+            explode: false
+            schema:
+                type: array
+                maxItems: 50
+                items:
+                    type: string
+        nativeKafkaConsumerGroupIds:
+            name: nativeKafkaConsumerGroupIds
+            description: |-
+                Filter connection logs by Kafka consumer group ID.
+                Multiple values are OR'd; combining with other filters uses AND semantics.
+                Relevant for Native Kafka APIs; returns empty results for non-Kafka APIs.
+            in: query
+            explode: false
+            schema:
+                type: array
+                maxItems: 50
+                items:
+                    type: string
         eventIdParam:
             name: eventId
             in: path

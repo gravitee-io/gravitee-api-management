@@ -501,6 +501,72 @@ class ApiLogsResourceTest extends ApiResourceTest {
                         .links(new Links().self(connectionLogsTarget.getUri().toString()))
                 );
         }
+
+        @Test
+        void should_return_connection_logs_filtered_by_native_kafka_client_id() {
+            connectionLogStorageService.initWithConnectionLogs(
+                List.of(
+                    connectionLogFixtures
+                        .aConnectionLog("req1")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-A"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req2")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-B"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req3")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-A"))
+                        .build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.NATIVE_KAFKA_CLIENT_IDS_QUERY_PARAM_NAME, "consumer-A");
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getPagination)
+                .satisfies(p -> {
+                    assertThat(p.getTotalCount()).isEqualTo(2L);
+                });
+        }
+
+        @Test
+        void should_return_connection_logs_filtered_by_native_kafka_consumer_group_id() {
+            connectionLogStorageService.initWithConnectionLogs(
+                List.of(
+                    connectionLogFixtures
+                        .aConnectionLog("req1")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_consumer-group-id", "group-alpha"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req2")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_consumer-group-id", "group-beta"))
+                        .build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(
+                SearchLogsParam.NATIVE_KAFKA_CONSUMER_GROUP_IDS_QUERY_PARAM_NAME,
+                "group-beta"
+            );
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getPagination)
+                .satisfies(p -> {
+                    assertThat(p.getTotalCount()).isEqualTo(1L);
+                });
+        }
     }
 
     @Nested

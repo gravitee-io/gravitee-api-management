@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.validation.IntervalParamConstraint;
 import io.gravitee.rest.api.management.v2.rest.validation.TimeInterval;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.QueryParam;
 import java.util.Set;
 import lombok.Data;
@@ -36,6 +37,8 @@ public class SearchLogsParam implements TimeInterval {
     public static final String STATUSES_QUERY_PARAM_NAME = "statuses";
     public static final String ENTRYPOINT_IDS_QUERY_PARAM_NAME = "entrypointIds";
     public static final String ERROR_KEYS_QUERY_PARAM_NAME = "errorKeys";
+    public static final String NATIVE_KAFKA_CLIENT_IDS_QUERY_PARAM_NAME = "nativeKafkaClientIds";
+    public static final String NATIVE_KAFKA_CONSUMER_GROUP_IDS_QUERY_PARAM_NAME = "nativeKafkaConsumerGroupIds";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -65,4 +68,12 @@ public class SearchLogsParam implements TimeInterval {
 
     @QueryParam(ERROR_KEYS_QUERY_PARAM_NAME)
     Set<String> errorKeys;
+
+    @QueryParam(NATIVE_KAFKA_CLIENT_IDS_QUERY_PARAM_NAME)
+    @Size(max = 50)
+    Set<String> nativeKafkaClientIds;
+
+    @QueryParam(NATIVE_KAFKA_CONSUMER_GROUP_IDS_QUERY_PARAM_NAME)
+    @Size(max = 50)
+    Set<String> nativeKafkaConsumerGroupIds;
 }

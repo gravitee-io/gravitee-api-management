@@ -37,5 +37,7 @@ public record SearchLogsFilters(
     String uri,
     String bodyText,
     Set<String> errorKeys,
-    Set<String> apiProductIds
+    Set<String> apiProductIds,
+    Set<String> nativeKafkaClientIds,
+    Set<String> nativeKafkaConsumerGroupIds
 ) {}

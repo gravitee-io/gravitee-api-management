@@ -36,6 +36,8 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface ConnectionLogAdapter {
     String MCP_PROXY_METHOD_KEY = "keyword_mcp-proxy_method";
+    String NATIVE_KAFKA_CLIENT_ID_KEY = "keyword_native-kafka_client-id";
+    String NATIVE_KAFKA_CONSUMER_GROUP_ID_KEY = "keyword_native-kafka_consumer-group-id";
     ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
 
     BaseConnectionLog toEntity(Metrics connectionLog);
