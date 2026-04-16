@@ -15,6 +15,7 @@
  */
 export interface ImportSwaggerDescriptor {
   payload: string;
+  format?: 'API' | 'WSDL';
   withDocumentation?: boolean;
   withOASValidationPolicy?: boolean;
 }

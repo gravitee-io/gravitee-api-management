@@ -79,7 +79,8 @@ import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 import { ApiDocumentationV4MetadataTabComponent } from './documentation-v4/metadata-tab/api-documentation-v4-metadata-tab.component';
 import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
-import { ApiImportV4Component } from './import-v4/api-import-v4.component';
+//import { ApiImportV4Component } from './import-v4/api-import-v4.component';
+import { ApiImportV4FormComponent } from './import-v4/api-import-v4-form/api-import-v4-form.component';
 import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
 import { ApiScoringComponent } from './scoring/api-scoring.component';
 import { ApiDocumentationV4MainPagesTabComponent } from './documentation-v4/main-pages-tab/api-documentation-v4-main-pages-tab.component';
@@ -105,6 +106,7 @@ import { HasLicenseGuard } from '../../shared/components/gio-license/has-license
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
 import { ApiScoringGuard } from '../../shared/guards/api-scoring.guard';
+
 
 const apisRoutes: Routes = [
   {
@@ -166,7 +168,7 @@ const apisRoutes: Routes = [
   },
   {
     path: 'import/v4',
-    component: ApiImportV4Component,
+    component: ApiImportV4FormComponent, //ApiImportV4Component,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: { permissions: { anyOf: ['environment-api-c'] } },
   },
