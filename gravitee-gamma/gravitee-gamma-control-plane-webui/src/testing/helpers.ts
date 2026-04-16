@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse, JsonBodyType } from 'msw';
+import { http, HttpResponse, type JsonBodyType } from 'msw';
 
 import { permissionService } from '@gravitee/gamma-modules-sdk';
 

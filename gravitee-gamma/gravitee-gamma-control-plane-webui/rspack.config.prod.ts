@@ -15,7 +15,7 @@
  */
 import { join } from 'path';
 
-import { ModuleFederationConfig } from '@nx/module-federation';
+import type { ModuleFederationConfig } from '@nx/module-federation';
 import { NxModuleFederationPlugin, NxModuleFederationDevServerPlugin } from '@nx/module-federation/rspack.js';
 import { NxAppRspackPlugin } from '@nx/rspack/app-plugin.js';
 import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';

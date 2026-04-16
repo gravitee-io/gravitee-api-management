@@ -101,6 +101,7 @@ export function LoginPage() {
                                 required
                                 autoComplete="username"
                                 placeholder="Enter your username"
+                                // eslint-disable-next-line jsx-a11y/no-autofocus
                                 autoFocus
                             />
                         </Field>
