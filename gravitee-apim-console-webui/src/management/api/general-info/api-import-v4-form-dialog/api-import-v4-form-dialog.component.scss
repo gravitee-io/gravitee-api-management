@@ -1,0 +1,38 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.api-import-v4-form-dialog__title {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.api-import-v4-form-dialog__title-label {
+  font: inherit;
+}
+
+.api-import-v4-form-dialog__title-api-name {
+  margin: 0;
+  @include mat.m2-typography-level($typography, body-2);
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker60);
+}
+
+.api-import-v4-form-dialog__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0;
+  overflow: auto;
+}
