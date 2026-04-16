@@ -17,8 +17,17 @@ import { ModuleFederationConfig } from '@nx/module-federation';
 
 const config: ModuleFederationConfig = {
     name: 'gamma-console',
-    exposes: {},
     remotes: [],
+    additionalShared: [
+        [
+            '@gravitee/gamma-modules-sdk',
+            {
+                singleton: true,
+                requiredVersion: false,
+                strictVersion: false,
+            },
+        ],
+    ],
     shared: (libraryName, sharedConfig) => {
         if (['react', 'react-dom', 'react-router-dom', 'zustand', '@gravitee/graphene'].includes(libraryName)) {
             return {

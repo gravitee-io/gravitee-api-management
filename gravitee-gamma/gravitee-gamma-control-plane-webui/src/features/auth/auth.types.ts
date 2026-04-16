@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { UserRole } from '@gravitee/gamma-modules-sdk';
+
 export interface CurrentUser {
     displayName: string;
     email?: string;
     firstname: string;
     lastname: string;
+    roles?: UserRole[];
 }
 
 export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC';

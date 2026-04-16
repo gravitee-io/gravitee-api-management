@@ -19,15 +19,30 @@ import { devtools } from 'zustand/middleware';
 interface EnvironmentState {
     organizationId: string;
     environmentId: string;
+    loading: boolean;
+    initialized: boolean;
+    initialize: (organizationId: string) => Promise<void>;
     setEnvironment: (org: string, env: string) => void;
 }
 
 export const useEnvironmentStore = create<EnvironmentState>()(
     devtools(
-        set => ({
+        (set, get) => ({
             organizationId: '',
-            environmentId: 'DEFAULT',
-            setEnvironment: (organizationId, environmentId) => set({ organizationId, environmentId }),
+            environmentId: '',
+            loading: false,
+            initialized: false,
+
+            initialize: async (organizationId: string) => {
+                if (get().initialized) return;
+                set({ loading: true });
+
+                set({ initialized: true, loading: false, organizationId, environmentId: 'DEFAULT' });
+            },
+
+            setEnvironment: (organizationId: string, environmentId: string) => {
+                set({ organizationId, environmentId });
+            },
         }),
         { name: 'environment' },
     ),

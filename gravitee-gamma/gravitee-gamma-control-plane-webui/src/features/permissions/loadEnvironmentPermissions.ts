@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+import { normalizeCrudMapRecord, permissionService } from '@gravitee/gamma-modules-sdk';
 
-import { TEST_MANAGEMENT_BASE, buildUser } from '../factories';
+import { managementApi } from '../../shared/api/api-client';
 
-export const authHandlers = [
-    http.get(`${TEST_MANAGEMENT_BASE}/user`, () =>
-        HttpResponse.json(
-            buildUser({
-                roles: [{ scope: 'ORGANIZATION', permissions: { USER: ['R'] } }],
-            }),
-        ),
-    ),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/login`, () => new HttpResponse(null, { status: 200 })),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/logout`, () => new HttpResponse(null, { status: 200 })),
-];
+/**
+ * Loads environment-scoped permissions for the current user and merges them into {@link permissionService}.
+ */
+export async function loadEnvironmentPermissions(envId: string): Promise<void> {
+    const raw = await managementApi.get<Record<string, string[] | string>>(`/environments/${envId}/permissions`);
+    const normalized = normalizeCrudMapRecord('environment', raw);
+    permissionService.load('environment', normalized);
+}

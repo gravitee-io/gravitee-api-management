@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
-
-import { TEST_MANAGEMENT_BASE, buildUser } from '../factories';
-
-export const authHandlers = [
-    http.get(`${TEST_MANAGEMENT_BASE}/user`, () =>
-        HttpResponse.json(
-            buildUser({
-                roles: [{ scope: 'ORGANIZATION', permissions: { USER: ['R'] } }],
-            }),
-        ),
-    ),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/login`, () => new HttpResponse(null, { status: 200 })),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/logout`, () => new HttpResponse(null, { status: 200 })),
-];
+export { PermissionGate } from './PermissionGate';
+export type { PermissionGateProps } from './PermissionGate';
+export { normalizeCrudMapRecord, normalizeOrganizationPermissionsFromRoles } from './normalize';
+export { PermissionService, permissionService } from './permission-service';
+export type { PermissionCheck, PermissionScope, UserRole } from './types';
+export { useHasPermission } from './useHasPermission';
+export type { UseHasPermissionOptions } from './useHasPermission';

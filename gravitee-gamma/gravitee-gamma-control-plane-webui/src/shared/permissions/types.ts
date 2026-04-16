@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
 
-import { TEST_MANAGEMENT_BASE, buildUser } from '../factories';
+/** Re-exported via `index.ts`; same-folder code imports `./types` to avoid a cycle through the barrel. */
+export type PermissionScope = 'organization' | 'environment' | 'api' | 'application';
 
-export const authHandlers = [
-    http.get(`${TEST_MANAGEMENT_BASE}/user`, () =>
-        HttpResponse.json(
-            buildUser({
-                roles: [{ scope: 'ORGANIZATION', permissions: { USER: ['R'] } }],
-            }),
-        ),
-    ),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/login`, () => new HttpResponse(null, { status: 200 })),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/logout`, () => new HttpResponse(null, { status: 200 })),
-];
+export type PermissionCheck = { readonly anyOf: string[]; readonly allOf?: never } | { readonly allOf: string[]; readonly anyOf?: never };
+
+export interface UserRole {
+    id?: string;
+    name?: string;
+    scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
+    permissions?: Record<string, string[]>;
+}

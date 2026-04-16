@@ -15,16 +15,14 @@
  */
 import { http, HttpResponse } from 'msw';
 
-import { TEST_MANAGEMENT_BASE, buildUser } from '../factories';
+import { TEST_MANAGEMENT_BASE } from '../factories';
 
-export const authHandlers = [
-    http.get(`${TEST_MANAGEMENT_BASE}/user`, () =>
-        HttpResponse.json(
-            buildUser({
-                roles: [{ scope: 'ORGANIZATION', permissions: { USER: ['R'] } }],
-            }),
-        ),
+/** Default env permissions for tests (feature key -> CRUD letters). */
+export const permissionsHandlers = [
+    http.get(`${TEST_MANAGEMENT_BASE}/environments/DEFAULT/permissions`, () =>
+        HttpResponse.json({
+            API: ['R', 'C', 'U', 'D'],
+            APPLICATION: ['R', 'C', 'U', 'D'],
+        }),
     ),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/login`, () => new HttpResponse(null, { status: 200 })),
-    http.post(`${TEST_MANAGEMENT_BASE}/user/logout`, () => new HttpResponse(null, { status: 200 })),
 ];
