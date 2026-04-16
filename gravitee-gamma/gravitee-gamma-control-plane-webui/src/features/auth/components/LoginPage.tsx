@@ -29,7 +29,7 @@ import {
     Separator,
     Spinner,
     cn,
-} from '@gravitee/graphene';
+} from '@gravitee/graphene-core';
 import { useState, type SubmitEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 

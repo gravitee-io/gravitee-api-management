@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LayoutSlotsProvider } from '@gravitee/graphene';
+import { LayoutSlotsProvider } from '@gravitee/graphene-core';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 

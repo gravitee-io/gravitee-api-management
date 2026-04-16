@@ -124,7 +124,7 @@ Each module gets a route at `/{moduleId}/*`:
 
 - The `/*` wildcard allows the remote module to define its own sub-routes.
 - Routes are nested inside `<ProtectedRoute />` (authentication guard) and `<ShellLayout />` (app shell).
-- `ShellLayout` provides the sidebar with an app switcher (to navigate between modules), a content header with breadcrumbs, and layout slots via `@gravitee/graphene`'s `LayoutSlotsProvider`.
+- `ShellLayout` provides the sidebar with an app switcher (to navigate between modules), a content header with breadcrumbs, and layout slots via `@gravitee/graphene-core`'s `LayoutSlotsProvider`.
 - `RouteLayout` provides breadcrumb and navigation slots for host-level pages.
 - The entire tree is wrapped in `<React.Suspense fallback={<div>Loading...</div>}>` at the root, which shows the fallback while any lazy module is being fetched.
 
@@ -136,13 +136,13 @@ The home page (`/`) lists all discovered modules as navigation links.
 
 `module-federation.config.ts` configures which libraries are shared between the host and remotes:
 
-| Library              | Singleton | Strict version |
-| -------------------- | --------- | -------------- |
-| `react`              | Yes       | Yes            |
-| `react-dom`          | Yes       | Yes            |
-| `react-router-dom`   | Yes       | Yes            |
-| `zustand`            | Yes       | Yes            |
-| `@gravitee/graphene` | Yes       | Yes            |
+| Library                   | Singleton | Strict version |
+| ------------------------- | --------- | -------------- |
+| `react`                   | Yes       | Yes            |
+| `react-dom`               | Yes       | Yes            |
+| `react-router-dom`        | Yes       | Yes            |
+| `zustand`                 | Yes       | Yes            |
+| `@gravitee/graphene-core` | Yes       | Yes            |
 
 All other libraries are **not shared** (`shared` callback returns `false`). This ensures the host and all remotes use the exact same instance of React, the router, the state manager, and the design system, avoiding context mismatches.
 

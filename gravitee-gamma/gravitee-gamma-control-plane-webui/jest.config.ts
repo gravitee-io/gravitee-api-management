@@ -17,9 +17,9 @@ export default {
     displayName: 'gravitee-gamma-control-plane-webui',
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['./src/test-setup.ts'],
-    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene)/)'],
+    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
     moduleNameMapper: {
-        '^@gravitee/graphene$': '<rootDir>/../../node_modules/@gravitee/graphene/dist/index.js',
+        '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
     },
     transform: {

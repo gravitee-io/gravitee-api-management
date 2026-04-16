@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SidebarNavigation, useLayoutConfig } from '@gravitee/graphene';
+import { SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import React, { useCallback, useMemo } from 'react';
 import { Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
