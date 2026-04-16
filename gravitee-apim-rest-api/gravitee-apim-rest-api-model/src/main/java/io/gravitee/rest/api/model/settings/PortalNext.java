@@ -40,6 +40,9 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_MTLS_ENABLED)
     private Enabled mtls;
 
+    @ParameterKey(Key.PORTAL_NEXT_ANALYTICS_ENABLED)
+    private Enabled analytics;
+
     private Banner banner;
 
     private Catalog catalog;

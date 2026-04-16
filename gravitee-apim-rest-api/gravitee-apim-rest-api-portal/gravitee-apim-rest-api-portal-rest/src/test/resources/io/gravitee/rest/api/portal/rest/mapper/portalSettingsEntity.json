@@ -153,6 +153,9 @@
     "access": {
       "enabled": true
     },
+    "analytics": {
+      "enabled": false
+    },
     "banner": {
       "enabled": true,
       "title": "banner title",

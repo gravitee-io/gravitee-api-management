@@ -210,4 +210,24 @@ public class ConfigurationMapperTest {
         result = configurationMapper.convert(portalNext);
         Assertions.assertNull(result.getMtls());
     }
+
+    @Test
+    public void convertPortalNextShouldMapAnalyticsEnabled() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setAnalytics(new Enabled(true));
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getAnalytics());
+        Assertions.assertEquals(Boolean.TRUE, result.getAnalytics().getEnabled());
+
+        portalNext.setAnalytics(new Enabled(false));
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getAnalytics());
+        Assertions.assertEquals(Boolean.FALSE, result.getAnalytics().getEnabled());
+
+        portalNext.setAnalytics(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getAnalytics());
+    }
 }
