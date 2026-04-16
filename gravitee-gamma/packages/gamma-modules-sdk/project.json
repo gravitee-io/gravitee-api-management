@@ -1,0 +1,7 @@
+{
+    "name": "gamma-modules-sdk",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-gamma/packages/gamma-modules-sdk/src",
+    "projectType": "library",
+    "tags": []
+}

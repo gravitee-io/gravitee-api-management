@@ -14,7 +14,10 @@
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
         "allowSyntheticDefaultImports": true,
-        "baseUrl": "."
+        "baseUrl": ".",
+        "paths": {
+            "@gravitee/gamma-modules-sdk": ["gravitee-gamma/packages/gamma-modules-sdk/src/index.ts"]
+        }
     },
     "exclude": ["node_modules", "tmp"]
 }
