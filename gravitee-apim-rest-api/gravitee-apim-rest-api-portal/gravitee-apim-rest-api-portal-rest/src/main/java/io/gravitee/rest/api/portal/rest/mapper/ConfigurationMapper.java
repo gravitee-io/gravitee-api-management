@@ -56,6 +56,9 @@ public class ConfigurationMapper {
         if (portalNext.getMtls() != null) {
             configuration.setMtls(convert(portalNext.getMtls()));
         }
+        if (portalNext.getAnalytics() != null) {
+            configuration.setAnalytics(convert(portalNext.getAnalytics()));
+        }
         return configuration;
     }
 
