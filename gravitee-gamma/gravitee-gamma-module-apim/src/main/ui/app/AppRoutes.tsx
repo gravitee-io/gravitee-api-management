@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
+import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { useCallback, useMemo } from 'react';
 import { Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { NAV_GROUPS } from '../config/navigation';
 import { navigateToNavKey, ROUTES, resolveModulePath } from '../config/routes';
-import { buildLinearBreadcrumbs } from '../lib/buildLinearBreadcrumbs';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
