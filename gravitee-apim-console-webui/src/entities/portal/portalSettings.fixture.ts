@@ -222,6 +222,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       mtls: {
         enabled: false,
       },
+      analytics: {
+        enabled: false,
+      },
       banner: {
         enabled: true,
         title: 'testTitle',

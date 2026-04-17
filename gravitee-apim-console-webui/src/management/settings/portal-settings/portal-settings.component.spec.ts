@@ -201,6 +201,9 @@ describe('PortalSettingsComponent', () => {
           mtls: {
             enabled: false,
           },
+          analytics: {
+            enabled: false,
+          },
           banner: {
             ...portalSettingsMock.portalNext.banner,
             enabled: true,
@@ -209,6 +212,22 @@ describe('PortalSettingsComponent', () => {
           },
         },
       });
+    });
+
+    it('display settings form and edit Portal Next analytics toggle', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const analyticsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-analytics' }));
+      await analyticsToggle.toggle();
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.portalNext.analytics.enabled).toEqual(true);
     });
 
     it('display settings form and edit CORS fields', async () => {

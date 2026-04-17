@@ -250,6 +250,9 @@ export interface PortalSettingsPortalNext {
   mtls?: {
     enabled?: boolean;
   };
+  analytics?: {
+    enabled?: boolean;
+  };
   banner?: {
     title?: string;
     subtitle?: string;

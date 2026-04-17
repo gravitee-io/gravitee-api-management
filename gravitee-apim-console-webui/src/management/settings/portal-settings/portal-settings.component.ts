@@ -111,6 +111,7 @@ interface PortalForm {
   portalNext: FormGroup<{
     access: FormGroup<{ enabled: FormControl<boolean> }>;
     mtls: FormGroup<{ enabled: FormControl<boolean> }>;
+    analytics: FormGroup<{ enabled: FormControl<boolean> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -417,6 +418,12 @@ export class PortalSettingsComponent implements OnInit {
             disabled: this.isReadonly('portalNext.mtls.enabled'),
           }),
         }),
+        analytics: new FormGroup({
+          enabled: new FormControl({
+            value: !!this.settings.portalNext?.analytics?.enabled,
+            disabled: this.isReadonly('portalNext.analytics.enabled'),
+          }),
+        }),
       }),
       scheduler: new FormGroup({
         tasks: new FormControl({
@@ -671,6 +678,7 @@ export class PortalSettingsComponent implements OnInit {
           ...this.portalForm.get('portalNext.access').value,
         },
         mtls: this.portalForm.get('portalNext.mtls').value,
+        analytics: this.portalForm.get('portalNext.analytics').value,
       },
     };
 
