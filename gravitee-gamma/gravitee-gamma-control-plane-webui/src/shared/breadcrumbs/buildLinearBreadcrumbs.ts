@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { BreadcrumbEntry } from '@gravitee/graphene';
+import type { BreadcrumbEntry } from '@gravitee/graphene-core';
 import type { NavigateFunction } from 'react-router-dom';
 
 /**

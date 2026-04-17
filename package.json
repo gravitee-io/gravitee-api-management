@@ -35,7 +35,7 @@
         "@fontsource/material-icons-two-tone": "5.2.5",
         "@fontsource/montserrat": "5.2.5",
         "@fontsource/roboto": "5.2.5",
-        "@gravitee/graphene": "1.0.0-alpha.23",
+        "@gravitee/graphene-core": "1.0.0-alpha.1",
         "@gravitee/ui-analytics": "17.7.5",
         "@gravitee/ui-components": "4.4.0",
         "@gravitee/ui-particles-angular": "17.7.5",

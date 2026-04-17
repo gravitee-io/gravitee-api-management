@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene';
+import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene-core';
 import { Boxes } from 'lucide-react';
 import type { ReactNode } from 'react';
 

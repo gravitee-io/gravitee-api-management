@@ -19,7 +19,7 @@ export default {
     setupFilesAfterEnv: ['./src/test-setup.ts'],
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene)/)'],
     moduleNameMapper: {
-        '^@gravitee/graphene$': '<rootDir>/../../node_modules/@gravitee/graphene/dist/index.js',
+        '^@gravitee/graphene$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
     },
     transform: {

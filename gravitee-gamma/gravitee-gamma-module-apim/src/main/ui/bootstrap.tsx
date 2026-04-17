@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@gravitee/graphene/fonts';
-import '@gravitee/graphene/styles';
+import '@gravitee/graphene-core/fonts';
+import '@gravitee/graphene-core/styles';
 
-import { ThemeProvider } from '@gravitee/graphene';
+import { ThemeProvider } from '@gravitee/graphene-core';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 

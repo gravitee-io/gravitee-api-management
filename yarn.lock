@@ -3441,6 +3441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@date-fns/tz@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "@date-fns/tz@npm:1.4.1"
+  checksum: 10c0/9033fdc4682fe3d4d147625ce04fa88a8792653594e2de8d5a438c8f3bfc0990ee28fe773f91cac6810b06d818b5b281ae0608752ba8337257d0279ded3f019a
+  languageName: node
+  linkType: hard
+
 "@discoveryjs/json-ext@npm:0.5.7, @discoveryjs/json-ext@npm:^0.5.7":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
@@ -4519,30 +4526,55 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene@npm:1.0.0-alpha.23":
-  version: 1.0.0-alpha.23
-  resolution: "@gravitee/graphene@npm:1.0.0-alpha.23"
+"@gravitee/graphene-core@npm:1.0.0-alpha.1":
+  version: 1.0.0-alpha.1
+  resolution: "@gravitee/graphene-core@npm:1.0.0-alpha.1"
   dependencies:
     class-variance-authority: "npm:0.7.1"
     clsx: "npm:2.1.1"
     cmdk: "npm:1.1.1"
-    lucide-react: "npm:1.6.0"
+    date-fns: "npm:4.1.0"
+    lucide-react: "npm:1.8.0"
     radix-ui: "npm:1.4.3"
-    react-resizable-panels: "npm:4.8.0"
+    react-day-picker: "npm:9.14.0"
+    react-resizable-panels: "npm:4.10.0"
     sonner: "npm:2.0.7"
     tailwind-merge: "npm:3.5.0"
     vaul: "npm:1.1.2"
   peerDependencies:
     "@fontsource/dm-sans": ">=5.0.0"
+    "@tanstack/react-table": ^8.0.0
+    "@typescript-eslint/eslint-plugin": ">=5.0.0"
+    "@typescript-eslint/parser": ">=5.0.0"
+    eslint: ">=8.0.0"
+    eslint-config-prettier: ">=8.0.0"
+    eslint-import-resolver-typescript: ">=3.0.0"
+    eslint-plugin-import: ">=2.0.0"
+    eslint-plugin-import-x: ">=4.0.0"
+    eslint-plugin-jsx-a11y: ">=6.0.0"
+    eslint-plugin-react: ">=7.0.0"
+    eslint-plugin-react-hooks: ">=4.0.0"
+    eslint-plugin-unused-imports: ">=3.0.0"
     react: ^19.0.0
     react-dom: ^19.0.0
     tailwindcss: ^4.0.0
+    typescript-eslint: ">=8.0.0"
   peerDependenciesMeta:
+    "@typescript-eslint/eslint-plugin":
+      optional: true
+    "@typescript-eslint/parser":
+      optional: true
+    eslint-plugin-import:
+      optional: true
+    eslint-plugin-import-x:
+      optional: true
     tailwindcss:
+      optional: true
+    typescript-eslint:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/d9eea14b7e109afa919d9b4fa2831c9e5c6a6289cdf3e2c63fcabe5b8aa6fcb2ca3f11d5932930c9565244e75c526683fa668bdd15f32554b31131c46bb11075
+  checksum: 10c0/dc35b2e4bad105195a91ee7b88a5acab8e897c21d1b7352e1b45afa72239896bd8db2f5b2499ca6ee8bf9cb8bcaca5bc556615cc8462edd4bd7174c88ac2c19c
   languageName: node
   linkType: hard
 
@@ -12115,6 +12147,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tabby_ai/hijri-converter@npm:1.0.5":
+  version: 1.0.5
+  resolution: "@tabby_ai/hijri-converter@npm:1.0.5"
+  checksum: 10c0/40044f463ff57855315c8925461942311460bb64e16706480dde98142f40bcd8e9925bb6fee401fd209397b5bb25368d1529c85b1e6c7e6216ea2085f6aaf61e
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:10.4.1":
   version: 10.4.1
   resolution: "@testing-library/dom@npm:10.4.1"
@@ -17404,7 +17443,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:4.1.0":
+"date-fns-jalali@npm:4.1.0-0":
+  version: 4.1.0-0
+  resolution: "date-fns-jalali@npm:4.1.0-0"
+  checksum: 10c0/f9ad98d9f7e8e5abe0d070dc806b0c8baded2b1208626c42e92cbd2605b5171f5714d6b79b20cc2666267d821699244c9d0b5e93274106cf57d6232da77596ed
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:4.1.0, date-fns@npm:^4.1.0":
   version: 4.1.0
   resolution: "date-fns@npm:4.1.0"
   checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
@@ -20483,7 +20529,7 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.2.5"
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
-    "@gravitee/graphene": "npm:1.0.0-alpha.23"
+    "@gravitee/graphene-core": "npm:1.0.0-alpha.1"
     "@gravitee/ui-analytics": "npm:17.7.5"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.7.5"
@@ -24202,6 +24248,15 @@ __metadata:
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10c0/be26a58285afca37b821cb0572a7ca99a86bde8c5e3a1d752719aa7b6dacccc1ac5d1c6bbaac4f08c5ff1e2b6104076adc32a1890c0c7d8676cb38ca790efbcd
+  languageName: node
+  linkType: hard
+
+"lucide-react@npm:1.8.0":
+  version: 1.8.0
+  resolution: "lucide-react@npm:1.8.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/f7398f89a0f5b2cbfd1b7a7f6b2f00b0abd05d4b21d948bbd281ab141c42cdff9f1d2aed4e32b78b4bbdfa78308b6577705698af8bf9945bad23ed7d56e255b4
   languageName: node
   linkType: hard
 
@@ -28424,6 +28479,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-day-picker@npm:9.14.0":
+  version: 9.14.0
+  resolution: "react-day-picker@npm:9.14.0"
+  dependencies:
+    "@date-fns/tz": "npm:^1.4.1"
+    "@tabby_ai/hijri-converter": "npm:1.0.5"
+    date-fns: "npm:^4.1.0"
+    date-fns-jalali: "npm:4.1.0-0"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 10c0/5d26b2e8e28fb504c2ec577bda2ea26709ccab07555aada0674bd72ae38963de6f5cab135d936bb2fef935f97f73c6510657b15b936766e53d5c65811d13289a
+  languageName: node
+  linkType: hard
+
 "react-debounce-input@npm:=3.3.0":
   version: 3.3.0
   resolution: "react-debounce-input@npm:3.3.0"
@@ -28583,13 +28652,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-resizable-panels@npm:4.8.0":
-  version: 4.8.0
-  resolution: "react-resizable-panels@npm:4.8.0"
+"react-resizable-panels@npm:4.10.0":
+  version: 4.10.0
+  resolution: "react-resizable-panels@npm:4.10.0"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
-  checksum: 10c0/baea7412bca8733bef7b3bb4c4b5f3dc56bcaff282708d8fec904c643547f3c37eaf01fb92f81ba284f23b8dbd820a6a7a391f89ce595abbde2aa71009aad4b6
+  checksum: 10c0/da42646e8d7d30c4384c58ca9cefa3fe567fc2b11d4959cb15f1ec4e42198226016f61623c04baef105fdec68651a70411360b86f6cefa0bb45a53c42d252309
   languageName: node
   linkType: hard
 

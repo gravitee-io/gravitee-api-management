@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { BreadcrumbEntry } from '@gravitee/graphene';
+import type { BreadcrumbEntry } from '@gravitee/graphene-core';
 import type { NavigateFunction } from 'react-router-dom';
 
 /**
  * Duplicate of gravitee-gamma-control-plane-webui/src/shared/breadcrumbs/buildLinearBreadcrumbs.ts —
- * TODO(graphene): replace this file with `import { buildLinearBreadcrumbs } from '@gravitee/graphene'` when available.
+ * TODO(graphene): replace this file with `import { buildLinearBreadcrumbs } from '@gravitee/graphene-core'` when available.
  */
 export function buildLinearBreadcrumbs(
     navigate: NavigateFunction,
