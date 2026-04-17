@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-
 import { Activity, Boxes, Computer, Settings } from 'lucide-react';
 
 import { ROUTES } from './routes';

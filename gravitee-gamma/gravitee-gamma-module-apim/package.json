@@ -2,7 +2,7 @@
     "name": "gravitee-gamma-module-apim",
     "private": true,
     "dependencies": {
-        "@gravitee/graphene-core": "1.0.0-alpha.30-graphene-121-legacy.ea70157",
+        "@gravitee/graphene-core": "1.0.0-alpha.1",
         "lucide-react": "1.6.0",
         "react": "19.2.4",
         "react-dom": "19.2.4",

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { LayoutSlotsProvider } from '@gravitee/graphene-core';
-import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';

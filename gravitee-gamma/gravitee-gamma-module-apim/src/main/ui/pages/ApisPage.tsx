@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene';
-
 import { PermissionGate, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { Button } from '@gravitee/graphene-core';
 
 export function ApisPage() {
     const canCreateApi = useHasPermission({ anyOf: ['environment-api-c'] });
