@@ -110,6 +110,24 @@ tests:
           content:
             name: get-repository-jdbc-ext
 
+  - it: Should use preinstalled MySQL JDBC driver without runtime provisioning
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "preinstalled"
+        url: "jdbc:mysql://db:3306/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+      - notExists:
+          path: spec.template.spec.volumes[1]
+
   - it: Check that cockpit has been disabled
     template: api/api-upgrader-job.yaml
     set:
