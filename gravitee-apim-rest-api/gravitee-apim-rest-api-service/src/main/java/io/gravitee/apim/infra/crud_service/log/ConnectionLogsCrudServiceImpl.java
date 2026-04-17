@@ -191,6 +191,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .to(searchLogsFilters.to())
             .applicationIds(searchLogsFilters.applicationIds())
             .apiIds(searchLogsFilters.apiIds())
+            .apiProductIds(searchLogsFilters.apiProductIds())
             .planIds(searchLogsFilters.planIds())
             .methods(searchLogsFilters.methods())
             .mcpMethods(searchLogsFilters.mcpMethods())

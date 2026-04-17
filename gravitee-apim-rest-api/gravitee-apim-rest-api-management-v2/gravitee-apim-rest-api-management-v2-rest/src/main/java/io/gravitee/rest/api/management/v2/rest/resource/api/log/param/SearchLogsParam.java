@@ -30,6 +30,7 @@ public class SearchLogsParam implements TimeInterval {
     public static final String FROM_QUERY_PARAM_NAME = "from";
     public static final String TO_QUERY_PARAM_NAME = "to";
     public static final String APPLICATION_IDS_QUERY_PARAM_NAME = "applicationIds";
+    public static final String API_PRODUCT_IDS_QUERY_PARAM_NAME = "apiProductIds";
     public static final String PLAN_IDS_QUERY_PARAM_NAME = "planIds";
     public static final String METHODS_QUERY_PARAM_NAME = "methods";
     public static final String MCP_METHODS_QUERY_PARAM_NAME = "mcpMethods";
@@ -47,6 +48,9 @@ public class SearchLogsParam implements TimeInterval {
 
     @QueryParam(APPLICATION_IDS_QUERY_PARAM_NAME)
     Set<String> applicationIds;
+
+    @QueryParam(API_PRODUCT_IDS_QUERY_PARAM_NAME)
+    Set<String> apiProductIds;
 
     @QueryParam(PLAN_IDS_QUERY_PARAM_NAME)
     Set<String> planIds;

@@ -21,10 +21,12 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.core.model.PlanFixtures;
 import fixtures.repository.ConnectionLogFixtures;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase.Input;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
@@ -68,12 +70,18 @@ class SearchApiV4ConnectionLogsUseCaseTest {
     ConnectionLogsCrudServiceInMemory logStorageService = new ConnectionLogsCrudServiceInMemory();
     PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationStorageService = new ApplicationCrudServiceInMemory();
+    ApiProductQueryServiceInMemory apiProductStorageService = new ApiProductQueryServiceInMemory();
 
     SearchApiV4ConnectionLogsUseCase usecase;
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchApiV4ConnectionLogsUseCase(logStorageService, planStorageService, applicationStorageService);
+        usecase = new SearchApiV4ConnectionLogsUseCase(
+            logStorageService,
+            planStorageService,
+            applicationStorageService,
+            apiProductStorageService
+        );
 
         planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION_1, APPLICATION_2));
@@ -81,7 +89,9 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryAlternative::reset);
+        Stream.of(logStorageService, planStorageService, applicationStorageService, apiProductStorageService).forEach(
+            InMemoryAlternative::reset
+        );
 
         GraviteeContext.cleanContext();
     }
@@ -381,5 +391,68 @@ class SearchApiV4ConnectionLogsUseCaseTest {
             soft.assertThat(result.total()).isEqualTo(1);
             soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
         });
+    }
+
+    @Test
+    void should_map_api_product_id_onto_connection_log_model() {
+        logStorageService.initWithConnectionLogs(
+            List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001").build())
+        );
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
+        );
+
+        assertThat(result.data()).extracting(ConnectionLogModel::getApiProductId).containsExactly("f5e6a5a0-1234-4b3a-9c1e-000000000001");
+    }
+
+    @Test
+    void should_resolve_api_product_name_when_product_exists() {
+        var product = ApiProduct.builder()
+            .id("f5e6a5a0-1234-4b3a-9c1e-000000000001")
+            .name("My Partner API Product")
+            .version("1.0")
+            .environmentId("DEFAULT")
+            .build();
+        apiProductStorageService.initWith(List.of(product));
+        logStorageService.initWithConnectionLogs(
+            List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001").build())
+        );
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
+        );
+
+        assertThat(result.data()).extracting(ConnectionLogModel::getApiProductName).containsExactly("My Partner API Product");
+    }
+
+    @Test
+    void should_return_null_api_product_name_when_no_product_is_associated() {
+        logStorageService.initWithConnectionLogs(
+            List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId(null).build())
+        );
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
+        );
+
+        assertThat(result.data()).extracting(ConnectionLogModel::getApiProductName).containsOnlyNulls();
+    }
+
+    @Test
+    void should_return_null_api_product_name_when_product_is_not_found() {
+        logStorageService.initWithConnectionLogs(
+            List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000099").build())
+        );
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
+        );
+
+        assertThat(result.data()).extracting(ConnectionLogModel::getApiProductName).containsOnlyNulls();
     }
 }

@@ -710,4 +710,78 @@ class SearchMetricsQueryAdapterTest {
             assertThat(hasErrorKeysFilter).isFalse();
         }
     }
+
+    @Nested
+    class ApiProductIdsFilter {
+
+        @Test
+        void should_add_api_product_ids_terms_filter_when_provided() {
+            var query = MetricsQuery.builder()
+                .filter(
+                    MetricsQuery.Filter.builder()
+                        .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                        .apiProductIds(Set.of("f5e6a5a0-1234-4b3a-9c1e-000000000001", "f5e6a5a0-1234-4b3a-9c1e-000000000002"))
+                        .build()
+                )
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+
+            var hasApiProductFilter = mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(
+                    clause ->
+                        clause.containsKey("terms") &&
+                        clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())
+                );
+
+            assertThat(hasApiProductFilter).isTrue();
+        }
+
+        @Test
+        void should_not_add_api_product_ids_filter_when_null() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(null).build())
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+
+            var hasApiProductFilter = mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(
+                    clause ->
+                        clause.containsKey("terms") &&
+                        clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())
+                );
+
+            assertThat(hasApiProductFilter).isFalse();
+        }
+
+        @Test
+        void should_not_add_api_product_ids_filter_when_empty() {
+            var query = MetricsQuery.builder()
+                .filter(
+                    MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(Set.of()).build()
+                )
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+
+            var hasApiProductFilter = mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(
+                    clause ->
+                        clause.containsKey("terms") &&
+                        clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())
+                );
+
+            assertThat(hasApiProductFilter).isFalse();
+        }
+    }
 }

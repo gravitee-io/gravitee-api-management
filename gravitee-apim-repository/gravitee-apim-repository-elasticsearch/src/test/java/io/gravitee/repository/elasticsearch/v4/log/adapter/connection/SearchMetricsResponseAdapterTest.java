@@ -71,7 +71,7 @@ class SearchMetricsResponseAdapterTest extends AbstractAdapterTest {
 
             assertThat(result.data()).hasSize(1);
             Metrics metrics = result.data().getFirst();
-            assertThat(metrics.getApiProductId()).isEqualTo("product-abc-123");
+            assertThat(metrics.getApiProductId()).isEqualTo("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff");
         }
 
         @Test
