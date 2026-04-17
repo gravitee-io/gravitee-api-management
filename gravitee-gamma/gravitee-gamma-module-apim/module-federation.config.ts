@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleFederationConfig } from '@nx/module-federation';
+import type { ModuleFederationConfig } from '@nx/module-federation';
 
 const config: ModuleFederationConfig = {
     name: 'gravitee-gamma-module-apim',
