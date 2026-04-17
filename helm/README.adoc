@@ -272,6 +272,8 @@ The startup behavior is derived from `jdbc.url` and `jdbc.driverSource`:
 * `jdbc.driverSource=auto` uses bundled PostgreSQL, MariaDB, and SQL Server drivers, and uses startup download for MySQL and any other custom JDBC family
 * `jdbc.driverSource=download` always downloads the driver from `jdbc.driver` at startup
 * `jdbc.driverSource=image` copies the driver at startup from a dedicated customer-provided JDBC image
+* `jdbc.driverSource=preinstalled` uses a driver already baked into the final API and Gateway runtime images
+* any other value fails chart rendering
 
 When `jdbc.driverSource=auto`:
 
@@ -345,7 +347,24 @@ management:
   type: jdbc
 ----
 
-The API upgrader follows the same JDBC behavior automatically.
+For hardened immutable deployments, use preinstalled mode with custom API and Gateway images that already contain the driver in:
+
+* `/opt/graviteeio-management-api/plugins/ext/repository-jdbc`
+* `/opt/graviteeio-gateway/plugins/ext/repository-jdbc`
+
+In this mode, the chart does not create a JDBC initContainer, `emptyDir`, or JDBC volume mount.
+
+----
+jdbc:
+  driverSource: preinstalled
+  url: jdbc:mysql://mysql-apim-mysql:3306/graviteeapim
+  username: gravitee
+  password: P@ssw0rd
+management:
+  type: jdbc
+----
+
+The API upgrader follows the same behavior and expects the driver to be present in the API image as well.
 
 For MySQL fallback mode, keep the current startup download path:
 

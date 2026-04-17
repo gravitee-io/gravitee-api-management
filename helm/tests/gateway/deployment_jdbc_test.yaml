@@ -103,6 +103,39 @@ tests:
           content:
             name: get-repository-jdbc-ext
 
+  - it: Should use preinstalled MySQL JDBC driver without runtime provisioning
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "preinstalled"
+        url: "jdbc:mysql://db:3306/gravitee"
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+
+  - it: Should fail for unsupported JDBC driver source
+    template: gateway/gateway-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+      jdbc:
+        driverSource: "dupa"
+        url: "jdbc:mysql://db:3306/gravitee"
+        driver: "https://url/where/to/download/driver"
+    asserts:
+      - failedTemplate:
+          errorPattern: "jdbc\\.driverSource must be one of auto, download, image, preinstalled"
+
   - it: Should not download bundled PostgreSQL JDBC driver
     template: gateway/gateway-deployment.yaml
     set:

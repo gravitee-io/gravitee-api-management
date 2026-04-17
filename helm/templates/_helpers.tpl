@@ -232,7 +232,12 @@ other
 Configured JDBC driver source.
 */}}
 {{- define "apim.jdbcDriverSource" -}}
-{{- lower (default "auto" .Values.jdbc.driverSource) -}}
+{{- $source := lower (default "auto" .Values.jdbc.driverSource) -}}
+{{- if has $source (list "auto" "download" "image" "preinstalled") -}}
+{{- $source -}}
+{{- else -}}
+{{- fail (printf "jdbc.driverSource must be one of auto, download, image, preinstalled, got %q" .Values.jdbc.driverSource) -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
