@@ -29,4 +29,8 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: added
+      description: 'Improve JDBC driver delivery options with auto, download, image, and preinstalled modes.'
+    - kind: fixed
+      description: 'Validate jdbc.driverSource values during chart rendering and fail on unsupported values.'
