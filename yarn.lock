@@ -4526,9 +4526,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:1.0.0-alpha.1":
-  version: 1.0.0-alpha.1
-  resolution: "@gravitee/graphene-core@npm:1.0.0-alpha.1"
+"@gravitee/graphene-core@npm:1.0.0-alpha.1-graphene-125.a3e156f":
+  version: 1.0.0-alpha.1-graphene-125.a3e156f
+  resolution: "@gravitee/graphene-core@npm:1.0.0-alpha.1-graphene-125.a3e156f"
   dependencies:
     class-variance-authority: "npm:0.7.1"
     clsx: "npm:2.1.1"
@@ -4574,7 +4574,7 @@ __metadata:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/dc35b2e4bad105195a91ee7b88a5acab8e897c21d1b7352e1b45afa72239896bd8db2f5b2499ca6ee8bf9cb8bcaca5bc556615cc8462edd4bd7174c88ac2c19c
+  checksum: 10c0/dae0c0fb76682ccc2d71674fe7b36aac40deea95db905ad9658ee23934ec3318a2e778be33d88a16ab42ba0c334e33359120be29834864c8cfd0b3e9cb338262
   languageName: node
   linkType: hard
 
@@ -20529,7 +20529,7 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.2.5"
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
-    "@gravitee/graphene-core": "npm:1.0.0-alpha.1"
+    "@gravitee/graphene-core": "npm:1.0.0-alpha.1-graphene-125.a3e156f"
     "@gravitee/ui-analytics": "npm:17.7.5"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.7.5"
