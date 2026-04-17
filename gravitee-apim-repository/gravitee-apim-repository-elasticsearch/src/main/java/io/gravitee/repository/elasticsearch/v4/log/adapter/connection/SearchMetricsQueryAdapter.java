@@ -53,6 +53,8 @@ public class SearchMetricsQueryAdapter {
 
         addApisFilter(filter, mustFilterList);
 
+        addApiProductIdsFilter(filter, mustFilterList);
+
         addFromAndToFilters(filter, mustFilterList);
 
         addApplicationsFilter(filter, mustFilterList);
@@ -87,6 +89,13 @@ public class SearchMetricsQueryAdapter {
     private static void addApisFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getApiIds())) {
             mustFilterList.add(buildV2AndV4Terms(RequestV2MetricsV4Fields.API_ID, filter.getApiIds()));
+        }
+    }
+
+    private static void addApiProductIdsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getApiProductIds())) {
+            // API product ID exists only in the v4 metrics index — use buildV4Terms, not buildV2AndV4Terms
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.API_PRODUCT_ID, filter.getApiProductIds()));
         }
     }
 

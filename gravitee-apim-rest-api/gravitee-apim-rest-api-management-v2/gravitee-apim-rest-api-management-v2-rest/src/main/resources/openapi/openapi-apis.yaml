@@ -2434,6 +2434,16 @@ paths:
                 - $ref: "#/components/parameters/applicationIds"
                 - $ref: "#/components/parameters/planIds"
                 - $ref: "#/components/parameters/methods"
+                - name: apiProductIds
+                  in: query
+                  description: Filter by API Product IDs. Only supported for v4 APIs.
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                      example:
+                          - f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff
             tags:
                 - API Analytics
             summary: Get API logs
@@ -7024,6 +7034,14 @@ components:
                   type: object
                   additionalProperties: true
                   description: A map of string keys to values
+                apiProductId:
+                  type: string
+                  description: The ID of the API Product associated with this log entry. Absent when the request is not associated with any API Product.
+                  example: f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff
+                apiProductName:
+                  type: string
+                  description: The human-readable name of the API Product. Absent when no API Product is associated or the product cannot be resolved.
+                  example: My Partner API Product
 
         ApiLogDiagnostic:
           type: object

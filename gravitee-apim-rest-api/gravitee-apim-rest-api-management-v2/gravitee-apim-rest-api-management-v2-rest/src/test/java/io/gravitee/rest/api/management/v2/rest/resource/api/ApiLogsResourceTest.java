@@ -501,6 +501,33 @@ class ApiLogsResourceTest extends ApiResourceTest {
                         .links(new Links().self(connectionLogsTarget.getUri().toString()))
                 );
         }
+
+        @Test
+        void should_return_connection_logs_filtered_by_api_product_ids() {
+            connectionLogStorageService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000002").build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(
+                SearchLogsParam.API_PRODUCT_IDS_QUERY_PARAM_NAME,
+                "f5e6a5a0-1234-4b3a-9c1e-000000000001"
+            );
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response).hasStatus(OK_200);
+
+            var apiLogsResponse = assertThat(response).asEntity(ApiLogsResponse.class).actual();
+            assertThat(apiLogsResponse.getPagination()).isEqualTo(
+                new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L)
+            );
+            assertThat(apiLogsResponse.getData())
+                .extracting(io.gravitee.rest.api.management.v2.rest.model.ApiLog::getRequestId)
+                .containsExactlyInAnyOrder("req1", "req2");
+        }
     }
 
     @Nested

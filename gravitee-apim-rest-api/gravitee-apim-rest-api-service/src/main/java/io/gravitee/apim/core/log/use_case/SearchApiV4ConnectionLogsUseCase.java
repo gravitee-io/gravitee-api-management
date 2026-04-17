@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.log.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -35,7 +37,10 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @UseCase
 public class SearchApiV4ConnectionLogsUseCase {
@@ -44,15 +49,18 @@ public class SearchApiV4ConnectionLogsUseCase {
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public SearchApiV4ConnectionLogsUseCase(
         ConnectionLogsCrudService connectionLogsCrudService,
         PlanCrudService planCrudService,
-        ApplicationCrudService applicationCrudService
+        ApplicationCrudService applicationCrudService,
+        ApiProductQueryService apiProductQueryService
     ) {
         this.connectionLogsCrudService = connectionLogsCrudService;
         this.planCrudService = planCrudService;
         this.applicationCrudService = applicationCrudService;
+        this.apiProductQueryService = apiProductQueryService;
     }
 
     public Output execute(ExecutionContext executionContext, Input input) {
@@ -70,16 +78,34 @@ public class SearchApiV4ConnectionLogsUseCase {
 
     private Output mapToResponse(ExecutionContext executionContext, SearchLogsResponse<BaseConnectionLog> logs) {
         var total = logs.total();
-        var data = logs
-            .logs()
+        var logList = logs.logs();
+
+        var apiProductNames = prefetchApiProductNames(executionContext, logList);
+
+        var data = logList
             .stream()
-            .map(log -> mapToModel(executionContext, log))
+            .map(log -> mapToModel(executionContext, log, apiProductNames))
             .toList();
 
         return new Output(total, data);
     }
 
-    private ConnectionLogModel mapToModel(ExecutionContext executionContext, BaseConnectionLog connectionLog) {
+    private Map<String, String> prefetchApiProductNames(ExecutionContext executionContext, List<BaseConnectionLog> logs) {
+        var ids = logs.stream().map(BaseConnectionLog::getApiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return apiProductQueryService
+            .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
+            .stream()
+            .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+    }
+
+    private ConnectionLogModel mapToModel(
+        ExecutionContext executionContext,
+        BaseConnectionLog connectionLog,
+        Map<String, String> apiProductNames
+    ) {
         return ConnectionLogModel.builder()
             .apiId(connectionLog.getApiId())
             .requestId(connectionLog.getRequestId())
@@ -100,6 +126,8 @@ public class SearchApiV4ConnectionLogsUseCase {
             .message(connectionLog.getMessage())
             .warnings(connectionLog.getWarnings() != null ? connectionLog.getWarnings() : List.of())
             .additionalMetrics(connectionLog.getAdditionalMetrics() != null ? connectionLog.getAdditionalMetrics() : Map.of())
+            .apiProductId(connectionLog.getApiProductId())
+            .apiProductName(connectionLog.getApiProductId() != null ? apiProductNames.get(connectionLog.getApiProductId()) : null)
             .build();
     }
 
