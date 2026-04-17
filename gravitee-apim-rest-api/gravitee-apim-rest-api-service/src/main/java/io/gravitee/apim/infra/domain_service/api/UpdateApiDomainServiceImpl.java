@@ -58,4 +58,32 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
 
         return apiCrudService.get(api.getId());
     }
+
+    @Override
+    public Api validateV4(Api api, AuditInfo auditInfo) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+
+        delegate.validate(executionContext, api.getId(), updateApiEntity, auditInfo.actor().userId());
+
+        return applySanitizedValues(api, updateApiEntity);
+    }
+
+    private Api applySanitizedValues(Api original, io.gravitee.rest.api.model.v4.api.UpdateApiEntity sanitized) {
+        var originalDefinition = original.getApiDefinitionHttpV4();
+        var sanitizedLifecycle = sanitized.getLifecycleState() != null
+            ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
+            : original.getApiLifecycleState();
+        var sanitizedDefinition = originalDefinition
+            .toBuilder()
+            .tags(sanitized.getTags() != null ? sanitized.getTags() : originalDefinition.getTags())
+            .analytics(sanitized.getAnalytics() != null ? sanitized.getAnalytics() : originalDefinition.getAnalytics())
+            .build();
+        return original
+            .toBuilder()
+            .apiLifecycleState(sanitizedLifecycle)
+            .groups(sanitized.getGroups() != null ? sanitized.getGroups() : original.getGroups())
+            .apiDefinitionValue(sanitizedDefinition)
+            .build();
+    }
 }

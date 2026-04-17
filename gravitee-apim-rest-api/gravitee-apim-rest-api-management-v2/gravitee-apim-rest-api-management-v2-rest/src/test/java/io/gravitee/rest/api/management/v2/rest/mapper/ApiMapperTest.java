@@ -26,6 +26,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
@@ -39,11 +40,15 @@ import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,14 +56,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
+import org.mockito.Mockito;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ApiMapperTest {
 
     private final ApiMapper apiMapper = Mappers.getMapper(ApiMapper.class);
     private static final String API_ID = "api-id";
 
     @Test
-    void shouldMapToUpdateApiEntityV4() {
+    void should_map_to_update_api_entity_v4() {
         var updateApi = ApiFixtures.anUpdateApiV4();
         updateApi.failover(
             new FailoverV4().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000L).slowCallDuration(500L)
@@ -97,7 +104,7 @@ public class ApiMapperTest {
     }
 
     @Test
-    void shouldMapToUpdateApiEntityV2() {
+    void should_map_to_update_api_entity_v2() {
         var updateApi = ApiFixtures.anUpdateApiV2();
 
         var updateApiEntity = apiMapper.map(updateApi);
@@ -128,7 +135,7 @@ public class ApiMapperTest {
 
     @ParameterizedTest
     @EnumSource(Visibility.class)
-    void shouldMapCreateApiV4Visibility(Visibility visibility) {
+    void should_map_create_api_v4_visibility(Visibility visibility) {
         CreateApiV4 newApi = new CreateApiV4();
         newApi.setName("Test API");
         newApi.setApiVersion("1.0.0");
@@ -143,7 +150,7 @@ public class ApiMapperTest {
 
     @ParameterizedTest
     @EnumSource(Visibility.class)
-    void shouldMapCreateNativeApiV4Visibility(Visibility visibility) {
+    void should_map_create_native_api_v4_visibility(Visibility visibility) {
         CreateApiV4 newApi = new CreateApiV4();
         newApi.setName("Test API");
         newApi.setApiVersion("1.0.0");
@@ -155,6 +162,121 @@ public class ApiMapperTest {
         var mapped = apiMapper.mapToNewNativeApi(newApi);
         assertThat(mapped).isNotNull();
         assertThat(mapped.getVisibility()).isEqualTo(Api.Visibility.valueOf(visibility.name()));
+    }
+
+    @Test
+    void map_to_http_v4_preserves_nested_definition_fields() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(
+                baseApi
+                    .getApiDefinitionHttpV4()
+                    .toBuilder()
+                    .failover(Failover.builder().enabled(true).maxFailures(3).build())
+                    .services(new ApiServices())
+                    .allowedInApiProducts(true)
+                    .build()
+            )
+            .build();
+
+        var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
+
+        assertThat(apiV4.getFailover()).isNotNull();
+        assertThat(apiV4.getFailover().getEnabled()).isTrue();
+        assertThat(apiV4.getServices()).isNotNull();
+        assertThat(apiV4.getAllowedInApiProducts()).isTrue();
+    }
+
+    @Test
+    void map_to_http_v4_propagates_null_response_templates() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().responseTemplates(null).build())
+            .build();
+
+        var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
+
+        assertThat(apiV4.getResponseTemplates()).isNull();
+    }
+
+    @Test
+    void map_to_http_v4_propagates_non_null_response_templates() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var template = new io.gravitee.definition.model.ResponseTemplate();
+        template.setStatusCode(400);
+        var templates = java.util.Map.of("FOO", java.util.Map.of("application/json", template));
+
+        var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().responseTemplates(templates).build())
+            .build();
+
+        var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
+
+        assertThat(apiV4.getResponseTemplates()).isNotNull();
+        assertThat(apiV4.getResponseTemplates().containsKey("FOO")).isTrue();
+    }
+
+    @Nested
+    class MapToV4AllowedInApiProducts {
+
+        private UriInfo uriInfo;
+
+        @org.junit.jupiter.api.BeforeEach
+        void setUp() {
+            uriInfo = Mockito.mock(UriInfo.class);
+            Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+        }
+
+        @Test
+        void coalesces_null_to_false() {
+            var base = fixtures.core.model.ApiFixtures.aProxyApiV4();
+            var api = base
+                .toBuilder()
+                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(null).build())
+                .build();
+
+            var result = apiMapper.mapToV4(api, uriInfo, null);
+
+            assertThat(result.getAllowedInApiProducts()).isFalse();
+        }
+
+        @Test
+        void preserves_true() {
+            var base = fixtures.core.model.ApiFixtures.aProxyApiV4();
+            var api = base
+                .toBuilder()
+                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(true).build())
+                .build();
+
+            var result = apiMapper.mapToV4(api, uriInfo, null);
+
+            assertThat(result.getAllowedInApiProducts()).isTrue();
+        }
+
+        @Test
+        void preserves_false() {
+            var base = fixtures.core.model.ApiFixtures.aProxyApiV4();
+            var api = base
+                .toBuilder()
+                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(false).build())
+                .build();
+
+            var result = apiMapper.mapToV4(api, uriInfo, null);
+
+            assertThat(result.getAllowedInApiProducts()).isFalse();
+        }
     }
 
     @Nested
@@ -200,8 +322,8 @@ public class ApiMapperTest {
         }
 
         @ParameterizedTest
-        @MethodSource
-        void computeOriginContext(OriginContext input, BaseOriginContext expected) {
+        @MethodSource("computeOriginContext")
+        void compute_origin_context(OriginContext input, BaseOriginContext expected) {
             // Given
             GenericApiEntity api = new ApiEntity().withOriginContext(input);
 

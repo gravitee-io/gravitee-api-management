@@ -60,6 +60,7 @@ import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
@@ -541,6 +542,11 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateApiDomainService updateApiDomainService() {
         return mock(UpdateApiDomainService.class);
+    }
+
+    @Bean
+    public ApiPatchDomainService apiPatchDomainService() {
+        return new ApiPatchDomainService();
     }
 
     @Bean

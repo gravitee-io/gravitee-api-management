@@ -395,21 +395,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId
     ) {
         try {
-            MembershipEntity primaryOwnerMembership = membershipService.getPrimaryOwner(
-                executionContext.getOrganizationId(),
-                MembershipReferenceType.API,
-                apiId
-            );
-            PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(
-                executionContext,
-                userId,
-                PrimaryOwnerEntity.builder()
-                    .type(primaryOwnerMembership.getMemberType().name())
-                    .id(primaryOwnerMembership.getMemberId())
-                    .build()
-            );
-
-            Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+            var primaryOwner = resolvePrimaryOwner(executionContext, apiId, userId);
+            var apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
 
             apiValidationService.validateAndSanitizeUpdateApi(
@@ -579,9 +566,50 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return apiEntity;
         } catch (TechnicalException ex) {
             String errorMsg = String.format("An error occurs while trying to update API '%s'", apiId);
-            log.error(errorMsg, apiId, ex);
+            log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
+    }
+
+    @Override
+    public void validate(
+        final ExecutionContext executionContext,
+        final String apiId,
+        final UpdateApiEntity updateApiEntity,
+        final String userId
+    ) {
+        try {
+            var primaryOwner = resolvePrimaryOwner(executionContext, apiId, userId);
+            var apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+            final var existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
+
+            apiValidationService.validateAndSanitizeUpdateApi(
+                executionContext,
+                updateApiEntity,
+                existingApiEntity.getPrimaryOwner(),
+                existingApiEntity
+            );
+        } catch (TechnicalException ex) {
+            var errorMsg = String.format("An error occurs while trying to validate API '%s'", apiId);
+            log.error(errorMsg, ex);
+            throw new TechnicalManagementException(errorMsg, ex);
+        }
+    }
+
+    private PrimaryOwnerEntity resolvePrimaryOwner(ExecutionContext executionContext, String apiId, String userId) {
+        var primaryOwnerMembership = membershipService.getPrimaryOwner(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.API,
+            apiId
+        );
+        return primaryOwnerService.getPrimaryOwner(
+            executionContext,
+            userId,
+            PrimaryOwnerEntity.builder()
+                .type(primaryOwnerMembership.getMemberType().name())
+                .id(primaryOwnerMembership.getMemberId())
+                .build()
+        );
     }
 
     /**
