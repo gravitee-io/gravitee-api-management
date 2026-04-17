@@ -31,9 +31,13 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EnvLog } from '../../models/env-log.model';
 import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-details-row.component';
 import { GioHeaderComponent } from '../../../../../shared/components/gio-header/gio-header.component';
-import { EnvironmentLogsService } from '../../../../../services-ngx/environment-logs.service';
+import { EnvironmentLogsService, EnvironmentApiLog } from '../../../../../services-ngx/environment-logs.service';
 import { ApiLogsV2Service } from '../../../../../services-ngx/api-logs-v2.service';
 import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
+import { ConnectionLogDetail } from '../../../../../entities/management-api-v2';
+import { ApiMetricsDetailResponse } from '../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+
+const UNKNOWN_VALUE = '—';
 
 @Component({
   selector: 'env-logs-details',
@@ -133,18 +137,18 @@ export class EnvLogsDetailsComponent {
     );
   }
 
-  private mapToEnvLog(overview: any, detail: any, metrics: any): EnvLog {
+  private mapToEnvLog(overview: EnvironmentApiLog, detail: ConnectionLogDetail | null, metrics: ApiMetricsDetailResponse | null): EnvLog {
     return {
       id: overview.id,
       apiId: overview.apiId,
       timestamp: this.formatTimestamp(overview.timestamp),
       api: overview.apiName ?? overview.apiId,
       apiProductName: overview.apiProductName,
-      application: overview.application?.name ?? overview.application?.id ?? '—',
-      method: overview.method ?? '—',
-      path: overview.uri ?? '—',
+      application: overview.application?.name ?? overview.application?.id ?? UNKNOWN_VALUE,
+      method: overview.method ?? UNKNOWN_VALUE,
+      path: overview.uri ?? UNKNOWN_VALUE,
       status: overview.status,
-      responseTime: overview.gatewayResponseTime != null ? `${overview.gatewayResponseTime} ms` : '—',
+      responseTime: overview.gatewayResponseTime != null ? `${overview.gatewayResponseTime} ms` : UNKNOWN_VALUE,
       gateway: overview.gateway,
       plan: this.resolvePlanName(overview.plan?.name, metrics?.plan?.name),
       requestEnded: overview.requestEnded,
@@ -152,7 +156,7 @@ export class EnvLogsDetailsComponent {
       transactionId: overview.transactionId,
       requestId: detail?.requestId,
       clientIdentifier: detail?.clientIdentifier,
-      warnings: overview.warnings?.map((w: any) => ({ key: w.key ?? '' })),
+      warnings: overview.warnings?.map(w => ({ key: w.key ?? '' })),
       entrypointRequest: detail?.entrypointRequest,
       endpointRequest: detail?.endpointRequest,
       entrypointResponse: detail?.entrypointResponse,
