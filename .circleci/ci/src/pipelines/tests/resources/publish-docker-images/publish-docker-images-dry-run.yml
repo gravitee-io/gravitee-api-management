@@ -243,6 +243,29 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
+  job-gamma-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
+      - run:
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
   job-build-docker-webui-image:
     parameters:
       apim-project:
@@ -439,6 +462,22 @@ workflows:
           apim-project-workdir: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
+      - job-gamma-webui-build:
+          context:
+            - cicd-orchestrator
+          requires:
+            - Setup
+          name: Build Gamma Console
+      - job-build-docker-webui-image:
+          context:
+            - cicd-orchestrator
+          name: Build Gamma Console docker image
+          requires:
+            - Build Gamma Console
+          apim-project: gravitee-gamma-control-plane-webui
+          apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          docker-context: .
+          docker-image-name: gamma-ui
       - job-portal-webui-build:
           context:
             - cicd-orchestrator
@@ -463,6 +502,7 @@ workflows:
             - Build APIM Management API docker image
             - Build APIM Gateway docker image
             - Build APIM Console docker image
+            - Build Gamma Console docker image
             - Build APIM Portal docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.0
