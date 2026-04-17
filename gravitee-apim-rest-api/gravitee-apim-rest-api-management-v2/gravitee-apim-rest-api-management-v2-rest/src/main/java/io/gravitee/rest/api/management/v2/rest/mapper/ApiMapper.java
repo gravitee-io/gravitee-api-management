@@ -71,9 +71,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
@@ -490,5 +492,14 @@ public interface ApiMapper {
             })
             .filter(Objects::nonNull)
             .collect(java.util.stream.Collectors.toList());
+    }
+
+    @AfterMapping
+    default void cascadeDisabledAnalytics(@MappingTarget io.gravitee.definition.model.v4.nativeapi.NativeAnalytics target) {
+        if (!target.isEnabled()) {
+            target.setConnectionLog(
+                io.gravitee.definition.model.v4.nativeapi.ConnectionLog.builder().enabled(false).debugEnabled(false).build()
+            );
+        }
     }
 }

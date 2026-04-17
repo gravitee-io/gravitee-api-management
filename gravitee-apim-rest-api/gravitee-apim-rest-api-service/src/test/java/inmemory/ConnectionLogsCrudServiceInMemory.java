@@ -255,7 +255,9 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.errorKeys())) {
-            predicate = predicate.and(connectionLog -> logsFilters.errorKeys().contains(connectionLog.getErrorKey()));
+            predicate = predicate.and(
+                connectionLog -> connectionLog.getErrorKey() != null && logsFilters.errorKeys().contains(connectionLog.getErrorKey())
+            );
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.responseTimeRanges())) {

@@ -3188,6 +3188,30 @@ components:
                     $ref: "#/components/schemas/LoggingV4"
                 tracing:
                     $ref: "#/components/schemas/TracingV4"
+                connectionLog:
+                    $ref: "#/components/schemas/ConnectionLog"
+        NativeAnalytics:
+            type: object
+            description: Analytics configuration for Native Kafka APIs.
+            properties:
+                enabled:
+                    type: boolean
+                    description: Whether or not analytics is enabled.
+                    default: true
+                connectionLog:
+                    $ref: "#/components/schemas/ConnectionLog"
+        ConnectionLog:
+            type: object
+            description: Connection logging configuration for Native Kafka APIs.
+            properties:
+                enabled:
+                    type: boolean
+                    description: Enable connection logging.
+                    default: true
+                debugEnabled:
+                    type: boolean
+                    description: Log all connections including successful ones.
+                    default: false
         Api:
             oneOf:
                 - $ref: "#/components/schemas/ApiV2"

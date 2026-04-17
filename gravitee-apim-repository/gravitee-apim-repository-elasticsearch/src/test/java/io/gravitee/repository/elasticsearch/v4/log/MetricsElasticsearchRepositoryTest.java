@@ -1005,5 +1005,20 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 .containsEntry("keyword_native-kafka_operations", "FETCH,JOIN_GROUP")
                 .containsEntry("keyword_native-kafka_consumer-group-id", "group-beta");
         }
+
+        @Test
+        void should_return_only_error_connections_when_filtering_by_error_keys() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .filter(Filter.builder().apiIds(Set.of("kafka-api-001")).errorKeys(Set.of("CONNECTION_ERROR")).build())
+                    .size(10)
+                    .build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(2);
+            assertThat(result.data()).extracting(Metrics::getErrorKey).containsOnly("CONNECTION_ERROR");
+        }
     }
 }

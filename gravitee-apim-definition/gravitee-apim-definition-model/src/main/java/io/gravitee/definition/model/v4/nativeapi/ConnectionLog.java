@@ -30,11 +30,13 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class NativeAnalytics {
+public class ConnectionLog {
+
+    public static final String ERROR_KEY = "CONNECTION_ERROR";
 
     @Builder.Default
-    protected boolean enabled = true;
+    private boolean enabled = true;
 
     @Builder.Default
-    private ConnectionLog connectionLog = new ConnectionLog();
+    private boolean debugEnabled = false;
 }

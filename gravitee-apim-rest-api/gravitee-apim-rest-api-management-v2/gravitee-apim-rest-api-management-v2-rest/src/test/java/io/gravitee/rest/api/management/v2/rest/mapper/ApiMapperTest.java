@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.ConnectionLog;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
@@ -94,6 +95,36 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getFailover()).isEqualTo(
             Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
         );
+    }
+
+    @Test
+    void should_cascade_connection_log_off_when_native_analytics_disabled() {
+        var updateApi = ApiFixtures.anUpdateApiV4()
+            .type(ApiType.NATIVE)
+            .analytics(new Analytics().enabled(false).connectionLog(new ConnectionLog().enabled(true).debugEnabled(true)));
+
+        var updateNativeApi = apiMapper.mapToUpdateNativeApi(updateApi, API_ID);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(updateNativeApi.getAnalytics().isEnabled()).isFalse();
+            soft.assertThat(updateNativeApi.getAnalytics().getConnectionLog().isEnabled()).isFalse();
+            soft.assertThat(updateNativeApi.getAnalytics().getConnectionLog().isDebugEnabled()).isFalse();
+        });
+    }
+
+    @Test
+    void should_preserve_connection_log_when_native_analytics_enabled() {
+        var updateApi = ApiFixtures.anUpdateApiV4()
+            .type(ApiType.NATIVE)
+            .analytics(new Analytics().enabled(true).connectionLog(new ConnectionLog().enabled(true).debugEnabled(true)));
+
+        var updateNativeApi = apiMapper.mapToUpdateNativeApi(updateApi, API_ID);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(updateNativeApi.getAnalytics().isEnabled()).isTrue();
+            soft.assertThat(updateNativeApi.getAnalytics().getConnectionLog().isEnabled()).isTrue();
+            soft.assertThat(updateNativeApi.getAnalytics().getConnectionLog().isDebugEnabled()).isTrue();
+        });
     }
 
     @Test

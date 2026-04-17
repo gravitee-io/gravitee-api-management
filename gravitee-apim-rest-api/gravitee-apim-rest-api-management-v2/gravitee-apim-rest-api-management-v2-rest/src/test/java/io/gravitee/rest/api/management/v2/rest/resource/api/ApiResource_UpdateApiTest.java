@@ -38,12 +38,14 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ConnectionLog;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
@@ -65,6 +67,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
@@ -314,6 +317,34 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             .extracting(Api::getApiV4)
             .extracting(ApiV4::getName, ApiV4::getDescription, ApiV4::getApiVersion, ApiV4::getLifecycleState)
             .containsExactly(updatedName, updatedDescription, updatedVersion, updatedLifecycle);
+    }
+
+    @Test
+    public void should_cascade_connection_log_off_when_native_analytics_disabled_on_update() {
+        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+        primaryOwnerInit();
+        var existingEntity = ApiFixtures.aModelNativeApiV4().withId(API);
+        var existingApi = fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build();
+
+        apiCrudService.initWith(List.of(existingApi));
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(
+            existingEntity
+        );
+        when(validateApiDomainService.validateAndSanitizeForUpdate(eq(existingApi), any(), any(), any(), any())).thenReturn(existingApi);
+
+        var updateApiV4 = ApiFixtures.anUpdateApiV4()
+            .type(ApiType.NATIVE)
+            .analytics(new Analytics().enabled(false).connectionLog(new ConnectionLog().enabled(true).debugEnabled(true)));
+
+        rootTarget(API).request().put(Entity.json(updateApiV4));
+
+        var captor = ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
+        verify(validateApiDomainService).validateAndSanitizeForUpdate(eq(existingApi), captor.capture(), any(), any(), any());
+        var cascaded = captor.getValue().getApiDefinitionNativeV4().getAnalytics();
+        assertEquals(false, cascaded.isEnabled());
+        assertNotNull(cascaded.getConnectionLog());
+        assertEquals(false, cascaded.getConnectionLog().isEnabled());
+        assertEquals(false, cascaded.getConnectionLog().isDebugEnabled());
     }
 
     @Test

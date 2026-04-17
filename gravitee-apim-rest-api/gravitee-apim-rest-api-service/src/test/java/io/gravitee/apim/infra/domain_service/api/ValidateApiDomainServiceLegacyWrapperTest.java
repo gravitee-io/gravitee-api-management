@@ -247,7 +247,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
-                        .analytics(new NativeAnalytics(true))
+                        .analytics(NativeAnalytics.builder().enabled(true).build())
                         .build()
                 )
                 .build();

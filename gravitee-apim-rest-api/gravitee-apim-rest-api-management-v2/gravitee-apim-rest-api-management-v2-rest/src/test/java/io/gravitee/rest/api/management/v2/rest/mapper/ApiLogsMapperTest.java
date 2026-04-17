@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.v4.nativeapi.ConnectionLog;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import java.util.Set;
@@ -65,7 +66,7 @@ class ApiLogsMapperTest {
             param.setMethods(Set.of(HttpMethod.GET));
             param.setStatuses(Set.of(200));
             param.setEntrypointIds(Set.of("native-kafka"));
-            param.setErrorKeys(Set.of("CONNECTION_ERROR"));
+            param.setErrorKeys(Set.of(ConnectionLog.ERROR_KEY));
             param.setNativeKafkaClientIds(Set.of("consumer-A"));
             param.setNativeKafkaConsumerGroupIds(Set.of("group-alpha"));
 
@@ -78,7 +79,7 @@ class ApiLogsMapperTest {
             assertThat(filters.methods()).containsExactly(HttpMethod.GET);
             assertThat(filters.statuses()).containsExactly(200);
             assertThat(filters.entrypointIds()).containsExactly("native-kafka");
-            assertThat(filters.errorKeys()).containsExactly("CONNECTION_ERROR");
+            assertThat(filters.errorKeys()).containsExactly(ConnectionLog.ERROR_KEY);
             assertThat(filters.nativeKafkaClientIds()).containsExactly("consumer-A");
             assertThat(filters.nativeKafkaConsumerGroupIds()).containsExactly("group-alpha");
         }
