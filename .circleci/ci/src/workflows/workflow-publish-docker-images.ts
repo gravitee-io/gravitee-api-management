@@ -19,6 +19,7 @@ import {
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
+  GammaWebuiBuildJob,
   PortalWebuiBuildJob,
   PublishPrEnvUrlsJob,
   SetupJob,
@@ -39,6 +40,9 @@ export class PublishDockerImagesWorkflow {
 
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
+
+    const gammaWebuiBuildJob = GammaWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(gammaWebuiBuildJob);
 
     const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(buildDockerWebUiImageJob);
@@ -86,6 +90,21 @@ export class PublishDockerImagesWorkflow {
         'docker-image-name': config.components.console.image,
       }),
 
+      new workflow.WorkflowJob(gammaWebuiBuildJob, {
+        context: config.jobContext,
+        requires: ['Setup'],
+        name: 'Build Gamma Console',
+      }),
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
+        context: config.jobContext,
+        name: `Build Gamma Console docker image`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
+      }),
+
       new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
         requires: ['Setup'],
@@ -108,6 +127,7 @@ export class PublishDockerImagesWorkflow {
           'Build APIM Management API docker image',
           'Build APIM Gateway docker image',
           'Build APIM Console docker image',
+          'Build Gamma Console docker image',
           'Build APIM Portal docker image',
         ],
       }),
