@@ -56,6 +56,13 @@
 			<artifactId>flexmark-html2md-converter</artifactId>
 		</dependency>
 
+		<!-- Gravitee Common -->
+		<dependency>
+			<groupId>io.gravitee.apim.common</groupId>
+			<artifactId>gravitee-apim-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- Gravitee Management dependencies -->
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api</groupId>
