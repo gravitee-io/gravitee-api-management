@@ -465,6 +465,15 @@
                 aria-label="mTLS Certificate Management Enabled"
               ></mat-slide-toggle>
             </gio-form-slide-toggle>
+            <gio-form-slide-toggle formGroupName="analytics" class="portal__form__card__form-field">
+              <gio-form-label>Enable Analytics</gio-form-label>
+              <mat-slide-toggle
+                id="enable-portal-next-analytics"
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="Analytics Enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
             @if (!!settings.portalNext?.access?.enabled) {
               <div class="new-developer-portal-actions">
                 @if (portalUrl) {
