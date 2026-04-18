@@ -97,6 +97,7 @@ public class MembershipService_FindUserMembershipMetadataTest {
             null,
             null,
             null,
+            null,
             null
         );
         USER_MEMBERSHIP = new UserMembership();

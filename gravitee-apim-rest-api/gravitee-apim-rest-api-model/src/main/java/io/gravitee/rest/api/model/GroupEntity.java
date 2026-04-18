@@ -82,6 +82,8 @@ public class GroupEntity {
 
     private String apiPrimaryOwner;
 
+    private String apiProductPrimaryOwner;
+
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
 

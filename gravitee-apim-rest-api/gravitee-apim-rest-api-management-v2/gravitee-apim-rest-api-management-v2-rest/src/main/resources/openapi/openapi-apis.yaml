@@ -5875,6 +5875,9 @@ components:
                       apiPrimaryOwner:
                           type: string
                           description: The group member id with API primary owner role.
+                      apiProductPrimaryOwner:
+                          type: string
+                          description: The group member id with API Product primary owner role.
         GroupEvent:
             type: string
             description: Type of group event.

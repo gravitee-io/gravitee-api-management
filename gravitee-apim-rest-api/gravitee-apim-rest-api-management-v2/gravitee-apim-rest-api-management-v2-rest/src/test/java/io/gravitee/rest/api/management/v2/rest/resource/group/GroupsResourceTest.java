@@ -145,6 +145,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .eventRules(List.of(GroupEventRuleEntity.builder().event("API_CREATE").build()))
                 .roles(ofEntries(entry(RoleScope.API, "READ_ONLY"), entry(RoleScope.APPLICATION, "USER")))
                 .apiPrimaryOwner("api-owner-id")
+                .apiProductPrimaryOwner("product-owner-id")
                 .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")))
                 .updatedAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")))
                 .disableMembershipNotifications(true)

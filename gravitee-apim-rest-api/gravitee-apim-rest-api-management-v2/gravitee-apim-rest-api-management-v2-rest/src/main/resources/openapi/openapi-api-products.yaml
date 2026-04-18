@@ -2058,6 +2058,13 @@ components:
           example:
             - "api-1"
             - "api-2"
+        groups:
+          type: array
+          description: List of group IDs associated with the API Product
+          items:
+            type: string
+          example:
+            - "group-1"
         createdAt:
           type: string
           format: date-time

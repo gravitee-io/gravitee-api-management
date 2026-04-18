@@ -71,7 +71,7 @@ public class ApiProductPrimaryOwnerFactory {
         var group = groupQueryService
             .findByIds(userGroupIds)
             .stream()
-            .filter(g -> g.getApiPrimaryOwner() != null && !g.getApiPrimaryOwner().isBlank())
+            .filter(g -> g.getApiProductPrimaryOwner() != null && !g.getApiProductPrimaryOwner().isBlank())
             .findFirst();
 
         return group

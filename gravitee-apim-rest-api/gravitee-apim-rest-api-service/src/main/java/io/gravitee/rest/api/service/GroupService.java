@@ -58,5 +58,6 @@ public interface GroupService {
     boolean isUserAuthorizedToAccessApiData(GenericApiEntity api, List<String> excludedGroups, String username);
     GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
+    void updateApiProductPrimaryOwner(String groupId, String newApiProductPrimaryOwner);
     Set<Group> findAllByEnvironment(String environmentId);
 }

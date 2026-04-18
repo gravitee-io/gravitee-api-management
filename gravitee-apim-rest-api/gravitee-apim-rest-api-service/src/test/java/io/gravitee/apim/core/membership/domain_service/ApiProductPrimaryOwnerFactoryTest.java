@@ -124,7 +124,7 @@ class ApiProductPrimaryOwnerFactoryTest {
         @Test
         void should_build_a_group_primary_owner_with_the_1st_group_having_primary_owner() {
             // Given
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").apiPrimaryOwner(MEMBER_ID).build()));
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").apiProductPrimaryOwner(MEMBER_ID).build()));
             givenExistingMemberships(
                 List.of(
                     // PO role for member-id
@@ -182,7 +182,7 @@ class ApiProductPrimaryOwnerFactoryTest {
         void should_throw_when_primary_owner_role_does_not_exist_for_organization() {
             // Given
             roleQueryService.reset();
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").apiPrimaryOwner(MEMBER_ID).build()));
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").apiProductPrimaryOwner(MEMBER_ID).build()));
             givenExistingMemberships(
                 List.of(
                     // PO role for member-id

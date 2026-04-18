@@ -110,7 +110,7 @@ public class CreateApiProductUseCase {
         Set<String> defaultGroups = groupQueryService
             .findByEvent(auditInfo.environmentId(), Group.GroupEvent.API_PRODUCT_CREATE)
             .stream()
-            .filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()))
+            .filter(group -> StringUtils.isEmpty(group.getApiProductPrimaryOwner()))
             .map(Group::getId)
             .collect(toSet());
         if (!defaultGroups.isEmpty()) {

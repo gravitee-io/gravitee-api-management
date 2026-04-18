@@ -1095,6 +1095,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setEnvironmentId(environmentId);
         group.setDisableMembershipNotifications(entity.isDisableMembershipNotifications());
         group.setApiPrimaryOwner(entity.getApiPrimaryOwner());
+        group.setApiProductPrimaryOwner(entity.getApiProductPrimaryOwner());
 
         return group;
     }
@@ -1153,6 +1154,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()) {
             entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
             entity.setPrimaryOwner(true);
+        }
+        if (group.getApiProductPrimaryOwner() != null && !group.getApiProductPrimaryOwner().isEmpty()) {
+            entity.setApiProductPrimaryOwner(group.getApiProductPrimaryOwner());
         }
 
         if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
@@ -1215,6 +1219,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()) {
             entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
             entity.setPrimaryOwner(true);
+        }
+        if (group.getApiProductPrimaryOwner() != null && !group.getApiProductPrimaryOwner().isEmpty()) {
+            entity.setApiProductPrimaryOwner(group.getApiProductPrimaryOwner());
         }
 
         if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
@@ -1347,6 +1354,17 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             Group group = groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId));
             group.setApiPrimaryOwner(newApiPrimaryOwner);
+            groupRepository.update(group);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);
+        }
+    }
+
+    @Override
+    public void updateApiProductPrimaryOwner(String groupId, String newApiProductPrimaryOwner) {
+        try {
+            Group group = groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId));
+            group.setApiProductPrimaryOwner(newApiProductPrimaryOwner);
             groupRepository.update(group);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);

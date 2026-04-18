@@ -54,6 +54,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getEmailInvitation()).isEqualTo(groupEntity.isEmailInvitation());
         assertThat(group.getDisableMembershipNotifications()).isEqualTo(groupEntity.isDisableMembershipNotifications());
         assertThat(group.getApiPrimaryOwner()).isEqualTo(groupEntity.getApiPrimaryOwner());
+        assertThat(group.getApiProductPrimaryOwner()).isEqualTo(groupEntity.getApiProductPrimaryOwner());
         assertThat(group.getPrimaryOwner()).isEqualTo(groupEntity.isPrimaryOwner());
     }
 
@@ -167,6 +168,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getEmailInvitation()).isEqualTo(coreGroup.isEmailInvitation());
         assertThat(group.getDisableMembershipNotifications()).isEqualTo(coreGroup.isDisableMembershipNotifications());
         assertThat(group.getApiPrimaryOwner()).isEqualTo(coreGroup.getApiPrimaryOwner());
+        assertThat(group.getApiProductPrimaryOwner()).isEqualTo(coreGroup.getApiProductPrimaryOwner());
     }
 
     @Test
@@ -224,6 +226,7 @@ public class GroupMapperTest extends AbstractMapperTest {
             .emailInvitation(true)
             .disableMembershipNotifications(false)
             .apiPrimaryOwner("user-id")
+            .apiProductPrimaryOwner("product-po-user-id")
             .primaryOwner(true)
             .build();
 
@@ -266,6 +269,7 @@ public class GroupMapperTest extends AbstractMapperTest {
             .emailInvitation(true)
             .disableMembershipNotifications(false)
             .apiPrimaryOwner("user-id")
+            .apiProductPrimaryOwner("product-po-user-id")
             .build();
     }
 }

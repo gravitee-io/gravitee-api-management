@@ -445,13 +445,13 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_not_attach_group_with_api_primary_owner_set() {
+    void should_not_attach_group_with_api_product_primary_owner_set() {
         groupQueryService.initWith(
             List.of(
                 Group.builder()
                     .id("group-with-po")
                     .environmentId(ENV_ID)
-                    .apiPrimaryOwner("some-user-id")
+                    .apiProductPrimaryOwner("some-user-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
                     .build(),
                 Group.builder()

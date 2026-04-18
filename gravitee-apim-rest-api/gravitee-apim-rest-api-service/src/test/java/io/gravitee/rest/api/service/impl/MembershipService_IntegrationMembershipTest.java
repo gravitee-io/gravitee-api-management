@@ -148,6 +148,7 @@ public class MembershipService_IntegrationMembershipTest {
             objectMapper,
             commandRepository,
             null,
+            null,
             null
         );
     }

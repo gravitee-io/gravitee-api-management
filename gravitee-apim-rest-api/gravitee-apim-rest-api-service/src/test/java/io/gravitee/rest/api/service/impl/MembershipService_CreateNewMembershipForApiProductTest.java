@@ -124,6 +124,7 @@ class MembershipService_CreateNewMembershipForApiProductTest {
             objectMapper,
             commandRepository,
             null,
+            null,
             null
         );
 

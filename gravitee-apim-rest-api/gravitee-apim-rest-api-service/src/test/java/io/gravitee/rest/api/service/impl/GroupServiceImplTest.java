@@ -300,4 +300,31 @@ public class GroupServiceImplTest {
             StillPrimaryOwnerException.class
         );
     }
+
+    @Test
+    public void update_api_product_primary_owner_should_set_field_on_group() throws Exception {
+        String groupId = "group-1";
+        String newPrimaryOwner = "user-po-1";
+
+        Group group = Group.builder().id(groupId).build();
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        service.updateApiProductPrimaryOwner(groupId, newPrimaryOwner);
+
+        assertThat(group.getApiProductPrimaryOwner()).isEqualTo(newPrimaryOwner);
+        verify(groupRepository).update(group);
+    }
+
+    @Test
+    public void update_api_product_primary_owner_should_clear_field_with_null() throws Exception {
+        String groupId = "group-1";
+
+        Group group = Group.builder().id(groupId).apiProductPrimaryOwner("old-user").build();
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        service.updateApiProductPrimaryOwner(groupId, null);
+
+        assertThat(group.getApiProductPrimaryOwner()).isNull();
+        verify(groupRepository).update(group);
+    }
 }

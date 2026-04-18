@@ -324,7 +324,12 @@ public class GroupMembersResource extends AbstractResource {
                         GroupEntity::isLockApiProductRole,
                         hasPermission
                     );
-                    updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
+                    updatedMembership = updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
+                    if (previousApiProductRole != null && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
+                        groupService.updateApiProductPrimaryOwner(group, null);
+                    } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
+                        groupService.updateApiProductPrimaryOwner(group, updatedMembership.getId());
+                    }
                 }
 
                 RoleEntity integrationRoleEntity = roleEntities.get(RoleScope.INTEGRATION);

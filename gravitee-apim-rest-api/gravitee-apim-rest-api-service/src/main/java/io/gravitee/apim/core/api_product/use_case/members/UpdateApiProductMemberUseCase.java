@@ -25,7 +25,9 @@ import io.gravitee.apim.core.member.model.MembershipReference;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.model.MembershipRole;
 import io.gravitee.apim.core.member.query_service.MemberQueryService;
+import io.gravitee.apim.core.membership.exception.MemberNotFoundException;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import lombok.AllArgsConstructor;
 
@@ -42,6 +44,19 @@ public class UpdateApiProductMemberUseCase {
     public Output execute(Input input) {
         if (PRIMARY_OWNER.name().equals(input.newRole)) {
             throw new SinglePrimaryOwnerException(RoleScope.API_PRODUCT);
+        }
+
+        Member currentMember = memberQueryService.getUserMember(MembershipReferenceType.API_PRODUCT, input.apiProductId, input.memberId);
+        if (currentMember == null) {
+            throw new MemberNotFoundException(input.memberId);
+        }
+        if (
+            currentMember
+                .getRoles()
+                .stream()
+                .anyMatch(r -> PRIMARY_OWNER.name().equals(r.getName()))
+        ) {
+            throw new PrimaryOwnerRemovalException();
         }
 
         var reference = new MembershipReference(MembershipReferenceType.API_PRODUCT, input.apiProductId);

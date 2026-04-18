@@ -44,6 +44,9 @@ public class Group {
     /** User id that will be the PrimaryOwner of API */
     private String apiPrimaryOwner;
 
+    /** User id that will be the PrimaryOwner of API Product */
+    private String apiProductPrimaryOwner;
+
     @Builder.Default
     private String origin = Origin.MANAGEMENT.name();
 
