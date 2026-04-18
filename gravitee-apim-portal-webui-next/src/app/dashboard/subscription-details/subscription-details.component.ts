@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, input } from '@angular/core';
+import { Component, effect, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { SubscriptionsDetailsComponent } from '../../api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
+import { subscriptionListBreadcrumb } from '../subscriptions/subscription-breadcrumbs';
 
 @Component({
   selector: 'app-subscription-details',
@@ -28,9 +30,20 @@ import { SubscriptionsDetailsComponent } from '../../api/api-details/api-tab-sub
 })
 export default class SubscriptionDetailsComponent {
   private readonly subscriptionService = inject(SubscriptionService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   subscriptionId = input.required<string>();
   apiId = rxResource({
     params: this.subscriptionId,
     stream: ({ params }) => this.subscriptionService.get(params).pipe(map(subscription => subscription.api)),
   });
+
+  constructor() {
+    effect(() => {
+      const id = this.subscriptionId();
+      this.breadcrumbService.set([
+        subscriptionListBreadcrumb(true),
+        { id: `subscription-${id}`, label: $localize`:@@subscriptionTitle:Subscription ` + id },
+      ]);
+    });
+  }
 }

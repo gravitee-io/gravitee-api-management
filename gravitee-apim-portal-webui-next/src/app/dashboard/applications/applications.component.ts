@@ -21,11 +21,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { applicationListBreadcrumb } from './application-breadcrumbs';
 import { ApplicationCardComponent } from '../../../components/application-card/application-card.component';
 import { CardsGridComponent } from '../../../components/cards-grid/cards-grid.component';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
 import { ApplicationService } from '../../../services/application.service';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 
 export interface ApplicationPaginatorVM {
@@ -56,11 +58,16 @@ export default class ApplicationsComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly applicationService = inject(ApplicationService);
   private readonly router = inject(Router);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly page$ = new BehaviorSubject<number>(1);
 
   protected readonly applicationPaginator: Signal<ApplicationPaginatorVM> = toSignal(this.loadApplications$(), {
     initialValue: { data: [], page: 1, totalResults: 0 },
   });
+
+  constructor() {
+    this.breadcrumbService.set([applicationListBreadcrumb()]);
+  }
 
   onPageChange(page: number) {
     this.page$.next(page);

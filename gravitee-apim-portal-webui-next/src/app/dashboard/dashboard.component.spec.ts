@@ -19,10 +19,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter, Router, Routes } from '@angular/router';
 
-import { routes } from '../app.routes';
 import { DashboardComponent } from './dashboard.component';
 import { DashboardComponentHarness } from './dashboard.component.harness';
+import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
+import { routes } from '../app.routes';
 
 describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
@@ -69,6 +70,16 @@ describe('DashboardComponent', () => {
 
   it('should create', async () => {
     expect(await harness.host()).toBeTruthy();
+  });
+
+  it('should clear breadcrumbs when the component is destroyed', () => {
+    const breadcrumbService = TestBed.inject(BreadcrumbService);
+    breadcrumbService.set([{ id: 'stale', label: 'Stale' }]);
+    expect(breadcrumbService.breadcrumbs().length).toBe(1);
+
+    fixture.destroy();
+
+    expect(breadcrumbService.breadcrumbs()).toEqual([]);
   });
 
   it('should display Subscriptions sidenav and breadcrumb', async () => {

@@ -20,12 +20,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { RouterModule } from '@angular/router';
 
+import { applicationListBreadcrumb } from './application-breadcrumbs';
 import ApplicationsComponent from './applications.component';
 import { ApplicationCardHarness } from './applications.harness';
 import { PaginationHarness } from '../../../components/pagination/pagination.harness';
 import { ApplicationsResponse } from '../../../entities/application/application';
 import { fakeApplication, fakeApplicationsResponse } from '../../../entities/application/application.fixture';
 import { fakeUser } from '../../../entities/user/user.fixtures';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
@@ -50,6 +52,12 @@ describe('ApplicationsComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+  });
+
+  it('should set breadcrumbs for the applications list', () => {
+    const breadcrumbService = TestBed.inject(BreadcrumbService);
+    expect(breadcrumbService.breadcrumbs()).toEqual([applicationListBreadcrumb()]);
+    expectApplicationList();
   });
 
   describe('populated application list', () => {
