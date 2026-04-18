@@ -31,9 +31,8 @@ import { ApiProductMembersComponentHarness } from './api-product-members.compone
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { Member } from '../../../entities/management-api-v2/member/member';
+import { Member, fakeBaseGroup, fakeGroup } from '../../../entities/management-api-v2';
 import { fakeMember } from '../../../entities/management-api-v2/member/member.fixture';
-import { fakeGroup } from '../../../entities/management-api-v2/group/group.fixture';
 
 describe('ApiProductMembersComponent', () => {
   const API_PRODUCT_ID = 'test-api-product-id';
@@ -164,8 +163,6 @@ describe('ApiProductMembersComponent', () => {
     ]);
   }
 
-  /** Inherited group member tables load GET /groups/{id}/members after the main members page resolves. */
-  /** `gio-table-wrapper` may emit `filtersChange` after init and trigger a duplicate load for the same group. */
   function flushGroupInheritedMemberRequests(groupIds: string[]) {
     for (const groupId of groupIds) {
       const requests = httpTestingController.match(r => r.method === 'GET' && r.url.includes(`/groups/${groupId}/members`));
@@ -524,5 +521,71 @@ describe('ApiProductMembersComponent', () => {
 
     httpTestingController.expectNone(req => req.url === MEMBERS_URL && req.method === 'GET');
     expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: 2 }, queryParamsHandling: 'merge' }));
+  }));
+
+  it('should show transfer ownership button when user has update permission', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-c', 'api_product-member-u']);
+    expectMembersPageRequests([]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+  }));
+
+  it('should hide transfer ownership button when user lacks update permission', fakeAsync(async () => {
+    await init(['api_product-member-r']);
+    expectMembersPageRequests([]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.isTransferOwnershipVisible()).toBeFalsy();
+  }));
+
+  it('should display inherited group members section when API Product has groups', fakeAsync(async () => {
+    await init();
+
+    const poMember = fakeMember({ id: 'owner-1', displayName: 'Admin', roles: [{ name: 'PRIMARY_OWNER' }] });
+    const group = fakeBaseGroup({ id: 'group-1', name: 'PO Group' });
+    expectMembersPageRequests(
+      [poMember],
+      1,
+      1,
+      10,
+      {
+        groups: ['group-1'],
+        primaryOwner: { displayName: 'PO Group', id: 'group-1', type: 'GROUP' },
+      },
+      [group],
+    );
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    flushGroupInheritedMemberRequestsWithMembers('group-1', [
+      fakeMember({ id: 'member-1', displayName: 'Group Member', roles: [{ name: 'USER', scope: 'API_PRODUCT' }] }),
+    ]);
+    tick();
+    fixture.detectChanges();
+
+    const cards = await harness.getInheritedGroupMemberCards();
+    expect(cards.length).toBe(1);
+    expect(await cards[0].getCardHeading()).toContain('PO Group');
+    expect(await cards[0].getCardHeading()).toContain('inherited members');
+    const table = await cards[0].getInheritedMembersTable();
+    expect(table).not.toBeNull();
+    const rows = await table!.getRows();
+    expect(rows.length).toBe(1);
+  }));
+
+  it('should not display inherited group cards when API Product has no groups', fakeAsync(async () => {
+    await init();
+    expectMembersPageRequests([]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    expect((await harness.getInheritedGroupMemberCards()).length).toBe(0);
   }));
 });
