@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { Breadcrumb } from '../../components/breadcrumbs/breadcrumbs.component';
 import { SidenavLayoutComponent } from '../../components/sidenav-layout/sidenav-layout.component';
+import { BreadcrumbService } from '../../services/breadcrumb.service';
 
 interface MenuItem {
   path: string;
@@ -39,43 +37,11 @@ const MENU_ITEMS: MenuItem[] = [
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
-  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly breadcrumbService = inject(BreadcrumbService);
   menuItems = signal<MenuItem[]>(MENU_ITEMS);
 
-  breadcrumbs = toSignal<Breadcrumb[]>(
-    // TODO generalize and extract this logic to a shared service or smth similar
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
-      map(() => {
-        const segments = this.router.url.split('/').filter(Boolean);
-
-        const relevantSegments = segments
-          .filter(s => s !== 'dashboard')
-          .map(segment => {
-            const startOfQueryParam = segment.indexOf('?');
-            return startOfQueryParam >= 0 ? segment.substring(0, startOfQueryParam) : segment;
-          });
-        const breadcrumbs: Breadcrumb[] = [];
-        relevantSegments.forEach((segment, index) => {
-          const isLast = index === relevantSegments.length - 1;
-          const menuItem = MENU_ITEMS.find(mi => mi.path === segment);
-          let label = '';
-          let url;
-          if (menuItem) {
-            label = menuItem.title;
-            if (!isLast) {
-              url = `/dashboard/${menuItem.path}`;
-            }
-          } else if (index > 0 && relevantSegments[index - 1] === 'subscriptions') {
-            const subscriptionId = segment;
-            label = $localize`:@@subscriptionTitle:Subscription ` + subscriptionId;
-          } else {
-            label = segment; // Fallback
-          }
-          breadcrumbs.push({ id: segment, label, url });
-        });
-        return breadcrumbs;
-      }),
-    ),
-  );
+  constructor() {
+    this.destroyRef.onDestroy(() => this.breadcrumbService.clear());
+  }
 }

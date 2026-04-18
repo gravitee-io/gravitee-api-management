@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<app-sidenav-layout [breadcrumbs]="breadcrumbs()!">
+<app-sidenav-layout [breadcrumbs]="breadcrumbService.breadcrumbs()">
   <div sidenavContent class="dashboard__sidenav__content">
     @for (menuItem of menuItems(); track menuItem.path) {
       <button class="nav-button next-gen-small" mat-stroked-button [routerLink]="menuItem.path" routerLinkActive="selected">

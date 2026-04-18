@@ -36,6 +36,8 @@ import { NarrowClassDirective } from '../../../../directives/narrow-class.direct
 import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../../entities/application/application';
 import { ApplicationTypeTranslatePipe } from '../../../../pipe/application-type-translate.pipe';
 import { ApplicationService } from '../../../../services/application.service';
+import { BreadcrumbService } from '../../../../services/breadcrumb.service';
+import { applicationListBreadcrumb } from '../application-breadcrumbs';
 
 type BaseControls = {
   name: FormControl<string>;
@@ -83,6 +85,7 @@ export class CreateApplicationComponent {
   readonly applicationService = inject(ApplicationService);
   readonly router = inject(Router);
   readonly destroyRef = inject(DestroyRef);
+  readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly typeIdControl = new FormControl<string | null>(null, { nonNullable: false });
 
@@ -130,6 +133,10 @@ export class CreateApplicationComponent {
   hasApplicationError: boolean = false;
 
   constructor() {
+    this.breadcrumbService.set([
+      applicationListBreadcrumb(true),
+      { id: 'create', label: $localize`:@@createApplicationBreadcrumb:Create` },
+    ]);
     this.setupDynamicFormFields();
     this.setupDefaultApplicationType();
   }

@@ -34,8 +34,10 @@ import {
   fakeBackendToBackendApplicationType,
   fakeBrowserApplicationType,
 } from '../../../../entities/application/application.fixture';
+import { BreadcrumbService } from '../../../../services/breadcrumb.service';
 import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { applicationListBreadcrumb } from '../application-breadcrumbs';
 
 describe('CreateApplicationComponent', () => {
   let fixture: ComponentFixture<CreateApplicationComponent>;
@@ -52,6 +54,10 @@ describe('CreateApplicationComponent', () => {
     fakeBackendToBackendApplicationType(),
     fakeBrowserApplicationType(),
   ];
+
+  function flushInitialApplicationTypes(): void {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
+  }
 
   beforeEach(async () => {
     isMobileSignal = signal(false);
@@ -87,46 +93,54 @@ describe('CreateApplicationComponent', () => {
   });
 
   describe('Component initialization', () => {
-    it('should show loader while loading application types', () => {
-      const loader = fixture.nativeElement.querySelector('app-loader');
-      expect(loader).toBeTruthy();
+    describe('while application types are loading', () => {
+      it('should show loader while loading application types', () => {
+        const loader = fixture.nativeElement.querySelector('app-loader');
+        expect(loader).toBeTruthy();
 
-      httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
+        flushInitialApplicationTypes();
+      });
+
+      it('should load application types from API', () => {
+        const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`);
+        expect(req.request.method).toBe('GET');
+        req.flush({ data: mockApplicationTypes });
+      });
     });
 
-    it('should load application types from API', () => {
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`);
-      expect(req.request.method).toBe('GET');
-      req.flush({ data: mockApplicationTypes });
-    });
+    describe('after application types are loaded', () => {
+      beforeEach(async () => {
+        flushInitialApplicationTypes();
+        await fixture.whenStable();
+        fixture.detectChanges();
+      });
 
-    it('should automatically select first type (simple) as default when types are loaded', async () => {
-      httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
+      it('should set breadcrumbs for create application', () => {
+        const breadcrumbService = TestBed.inject(BreadcrumbService);
+        expect(breadcrumbService.breadcrumbs()).toEqual([
+          applicationListBreadcrumb(true),
+          { id: 'create', label: $localize`:@@createApplicationBreadcrumb:Create` },
+        ]);
+      });
 
-      await fixture.whenStable();
-      fixture.detectChanges();
+      it('should automatically select first type (simple) as default when types are loaded', () => {
+        expect(component.typeIdControl.value).toBe('simple');
+        expect(component.selectedType()?.id).toBe('simple');
+      });
 
-      expect(component.typeIdControl.value).toBe('simple');
-      expect(component.selectedType()?.id).toBe('simple');
-    });
+      it('should display form after types are loaded', () => {
+        const loader = fixture.nativeElement.querySelector('app-loader');
+        expect(loader).toBeFalsy();
 
-    it('should display form after types are loaded', async () => {
-      httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
-
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      const loader = fixture.nativeElement.querySelector('app-loader');
-      expect(loader).toBeFalsy();
-
-      const form = fixture.nativeElement.querySelector('form');
-      expect(form).toBeTruthy();
+        const form = fixture.nativeElement.querySelector('form');
+        expect(form).toBeTruthy();
+      });
     });
   });
 
   describe('Application type selection', () => {
     beforeEach(async () => {
-      httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
+      flushInitialApplicationTypes();
       await fixture.whenStable();
       fixture.detectChanges();
     });

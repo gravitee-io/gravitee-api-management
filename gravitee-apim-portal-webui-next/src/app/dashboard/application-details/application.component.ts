@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import { Component, effect, inject, input } from '@angular/core';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { Application } from '../../../entities/application/application';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
+import { applicationListBreadcrumb } from '../applications/application-breadcrumbs';
 
 @Component({
   selector: 'app-application',
@@ -26,5 +28,13 @@ import { Application } from '../../../entities/application/application';
   styleUrl: './application.component.scss',
 })
 export default class ApplicationComponent {
-  application = input.required<Application>();
+  private readonly breadcrumbService = inject(BreadcrumbService);
+  readonly application = input.required<Application>();
+
+  constructor() {
+    effect(() => {
+      const application = this.application();
+      this.breadcrumbService.set([applicationListBreadcrumb(true), { id: `application-${application.id}`, label: application.name }]);
+    });
+  }
 }

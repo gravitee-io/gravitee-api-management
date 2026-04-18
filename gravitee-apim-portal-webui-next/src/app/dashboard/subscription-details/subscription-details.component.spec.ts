@@ -22,8 +22,10 @@ import { of } from 'rxjs';
 import SubscriptionDetailsComponent from './subscription-details.component';
 import { SubscriptionDetailsHarness } from './subscription-details.harness';
 import { Subscription } from '../../../entities/subscription/subscription';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { SubscriptionsDetailsComponent } from '../../api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
+import { subscriptionListBreadcrumb } from '../subscriptions/subscription-breadcrumbs';
 
 @Component({
   selector: 'app-subscriptions-details',
@@ -62,5 +64,17 @@ describe('SubscriptionDetailsComponent', () => {
   it('should show subscriptions details when apiId is retrieved', async () => {
     const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionDetailsHarness);
     expect(await harness.hasSubscriptionsDetails()).toBeTruthy();
+  });
+
+  it('should set breadcrumbs for subscription details', () => {
+    const breadcrumbService = TestBed.inject(BreadcrumbService);
+    fixture.detectChanges();
+    expect(breadcrumbService.breadcrumbs()).toEqual([
+      subscriptionListBreadcrumb(true),
+      {
+        id: 'subscription-subscription-id',
+        label: $localize`:@@subscriptionTitle:Subscription ` + 'subscription-id',
+      },
+    ]);
   });
 });

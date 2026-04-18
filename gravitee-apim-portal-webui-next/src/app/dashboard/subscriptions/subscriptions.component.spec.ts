@@ -21,6 +21,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 
+import { subscriptionListBreadcrumb } from './subscription-breadcrumbs';
 import SubscriptionsComponent from './subscriptions.component';
 import { SubscriptionsComponentHarness } from './subscriptions.component.harness';
 import { ApplicationsResponse } from '../../../entities/application/application';
@@ -29,6 +30,7 @@ import { SubscriptionConsumerStatusEnum, SubscriptionStatusEnum } from '../../..
 import { fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
 import { ApiService } from '../../../services/api.service';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 
 const emptySubscriptions = { data: [], links: { self: '' }, metadata: {} };
 
@@ -82,6 +84,12 @@ describe('SubscriptionsComponent', () => {
     await getHarness();
     expect(fixture.componentInstance).toBeTruthy();
     expect(await harness.host()).toBeTruthy();
+  });
+
+  it('should set breadcrumbs for the subscriptions list', async () => {
+    await setup();
+    const breadcrumbService = TestBed.inject(BreadcrumbService);
+    expect(breadcrumbService.breadcrumbs()).toEqual([subscriptionListBreadcrumb()]);
   });
 
   it('should show empty state when no subscriptions', async () => {

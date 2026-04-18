@@ -21,6 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { merge } from 'rxjs';
 import { debounceTime, map } from 'rxjs/operators';
 
+import { subscriptionListBreadcrumb } from './subscription-breadcrumbs';
 import {
   DropdownSearchComponent,
   ResultsLoaderInput,
@@ -31,6 +32,7 @@ import { PaginatedTableComponent, TableColumn } from '../../../components/pagina
 import { SubscriptionMetadata, SubscriptionStatusEnum } from '../../../entities/subscription';
 import { ApiService } from '../../../services/api.service';
 import { ApplicationService } from '../../../services/application.service';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { areFiltersEqual, parseArrayParam, parsePageParam, parseSizeParam, toTitleCase } from '../../../utils/common.utils';
 
@@ -60,6 +62,7 @@ export default class SubscriptionsComponent {
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
   statusOptions = this.subscriptionStatusesList.map(status => ({
@@ -142,6 +145,7 @@ export default class SubscriptionsComponent {
   });
 
   constructor() {
+    this.breadcrumbService.set([subscriptionListBreadcrumb()]);
     this.setupUrlSync();
   }
 
