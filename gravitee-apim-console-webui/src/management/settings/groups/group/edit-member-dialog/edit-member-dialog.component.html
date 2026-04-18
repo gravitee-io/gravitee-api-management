@@ -31,7 +31,7 @@
       <mat-label>Default API Product Role</mat-label>
       <mat-select formControlName="defaultAPIProductRole" (selectionChange)="onChange()">
         @for (role of defaultAPIProductRoles; track role.id) {
-          <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+          <mat-option [value]="role.name" [disabled]="disabledAPIProductRoles.has(role.id)">{{ role.name }}</mat-option>
         }
       </mat-select>
     </mat-form-field>

@@ -40,6 +40,11 @@ import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, 
 import { isEqual, uniqueId } from 'lodash';
 
 import {
+  ApiProductTransferOwnershipDialogComponent,
+  ApiProductOwnershipDialogData,
+  ApiProductOwnershipDialogResult,
+} from './transfer-ownership/api-product-transfer-ownership-dialog.component';
+import {
   ApiProductGroupsComponent,
   ApiProductGroupsDialogData,
   ApiProductGroupsDialogResult,
@@ -68,6 +73,7 @@ import { UsersService } from '../../../services-ngx/users.service';
 import { Group, Member } from '../../../entities/management-api-v2';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { SearchableUser } from '../../../entities/user/searchableUser';
+import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
 
 export interface MemberRow {
   id: string;
@@ -99,6 +105,7 @@ const LOADING_STATE: MembersState = {
 };
 
 const MEMBERS_PAGE_LOAD_FAILED = 'Could not load API Product members.';
+const FAILED_TO_LOAD_ALL_MEMBERS_FOR_TRANSFER = 'Could not load the full member list for transfer ownership. Using the visible page only.';
 
 export const GROUP_LIST_PAGE_SIZE = 9999;
 
@@ -106,6 +113,17 @@ export const GROUP_INHERITED_FILTERS_DEFAULT: Readonly<GioTableWrapperFilters> =
   pagination: { index: 1, size: 10 },
   searchTerm: '',
 };
+
+function mapRowsToMembers(rows: MemberRow[]): Member[] {
+  return rows.map(
+    row =>
+      ({
+        id: row.id,
+        displayName: row.displayName,
+        roles: [{ name: row.role, scope: 'API_PRODUCT' }],
+      }) as Member,
+  );
+}
 
 function effectiveRoleName(member: Member): string {
   const roles = member.roles ?? [];
@@ -134,7 +152,6 @@ function effectiveRoleName(member: Member): string {
     GioTableWrapperModule,
     GioUsersSelectorModule,
     ApiProductGroupMembersComponent,
-    ApiProductGroupsComponent,
   ],
 })
 export class ApiProductMembersComponent {
@@ -145,25 +162,12 @@ export class ApiProductMembersComponent {
   private readonly roleService = inject(RoleService);
   private readonly usersService = inject(UsersService);
   private readonly permissionService = inject(GioPermissionService);
+  private readonly gioRoleService = inject(GioRoleService);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly reloadMembers$ = new Subject<void>();
-  private readonly pendingUsers = signal<Array<SearchableUser & { viewId: string; userPicture: string }>>([]);
-  protected readonly groupInheritedFilters = signal<Record<string, GioTableWrapperFilters>>({});
-  protected readonly groupInheritedVm = signal<Record<string, ApiProductGroupMembersViewModel>>({});
-  protected readonly groupInheritedFiltersDefault = GROUP_INHERITED_FILTERS_DEFAULT;
-  protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['api_product-member-u']);
-  protected readonly displayedColumns = this.permissionService.hasAnyMatching(['api_product-member-d'])
-    ? ['picture', 'displayName', 'role', 'delete']
-    : ['picture', 'displayName', 'role'];
-  protected readonly form = new FormGroup({
-    isNotificationsEnabled: new FormControl(true),
-    members: new FormGroup({}),
-  });
-  protected readonly roleFieldShowsRequiredError = signal<Readonly<Record<string, boolean>>>({});
-
   private readonly paginationFromRoute$ = this.activatedRoute.queryParams.pipe(
     map(params => ({ page: +(params['page'] ?? 1), size: +(params['size'] ?? 10) })),
     distinctUntilChanged(isEqual),
@@ -177,16 +181,30 @@ export class ApiProductMembersComponent {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
+  protected readonly groupInheritedFilters = signal<Record<string, GioTableWrapperFilters>>({});
+  protected readonly groupInheritedVm = signal<Record<string, ApiProductGroupMembersViewModel>>({});
+  protected readonly groupInheritedFiltersDefault = GROUP_INHERITED_FILTERS_DEFAULT;
+
+  protected readonly canTransferOwnership =
+    this.gioRoleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api_product-member-u']);
+
+  protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['api_product-member-u']);
+
+  protected readonly displayedColumns = this.permissionService.hasAnyMatching(['api_product-member-d'])
+    ? ['picture', 'displayName', 'role', 'delete']
+    : ['picture', 'displayName', 'role'];
+
+  private readonly pendingUsers = signal<Array<SearchableUser & { viewId: string; userPicture: string }>>([]);
+  protected readonly roleFieldShowsRequiredError = signal<Readonly<Record<string, boolean>>>({});
+
+  protected readonly form = new FormGroup({
+    isNotificationsEnabled: new FormControl(true),
+    members: new FormGroup({}),
+  });
+
   private readonly apiProductId = toSignal(this.apiProductIdFromRoute$, { initialValue: '' });
 
   private readonly roles = toSignal(this.roleService.list('API_PRODUCT'));
-
-  protected readonly roleNames = computed(() => (this.roles() ?? []).map(r => r.name));
-
-  protected readonly defaultRole = computed(() => {
-    const roles = this.roles() ?? [];
-    return (roles.find(r => r.default) ?? roles[0])?.name ?? null;
-  });
 
   protected readonly membersLoadState = toSignal(
     combineLatest([
@@ -243,6 +261,13 @@ export class ApiProductMembersComponent {
     },
   );
 
+  protected readonly roleNames = computed(() => (this.roles() ?? []).map(r => r.name));
+
+  protected readonly defaultRole = computed(() => {
+    const roles = this.roles() ?? [];
+    return (roles.find(r => r.default) ?? roles[0])?.name ?? null;
+  });
+
   private readonly pendingRows = computed<MemberRow[]>(() =>
     this.pendingUsers().map(user => ({
       id: user.viewId,
@@ -260,6 +285,10 @@ export class ApiProductMembersComponent {
     (this.membersLoadState().groupCards ?? []).filter(g => !!g.id),
   );
 
+  private readonly roleValidationSubscription = merge(this.membersForm.statusChanges, this.membersForm.valueChanges)
+    .pipe(startWith(null), takeUntilDestroyed())
+    .subscribe(() => this.refreshRoleFieldRequiredErrors());
+
   protected onGroupInheritedFiltersChanged(groupId: string, filters: GioTableWrapperFilters): void {
     const previous = this.groupInheritedFilters()[groupId];
     if (previous && isEqual(previous, filters)) {
@@ -268,10 +297,6 @@ export class ApiProductMembersComponent {
     this.groupInheritedFilters.update(m => ({ ...m, [groupId]: filters }));
     this.loadGroupInheritedMembers(groupId, filters.pagination.index, filters.pagination.size);
   }
-
-  private readonly roleValidationSubscription = merge(this.membersForm.statusChanges, this.membersForm.valueChanges)
-    .pipe(startWith(null), takeUntilDestroyed())
-    .subscribe(() => this.refreshRoleFieldRequiredErrors());
 
   protected openManageGroups(): void {
     const state = this.membersLoadState();
@@ -288,7 +313,7 @@ export class ApiProductMembersComponent {
         id: 'apiProductManageGroupsDialog',
         data: {
           apiProduct,
-          groups: groups.filter(group => !group.apiPrimaryOwner),
+          groups: groups.filter(group => !group.apiProductPrimaryOwner),
         },
       })
       .afterClosed()
@@ -358,6 +383,66 @@ export class ApiProductMembersComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(selectedUsers => selectedUsers.forEach(u => this.addPendingUser(u)));
+  }
+
+  protected transferOwnership(): void {
+    const state = this.membersLoadState();
+    const apiProduct = state.apiProduct;
+    const apiProductId = this.apiProductId();
+    if (!apiProduct || !apiProductId) {
+      return;
+    }
+    const { totalCount, rows, groups } = state;
+
+    const allMembers$: Observable<Member[]> =
+      totalCount <= rows.length
+        ? of(mapRowsToMembers(rows))
+        : this.apiProductV2Service.getPagedMembers(apiProductId, 1, totalCount).pipe(
+            map(res => res.data ?? []),
+            catchError(() => {
+              this.snackBarService.error(FAILED_TO_LOAD_ALL_MEMBERS_FOR_TRANSFER);
+              return of(mapRowsToMembers(rows));
+            }),
+          );
+
+    allMembers$
+      .pipe(
+        take(1),
+        switchMap(members =>
+          this.matDialog
+            .open<ApiProductTransferOwnershipDialogComponent, ApiProductOwnershipDialogData, ApiProductOwnershipDialogResult>(
+              ApiProductTransferOwnershipDialogComponent,
+              {
+                width: GIO_DIALOG_WIDTH.MEDIUM,
+                maxWidth: 'calc(100vw - 32px)',
+                role: 'alertdialog',
+                id: 'transferOwnershipDialog',
+                data: {
+                  apiProduct,
+                  groups,
+                  roles: this.roles() ?? [],
+                  members,
+                },
+              },
+            )
+            .afterClosed(),
+        ),
+        filter((result): result is ApiProductOwnershipDialogResult => !!result),
+        switchMap(result =>
+          this.apiProductV2Service.transferOwnership(
+            apiProductId,
+            result.isUserMode ? result.transferOwnershipToUser : result.transferOwnershipToGroup,
+          ),
+        ),
+        tap(() => {
+          this.snackBarService.success('Ownership transferred successfully.');
+          this.reloadMembers$.next();
+        }),
+        catchError(this.memberHttpErrorHandler('Could not transfer ownership.')),
+        take(1),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   protected removeMember(member: MemberRow): void {

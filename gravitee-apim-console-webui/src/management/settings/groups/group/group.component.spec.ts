@@ -58,6 +58,9 @@ describe('GroupComponent', () => {
     api: {
       primaryOwnerMode: 'USER',
     },
+    apiProduct: {
+      primaryOwnerMode: 'USER',
+    },
   };
 
   const GROUP: Group = {

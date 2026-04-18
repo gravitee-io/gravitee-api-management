@@ -27,15 +27,17 @@
             </p>
           </div>
           <div class="card__header__actions">
-            <button
-              class="card__header__actions__button"
-              mat-raised-button
-              type="button"
-              disabled
-              data-testid="api_product_members_transfer_ownership_button"
-            >
-              Transfer ownership
-            </button>
+            @if (canTransferOwnership) {
+              <button
+                class="card__header__actions__button"
+                mat-raised-button
+                type="button"
+                (click)="transferOwnership()"
+                data-testid="api_product_members_transfer_ownership_button"
+              >
+                Transfer ownership
+              </button>
+            }
             <button
               *gioPermission="{ anyOf: ['api_product-member-u'] }"
               class="card__header__actions__button"
