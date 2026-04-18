@@ -30,6 +30,8 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { fakeMember } from '../../../entities/management-api-v2/member/member.fixture';
+import { fakeBaseGroup, fakeGroupsResponse } from '../../../entities/management-api-v2/group/group.fixture';
+import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 
 describe('ApiProductMembersComponent', () => {
   const API_PRODUCT_ID = 'test-api-product-id';
@@ -98,10 +100,31 @@ describe('ApiProductMembersComponent', () => {
     ]);
   }
 
+  function expectGroupsRequest() {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
+      .flush(fakeGroupsResponse({ data: [] }));
+  }
+
+  function expectApiProductRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`, method: 'GET' }).flush({
+      id: API_PRODUCT_ID,
+      name: 'Test API Product',
+      version: '1.0',
+      primaryOwner: { displayName: 'Admin', id: 'admin-1', type: 'USER' },
+    } as ApiProduct);
+  }
+
+  function expectSideRequests() {
+    expectGroupsRequest();
+    expectApiProductRequest();
+  }
+
   it('should render the Members section with title and description', fakeAsync(async () => {
     await init();
     expectMembersRequest([]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -113,6 +136,7 @@ describe('ApiProductMembersComponent', () => {
     await init();
     expectMembersRequest([]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -127,6 +151,7 @@ describe('ApiProductMembersComponent', () => {
     await init(['api_product-member-r', 'api_product-member-c', 'api_product-member-d', 'api_product-member-u']);
     expectMembersRequest([]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -142,6 +167,7 @@ describe('ApiProductMembersComponent', () => {
     const member = fakeMember({ id: 'user-1', displayName: 'Alice', roles: [{ name: 'USER' }] });
     expectMembersRequest([member]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -159,6 +185,7 @@ describe('ApiProductMembersComponent', () => {
     const owner = fakeMember({ id: 'owner-1', displayName: 'Admin', roles: [{ name: 'PRIMARY_OWNER' }] });
     expectMembersRequest([owner]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -172,6 +199,7 @@ describe('ApiProductMembersComponent', () => {
     await init();
     expectMembersRequest([]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -182,6 +210,7 @@ describe('ApiProductMembersComponent', () => {
     await init(['api_product-member-r', 'api_product-member-c']);
     expectMembersRequest([]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -192,6 +221,7 @@ describe('ApiProductMembersComponent', () => {
     await init(['api_product-member-r']);
     expectMembersRequest([]);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -205,6 +235,7 @@ describe('ApiProductMembersComponent', () => {
 
     expectMembersRequest([fakeMember({ id: 'm1', roles: [{ name: 'USER' }] })], 50, 1, 10);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -227,6 +258,7 @@ describe('ApiProductMembersComponent', () => {
     const onlyMember = fakeMember({ id: 'last-member', displayName: 'Last Member', roles: [{ name: 'USER' }] });
     expectMembersRequest([onlyMember], 11, 1, 10);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -244,6 +276,7 @@ describe('ApiProductMembersComponent', () => {
     fixture.detectChanges();
 
     expectMembersRequest([], 10, 1, 10);
+    expectApiProductRequest();
     tick();
     fixture.detectChanges();
 
@@ -260,6 +293,7 @@ describe('ApiProductMembersComponent', () => {
     const onlyMember = fakeMember({ id: 'page3-member', displayName: 'Page 3 Member', roles: [{ name: 'USER' }] });
     expectMembersRequest([onlyMember], 21, 3, 10);
     expectRolesRequest();
+    expectSideRequests();
     tick();
     fixture.detectChanges();
 
@@ -278,5 +312,76 @@ describe('ApiProductMembersComponent', () => {
 
     httpTestingController.expectNone(r => r.url === MEMBERS_URL && r.method === 'GET');
     expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: 2 }, queryParamsHandling: 'merge' }));
+  }));
+
+  it('should show transfer ownership button when user has update permission', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-c', 'api_product-member-u']);
+    expectMembersRequest([]);
+    expectRolesRequest();
+    expectSideRequests();
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+  }));
+
+  it('should hide transfer ownership button when user lacks update permission', fakeAsync(async () => {
+    await init(['api_product-member-r']);
+    expectMembersRequest([]);
+    expectRolesRequest();
+    expectSideRequests();
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.isTransferOwnershipVisible()).toBeFalsy();
+  }));
+
+  it('should display inherited group members section when API Product has groups', fakeAsync(async () => {
+    await init();
+
+    const poMember = fakeMember({ id: 'owner-1', displayName: 'Admin', roles: [{ name: 'PRIMARY_OWNER' }] });
+    expectMembersRequest([poMember]);
+    expectRolesRequest();
+
+    const group = fakeBaseGroup({ id: 'group-1', name: 'PO Group' });
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
+      .flush(fakeGroupsResponse({ data: [group] }));
+
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`, method: 'GET' }).flush({
+      id: API_PRODUCT_ID,
+      name: 'Test API Product',
+      version: '1.0',
+      groups: ['group-1'],
+      primaryOwner: { displayName: 'PO Group', id: 'group-1', type: 'GROUP' },
+    } as ApiProduct);
+
+    tick();
+    fixture.detectChanges();
+
+    const groupMembersUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/groups/group-1/members?page=1&perPage=10`;
+    httpTestingController.expectOne({ url: groupMembersUrl, method: 'GET' }).flush({
+      data: [{ id: 'member-1', displayName: 'Group Member', roles: [{ name: 'USER', scope: 'API_PRODUCT' }] }],
+      pagination: { totalCount: 1, page: 1, perPage: 10 },
+    });
+    tick();
+    fixture.detectChanges();
+
+    const groupCards = fixture.nativeElement.querySelectorAll('api-general-group-members');
+    expect(groupCards.length).toBe(1);
+    expect(fixture.nativeElement.textContent).toContain('PO Group');
+    expect(fixture.nativeElement.textContent).toContain('inherited members');
+  }));
+
+  it('should not display group members section when API Product has no groups', fakeAsync(async () => {
+    await init();
+    expectMembersRequest([]);
+    expectRolesRequest();
+    expectSideRequests();
+    tick();
+    fixture.detectChanges();
+
+    const groupCards = fixture.nativeElement.querySelectorAll('api-general-group-members');
+    expect(groupCards.length).toBe(0);
   }));
 });

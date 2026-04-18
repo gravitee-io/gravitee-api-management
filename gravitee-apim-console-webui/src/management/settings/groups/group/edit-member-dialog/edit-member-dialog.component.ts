@@ -95,6 +95,7 @@ export class EditMemberDialogComponent implements OnInit {
   downgradedMember: Member = null;
   disableSubmit = true;
   disabledAPIRoles = new Set<string>();
+  disabledAPIProductRoles = new Set<string>();
 
   private user: SearchableUser = null;
   private initialValues: any = null;
@@ -170,6 +171,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.disableDefaultIntegrationRole();
     this.disableDefaultClusterRole();
     this.disableAPIRoleOptions();
+    this.disableAPIProductRoleOptions();
   }
 
   private disableDefaultAPIRole(): void {
@@ -208,6 +210,14 @@ export class EditMemberDialogComponent implements OnInit {
     );
   }
 
+  private disableAPIProductRoleOptions() {
+    this.disabledAPIProductRoles = new Set(
+      this.defaultAPIProductRoles
+        .filter(role => this.isApiProductPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role))
+        .map(role => role.id),
+    );
+  }
+
   private canUpdateGroup() {
     return this.permissionService.hasAnyMatching(['environment-group-u']);
   }
@@ -216,8 +226,16 @@ export class EditMemberDialogComponent implements OnInit {
     return this.checkPrimaryOwnerMode() && role.name === RoleName.PRIMARY_OWNER;
   }
 
+  private isApiProductPrimaryOwnerDisabled(role: Role): boolean {
+    return this.checkApiProductPrimaryOwnerMode() && role.name === RoleName.PRIMARY_OWNER;
+  }
+
   private checkPrimaryOwnerMode() {
     return this.settingsService.getSnapshot().api.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.USER;
+  }
+
+  private checkApiProductPrimaryOwnerMode() {
+    return this.settingsService.getSnapshot().apiProduct.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.USER;
   }
 
   private isSystemRoleDisabled(role: Role): boolean {

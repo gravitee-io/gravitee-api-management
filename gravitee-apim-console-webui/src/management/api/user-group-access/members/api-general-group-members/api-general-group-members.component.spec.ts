@@ -26,7 +26,6 @@ import { ApiGeneralGroupMembersComponent } from './api-general-group-members.com
 import { ApiGeneralGroupMembersHarness } from './api-general-group-members.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiUserGroupModule } from '../../api-user-group.module';
 import { MembersResponse } from '../../../../../entities/management-api-v2';
 import { fakeMember } from '../../../../../entities/management-api-v2/member/member.fixture';
 import { GroupData } from '../api-general-members.component';
@@ -37,7 +36,8 @@ const GROUP_NAME = 'groupName1';
 @Component({
   selector: `host-component`,
   template: `<api-general-group-members [groupData]="groupData" (destroy)="isDestroy()"></api-general-group-members>`,
-  standalone: false,
+  standalone: true,
+  imports: [ApiGeneralGroupMembersComponent],
 })
 class TestComponent {
   groupData: GroupData = {
@@ -57,11 +57,10 @@ describe('ApiGeneralGroupMembersComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiUserGroupModule],
-      declarations: [ApiGeneralGroupMembersComponent, TestComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, TestComponent],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
-        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+        isFocusable: () => true,
         isTabbable: () => true,
       },
     });

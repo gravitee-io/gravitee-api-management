@@ -52,4 +52,17 @@ export class ApiProductMembersComponentHarness extends ComponentHarness {
   async getTableWrapper(): Promise<GioTableWrapperHarness> {
     return this.locatorFor(GioTableWrapperHarness)();
   }
+
+  async getTransferOwnershipButton(): Promise<MatButtonHarness | null> {
+    return this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="api_product_members_transfer_ownership_button"]' }))();
+  }
+
+  async isTransferOwnershipVisible(): Promise<boolean> {
+    return (await this.getTransferOwnershipButton()) != null;
+  }
+
+  async transferOwnershipClick(): Promise<void> {
+    const btn = await this.getTransferOwnershipButton();
+    return btn?.click();
+  }
 }

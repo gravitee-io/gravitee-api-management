@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+import { GioAvatarModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GroupData } from '../api-general-members.component';
 
@@ -34,34 +39,33 @@ interface MemberDataSource {
   selector: 'api-general-group-members',
   templateUrl: './api-general-group-members.component.html',
   styleUrls: ['./api-general-group-members.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, MatCardModule, MatTableModule, GioAvatarModule, GioLoaderModule, GioTableWrapperModule],
 })
 export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
-  @Input()
-  groupData: GroupData;
+  @Input() groupData: GroupData;
+  @Input() roleScope: string = 'API';
 
-  @Output()
-  destroy = new EventEmitter<void>();
+  @Output() destroy = new EventEmitter<void>();
 
-  public dataSourceGroupVM: {
+  private readonly groupService = inject(GroupV2Service);
+  private readonly userService = inject(UsersService);
+
+  dataSourceGroupVM: {
     memberTotalCount: number;
     membersPageResult: MemberDataSource[];
     isLoading: boolean;
     canViewGroupMembers: boolean;
   };
 
-  public displayedColumns = ['picture', 'displayName', 'role'];
+  displayedColumns = ['picture', 'displayName', 'role'];
 
-  public filters: GioTableWrapperFilters = {
+  filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   };
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  constructor(
-    private readonly groupService: GroupV2Service,
-    private readonly userService: UsersService,
-  ) {}
 
   ngOnInit(): void {
     if (!this.groupData.id || this.groupData.id.length === 0) {
@@ -107,7 +111,7 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
             memberTotalCount: membersResponse.pagination.totalCount,
             membersPageResult: membersResponse.data.map(member => ({
               id: member.id,
-              role: member.roles.find(role => role.scope === 'API')?.name,
+              role: member.roles.find(role => role.scope === this.roleScope)?.name,
               displayName: member.displayName,
               picture: this.userService.getUserAvatar(member.id),
             })),

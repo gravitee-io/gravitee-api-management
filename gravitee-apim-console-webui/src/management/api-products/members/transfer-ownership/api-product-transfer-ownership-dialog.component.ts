@@ -1,0 +1,172 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
+import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { isEmpty } from 'lodash';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
+import { ApiProductTransferOwnership } from '../../../../entities/management-api-v2/api-product/apiProductTransferOwnership';
+import { Group, Member } from '../../../../entities/management-api-v2';
+import { Role } from '../../../../entities/role/role';
+import { Constants } from '../../../../entities/Constants';
+import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
+
+export interface ApiProductOwnershipDialogData {
+  apiProduct: ApiProduct;
+  groups: Group[];
+  roles: Role[];
+  members: Member[];
+}
+
+export interface ApiProductOwnershipDialogResult {
+  isUserMode: boolean;
+  transferOwnershipToUser?: ApiProductTransferOwnership;
+  transferOwnershipToGroup: ApiProductTransferOwnership;
+}
+
+type TransferOwnershipMode = 'USER' | 'GROUP' | 'HYBRID';
+
+@Component({
+  selector: 'api-product-transfer-ownership-dialog',
+  templateUrl: './api-product-transfer-ownership-dialog.component.html',
+  styleUrls: ['./api-product-transfer-ownership-dialog.component.scss'],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    GioBannerModule,
+    GioFormUserAutocompleteModule,
+  ],
+})
+export class ApiProductTransferOwnershipDialogComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private apiProduct: ApiProduct;
+  private groups: Group[];
+  private roles: Role[];
+
+  mode: TransferOwnershipMode;
+  warnUseGroupAsPrimaryOwner = false;
+  form: FormGroup;
+  poGroups: Group[];
+  poRoles: Role[];
+  apiProductMembers: Member[];
+
+  constructor(
+    @Inject(Constants) private readonly constants: Constants,
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiProductOwnershipDialogData,
+    public dialogRef: MatDialogRef<ApiProductOwnershipDialogData, ApiProductOwnershipDialogResult>,
+  ) {
+    this.apiProduct = dialogData.apiProduct;
+    this.groups = dialogData.groups;
+    this.roles = dialogData.roles;
+    this.apiProductMembers = dialogData.members.filter(member => !member.roles?.map(r => r.name)?.includes('PRIMARY_OWNER'));
+  }
+
+  ngOnInit(): void {
+    this.mode = this.constants.env.settings.apiProduct.primaryOwnerMode.toUpperCase() as TransferOwnershipMode;
+    this.poGroups = this.groups.filter(group => group.apiProductPrimaryOwner != null);
+    if (this.apiProduct.primaryOwner?.type === 'GROUP') {
+      this.poGroups = this.poGroups.filter(group => group.id !== this.apiProduct.primaryOwner.id);
+    }
+    this.warnUseGroupAsPrimaryOwner = (this.mode === 'HYBRID' || this.mode === 'GROUP') && isEmpty(this.poGroups);
+    this.poRoles = this.roles.filter(role => role.name !== 'PRIMARY_OWNER');
+    const defaultRolePO = this.roles.find(role => role.default);
+    this.initForm(defaultRolePO);
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
+  }
+
+  public onSubmit() {
+    const newRole = this.form.get('roleId').value;
+    const user: SearchableUser = this.form.get('user').value;
+    const transferOwnershipToUser: ApiProductTransferOwnership = {
+      newPrimaryOwnerId: user?.id,
+      userReference: user?.reference,
+      currentPrimaryOwnerNewRole: newRole,
+      userType: 'USER',
+    };
+    const transferOwnershipToGroup: ApiProductTransferOwnership = {
+      newPrimaryOwnerId: this.form.get('groupId').value,
+      userReference: null,
+      currentPrimaryOwnerNewRole: newRole,
+      userType: 'GROUP',
+    };
+    const userMode = this.form.get('userOrGroup').value;
+    const isUserMode = userMode === 'user' || userMode === 'apiProductMember';
+    this.dialogRef.close({ isUserMode, transferOwnershipToGroup, transferOwnershipToUser });
+  }
+
+  private initForm(defaultRolePO: Role) {
+    this.form = new FormGroup(
+      {
+        userOrGroup: new FormControl(this.mode === 'GROUP' ? 'group' : 'apiProductMember'),
+        user: new FormControl(),
+        groupId: new FormControl(),
+        roleId: new FormControl(defaultRolePO?.name),
+      },
+      [
+        (control: AbstractControl): ValidationErrors | null => {
+          const errors: ValidationErrors = {};
+          if (!control.get('userOrGroup').value) {
+            errors.userOrGroupRequired = true;
+          }
+
+          const userMode = control.get('userOrGroup').value;
+
+          const isUserMode = userMode === 'user' || userMode === 'apiProductMember';
+          const isGroupMode = userMode === 'group';
+
+          if (isUserMode && isEmpty(control.get('user').value)) {
+            errors.userRequired = true;
+          }
+          if (isGroupMode && isEmpty(control.get('groupId').value)) {
+            errors.groupRequired = true;
+          }
+          if (!control.get('roleId').value) {
+            errors.roleRequired = true;
+          }
+
+          return errors ?? null;
+        },
+      ],
+    );
+
+    this.form
+      .get('userOrGroup')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe(() => {
+        this.form.get('user').reset();
+        this.form.get('groupId').reset();
+      });
+  }
+}

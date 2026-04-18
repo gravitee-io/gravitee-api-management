@@ -27,7 +27,18 @@
             </p>
           </div>
           <div class="card__header__actions">
-            <button class="card__header__actions__button" mat-raised-button type="button" disabled>Transfer ownership</button>
+            @if (canTransferOwnership) {
+              <button
+                class="card__header__actions__button"
+                mat-raised-button
+                type="button"
+                [disabled]="isReadOnly"
+                (click)="transferOwnership()"
+                data-testid="api_product_members_transfer_ownership_button"
+              >
+                Transfer ownership
+              </button>
+            }
             <button class="card__header__actions__button" mat-raised-button type="button" disabled aria-label="Manage groups">
               Manage groups
             </button>
@@ -128,6 +139,18 @@
         </table>
       </gio-table-wrapper>
     </mat-card>
+
+    @if (groupData().length > 0) {
+      @for (group of groupData(); track group.id) {
+        @if (group.isVisible) {
+          <api-general-group-members
+            [groupData]="group"
+            [roleScope]="'API_PRODUCT'"
+            (destroy)="group.isVisible = false"
+          ></api-general-group-members>
+        }
+      }
+    }
 
     <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSave()"></gio-save-bar>
   }

@@ -47,12 +47,7 @@ import { GioFormUserAutocompleteModule } from '../../../shared/components/gio-us
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  declarations: [
-    ApiGeneralGroupsComponent,
-    ApiGeneralMembersComponent,
-    ApiGeneralGroupMembersComponent,
-    ApiGeneralTransferOwnershipComponent,
-  ],
+  declarations: [ApiGeneralGroupsComponent, ApiGeneralMembersComponent, ApiGeneralTransferOwnershipComponent],
   exports: [ApiGeneralGroupsComponent, ApiGeneralMembersComponent, ApiGeneralTransferOwnershipComponent],
   imports: [
     CommonModule,
@@ -81,6 +76,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     GioUsersSelectorModule,
     GioTableWrapperModule,
     GioLoaderModule,
+    ApiGeneralGroupMembersComponent,
   ],
 })
 export class ApiUserGroupModule {}

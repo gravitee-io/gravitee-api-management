@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-export interface BaseGroup {
-  id?: string;
-  name?: string;
-}
+import { MembershipMemberType } from '../api/membershipMemberType';
 
-export type GroupEvent = 'API_CREATE' | 'APPLICATION_CREATE' | undefined;
-
-export interface Group extends BaseGroup {
-  eventRules?: GroupEvent[];
-  manageable?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-  maxInvitation?: boolean;
-  apiRole?: string;
-  lockApiRole?: boolean;
-  applicationRole?: string;
-  lockApplicationRole?: boolean;
-  systemInvitation?: boolean;
-  emailInvitation?: boolean;
-  disableMembershipNotifications?: boolean;
-  primaryOwner?: boolean;
-  apiPrimaryOwner?: string;
-  apiProductPrimaryOwner?: string;
+export interface ApiProductTransferOwnership {
+  newPrimaryOwnerId?: string;
+  userReference?: string;
+  userType?: MembershipMemberType;
+  currentPrimaryOwnerNewRole?: string;
 }

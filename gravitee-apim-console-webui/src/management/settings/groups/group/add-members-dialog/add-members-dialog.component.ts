@@ -75,6 +75,7 @@ export class AddMembersDialogComponent implements OnInit {
     searchTerm: FormControl<string>;
   }>;
   disabledAPIRoles = new Set<string>();
+  disabledAPIProductRoles = new Set<string>();
   disableSubmit = false;
 
   private group: Group;
@@ -147,6 +148,7 @@ export class AddMembersDialogComponent implements OnInit {
     this.disableDefaultIntegrationRole();
     this.disableDefaultClusterRole();
     this.disableAPIRoleOptions();
+    this.disableAPIProductRoleOptions();
   }
 
   private disableDefaultAPIRole(): void {
@@ -185,6 +187,14 @@ export class AddMembersDialogComponent implements OnInit {
     );
   }
 
+  private disableAPIProductRoleOptions() {
+    this.disabledAPIProductRoles = new Set(
+      this.defaultAPIProductRoles
+        .filter(role => this.isApiProductPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role))
+        .map(role => role.id),
+    );
+  }
+
   private canUpdateGroup() {
     return this.permissionService.hasAnyMatching(['environment-group-u']);
   }
@@ -193,12 +203,24 @@ export class AddMembersDialogComponent implements OnInit {
     return (this.checkPrimaryOwnerMode() || this.isPrimaryOwnerPresent()) && role.name === RoleName.PRIMARY_OWNER;
   }
 
+  private isApiProductPrimaryOwnerDisabled(role: Role): boolean {
+    return (this.checkApiProductPrimaryOwnerMode() || this.isApiProductPrimaryOwnerPresent()) && role.name === RoleName.PRIMARY_OWNER;
+  }
+
   private checkPrimaryOwnerMode() {
     return this.settingsService.getSnapshot().api.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.USER;
   }
 
+  private checkApiProductPrimaryOwnerMode() {
+    return this.settingsService.getSnapshot().apiProduct.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.USER;
+  }
+
   private isPrimaryOwnerPresent() {
     return this.members.some(member => member.roles['API'] === RoleName.PRIMARY_OWNER);
+  }
+
+  private isApiProductPrimaryOwnerPresent() {
+    return this.members.some(member => member.roles['API_PRODUCT'] === RoleName.PRIMARY_OWNER);
   }
 
   private isSystemRoleDisabled(role: Role): boolean {

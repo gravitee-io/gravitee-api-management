@@ -27,6 +27,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
+  GIO_DIALOG_WIDTH,
   GioAvatarModule,
   GioConfirmDialogComponent,
   GioConfirmDialogData,
@@ -38,6 +39,12 @@ import { combineLatest, EMPTY, forkJoin, merge, Observable, of, Subject } from '
 import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap, take, tap } from 'rxjs/operators';
 import { isEqual, uniqueId } from 'lodash';
 
+import {
+  ApiProductTransferOwnershipDialogComponent,
+  ApiProductOwnershipDialogData,
+  ApiProductOwnershipDialogResult,
+} from './transfer-ownership/api-product-transfer-ownership-dialog.component';
+
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -48,11 +55,15 @@ import {
   GioUsersSelectorData,
 } from '../../../shared/components/gio-users-selector/gio-users-selector.component';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
+import { GroupV2Service } from '../../../services-ngx/group-v2.service';
 import { RoleService } from '../../../services-ngx/role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../services-ngx/users.service';
-import { Member } from '../../../entities/management-api-v2';
+import { Group, Member } from '../../../entities/management-api-v2';
 import { SearchableUser } from '../../../entities/user/searchableUser';
+import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
+import { ApiGeneralGroupMembersComponent } from '../../api/user-group-access/members/api-general-group-members/api-general-group-members.component';
+import { GroupData } from '../../api/user-group-access/members/api-general-members.component';
 
 export interface MemberRow {
   id: string;
@@ -97,21 +108,26 @@ function effectiveRoleName(member: Member): string {
     GioSaveBarModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
+    ApiGeneralGroupMembersComponent,
   ],
 })
 export class ApiProductMembersComponent {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly groupService = inject(GroupV2Service);
   private readonly roleService = inject(RoleService);
   private readonly usersService = inject(UsersService);
   private readonly permissionService = inject(GioPermissionService);
+  private readonly gioRoleService = inject(GioRoleService);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly reloadMembers$ = new Subject<void>();
   private readonly pendingUsers = signal<Array<SearchableUser & { viewId: string; userPicture: string }>>([]);
+  protected readonly canTransferOwnership =
+    this.gioRoleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api_product-member-u']);
   protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['api_product-member-u']);
   protected readonly displayedColumns = this.permissionService.hasAnyMatching(['api_product-member-d'])
     ? ['picture', 'displayName', 'role', 'delete']
@@ -129,6 +145,36 @@ export class ApiProductMembersComponent {
   );
 
   private readonly roles = toSignal(this.roleService.list('API_PRODUCT').pipe(take(1)));
+  private readonly groups = toSignal(
+    this.groupService.list(1, 9999).pipe(
+      map(res => res.data ?? []),
+      take(1),
+    ),
+    { initialValue: [] as Group[] },
+  );
+  private readonly apiProduct = toSignal(
+    combineLatest([
+      this.activatedRoute.paramMap.pipe(
+        map(p => p.get('apiProductId') ?? ''),
+        filter(id => id !== ''),
+        distinctUntilChanged(),
+      ),
+      merge(of(null), this.reloadMembers$),
+    ]).pipe(switchMap(([id]) => this.apiProductV2Service.get(id))),
+  );
+
+  protected readonly groupData = computed<GroupData[]>(() => {
+    const product = this.apiProduct();
+    const allGroups = this.groups();
+    if (!product?.groups?.length) {
+      return [];
+    }
+    return product.groups.map(id => ({
+      id,
+      name: allGroups.find(g => g.id === id)?.name ?? id,
+      isVisible: true,
+    }));
+  });
 
   protected readonly roleNames = computed(() => (this.roles() ?? []).map(r => r.name));
 
@@ -230,6 +276,61 @@ export class ApiProductMembersComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(selectedUsers => selectedUsers.forEach(u => this.addPendingUser(u)));
+  }
+
+  protected transferOwnership(): void {
+    const apiProductId = this.apiProductId;
+    const apiProduct = this.apiProduct();
+    if (!apiProduct) {
+      return;
+    }
+    const { totalCount, rows } = this.membersLoadState();
+
+    const allMembers$: Observable<Member[]> =
+      totalCount <= rows.length
+        ? of(rows.map(r => ({ id: r.id, displayName: r.displayName, roles: [{ name: r.role }] }) as Member))
+        : this.apiProductV2Service.getPagedMembers(apiProductId, 1, totalCount).pipe(
+            map(res => res.data ?? []),
+            catchError(() => of([] as Member[])),
+          );
+
+    allMembers$
+      .pipe(
+        take(1),
+        switchMap(members =>
+          this.matDialog
+            .open<ApiProductTransferOwnershipDialogComponent, ApiProductOwnershipDialogData, ApiProductOwnershipDialogResult>(
+              ApiProductTransferOwnershipDialogComponent,
+              {
+                width: GIO_DIALOG_WIDTH.MEDIUM,
+                role: 'alertdialog',
+                id: 'transferOwnershipDialog',
+                data: {
+                  apiProduct,
+                  groups: this.groups(),
+                  roles: this.roles() ?? [],
+                  members,
+                },
+              },
+            )
+            .afterClosed(),
+        ),
+        filter((result): result is ApiProductOwnershipDialogResult => !!result),
+        switchMap(result =>
+          this.apiProductV2Service.transferOwnership(
+            apiProductId,
+            result.isUserMode ? result.transferOwnershipToUser : result.transferOwnershipToGroup,
+          ),
+        ),
+        tap(() => {
+          this.snackBarService.success('Ownership transferred successfully.');
+          this.reloadMembers$.next();
+        }),
+        catchError(this.memberHttpErrorHandler('Could not transfer ownership.')),
+        take(1),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   protected removeMember(member: MemberRow): void {

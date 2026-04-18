@@ -31,6 +31,7 @@ import {
   VerifyApiProductDeployResponse,
 } from '../entities/management-api-v2/api-product';
 import { AddMember, Member, MembersResponse, UpdateMember } from '../entities/management-api-v2';
+import { ApiProductTransferOwnership } from '../entities/management-api-v2/api-product/apiProductTransferOwnership';
 
 @Injectable({
   providedIn: 'root',
@@ -293,5 +294,13 @@ export class ApiProductV2Service {
    */
   deleteMember(apiProductId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/${memberId}`);
+  }
+
+  /**
+   * Transfer ownership of an API Product
+   * Calls POST /environments/{envId}/api-products/{apiProductId}/members/_transfer-ownership
+   */
+  transferOwnership(apiProductId: string, ownership: ApiProductTransferOwnership): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/_transfer-ownership`, ownership);
   }
 }
