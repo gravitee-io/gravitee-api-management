@@ -13,6 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.model;
+package io.gravitee.definition.model.cluster;
 
-public record SaslMechanism(String type, String username, String password) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class KafkaConnectionReactableCluster extends ReactableCluster {
+
+    {
+        setType(ClusterType.KAFKA_CLUSTER_CONNECTION);
+    }
+
+    private String bootstrapServers;
+    private SecurityConfig security;
+}

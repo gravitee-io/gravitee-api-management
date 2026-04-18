@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
+import io.gravitee.definition.model.cluster.ClusterType;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;

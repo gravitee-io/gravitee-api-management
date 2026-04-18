@@ -59,6 +59,10 @@
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-common-configurations</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

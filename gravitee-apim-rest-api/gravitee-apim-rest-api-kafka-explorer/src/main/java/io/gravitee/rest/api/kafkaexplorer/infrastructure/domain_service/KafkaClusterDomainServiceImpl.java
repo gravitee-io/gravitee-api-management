@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
 import io.gravitee.apim.core.cluster.model.KafkaClusterConnectionConfiguration;
-import io.gravitee.apim.core.cluster.model.SaslMechanism;
-import io.gravitee.apim.core.cluster.model.SecurityProtocol;
+import io.gravitee.definition.model.cluster.SaslMechanism;
+import io.gravitee.definition.model.cluster.SecurityProtocol;
 import io.gravitee.plugin.configurations.ssl.KeyStore;
 import io.gravitee.plugin.configurations.ssl.SslOptions;
 import io.gravitee.plugin.configurations.ssl.TrustStore;

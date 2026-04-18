@@ -13,8 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.model;
+package io.gravitee.definition.model.cluster;
 
-import io.gravitee.plugin.configurations.ssl.SslOptions;
+import java.io.Serializable;
+import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-public record SecurityConfig(SecurityProtocol protocol, SaslConfig sasl, SslOptions ssl) {}
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public abstract class ReactableCluster implements Serializable {
+
+    private String id;
+    private String crossId;
+    private String name;
+    private ClusterType type;
+    private String environmentId;
+    private String organizationId;
+    private Date deployedAt;
+}

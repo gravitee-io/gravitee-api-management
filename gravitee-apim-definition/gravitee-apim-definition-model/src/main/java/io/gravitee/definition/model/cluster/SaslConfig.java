@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.model;
+package io.gravitee.definition.model.cluster;
 
-public record SaslConfig(SaslMechanism mechanism) {}
+import java.io.Serializable;
+
+public record SaslConfig(SaslMechanism mechanism) implements Serializable {}

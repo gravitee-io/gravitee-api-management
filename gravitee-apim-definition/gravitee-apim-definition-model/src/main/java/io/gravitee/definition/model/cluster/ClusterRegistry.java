@@ -13,25 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.model;
+package io.gravitee.definition.model.cluster;
 
-import io.gravitee.definition.model.cluster.ClusterType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Setter
-@Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class CreateCluster {
-
-    private ClusterType type;
-    private String crossId;
-    private String name;
-    private String description;
-    private Object configuration;
+public interface ClusterRegistry {
+    ReactableCluster get(String crossId, String environmentId);
 }

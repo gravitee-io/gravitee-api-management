@@ -22,7 +22,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
-import io.gravitee.apim.core.cluster.model.ClusterType;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;

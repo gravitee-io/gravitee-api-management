@@ -32,11 +32,11 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaSe
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
-import io.gravitee.apim.core.cluster.model.ClusterType;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;

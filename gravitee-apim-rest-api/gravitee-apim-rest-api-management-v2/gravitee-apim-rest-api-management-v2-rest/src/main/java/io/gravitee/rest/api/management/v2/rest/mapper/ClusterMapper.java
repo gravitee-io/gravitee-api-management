@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.cluster.model.ClusterType;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.management.v2.rest.model.Cluster;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
