@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0-add-api-product-primary-owner-to-groups
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}groups
+            columns:
+              - column:
+                  name: api_product_primary_owner
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

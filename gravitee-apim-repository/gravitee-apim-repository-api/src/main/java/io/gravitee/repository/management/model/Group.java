@@ -54,5 +54,6 @@ public class Group {
     private boolean emailInvitation;
     private boolean disableMembershipNotifications;
     private String apiPrimaryOwner;
+    private String apiProductPrimaryOwner;
     private String origin;
 }
