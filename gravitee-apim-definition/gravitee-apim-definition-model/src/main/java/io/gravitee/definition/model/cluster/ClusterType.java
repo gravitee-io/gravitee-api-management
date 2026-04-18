@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.model;
+package io.gravitee.definition.model.cluster;
 
-public enum SecurityProtocol {
-    PLAINTEXT,
-    SASL_PLAINTEXT,
-    SSL,
-    SASL_SSL,
+public enum ClusterType {
+    KAFKA_CLUSTER,
+    KAFKA_CLUSTER_CONNECTION,
 }

@@ -23,10 +23,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.cluster.model.KafkaClusterConnectionConfiguration;
-import io.gravitee.apim.core.cluster.model.SaslConfig;
-import io.gravitee.apim.core.cluster.model.SaslMechanism;
-import io.gravitee.apim.core.cluster.model.SecurityConfig;
-import io.gravitee.apim.core.cluster.model.SecurityProtocol;
+import io.gravitee.definition.model.cluster.SaslConfig;
+import io.gravitee.definition.model.cluster.SaslMechanism;
+import io.gravitee.definition.model.cluster.SecurityConfig;
+import io.gravitee.definition.model.cluster.SecurityProtocol;
 import io.gravitee.plugin.configurations.ssl.SslOptions;
 import io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore;
 import io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore;

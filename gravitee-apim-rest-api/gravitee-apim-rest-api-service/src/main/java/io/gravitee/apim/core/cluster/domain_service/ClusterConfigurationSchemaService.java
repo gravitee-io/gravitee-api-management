@@ -18,7 +18,7 @@ package io.gravitee.apim.core.cluster.domain_service;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.cluster.model.ClusterType;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.io.InputStream;
