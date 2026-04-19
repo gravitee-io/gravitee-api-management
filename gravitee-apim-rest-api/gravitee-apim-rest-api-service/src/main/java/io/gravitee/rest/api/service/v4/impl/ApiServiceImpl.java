@@ -25,6 +25,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -166,9 +168,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
+    private final ApiMetadataQueryService apiMetadataQueryService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
+    private static final String EXPAND_METADATA = "metadata";
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -200,6 +204,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final TagsValidationService tagsValidationService,
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
+        final ApiMetadataQueryService apiMetadataQueryService,
         ApiCategoryService apiCategoryService
     ) {
         this.apiRepository = apiRepository;
@@ -230,6 +235,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.tagsValidationService = tagsValidationService;
         this.apiAuthorizationService = apiAuthorizationService;
         this.groupService = groupService;
+        this.apiMetadataQueryService = apiMetadataQueryService;
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
     }
@@ -715,7 +721,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             new ApiFieldFilter.Builder().excludePicture().build()
         );
 
-        return apis
+        List<GenericApiEntity> apiEntityList = apis
             .getContent()
             .stream()
             .map(api -> {
@@ -727,11 +733,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 return genericApiMapper.toGenericApi(api, primaryOwner);
             })
-            .collect(
-                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
-                    new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
-                )
-            );
+            .collect(Collectors.toList());
+
+        if (expands != null && expands.contains(EXPAND_METADATA) && !apiEntityList.isEmpty()) {
+            fetchAndSetMetadata(executionContext, apiEntityList);
+        }
+
+        return new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements());
     }
 
     @Override
@@ -804,5 +812,40 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             log.error(errorMsg, apiId, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
+    }
+
+    private void fetchAndSetMetadata(ExecutionContext executionContext, List<GenericApiEntity> apiEntityList) {
+        try {
+            String environmentId = executionContext.getEnvironmentId();
+            List<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).filter(Objects::nonNull).distinct().toList();
+            if (apiIds.isEmpty()) {
+                return;
+            }
+            Map<String, Map<String, ApiMetadata>> metadataByApiId = apiMetadataQueryService.findApiMetadataForApis(environmentId, apiIds);
+            for (GenericApiEntity apiEntity : apiEntityList) {
+                Map<String, ApiMetadata> apiMetadataMap = metadataByApiId.get(apiEntity.getId());
+                if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
+                    apiEntity.setMetadata(toResolvedMetadataValues(apiMetadataMap));
+                }
+            }
+        } catch (Exception e) {
+            throw new TechnicalManagementException("Failed to fetch metadata for APIs", e);
+        }
+    }
+
+    private static Map<String, Object> toResolvedMetadataValues(Map<String, ApiMetadata> apiMetadataMap) {
+        return apiMetadataMap
+            .values()
+            .stream()
+            .collect(
+                toMap(
+                    ApiMetadata::getKey,
+                    metadata -> {
+                        String value = metadata.getValue();
+                        return value != null ? value : Objects.requireNonNullElse(metadata.getDefaultValue(), "");
+                    },
+                    (existing, replacement) -> replacement
+                )
+            );
     }
 }

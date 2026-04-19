@@ -70,6 +70,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -104,6 +106,8 @@ public interface ApiMapper {
     Logger logger = LoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
+    String EXPAND_METADATA = "metadata";
+
     // Api
     default Api map(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo, Boolean isSynchronized) {
         GenericApi.DeploymentStateEnum state = null;
@@ -120,6 +124,18 @@ public interface ApiMapper {
 
     @Nullable
     default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
+        return map(apiEntity, uriInfo, isSynchronized, null);
+    }
+
+    @Nullable
+    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized, Set<String> expands) {
+        Api api = mapGenericApiEntity(apiEntity, uriInfo, isSynchronized);
+        applyMetadataExpand(apiEntity, api, expands);
+        return api;
+    }
+
+    @Nullable
+    private Api mapGenericApiEntity(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
         GenericApi.DeploymentStateEnum state = null;
 
         if (isSynchronized != null) {
@@ -143,11 +159,40 @@ public interface ApiMapper {
         };
     }
 
+    default void applyMetadataExpand(GenericApiEntity source, Api apiWrapper, Set<String> expands) {
+        if (source == null || apiWrapper == null) {
+            return;
+        }
+        findGenericApiSurface(apiWrapper).ifPresent(surface -> surface.setMetadata(metadataPayloadForListExpand(source, expands)));
+    }
+
+    private static Optional<GenericApi> findGenericApiSurface(Api apiWrapper) {
+        return Optional.ofNullable(apiWrapper.getActualInstance()).filter(GenericApi.class::isInstance).map(GenericApi.class::cast);
+    }
+
+    @Nullable
+    private static Map<String, Object> metadataPayloadForListExpand(GenericApiEntity source, Set<String> expands) {
+        if (expands == null || !expands.contains(EXPAND_METADATA)) {
+            return null;
+        }
+        Map<String, Object> fromEntity = source.getMetadata();
+        return fromEntity != null ? fromEntity : Map.of();
+    }
+
     default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
+        return map(apiEntities, uriInfo, isSynchronized, null);
+    }
+
+    default List<Api> map(
+        List<GenericApiEntity> apiEntities,
+        UriInfo uriInfo,
+        Function<GenericApiEntity, Boolean> isSynchronized,
+        Set<String> expands
+    ) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
-                result.add(this.map(api, uriInfo, isSynchronized.apply(api)));
+                result.add(this.map(api, uriInfo, isSynchronized.apply(api), expands));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted

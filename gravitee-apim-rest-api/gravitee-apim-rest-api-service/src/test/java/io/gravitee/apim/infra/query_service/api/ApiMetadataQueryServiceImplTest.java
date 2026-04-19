@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
@@ -29,6 +32,7 @@ import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +55,7 @@ public class ApiMetadataQueryServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        reset(metadataRepository);
         service = new ApiMetadataQueryServiceImpl(metadataRepository);
     }
 
@@ -191,18 +196,69 @@ public class ApiMetadataQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindApiMetadataForApis {
+
+        private static final String API_ID_2 = "api-id-2";
+
+        @Test
+        @SneakyThrows
+        void should_load_environment_metadata_only_once_for_multiple_apis() {
+            when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(ENV_ID))).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .key("brand")
+                        .referenceId(ENV_ID)
+                        .referenceType(MetadataReferenceType.ENVIRONMENT)
+                        .value("Gravitee")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build()
+                )
+            );
+            when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), eq(API_ID))).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .key("homepage")
+                        .referenceId(API_ID)
+                        .referenceType(MetadataReferenceType.API)
+                        .value("https://a.example")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.URL)
+                        .build()
+                )
+            );
+            when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), eq(API_ID_2))).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .key("homepage")
+                        .referenceId(API_ID_2)
+                        .referenceType(MetadataReferenceType.API)
+                        .value("https://b.example")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.URL)
+                        .build()
+                )
+            );
+
+            Map<String, Map<String, ApiMetadata>> result = service.findApiMetadataForApis(ENV_ID, List.of(API_ID, API_ID_2));
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(API_ID).get("homepage").getValue()).isEqualTo("https://a.example");
+            assertThat(result.get(API_ID_2).get("homepage").getValue()).isEqualTo("https://b.example");
+            assertThat(result.get(API_ID).get("brand").getDefaultValue()).isEqualTo("Gravitee");
+
+            verify(metadataRepository, times(1)).findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(ENV_ID));
+            verify(metadataRepository, times(1)).findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), eq(API_ID));
+            verify(metadataRepository, times(1)).findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), eq(API_ID_2));
+        }
+    }
+
     @SneakyThrows
     private void givenExistingEnvironmentMetadata(String envId, List<Metadata.MetadataBuilder> metadata) {
-        lenient()
-            .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(envId)))
-            .thenReturn(List.of());
-
         lenient()
             .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(envId)))
             .thenReturn(
                 metadata
                     .stream()
-                    .map(m -> m.referenceType(MetadataReferenceType.API).build())
+                    .map(m -> m.referenceType(MetadataReferenceType.ENVIRONMENT).referenceId(envId).build())
                     .toList()
             );
     }

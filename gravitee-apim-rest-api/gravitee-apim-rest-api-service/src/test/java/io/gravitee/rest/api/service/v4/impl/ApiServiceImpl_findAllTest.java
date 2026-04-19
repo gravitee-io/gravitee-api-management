@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.rest.api.service.impl.promotion.PromotionServiceTest.USER_ID;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -28,6 +30,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -66,6 +70,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
@@ -82,6 +87,7 @@ import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -209,6 +215,9 @@ public class ApiServiceImpl_findAllTest {
     @Mock
     private CategoryMapper categoryMapper;
 
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
     private ApiService apiService;
 
     @AfterClass
@@ -278,6 +287,7 @@ public class ApiServiceImpl_findAllTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
+            apiMetadataQueryService,
             apiCategoryService
         );
     }
@@ -446,5 +456,123 @@ public class ApiServiceImpl_findAllTest {
             .isEqualTo(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
 
         verify(primaryOwnerService).getPrimaryOwner(anyString(), eq("API_1"));
+    }
+
+    @Test
+    public void should_fetch_and_set_metadata_when_expand_metadata() {
+        var sortable = new SortableBuilder().field("name").order(Order.ASC).build();
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        var api1 = new Api();
+        api1.setId("API_1");
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(sortable),
+                eq(pageable),
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
+            )
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+
+        when(
+            apiMetadataQueryService.findApiMetadataForApis(
+                eq(GraviteeContext.getExecutionContext().getEnvironmentId()),
+                argThat(ids -> ids.size() == 1 && ids.contains("API_1"))
+            )
+        ).thenReturn(
+            Map.of(
+                "API_1",
+                Map.of(
+                    "m1",
+                    ApiMetadata.builder().apiId("API_1").key("m1").value("v1").build(),
+                    "m2",
+                    ApiMetadata.builder().apiId("API_1").key("m2").value(null).defaultValue("defaulted").build()
+                )
+            )
+        );
+
+        final Page<GenericApiEntity> apis = apiService.findAll(
+            GraviteeContext.getExecutionContext(),
+            "UnitTests",
+            true,
+            Set.of("metadata"),
+            new SortableImpl("name", true),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(apis.getContent().size()).isEqualTo(1);
+        assertThat(apis.getContent().get(0).getMetadata()).isEqualTo(Map.of("m1", "v1", "m2", "defaulted"));
+        verify(apiMetadataQueryService).findApiMetadataForApis(
+            eq(GraviteeContext.getExecutionContext().getEnvironmentId()),
+            argThat(ids -> ids.size() == 1 && ids.contains("API_1"))
+        );
+    }
+
+    @Test
+    public void should_not_query_metadata_service_when_expand_omits_metadata() {
+        var sortable = new SortableBuilder().field("name").order(Order.ASC).build();
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        var api1 = new Api();
+        api1.setId("API_1");
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(sortable),
+                eq(pageable),
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
+            )
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+
+        when(primaryOwnerService.getPrimaryOwner(anyString(), anyString())).thenReturn(
+            PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build()
+        );
+
+        apiService.findAll(
+            GraviteeContext.getExecutionContext(),
+            "UnitTests",
+            true,
+            Set.of("primaryOwner"),
+            new SortableImpl("name", true),
+            new PageableImpl(1, 10)
+        );
+
+        verify(apiMetadataQueryService, never()).findApiMetadataForApis(anyString(), any());
+        verify(apiMetadataQueryService, never()).findApiMetadata(anyString(), anyString());
+    }
+
+    @Test
+    public void should_wrap_failure_when_metadata_query_fails() {
+        var sortable = new SortableBuilder().field("name").order(Order.ASC).build();
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        var api1 = new Api();
+        api1.setId("API_1");
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(sortable),
+                eq(pageable),
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
+            )
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+
+        when(apiMetadataQueryService.findApiMetadataForApis(anyString(), any())).thenThrow(
+            new IllegalStateException("metadata store down")
+        );
+
+        assertThatThrownBy(() ->
+            apiService.findAll(
+                GraviteeContext.getExecutionContext(),
+                "UnitTests",
+                true,
+                Set.of("metadata"),
+                new SortableImpl("name", true),
+                new PageableImpl(1, 10)
+            )
+        )
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("Failed to fetch metadata for APIs")
+            .hasCauseInstanceOf(IllegalStateException.class);
     }
 }

@@ -201,12 +201,17 @@ public class ApisResource extends AbstractResource {
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
-                ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api -> {
-                    if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
-                        return null;
-                    }
-                    return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
-                })
+                ApiMapper.INSTANCE.map(
+                    apis.getContent(),
+                    uriInfo,
+                    api -> {
+                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+                            return null;
+                        }
+                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                    },
+                    expands
+                )
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));

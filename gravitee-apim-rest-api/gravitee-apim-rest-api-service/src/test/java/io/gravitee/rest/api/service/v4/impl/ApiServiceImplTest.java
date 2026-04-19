@@ -368,6 +368,7 @@ public class ApiServiceImplTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
+            mock(io.gravitee.apim.core.api.query_service.ApiMetadataQueryService.class),
             apiCategoryService
         );
         var apiSearchService = new ApiSearchServiceImpl(

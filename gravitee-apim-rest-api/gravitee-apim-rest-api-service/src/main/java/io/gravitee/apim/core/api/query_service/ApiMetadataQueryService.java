@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.api.query_service;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public interface ApiMetadataQueryService {
     /**
@@ -27,4 +29,23 @@ public interface ApiMetadataQueryService {
      * @return A map of metadata key and metadata.
      */
     Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId);
+
+    /**
+     * Resolves metadata for several APIs. Default implementation delegates to {@link #findApiMetadata(String, String)}
+     * per id; production code overrides this to load environment-level metadata only once.
+     *
+     * @param environmentId environment id
+     * @param apiIds API ids (null ids skipped; duplicates resolved once)
+     * @return map of apiId → merged metadata (same shape as {@link #findApiMetadata(String, String)})
+     */
+    default Map<String, Map<String, ApiMetadata>> findApiMetadataForApis(String environmentId, Collection<String> apiIds) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Map<String, ApiMetadata>> result = new LinkedHashMap<>();
+        for (String apiId : apiIds.stream().filter(Objects::nonNull).distinct().toList()) {
+            result.put(apiId, findApiMetadata(environmentId, apiId));
+        }
+        return result;
+    }
 }

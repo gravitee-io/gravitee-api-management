@@ -54,6 +54,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -458,5 +459,87 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         ApiV2 api2 = apis.get(1).getApiV2();
         Assertions.assertEquals("api-2", api2.getId());
         Assertions.assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, api2.getDeploymentState());
+    }
+
+    @Test
+    public void should_return_metadata_when_list_with_expands_metadata() {
+        ApiEntity returnedApi = new ApiEntity();
+        returnedApi.setId("api-1");
+        returnedApi.setName("api-name");
+        returnedApi.setApiVersion("v1");
+        returnedApi.setDescription("api-description");
+        returnedApi.setDefinitionVersion(DefinitionVersion.V4);
+        returnedApi.setDisableMembershipNotifications(true);
+        returnedApi.setLabels(List.of());
+        returnedApi.setGroups(Set.of());
+        returnedApi.setTags(Set.of());
+        returnedApi.setState(Lifecycle.State.STARTED);
+        returnedApi.setWorkflowState(WorkflowState.REVIEW_OK);
+        returnedApi.setVisibility(Visibility.PUBLIC);
+        returnedApi.setCreatedAt(Date.from(Instant.parse("2020-01-01T10:10:10.00Z")));
+        returnedApi.setUpdatedAt(Date.from(Instant.parse("2020-01-01T10:10:10.00Z")));
+        returnedApi.setDeployedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+        returnedApi.setMetadata(Map.of("tier", "gold"));
+
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                eq(Set.of("metadata")),
+                eq(new SortableImpl("name", true)),
+                eq(new PageableImpl(1, 10))
+            )
+        ).thenReturn(new Page<>(List.of(returnedApi), 1, 1, 1));
+
+        final Response response = rootTarget().queryParam("expands", "metadata").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        final ApisResponse apisResponse = response.readEntity(ApisResponse.class);
+        ApiV4 api = apisResponse.getData().get(0).getApiV4();
+        Assertions.assertEquals(Map.of("tier", "gold"), api.getMetadata());
+    }
+
+    @Test
+    public void should_omit_metadata_on_list_when_expands_omits_metadata_even_if_entity_has_metadata() {
+        ApiEntity returnedApi = new ApiEntity();
+        returnedApi.setId("api-1");
+        returnedApi.setName("api-name");
+        returnedApi.setApiVersion("v1");
+        returnedApi.setDescription("api-description");
+        returnedApi.setDefinitionVersion(DefinitionVersion.V4);
+        returnedApi.setDisableMembershipNotifications(true);
+        returnedApi.setLabels(List.of());
+        returnedApi.setGroups(Set.of());
+        returnedApi.setTags(Set.of());
+        returnedApi.setState(Lifecycle.State.STARTED);
+        returnedApi.setWorkflowState(WorkflowState.REVIEW_OK);
+        returnedApi.setVisibility(Visibility.PUBLIC);
+        returnedApi.setCreatedAt(Date.from(Instant.parse("2020-01-01T10:10:10.00Z")));
+        returnedApi.setUpdatedAt(Date.from(Instant.parse("2020-01-01T10:10:10.00Z")));
+        returnedApi.setDeployedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+        returnedApi.setMetadata(Map.of("tier", "gold"));
+
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new SortableImpl("name", true)),
+                eq(new PageableImpl(1, 10))
+            )
+        ).thenReturn(new Page<>(List.of(returnedApi), 1, 1, 1));
+
+        final Response response = rootTarget().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        final ApisResponse apisResponse = response.readEntity(ApisResponse.class);
+        ApiV4 api = apisResponse.getData().get(0).getApiV4();
+        var md = api.getMetadata();
+        assertTrue(
+            md == null || md.isEmpty() || !md.containsKey("tier"),
+            "without expands=metadata, list payload must not expose entity metadata keys"
+        );
     }
 }

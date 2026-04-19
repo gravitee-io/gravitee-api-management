@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
@@ -41,6 +42,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
@@ -279,6 +281,56 @@ public class ApiMapperTest {
                 var expectedFlow = FlowFixtures.aModelFlowHttpV4().toBuilder().tags(Set.of("tag1", "tag2")).build();
                 softly.assertThat(result.getFlows()).isNotNull().first().isEqualTo(expectedFlow);
             });
+        }
+    }
+
+    @Nested
+    class MetadataExpand {
+
+        @Test
+        void should_set_metadata_on_api_when_expand_metadata_requested() {
+            ApiEntity entity = new ApiEntity();
+            entity.setId("api-1");
+            entity.setMetadata(Map.of("region", "eu"));
+
+            ApiV4 apiV4 = new ApiV4();
+            apiV4.setId("api-1");
+            var apiWrapper = new io.gravitee.rest.api.management.v2.rest.model.Api(apiV4);
+
+            ApiMapper.INSTANCE.applyMetadataExpand(entity, apiWrapper, Set.of("metadata"));
+
+            assertThat(apiV4.getMetadata()).isEqualTo(Map.of("region", "eu"));
+        }
+
+        @Test
+        void should_use_empty_map_when_entity_metadata_null_and_expand_metadata_requested() {
+            ApiEntity entity = new ApiEntity();
+            entity.setId("api-1");
+            entity.setMetadata(null);
+
+            ApiV4 apiV4 = new ApiV4();
+            apiV4.setId("api-1");
+            var apiWrapper = new io.gravitee.rest.api.management.v2.rest.model.Api(apiV4);
+
+            ApiMapper.INSTANCE.applyMetadataExpand(entity, apiWrapper, Set.of("metadata"));
+
+            assertThat(apiV4.getMetadata()).isEqualTo(Map.of());
+        }
+
+        @Test
+        void should_clear_metadata_when_expand_metadata_not_requested() {
+            ApiEntity entity = new ApiEntity();
+            entity.setId("api-1");
+            entity.setMetadata(Map.of("region", "eu"));
+
+            ApiV4 apiV4 = new ApiV4();
+            apiV4.setId("api-1");
+            apiV4.setMetadata(Map.of("stale", "x"));
+            var apiWrapper = new io.gravitee.rest.api.management.v2.rest.model.Api(apiV4);
+
+            ApiMapper.INSTANCE.applyMetadataExpand(entity, apiWrapper, Set.of());
+
+            assertThat(apiV4.getMetadata()).isNull();
         }
     }
 }
