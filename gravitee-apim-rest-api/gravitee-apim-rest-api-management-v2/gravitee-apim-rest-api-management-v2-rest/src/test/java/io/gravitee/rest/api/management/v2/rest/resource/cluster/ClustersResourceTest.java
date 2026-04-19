@@ -155,7 +155,7 @@ class ClustersResourceTest extends AbstractResourceTest {
             Cluster output = Cluster.builder()
                 .createdAt(Instant.now())
                 .id("cl-id-2")
-                .type(io.gravitee.apim.core.cluster.model.ClusterType.KAFKA_CLUSTER)
+                .type(io.gravitee.definition.model.cluster.ClusterType.KAFKA_CLUSTER)
                 .name(createCluster.getName())
                 .environmentId(ENV_ID)
                 .organizationId(ORGANIZATION)

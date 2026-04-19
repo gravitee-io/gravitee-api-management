@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterDefinition;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.definition.model.cluster.ClusterType;
 import org.mapstruct.Mapper;
@@ -42,7 +43,7 @@ public abstract class ClusterAdapter {
 
     @Named("mapDefinition")
     public String mapDefinition(Cluster cluster) throws JsonProcessingException {
-        var clusterDefinition = io.gravitee.definition.model.cluster.Cluster.builder()
+        var clusterDefinition = ClusterDefinition.builder()
             .id(cluster.getId())
             .crossId(cluster.getCrossId())
             .type(cluster.getType() != null ? cluster.getType().name() : null)
@@ -78,7 +79,7 @@ public abstract class ClusterAdapter {
             return null;
         }
 
-        var clusterDefinition = mapper.readValue(cluster.getDefinition(), io.gravitee.definition.model.cluster.Cluster.class);
+        var clusterDefinition = mapper.readValue(cluster.getDefinition(), ClusterDefinition.class);
         if (clusterDefinition == null) {
             return null;
         }

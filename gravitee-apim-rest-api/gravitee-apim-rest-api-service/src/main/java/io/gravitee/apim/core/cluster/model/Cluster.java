@@ -17,6 +17,7 @@ package io.gravitee.apim.core.cluster.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.cluster.ClusterType;
 import java.time.Instant;
 import java.util.Set;
 import lombok.AllArgsConstructor;

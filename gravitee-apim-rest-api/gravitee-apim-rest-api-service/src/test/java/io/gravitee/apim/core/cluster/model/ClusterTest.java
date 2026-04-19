@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.cluster.ClusterType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;

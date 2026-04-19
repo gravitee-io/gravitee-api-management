@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.cluster;
+package io.gravitee.apim.core.cluster.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO used to serialize/deserialize the cluster definition stored in the repository.
+ */
 @Getter
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class Cluster {
+public class ClusterDefinition {
 
     private String id;
     private String crossId;
