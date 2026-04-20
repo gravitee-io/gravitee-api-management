@@ -20,6 +20,7 @@ export interface DashboardTemplate {
   name: string;
   shortDescription: string;
   description: string;
+  info?: string;
   previewImage: string;
   initialConfig: Partial<Dashboard>;
 }
