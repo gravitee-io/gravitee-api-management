@@ -27,4 +27,5 @@ public enum AuditReferenceType {
     APPLICATION,
     API,
     API_PRODUCT,
+    DASHBOARD,
 }
