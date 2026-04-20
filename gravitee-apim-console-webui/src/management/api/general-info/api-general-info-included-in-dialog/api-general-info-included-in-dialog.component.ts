@@ -22,10 +22,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { ApiProduct } from '../../../../entities/management-api-v2/api-product/apiProduct';
+import { ApiProductInfo } from '../../../../entities/management-api-v2/api-product/apiProductInfo';
 
 export type ApiGeneralInfoIncludedInDialogData = {
-  apiProducts: ApiProduct[];
+  apiProducts: ApiProductInfo[];
 };
 
 @Component({

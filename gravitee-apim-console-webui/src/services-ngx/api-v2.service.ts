@@ -39,10 +39,10 @@ import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
 import { MigrateToV4Response } from '../entities/management-api-v2/api/v2/migrateToV4Response';
-import { ApiProduct } from '../entities/management-api-v2/api-product/apiProduct';
+import { ApiProductInfo } from '../entities/management-api-v2/api-product/apiProductInfo';
 
 export interface ApiProductsForApiResponse {
-  data: ApiProduct[];
+  data: ApiProductInfo[];
 }
 
 export interface HostValidatorParams {
