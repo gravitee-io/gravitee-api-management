@@ -25,6 +25,7 @@ import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -201,6 +202,7 @@ public class SyncConfiguration {
         LicenseFactory licenseFactory,
         AccessPointManager accessPointManager,
         SharedPolicyGroupManager sharedPolicyGroupManager,
+        ClusterManager clusterManager,
         DistributedSyncService distributedSyncService,
         ApiProductManager apiProductManager,
         @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher
@@ -223,6 +225,7 @@ public class SyncConfiguration {
             licenseFactory,
             accessPointManager,
             sharedPolicyGroupManager,
+            clusterManager,
             distributedSyncService,
             apiProductManager,
             apiProductSubscriptionRefresher

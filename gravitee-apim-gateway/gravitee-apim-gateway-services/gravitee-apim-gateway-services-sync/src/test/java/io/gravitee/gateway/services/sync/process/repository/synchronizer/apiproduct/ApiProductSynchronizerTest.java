@@ -338,7 +338,7 @@ class ApiProductSynchronizerTest {
 
         @Test
         void should_return_correct_order() {
-            assertThat(cut.order()).isEqualTo(7);
+            assertThat(cut.order()).isEqualTo(8);
         }
     }
 
