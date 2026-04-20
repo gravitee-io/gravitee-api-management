@@ -45,6 +45,82 @@ tests:
             name: GRAVITEE_SERVICES_SYNC_ENABLED
             value: "false"
 
+  - it: Should render additional plugins init container
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+        additionalPlugins:
+          - https://d.g.io/toto.zip
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-plugins
+            env: []
+            image: alpine:latest
+            imagePullPolicy: Always
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  toto.zip  2>/dev/null || true ) && wget https://d.g.io/toto.zip"]
+            volumeMounts:
+              - name: graviteeio-apim-plugins
+                mountPath: /tmp/plugins
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+
+  - it: Should adapt additional plugins init container security context for OpenShift
+    template: api/api-upgrader-job.yaml
+    set:
+      openshift:
+        enabled: true
+      api:
+        upgrader: true
+        additionalPlugins:
+          - https://d.g.io/toto.zip
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers[0].securityContext.runAsUser
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
+          value: true
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Should not adapt additional plugins init container security context when disabled
+    template: api/api-upgrader-job.yaml
+    set:
+      openshift:
+        enabled: true
+        adaptSecurityContext: disabled
+      api:
+        upgrader: true
+        additionalPlugins:
+          - https://d.g.io/toto.zip
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
   - it: Check that alerts have been disabled
     template: api/api-upgrader-job.yaml
     set:

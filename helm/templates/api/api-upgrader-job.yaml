@@ -88,7 +88,7 @@ spec:
       {{- if .Values.api.additionalPlugins -}}
         {{- $plugins = concat $plugins .Values.api.additionalPlugins -}}
       {{- end -}}
-      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "initContainers" $initContainers -}}
+      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "initContainers" $initContainers "context" . -}}
       {{- $shouldDownloadJdbcDriver := eq (include "apim.shouldDownloadJdbcDriver" .) "true" -}}
       {{- $shouldCopyJdbcDriverFromImage := eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true" -}}
       {{- $shouldProvisionJdbcDriver := eq (include "apim.shouldProvisionJdbcDriver" .) "true" -}}
