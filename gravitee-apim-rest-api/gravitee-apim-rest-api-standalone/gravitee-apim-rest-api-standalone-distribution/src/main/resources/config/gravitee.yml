@@ -156,59 +156,60 @@ http:
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
-management:
-  type: mongodb                  # repository type
-  mongodb:                       # mongodb repository
-#    prefix:                      # collections prefix
-    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
-    host: ${ds.mongodb.host}     # mongodb host (default localhost)
-    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+repositories:
+  management:
+    type: mongodb                  # repository type
+    mongodb:                       # mongodb repository
+#      prefix:                      # collections prefix
+      dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+      host: ${ds.mongodb.host}     # mongodb host (default localhost)
+      port: ${ds.mongodb.port}     # mongodb port (default 27017)
 
 ## Client settings
-#    description:                 # mongodb description (default gravitee.io)
-#    username:                    # mongodb username (default null)
-#    password:                    # mongodb password (default null)
-#    authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
-#    retryWrites:                 # mongodb retriable writes (default true)
-#    readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
-#    readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
+#      description:                 # mongodb description (default gravitee.io)
+#      username:                    # mongodb username (default null)
+#      password:                    # mongodb password (default null)
+#      authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
+#      retryWrites:                 # mongodb retriable writes (default true)
+#      readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
+#      readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
 ### Write concern
-#    writeConcern:               # possible values are 1,2,3... (the number of node) or 'majority' (default is 1)
-#    wtimeout:                   # (default is 0)
-#    journal:                    # (default is true)
+#      writeConcern:               # possible values are 1,2,3... (the number of node) or 'majority' (default is 1)
+#      wtimeout:                   # (default is 0)
+#      journal:                    # (default is true)
 
 ## Socket settings
-#    connectTimeout:              # mongodb connection timeout (default 1000)
-#    socketTimeout:               # mongodb socket timeout (default 1000)
+#      connectTimeout:              # mongodb connection timeout (default 1000)
+#      socketTimeout:               # mongodb socket timeout (default 1000)
 
 ## Cluster settings
-#    serverSelectionTimeout:      # mongodb server selection timeout (default 1000)
-#    localThreshold:              # mongodb local threshold (default 15)
+#      serverSelectionTimeout:      # mongodb server selection timeout (default 1000)
+#      localThreshold:              # mongodb local threshold (default 15)
 
 ## Connection pool settings
-#    maxWaitTime:                 # mongodb max wait time (default 120000)
-#    maxConnectionLifeTime:       # mongodb max connection life time (default 0)
-#    maxConnectionIdleTime:       # mongodb max connection idle time (default 0)
-#    connectionsPerHost:          # mongodb max connections per host (default 100)
-#    minConnectionsPerHost:       # mongodb min connections per host (default 0)
+#      maxWaitTime:                 # mongodb max wait time (default 120000)
+#      maxConnectionLifeTime:       # mongodb max connection life time (default 0)
+#      maxConnectionIdleTime:       # mongodb max connection idle time (default 0)
+#      connectionsPerHost:          # mongodb max connections per host (default 100)
+#      minConnectionsPerHost:       # mongodb min connections per host (default 0)
 
 ## Server settings
-#    heartbeatFrequency:          # mongodb heartbeat frequency (default 10000)
-#    minHeartbeatFrequency:       # mongodb min heartbeat frequency (default 500)
+#      heartbeatFrequency:          # mongodb heartbeat frequency (default 10000)
+#      minHeartbeatFrequency:       # mongodb min heartbeat frequency (default 500)
 
 ## SSL settings
-#    sslEnabled:                  # mongodb ssl mode (default false)
-#    sslInvalidHostNameAllowed:   # mongodb ssl allow invalid host name (default false)
-#    tlsProtocol:                 # protocol to use when connecting to the mongodb instance (when sslEnabled is true, default TLS)
-#    keystore:
-#      path:                      # Path to the keystore (when sslEnabled is true, default null)
-#      type:                      # Type of the keystore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
-#      password:                  # KeyStore password (when sslEnabled is true, default null)
-#      keyPassword:               # Password for recovering keys in the KeyStore (when sslEnabled is true, default null)
-#    truststore:
-#      path:                      # Path to the truststore (when sslEnabled is true, default null)
-#      type:                      # Type of the truststore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
-#      password:                  # Truststore password (when sslEnabled is true, default null)
+#      sslEnabled:                  # mongodb ssl mode (default false)
+#      sslInvalidHostNameAllowed:   # mongodb ssl allow invalid host name (default false)
+#      tlsProtocol:                 # protocol to use when connecting to the mongodb instance (when sslEnabled is true, default TLS)
+#      keystore:
+#        path:                      # Path to the keystore (when sslEnabled is true, default null)
+#        type:                      # Type of the keystore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#        password:                  # KeyStore password (when sslEnabled is true, default null)
+#        keyPassword:               # Password for recovering keys in the KeyStore (when sslEnabled is true, default null)
+#      truststore:
+#        path:                      # Path to the truststore (when sslEnabled is true, default null)
+#        type:                      # Type of the truststore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#        password:                  # Truststore password (when sslEnabled is true, default null)
 # Management repository: single MongoDB using URI
 # For more information about MongoDB configuration using URI, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html
@@ -229,6 +230,38 @@ management:
 #    dbname: ${ds.mongodb.dbname}
 #    connectTimeout: 500
 #    socketTimeout: 250
+
+# Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
+# This is the default configuration using Elasticsearch. If you want to disable it completely, you can set
+# the type as "none"
+  analytics:
+    type: elasticsearch # or none
+    elasticsearch:
+      endpoints:
+        - http://${ds.elastic.host}:${ds.elastic.port}
+#      index: gravitee
+#      index_per_type: true
+#      index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+#      cross_cluster:
+#        mapping:
+#          tenant_id: cluster_name
+#      security:
+#        username: user
+#        password: secret
+#      http:
+#        timeout: 10000 # in milliseconds
+#        proxy:
+#          type: HTTP #HTTP, SOCK4, SOCK5
+#          http:
+#            host: localhost
+#            port: 3128
+#            username: user
+#            password: secret
+#          https:
+#            host: localhost
+#            port: 3128
+#            username: user
+#            password: secret
 
 services:
   core:
@@ -311,38 +344,6 @@ services:
     pre-expiration-notification-schedule: 90,45,30
 
 
-# Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
-# This is the default configuration using Elasticsearch. If you want to disable it completely, you can set
-# the type as "none"
-analytics:
-  type: elasticsearch # or none
-  elasticsearch:
-    endpoints:
-      - http://${ds.elastic.host}:${ds.elastic.port}
-#    index: gravitee
-#    index_per_type: true
-#    index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
-#    cross_cluster:
-#      mapping:
-#        tenant_id: cluster_name
-#        tenant_id: cluster_name
-#    security:
-#      username: user
-#      password: secret
-#    http:
-#      timeout: 10000 # in milliseconds
-#      proxy:
-#        type: HTTP #HTTP, SOCK4, SOCK5
-#        http:
-#          host: localhost
-#          port: 3128
-#          username: user
-#          password: secret
-#        https:
-#          host: localhost
-#          port: 3128
-#          username: user
-#          password: secret
 
 node:
   logging:
