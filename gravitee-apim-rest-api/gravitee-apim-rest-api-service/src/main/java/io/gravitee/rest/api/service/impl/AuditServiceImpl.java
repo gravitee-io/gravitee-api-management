@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.AuditCriteria.Builder;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditEntity;
@@ -66,7 +67,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
         entry(Audit.AuditReferenceType.APPLICATION, AuditReferenceType.APPLICATION),
         entry(Audit.AuditReferenceType.API, AuditReferenceType.API),
-        entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT)
+        entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT),
+        entry(Audit.AuditReferenceType.DASHBOARD, AuditReferenceType.DASHBOARD)
     );
 
     @Lazy
@@ -96,6 +98,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     @Lazy
     @Autowired
     private ApiProductsRepository apiProductsRepository;
+
+    @Lazy
+    @Autowired
+    private DashboardRepository dashboardRepository;
 
     @Lazy
     @Autowired
@@ -191,6 +197,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 metadata.put(metadataKey, auditEntity.getUser());
             }
 
+            if (auditEntity.getReferenceType() == null) {
+                log.warn("Audit entry {} has null referenceType, skipping metadata resolution", auditEntity.getId());
+                continue;
+            }
+
             if (Audit.AuditReferenceType.ORGANIZATION.name().equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "ORGANIZATION:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
@@ -261,6 +272,22 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         if (optApiProduct.isPresent()) {
                             metadata.put(metadataKey, optApiProduct.get().getName());
                         }
+                    } catch (TechnicalException e) {
+                        log.error("Error finding metadata {}", metadataKey);
+                        metadata.put(metadataKey, auditEntity.getReferenceId());
+                    }
+                }
+            } else if (auditEntity.getReferenceId() != null && auditEntity.getReferenceType() == AuditReferenceType.DASHBOARD) {
+                metadataKey = "DASHBOARD:" + auditEntity.getReferenceId() + ":name";
+                if (!metadata.containsKey(metadataKey)) {
+                    try {
+                        metadata.put(
+                            metadataKey,
+                            dashboardRepository
+                                .findById(auditEntity.getReferenceId())
+                                .map(Dashboard::getName)
+                                .orElse(auditEntity.getReferenceId())
+                        );
                     } catch (TechnicalException e) {
                         log.error("Error finding metadata {}", metadataKey);
                         metadata.put(metadataKey, auditEntity.getReferenceId());
