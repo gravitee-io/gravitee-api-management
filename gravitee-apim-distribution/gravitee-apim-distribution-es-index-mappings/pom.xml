@@ -30,6 +30,11 @@
 
     <name>Gravitee.io APIM - Distribution - Elasticsearch Index Mappings</name>
 
+    <properties>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/es-index-mappings</publish-folder-path>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.reflections</groupId>
