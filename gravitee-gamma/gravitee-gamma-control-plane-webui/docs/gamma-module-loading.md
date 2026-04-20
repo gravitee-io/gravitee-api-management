@@ -152,10 +152,10 @@ All other libraries are **not shared** (`shared` callback returns `false`). This
 
 The `DEV_MODULE_ENTRIES` environment variable allows overriding module manifest URLs to point to local dev servers. This is useful when developing a module locally alongside the host.
 
-Format: comma-separated `id=url` pairs:
+Format: comma-separated `id=url` pairs. The `id` must match each module’s plugin id (the `id` field in that module’s `plugin.properties`, and the same value returned by the modules API), not the Nx project name—for example the APIM module uses plugin id `apim` while its Nx project is `gravitee-gamma-module-apim`.
 
 ```bash
-DEV_MODULE_ENTRIES="gamma-module-apim=http://localhost:3001/mf-manifest.json"
+DEV_MODULE_ENTRIES="apim=http://localhost:3001/mf-manifest.json"
 ```
 
 When set, the hook uses the provided URL instead of the backend-served manifest for matching module IDs.

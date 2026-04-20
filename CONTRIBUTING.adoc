@@ -169,7 +169,7 @@ Run `./gravitee` from the `${GRAVITEE_HOME}/bin` directory.
 NOTE:  `${GRAVITEE_HOME}` refers to the `target/distribution` folder created before.
 
 
-
+[[dev-guide-apim-management-api]]
 ==== APIM Management API (gravitee-apim-rest-api)
 
 IntelliJ configuration::
@@ -226,16 +226,40 @@ Run `yarn serve` from the `gravitee-api-management/gravitee-apim-portal-webui` d
 
 The Gamma Console is a micro-frontend host application that dynamically loads module plugins via Module Federation.
 
+[[dev-guide-gamma-console]]
+===== Prerequisites: Management API (Gamma enabled)
+
+The Management API must expose the Gamma REST API at `/gamma` and load `gamma-module` plugins. By default, `gamma.enabled` is `false` in the standalone distribution config. Set it to `true` in the `gravitee.yml` used by your local API (for a built distribution, typically `${GRAVITEE_HOME}/config/gravitee.yml`; the template lives under `gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml`).
+
+Alternatively, you can enable Gamma via environment variable: `GRAVITEE_GAMMA_ENABLED=true`.
+
+If the module list is empty or logs show `Gamma is disabled`, verify `gamma.enabled` is set.
+
+===== Full local stack
+
+. Start your usual Management API dependencies (for example MongoDB) and run the Management API on port 8083 (see <<dev-guide-apim-management-api>>) with Gamma enabled as described above.
+. From the **repository root**, start the Gamma Console on port 4200:
++
+[source,shell]
+----
+yarn gamma-console:serve
+----
++
+The dev server proxies `/gamma` and `/management` requests to the backend at `http://localhost:8083`.
+. Optional: when developing a module UI locally, run that module’s dev server and use `DEV_MODULE_ENTRIES` (see below).
+
 ===== Starting the Gamma Console
 
 CLI Version::
-Run `yarn nx serve gamma-console` from the **repository root** to start the Gamma Console on port 4200.
+Run `yarn gamma-console:serve` from the **repository root** to start the Gamma Console on port 4200.
 
 The dev server proxies `/gamma` and `/management` requests to the backend at `http://localhost:8083`.
 
 ===== Developing modules locally
 
 By default, module UI assets are served by the backend from packaged plugins. During development, you can override specific modules to load from their local dev server instead, avoiding the need to rebuild the REST API.
+
+The `DEV_MODULE_ENTRIES` keys must be each module’s **plugin id** (the `id` in that module’s `plugin.properties`), not the Nx project name. For example, the APIM module uses Nx project `gravitee-gamma-module-apim` but plugin id `apim`.
 
 . Start the module dev server:
 +
