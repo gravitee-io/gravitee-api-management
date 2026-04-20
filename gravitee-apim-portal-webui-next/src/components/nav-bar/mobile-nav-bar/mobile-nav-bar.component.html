@@ -35,7 +35,7 @@
         >Homepage</a
       >
     }
-    <a class="mobile-menu__link" i18n="@@catalog" [routerLink]="['catalog']" routerLinkActive="active" (click)="closeMenu()">Catalog</a>
+    <a class="mobile-menu__link" i18n="@@catalog" [routerLink]="['/catalog']" routerLinkActive="active" (click)="closeMenu()">Catalog</a>
     @for (navigationItem of topBarNavigationItems(); track navigationItem.id) {
       @switch (navigationItem.type) {
         @case ('LINK') {
@@ -56,22 +56,35 @@
     <div class="mobile-menu__hr"></div>
 
     @if (isLoggedIn()) {
-      <a class="mobile-menu__link" i18n="@@applications" [routerLink]="['applications']" routerLinkActive="active" (click)="closeMenu()"
+      <a
+        class="mobile-menu__link"
+        i18n="@@analyticsTitle"
+        [routerLink]="['/dashboard', 'analytics']"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        >Analytics</a
+      >
+      <a
+        class="mobile-menu__link"
+        i18n="@@applications"
+        [routerLink]="['/dashboard', 'applications']"
+        routerLinkActive="active"
+        (click)="closeMenu()"
         >Applications</a
       >
       <a
         class="mobile-menu__link"
         i18n="@@subscriptions"
-        [routerLink]="['dashboard', 'subscriptions']"
+        [routerLink]="['/dashboard', 'subscriptions']"
         routerLinkActive="active"
         (click)="closeMenu()"
         >Subscriptions</a
       >
-      <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['log-out']" routerLinkActive="active" (click)="closeMenu()"
+      <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['/log-out']" routerLinkActive="active" (click)="closeMenu()"
         >Log out</a
       >
     } @else {
-      <a class="mobile-menu__link" i18n="@@logIn" [routerLink]="['log-in']" routerLinkActive="active" (click)="closeMenu()">Sign in</a>
+      <a class="mobile-menu__link" i18n="@@logIn" [routerLink]="['/log-in']" routerLinkActive="active" (click)="closeMenu()">Sign in</a>
     }
   </div>
 }

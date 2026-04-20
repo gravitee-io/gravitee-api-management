@@ -31,7 +31,7 @@ describe('DashboardComponent', () => {
   let router: Router;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
+  const init = async () => {
     const dashboardRoute = (routes as Routes).find(route => route.path === 'dashboard');
 
     await TestBed.configureTestingModule({
@@ -62,17 +62,21 @@ describe('DashboardComponent', () => {
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DashboardComponentHarness);
     router = TestBed.inject(Router);
     httpTestingController = TestBed.inject(HttpTestingController);
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   it('should create', async () => {
+    await init();
+
     expect(await harness.host()).toBeTruthy();
   });
 
-  it('should clear breadcrumbs when the component is destroyed', () => {
+  it('should clear breadcrumbs when the component is destroyed', async () => {
+    await init();
+
     const breadcrumbService = TestBed.inject(BreadcrumbService);
     breadcrumbService.set([{ id: 'stale', label: 'Stale' }]);
     expect(breadcrumbService.breadcrumbs().length).toBe(1);
@@ -83,6 +87,8 @@ describe('DashboardComponent', () => {
   });
 
   it('should display Subscriptions sidenav and breadcrumb', async () => {
+    await init();
+
     await router.navigate(['subscriptions']);
     fixture.detectChanges();
 
@@ -97,5 +103,27 @@ describe('DashboardComponent', () => {
 
     const breadcrumbs = await harness.getBreadcrumbs();
     expect(await breadcrumbs?.getText()).toContain('Subscriptions');
+  });
+
+  it('should include Analytics in menu items', async () => {
+    await init();
+
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['analytics', 'applications', 'subscriptions']);
+  });
+
+  it('should show Analytics in the sidenav', async () => {
+    await init();
+
+    await router.navigate(['subscriptions']);
+    fixture.detectChanges();
+
+    const applicationsReq = httpTestingController.expectOne(req => req.url.includes('/applications'));
+    applicationsReq.flush({ data: [] });
+
+    const subscriptionsReq = httpTestingController.expectOne(req => req.url.includes('/subscriptions'));
+    subscriptionsReq.flush({ data: [], links: { self: '' }, metadata: {} });
+
+    const sidenav = await harness.getSidenav();
+    expect(await sidenav?.getText()).toContain('Analytics');
   });
 });
