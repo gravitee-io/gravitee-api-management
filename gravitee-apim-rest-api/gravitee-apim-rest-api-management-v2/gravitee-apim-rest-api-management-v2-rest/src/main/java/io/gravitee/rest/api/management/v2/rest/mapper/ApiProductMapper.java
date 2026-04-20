@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApiProduct;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductInfo;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -24,4 +25,6 @@ public interface ApiProductMapper {
     ApiProductMapper INSTANCE = Mappers.getMapper(ApiProductMapper.class);
 
     ApiProduct map(io.gravitee.apim.core.api_product.model.ApiProduct coreApiProduct);
+
+    ApiProductInfo map(io.gravitee.apim.core.api_product.model.ApiProductInfo coreApiProductInfo);
 }
