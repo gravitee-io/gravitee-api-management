@@ -24,6 +24,7 @@ import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableExc
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -83,6 +84,11 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
 
         if (entity.getEndingAt() != null) {
             subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(entity));
+        }
+
+        if (subscription.getStatus() == SubscriptionStatus.ACCEPTED) {
+            log.debug("Subscription [{}] already accepted, skipping auto accept", spec.getId());
+            return adapter.toCore(subscription);
         }
 
         log.debug("Auto accepting subscription [{}]", spec.getId());
