@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-export * from './apiProduct';
-export * from './apiProductInfo';
-export * from './apiProductSearchQuery';
-export * from './apiProductSortByParam';
-export * from './apiProductsResponse';
-export * from './createApiProduct';
-export * from './updateApiProduct';
-export * from './verifyApiProductDeploy';
+export interface ApiProductInfo {
+  id: string;
+  name: string;
+}

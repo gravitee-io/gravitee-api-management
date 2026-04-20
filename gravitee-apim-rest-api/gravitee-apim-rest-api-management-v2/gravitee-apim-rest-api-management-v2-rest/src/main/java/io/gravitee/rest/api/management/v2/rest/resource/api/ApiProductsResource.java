@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import io.gravitee.apim.core.api_product.use_case.GetApiProductsByApiIdUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductInfosByApiIdUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductMapper;
-import io.gravitee.rest.api.management.v2.rest.model.ApiProduct;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductInfo;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -33,35 +32,29 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ApiProductsResource extends AbstractResource {
 
     @Inject
-    private GetApiProductsByApiIdUseCase getApiProductsByApiIdUseCase;
+    private GetApiProductInfosByApiIdUseCase getApiProductInfosByApiIdUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApiProductsForApi(@PathParam("apiId") String apiId, @BeanParam @Valid PaginationParam paginationParam) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var input = GetApiProductsByApiIdUseCase.Input.of(apiId, executionContext.getOrganizationId());
-        var output = getApiProductsByApiIdUseCase.execute(input);
-        List<io.gravitee.rest.api.management.v2.rest.model.ApiProduct> restApiProducts = output
-            .apiProducts()
-            .stream()
-            .map(ApiProductMapper.INSTANCE::map)
-            .collect(Collectors.toList());
-        List<ApiProduct> paginationApiProducts = computePaginationData(restApiProducts, paginationParam);
+        var input = GetApiProductInfosByApiIdUseCase.Input.of(apiId);
+        var output = getApiProductInfosByApiIdUseCase.execute(input);
+        List<ApiProductInfo> restInfos = output.apiProductInfos().stream().map(ApiProductMapper.INSTANCE::map).toList();
+        List<ApiProductInfo> paginationInfos = computePaginationData(restInfos, paginationParam);
         return Response.ok()
             .entity(
                 Map.of(
                     "data",
-                    paginationApiProducts,
+                    paginationInfos,
                     "pagination",
-                    PaginationInfo.computePaginationInfo(restApiProducts.size(), paginationApiProducts.size(), paginationParam),
+                    PaginationInfo.computePaginationInfo(restInfos.size(), paginationInfos.size(), paginationParam),
                     "links",
-                    computePaginationLinks(restApiProducts.size(), paginationParam)
+                    computePaginationLinks(restInfos.size(), paginationParam)
                 )
             )
             .build();
