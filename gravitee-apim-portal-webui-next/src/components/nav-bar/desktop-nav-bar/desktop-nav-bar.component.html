@@ -39,7 +39,7 @@
 
 @if (isLoggedIn()) {
   <div class="actions">
-    <app-user-avatar [user]="currentUser()" />
+    <app-user-avatar [user]="currentUser()" [analyticsEnabled]="analyticsEnabled()" />
   </div>
 } @else {
   <div class="actions">

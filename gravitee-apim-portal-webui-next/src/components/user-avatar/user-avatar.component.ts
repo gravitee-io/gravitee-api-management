@@ -28,6 +28,7 @@ import { User } from '../../entities/user/user';
 })
 export class UserAvatarComponent {
   user: InputSignal<User> = input({});
+  analyticsEnabled: InputSignal<boolean> = input(false);
   initials: string = '';
 
   constructor() {

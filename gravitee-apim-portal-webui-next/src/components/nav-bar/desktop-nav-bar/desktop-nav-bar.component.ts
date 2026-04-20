@@ -33,6 +33,7 @@ import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.componen
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});
   topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
+  analyticsEnabled: InputSignal<boolean> = input(false);
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });
