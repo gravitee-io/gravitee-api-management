@@ -42,6 +42,7 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMa
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiProductMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.ClusterMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
@@ -55,6 +56,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Pla
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
@@ -111,6 +113,11 @@ public class RepositorySyncConfiguration {
     @Bean
     public AccessPointMapper accessPointMapper() {
         return new AccessPointMapper();
+    }
+
+    @Bean
+    public ClusterMapper clusterMapper(ObjectMapper objectMapper) {
+        return new ClusterMapper(objectMapper);
     }
 
     @Bean
@@ -307,6 +314,17 @@ public class RepositorySyncConfiguration {
             syncFetcherExecutor,
             syncDeployerExecutor
         );
+    }
+
+    @Bean
+    public ClusterSynchronizer clusterSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        ClusterMapper clusterMapper,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new ClusterSynchronizer(eventsFetcher, clusterMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
