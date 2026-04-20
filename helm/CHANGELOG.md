@@ -10,6 +10,13 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
     - Disabled by default (`gamma.enabled: false`)
     - Service port: 8005
     - Ingress path: `/gamma-console(/.*)?`
+- Fix API upgrader job rendering when additional plugins are configured.
+- Improve JDBC driver delivery options in the Helm chart:
+  - `auto` uses bundled PostgreSQL, MariaDB, and SQL Server drivers, and uses startup download for MySQL and other custom JDBC families
+  - `image` allows using a dedicated customer-provided JDBC image instead of downloading the driver at startup
+  - `download` keeps the explicit startup download mode
+  - `preinstalled` allows using JDBC drivers already baked into custom API and Gateway runtime images, without JDBC runtime provisioning
+- Validate `jdbc.driverSource` values during chart rendering and fail on unsupported values.
 
 ### 4.10.0
 - Allow to configure Expression Language whitelist.
