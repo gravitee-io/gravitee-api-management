@@ -15,6 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.infra.domain_service.analytics_engine.PortalContextLoader;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.portal.rest.mapper.AlertMapper;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -37,11 +45,14 @@ import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
@@ -80,4 +91,36 @@ import org.springframework.scheduling.annotation.EnableAsync;
 )
 @Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class })
 @EnableAsync
-public class RestPortalConfiguration {}
+public class RestPortalConfiguration {
+
+    // NOTE: The @Bean definitions for ApiPortalMembershipDomainService and PortalNavigationApiVisibilityDomainService
+    // are required because @DomainService classes in io.gravitee.apim.core are not component-scanned in the portal
+    // context (we don't Import CoreServiceSpringConfiguration or UsecaseSpringConfiguration here to keep this
+    // context lean). When Stories 2/3 (dashboard + analytics endpoints) import UsecaseSpringConfiguration to pull
+    // in use-cases, these manual declarations MUST be removed to avoid BeanDefinitionOverrideException /
+    // NoUniqueBeanDefinitionException, and the component-scanned beans will satisfy the dependencies instead.
+    @Bean
+    public ApiPortalMembershipDomainService apiPortalMembershipDomainService(
+        MembershipQueryService membershipQueryService,
+        SubscriptionQueryService subscriptionQueryService
+    ) {
+        return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+    }
+
+    @Bean
+    public PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        ApiPortalMembershipDomainService apiPortalMembershipDomainService
+    ) {
+        return new PortalNavigationApiVisibilityDomainService(portalNavigationItemsQueryService, apiPortalMembershipDomainService);
+    }
+
+    @Bean
+    public AnalyticsQueryContextLoader analyticsQueryContextLoader(
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
+        @Lazy ApiRepository apiRepository,
+        ApplicationService applicationService
+    ) {
+        return new PortalContextLoader(portalNavigationApiVisibilityDomainService, apiRepository, applicationService);
+    }
+}
