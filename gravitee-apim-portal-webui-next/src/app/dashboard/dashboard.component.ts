@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
@@ -26,6 +26,7 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
+  { path: 'analytics', title: $localize`:@@analyticsTitle:Analytics` },
   { path: 'applications', title: $localize`:@@applicationsTitle:Applications` },
   { path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` },
 ];
@@ -39,7 +40,8 @@ const MENU_ITEMS: MenuItem[] = [
 export class DashboardComponent {
   private readonly destroyRef = inject(DestroyRef);
   readonly breadcrumbService = inject(BreadcrumbService);
-  menuItems = signal<MenuItem[]>(MENU_ITEMS);
+
+  readonly menuItems = computed(() => MENU_ITEMS);
 
   constructor() {
     this.destroyRef.onDestroy(() => this.breadcrumbService.clear());

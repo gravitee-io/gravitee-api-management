@@ -15,12 +15,3 @@
     limitations under the License.
 
 -->
-<button mat-stroked-button color="primary" class="user-avatar m3-title-medium" [matMenuTriggerFor]="user">
-  {{ initials }}
-</button>
-<mat-menu #user="matMenu">
-  <button i18n="@@analyticsTitle" mat-menu-item [routerLink]="['/dashboard', 'analytics']">Analytics</button>
-  <button i18n="@@applications" mat-menu-item [routerLink]="['/dashboard', 'applications']">Applications</button>
-  <button i18n="@@subscriptions" mat-menu-item [routerLink]="['/dashboard', 'subscriptions']">Subscriptions</button>
-  <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['/log-out']">Log out</button>
-</mat-menu>

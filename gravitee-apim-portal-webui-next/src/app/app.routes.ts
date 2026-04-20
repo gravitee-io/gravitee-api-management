@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 
-import { GraviteeDashboardComponent, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
 import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
 
 import { ApiDetailsComponent } from './api/api-details/api-details.component';
@@ -205,6 +203,19 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'analytics',
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./dashboard/analytics/analytics.component'),
+          },
+          {
+            path: ':dashboardId',
+            loadComponent: () => import('./dashboard/analytics/analytics-details/analytics-details.component'),
+          },
+        ],
+      },
     ],
   },
   {
@@ -240,14 +251,6 @@ export const routes: Routes = [
         ],
       },
     ],
-  },
-  {
-    path: 'analytics',
-    component: GraviteeDashboardComponent,
-    resolve: {
-      widgets: () => inject(GraviteeDashboardService).getWidgets(),
-      baseURL: () => 'https://apim-master-api.team-apim.gravitee.dev/management/v2/organizations/DEFAULT/environments/DEFAULT',
-    },
   },
   {
     path: 'log-in',

@@ -13,33 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class ConfigurationPortalNext {
-  siteTitle?: string;
-  access?: {
-    enabled?: boolean;
-  };
-  mtls?: {
-    enabled?: boolean;
-  };
-  banner?: {
-    enabled?: boolean;
-    title?: string;
-    subtitle?: string;
-    primaryButton?: BannerButton;
-    secondaryButton?: BannerButton;
-  };
-  catalog?: {
-    viewMode?: 'TABS' | 'CATEGORIES';
-  };
-  analytics?: {
-    enabled?: boolean;
-  };
-}
-
-export interface BannerButton {
-  enabled?: boolean;
-  label?: string;
-  target?: string;
-  type?: string;
-  visibility?: string;
-}

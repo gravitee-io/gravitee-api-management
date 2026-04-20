@@ -13,33 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class ConfigurationPortalNext {
-  siteTitle?: string;
-  access?: {
-    enabled?: boolean;
-  };
-  mtls?: {
-    enabled?: boolean;
-  };
-  banner?: {
-    enabled?: boolean;
-    title?: string;
-    subtitle?: string;
-    primaryButton?: BannerButton;
-    secondaryButton?: BannerButton;
-  };
-  catalog?: {
-    viewMode?: 'TABS' | 'CATEGORIES';
-  };
-  analytics?: {
-    enabled?: boolean;
-  };
-}
+import { Component, inject } from '@angular/core';
 
-export interface BannerButton {
-  enabled?: boolean;
-  label?: string;
-  target?: string;
-  type?: string;
-  visibility?: string;
+import { BreadcrumbService } from 'src/services/breadcrumb.service';
+
+import { analyticsListBreadcrumb } from './analytics-breadcrumbs';
+
+@Component({
+  selector: 'app-analytics',
+  imports: [],
+  templateUrl: './analytics.component.html',
+  styleUrl: './analytics.component.scss',
+})
+export default class AnalyticsComponent {
+  readonly breadcrumbService = inject(BreadcrumbService);
+
+  constructor() {
+    this.breadcrumbService.set([analyticsListBreadcrumb()]);
+  }
 }

@@ -162,7 +162,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'Log out']);
     });
 
     it('should not show menu if user is not connected and login is forced', async () => {
@@ -192,6 +192,7 @@ describe('NavBarComponent', () => {
         'Catalog',
         'link-name-1 open_in_new(opens in new tab)',
         'link-name-2 open_in_new(opens in new tab)',
+        'Analytics',
         'Applications',
         'Subscriptions',
         'Log out',

@@ -13,33 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class ConfigurationPortalNext {
-  siteTitle?: string;
-  access?: {
-    enabled?: boolean;
-  };
-  mtls?: {
-    enabled?: boolean;
-  };
-  banner?: {
-    enabled?: boolean;
-    title?: string;
-    subtitle?: string;
-    primaryButton?: BannerButton;
-    secondaryButton?: BannerButton;
-  };
-  catalog?: {
-    viewMode?: 'TABS' | 'CATEGORIES';
-  };
-  analytics?: {
-    enabled?: boolean;
-  };
-}
+import { Breadcrumb } from '../../../components/breadcrumbs/breadcrumbs.component';
 
-export interface BannerButton {
-  enabled?: boolean;
-  label?: string;
-  target?: string;
-  type?: string;
-  visibility?: string;
-}
+export const analyticsListBreadcrumb = (includeLink?: boolean): Breadcrumb => {
+  return {
+    id: 'analytics',
+    label: $localize`:@@analyticsBreadcrumb:Analytics`,
+    url: includeLink ? '/dashboard/analytics' : undefined,
+  };
+};
