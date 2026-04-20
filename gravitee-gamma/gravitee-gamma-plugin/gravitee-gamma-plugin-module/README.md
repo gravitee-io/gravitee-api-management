@@ -100,6 +100,11 @@ For a detailed walkthrough of the host application, module discovery, and
 lazy-loading lifecycle, see
 [`gravitee-gamma-control-plane-webui/docs/gamma-module-loading.md`](../../gravitee-gamma-control-plane-webui/docs/gamma-module-loading.md).
 
+## Local development
+
+- End-to-end setup (Management API `gamma.enabled`, Gamma Console, optional module dev server and `DEV_MODULE_ENTRIES`): [**Gamma Console** section in `CONTRIBUTING.adoc`](../../../CONTRIBUTING.adoc#dev-guide-gamma-console).
+- **Module id vs Nx project name:** `DEV_MODULE_ENTRIES` keys must match each module’s plugin `id` in `plugin.properties` (also returned by the modules API), not the Nx application name—for example [`gravitee-gamma-module-apim`](../../gravitee-gamma-module-apim/README.md) uses plugin id `apim`.
+
 ## Plugin Structure
 
 A Gamma module ZIP:
