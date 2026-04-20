@@ -22,32 +22,26 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ApiGeneralInfoIncludedInDialogComponent } from './api-general-info-included-in-dialog.component';
 import { ApiGeneralInfoIncludedInDialogHarness } from './api-general-info-included-in-dialog.harness';
 
-import { ApiProduct } from '../../../../entities/management-api-v2/api-product/apiProduct';
+import { ApiProductInfo } from '../../../../entities/management-api-v2/api-product/apiProductInfo';
 import { GioTestingModule } from '../../../../shared/testing';
 
 describe('ApiGeneralInfoIncludedInDialogComponent', () => {
-  const productA: ApiProduct = {
+  const productA: ApiProductInfo = {
     id: 'product-a',
     name: 'Product Alpha',
-    version: '1.0',
-    description: 'First product',
   };
-  const productB: ApiProduct = {
+  const productB: ApiProductInfo = {
     id: 'product-b',
     name: 'Product Beta',
-    version: '1.0',
-    description: 'Second product',
   };
-  const productC: ApiProduct = {
+  const productC: ApiProductInfo = {
     id: 'product-c',
     name: 'Gamma API',
-    version: '2.0',
-    description: 'Gamma description',
   };
 
   let harness: ApiGeneralInfoIncludedInDialogHarness;
 
-  const initComponent = async (apiProducts: ApiProduct[]) => {
+  const initComponent = async (apiProducts: ApiProductInfo[]) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiGeneralInfoIncludedInDialogComponent],
       providers: [{ provide: MAT_DIALOG_DATA, useValue: { apiProducts } }],

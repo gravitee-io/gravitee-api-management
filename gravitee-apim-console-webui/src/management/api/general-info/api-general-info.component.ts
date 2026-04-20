@@ -54,7 +54,7 @@ import { GioApiImportDialogComponent, GioApiImportDialogData } from '../componen
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
-import { ApiProduct } from '../../../entities/management-api-v2/api-product/apiProduct';
+import { ApiProductInfo } from '../../../entities/management-api-v2/api-product/apiProductInfo';
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
@@ -101,7 +101,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
   public canDisplayAllowInApiProduct = false;
-  public readonly apiProducts = signal<ApiProduct[]>([]);
+  public readonly apiProducts = signal<ApiProductInfo[]>([]);
   public readonly isApiUsedInProducts = computed(() => this.apiProducts().length > 0);
 
   public isQualityEnabled = false;
@@ -169,7 +169,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           if (api.definitionVersion === 'V4') {
             this.apiType = (api as ApiV4).type;
-            this.canDisplayAllowInApiProduct = this.apiType === 'PROXY';
+            this.canDisplayAllowInApiProduct = this.apiType === 'PROXY' && this.permissionService.hasAnyMatching(['api-definition-r']);
           }
 
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin;
@@ -286,6 +286,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   }
 
   private loadApiProductsUsageAndUpdateControl(): void {
+    if (!this.canDisplayAllowInApiProduct) {
+      return;
+    }
     this.apiService
       .getApiProductsForApi(this.apiId)
       .pipe(
