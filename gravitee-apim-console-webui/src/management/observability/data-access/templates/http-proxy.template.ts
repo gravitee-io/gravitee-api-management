@@ -16,11 +16,12 @@
 import { DashboardTemplate } from './dashboard-template.model';
 
 export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
-  id: 'proxy-performance',
-  name: 'Proxy Generic Protocol',
+  id: 'http-proxy',
+  name: 'HTTP Proxy',
   shortDescription: 'Monitor real-time API health, traffic trends, and service reliability.',
   description:
     'This dashboard provides a centralized view of global API performance, error distribution, and latency across your infrastructure. It enables teams to quickly identify service bottlenecks and ensure consistent reliability for all API consumers.',
+  info: 'For V4 proxy APIs only. V2 APIs are not supported.',
   previewImage: 'assets/images/templates/proxy-preview.png',
   initialConfig: {
     labels: { Focus: 'HTTP / TCP', Theme: 'proxy' },

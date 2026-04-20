@@ -47,6 +47,12 @@
               <div class="preview-panel__title-row">
                 <h2 class="preview-panel__title">{{ selected.name }}</h2>
               </div>
+              @if (selected.info) {
+                <p class="preview-panel__info">
+                  <span class="gio-badge preview-panel__info-badge"> <mat-icon svgIcon="gio:info" class="gio-left"></mat-icon>Info </span>
+                  {{ selected.info }}
+                </p>
+              }
               <p class="preview-panel__description">{{ selected.description }}</p>
               @if (selected.initialConfig?.labels) {
                 <p class="preview-panel__labels">
