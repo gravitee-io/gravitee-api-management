@@ -34,3 +34,9 @@ annotations:
       description: 'Add configurable OpenShift security context adaptation with auto, force and disabled modes.'
     - kind: fixed
       description: 'Apply OpenShift security context adaptation consistently to pod, container and generated initContainer security contexts.'
+    - kind: fixed
+      description: 'Fix API upgrader job rendering when additional plugins are configured.'
+    - kind: changed
+      description: 'Improve JDBC driver delivery options with auto, image, download and preinstalled modes.'
+    - kind: added
+      description: 'Validate jdbc.driverSource values during chart rendering and fail on unsupported values.'
