@@ -16,7 +16,7 @@
 import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { DockerLoginCommand, DockerLogoutCommand, InstallYarnCommand, NotifyOnFailureCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { computeImagesTag } from '../../utils';
+import { computeImagesTag, isSupportBranchOrMaster } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
 import { orbs } from '../../orbs';
 import { keeper } from '../../orbs/keeper';
@@ -42,7 +42,9 @@ export class E2ETestJob {
     dynamicConfig.addReusableCommand(dockerLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
-    const dockerImageTag = computeImagesTag(environment.branch, environment.sha1);
+    const dockerImageTag = isSupportBranchOrMaster(environment.branch)
+      ? computeImagesTag(environment.branch)
+      : computeImagesTag(environment.branch, environment.sha1);
 
     const steps: Command[] = [
       new commands.Checkout(),
