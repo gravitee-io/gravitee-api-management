@@ -19,11 +19,9 @@ import static java.lang.System.currentTimeMillis;
 
 import io.gravitee.alert.api.event.Event;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
@@ -32,7 +30,6 @@ import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import io.gravitee.gateway.services.healthcheck.eval.assertion.AssertionEvaluation;
 import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
 import io.gravitee.node.api.Node;
-import io.gravitee.node.api.utils.NodeUtils;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.common.Request;
@@ -152,45 +149,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     protected RequestOptions prepareHttpClientRequest(URL request, HealthCheckStep step) {
-        final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getProtocol()) ? 443 : 80);
-
-        String relativeUrl = (request.getQuery() == null) ? request.getPath() : request.getPath() + '?' + request.getQuery();
-
-        RequestOptions options = new RequestOptions()
-            .setURI(relativeUrl)
-            .setPort(port)
-            .setHost(request.getHost())
-            .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
-            .putHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
-            .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
-
-        if (step.getRequest().getHeaders() != null) {
-            step.getRequest().getHeaders().forEach(h -> options.putHeader(h.getName(), resolveHeaderValue(h)));
-            applyCustomHostIfPresent(options, port, request);
-        }
-
-        return options;
-    }
-
-    private String resolveHeaderValue(io.gravitee.common.http.HttpHeader httpHeader) {
-        try {
-            String value = templateEngine.getValue(httpHeader.getValue(), String.class);
-            return value != null ? value : "";
-        } catch (ExpressionEvaluationException e) {
-            logger.warn("Expression {} cannot be evaluated for healthcheck of API {}", httpHeader.getValue(), rule.api().getId());
-            return "";
-        }
-    }
-
-    private void applyCustomHostIfPresent(RequestOptions options, int port, URL request) {
-        String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
-        if (customHost == null || customHost.isBlank()) {
-            return;
-        }
-        // Pin the TCP connection to the actual backend so that the custom Host value
-        // only affects the HTTP Host header and not the connection address.
-        options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(port, request.getHost()));
-        options.setHost(customHost);
+        return new RequestOptionsBuilder(node, templateEngine, rule.api().getId()).build(request, step);
     }
 
     protected URL createRequest(T endpoint, HealthCheckStep step) throws MalformedURLException {

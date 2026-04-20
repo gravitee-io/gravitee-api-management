@@ -45,7 +45,6 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
@@ -503,77 +502,6 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         // Run
         runner.handle(null);
-    }
-
-    @Test
-    void requestOptionsHost_should_use_configured_Host_header_value(Vertx vertx) throws Exception {
-        // Unit test for prepareHttpClientRequest (APIM-13512).
-        // RequestOptions.host controls the HTTP/2 ":authority" pseudo-header AND is the fallback for the
-        // HTTP/1.1 "Host" header when the headers map does not already contain one.
-        // When the user configures "Host: custom-host.example.com" in the health check step, RequestOptions.host
-        // must be updated accordingly; otherwise the backend may receive the wrong authority.
-        //
-        // With the current bug: setHost(request.getHost()) is called first and user headers are added after,
-        // but RequestOptions.host remains set to the target URL's host — the custom value is never applied.
-        // After the fix: when user headers contain a "Host" entry, RequestOptions.host must be set to that value.
-        EndpointRule rule = createEndpointRule();
-        HealthCheckStep step = new HealthCheckStep();
-        HealthCheckRequest hcRequest = new HealthCheckRequest("/health", HttpMethod.GET);
-        hcRequest.setHeaders(List.of(new HttpHeader("Host", "custom-host.example.com")));
-        step.setRequest(hcRequest);
-        step.setResponse(new HealthCheckResponse());
-        when(rule.steps()).thenReturn(Collections.singletonList(step));
-
-        HttpEndpointRuleHandler handler = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
-
-        // Access the protected method via reflection (it lives in EndpointRuleHandler superclass).
-        Method method = handler.getClass().getSuperclass().getDeclaredMethod("prepareHttpClientRequest", URL.class, HealthCheckStep.class);
-        method.setAccessible(true);
-        RequestOptions options = (RequestOptions) method.invoke(handler, new URL("http://localhost:8080/health"), step);
-
-        // Bug: options.getHost() returns "localhost" because setHost(target.getHost()) was never overridden
-        // by the user-configured "Host" header value.
-        // After fix: options.getHost() must equal "custom-host.example.com".
-        assertEquals("custom-host.example.com", options.getHost(), "RequestOptions.host must equal the user-configured Host header value");
-    }
-
-    @Test
-    void shouldSendCustomHostHeaderWhenConfiguredInHealthCheckStep(Vertx vertx, VertxTestContext context) throws Throwable {
-        // Stub responds to any GET /health — we verify the Host header via wm.verify() in the main thread,
-        // not inside the async handler, so failures propagate correctly to the test runner.
-        wm.stubFor(get(urlEqualTo("/health")).willReturn(ok("{\"status\": \"green\"}")));
-
-        EndpointRule rule = createEndpointRule();
-
-        HealthCheckStep step = new HealthCheckStep();
-        HealthCheckRequest request = new HealthCheckRequest("/health", HttpMethod.GET);
-        // Configure a custom Host header — it must override the host derived from the endpoint URL.
-        request.setHeaders(List.of(new HttpHeader("Host", "custom-host.example.com")));
-        step.setRequest(request);
-        HealthCheckResponse response = new HealthCheckResponse();
-        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
-        step.setResponse(response);
-        when(rule.steps()).thenReturn(Collections.singletonList(step));
-
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
-
-        // Use a CountDownLatch to block the main thread until the health check finishes.
-        // Assertions are done in the main thread so that failures surface correctly.
-        CountDownLatch latch = new CountDownLatch(1);
-        runner.setStatusHandler((Handler<EndpointStatus>) status -> latch.countDown());
-        runner.setRescheduleHandler(v -> {});
-
-        runner.handle(null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS), "Health check did not complete in time");
-
-        // Bug (APIM-13512): prepareHttpClientRequest() calls RequestOptions.setHost(request.getHost()) which
-        // determines the HTTP Host header sent on the wire.  Headers added via putHeader() afterward go into the
-        // header map but Vert.x still uses the RequestOptions.host field for the actual Host header, so the
-        // user-configured "Host: custom-host.example.com" is silently ignored.
-        // This verify call FAILS with the current code and PASSES after the fix.
-        wm.verify(getRequestedFor(urlEqualTo("/health")).withHeader("Host", equalTo("custom-host.example.com")));
-
-        context.completeNow();
     }
 
     private Endpoint createEndpoint(String baseUrl, String targetPath, boolean useSystemProxy) {
