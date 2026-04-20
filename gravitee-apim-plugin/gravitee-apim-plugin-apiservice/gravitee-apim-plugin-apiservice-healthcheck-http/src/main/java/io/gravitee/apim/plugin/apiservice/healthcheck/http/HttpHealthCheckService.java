@@ -322,36 +322,37 @@ public class HttpHealthCheckService implements ApiService {
         final HttpHeaders configHeaders = ctx.request().headers();
         if (configHeaders != null && !configHeaders.isEmpty()) {
             final MultiMap headers = new HeadersMultiMap();
-            configHeaders.forEach(header -> {
-                headers.add(header.getKey(), header.getValue());
-            });
+            configHeaders.forEach(header -> headers.add(header.getKey(), header.getValue()));
             requestOptions.setHeaders(headers);
         }
 
         final URL target = VertxHttpClientFactory.buildUrl(hcConfiguration.getTarget());
-
         final boolean isSsl = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
         final int targetPort = VertxHttpClientFactory.getPort(target, isSsl);
-        final String customHost = requestOptions.getHeaders() != null
-            ? requestOptions.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST)
-            : null;
-        final String effectiveHost = (customHost != null && !customHost.isBlank()) ? customHost : target.getHost();
+
         requestOptions
             .setMethod(HttpMethod.valueOf(request.method().name()))
             .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
             .setPort(targetPort)
             .setSsl(isSsl)
-            .setHost(effectiveHost);
+            .setHost(target.getHost());
 
-        if (customHost != null && !customHost.isBlank()) {
-            // Pin the TCP connection to the actual backend so that the custom Host value
-            // only affects the HTTP Host header and not the connection address.
-            requestOptions.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(targetPort, target.getHost()));
-        }
+        applyCustomHostIfPresent(requestOptions, targetPort, target);
 
         ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(requestOptions, target.getHost(), target.getDefaultPort()));
 
         return requestOptions;
+    }
+
+    private void applyCustomHostIfPresent(RequestOptions options, int port, URL target) {
+        String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+        if (customHost == null || customHost.isBlank()) {
+            return;
+        }
+        // Pin the TCP connection to the actual backend so that the custom Host value
+        // only affects the HTTP Host header and not the connection address.
+        options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(port, target.getHost()));
+        options.setHost(customHost);
     }
 
     private Completable evaluateAndReport(

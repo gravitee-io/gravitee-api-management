@@ -156,7 +156,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
         String relativeUrl = (request.getQuery() == null) ? request.getPath() : request.getPath() + '?' + request.getQuery();
 
-        // Prepare request
         RequestOptions options = new RequestOptions()
             .setURI(relativeUrl)
             .setPort(port)
@@ -166,34 +165,32 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
         if (step.getRequest().getHeaders() != null) {
-            step
-                .getRequest()
-                .getHeaders()
-                .forEach(httpHeader -> {
-                    String resolvedHeader = null;
-                    try {
-                        resolvedHeader = templateEngine.getValue(httpHeader.getValue(), String.class);
-                    } catch (ExpressionEvaluationException e) {
-                        logger.warn(
-                            "Expression {} cannot be evaluated for healthcheck of API {}",
-                            httpHeader.getValue(),
-                            rule.api().getId()
-                        );
-                    }
-
-                    options.putHeader(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
-                });
-
-            final String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
-            if (customHost != null && !customHost.isBlank()) {
-                // Pin the TCP connection to the actual backend so that the custom Host value
-                // only affects the HTTP Host header and not the connection address.
-                options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(port, request.getHost()));
-                options.setHost(customHost);
-            }
+            step.getRequest().getHeaders().forEach(h -> options.putHeader(h.getName(), resolveHeaderValue(h)));
+            applyCustomHostIfPresent(options, port, request);
         }
 
         return options;
+    }
+
+    private String resolveHeaderValue(io.gravitee.common.http.HttpHeader httpHeader) {
+        try {
+            String value = templateEngine.getValue(httpHeader.getValue(), String.class);
+            return value != null ? value : "";
+        } catch (ExpressionEvaluationException e) {
+            logger.warn("Expression {} cannot be evaluated for healthcheck of API {}", httpHeader.getValue(), rule.api().getId());
+            return "";
+        }
+    }
+
+    private void applyCustomHostIfPresent(RequestOptions options, int port, URL request) {
+        String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+        if (customHost == null || customHost.isBlank()) {
+            return;
+        }
+        // Pin the TCP connection to the actual backend so that the custom Host value
+        // only affects the HTTP Host header and not the connection address.
+        options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(port, request.getHost()));
+        options.setHost(customHost);
     }
 
     protected URL createRequest(T endpoint, HealthCheckStep step) throws MalformedURLException {
