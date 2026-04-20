@@ -60,6 +60,7 @@ getGoToPageLabel(page: number): string {
 
 - Use **Component Harnesses** for interactions and queries in unit tests when a harness exists for the component.
 - Use **aria-label** (or `data-testid` where necessary) for test targeting when no harness exists; prefer accessibility-oriented selectors over brittle DOM structure.
+- **One `init(params)` helper for varying TestBed config:** If a spec needs **2+ different `TestBed` configurations** (providers, flags, stubs), define a single `init` helper with **default params** so `await init()` works with no args, and call `await init({ ... })` only to override. Do not duplicate `configureTestingModule` blocks or add nested `describe`s **just** to change config — nested `describe`s are still fine for logical grouping. Canonical example: `src/app/log-in/log-in.component.spec.ts`.
 
 ## Naming: gmd-_ vs gd-_ in main app
 

@@ -16,6 +16,7 @@ Shared coding standards live under [`.agent-rules/`](.agent-rules/).
 
 | Stack | When to read | File |
 |-------|----------------|------|
+| **All** | Always | [`.agent-rules/general.md`](.agent-rules/general.md) |
 | **Java** | Changes under a Maven module path listed under **Java** in *Nested `AGENTS.md` module roots* below | [`.agent-rules/java.md`](.agent-rules/java.md) |
 | **Angular** | Changes under a path listed under **Angular** in *Nested `AGENTS.md` module roots* below | [`.agent-rules/angular.md`](.agent-rules/angular.md) |
 
