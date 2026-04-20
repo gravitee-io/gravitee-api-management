@@ -21,6 +21,7 @@ import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.compon
 import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component';
 import { PortalNavigationItem } from '../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../entities/user/user';
+import { ConfigService } from '../../services/config.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 
@@ -31,11 +32,14 @@ import { CompanyTitleComponent } from '../company-title/company-title.component'
   styleUrls: ['./nav-bar.component.scss'],
 })
 export class NavBarComponent {
+  protected readonly configService = inject(ConfigService);
+
   topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   currentUser: InputSignal<User> = input({});
   forceLogin: InputSignal<boolean> = input(false);
   logo: InputSignal<string> = input('');
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+  protected readonly analyticsEnabled = computed(() => this.configService.configuration.portalNext?.analytics?.enabled ?? false);
 
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());

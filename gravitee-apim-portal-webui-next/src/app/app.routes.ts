@@ -39,6 +39,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
+import { analyticsEnabledGuard } from '../guards/analytics-enabled.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
@@ -205,6 +206,7 @@ export const routes: Routes = [
       },
       {
         path: 'analytics',
+        canActivate: [analyticsEnabledGuard],
         children: [
           {
             path: '',

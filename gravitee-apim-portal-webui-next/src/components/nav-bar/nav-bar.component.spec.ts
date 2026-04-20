@@ -27,8 +27,9 @@ import { NavBarComponent } from './nav-bar.component';
 import { PortalPage } from '../../entities/portal/portal-page';
 import { PortalNavigationItem, PortalNavigationLink } from '../../entities/portal-navigation/portal-navigation-item';
 import { fakeUser } from '../../entities/user/user.fixtures';
+import { ConfigService } from '../../services/config.service';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { AppTestingModule, ConfigServiceStub, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
 describe('NavBarComponent', () => {
@@ -59,7 +60,7 @@ describe('NavBarComponent', () => {
     } as PortalNavigationLink,
   ];
 
-  const init = async (isMobile: boolean = false) => {
+  const init = async (isMobile: boolean = false, portalNextAnalyticsEnabled = false) => {
     const mockBreakpointObserver = {
       observe: () => of({ matches: isMobile, breakpoints: { [Breakpoints.XSmall]: isMobile } }),
     };
@@ -83,6 +84,18 @@ describe('NavBarComponent', () => {
     componentRef = fixture.componentRef;
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+
+    if (portalNextAnalyticsEnabled) {
+      const config = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
+      config.configuration = {
+        ...config.configuration,
+        portalNext: {
+          ...config.configuration.portalNext,
+          analytics: { enabled: true },
+        },
+      };
+    }
+
     fixture.detectChanges();
   };
 
@@ -162,7 +175,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'Log out']);
     });
 
     it('should not show menu if user is not connected and login is forced', async () => {
@@ -192,7 +205,6 @@ describe('NavBarComponent', () => {
         'Catalog',
         'link-name-1 open_in_new(opens in new tab)',
         'link-name-2 open_in_new(opens in new tab)',
-        'Analytics',
         'Applications',
         'Subscriptions',
         'Log out',
@@ -257,6 +269,29 @@ describe('NavBarComponent', () => {
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
       expect(linkTexts).toEqual(['Catalog', 'Sign in']);
+    });
+  });
+
+  describe('using mobile view with portal next analytics enabled', () => {
+    beforeEach(async () => {
+      await init(true, true);
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
+    it('should show Analytics link when portal next analytics is enabled', async () => {
+      expectHomePage();
+      componentRef.setInput('currentUser', fakeUser());
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'Log out']);
     });
   });
 

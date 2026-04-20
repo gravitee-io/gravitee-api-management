@@ -19,9 +19,17 @@
   <app-company-title [logo]="logo()" />
   @if (!forceLogin() || isLoggedIn()) {
     @if (isMobile()) {
-      <app-mobile-nav-bar [currentUser]="currentUser()" [topBarNavigationItems]="topBarNavigationItems()" />
+      <app-mobile-nav-bar
+        [currentUser]="currentUser()"
+        [topBarNavigationItems]="topBarNavigationItems()"
+        [analyticsEnabled]="analyticsEnabled()"
+      />
     } @else {
-      <app-desktop-nav-bar [currentUser]="currentUser()" [topBarNavigationItems]="topBarNavigationItems()" />
+      <app-desktop-nav-bar
+        [currentUser]="currentUser()"
+        [topBarNavigationItems]="topBarNavigationItems()"
+        [analyticsEnabled]="analyticsEnabled()"
+      />
     }
   }
 </div>

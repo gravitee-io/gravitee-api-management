@@ -22,7 +22,8 @@ import { ActivatedRoute, provideRouter, Router, Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard.component';
 import { DashboardComponentHarness } from './dashboard.component.harness';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import { ConfigService } from '../../services/config.service';
+import { AppTestingModule, ConfigServiceStub } from '../../testing/app-testing.module';
 import { routes } from '../app.routes';
 
 describe('DashboardComponent', () => {
@@ -31,7 +32,11 @@ describe('DashboardComponent', () => {
   let router: Router;
   let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (
+    params: Partial<{ enablePortalNextAnalytics: boolean }> = {
+      enablePortalNextAnalytics: false,
+    },
+  ) => {
     const dashboardRoute = (routes as Routes).find(route => route.path === 'dashboard');
 
     await TestBed.configureTestingModule({
@@ -53,6 +58,22 @@ describe('DashboardComponent', () => {
             snapshot: {
               url: [],
             },
+          },
+        },
+        {
+          provide: ConfigService,
+          useFactory: () => {
+            const stub = new ConfigServiceStub();
+            if (params.enablePortalNextAnalytics) {
+              stub.configuration = {
+                ...stub.configuration,
+                portalNext: {
+                  ...stub.configuration.portalNext,
+                  analytics: { enabled: true },
+                },
+              };
+            }
+            return stub;
           },
         },
       ],
@@ -105,14 +126,28 @@ describe('DashboardComponent', () => {
     expect(await breadcrumbs?.getText()).toContain('Subscriptions');
   });
 
-  it('should include Analytics in menu items', async () => {
+  it('should omit Analytics from menu items when portal next analytics is not enabled', async () => {
     await init();
+
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'subscriptions']);
+  });
+
+  it('should not show Analytics in the sidenav when portal next analytics is not enabled', async () => {
+    await init();
+
+    fixture.detectChanges();
+    const sidenav = await harness.getSidenav();
+    expect(await sidenav?.getText()).not.toContain('Analytics');
+  });
+
+  it('should include Analytics in menu items when portal next analytics is enabled', async () => {
+    await init({ enablePortalNextAnalytics: true });
 
     expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['analytics', 'applications', 'subscriptions']);
   });
 
-  it('should show Analytics in the sidenav', async () => {
-    await init();
+  it('should show Analytics in the sidenav when portal next analytics is enabled', async () => {
+    await init({ enablePortalNextAnalytics: true });
 
     await router.navigate(['subscriptions']);
     fixture.detectChanges();

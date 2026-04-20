@@ -19,6 +19,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { SidenavLayoutComponent } from '../../components/sidenav-layout/sidenav-layout.component';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
+import { ConfigService } from '../../services/config.service';
 
 interface MenuItem {
   path: string;
@@ -39,9 +40,13 @@ const MENU_ITEMS: MenuItem[] = [
 })
 export class DashboardComponent {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly configService = inject(ConfigService);
   readonly breadcrumbService = inject(BreadcrumbService);
 
-  readonly menuItems = computed(() => MENU_ITEMS);
+  readonly menuItems = computed(() => {
+    const analyticsEnabled = this.configService.configuration.portalNext?.analytics?.enabled ?? false;
+    return analyticsEnabled ? MENU_ITEMS : MENU_ITEMS.filter(item => item.path !== 'analytics');
+  });
 
   constructor() {
     this.destroyRef.onDestroy(() => this.breadcrumbService.clear());

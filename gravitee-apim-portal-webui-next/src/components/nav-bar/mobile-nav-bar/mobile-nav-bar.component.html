@@ -56,14 +56,16 @@
     <div class="mobile-menu__hr"></div>
 
     @if (isLoggedIn()) {
-      <a
-        class="mobile-menu__link"
-        i18n="@@analyticsTitle"
-        [routerLink]="['/dashboard', 'analytics']"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        >Analytics</a
-      >
+      @if (analyticsEnabled()) {
+        <a
+          class="mobile-menu__link"
+          i18n="@@analyticsTitle"
+          [routerLink]="['/dashboard', 'analytics']"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+          >Analytics</a
+        >
+      }
       <a
         class="mobile-menu__link"
         i18n="@@applications"
