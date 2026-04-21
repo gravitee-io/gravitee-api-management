@@ -93,6 +93,8 @@ import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
+import io.gravitee.apim.core.dashboard.use_case.GetDashboardUseCase;
+import io.gravitee.apim.core.dashboard.use_case.ListDashboardsUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -1262,6 +1264,16 @@ public class ResourceContextConfiguration {
     @Bean
     public FilterValueNameResolver filterValueNameResolver() {
         return mock(FilterValueNameResolver.class);
+    }
+
+    @Bean
+    public ListDashboardsUseCase listDashboardsUseCase() {
+        return mock(ListDashboardsUseCase.class);
+    }
+
+    @Bean
+    public GetDashboardUseCase getDashboardUseCase() {
+        return mock(GetDashboardUseCase.class);
     }
 
     @Bean
