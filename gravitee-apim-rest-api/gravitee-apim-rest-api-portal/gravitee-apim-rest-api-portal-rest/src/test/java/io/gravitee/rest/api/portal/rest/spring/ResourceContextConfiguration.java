@@ -1144,9 +1144,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiPortalMembershipDomainService apiPortalMembershipDomainService(
         MembershipQueryService membershipQueryService,
-        SubscriptionQueryService subscriptionQueryService
+        SubscriptionQueryService subscriptionQueryService,
+        ApiQueryService apiQueryService
     ) {
-        return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
     }
 
     @Bean

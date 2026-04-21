@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiPortalSearchQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
@@ -57,7 +58,12 @@ class SearchApisForPortalUseCaseTest {
         membershipQueryService = new MembershipQueryServiceInMemory();
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        var apiQueryService = new ApiQueryServiceInMemory();
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            apiQueryService
+        );
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
         useCase = new SearchApisForPortalUseCase(visibilityDomainService, apiSearchQueryService);
     }

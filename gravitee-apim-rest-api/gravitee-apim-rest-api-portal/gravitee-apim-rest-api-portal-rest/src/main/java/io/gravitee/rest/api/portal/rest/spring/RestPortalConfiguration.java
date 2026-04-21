@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.spring;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
@@ -102,9 +103,10 @@ public class RestPortalConfiguration {
     @Bean
     public ApiPortalMembershipDomainService apiPortalMembershipDomainService(
         MembershipQueryService membershipQueryService,
-        SubscriptionQueryService subscriptionQueryService
+        SubscriptionQueryService subscriptionQueryService,
+        ApiQueryService apiQueryService
     ) {
-        return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
     }
 
     @Bean

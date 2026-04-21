@@ -66,7 +66,12 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                     isNull(apiCriteria) ||
                     isNull(apiCriteria.getLifecycleStates()) ||
                     apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
-                return matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId;
+                var matchesGroups =
+                    isNull(apiCriteria) ||
+                    isNull(apiCriteria.getGroups()) ||
+                    apiCriteria.getGroups().isEmpty() ||
+                    (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
+                return (matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId && matchesGroups);
             })
             .toList();
 
@@ -88,7 +93,8 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
             (apiCriteria.getIntegrationId() != null ||
                 apiCriteria.getIds() != null ||
                 apiCriteria.getDefinitionVersion() != null ||
-                apiCriteria.getEnvironmentId() != null)
+                apiCriteria.getEnvironmentId() != null ||
+                (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()))
         ) {
             return this.storage()
                 .stream()
@@ -107,8 +113,17 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                         apiCriteria.getDefinitionVersion().contains(api.getDefinitionVersion());
                     var matchesEnvironmentId =
                         isNull(apiCriteria.getEnvironmentId()) || apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
+                    var matchesGroups =
+                        isNull(apiCriteria.getGroups()) ||
+                        apiCriteria.getGroups().isEmpty() ||
+                        (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
                     return (
-                        matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesApiDefinitionVersion && matchesEnvironmentId
+                        matchesIntegrationId &&
+                        matchesApiId &&
+                        matchesLifecycleState &&
+                        matchesApiDefinitionVersion &&
+                        matchesEnvironmentId &&
+                        matchesGroups
                     );
                 });
         }
