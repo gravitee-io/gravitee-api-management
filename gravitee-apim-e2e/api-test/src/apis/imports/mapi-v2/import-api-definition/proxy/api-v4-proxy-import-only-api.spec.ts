@@ -39,7 +39,7 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - Only API -', () => {
         }),
       }),
       400,
-      "Cannot construct instance of `io.gravitee.rest.api.management.v2.rest.model.PlanMode`, problem: Unexpected value 'dummy'",
+      "Unexpected value 'dummy'",
     );
   });
 
