@@ -25,6 +25,8 @@ import { ClusterConfigurationComponent } from './kafka-standalone/details/config
 import { ClusterListComponent } from './kafka-standalone/list/cluster-list.component';
 import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
 import { KafkaClusterConfigurationComponent } from './kafka-clusters/details/configuration/kafka-cluster-configuration.component';
+import { KafkaVirtualClusterListComponent } from './kafka-virtual-clusters/list/kafka-virtual-cluster-list.component';
+import { KafkaVirtualClusterConfigurationComponent } from './kafka-virtual-clusters/details/configuration/kafka-virtual-cluster-configuration.component';
 import { ClusterGuard } from './cluster.guard';
 
 import { Constants } from '../../entities/Constants';
@@ -140,6 +142,58 @@ const clusterRoutes: Routes = [
       {
         path: 'configuration',
         component: KafkaClusterConfigurationComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-configuration-r'],
+          },
+        },
+      },
+      {
+        path: 'user-permissions',
+        component: ClusterUserPermissionsComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-member-r'],
+          },
+        },
+      },
+    ],
+  },
+  {
+    path: 'kafka-virtual-clusters',
+    component: KafkaVirtualClusterListComponent,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
+    data: {
+      useAngularMaterial: true,
+      permissions: {
+        anyOf: ['environment-cluster-r'],
+      },
+    },
+  },
+  {
+    path: 'kafka-virtual-clusters/:clusterId',
+    component: ClusterNavigationComponent,
+    canActivate: [ClusterGuard.loadPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
+    canDeactivate: [ClusterGuard.clearPermissions],
+    children: [
+      {
+        path: '',
+        redirectTo: 'general',
+        pathMatch: 'full',
+      },
+      {
+        path: 'general',
+        component: ClusterGeneralComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'configuration',
+        component: KafkaVirtualClusterConfigurationComponent,
         data: {
           permissions: {
             anyOf: ['cluster-configuration-r'],
