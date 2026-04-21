@@ -17,11 +17,12 @@ import { Component, DestroyRef, forwardRef, inject, OnInit } from '@angular/core
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter, tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { GIO_DIALOG_WIDTH, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 import { DEFAULT_MCP_ENTRYPOINT_PATH, MCPConfiguration, MCPTool, MCPToolDefinition } from '../../../../../entities/entrypoint/mcp';
 import { ToolDisplayComponent } from '../tool-display/tool-display.component';
@@ -36,6 +37,7 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
 interface ConfigurationMCPForm {
   tools: FormControl<MCPTool[]>;
   mcpPath: FormControl<string>;
+  description: FormControl<string>;
 }
 
 @Component({
@@ -48,6 +50,7 @@ interface ConfigurationMCPForm {
     GioIconsModule,
     ToolDisplayComponent,
     GioPermissionModule,
+    MatExpansionModule,
   ],
   templateUrl: './configure-mcp-entrypoint.component.html',
   styleUrl: './configure-mcp-entrypoint.component.scss',
@@ -66,9 +69,14 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
   formGroup = new FormGroup<ConfigurationMCPForm>({
     tools: new FormControl<MCPTool[]>([]),
     mcpPath: new FormControl<string>(DEFAULT_MCP_ENTRYPOINT_PATH),
+    description: new FormControl<string>(''),
   });
 
   toolDefinitions: MCPToolDefinition[] = [];
+
+  get serverDescription(): string {
+    return this.formGroup.controls.description.value || '';
+  }
 
   private destroyRef = inject(DestroyRef);
 
@@ -85,6 +93,7 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
           this.onChange({
             tools: value.tools || [],
             mcpPath: value.mcpPath || DEFAULT_MCP_ENTRYPOINT_PATH,
+            description: value.description || '',
           });
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -104,6 +113,7 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
         {
           tools,
           mcpPath: value.mcpPath || DEFAULT_MCP_ENTRYPOINT_PATH,
+          description: value.description || '',
         },
         { emitEvent: false },
       );
@@ -139,9 +149,10 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        map(result => result?.tools || []),
-        tap((tools: MCPTool[]) => {
-          this.formGroup.patchValue({ tools });
+        tap((result: ImportMcpToolsDialogResult) => {
+          const tools = result?.tools || [];
+          const description = result?.serverDescription || '';
+          this.formGroup.patchValue({ tools, description });
           this.formGroup.markAsDirty();
           this.onTouched();
 
