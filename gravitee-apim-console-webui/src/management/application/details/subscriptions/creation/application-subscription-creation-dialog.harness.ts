@@ -72,4 +72,14 @@ export class ApplicationSubscriptionCreationDialogHarness extends ComponentHarne
   public async addRequestMessage(message: string) {
     return this.getRequestInput().then(input => input.setValue(message));
   }
+
+  public async focusSearchInput(): Promise<void> {
+    return this.getApiInput().then(input => input.focus());
+  }
+
+  public async getApiOptions(): Promise<string[]> {
+    const autocomplete = await this.getApiAutoComplete();
+    const options = await autocomplete.getOptions();
+    return parallel(() => options.map(option => option.getText()));
+  }
 }

@@ -30,6 +30,7 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 import { ApiProductPlanV2Service } from '../../../../../services-ngx/api-product-plan-v2.service';
 import { ApiProductV2Service } from '../../../../../services-ngx/api-product-v2.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
 import { SubscriptionPage } from '../../../../../entities/subscription/subscription';
@@ -61,6 +62,7 @@ type SubscriptionCreationForm = FormGroup<{
 export class ApplicationSubscriptionCreationDialogComponent {
   private destroyRef = inject(DestroyRef);
   private canUseSharedApiKeys = this.environmentSettingsService.getSnapshot().plan?.security?.sharedApiKey?.enabled;
+  private canSearchApiProducts = this.permissionService.hasAnyMatching(['environment-api_product-r']);
   private isFederatedApi = false;
   private apiKeySubscriptions: SubscriptionPage[];
   private entrypointsMap = new Map<string, { icon: string; name: string }>();
@@ -83,9 +85,11 @@ export class ApplicationSubscriptionCreationDialogComponent {
       const apis$ = this.apiService
         .search({ query: term }, null, 1, this.SEARCH_PAGE_SIZE, false)
         .pipe(map(res => (res?.data ?? []).map(value => ({ type: 'API' as const, value }))));
-      const products$ = this.apiProductService
-        .search({ query: term }, undefined, 1, this.SEARCH_PAGE_SIZE)
-        .pipe(map(res => (res?.data ?? []).map(value => ({ type: 'API_PRODUCT' as const, value }))));
+      const products$ = this.canSearchApiProducts
+        ? this.apiProductService
+            .search({ query: term }, undefined, 1, this.SEARCH_PAGE_SIZE)
+            .pipe(map(res => (res?.data ?? []).map(value => ({ type: 'API_PRODUCT' as const, value }))))
+        : of([]);
       return apis$.pipe(
         combineLatestWith(products$),
         map(([apis, products]) => [...apis, ...products].sort((a, b) => a.value.name.localeCompare(b.value.name))),
@@ -103,6 +107,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
     private readonly environmentSettingsService: EnvironmentSettingsService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
+    private readonly permissionService: GioPermissionService,
     private readonly dialogRef: MatDialogRef<ApplicationSubscriptionCreationDialogComponent, ApplicationSubscriptionCreationDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApplicationSubscriptionCreationDialogData,
   ) {
