@@ -247,7 +247,9 @@ class LogNamesPostProcessorImplTest {
                 "err-type",
                 List.of(warning),
                 Map.of("k", "v"),
-                "tools/list"
+                "tools/list",
+                null,
+                null
             );
 
             var context = BASE_CONTEXT.withApiNamesById(Map.of("api-1", "New API"))

@@ -17,6 +17,8 @@ package io.gravitee.apim.core.logs_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -75,6 +77,7 @@ public class SearchEnvironmentLogsUseCase {
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
     private final InstanceQueryService instanceQueryService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public SearchEnvironmentLogsUseCase(
         ConnectionLogsCrudService connectionLogsCrudService,
@@ -82,7 +85,8 @@ public class SearchEnvironmentLogsUseCase {
         LogNamesPostProcessor logNamesPostProcessor,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService,
-        InstanceQueryService instanceQueryService
+        InstanceQueryService instanceQueryService,
+        ApiProductQueryService apiProductQueryService
     ) {
         this.connectionLogsCrudService = connectionLogsCrudService;
         this.userContextLoader = userContextLoader;
@@ -90,6 +94,7 @@ public class SearchEnvironmentLogsUseCase {
         this.planCrudService = planCrudService;
         this.applicationCrudService = applicationCrudService;
         this.instanceQueryService = instanceQueryService;
+        this.apiProductQueryService = apiProductQueryService;
     }
 
     public record Input(AuditInfo auditInfo, SearchLogsRequest request) {}
@@ -119,7 +124,9 @@ public class SearchEnvironmentLogsUseCase {
 
         var enrichedContext = loadNames(executionContext, userContext, response);
 
-        return new Output(logNamesPostProcessor.mapLogNames(enrichedContext, response));
+        var namedResponse = logNamesPostProcessor.mapLogNames(enrichedContext, response);
+
+        return new Output(enrichWithApiProductNames(executionContext, namedResponse));
     }
 
     private Pageable buildPageable(SearchLogsRequest request) {
@@ -379,7 +386,26 @@ public class SearchEnvironmentLogsUseCase {
             .warnings(mapWarnings(item.getWarnings()))
             .additionalMetrics(item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of())
             .mcpMethod(item.getMcpMethod())
+            .apiProductId(item.getApiProductId())
             .build();
+    }
+
+    private SearchLogsResponse enrichWithApiProductNames(ExecutionContext executionContext, SearchLogsResponse response) {
+        var ids = response.data().stream().map(ApiLog::apiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        if (ids.isEmpty()) {
+            return response;
+        }
+        var nameById = apiProductQueryService
+            .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
+            .stream()
+            .filter(p -> p.getName() != null)
+            .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+        var enriched = response
+            .data()
+            .stream()
+            .map(log -> log.apiProductId() != null ? log.toBuilder().apiProductName(nameById.get(log.apiProductId())).build() : log)
+            .toList();
+        return new SearchLogsResponse(enriched, response.pagination());
     }
 
     private OffsetDateTime toOffsetDateTime(String timestamp) {

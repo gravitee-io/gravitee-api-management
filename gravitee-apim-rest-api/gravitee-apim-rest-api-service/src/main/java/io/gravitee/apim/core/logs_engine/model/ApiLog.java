@@ -46,5 +46,7 @@ public record ApiLog(
     String errorComponentType,
     List<ApiLogDiagnostic> warnings,
     Map<String, Object> additionalMetrics,
-    String mcpMethod
+    String mcpMethod,
+    String apiProductId,
+    String apiProductName
 ) {}
