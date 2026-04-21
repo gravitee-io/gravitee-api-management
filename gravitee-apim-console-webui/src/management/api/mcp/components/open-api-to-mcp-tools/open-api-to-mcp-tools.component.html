@@ -23,6 +23,14 @@
 
   <div class="open-api-to-mcp-tools__container__tools">
     <div class="open-api-to-mcp-tools__container__tools__list">
+      @if (serverDescription) {
+        <mat-expansion-panel expanded="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Server Description</mat-panel-title>
+          </mat-expansion-panel-header>
+          <p style="white-space: pre-wrap; margin: 0">{{ serverDescription }}</p>
+        </mat-expansion-panel>
+      }
       @for (tool of toolDefinitions; track $index) {
         <tool-display [tool]="tool" />
       } @empty {

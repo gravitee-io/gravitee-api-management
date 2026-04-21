@@ -5,11 +5,16 @@ form {
 }
 
 .configure-mcp-entrypoint {
+  &__import-btn {
+    display: flex;
+    justify-content: center;
+  }
+
   &__tools {
-    &__header {
+    &__list {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-flow: column;
+      gap: 16px;
     }
   }
 }

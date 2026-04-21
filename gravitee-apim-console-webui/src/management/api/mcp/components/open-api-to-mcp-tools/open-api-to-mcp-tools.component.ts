@@ -16,6 +16,7 @@
 import { Component, computed, effect, forwardRef, Signal } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { GioIconsModule, GioMonacoEditorModule, MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +28,15 @@ import { ToolDisplayComponent } from '../tool-display/tool-display.component';
 
 @Component({
   selector: 'open-api-to-mcp-tools',
-  imports: [GioMonacoEditorModule, ReactiveFormsModule, MatFormFieldModule, ToolDisplayComponent, MatButtonModule, GioIconsModule],
+  imports: [
+    GioMonacoEditorModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    ToolDisplayComponent,
+    MatButtonModule,
+    GioIconsModule,
+    MatExpansionModule,
+  ],
   templateUrl: './open-api-to-mcp-tools.component.html',
   styleUrl: './open-api-to-mcp-tools.component.scss',
   providers: [
@@ -42,6 +51,7 @@ export class OpenApiToMcpToolsComponent implements ControlValueAccessor {
   formControl: FormControl<string> = new FormControl<string>('');
   // languageOptions: MonacoEditorLanguageConfig = { language: 'json' };
   toolDefinitions: MCPToolDefinition[] = [];
+  serverDescription: string = '';
   errorMessages: string[] = [];
 
   private formControlValues = toSignal(this.formControl.valueChanges);
@@ -86,6 +96,7 @@ export class OpenApiToMcpToolsComponent implements ControlValueAccessor {
   private emitValue(value: string): void {
     convertOpenApiToMcpTools(value).then(result => {
       this.toolDefinitions = result.result?.map(r => r.toolDefinition);
+      this.serverDescription = result.serverDescription ?? '';
       this.handleErrors(result);
       this.onChange(result.result);
       this.onTouched();

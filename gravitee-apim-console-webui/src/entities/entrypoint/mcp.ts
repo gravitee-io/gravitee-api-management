@@ -16,6 +16,7 @@
 export interface MCPConfiguration {
   mcpPath: string;
   tools: MCPTool[];
+  description?: string;
 }
 
 export interface MCPTool {

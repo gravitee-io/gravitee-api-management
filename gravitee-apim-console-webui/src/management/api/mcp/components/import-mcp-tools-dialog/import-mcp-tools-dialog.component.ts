@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -31,6 +31,7 @@ export interface ImportMcpToolsDialogData {
 export type ImportMcpToolsDialogResult =
   | {
       tools: MCPTool[];
+      serverDescription: string;
     }
   | undefined;
 
@@ -42,6 +43,8 @@ export type ImportMcpToolsDialogResult =
   imports: [MatDialogModule, MatButtonModule, OpenApiToMcpToolsComponent, ReactiveFormsModule, GioBannerModule],
 })
 export class ImportMcpToolsDialogComponent {
+  @ViewChild(OpenApiToMcpToolsComponent) openApiComponent!: OpenApiToMcpToolsComponent;
+
   formControl = new FormControl<MCPTool[]>([]);
 
   canImportMcpTools = toSignal(
@@ -57,6 +60,9 @@ export class ImportMcpToolsDialogComponent {
   ) {}
 
   importMcpTools(): void {
-    this.dialogRef.close({ tools: this.formControl.value || [] });
+    this.dialogRef.close({
+      tools: this.formControl.value || [],
+      serverDescription: this.openApiComponent?.serverDescription ?? '',
+    });
   }
 }
