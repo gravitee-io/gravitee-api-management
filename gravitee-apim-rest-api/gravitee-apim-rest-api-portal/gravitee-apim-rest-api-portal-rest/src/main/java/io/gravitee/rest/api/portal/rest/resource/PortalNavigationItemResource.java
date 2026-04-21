@@ -50,7 +50,7 @@ public class PortalNavigationItemResource extends AbstractResource {
             new GetPortalNavigationItemUseCase.Input(
                 PortalNavigationItemId.of(portalNavigationItemId),
                 executionContext.getEnvironmentId(),
-                PortalNavigationItemViewerContext.forPortal(isAuthenticated())
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
             )
         );
 
@@ -67,7 +67,7 @@ public class PortalNavigationItemResource extends AbstractResource {
             new GetPortalPageContentByNavigationIdUseCase.Input(
                 portalNavigationItemId,
                 executionContext.getEnvironmentId(),
-                PortalNavigationItemViewerContext.forPortal(isAuthenticated())
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
             )
         );
 
