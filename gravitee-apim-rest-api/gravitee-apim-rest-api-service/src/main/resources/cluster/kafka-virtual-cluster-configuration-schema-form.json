@@ -8,12 +8,21 @@
         "clusterCrossId": {
           "type": "string",
           "title": "Cluster Cross ID",
-          "description": "The cross ID of the referenced Kafka cluster"
+          "description": "The cross ID of the referenced Kafka cluster",
+          "gioConfig": {
+            "uiType": "cluster-type",
+            "uiTypeProps": {
+              "clusterType": "KAFKA_CLUSTER"
+            }
+          }
         },
         "connectionCrossId": {
           "type": "string",
           "title": "Connection Cross ID",
-          "description": "The cross ID of the connection within the referenced Kafka cluster"
+          "description": "The cross ID of the connection within the referenced Kafka cluster",
+          "gioConfig": {
+            "uiType": "cluster-connection-type"
+          }
         }
       },
       "required": ["clusterCrossId", "connectionCrossId"],

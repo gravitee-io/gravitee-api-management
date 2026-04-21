@@ -41,7 +41,7 @@
             <dl class="gio-description-list">
               <dt>Cross ID</dt>
               <dd>{{ initialCluster.crossId }}</dd>
-              @if (initialCluster.type === 'KAFKA_CLUSTER') {
+              @if (initialCluster.type === 'KAFKA_CLUSTER' || initialCluster.type === 'KAFKA_VIRTUAL_CLUSTER') {
                 <dt>Status</dt>
                 <dd>
                   <span
@@ -72,7 +72,7 @@
       <mat-card-content>
         <h3 class="danger-card__title">Danger Zone</h3>
         <div class="danger-card__actions">
-          @if (initialCluster.type === 'KAFKA_CLUSTER') {
+          @if (initialCluster.type === 'KAFKA_CLUSTER' || initialCluster.type === 'KAFKA_VIRTUAL_CLUSTER') {
             @if (initialCluster.lifecycleState !== 'DEPLOYED') {
               <div class="danger-card__actions__action">
                 <span> Deploy this Cluster to the gateway. </span>
