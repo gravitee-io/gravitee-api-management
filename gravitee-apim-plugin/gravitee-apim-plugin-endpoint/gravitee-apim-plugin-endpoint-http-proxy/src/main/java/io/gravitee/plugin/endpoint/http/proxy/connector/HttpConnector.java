@@ -127,6 +127,17 @@ public class HttpConnector implements ProxyConnector {
             final RequestOptions options = buildRequestOptions(ctx);
             String absoluteUri = VertxHttpClientFactory.toAbsoluteUri(options, defaultHost, defaultPort);
             options.setAbsoluteURI(absoluteUri);
+
+            // setAbsoluteURI sets options.host from the endpoint target URL, which Vert.x uses as the
+            // HTTP Host header — overriding any custom Host header configured on the endpoint or HC.
+            // If a custom Host was explicitly set, pin the TCP connection to the actual backend via
+            // setServer() so the custom value only affects the HTTP Host header, not the connection address.
+            final String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+            if (customHost != null && !customHost.isBlank()) {
+                options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(options.getPort(), defaultHost));
+                options.setHost(customHost);
+            }
+
             ctx.metrics().setEndpoint(absoluteUri);
             ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
             Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
@@ -243,16 +254,16 @@ public class HttpConnector implements ProxyConnector {
             requestHeaders.remove(header.toString());
         }
 
-        if (
-            currentRequestHost != null &&
-            (sharedConfiguration.getHttpOptions().isPropagateClientHost() || !Objects.equals(originalHost, currentRequestHost))
-        ) {
-            // 'Host' header must be removed unless it has been set during the request flow (non-null and different from original request's host).
-            // If PropagateClientHost is enabled, we set the 'Host' header to the current request's host.
-            requestHeaders.set(HOST, currentRequestHost);
-        } else {
-            requestHeaders.remove(HOST);
+        if (currentRequestHost != null) {
+            if (sharedConfiguration.getHttpOptions().isPropagateClientHost() || !Objects.equals(originalHost, currentRequestHost)) {
+                // 'Host' header must be removed unless it has been set during the request flow (non-null and different from original request's host).
+                // If PropagateClientHost is enabled, we set the 'Host' header to the current request's host.
+                requestHeaders.set(HOST, currentRequestHost);
+            } else {
+                requestHeaders.remove(HOST);
+            }
         }
+        // else: currentRequestHost is null (e.g. health check context); preserve any Host already in requestHeaders from configuration.
 
         if (!sharedConfiguration.getHttpOptions().isPropagateClientAcceptEncoding()) {
             // Let the API owner choose the Accept-Encoding between the gateway and the backend.
