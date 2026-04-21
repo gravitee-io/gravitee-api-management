@@ -20,11 +20,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,13 +41,19 @@ import org.junit.jupiter.api.Test;
 class ListPortalNavigationItemsUseCaseTest {
 
     private static final String ENV_ID = "env-id";
+    private static final String USER_ID = "user-1";
 
     private ListPortalNavigationItemsUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
+    private MembershipQueryServiceInMemory membershipQueryService;
 
     @BeforeEach
     void setUp() {
         queryService = new PortalNavigationItemsQueryServiceInMemory();
+        membershipQueryService = new MembershipQueryServiceInMemory();
+        var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
         useCase = new ListPortalNavigationItemsUseCase(queryService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
@@ -396,5 +407,73 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Nav Bar Item");
+    }
+
+    @Test
+    void should_not_return_private_api_item_when_authenticated_user_has_no_membership() {
+        // Given
+        var privateApi = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Private API",
+            null,
+            "private-api-id"
+        );
+        privateApi.markAsRoot();
+        privateApi.setVisibility(PortalVisibility.PRIVATE);
+        privateApi.setPublished(true);
+
+        queryService.initWith(List.of(privateApi));
+        // membershipQueryService has no entries — user has no membership
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                false,
+                PortalNavigationItemViewerContext.forPortal(true)
+            )
+        );
+
+        // Then
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_return_private_api_item_when_authenticated_user_has_membership() {
+        // Given
+        var privateApiId = "private-api-id";
+        var privateApi = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().toString(), "Private API", null, privateApiId);
+        privateApi.markAsRoot();
+        privateApi.setVisibility(PortalVisibility.PRIVATE);
+        privateApi.setPublished(true);
+
+        queryService.initWith(List.of(privateApi));
+        membershipQueryService.initWith(
+            List.of(
+                io.gravitee.apim.core.membership.model.Membership.builder()
+                    .id("membership-1")
+                    .memberId(USER_ID)
+                    .memberType(io.gravitee.apim.core.membership.model.Membership.Type.USER)
+                    .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
+                    .referenceId(privateApiId)
+                    .build()
+            )
+        );
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                false,
+                PortalNavigationItemViewerContext.forPortal(true)
+            )
+        );
+
+        // Then
+        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Private API");
     }
 }
