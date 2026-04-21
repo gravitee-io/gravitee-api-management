@@ -18,4 +18,5 @@ package io.gravitee.definition.model.cluster;
 public enum ClusterType {
     KAFKA_CLUSTER,
     KAFKA_CLUSTER_STANDALONE,
+    KAFKA_VIRTUAL_CLUSTER,
 }
