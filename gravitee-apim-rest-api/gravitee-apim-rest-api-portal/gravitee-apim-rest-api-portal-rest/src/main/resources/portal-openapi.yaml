@@ -3184,6 +3184,64 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /analytics/dashboards:
+        get:
+            tags:
+                - Analytics
+            summary: Get analytics dashboards
+            description: |
+                Get the list of analytics dashboards available in the current environment.
+            operationId: getAnalyticsDashboards
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            responses:
+                200:
+                    description: List of analytics dashboards
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AnalyticsDashboardsResponse"
+                403:
+                    $ref: "#/components/responses/UnauthorizedError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /analytics/dashboards/{dashboardId}:
+        get:
+            tags:
+                - Analytics
+            summary: Get an analytics dashboard
+            description: |
+                Get the full definition of a single analytics dashboard.
+            operationId: getAnalyticsDashboard
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: dashboardId
+                  in: path
+                  required: true
+                  description: The analytics dashboard identifier.
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Analytics dashboard
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AnalyticsDashboard"
+                403:
+                    $ref: "#/components/responses/UnauthorizedError"
+                404:
+                    $ref: "#/components/responses/NotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
     /auth/login:
         post:
             tags:
@@ -5485,6 +5543,146 @@ components:
                     type: string
                 definition:
                     type: string
+        AnalyticsDashboardsResponse:
+            properties:
+                data:
+                    description: List of analytics dashboards.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsDashboard"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
+        AnalyticsDashboard:
+            properties:
+                id:
+                    description: Unique identifier of an analytics dashboard.
+                    type: string
+                name:
+                    description: Display name of the dashboard.
+                    type: string
+                createdBy:
+                    description: Identifier of the user who created the dashboard.
+                    type: string
+                createdAt:
+                    description: Creation timestamp of the dashboard.
+                    type: string
+                    format: date-time
+                lastModified:
+                    description: Last modification timestamp of the dashboard.
+                    type: string
+                    format: date-time
+                labels:
+                    description: Key-value labels attached to the dashboard.
+                    type: object
+                    additionalProperties:
+                        type: string
+                widgets:
+                    description: Widgets displayed on the dashboard.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsWidget"
+        AnalyticsWidget:
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
+                type:
+                    $ref: "#/components/schemas/AnalyticsWidgetType"
+                layout:
+                    $ref: "#/components/schemas/AnalyticsWidgetLayout"
+                request:
+                    $ref: "#/components/schemas/AnalyticsWidgetRequest"
+        AnalyticsWidgetLayout:
+            properties:
+                cols:
+                    type: integer
+                    format: int32
+                rows:
+                    type: integer
+                    format: int32
+                x:
+                    type: integer
+                    format: int32
+                y:
+                    type: integer
+                    format: int32
+        AnalyticsWidgetRequest:
+            properties:
+                type:
+                    description: Request type used by the widget.
+                    type: string
+                timeRange:
+                    $ref: "#/components/schemas/AnalyticsTimeRange"
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMetricRequest"
+                interval:
+                    description: Interval in milliseconds for time-series widgets.
+                    type: integer
+                    format: int64
+                by:
+                    description: Facets used to group analytics data.
+                    type: array
+                    items:
+                        type: string
+                limit:
+                    description: Maximum number of buckets to return.
+                    type: integer
+                    format: int32
+                filters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+        AnalyticsTimeRange:
+            properties:
+                from:
+                    type: string
+                    format: date-time
+                to:
+                    type: string
+                    format: date-time
+        AnalyticsMetricRequest:
+            properties:
+                name:
+                    description: Analytics metric identifier.
+                    type: string
+                measures:
+                    description: Measures requested for the metric.
+                    type: array
+                    items:
+                        type: string
+                filters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+        AnalyticsFilter:
+            properties:
+                name:
+                    description: Analytics filter identifier.
+                    type: string
+                operator:
+                    description: Operator applied to the filter.
+                    type: string
+                value:
+                    description: Value applied to the filter.
+                    type: object
+        AnalyticsWidgetType:
+            type: string
+            enum:
+                - stats
+                - doughnut
+                - pie
+                - polarArea
+                - time-series-line
+                - time-series-bar
+                - vertical-bar
+                - horizontal-bar
         Info:
             properties:
                 name:

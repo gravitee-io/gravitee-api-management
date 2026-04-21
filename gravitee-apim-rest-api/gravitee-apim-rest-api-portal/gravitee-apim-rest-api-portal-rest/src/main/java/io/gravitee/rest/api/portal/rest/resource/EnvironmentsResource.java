@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.rest.api.portal.rest.resource.analytics.PortalAnalyticsResource;
 import io.gravitee.rest.api.portal.rest.resource.v4.endpoint.EndpointsResource;
 import io.gravitee.rest.api.portal.rest.resource.v4.entrypoint.EntrypointsResource;
 import jakarta.ws.rs.Path;
@@ -54,6 +55,11 @@ public class EnvironmentsResource extends AbstractResource {
     @Path("configuration")
     public ConfigurationResource getConfigurationResource() {
         return resourceContext.getResource(ConfigurationResource.class);
+    }
+
+    @Path("analytics")
+    public PortalAnalyticsResource getPortalAnalyticsResource() {
+        return resourceContext.getResource(PortalAnalyticsResource.class);
     }
 
     @Path("dashboards")
