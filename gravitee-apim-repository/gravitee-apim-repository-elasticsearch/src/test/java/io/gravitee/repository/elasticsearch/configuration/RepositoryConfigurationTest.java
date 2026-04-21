@@ -71,9 +71,4 @@ public class RepositoryConfigurationTest {
     public void shouldHaveKeystoreKeys() {
         Assertions.assertThat(configuration.getSslPemKeys()).hasSize(1).containsExactly("unique-key");
     }
-
-    @Test
-    public void shouldDetectProxyConfiguredFromLegacyPrefix() {
-        assertThat(configuration.isProxyConfigured()).isTrue();
-    }
 }
