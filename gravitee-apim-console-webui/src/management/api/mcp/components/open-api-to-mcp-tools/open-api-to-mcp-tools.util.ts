@@ -77,6 +77,7 @@ type ErrorObject = {
 export type OpenApiToMcpToolsResult = {
   result: MCPTool[];
   errors: ErrorObject[];
+  serverDescription?: string;
 };
 
 function transformSwagger2ToOpenApi3(parsedSpec: any): void {
@@ -222,6 +223,8 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
     return { result: [], errors: [{ key: 'invalidRefs', message: 'Failed to dereference OpenAPI spec: ' + (e as Error).message }] };
   }
 
+  const serverDescription = [api.info?.title, api.info?.description].filter(Boolean).join('\n\n');
+
   const tools: MCPTool[] = [];
   const errors: ErrorObject[] = [];
   const usedNames = new Set<string>();
@@ -276,7 +279,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
     }
   }
 
-  return { result: tools, errors };
+  return { result: tools, errors, serverDescription };
 }
 
 export { convertOpenApiToMcpTools };
