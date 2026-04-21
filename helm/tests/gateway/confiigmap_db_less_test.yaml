@@ -30,6 +30,5 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
-            repositories:
-              management:
-                type: none
+            management:
+              type: none
