@@ -165,7 +165,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
             UNPUBLISHED_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
+            PortalNavigationItemViewerContext.forPortal(true, "any-user")
         );
 
         // When & Then
@@ -180,7 +180,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
             PRIVATE_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false, null)
         );
 
         // When & Then

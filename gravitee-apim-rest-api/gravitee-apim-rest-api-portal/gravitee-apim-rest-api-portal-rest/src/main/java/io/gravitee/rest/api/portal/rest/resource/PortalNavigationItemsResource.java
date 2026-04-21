@@ -79,7 +79,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
             portalNavigationItemMapper.map(area),
             Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
             loadChildren,
-            PortalNavigationItemViewerContext.forPortal(isAuthenticated())
+            PortalNavigationItemViewerContext.forPortal(isAuthenticated(), getAuthenticatedUserOrNull())
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
         return Response.ok(portalNavigationItemMapper.map(output.items())).build();

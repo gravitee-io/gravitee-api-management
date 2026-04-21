@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.MembershipQueryServiceInMemory;
@@ -54,7 +53,7 @@ class ListPortalNavigationItemsUseCaseTest {
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
-        useCase = new ListPortalNavigationItemsUseCase(queryService);
+        useCase = new ListPortalNavigationItemsUseCase(queryService, visibilityDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -164,7 +163,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -210,7 +209,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -240,7 +239,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.of(unpublishedFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -270,7 +269,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.of(publishedFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -319,7 +318,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.of(unpublishedFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -346,7 +345,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -373,7 +372,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
-                PortalNavigationItemViewerContext.forPortal(false)
+                PortalNavigationItemViewerContext.forPortal(false, null)
             )
         );
 
@@ -432,7 +431,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 
@@ -469,7 +468,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true, USER_ID)
             )
         );
 

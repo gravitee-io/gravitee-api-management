@@ -53,7 +53,7 @@ class GetPortalNavigationItemUseCaseTest {
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false, null)
         );
 
         // When
@@ -72,7 +72,7 @@ class GetPortalNavigationItemUseCaseTest {
         final var input = new GetPortalNavigationItemUseCase.Input(
             unknownId,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false, null)
         );
 
         // When & Then
@@ -87,7 +87,7 @@ class GetPortalNavigationItemUseCaseTest {
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
             "different-env",
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false, null)
         );
 
         // When & Then
@@ -102,7 +102,7 @@ class GetPortalNavigationItemUseCaseTest {
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(PAGE11_ID),
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
+            PortalNavigationItemViewerContext.forPortal(true, "any-user")
         );
 
         // When & Then
@@ -117,7 +117,7 @@ class GetPortalNavigationItemUseCaseTest {
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(PAGE12_ID),
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false, null)
         );
 
         // When & Then

@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -37,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
+    private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
@@ -57,7 +60,7 @@ public class ListPortalNavigationItemsUseCase {
             allItems.addAll(descendants);
         }
 
-        return new Output(sortItems(allItems));
+        return new Output(sortItems(filterPrivateApis(allItems, input.viewerContext())));
     }
 
     private PortalNavigationItem findAndValidateParent(Input input) {
@@ -114,6 +117,25 @@ public class ListPortalNavigationItemsUseCase {
         }
 
         return queryService.search(builder.build());
+    }
+
+    /**
+     * For authenticated portal users with a known userId, filters out private PortalNavigationApi items
+     * the user has no membership or subscription to, matching the logic of GetVisiblePortalNavigationApisUseCase.
+     */
+    private List<PortalNavigationItem> filterPrivateApis(List<PortalNavigationItem> items, PortalNavigationItemViewerContext ctx) {
+        if (!ctx.isPortalMode() || !ctx.isAuthenticated() || ctx.userId() == null) {
+            return items;
+        }
+        return items
+            .stream()
+            .filter(item -> {
+                if (item instanceof PortalNavigationApi api && PortalVisibility.PRIVATE.equals(api.getVisibility())) {
+                    return visibilityDomainService.isVisibleToUser(api, ctx.userId());
+                }
+                return true;
+            })
+            .toList();
     }
 
     private List<PortalNavigationItem> sortItems(List<PortalNavigationItem> items) {

@@ -16,31 +16,21 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import java.util.Objects;
 
-public class PortalNavigationItemViewerContext {
-
-    private final boolean isPortalMode;
-    private final boolean isAuthenticated;
-
-    private PortalNavigationItemViewerContext(boolean isAuthenticated, boolean isPortalView) {
-        this.isAuthenticated = isAuthenticated;
-        this.isPortalMode = isPortalView;
+public record PortalNavigationItemViewerContext(boolean isPortalMode, boolean isAuthenticated, String userId) {
+    public PortalNavigationItemViewerContext {
+        if (isPortalMode && isAuthenticated) {
+            Objects.requireNonNull(userId, "userId must be set for authenticated portal users");
+        }
     }
 
-    public static PortalNavigationItemViewerContext forPortal(boolean isAuthenticated) {
-        return new PortalNavigationItemViewerContext(isAuthenticated, true);
+    public static PortalNavigationItemViewerContext forPortal(boolean isAuthenticated, String userId) {
+        return new PortalNavigationItemViewerContext(true, isAuthenticated, userId);
     }
 
     public static PortalNavigationItemViewerContext forConsole() {
-        return new PortalNavigationItemViewerContext(true, false);
-    }
-
-    public boolean isPortalMode() {
-        return this.isPortalMode;
-    }
-
-    public boolean isAuthenticated() {
-        return this.isAuthenticated;
+        return new PortalNavigationItemViewerContext(false, true, null);
     }
 
     public boolean shouldNotShow(PortalNavigationItem item) {
