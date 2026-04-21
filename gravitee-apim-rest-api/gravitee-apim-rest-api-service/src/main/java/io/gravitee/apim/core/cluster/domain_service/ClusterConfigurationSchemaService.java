@@ -32,7 +32,9 @@ public class ClusterConfigurationSchemaService {
         ClusterType.KAFKA_CLUSTER_STANDALONE,
         "/cluster/kafka-cluster-standalone-configuration-schema-form.json",
         ClusterType.KAFKA_CLUSTER,
-        "/cluster/kafka-cluster-configuration-schema-form.json"
+        "/cluster/kafka-cluster-configuration-schema-form.json",
+        ClusterType.KAFKA_VIRTUAL_CLUSTER,
+        "/cluster/kafka-virtual-cluster-configuration-schema-form.json"
     );
 
     private final Map<ClusterType, String> cachedSchemas = new ConcurrentHashMap<>();

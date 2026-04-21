@@ -286,6 +286,24 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         assertThat(connections.get(0).get("crossId")).isEqualTo("primary-connection");
     }
 
+    @Test
+    void should_create_kafka_virtual_cluster() {
+        String name = "Virtual Cluster";
+        Object configuration = Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1")));
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_VIRTUAL_CLUSTER).name(name).configuration(configuration).build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.cluster().getType()).isEqualTo(ClusterType.KAFKA_VIRTUAL_CLUSTER);
+        assertThat(output.cluster().getName()).isEqualTo(name);
+        assertThat(output.cluster().getCrossId()).isEqualTo("virtual-cluster");
+        var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
+        var backends = (List<Map<String, Object>>) config.get("backends");
+        assertThat(backends).hasSize(1);
+        assertThat(backends.get(0).get("clusterCrossId")).isEqualTo("kafka-cluster-1");
+        assertThat(backends.get(0).get("connectionCrossId")).isEqualTo("conn-1");
+    }
+
     private void initRoles() {
         List<Role> roles = List.of(
             Role.builder()

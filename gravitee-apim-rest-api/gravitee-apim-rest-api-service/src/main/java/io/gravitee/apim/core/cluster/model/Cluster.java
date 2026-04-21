@@ -56,6 +56,10 @@ public class Cluster {
         return objectMapper.convertValue(this.configuration, KafkaClusterConfiguration.class);
     }
 
+    public KafkaVirtualClusterConfiguration getKafkaVirtualClusterConfiguration(ObjectMapper objectMapper) {
+        return objectMapper.convertValue(this.configuration, KafkaVirtualClusterConfiguration.class);
+    }
+
     public void update(UpdateCluster updateCluster) {
         this.updatedAt = TimeProvider.instantNow();
         if (updateCluster.getName() != null) {
