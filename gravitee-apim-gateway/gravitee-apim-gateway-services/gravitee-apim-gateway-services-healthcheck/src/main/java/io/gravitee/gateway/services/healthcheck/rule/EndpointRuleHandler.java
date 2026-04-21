@@ -68,8 +68,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     // Pattern reuse for duplicate slash removal
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(grpc:|grpcs:|http:|https:|wss:|ws:))[//]+");
 
-    private static final String HTTPS_SCHEME = "https";
-
     private static final String EVENT_TYPE = "ENDPOINT_HEALTH_CHECK";
     private static final String CONTEXT_NODE_ID = "node.id";
     private static final String CONTEXT_NODE_HOSTNAME = "node.hostname";

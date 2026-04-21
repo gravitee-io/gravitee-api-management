@@ -44,11 +44,10 @@ class RequestOptionsBuilder {
     }
 
     RequestOptions build(URL request, HealthCheckStep step) {
-        final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getProtocol()) ? 443 : 80);
-        String relativeUrl = (request.getQuery() == null) ? request.getPath() : request.getPath() + '?' + request.getQuery();
+        final int port = resolvePort(request);
 
         RequestOptions options = new RequestOptions()
-            .setURI(relativeUrl)
+            .setURI(relativeUrl(request))
             .setPort(port)
             .setHost(request.getHost())
             .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
@@ -64,6 +63,17 @@ class RequestOptionsBuilder {
         }
 
         return options;
+    }
+
+    private static int resolvePort(URL url) {
+        if (url.getPort() != -1) {
+            return url.getPort();
+        }
+        return HTTPS_SCHEME.equals(url.getProtocol()) ? 443 : 80;
+    }
+
+    private static String relativeUrl(URL url) {
+        return url.getQuery() == null ? url.getPath() : url.getPath() + '?' + url.getQuery();
     }
 
     private String resolveHeaderValue(HttpHeader httpHeader) {

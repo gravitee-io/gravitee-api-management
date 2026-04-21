@@ -31,12 +31,7 @@ class RequestOptionsBuilder {
     static RequestOptions build(ExecutionContext ctx, HttpHealthCheckServiceConfiguration hcConfiguration) {
         final RequestOptions options = new RequestOptions();
 
-        final HttpHeaders configHeaders = ctx.request().headers();
-        if (configHeaders != null && !configHeaders.isEmpty()) {
-            final MultiMap headers = new HeadersMultiMap();
-            configHeaders.forEach(header -> headers.add(header.getKey(), header.getValue()));
-            options.setHeaders(headers);
-        }
+        applyConfiguredHeaders(options, ctx.request().headers());
 
         final URL target = VertxHttpClientFactory.buildUrl(hcConfiguration.getTarget());
         final boolean isSsl = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
@@ -44,7 +39,7 @@ class RequestOptionsBuilder {
 
         options
             .setMethod(HttpMethod.valueOf(ctx.request().method().name()))
-            .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
+            .setURI(relativeUrl(target))
             .setPort(targetPort)
             .setSsl(isSsl)
             .setHost(target.getHost());
@@ -52,6 +47,19 @@ class RequestOptionsBuilder {
         applyCustomHostIfPresent(options, targetPort, target);
 
         return options;
+    }
+
+    private static void applyConfiguredHeaders(RequestOptions options, HttpHeaders configHeaders) {
+        if (configHeaders == null || configHeaders.isEmpty()) {
+            return;
+        }
+        final MultiMap headers = new HeadersMultiMap();
+        configHeaders.forEach(header -> headers.add(header.getKey(), header.getValue()));
+        options.setHeaders(headers);
+    }
+
+    private static String relativeUrl(URL url) {
+        return url.getQuery() == null ? url.getPath() : url.getPath() + "?" + url.getQuery();
     }
 
     private static void applyCustomHostIfPresent(RequestOptions options, int port, URL target) {
