@@ -58,7 +58,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
   const APP = fakeApplication({ id: APPLICATION_ID, api_key_mode: ApiKeyMode.UNSPECIFIED });
   const API_ID = 'api-id';
   const ANOTHER_API_ID = 'another-api-id';
-  const DEFAULT_PERMISSIONS = ['application-subscription-c', 'application-subscription-r'];
+  const DEFAULT_PERMISSIONS = ['application-subscription-c', 'application-subscription-r', 'environment-api_product-r'];
   const DEFAULT_ENV_SETTINGS = {
     plan: {
       security: {
@@ -115,7 +115,11 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
   let rootLoader: HarnessLoader;
   let routerNavigateSpy: jest.SpyInstance;
 
-  const init = async (app: Application = APP, snapshot: Partial<EnvSettings> = DEFAULT_ENV_SETTINGS) => {
+  const init = async (
+    app: Application = APP,
+    snapshot: Partial<EnvSettings> = DEFAULT_ENV_SETTINGS,
+    permissions: string[] = DEFAULT_PERMISSIONS,
+  ) => {
     await TestBed.configureTestingModule({
       imports: [ApplicationSubscriptionListModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
@@ -125,7 +129,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
           useValue: { snapshot: { params: { applicationId: APPLICATION_ID }, queryParams: {} } },
         },
         { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot } },
-        { provide: GioTestingPermissionProvider, useValue: DEFAULT_PERMISSIONS },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     }).compileComponents();
 
@@ -475,6 +479,48 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
           fakePlanV4({ apiId: API_ID, security: { type: 'API_KEY' } }),
           fakePlanV4({ apiId: API_ID, security: { type: 'JWT' } }),
         ]);
+      }));
+
+      it('should show only API results when user lacks API Products read permission', fakeAsync(async () => {
+        const permissionsWithoutApiProduct = DEFAULT_PERMISSIONS.filter(p => p !== 'environment-api_product-r');
+        await init(APP, DEFAULT_ENV_SETTINGS, permissionsWithoutApiProduct);
+
+        await dialogHarness.searchApi(API_NAME);
+        tick(100);
+
+        // Only the API search is made — no API Products request
+        const apiReq = httpTestingController.expectOne((req): boolean => req.method === 'POST' && req.url.includes('/apis/_search'));
+        apiReq.flush(fakePagedResult([API]));
+        httpTestingController.expectNone((req): boolean => req.url.includes('/api-products/_search'));
+        fixture.detectChanges();
+
+        await dialogHarness.focusSearchInput();
+        const options = await dialogHarness.getApiOptions();
+        expect(options).toHaveLength(1);
+        expect(options[0]).toContain(API_NAME);
+      }));
+
+      it('should allow creating a subscription via API when user lacks API Products read permission', fakeAsync(async () => {
+        const permissionsWithoutApiProduct = DEFAULT_PERMISSIONS.filter(p => p !== 'environment-api_product-r');
+        await init(APP, DEFAULT_ENV_SETTINGS, permissionsWithoutApiProduct);
+        const plan = fakePlanV4({ apiId: API_ID, security: { type: 'API_KEY' }, commentRequired: false, generalConditions: null });
+
+        await dialogHarness.searchApi(API_NAME);
+        tick(100);
+
+        const apiReq = httpTestingController.expectOne((req): boolean => req.method === 'POST' && req.url.includes('/apis/_search'));
+        apiReq.flush(fakePagedResult([API]));
+        httpTestingController.expectNone((req): boolean => req.url.includes('/api-products/_search'));
+        fixture.detectChanges();
+
+        await dialogHarness.selectApi(API_NAME);
+        expectSubscribableApiPlansGet([plan]);
+
+        await dialogHarness.selectPlan(plan.name);
+        await dialogHarness.createSubscription();
+
+        expectApiSubscriptionsPostRequest(fakeNewSubscriptionEntity(), plan.id);
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
       }));
     });
   });
