@@ -69,7 +69,7 @@ export class ClusterConfigurationComponent implements OnInit {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-configuration-u']);
     forkJoin([
       this.clusterService.get(this.activatedRoute.snapshot.params.clusterId),
-      this.clusterService.getConfigurationSchema('KAFKA_CLUSTER_CONNECTION'),
+      this.clusterService.getConfigurationSchema('KAFKA_CLUSTER_STANDALONE'),
     ])
       .pipe(
         tap(([cluster, schema]) => {

@@ -99,9 +99,9 @@ public class ClusterTest {
     public void should_deserialize_kafka_cluster_connection_configuration() {
         ObjectMapper objectMapper = new ObjectMapper();
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).configuration(configuration).build();
+        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).configuration(configuration).build();
 
-        KafkaClusterConnectionConfiguration connectionConfig = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
+        KafkaClusterStandaloneConfiguration connectionConfig = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
 
         assertThat(connectionConfig.bootstrapServers()).isEqualTo("localhost:9092");
     }

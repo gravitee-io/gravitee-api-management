@@ -484,8 +484,8 @@
 							<goal>common-schema-form-bundle</goal>
 						</goals>
 						<configuration>
-							<localSchemaFile>${project.basedir}/src/main/resources/cluster/kafka-cluster-connection-configuration-schema-form.json</localSchemaFile>
-							<outputFile>${project.build.outputDirectory}/cluster/kafka-cluster-connection-configuration-schema-form.json</outputFile>
+							<localSchemaFile>${project.basedir}/src/main/resources/cluster/kafka-cluster-standalone-configuration-schema-form.json</localSchemaFile>
+							<outputFile>${project.build.outputDirectory}/cluster/kafka-cluster-standalone-configuration-schema-form.json</outputFile>
 						</configuration>
 					</execution>
 					<execution>

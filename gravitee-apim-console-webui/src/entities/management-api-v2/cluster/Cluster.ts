@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ClusterType = 'KAFKA_CLUSTER_CONNECTION' | 'KAFKA_CLUSTER';
+export type ClusterType = 'KAFKA_CLUSTER_STANDALONE' | 'KAFKA_CLUSTER';
 export type ClusterLifecycleState = 'UNDEPLOYED' | 'DEPLOYED' | 'PENDING';
 
 export interface Cluster {
@@ -22,7 +22,7 @@ export interface Cluster {
   type: ClusterType;
   name: string;
   description?: string;
-  configuration: KafkaClusterConnectionConfiguration | KafkaClusterConfiguration;
+  configuration: KafkaClusterStandaloneConfiguration | KafkaClusterConfiguration;
   updatedAt: Date;
   createdAt: Date;
   groups: string[];
@@ -31,7 +31,7 @@ export interface Cluster {
   version?: number;
 }
 
-export interface KafkaClusterConnectionConfiguration {
+export interface KafkaClusterStandaloneConfiguration {
   bootstrapServers?: string;
   security?: unknown;
 }

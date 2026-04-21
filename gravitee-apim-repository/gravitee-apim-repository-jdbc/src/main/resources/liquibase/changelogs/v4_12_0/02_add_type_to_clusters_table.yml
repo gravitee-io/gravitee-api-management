@@ -14,5 +14,5 @@ databaseChangeLog:
             columns:
               - column:
                   name: type
-                  value: KAFKA_CLUSTER_CONNECTION
+                  value: KAFKA_CLUSTER_STANDALONE
             where: type IS NULL

@@ -147,7 +147,7 @@ public class ClustersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
     public Response getConfigurationSchema(@QueryParam("type") ClusterType type) {
-        ClusterType clusterType = type != null ? type : ClusterType.KAFKA_CLUSTER_CONNECTION;
+        ClusterType clusterType = type != null ? type : ClusterType.KAFKA_CLUSTER_STANDALONE;
         return Response.ok(clusterConfigurationSchemaService.getConfigurationSchema(clusterType)).build();
     }
 

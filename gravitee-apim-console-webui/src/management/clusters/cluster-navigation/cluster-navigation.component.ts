@@ -103,7 +103,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
             },
           ];
 
-          if (cluster.type === 'KAFKA_CLUSTER_CONNECTION') {
+          if (cluster.type === 'KAFKA_CLUSTER_STANDALONE') {
             tabs.push({
               displayName: 'Explorer',
               routerLink: 'explorer',

@@ -19,7 +19,7 @@ export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
   return {
     id: 'cluster-id',
     crossId: 'cluster-name',
-    type: 'KAFKA_CLUSTER_CONNECTION',
+    type: 'KAFKA_CLUSTER_STANDALONE',
     name: 'Cluster Name',
     description: 'A test cluster',
     configuration: {

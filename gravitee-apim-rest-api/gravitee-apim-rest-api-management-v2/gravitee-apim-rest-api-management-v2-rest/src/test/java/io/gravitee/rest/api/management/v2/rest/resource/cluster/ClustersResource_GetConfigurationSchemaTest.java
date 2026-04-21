@@ -71,7 +71,7 @@ class ClustersResource_GetConfigurationSchemaTest extends AbstractResourceTest {
     @Test
     void should_return_configuration_schema_default_type() {
         String schema = "{\"type\":\"object\",\"properties\":{\"protocol\":{\"type\":\"string\"}}}";
-        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER_CONNECTION)).thenReturn(schema);
+        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER_STANDALONE)).thenReturn(schema);
 
         final Response response = rootTarget().request().get();
 

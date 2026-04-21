@@ -108,7 +108,7 @@ describe('ClustersListPageComponent', () => {
           },
         }),
       ]),
-      '?page=1&perPage=25&type=KAFKA_CLUSTER_CONNECTION',
+      '?page=1&perPage=25&type=KAFKA_CLUSTER_STANDALONE',
     );
   });
 
@@ -156,7 +156,7 @@ describe('ClustersListPageComponent', () => {
     expectListClusterRequest(
       httpTestingController,
       fakePagedResult([fakeCluster()]),
-      '?page=1&perPage=25&q=Production&type=KAFKA_CLUSTER_CONNECTION',
+      '?page=1&perPage=25&q=Production&type=KAFKA_CLUSTER_STANDALONE',
     );
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
@@ -202,6 +202,6 @@ describe('ClustersListPageComponent', () => {
     await fixture.whenStable();
 
     // After deletion, we expect the list to be refreshed
-    expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]), '?page=1&perPage=25&type=KAFKA_CLUSTER_CONNECTION');
+    expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]), '?page=1&perPage=25&type=KAFKA_CLUSTER_STANDALONE');
   });
 });

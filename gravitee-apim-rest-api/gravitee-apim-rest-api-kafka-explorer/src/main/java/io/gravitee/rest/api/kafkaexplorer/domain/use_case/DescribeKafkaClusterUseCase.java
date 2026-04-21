@@ -40,7 +40,7 @@ public class DescribeKafkaClusterUseCase {
 
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
-        var config = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
+        var config = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
         var clusterInfo = kafkaClusterDomainService.describeCluster(config);
         return new Output(clusterInfo);
     }
