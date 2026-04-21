@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.CLUS
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.cluster.KafkaClusterReactableCluster;
+import io.gravitee.definition.model.cluster.KafkaVirtualClusterReactableCluster;
 import io.gravitee.definition.model.cluster.ReactableCluster;
 import io.gravitee.definition.model.cluster.SecurityConfig;
 import io.gravitee.repository.management.model.Event;
@@ -66,6 +67,8 @@ public class ClusterMapper {
 
                 if ("KAFKA_CLUSTER".equals(type)) {
                     return buildKafkaCluster(id, crossId, name, environmentId, organizationId, deployedAt, payload);
+                } else if ("KAFKA_VIRTUAL_CLUSTER".equals(type)) {
+                    return buildKafkaVirtualCluster(id, crossId, name, environmentId, organizationId, deployedAt, payload);
                 } else {
                     log.warn("Cluster type [{}] is not deployable yet, skipping cluster [{}].", type, id);
                     return null;
@@ -115,6 +118,45 @@ public class ClusterMapper {
             .organizationId(organizationId)
             .deployedAt(deployedAt)
             .connections(connections)
+            .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private KafkaVirtualClusterReactableCluster buildKafkaVirtualCluster(
+        String id,
+        String crossId,
+        String name,
+        String environmentId,
+        String organizationId,
+        Date deployedAt,
+        Map<String, Object> payload
+    ) {
+        List<KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend> backends = Collections.emptyList();
+        Object configuration = payload.get("configuration");
+        if (configuration instanceof Map) {
+            Map<String, Object> configMap = (Map<String, Object>) configuration;
+            Object backendsRaw = configMap.get("backends");
+            if (backendsRaw instanceof List) {
+                backends = ((List<Map<String, Object>>) backendsRaw).stream()
+                    .map(backendMap ->
+                        KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend.builder()
+                            .clusterCrossId((String) backendMap.get("clusterCrossId"))
+                            .connectionCrossId((String) backendMap.get("connectionCrossId"))
+                            .build()
+                    )
+                    .toList();
+            }
+        }
+
+        return KafkaVirtualClusterReactableCluster.builder()
+            .id(id)
+            .crossId(crossId)
+            .name(name)
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .environmentId(environmentId)
+            .organizationId(organizationId)
+            .deployedAt(deployedAt)
+            .backends(backends)
             .build();
     }
 

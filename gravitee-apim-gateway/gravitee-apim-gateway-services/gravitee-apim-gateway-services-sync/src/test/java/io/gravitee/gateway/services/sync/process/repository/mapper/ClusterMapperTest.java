@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.cluster.KafkaClusterReactableCluster;
+import io.gravitee.definition.model.cluster.KafkaVirtualClusterReactableCluster;
 import io.gravitee.definition.model.cluster.ReactableCluster;
 import io.gravitee.repository.management.model.Event;
 import java.util.Map;
@@ -120,6 +121,51 @@ class ClusterMapperTest {
         );
 
         cut.to(event).test().assertComplete().assertNoValues();
+    }
+
+    @Test
+    void should_map_kafka_virtual_cluster_event_to_reactable() {
+        Event event = new Event();
+        event.setId("event-id");
+        event.setPayload(
+            """
+            {
+                "id": "vcluster-id",
+                "crossId": "my-virtual-cluster",
+                "name": "My Virtual Cluster",
+                "type": "KAFKA_VIRTUAL_CLUSTER",
+                "environmentId": "env-1",
+                "organizationId": "org-1",
+                "deployedAt": 1698000,
+                "configuration": {
+                    "backends": [
+                        {
+                            "clusterCrossId": "kafka-cluster-1",
+                            "connectionCrossId": "conn-1"
+                        },
+                        {
+                            "clusterCrossId": "kafka-cluster-2",
+                            "connectionCrossId": "conn-2"
+                        }
+                    ]
+                }
+            }
+            """
+        );
+
+        ReactableCluster result = cut.to(event).blockingGet();
+
+        assertThat(result).isInstanceOf(KafkaVirtualClusterReactableCluster.class);
+        assertThat(result.getCrossId()).isEqualTo("my-virtual-cluster");
+        assertThat(result.getName()).isEqualTo("My Virtual Cluster");
+        assertThat(result.getEnvironmentId()).isEqualTo("env-1");
+
+        KafkaVirtualClusterReactableCluster virtualCluster = (KafkaVirtualClusterReactableCluster) result;
+        assertThat(virtualCluster.getBackends()).hasSize(2);
+        assertThat(virtualCluster.getBackends().get(0).getClusterCrossId()).isEqualTo("kafka-cluster-1");
+        assertThat(virtualCluster.getBackends().get(0).getConnectionCrossId()).isEqualTo("conn-1");
+        assertThat(virtualCluster.getBackends().get(1).getClusterCrossId()).isEqualTo("kafka-cluster-2");
+        assertThat(virtualCluster.getBackends().get(1).getConnectionCrossId()).isEqualTo("conn-2");
     }
 
     @Test
