@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionFormElResolverInMemory;
@@ -53,6 +54,7 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
     private final SubscriptionFormElResolverInMemory elResolver = new SubscriptionFormElResolverInMemory();
     private final SubscriptionFormSchemaGeneratorImpl schemaGenerator = new SubscriptionFormSchemaGeneratorImpl();
@@ -63,10 +65,15 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         navQueryService.reset();
         membershipQueryService.reset();
         subscriptionQueryService.reset();
+        apiQueryService.reset();
         queryService.reset();
         elResolver.reset();
 
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            apiQueryService
+        );
         var visibility = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
         useCase = new GetSubscriptionFormForApiPortalUseCase(visibility, queryService, schemaGenerator, elResolver);
     }

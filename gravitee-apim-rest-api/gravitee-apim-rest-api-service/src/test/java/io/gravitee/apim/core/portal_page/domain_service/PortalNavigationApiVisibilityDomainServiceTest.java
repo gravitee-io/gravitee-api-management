@@ -17,9 +17,11 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -28,6 +30,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -48,13 +51,19 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     private PortalNavigationItemsQueryServiceInMemory navQueryService;
     private MembershipQueryServiceInMemory membershipQueryService;
     private SubscriptionQueryServiceInMemory subscriptionQueryService;
+    private ApiQueryServiceInMemory apiQueryService;
 
     @BeforeEach
     void setUp() {
         navQueryService = new PortalNavigationItemsQueryServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
         subscriptionQueryService = new SubscriptionQueryServiceInMemory();
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        apiQueryService = new ApiQueryServiceInMemory();
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            apiQueryService
+        );
         domainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
     }
 
@@ -121,7 +130,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
                 publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)
             )
         );
-        membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId), groupApiMembership(groupId, PRIVATE_API_ID)));
+        membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId)));
+        apiQueryService.initWith(List.of(apiWithGroups(PRIVATE_API_ID, Set.of(groupId))));
 
         var result = domainService.resolveVisibleItems(ENV_ID, USER_ID);
 
@@ -129,7 +139,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     }
 
     @Test
-    void authenticated_user_whose_group_has_no_api_membership_cannot_see_private_api() {
+    void authenticated_user_whose_group_has_no_api_access_cannot_see_private_api() {
         var groupId = "group-1";
         navQueryService.initWith(
             List.of(
@@ -138,6 +148,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             )
         );
         membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId)));
+        apiQueryService.initWith(List.of(apiWithGroups(PRIVATE_API_ID, Set.of("other-group"))));
 
         var result = domainService.resolveVisibleItems(ENV_ID, USER_ID);
 
@@ -220,6 +231,15 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     }
 
     @Test
+    void private_item_is_visible_to_user_via_group() {
+        var groupId = "group-1";
+        membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId)));
+        apiQueryService.initWith(List.of(apiWithGroups(PRIVATE_API_ID, Set.of(groupId))));
+        var item = publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE);
+        assertThat(domainService.isVisibleToUser(item, USER_ID)).isTrue();
+    }
+
+    @Test
     void private_item_is_visible_to_subscriber_user() {
         var appId = "app-1";
         membershipQueryService.initWith(List.of(applicationMembership(USER_ID, appId)));
@@ -253,6 +273,15 @@ class PortalNavigationApiVisibilityDomainServiceTest {
         void private_api_is_visible_to_member_by_id() {
             navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
             membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, USER_ID)).isTrue();
+        }
+
+        @Test
+        void private_api_is_visible_to_user_via_group_by_id() {
+            var groupId = "group-1";
+            navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+            membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId)));
+            apiQueryService.initWith(List.of(apiWithGroups(PRIVATE_API_ID, Set.of(groupId))));
             assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, USER_ID)).isTrue();
         }
 
@@ -314,14 +343,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             .build();
     }
 
-    private Membership groupApiMembership(String groupId, String apiId) {
-        return Membership.builder()
-            .id("membership-" + groupId + "-" + apiId)
-            .memberId(groupId)
-            .memberType(Membership.Type.GROUP)
-            .referenceType(Membership.ReferenceType.API)
-            .referenceId(apiId)
-            .build();
+    private Api apiWithGroups(String apiId, Set<String> groups) {
+        return Api.builder().id(apiId).environmentId(ENV_ID).name(apiId).groups(groups).build();
     }
 
     private Membership applicationMembership(String userId, String appId) {
