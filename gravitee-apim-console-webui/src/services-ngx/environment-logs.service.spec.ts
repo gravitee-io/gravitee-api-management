@@ -123,6 +123,7 @@ describe('EnvironmentLogsService', () => {
           apiIds: ['api-1'],
           applicationIds: ['app-1'],
           planIds: ['plan-1'],
+          apiProductIds: ['product-1'],
           methods: ['GET', 'POST'],
           statuses: [200, 500],
           entrypoints: ['http-proxy'],
@@ -141,6 +142,7 @@ describe('EnvironmentLogsService', () => {
           { name: 'API', operator: 'IN', value: ['api-1'] },
           { name: 'APPLICATION', operator: 'IN', value: ['app-1'] },
           { name: 'PLAN', operator: 'IN', value: ['plan-1'] },
+          { name: 'API_PRODUCT', operator: 'IN', value: ['product-1'] },
           { name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] },
           { name: 'HTTP_STATUS', operator: 'IN', value: ['200', '500'] },
           { name: 'ENTRYPOINT', operator: 'IN', value: ['http-proxy'] },
@@ -150,7 +152,23 @@ describe('EnvironmentLogsService', () => {
           { name: 'RESPONSE_TIME', operator: 'GTE', value: 100 },
         ]),
       );
-      expect(bodyFilters.length).toBe(10);
+      expect(bodyFilters.length).toBe(11);
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should include API_PRODUCT filter when apiProductIds contains values', done => {
+      service.searchLogs({ apiProductIds: ['product-1', 'product-2'] }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toEqual([{ name: 'API_PRODUCT', operator: 'IN', value: ['product-1', 'product-2'] }]);
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should not include API_PRODUCT filter when apiProductIds is an empty array', done => {
+      service.searchLogs({ apiProductIds: [] }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toBeUndefined();
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 

@@ -74,6 +74,7 @@ export type SearchLogsParam = {
   apiIds?: string[];
   applicationIds?: string[];
   planIds?: string[];
+  apiProductIds?: string[];
   methods?: string[];
   statuses?: number[];
   entrypoints?: string[];
@@ -111,6 +112,7 @@ function buildFilters(param?: SearchLogsParam): LogFilter[] {
     { name: 'API', values: param.apiIds },
     { name: 'APPLICATION', values: param.applicationIds },
     { name: 'PLAN', values: param.planIds },
+    { name: 'API_PRODUCT', values: param.apiProductIds },
     { name: 'HTTP_METHOD', values: param.methods },
     { name: 'HTTP_STATUS', values: param.statuses?.map(String) },
     { name: 'ENTRYPOINT', values: param.entrypoints },
