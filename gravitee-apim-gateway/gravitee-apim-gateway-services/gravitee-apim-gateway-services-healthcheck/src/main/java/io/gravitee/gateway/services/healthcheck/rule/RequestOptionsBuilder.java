@@ -25,12 +25,11 @@ import io.gravitee.node.api.utils.NodeUtils;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import java.net.URL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
+@CustomLog
 class RequestOptionsBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(RequestOptionsBuilder.class);
     private static final String HTTPS_SCHEME = "https";
 
     private final Node node;
