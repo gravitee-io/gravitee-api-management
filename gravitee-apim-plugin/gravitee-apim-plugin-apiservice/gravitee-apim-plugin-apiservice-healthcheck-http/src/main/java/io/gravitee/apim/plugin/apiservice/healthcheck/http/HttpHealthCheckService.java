@@ -27,7 +27,6 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
@@ -51,10 +50,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.SocketException;
@@ -329,32 +325,10 @@ public class HttpHealthCheckService implements ApiService {
     }
 
     private RequestOptions buildRequestOptions(final ExecutionContext ctx, final HttpHealthCheckServiceConfiguration hcConfiguration) {
-        final RequestOptions requestOptions = new RequestOptions();
-        final Request request = ctx.request();
-
-        // Override any request headers that are configured at endpoint level.
-        final HttpHeaders configHeaders = ctx.request().headers();
-        if (configHeaders != null && !configHeaders.isEmpty()) {
-            final MultiMap headers = new HeadersMultiMap();
-            configHeaders.forEach(header -> {
-                headers.add(header.getKey(), header.getValue());
-            });
-            requestOptions.setHeaders(headers);
-        }
-
+        final RequestOptions options = RequestOptionsBuilder.build(ctx, hcConfiguration);
         final URL target = VertxHttpClientFactory.buildUrl(hcConfiguration.getTarget());
-
-        final boolean isSsl = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
-        requestOptions
-            .setMethod(HttpMethod.valueOf(request.method().name()))
-            .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
-            .setPort(VertxHttpClientFactory.getPort(target, isSsl))
-            .setSsl(isSsl)
-            .setHost(target.getHost());
-
-        ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(requestOptions, target.getHost(), target.getDefaultPort()));
-
-        return requestOptions;
+        ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(options, target.getHost(), target.getDefaultPort()));
+        return options;
     }
 
     private Completable evaluateAndReport(
