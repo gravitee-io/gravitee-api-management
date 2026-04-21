@@ -40,7 +40,7 @@ public class TailMessagesUseCase {
 
     public void execute(Input input, MessageConsumer consumer) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
-        var config = cluster.getKafkaClusterConnectionConfiguration(objectMapper);
+        var config = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
         kafkaClusterDomainService.tailMessages(
             config,
             input.topicName(),

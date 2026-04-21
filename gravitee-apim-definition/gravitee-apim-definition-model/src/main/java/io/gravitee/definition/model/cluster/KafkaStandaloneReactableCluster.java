@@ -26,10 +26,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class KafkaConnectionReactableCluster extends ReactableCluster {
+public class KafkaStandaloneReactableCluster extends ReactableCluster {
 
     {
-        setType(ClusterType.KAFKA_CLUSTER_CONNECTION);
+        setType(ClusterType.KAFKA_CLUSTER_STANDALONE);
     }
 
     private String bootstrapServers;

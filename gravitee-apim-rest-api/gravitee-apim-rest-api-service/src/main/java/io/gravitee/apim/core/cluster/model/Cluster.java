@@ -48,8 +48,8 @@ public class Cluster {
     private Instant deployedAt;
     private Integer version;
 
-    public KafkaClusterConnectionConfiguration getKafkaClusterConnectionConfiguration(ObjectMapper objectMapper) {
-        return objectMapper.convertValue(this.configuration, KafkaClusterConnectionConfiguration.class);
+    public KafkaClusterStandaloneConfiguration getKafkaClusterStandaloneConfiguration(ObjectMapper objectMapper) {
+        return objectMapper.convertValue(this.configuration, KafkaClusterStandaloneConfiguration.class);
     }
 
     public KafkaClusterConfiguration getKafkaClusterConfiguration(ObjectMapper objectMapper) {

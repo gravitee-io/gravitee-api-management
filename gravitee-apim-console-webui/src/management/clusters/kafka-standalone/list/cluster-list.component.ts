@@ -111,7 +111,7 @@ export class ClusterListComponent implements OnInit {
             toClustersSortByParam(this.filters.sort),
             this.filters.pagination.index,
             this.filters.pagination.size,
-            'KAFKA_CLUSTER_CONNECTION',
+            'KAFKA_CLUSTER_STANDALONE',
           ),
         ),
         map(pagedResult => {
@@ -157,7 +157,7 @@ export class ClusterListComponent implements OnInit {
           }
 
           return this.clusterService.create({
-            type: 'KAFKA_CLUSTER_CONNECTION',
+            type: 'KAFKA_CLUSTER_STANDALONE',
             name: result.name,
             description: result.description,
             configuration: {

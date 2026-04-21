@@ -47,7 +47,7 @@ describe('ClusterGeneralComponent', () => {
 
   let permissions: string[];
 
-  async function initComponent(type: ClusterType = 'KAFKA_CLUSTER_CONNECTION') {
+  async function initComponent(type: ClusterType = 'KAFKA_CLUSTER_STANDALONE') {
     permissions = ['cluster-definition-u', 'cluster-definition-d'];
 
     await TestBed.configureTestingModule({
@@ -89,9 +89,9 @@ describe('ClusterGeneralComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('with KAFKA_CLUSTER_CONNECTION type', () => {
+  describe('with KAFKA_CLUSTER_STANDALONE type', () => {
     beforeEach(async () => {
-      await initComponent('KAFKA_CLUSTER_CONNECTION');
+      await initComponent('KAFKA_CLUSTER_STANDALONE');
     });
 
     it('should initialize the form with cluster data', async () => {

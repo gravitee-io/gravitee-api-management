@@ -189,8 +189,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       routerBasePath: `/${this.currentEnv.hrids}/clusters`,
       items: [
         {
-          displayName: 'Connections',
-          routerLink: './clusters/kafka-connections',
+          displayName: 'Standalone',
+          routerLink: './clusters/kafka-standalone',
           category: 'Kafka',
         },
         {

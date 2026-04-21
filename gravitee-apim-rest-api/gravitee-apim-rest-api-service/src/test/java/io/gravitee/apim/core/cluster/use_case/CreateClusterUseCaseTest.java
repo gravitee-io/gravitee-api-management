@@ -92,7 +92,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         String name = "Cluster 1";
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).configuration(configuration).build();
 
         // When
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
@@ -101,7 +101,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         var expected = Cluster.builder()
             .id(GENERATED_UUID)
             .crossId("cluster-1")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name(name)
             .createdAt(INSTANT_NOW)
             .updatedAt(INSTANT_NOW)
@@ -119,7 +119,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         String name = "Cluster 1";
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).configuration(configuration).build();
 
         // When
         createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
@@ -147,7 +147,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         String name = "Cluster 1";
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).configuration(configuration).build();
 
         // When
         createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
@@ -170,7 +170,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_when_name_is_null() {
         Object configuration = Map.of("protocol", "PLAINTEXT");
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).configuration(configuration).build();
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).configuration(configuration).build();
 
         // When
         var throwable = Assertions.catchThrowable(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)));
@@ -183,7 +183,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_when_configuration_is_null() {
         String name = "Cluster 1";
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name(name).build();
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).build();
 
         // When
         var throwable = Assertions.catchThrowable(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)));
@@ -221,7 +221,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         String name = "Cluster 1";
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         var toCreate = CreateCluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .crossId("custom-cross-id")
             .name(name)
             .configuration(configuration)
@@ -236,7 +236,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_generate_crossId_from_name_when_not_provided() {
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         var toCreate = CreateCluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Super Cluster!!")
             .configuration(configuration)
             .build();
@@ -251,7 +251,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         Cluster existingCluster = Cluster.builder()
             .id("existing-id")
             .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId(ENV_ID)
             .organizationId(ORG_ID)
@@ -260,7 +260,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         clusterQueryService.initWith(List.of(existingCluster));
 
         var toCreate = CreateCluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .crossId("my-cluster")
             .name("Another Cluster")
             .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))

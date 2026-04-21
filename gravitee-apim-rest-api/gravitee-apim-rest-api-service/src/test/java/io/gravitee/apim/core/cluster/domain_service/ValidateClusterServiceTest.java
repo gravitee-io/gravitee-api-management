@@ -59,7 +59,7 @@ class ValidateClusterServiceTest {
 
     @Test
     void should_throw_when_name_is_empty() {
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name("").configuration(validConfig()).build();
+        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("").configuration(validConfig()).build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
             .isInstanceOf(InvalidDataException.class)
@@ -68,7 +68,7 @@ class ValidateClusterServiceTest {
 
     @Test
     void should_throw_when_name_is_null() {
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name(null).configuration(validConfig()).build();
+        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(null).configuration(validConfig()).build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
             .isInstanceOf(InvalidDataException.class)
@@ -86,7 +86,7 @@ class ValidateClusterServiceTest {
 
     @Test
     void should_throw_when_configuration_is_null() {
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_CONNECTION).name("my-cluster").configuration(null).build();
+        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("my-cluster").configuration(null).build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
             .isInstanceOf(InvalidDataException.class)
@@ -96,7 +96,7 @@ class ValidateClusterServiceTest {
     @Test
     void should_pass_with_valid_plaintext_configuration() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("my-cluster")
             .configuration(validConfig())
             .build();
@@ -107,7 +107,7 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_protocol_has_invalid_value() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("my-cluster")
             .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "INVALID_PROTOCOL")))
             .build();
@@ -118,7 +118,7 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_bootstrap_servers_is_missing() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("my-cluster")
             .configuration(Map.of("security", Map.of("protocol", "PLAINTEXT")))
             .build();
@@ -203,7 +203,7 @@ class ValidateClusterServiceTest {
         Cluster existingCluster = Cluster.builder()
             .id("existing-id")
             .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -213,7 +213,7 @@ class ValidateClusterServiceTest {
         Cluster newCluster = Cluster.builder()
             .id("new-id")
             .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster 2")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -229,7 +229,7 @@ class ValidateClusterServiceTest {
         Cluster existingCluster = Cluster.builder()
             .id("existing-id")
             .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -239,7 +239,7 @@ class ValidateClusterServiceTest {
         Cluster newCluster = Cluster.builder()
             .id("new-id")
             .crossId("my-other-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Other Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -253,7 +253,7 @@ class ValidateClusterServiceTest {
         Cluster existingCluster = Cluster.builder()
             .id("existing-id")
             .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -263,7 +263,7 @@ class ValidateClusterServiceTest {
         Cluster newCluster = Cluster.builder()
             .id("new-id")
             .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-2")
             .configuration(validConfig())
@@ -277,7 +277,7 @@ class ValidateClusterServiceTest {
         Cluster cluster = Cluster.builder()
             .id("new-id")
             .crossId("")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -332,7 +332,7 @@ class ValidateClusterServiceTest {
         Cluster existingCluster = Cluster.builder()
             .id("cluster-id")
             .crossId("original-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -341,7 +341,7 @@ class ValidateClusterServiceTest {
         Cluster updatedCluster = Cluster.builder()
             .id("cluster-id")
             .crossId("modified-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -357,7 +357,7 @@ class ValidateClusterServiceTest {
         Cluster existingCluster = Cluster.builder()
             .id("cluster-id")
             .crossId("my-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("My Cluster")
             .environmentId("env-1")
             .configuration(validConfig())
@@ -366,7 +366,7 @@ class ValidateClusterServiceTest {
         Cluster updatedCluster = Cluster.builder()
             .id("cluster-id")
             .crossId("my-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("Updated Name")
             .environmentId("env-1")
             .configuration(validConfig())

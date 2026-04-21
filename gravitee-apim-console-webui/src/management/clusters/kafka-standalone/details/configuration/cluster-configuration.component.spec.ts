@@ -91,7 +91,7 @@ describe('ClusterConfigurationComponent', () => {
         id: CLUSTER_ID,
       }),
     );
-    expectGetConfigurationSchemaRequest(httpTestingController, securityJsonSchema, 'KAFKA_CLUSTER_CONNECTION');
+    expectGetConfigurationSchemaRequest(httpTestingController, securityJsonSchema, 'KAFKA_CLUSTER_STANDALONE');
     fixture.detectChanges();
   });
 
@@ -136,6 +136,6 @@ describe('ClusterConfigurationComponent', () => {
         id: CLUSTER_ID,
       }),
     );
-    expectGetConfigurationSchemaRequest(httpTestingController, securityJsonSchema, 'KAFKA_CLUSTER_CONNECTION');
+    expectGetConfigurationSchemaRequest(httpTestingController, securityJsonSchema, 'KAFKA_CLUSTER_STANDALONE');
   });
 });

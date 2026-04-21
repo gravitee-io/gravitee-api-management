@@ -29,8 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClusterConfigurationSchemaService {
 
     private static final Map<ClusterType, String> SCHEMA_PATHS = Map.of(
-        ClusterType.KAFKA_CLUSTER_CONNECTION,
-        "/cluster/kafka-cluster-connection-configuration-schema-form.json",
+        ClusterType.KAFKA_CLUSTER_STANDALONE,
+        "/cluster/kafka-cluster-standalone-configuration-schema-form.json",
         ClusterType.KAFKA_CLUSTER,
         "/cluster/kafka-cluster-configuration-schema-form.json"
     );
@@ -46,7 +46,7 @@ public class ClusterConfigurationSchemaService {
      */
     @Deprecated
     public String getConfigurationSchema() {
-        return getConfigurationSchema(ClusterType.KAFKA_CLUSTER_CONNECTION);
+        return getConfigurationSchema(ClusterType.KAFKA_CLUSTER_STANDALONE);
     }
 
     private String loadSchema(ClusterType type) {

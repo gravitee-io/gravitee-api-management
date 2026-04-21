@@ -17,7 +17,7 @@ import { CreateCluster } from './CreateCluster';
 
 export function fakeCreateCluster(overrides: Partial<CreateCluster> = {}): CreateCluster {
   return {
-    type: 'KAFKA_CLUSTER_CONNECTION',
+    type: 'KAFKA_CLUSTER_STANDALONE',
     name: 'New Cluster Name',
     description: 'A new test cluster',
     configuration: {

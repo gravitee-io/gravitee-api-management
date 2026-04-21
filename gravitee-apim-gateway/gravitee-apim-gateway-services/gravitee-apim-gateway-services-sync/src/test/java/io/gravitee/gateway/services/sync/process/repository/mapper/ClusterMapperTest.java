@@ -103,7 +103,7 @@ class ClusterMapperTest {
     }
 
     @Test
-    void should_return_null_for_kafka_connection_type() {
+    void should_return_null_for_kafka_standalone_type() {
         Event event = new Event();
         event.setId("event-id");
         event.setPayload(
@@ -112,7 +112,7 @@ class ClusterMapperTest {
                 "id": "conn-id",
                 "crossId": "my-connection",
                 "name": "My Connection",
-                "type": "KAFKA_CLUSTER_CONNECTION",
+                "type": "KAFKA_CLUSTER_STANDALONE",
                 "environmentId": "env-1",
                 "configuration": {}
             }

@@ -70,7 +70,7 @@ public abstract class ClusterAdapter {
 
     @Named("mapTypeFromString")
     public ClusterType mapTypeFromString(String type) {
-        return type != null ? ClusterType.valueOf(type) : ClusterType.KAFKA_CLUSTER_CONNECTION;
+        return type != null ? ClusterType.valueOf(type) : ClusterType.KAFKA_CLUSTER_STANDALONE;
     }
 
     @Named("mapConfiguration")

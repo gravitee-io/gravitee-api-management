@@ -1424,7 +1424,7 @@ components:
     # Cluster
     ClusterType:
       type: string
-      enum: [ KAFKA_CLUSTER_CONNECTION, KAFKA_CLUSTER ]
+      enum: [ KAFKA_CLUSTER_STANDALONE, KAFKA_CLUSTER ]
     CreateCluster:
       type: object
       properties:

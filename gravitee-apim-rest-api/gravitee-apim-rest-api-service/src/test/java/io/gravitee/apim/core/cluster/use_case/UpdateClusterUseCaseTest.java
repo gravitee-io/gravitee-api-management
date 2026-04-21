@@ -79,7 +79,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
             .crossId("cluster-1")
-            .type(ClusterType.KAFKA_CLUSTER_CONNECTION)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
             .name("Cluster 1")
             .createdAt(INSTANT_NOW)
             .description("The cluster no 1")

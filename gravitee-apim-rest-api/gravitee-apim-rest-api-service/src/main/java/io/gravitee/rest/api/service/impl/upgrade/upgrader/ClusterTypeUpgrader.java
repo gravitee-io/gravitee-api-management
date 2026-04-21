@@ -28,7 +28,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClusterTypeUpgrader implements Upgrader {
 
-    private static final String DEFAULT_CLUSTER_TYPE = "KAFKA_CLUSTER_CONNECTION";
+    private static final String DEFAULT_CLUSTER_TYPE = "KAFKA_CLUSTER_STANDALONE";
+    private static final String LEGACY_CLUSTER_TYPE = "KAFKA_CLUSTER_CONNECTION";
 
     private final ClusterRepository clusterRepository;
 
@@ -38,12 +39,17 @@ public class ClusterTypeUpgrader implements Upgrader {
     }
 
     @Override
+    public String version() {
+        return "v2";
+    }
+
+    @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
             clusterRepository
                 .findAll()
                 .stream()
-                .filter(cluster -> cluster.getType() == null)
+                .filter(cluster -> cluster.getType() == null || LEGACY_CLUSTER_TYPE.equals(cluster.getType()))
                 .forEach(cluster -> {
                     try {
                         log.info("Setting type '{}' on cluster '{}'", DEFAULT_CLUSTER_TYPE, cluster.getId());

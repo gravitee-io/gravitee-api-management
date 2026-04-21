@@ -21,8 +21,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
 import { ClusterGeneralComponent } from './general/cluster-general.component';
 import { ClusterUserPermissionsComponent } from './user-permissions/cluster-user-permissions.component';
-import { ClusterConfigurationComponent } from './kafka-connections/details/configuration/cluster-configuration.component';
-import { ClusterListComponent } from './kafka-connections/list/cluster-list.component';
+import { ClusterConfigurationComponent } from './kafka-standalone/details/configuration/cluster-configuration.component';
+import { ClusterListComponent } from './kafka-standalone/list/cluster-list.component';
 import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
 import { KafkaClusterConfigurationComponent } from './kafka-clusters/details/configuration/kafka-cluster-configuration.component';
 import { ClusterGuard } from './cluster.guard';
@@ -36,10 +36,10 @@ const clusterRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'kafka-connections',
+    redirectTo: 'kafka-standalone',
   },
   {
-    path: 'kafka-connections',
+    path: 'kafka-standalone',
     component: ClusterListComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     canDeactivate: [ClusterGuard.clearPermissions],
@@ -51,7 +51,7 @@ const clusterRoutes: Routes = [
     },
   },
   {
-    path: 'kafka-connections/:clusterId',
+    path: 'kafka-standalone/:clusterId',
     component: ClusterNavigationComponent,
     canActivate: [ClusterGuard.loadPermissions],
     canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
