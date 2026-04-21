@@ -20,7 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -39,11 +44,23 @@ class ListPortalNavigationItemsUseCaseTest {
 
     private ListPortalNavigationItemsUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
+    private MembershipQueryServiceInMemory membershipQueryService;
+    private SubscriptionQueryServiceInMemory subscriptionQueryService;
+    private ApiQueryServiceInMemory apiQueryService;
 
     @BeforeEach
     void setUp() {
         queryService = new PortalNavigationItemsQueryServiceInMemory();
-        useCase = new ListPortalNavigationItemsUseCase(queryService);
+        membershipQueryService = new MembershipQueryServiceInMemory();
+        subscriptionQueryService = new SubscriptionQueryServiceInMemory();
+        apiQueryService = new ApiQueryServiceInMemory();
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            apiQueryService
+        );
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+        useCase = new ListPortalNavigationItemsUseCase(queryService, apiVisibilityDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -368,6 +385,186 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Public Page");
+    }
+
+    @Test
+    void should_hide_private_api_nav_item_from_authenticated_non_member() {
+        // Given a private API nav item and an authenticated user that is neither a member nor a subscriber.
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Restricted API",
+            null,
+            "private-api-id"
+        );
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setPublished(true);
+
+        queryService.initWith(List.of(apiNavItem));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        // Then the API nav item is not exposed through the documentation endpoint either,
+        // keeping it consistent with the catalog visibility rules.
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_show_private_api_nav_item_to_authenticated_member() {
+        // Given a private API and a user that is a member of it.
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Restricted API",
+            null,
+            "private-api-id"
+        );
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setPublished(true);
+
+        queryService.initWith(List.of(apiNavItem));
+        membershipQueryService.initWith(
+            List.of(
+                io.gravitee.apim.core.membership.model.Membership.builder()
+                    .id("m-1")
+                    .memberId("user-member")
+                    .memberType(io.gravitee.apim.core.membership.model.Membership.Type.USER)
+                    .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
+                    .referenceId("private-api-id")
+                    .build()
+            )
+        );
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-member")
+            )
+        );
+
+        // Then
+        assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Restricted API");
+    }
+
+    @Test
+    void should_hide_children_of_private_api_nav_item_for_non_member() {
+        // Given a private API nav item with a public child folder containing a public page.
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Restricted API",
+            null,
+            "private-api-id"
+        );
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setPublished(true);
+
+        var childFolder = PortalNavigationItemFixtures.aFolder(
+            PortalNavigationItemId.random().toString(),
+            "API Resources",
+            apiNavItem.getId()
+        );
+        childFolder.updateParent(apiNavItem);
+
+        var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", childFolder.getId());
+        childPage.updateParent(childFolder);
+
+        queryService.initWith(List.of(apiNavItem, childFolder, childPage));
+
+        // When — non-member tries to load the whole tree
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        // Then none of the restricted API subtree is returned.
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_when_parent_is_private_api_and_user_is_not_member() {
+        // Given a private API nav item with a public child.
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Restricted API",
+            null,
+            "private-api-id"
+        );
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setPublished(true);
+
+        var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", apiNavItem.getId());
+        childPage.updateParent(apiNavItem);
+
+        queryService.initWith(List.of(apiNavItem, childPage));
+
+        // When — user queries with the API nav item as parent directly (bypass attempt)
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(apiNavItem.getId()),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        // Then the parent is rejected and no children are exposed.
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_when_parent_is_descendant_of_private_api_and_user_is_not_member() {
+        // Given a private API nav item with a folder child containing a page.
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Restricted API",
+            null,
+            "private-api-id"
+        );
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setPublished(true);
+
+        var childFolder = PortalNavigationItemFixtures.aFolder(
+            PortalNavigationItemId.random().toString(),
+            "API Resources",
+            apiNavItem.getId()
+        );
+        childFolder.updateParent(apiNavItem);
+
+        var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", childFolder.getId());
+        childPage.updateParent(childFolder);
+
+        queryService.initWith(List.of(apiNavItem, childFolder, childPage));
+
+        // When — user queries with the folder as parent (descendant of hidden API)
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(childFolder.getId()),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        // Then the ancestor check still prevents exposure.
+        assertThat(result.items()).isEmpty();
     }
 
     @Test

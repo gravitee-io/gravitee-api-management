@@ -16,23 +16,33 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import jakarta.annotation.Nullable;
+import java.util.Optional;
 
 public class PortalNavigationItemViewerContext {
 
     private final boolean isPortalMode;
     private final boolean isAuthenticated;
 
-    private PortalNavigationItemViewerContext(boolean isAuthenticated, boolean isPortalView) {
+    @Nullable
+    private final String userId;
+
+    private PortalNavigationItemViewerContext(boolean isAuthenticated, boolean isPortalView, @Nullable String userId) {
         this.isAuthenticated = isAuthenticated;
         this.isPortalMode = isPortalView;
+        this.userId = userId;
     }
 
     public static PortalNavigationItemViewerContext forPortal(boolean isAuthenticated) {
-        return new PortalNavigationItemViewerContext(isAuthenticated, true);
+        return new PortalNavigationItemViewerContext(isAuthenticated, true, null);
+    }
+
+    public static PortalNavigationItemViewerContext forPortal(@Nullable String userId) {
+        return new PortalNavigationItemViewerContext(userId != null, true, userId);
     }
 
     public static PortalNavigationItemViewerContext forConsole() {
-        return new PortalNavigationItemViewerContext(true, false);
+        return new PortalNavigationItemViewerContext(true, false, null);
     }
 
     public boolean isPortalMode() {
@@ -41,6 +51,10 @@ public class PortalNavigationItemViewerContext {
 
     public boolean isAuthenticated() {
         return this.isAuthenticated;
+    }
+
+    public Optional<String> userId() {
+        return Optional.ofNullable(this.userId);
     }
 
     public boolean shouldNotShow(PortalNavigationItem item) {

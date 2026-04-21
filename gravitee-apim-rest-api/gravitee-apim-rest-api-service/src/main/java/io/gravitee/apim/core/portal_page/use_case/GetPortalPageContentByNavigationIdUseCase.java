@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -36,6 +38,7 @@ public class GetPortalPageContentByNavigationIdUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
 
     public Output execute(Input input) {
         // Get the portal navigation item by id and env id
@@ -47,6 +50,17 @@ public class GetPortalPageContentByNavigationIdUseCase {
         ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
 
         input.viewerContext().validateAccess(portalNavigationItem);
+
+        if (
+            portalNavigationItem instanceof PortalNavigationApi api &&
+            apiVisibilityDomainService.isApiItemHidden(api, input.viewerContext())
+        ) {
+            throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
+        }
+
+        if (apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), portalNavigationItem, input.viewerContext())) {
+            throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
+        }
 
         // If the nav item is not a page, throw exception
         if (!(portalNavigationItem instanceof PortalNavigationPage page)) {

@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class GetPortalNavigationItemUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
 
     public Output execute(Input input) {
         final PortalNavigationItem foundItem = Optional.ofNullable(
@@ -36,6 +39,14 @@ public class GetPortalNavigationItemUseCase {
         ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString()));
 
         input.viewerContext().validateAccess(foundItem);
+
+        if (foundItem instanceof PortalNavigationApi api && apiVisibilityDomainService.isApiItemHidden(api, input.viewerContext())) {
+            throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
+        }
+
+        if (apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), foundItem, input.viewerContext())) {
+            throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
+        }
 
         return new Output(foundItem);
     }
