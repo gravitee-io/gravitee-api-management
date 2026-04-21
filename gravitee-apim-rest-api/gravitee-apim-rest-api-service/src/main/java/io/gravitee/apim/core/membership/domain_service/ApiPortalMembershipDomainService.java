@@ -18,11 +18,16 @@ package io.gravitee.apim.core.membership.domain_service;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiFieldFilter;
+import io.gravitee.apim.core.api.model.ApiSearchCriteria;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +37,7 @@ public class ApiPortalMembershipDomainService {
 
     private final MembershipQueryService membershipQueryService;
     private final SubscriptionQueryService subscriptionQueryService;
+    private final ApiQueryService apiQueryService;
 
     public Set<String> filterApiIdsByUserMembership(String userId, Set<String> candidateApiIds) {
         if (candidateApiIds.isEmpty()) {
@@ -50,12 +56,18 @@ public class ApiPortalMembershipDomainService {
             .map(Membership::getReferenceId)
             .collect(toSet());
 
+        // Group-based API access is stored on the API itself (Api.groups field) when a group is
+        // assigned to an API, not as a GROUP->API Membership record. Match candidate APIs whose
+        // groups intersect the user's groups.
         Set<String> groupApiIds = userGroupIds.isEmpty()
             ? Set.of()
-            : membershipQueryService
-                .findByMemberIdsAndMemberTypeAndReferenceType(userGroupIds, Membership.Type.GROUP, Membership.ReferenceType.API)
-                .stream()
-                .map(Membership::getReferenceId)
+            : apiQueryService
+                .search(
+                    ApiSearchCriteria.builder().ids(List.copyOf(candidateApiIds)).groups(List.copyOf(userGroupIds)).build(),
+                    null,
+                    ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
+                )
+                .map(Api::getId)
                 .collect(toSet());
 
         Set<String> allowed = new HashSet<>(directApiIds);
