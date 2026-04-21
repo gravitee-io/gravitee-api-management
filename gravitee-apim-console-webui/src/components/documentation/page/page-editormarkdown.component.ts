@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EditorOptions, Editor } from '@toast-ui/editor';
-import { ToolbarItemOptions } from '@toast-ui/editor/types/ui';
+import ToastUiEditor from '@toast-ui/editor';
 import codeSyntaxHighlightPlugin from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
 import { ActivatedRoute } from '@angular/router';
+
+import type { ToolbarItemOptions } from '@toast-ui/editor/types/ui';
+import type { Editor, EditorOptions } from '@toast-ui/editor';
 
 import NotificationService from '../../../services/notification.service';
 // Step 2. Import language files of prismjs that you need
@@ -115,7 +117,7 @@ class ComponentCtrl implements ng.IComponentController {
       },
       plugins: [[codeSyntaxHighlightPlugin, { highlighter: Prism }]],
     };
-    this.tuiEditor = new Editor(defaultOptions);
+    this.tuiEditor = new ToastUiEditor(defaultOptions);
     this.tuiEditor.addCommand('markdown', 'addLinkToPage', () => {
       this.$mdDialog
         .show({
