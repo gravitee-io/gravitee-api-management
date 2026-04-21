@@ -17,9 +17,11 @@ package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
@@ -28,6 +30,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -46,10 +49,15 @@ class GetApiForPortalUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory();
     private MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
+    private ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
 
     @BeforeEach
     void setUp() {
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService);
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            membershipQueryService,
+            subscriptionQueryService,
+            apiQueryService
+        );
         useCase = new GetApiForPortalUseCase(new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService));
     }
 
@@ -84,6 +92,30 @@ class GetApiForPortalUseCaseTest {
                     .referenceId(PRIVATE_API_ID)
                     .build()
             )
+        );
+
+        var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PRIVATE_API_ID, USER_ID));
+
+        assertThat(output.visible()).isTrue();
+    }
+
+    @Test
+    void should_return_visible_when_api_is_private_and_user_has_access_via_group() {
+        var groupId = "group-1";
+        navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("membership-" + USER_ID + "-" + groupId)
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId(groupId)
+                    .build()
+            )
+        );
+        apiQueryService.initWith(
+            List.of(Api.builder().id(PRIVATE_API_ID).environmentId(ENV_ID).name(PRIVATE_API_ID).groups(Set.of(groupId)).build())
         );
 
         var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PRIVATE_API_ID, USER_ID));
