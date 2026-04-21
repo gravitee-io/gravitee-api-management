@@ -27,22 +27,30 @@
     }
   </mat-form-field>
 
-  <div class="configure-mcp-entrypoint__tools__header">
-    <h5>Tool Definitions</h5>
-    <button
-      *gioPermission="{ anyOf: ['api-definition-u'] }"
-      mat-raised-button
-      color="primary"
-      class="open-api-to-mcp-tools__container__tools__header__button"
-      (click)="importTools()"
-    >
+  <div class="configure-mcp-entrypoint__import-btn">
+    <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-raised-button color="primary" (click)="importTools()">
       <mat-icon svgIcon="gio:plus" />
       Generate Tools from OpenAPI
     </button>
   </div>
-  @for (tool of toolDefinitions; track $index) {
-    <tool-display [tool]="tool" />
-  } @empty {
+
+  @if (serverDescription) {
+    <mat-expansion-panel expanded="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Server Description</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p style="white-space: pre-wrap; margin: 0">{{ serverDescription }}</p>
+    </mat-expansion-panel>
+  }
+
+  @if (toolDefinitions.length > 0) {
+    <h5>Tool Definitions</h5>
+    <div class="configure-mcp-entrypoint__tools__list">
+      @for (tool of toolDefinitions; track $index) {
+        <tool-display [tool]="tool" />
+      }
+    </div>
+  } @else {
     <div class="open-api-to-mcp-tools__container__tools__empty">
       No tools are configured. Add tools by generating them from an OpenAPI specification.
     </div>
