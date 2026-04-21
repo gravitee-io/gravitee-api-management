@@ -221,7 +221,10 @@ describe('McpComponent', () => {
 
         const newApi = { ...API() };
         const httpListener = newApi.listeners[0];
-        httpListener.entrypoints = [httpListener.entrypoints[0], { type: 'mcp', configuration: { mcpPath: '/dogs-drool', tools: [] } }];
+        httpListener.entrypoints = [
+          httpListener.entrypoints[0],
+          { type: 'mcp', configuration: { mcpPath: '/dogs-drool', tools: [], description: '' } },
+        ];
         newApi.listeners[0] = httpListener;
 
         expectUpdateApiCalls(API(), newApi);
@@ -338,6 +341,7 @@ describe('McpComponent', () => {
                   },
                 },
               ],
+              description: 'Sample API',
             },
           },
         ];
