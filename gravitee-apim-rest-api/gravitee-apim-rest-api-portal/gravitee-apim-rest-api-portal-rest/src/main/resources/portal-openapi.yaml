@@ -1204,6 +1204,8 @@ paths:
                 Create an application member.
 
                 User must have the APPLICATION_MEMBER[CREATE] permission.
+                The role defaults to the lowest application role when omitted by caller behavior.
+                Duplicate creation is rejected when the target user is already linked to the application.
             operationId: createApplicationMember
             responses:
                 201:
@@ -1212,8 +1214,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
                 403:
                     $ref: "#/components/responses/PermissionError"
+                409:
+                    $ref: "#/components/responses/ConflictError"
                 404:
                     $ref: "#/components/responses/ApplicationNotFoundError"
                 500:
@@ -1335,6 +1341,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
                 403:
                     $ref: "#/components/responses/PermissionError"
                 404:
@@ -2638,21 +2646,36 @@ paths:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
                 - $ref: "#/components/parameters/usersQueryParam"
-            summary: List platform users.
+            requestBody:
+                description: Optional search body. Use `filters.query` instead of the deprecated query parameter `q`. Use `includes.applicationMembership` to enrich `metadata.applicationMembership` with per-user membership flags for one application.
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UsersSearchInput"
+            summary: Search platform users.
             description: |
-                List platform users from identity providers.
+                Search platform users from identity providers.
+
+                Existing callers can keep using the deprecated query parameter `q`.
+                New callers should use `filters.query` in the request body.
+                When `includes.applicationMembership` is provided, the response metadata is enriched with an `applicationMembership` map keyed by returned user identifiers.
 
                 User must have the MANAGEMENT_USERS[READ] permission.
             operationId: getUsers
             responses:
                 200:
-                    description: List of platform users
+                    description: List of platform users with optional application-membership metadata enrichment.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/UsersResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
                 403:
                     $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /users/{userId}/avatar:
@@ -4111,7 +4134,8 @@ components:
             name: q
             in: query
             required: false
-            description: query string to be used in the search engine
+            deprecated: true
+            description: Deprecated query string used in the search engine. Use `filters.query` in the optional request body instead.
             schema:
                 type: string
 
@@ -4215,6 +4239,31 @@ components:
                 displayName:
                     type: string
                     description: Search phrase applied to member display name. Search starts when at least one character is provided.
+        UsersSearchInput:
+            type: object
+            description: Optional search input for platform-user lookup. This body extends the existing `POST /users/_search` contract without breaking callers that still rely on the deprecated `q` query parameter.
+            properties:
+                filters:
+                    $ref: "#/components/schemas/UsersSearchFilters"
+                includes:
+                    $ref: "#/components/schemas/UsersSearchIncludes"
+        UsersSearchFilters:
+            type: object
+            description: Search filters for platform-user lookup.
+            properties:
+                query:
+                    type: string
+                    description: Canonical body-based query filter. Preserves the existing broad provider-backed search semantics previously exposed through query parameter `q`.
+                displayName:
+                    type: string
+                    description: Optional additional display-name filter. Narrows the result set on top of the generic query semantics. Search starts when at least one character is provided.
+        UsersSearchIncludes:
+            type: object
+            description: Optional response enrichments for platform-user lookup.
+            properties:
+                applicationMembership:
+                    type: string
+                    description: Application identifier used to enrich `metadata.applicationMembership` with per-user membership flags for that application.
         SearchApplicationsLogsParams:
             type: object
             description: Search filters for application logs
@@ -4374,7 +4423,7 @@ components:
                     items:
                         $ref: "#/components/schemas/User"
                 metadata:
-                    $ref: "#/components/schemas/MetadataMap"
+                    $ref: "#/components/schemas/UsersResponseMetadata"
                 links:
                     $ref: "#/components/schemas/Links"
         CategoriesResponse:
@@ -6566,6 +6615,18 @@ components:
                 type: object
                 additionalProperties:
                     type: object
+        UsersResponseMetadata:
+            type: object
+            description: Metadata returned by platform-user search. Standard metadata keys such as `data` and `paginateMetaData` may still be present. When requested through `includes.applicationMembership`, the response also contains `applicationMembership`.
+            properties:
+                applicationMembership:
+                    $ref: "#/components/schemas/ApplicationMembershipMap"
+            additionalProperties: true
+        ApplicationMembershipMap:
+            type: object
+            description: Map keyed by user identifier. Value is `true` when the user is already a member of the requested application, otherwise `false`.
+            additionalProperties:
+                type: boolean
         Bucket:
             properties:
                 buckets:
@@ -6957,6 +7018,12 @@ components:
     responses:
         BadRequestError:
             description: Bad Request
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
+        ConflictError:
+            description: Conflict
             content:
                 application/json:
                     schema:
