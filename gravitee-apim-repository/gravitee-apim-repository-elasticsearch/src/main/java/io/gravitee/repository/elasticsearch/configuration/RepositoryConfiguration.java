@@ -264,20 +264,12 @@ public class RepositoryConfiguration {
     private Map<String, String> initializeCrossClusterMapping() {
         crossClusterInitialized = true;
 
-        // Try new prefix first, fall back to legacy prefix
         Map<String, Object> tenantMapping = EnvironmentUtils.getPropertiesStartingWith(
             (ConfigurableEnvironment) environment,
-            "repositories.analytics.elasticsearch.cross_cluster.mapping."
+            "analytics.elasticsearch.cross_cluster.mapping."
         );
 
-        if (tenantMapping == null || tenantMapping.isEmpty()) {
-            tenantMapping = EnvironmentUtils.getPropertiesStartingWith(
-                (ConfigurableEnvironment) environment,
-                "analytics.elasticsearch.cross_cluster.mapping."
-            );
-        }
-
-        if (tenantMapping != null && !tenantMapping.isEmpty()) {
+        if (tenantMapping != null) {
             Map<String, String> mapping = new HashMap<>(tenantMapping.size());
             tenantMapping.forEach((s, o) -> mapping.put(s.substring(s.lastIndexOf('.') + 1), (String) o));
 
@@ -406,19 +398,10 @@ public class RepositoryConfiguration {
     }
 
     public boolean isProxyConfigured() {
-        boolean configured = !EnvironmentUtils.getPropertiesStartingWith(
+        return !EnvironmentUtils.getPropertiesStartingWith(
             (ConfigurableEnvironment) environment,
-            "repositories.analytics.elasticsearch.http.proxy"
+            "analytics.elasticsearch.http.proxy"
         ).isEmpty();
-
-        if (!configured) {
-            configured = !EnvironmentUtils.getPropertiesStartingWith(
-                (ConfigurableEnvironment) environment,
-                "analytics.elasticsearch.http.proxy"
-            ).isEmpty();
-        }
-
-        return configured;
     }
 
     public boolean isCrossClusterInitialized() {
