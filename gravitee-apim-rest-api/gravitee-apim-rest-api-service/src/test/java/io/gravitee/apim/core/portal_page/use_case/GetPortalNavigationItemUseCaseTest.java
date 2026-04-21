@@ -23,7 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -42,7 +47,15 @@ class GetPortalNavigationItemUseCaseTest {
     @BeforeEach
     void setUp() {
         PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
-        useCase = new GetPortalNavigationItemUseCase(queryService);
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            queryService,
+            new ApiPortalMembershipDomainService(
+                new MembershipQueryServiceInMemory(),
+                new SubscriptionQueryServiceInMemory(),
+                new ApiQueryServiceInMemory()
+            )
+        );
+        useCase = new GetPortalNavigationItemUseCase(queryService, apiVisibilityDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }

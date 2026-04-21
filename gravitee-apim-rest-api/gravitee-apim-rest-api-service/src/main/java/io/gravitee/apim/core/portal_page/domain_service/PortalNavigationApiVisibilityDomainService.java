@@ -18,8 +18,10 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import jakarta.annotation.Nullable;
@@ -121,5 +123,46 @@ public class PortalNavigationApiVisibilityDomainService {
             !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||
             !apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, candidate).isEmpty()
         );
+    }
+
+    /**
+     * Returns {@code true} when the given API navigation item must be hidden from the viewer,
+     * applying portal visibility (PUBLIC / PRIVATE) and, for authenticated users, API
+     * membership and subscription-based access rules. Mirrors the logic used by the catalog
+     * endpoint so navigation and catalog expose the same set of APIs.
+     */
+    public boolean isApiItemHidden(PortalNavigationApi item, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode()) {
+            return false;
+        }
+        if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
+            return false;
+        }
+        if (!viewerContext.isAuthenticated()) {
+            return true;
+        }
+        return viewerContext
+            .userId()
+            .map(uid -> !isVisibleToUser(item, uid))
+            .orElse(true);
+    }
+
+    /**
+     * Walks the parent chain of the given item and returns {@code true} if any ancestor is a
+     * {@link PortalNavigationApi} hidden from the viewer. Used to prevent direct access (by id)
+     * to descendants of an API navigation item the viewer cannot see.
+     */
+    public boolean hasHiddenApiAncestor(String environmentId, PortalNavigationItem item, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode()) {
+            return false;
+        }
+        PortalNavigationItem current = item;
+        while (current != null && current.getParentId() != null) {
+            current = queryService.findByIdAndEnvironmentId(environmentId, current.getParentId());
+            if (current instanceof PortalNavigationApi apiAncestor && isApiItemHidden(apiAncestor, viewerContext)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

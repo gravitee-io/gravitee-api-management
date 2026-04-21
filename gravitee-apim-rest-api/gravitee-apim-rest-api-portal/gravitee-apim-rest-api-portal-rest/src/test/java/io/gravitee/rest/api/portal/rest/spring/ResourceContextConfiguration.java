@@ -1121,9 +1121,10 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService
     ) {
-        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService);
+        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, portalNavigationApiVisibilityDomainService);
     }
 
     @Bean
