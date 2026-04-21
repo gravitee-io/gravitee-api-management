@@ -271,66 +271,68 @@ secrets:
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # If you use a JDBC repository, we recommend disabling liquibase scripts execution by the Gateway. Let the Management API do it.
-# management:
-#   type: jdbc
-#   jdbc:
-#     liquibase: false
+# repositories:
+#   management:
+#     type: jdbc
+#     jdbc:
+#       liquibase: false
 
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
-management:
-  type: mongodb                  # repository type
-  mongodb:                       # mongodb repository
-#    prefix:                      # collections prefix
-    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
-    host: ${ds.mongodb.host}     # mongodb host (default localhost)
-    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+repositories:
+  management:
+    type: mongodb                  # repository type
+    mongodb:                       # mongodb repository
+#      prefix:                      # collections prefix
+      dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+      host: ${ds.mongodb.host}     # mongodb host (default localhost)
+      port: ${ds.mongodb.port}     # mongodb port (default 27017)
 
 ## Client settings
-#    description:                 # mongodb description (default gravitee.io)
-#    username:                    # mongodb username (default null)
-#    password:                    # mongodb password (default null)
-#    authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
-#    retryWrites:                 # mongodb retriable writes (default true)
-#    readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
-#    readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
+#      description:                 # mongodb description (default gravitee.io)
+#      username:                    # mongodb username (default null)
+#      password:                    # mongodb password (default null)
+#      authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
+#      retryWrites:                 # mongodb retriable writes (default true)
+#      readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
+#      readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
 ### Write concern
-#    writeConcern:               # possible values are 1,2,3... (the number of node) or 'majority' (default is 1)
-#    wtimeout:                   # (default is 0)
-#    journal:                    # (default is true)
+#      writeConcern:               # possible values are 1,2,3... (the number of node) or 'majority' (default is 1)
+#      wtimeout:                   # (default is 0)
+#      journal:                    # (default is true)
 
 ## Socket settings
-#    connectTimeout:              # mongodb connection timeout (default 1000)
-#    socketTimeout:               # mongodb socket timeout (default 1000)
+#      connectTimeout:              # mongodb connection timeout (default 1000)
+#      socketTimeout:               # mongodb socket timeout (default 1000)
 
 ## Cluster settings
-#    serverSelectionTimeout:      # mongodb server selection timeout (default 1000)
-#    localThreshold:              # mongodb local threshold (default 15)
+#      serverSelectionTimeout:      # mongodb server selection timeout (default 1000)
+#      localThreshold:              # mongodb local threshold (default 15)
 
 ## Connection pool settings
-#    maxWaitTime:                 # mongodb max wait time (default 120000)
-#    maxConnectionLifeTime:       # mongodb max connection life time (default 0)
-#    maxConnectionIdleTime:       # mongodb max connection idle time (default 0)
-#    connectionsPerHost:          # mongodb max connections per host (default 100)
-#    minConnectionsPerHost:       # mongodb min connections per host (default 0)
+#      maxWaitTime:                 # mongodb max wait time (default 120000)
+#      maxConnectionLifeTime:       # mongodb max connection life time (default 0)
+#      maxConnectionIdleTime:       # mongodb max connection idle time (default 0)
+#      connectionsPerHost:          # mongodb max connections per host (default 100)
+#      minConnectionsPerHost:       # mongodb min connections per host (default 0)
 
 ## Server settings
-#    heartbeatFrequency:          # mongodb heartbeat frequency (default 10000)
-#    minHeartbeatFrequency:       # mongodb min heartbeat frequency (default 500)
+#      heartbeatFrequency:          # mongodb heartbeat frequency (default 10000)
+#      minHeartbeatFrequency:       # mongodb min heartbeat frequency (default 500)
 
 ## SSL settings
-#    sslEnabled:                  # mongodb ssl mode (default false)
-#    tlsProtocol:                 # protocol to use when connecting to the mongodb instance (when sslEnabled is true, default TLS)
-#    keystore:
-#      path:                      # Path to the keystore (when sslEnabled is true, default null)
-#      type:                      # Type of the keystore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
-#      password:                  # KeyStore password (when sslEnabled is true, default null)
-#      keyPassword:               # Password for recovering keys in the KeyStore (when sslEnabled is true, default null)
-#    truststore:
-#      path:                      # Path to the truststore (when sslEnabled is true, default null)
-#      type:                      # Type of the truststore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
-#      password:                  # Truststore password (when sslEnabled is true, default null)
+#      sslEnabled:                  # mongodb ssl mode (default false)
+#      tlsProtocol:                 # protocol to use when connecting to the mongodb instance (when sslEnabled is true, default TLS)
+#      keystore:
+#        path:                      # Path to the keystore (when sslEnabled is true, default null)
+#        type:                      # Type of the keystore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#        password:                  # KeyStore password (when sslEnabled is true, default null)
+#        keyPassword:               # Password for recovering keys in the KeyStore (when sslEnabled is true, default null)
+#      truststore:
+#        path:                      # Path to the truststore (when sslEnabled is true, default null)
+#        type:                      # Type of the truststore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#        password:                  # Truststore password (when sslEnabled is true, default null)
 # Management repository: single MongoDB using URI
 # For more information about MongoDB configuration using URI, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html
@@ -413,54 +415,54 @@ management:
 
 # When defining rate-limiting policy, the gateway has to store data to share with other gateway instances.
 # In this example, we are using MongoDB to store counters.
-ratelimit:
-  type: mongodb
-  mongodb:
-    uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
-#  redis:
-#    username: # Optional: Redis username for ACL authentication
-#    password:
-#    # Redis Standalone settings
-#    host: localhost
-#    port: 6379
-#    # Redis Sentinel settings
-#    sentinel:
-#      master: redis-master
-#      nodes:
-#        - host: sentinel1
-#          port: 26379
-#        - host: sentinel2
-#          port: 26379
-#    # SSL settings
-#    ssl: false
-#    hostnameVerificationAlgorithm: NONE # default value is NONE. Support NONE, HTTPS and LDAPS
-#    trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
-#    tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
-#    tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-#    alpn: false
-#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
-#    # Keystore for redis mTLS (client certificate)
-#    keystore:
-#      type: pem # Supports jks, pem, pkcs12
-#      path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
-#      password: secret
-#      keyPassword:
-#      alias:
-#      certificates: # Certificates are required if keystore's type is pem
-#        - cert: ${gravitee.home}/security/redis-mycompany.org.pem
-#          key: ${gravitee.home}/security/redis-mycompany.org.key
-#        - cert: ${gravitee.home}/security/redis-mycompany.com.pem
-#          key: ${gravitee.home}/security/redis-mycompany.com.key
-#    truststore:
-#      type: pem # Supports jks, pem, pkcs12
-#      path: ${gravitee.home}/security/redis-truststore.jks
-#      password: secret
-#      alias:
-#    operation:
-#      timeout: 10 # in milliseconds
-#    tcp:
-#      connectTimeout: 5000 # in milliseconds
-#      idleTimeout: 0 # in milliseconds
+  ratelimit:
+    type: mongodb
+    mongodb:
+      uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+#    redis:
+#      username: # Optional: Redis username for ACL authentication
+#      password:
+#      # Redis Standalone settings
+#      host: localhost
+#      port: 6379
+#      # Redis Sentinel settings
+#      sentinel:
+#        master: redis-master
+#        nodes:
+#          - host: sentinel1
+#            port: 26379
+#          - host: sentinel2
+#            port: 26379
+#      # SSL settings
+#      ssl: false
+#      hostnameVerificationAlgorithm: NONE # default value is NONE. Support NONE, HTTPS and LDAPS
+#      trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
+#      tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
+#      tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#      alpn: false
+#      openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#      # Keystore for redis mTLS (client certificate)
+#      keystore:
+#        type: pem # Supports jks, pem, pkcs12
+#        path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
+#        password: secret
+#        keyPassword:
+#        alias:
+#        certificates: # Certificates are required if keystore's type is pem
+#          - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+#            key: ${gravitee.home}/security/redis-mycompany.org.key
+#          - cert: ${gravitee.home}/security/redis-mycompany.com.pem
+#            key: ${gravitee.home}/security/redis-mycompany.com.key
+#      truststore:
+#        type: pem # Supports jks, pem, pkcs12
+#        path: ${gravitee.home}/security/redis-truststore.jks
+#        password: secret
+#        alias:
+#      operation:
+#        timeout: 10 # in milliseconds
+#      tcp:
+#        connectTimeout: 5000 # in milliseconds
+#        idleTimeout: 0 # in milliseconds
 
 # You must define the type of repository to use, when enabling distributed sync in clustering mode
 # because the gateway has to store data to share with other gateway instances.
