@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaVirtualClusterBackend;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -60,6 +61,10 @@ public class ValidateClusterService {
             validateUniqueConnectionNames(cluster);
             validateUniqueConnectionCrossIds(cluster);
         }
+
+        if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
+            validateUniqueBackends(cluster);
+        }
     }
 
     public void validateForCreate(Cluster cluster) {
@@ -98,6 +103,26 @@ public class ValidateClusterService {
 
         if (!duplicates.isEmpty()) {
             throw new InvalidDataException("Connection names must be unique. Duplicates found: " + duplicates);
+        }
+    }
+
+    private void validateUniqueBackends(Cluster cluster) {
+        var config = cluster.getKafkaVirtualClusterConfiguration(objectMapper);
+        if (config.backends() == null || config.backends().isEmpty()) {
+            return;
+        }
+        var duplicates = config
+            .backends()
+            .stream()
+            .collect(Collectors.groupingBy(b -> b, Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 1)
+            .map(e -> e.getKey())
+            .toList();
+
+        if (!duplicates.isEmpty()) {
+            throw new InvalidDataException("Backend references must be unique within a virtual cluster. Duplicates found: " + duplicates);
         }
     }
 

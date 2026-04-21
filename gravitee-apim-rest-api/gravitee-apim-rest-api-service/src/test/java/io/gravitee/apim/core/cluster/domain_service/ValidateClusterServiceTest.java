@@ -328,6 +328,90 @@ class ValidateClusterServiceTest {
     }
 
     @Test
+    void should_pass_with_valid_kafka_virtual_cluster_configuration() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"))))
+            .build();
+
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_throw_when_kafka_virtual_cluster_has_duplicate_backends() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(
+                Map.of(
+                    "backends",
+                    List.of(
+                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"),
+                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1")
+                    )
+                )
+            )
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("Backend references must be unique within a virtual cluster");
+    }
+
+    @Test
+    void should_pass_when_kafka_virtual_cluster_has_different_backends() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(
+                Map.of(
+                    "backends",
+                    List.of(
+                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"),
+                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-2")
+                    )
+                )
+            )
+            .build();
+
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_throw_when_kafka_virtual_cluster_backend_missing_clusterCrossId() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(Map.of("backends", List.of(Map.of("connectionCrossId", "conn-1"))))
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
+    }
+
+    @Test
+    void should_throw_when_kafka_virtual_cluster_backend_missing_connectionCrossId() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1"))))
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
+    }
+
+    @Test
+    void should_pass_when_kafka_virtual_cluster_has_empty_backends() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(Map.of("backends", List.of()))
+            .build();
+
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
+    }
+
+    @Test
     void should_throw_when_crossId_is_changed_on_update() {
         Cluster existingCluster = Cluster.builder()
             .id("cluster-id")

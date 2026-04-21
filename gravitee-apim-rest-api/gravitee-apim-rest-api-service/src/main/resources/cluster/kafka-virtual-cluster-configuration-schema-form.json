@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "kafkaVirtualClusterBackend": {
+      "type": "object",
+      "properties": {
+        "clusterCrossId": {
+          "type": "string",
+          "title": "Cluster Cross ID",
+          "description": "The cross ID of the referenced Kafka cluster"
+        },
+        "connectionCrossId": {
+          "type": "string",
+          "title": "Connection Cross ID",
+          "description": "The cross ID of the connection within the referenced Kafka cluster"
+        }
+      },
+      "required": ["clusterCrossId", "connectionCrossId"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "backends": {
+      "type": "array",
+      "title": "Kafka Virtual Cluster Backends",
+      "description": "List of references to existing Kafka cluster connections",
+      "items": {
+        "$ref": "#/definitions/kafkaVirtualClusterBackend"
+      },
+      "minItems": 0
+    }
+  },
+  "required": ["backends"],
+  "additionalProperties": false
+}
