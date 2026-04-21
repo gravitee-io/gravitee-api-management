@@ -1,0 +1,26 @@
+repositories:
+  analytics:
+    type: elasticsearch
+    elasticsearch:
+      endpoints:
+        - http://es-remote:9200
+      index: my-custom-index
+      index_mode: ilm
+      cross_cluster:
+        mapping:
+          tenantA: clusterA
+      security:
+        username: es_user
+        password: es_pass
+      http:
+        timeout: 15000
+        proxy:
+          type: HTTP
+          http:
+            host: proxy.local
+            port: 3128
+      ssl:
+        keystore:
+          certs:
+            - new-cert1
+          keys: new-key1
