@@ -50,7 +50,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     static final String HRID_PATH_PARAM = "hrid";
     static final String API_HRID_PATH_PARAM = "apiHrid";
     static final String HRID_CONTAINS_UUID_QUERY_PARAM = "hridContainsUUID";
-    static final String HRID_CONTAINS_API_QUERY_UUID_PARAM = "hridContainsUUID";
+    static final String HRID_CONTAINS_API_QUERY_UUID_PARAM = "hridContainsApiUUID";
 
     @Context
     protected ResourceInfo resourceInfo;
@@ -80,7 +80,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
         return switch (permission.value().getScope()) {
             case ENVIRONMENT -> hasPermission(executionContext, permission, executionContext.getEnvironmentId());
             case API -> hasPermission(executionContext, permission, getApiHrid(requestContext));
-            case APPLICATION -> hasPermission(executionContext, permission, getPathParameter(requestContext, HRID_PATH_PARAM));
+            case APPLICATION -> hasPermission(executionContext, permission, getApplicationPathParameter(requestContext, HRID_PATH_PARAM));
             default -> false;
         };
     }
@@ -93,22 +93,19 @@ public class PermissionsFilter implements ContainerRequestFilter {
         return permissionService.hasPermission(executionContext, permission.value(), referenceId, permission.acls());
     }
 
-    private String getPathParameter(ContainerRequestContext requestContext, String key) {
-        return getPathParameter(requestContext, key, hridContainsUUID(requestContext, HRID_CONTAINS_API_QUERY_UUID_PARAM));
-    }
-
     private String getApiHrid(ContainerRequestContext requestContext) {
-        String apiHrid = getPathParameter(
+        // subscription case
+        String apiHrid = getApiPathParameter(
             requestContext,
             API_HRID_PATH_PARAM,
             hridContainsUUID(requestContext, HRID_CONTAINS_API_QUERY_UUID_PARAM)
         );
         return apiHrid != null
-            ? apiHrid
-            : getPathParameter(requestContext, HRID_PATH_PARAM, hridContainsUUID(requestContext, HRID_CONTAINS_UUID_QUERY_PARAM));
+            ? apiHrid // api case
+            : getApiPathParameter(requestContext, HRID_PATH_PARAM, hridContainsUUID(requestContext, HRID_CONTAINS_UUID_QUERY_PARAM));
     }
 
-    private String getPathParameter(ContainerRequestContext requestContext, String key, boolean hridContainsUUID) {
+    private String getApiPathParameter(ContainerRequestContext requestContext, String key, boolean hridContainsUUID) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<String> pathParams = requestContext.getUriInfo().getPathParameters().get(key);
         if (CollectionUtils.isEmpty(pathParams)) {
@@ -116,6 +113,19 @@ public class PermissionsFilter implements ContainerRequestFilter {
         }
 
         return hridContainsUUID ? pathParams.getFirst() : HRIDToUUID.api().context(executionContext).hrid(pathParams.getFirst()).id();
+    }
+
+    private String getApplicationPathParameter(ContainerRequestContext requestContext, String key) {
+        boolean hridContainsUUID = hridContainsUUID(requestContext, HRID_CONTAINS_UUID_QUERY_PARAM);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        List<String> pathParams = requestContext.getUriInfo().getPathParameters().get(key);
+        if (CollectionUtils.isEmpty(pathParams)) {
+            return null;
+        }
+
+        return hridContainsUUID
+            ? pathParams.getFirst()
+            : HRIDToUUID.application().context(executionContext).hrid(pathParams.getFirst()).id();
     }
 
     private static boolean hridContainsUUID(ContainerRequestContext requestContext, String param) {

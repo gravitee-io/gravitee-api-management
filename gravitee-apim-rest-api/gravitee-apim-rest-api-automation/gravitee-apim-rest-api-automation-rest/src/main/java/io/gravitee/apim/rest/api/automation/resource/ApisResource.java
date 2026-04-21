@@ -110,6 +110,8 @@ public class ApisResource extends AbstractResource {
             // it avoids confusion in the database
             apiCRDSpec.setHrid(null);
         } else {
+            // Generate deterministic CRD IDs for API, plans, and pages based on HRID and environment context.
+            // This ensures stable, unique identifiers for resources imported via CRD without legacy ID compatibility.
             CrdIdHelper.generateApiIds(apiCRDSpec, audit);
             CrdIdHelper.generatePlanIds(apiCRDSpec.getPlans(), apiCRDSpec.getHrid(), audit);
             CrdIdHelper.generatePageIds(apiCRDSpec.getPages(), apiCRDSpec.getHrid(), audit);

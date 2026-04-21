@@ -35,11 +35,8 @@ public class HRIDHelper {
     public static final String HEADER_X_GRAVITEE_SET_HRID = "X-Gravitee-Set-Hrid";
 
     /**
-     * Converts a given name to a Human-Readable Identifier (HRID).
-     * If the provided name is null or blank, a random HRID is generated instead.
-     * Non-alphanumeric leading and trailing characters are removed,
-     * and internal non-alphanumeric characters are replaced with dashes.
-     * The resulting HRID is converted to lowercase.
+     * Converts a given name to a Human-Readable Identifier (HRID) suitable for use
+     * as a URL-safe, lowercase resource identifier in the API.
      *
      * @param name The name to be converted to a HRID. Can be null or blank.
      * @return A human-readable identifier (HRID) generated from the provided name,

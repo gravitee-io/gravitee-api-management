@@ -37,12 +37,12 @@ import lombok.NoArgsConstructor;
 public class CrdIdHelper {
 
     public static void generateApiIds(ApiCRDSpec spec, AuditInfo audit) {
-        var api = HRIDToUUID.api().context(audit).hrid(spec.getHrid());
+        var idGenerator = HRIDToUUID.api().context(audit).hrid(spec.getHrid());
         if (spec.getId() == null) {
-            spec.setId(api.id());
+            spec.setId(idGenerator.id());
         }
         if (spec.getCrossId() == null) {
-            spec.setCrossId(api.crossId());
+            spec.setCrossId(idGenerator.crossId());
         }
     }
 
@@ -52,9 +52,9 @@ public class CrdIdHelper {
         }
         plans.forEach((key, planCRD) -> {
             if (planCRD.getId() == null) {
-                var plan = HRIDToUUID.plan().context(audit).api(apiHrid).plan(key);
-                planCRD.setId(plan.id());
-                planCRD.setCrossId(plan.apiCrossId());
+                var idGenerator = HRIDToUUID.plan().context(audit).api(apiHrid).plan(key);
+                planCRD.setId(idGenerator.id());
+                planCRD.setCrossId(idGenerator.apiCrossId());
             }
             if (
                 (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
@@ -86,12 +86,12 @@ public class CrdIdHelper {
     }
 
     public static void generateSharedPolicyGroupIds(SharedPolicyGroupCRD crd, AuditInfo audit) {
-        var spg = HRIDToUUID.sharedPolicyGroup().context(audit).hrid(crd.getHrid());
+        var idGenerator = HRIDToUUID.sharedPolicyGroup().context(audit).hrid(crd.getHrid());
         if (crd.getSharedPolicyGroupId() == null) {
-            crd.setSharedPolicyGroupId(spg.id());
+            crd.setSharedPolicyGroupId(idGenerator.id());
         }
         if (crd.getCrossId() == null) {
-            crd.setCrossId(spg.crossId());
+            crd.setCrossId(idGenerator.crossId());
         }
     }
 }
