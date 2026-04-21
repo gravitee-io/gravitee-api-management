@@ -22,8 +22,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
@@ -51,7 +56,19 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     void setUp() {
         PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
         pageContentQueryService = new PortalPageContentQueryServiceInMemory();
-        useCase = new GetPortalPageContentByNavigationIdUseCase(navigationItemsQueryService, pageContentQueryService);
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            navigationItemsQueryService,
+            new ApiPortalMembershipDomainService(
+                new MembershipQueryServiceInMemory(),
+                new SubscriptionQueryServiceInMemory(),
+                new ApiQueryServiceInMemory()
+            )
+        );
+        useCase = new GetPortalPageContentByNavigationIdUseCase(
+            navigationItemsQueryService,
+            pageContentQueryService,
+            apiVisibilityDomainService
+        );
 
         // Create page contents first with known IDs
         var supportContentId = PortalPageContentId.of(PortalNavigationItemFixtures.SUPPORT_CONTENT_ID);
