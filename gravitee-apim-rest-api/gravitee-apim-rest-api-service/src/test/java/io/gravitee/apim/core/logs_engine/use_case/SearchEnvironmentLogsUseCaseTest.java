@@ -25,6 +25,8 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -60,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
@@ -90,6 +93,7 @@ class SearchEnvironmentLogsUseCaseTest {
     private PlanCrudService planCrudService;
     private ApplicationCrudService applicationCrudService;
     private InstanceQueryService instanceQueryService;
+    private ApiProductQueryService apiProductQueryService;
     private SearchEnvironmentLogsUseCase useCase;
 
     @BeforeEach
@@ -100,13 +104,15 @@ class SearchEnvironmentLogsUseCaseTest {
         planCrudService = mock(PlanCrudService.class);
         applicationCrudService = mock(ApplicationCrudService.class);
         instanceQueryService = mock(InstanceQueryService.class);
+        apiProductQueryService = mock(ApiProductQueryService.class);
         useCase = new SearchEnvironmentLogsUseCase(
             connectionLogsCrudService,
             userContextLoader,
             logNamesPostProcessor,
             planCrudService,
             applicationCrudService,
-            instanceQueryService
+            instanceQueryService,
+            apiProductQueryService
         );
     }
 
@@ -1078,7 +1084,18 @@ class SearchEnvironmentLogsUseCaseTest {
                 .warnings(List.of(new ConnectionDiagnosticModel("type", "name", "key", "msg")))
                 .additionalMetrics(Map.of("custom", "metric"))
                 .mcpMethod("tools/list")
+                .apiProductId("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff")
                 .build();
+
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(
+                Set.of(
+                    ApiProduct.builder()
+                        .id("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff")
+                        .name("My Partner Product")
+                        .environmentId("env-id")
+                        .build()
+                )
+            );
 
             when(userContextLoader.loadApis(any())).thenReturn(
                 new UserContext(
@@ -1125,6 +1142,8 @@ class SearchEnvironmentLogsUseCaseTest {
 
                 soft.assertThat(log.additionalMetrics()).containsEntry("custom", "metric");
                 soft.assertThat(log.mcpMethod()).isEqualTo("tools/list");
+                soft.assertThat(log.apiProductId()).isEqualTo("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff");
+                soft.assertThat(log.apiProductName()).isEqualTo("My Partner Product");
             });
         }
 
@@ -1423,6 +1442,103 @@ class SearchEnvironmentLogsUseCaseTest {
 
             verify(logNamesPostProcessor).mapLogNames(any(), any());
         }
+
+        @Test
+        void should_batch_enrich_api_product_names() {
+            var productId = "f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff";
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .apiProductId(productId)
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(eq("env-id"), eq(Set.of(productId)))).thenReturn(
+                Set.of(ApiProduct.builder().id(productId).name("My Partner Product").environmentId("env-id").build())
+            );
+
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+
+            assertThat(response.data()).hasSize(1);
+            assertThat(response.data().getFirst().apiProductId()).isEqualTo(productId);
+            assertThat(response.data().getFirst().apiProductName()).isEqualTo("My Partner Product");
+        }
+
+        @Test
+        void should_not_call_api_product_service_when_no_logs_have_a_product_id() {
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .apiProductId(null)
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            verify(apiProductQueryService, never()).findByEnvironmentIdAndIdIn(any(), any());
+        }
+
+        @Test
+        void should_leave_api_product_name_null_when_product_id_not_found_in_service() {
+            var unknownProductId = UUID.randomUUID().toString();
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .apiProductId(unknownProductId)
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
+
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+
+            assertThat(response.data()).hasSize(1);
+            assertThat(response.data().getFirst().apiProductId()).isEqualTo(unknownProductId);
+            assertThat(response.data().getFirst().apiProductName()).isNull();
+        }
     }
 
     private SearchEnvironmentLogsUseCase.Output when_searching(SearchLogsRequest request) {
@@ -1435,6 +1551,7 @@ class SearchEnvironmentLogsUseCaseTest {
         when(planCrudService.findByIds(any())).thenReturn(List.of());
         when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
         when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
         return useCase.execute(new Input(AUDIT_INFO, request));
     }
 }
