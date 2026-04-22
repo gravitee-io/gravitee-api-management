@@ -21,14 +21,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
-import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 @AllArgsConstructor
 @UseCase
@@ -42,6 +41,12 @@ public class DeleteClusterUseCase {
     public record Output() {}
 
     public Output execute(Input input) {
+        Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.auditInfo.environmentId());
+
+        if (cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED || cluster.getLifecycleState() == ClusterLifecycleState.PENDING) {
+            throw new InvalidDataException("Cluster must be undeployed before deletion.");
+        }
+
         clusterCrudService.delete(input.clusterId, input.auditInfo.environmentId());
 
         createAuditLog(input.clusterId, input.auditInfo());

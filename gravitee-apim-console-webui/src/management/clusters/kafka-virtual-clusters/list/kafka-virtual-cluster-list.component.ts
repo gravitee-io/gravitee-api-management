@@ -26,9 +26,9 @@ import {
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
-import { BehaviorSubject, EMPTY, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, filter, map, tap } from 'rxjs/operators';
+import { catchError, concatMap, debounceTime, filter, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { isEqual } from 'lodash';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -194,13 +194,17 @@ export class KafkaVirtualClusterListComponent implements OnInit {
   }
 
   protected remove(cluster: PageTableVM['items'][number]) {
+    const isDeployed = cluster.lifecycleState === 'DEPLOYED' || cluster.lifecycleState === 'PENDING';
+
     this.matDialog
       .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          title: `Delete Kafka Virtual Cluster`,
-          content: `Are you sure you want to delete the Kafka Virtual Cluster?`,
-          confirmButton: `Yes, delete it`,
+          title: isDeployed ? `Undeploy and Delete Kafka Virtual Cluster` : `Delete Kafka Virtual Cluster`,
+          content: isDeployed
+            ? `The Kafka Virtual Cluster is currently deployed. It will be undeployed and then deleted. Are you sure?`
+            : `Are you sure you want to delete the Kafka Virtual Cluster?`,
+          confirmButton: isDeployed ? `Yes, undeploy and delete it` : `Yes, delete it`,
           validationMessage: `Please, type in the name of the cluster <code>${cluster.name}</code> to confirm.`,
           validationValue: cluster.name,
           warning: `This operation is irreversible.`,
@@ -211,7 +215,8 @@ export class KafkaVirtualClusterListComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter(confirm => confirm === true),
-        switchMap(() => this.clusterService.delete(cluster.id)),
+        concatMap(() => (isDeployed ? this.clusterService.undeploy(cluster.id) : of(null))),
+        concatMap(() => this.clusterService.delete(cluster.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

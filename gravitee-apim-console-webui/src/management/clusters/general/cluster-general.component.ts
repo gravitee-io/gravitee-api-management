@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
+import { catchError, filter, map, tap, concatMap } from 'rxjs/operators';
+import { EMPTY, of } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -137,13 +137,17 @@ export class ClusterGeneralComponent implements OnInit {
   }
 
   deleteCluster() {
+    const isDeployed = this.initialCluster.lifecycleState === 'DEPLOYED' || this.initialCluster.lifecycleState === 'PENDING';
+
     this.matDialog
       .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          title: `Delete Cluster`,
-          content: `Are you sure you want to delete the Cluster?`,
-          confirmButton: `Yes, delete it`,
+          title: isDeployed ? `Undeploy and Delete Cluster` : `Delete Cluster`,
+          content: isDeployed
+            ? `The Cluster is currently deployed. It will be undeployed and then deleted. Are you sure?`
+            : `Are you sure you want to delete the Cluster?`,
+          confirmButton: isDeployed ? `Yes, undeploy and delete it` : `Yes, delete it`,
           validationMessage: `Please, type in the name of the cluster <code>${this.initialCluster.name}</code> to confirm.`,
           validationValue: this.initialCluster.name,
           warning: `This operation is irreversible.`,
@@ -154,7 +158,8 @@ export class ClusterGeneralComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter(confirm => confirm === true),
-        switchMap(() => this.clusterService.delete(this.activatedRoute.snapshot.params.clusterId)),
+        concatMap(() => (isDeployed ? this.clusterService.undeploy(this.activatedRoute.snapshot.params.clusterId) : of(null))),
+        concatMap(() => this.clusterService.delete(this.activatedRoute.snapshot.params.clusterId)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

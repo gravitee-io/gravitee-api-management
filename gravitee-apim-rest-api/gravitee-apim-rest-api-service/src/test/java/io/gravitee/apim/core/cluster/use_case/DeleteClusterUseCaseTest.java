@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterCrudServiceInMemory;
@@ -24,7 +25,9 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,7 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
             .description("The cluster no 1")
             .environmentId(ENV_ID)
             .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
         clusterCrudService.initWith(List.of(existingCluster));
@@ -84,5 +88,25 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(deletedAudit);
+    }
+
+    @Test
+    void should_reject_deletion_when_cluster_is_deployed() {
+        existingCluster.setLifecycleState(ClusterLifecycleState.DEPLOYED);
+        clusterCrudService.initWith(List.of(existingCluster));
+
+        assertThatThrownBy(() -> deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("Cluster must be undeployed before deletion.");
+    }
+
+    @Test
+    void should_reject_deletion_when_cluster_is_pending() {
+        existingCluster.setLifecycleState(ClusterLifecycleState.PENDING);
+        clusterCrudService.initWith(List.of(existingCluster));
+
+        assertThatThrownBy(() -> deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("Cluster must be undeployed before deletion.");
     }
 }
