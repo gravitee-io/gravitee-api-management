@@ -119,6 +119,8 @@ const toGeneralColumnName = (api: ApiV4, endpointGroup: EndpointGroupV4): string
       return 'Bootstrap Servers';
     case 'NATIVE.native-kafka-cluster':
       return 'Cluster';
+    case 'NATIVE.native-kafka-virtual-cluster':
+      return 'Virtual Cluster';
     case 'MESSAGE.kafka':
       return 'Bootstrap Servers';
   }
@@ -137,6 +139,8 @@ const toGeneralInfo = (api: ApiV4, endpoint: EndpointV4): string | undefined => 
       // And display warning if cluster or connection is not found
       return connection ? `${cluster} / ${connection}` : cluster;
     }
+    case 'NATIVE.native-kafka-virtual-cluster':
+      return get(endpoint.configuration, 'virtualClusterCrossId', '');
     case 'MESSAGE.kafka':
       return get(endpoint.configuration, 'bootstrapServers', '');
   }
