@@ -33,3 +33,4 @@ export * from './lib/components/filter/dropdown-search/dropdown-search.component
 export * from './lib/components/filter/generic-filter-bar/generic-filter-bar.component';
 export * from './lib/components/filter/filter.model';
 export * from './lib/components/filter/filter-chip/filter-chip.component';
+export * from './lib/components/filter/dynamic-filter-bar/dynamic-filter-bar.component';

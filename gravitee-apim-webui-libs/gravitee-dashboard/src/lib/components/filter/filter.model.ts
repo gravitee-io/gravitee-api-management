@@ -22,13 +22,16 @@ export type FilterOperator = 'EQ' | 'NEQ' | 'IN' | 'NOT_IN' | 'LTE' | 'GTE';
 // FilterDefinition — mirrors the backend /filter-definitions endpoint response item.
 // All discriminant fields are widened to handle unknown values from future backend evolutions.
 export interface FilterDefinition {
-  name: FilterName | string; // wider: backend may send unknown field names
+  name: FilterName | string;
   label: string;
-  type: FilterType | string; // wider: backend may send unknown types (Phase 2 concern)
-  operators: (FilterOperator | string)[]; // wider: backend may send unknown operators
-  range?: { min: number; max: number }; // NUMBER only
-  values?: string[]; // ENUM only
+  type: FilterType | string;
+  operators: (FilterOperator | string)[];
+  range?: { min: number; max: number };
+  values?: string[];
+  apiTypes?: string[];
 }
+
+export const ID_BASED_FILTER_NAMES: ReadonlyArray<string> = ['API', 'APPLICATION', 'PLAN'];
 
 // FilterCondition — represents a single active filter applied by the user.
 // One condition per field at a time (enforced by filter-bar, Phase 2).
