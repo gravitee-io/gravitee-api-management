@@ -1,0 +1,48 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gd-dynamic-filter-bar">
+  <div class="gd-dynamic-filter-bar__controls">
+    <span class="gd-dynamic-filter-bar__label">Filters</span>
+
+    @if (editable()) {
+      <mat-chip class="gd-dynamic-filter-bar__add-btn" (click)="addRequested.emit()">
+        <span class="gd-dynamic-filter-bar__add-btn-icon" aria-hidden="true">+</span>
+        Add filter
+      </mat-chip>
+    }
+  </div>
+
+  @if (hasConditions()) {
+    <div class="gd-dynamic-filter-bar__chips">
+      @for (condition of conditions(); track condition.field; let i = $index) {
+        <gd-filter-chip
+          [filter]="condition"
+          [editable]="editable()"
+          (clicked)="editRequested.emit({ index: i, condition: condition })"
+          (removed)="removeRequested.emit(i)"
+        />
+      }
+    </div>
+
+    @if (editable()) {
+      <button mat-icon-button class="gd-dynamic-filter-bar__clear-btn" matTooltip="Clear all filters" (click)="clearRequested.emit()">
+        <mat-icon>filter_list_off</mat-icon>
+      </button>
+    }
+  }
+</div>
