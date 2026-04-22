@@ -1,0 +1,150 @@
+suite: Test API Bridge HTTPRoute
+templates:
+  - "api/api-httproute-bridge.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Does not render when bridge is disabled
+    set:
+      api:
+        services:
+          bridge:
+            enabled: false
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute when bridge and httpRoute are enabled
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 92
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - bridge.example.com
+              pathMatchType: PathPrefix
+              path: /api/_bridge
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-api-bridge
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: bridge.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /api/_bridge
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-api
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 92
+
+  - it: Uses bridge httpRoute values when bridge ingress and httpRoute are both enabled
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            ingress:
+              enabled: true
+              hosts:
+                - ingress.example.com
+              pathType: Prefix
+              path: /ingress-bridge
+            service:
+              externalPort: 92
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - bridge.example.com
+              pathMatchType: PathPrefix
+              path: /api/_bridge
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: bridge.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /api/_bridge
+
+  - it: Renders with filters
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 92
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - bridge.example.com
+              path: /api/_bridge
+              filters:
+                - type: ExtensionRef
+                  extensionRef:
+                    group: traefik.io
+                    kind: Middleware
+                    name: bridge-auth
+    asserts:
+      - equal:
+          path: spec.rules[0].filters[0].extensionRef.name
+          value: bridge-auth
+
+  - it: Does not render in dbLess mode
+    set:
+      apim:
+        dbLess: true
+      api:
+        services:
+          bridge:
+            enabled: true
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Does not render when api is disabled
+    set:
+      api:
+        enabled: false
+        services:
+          bridge:
+            enabled: true
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0

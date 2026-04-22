@@ -269,3 +269,97 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[2].value
           value: "next"
+
+  - it: Should set PORTAL_API_URL from httpRoute portal when ingress is disabled
+    template: portal/portal-deployment.yaml
+    set:
+      api:
+        ingress:
+          portal:
+            enabled: false
+        httpRoute:
+          portal:
+            enabled: true
+            scheme: https
+            hostnames:
+              - api.httpRoute.example.com
+            path: /portal
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "PORTAL_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "https://api.httpRoute.example.com/portal/"
+
+  - it: Should set PORTAL_BASE_HREF from portal httpRoute when ingress is disabled
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /custom-portal
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/custom-portal/"
+
+  - it: Should set PORTAL_BASE_HREF to / from portal httpRoute with root path
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/"
+
+  - it: Should prefer ingress path for PORTAL_BASE_HREF when ingress and httpRoute are both enabled
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        ingress:
+          enabled: true
+          path: /ingress-base
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /httpRoute-base
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/ingress-base/"

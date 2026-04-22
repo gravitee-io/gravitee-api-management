@@ -1,0 +1,302 @@
+suite: Test API Gateway HTTPRoute
+templates:
+  - "gateway/gateway-httproute.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Does not render when gateway is an Ingress Controller
+    set:
+      gateway:
+        ingressController:
+          enabled: true
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute with top-level gateway httpRoute
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gateway.example.com
+          pathMatchType: PathPrefix
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-gateway
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: gateway.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-gateway
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 82
+
+  - it: Uses top-level gateway httpRoute values when top-level ingress and httpRoute are both enabled
+    set:
+      gateway:
+        ingress:
+          enabled: true
+          hosts:
+            - ingress.example.com
+          path: /ingress-gateway
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gateway.example.com
+          pathMatchType: PathPrefix
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: gateway.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /
+
+  - it: Renders with custom parentRef namespace and sectionName
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: public-gw
+          gatewayNamespace: gateways
+          sectionName: websecure
+          hostnames:
+            - gw.example.com
+          path: /
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].name
+          value: public-gw
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateways
+      - equal:
+          path: spec.parentRefs[0].sectionName
+          value: websecure
+
+  - it: Renders with filters
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.example.com
+          path: /
+          filters:
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: proxy-headers
+    asserts:
+      - equal:
+          path: spec.rules[0].filters[0].extensionRef.name
+          value: proxy-headers
+
+  - it: Renders per-server HTTPRoutes from gateway.servers
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            service:
+              externalPort: 82
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw-0.example.com
+              pathMatchType: PathPrefix
+              path: /
+          - type: http
+            port: 1443
+            service:
+              externalPort: 43
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw-1.example.com
+              pathMatchType: PathPrefix
+              path: /
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: HTTPRoute
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-gateway-0
+        documentIndex: 0
+      - equal:
+          path: spec.hostnames[0]
+          value: gw-0.example.com
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 82
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-gateway-1
+        documentIndex: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: gw-1.example.com
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 43
+        documentIndex: 1
+
+  - it: Uses server httpRoute values when server ingress and httpRoute are both enabled
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            service:
+              externalPort: 82
+            ingress:
+              enabled: true
+              hosts:
+                - ingress.example.com
+              pathType: Prefix
+              path: /ingress-server
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw-0.example.com
+              pathMatchType: PathPrefix
+              path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: gw-0.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /
+
+  - it: Does not render servers with httpRoute disabled
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            httpRoute:
+              enabled: false
+          - type: http
+            port: 1443
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw.example.com
+              path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-gateway-1
+
+  - it: Renders common labels
+    chart:
+      version: 3.1.0
+      appVersion: 3.21.0
+    set:
+      common:
+        labels:
+          acme.com/team: api
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.example.com
+          path: /
+    asserts:
+      - equal:
+          path: metadata.labels["acme.com/team"]
+          value: api
+
+  - it: Renders common annotations
+    set:
+      common:
+        annotations:
+          acme.com/team: api
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.example.com
+          path: /
+    asserts:
+      - equal:
+          path: metadata.annotations["acme.com/team"]
+          value: api
+
+  - it: Renders route-level annotations
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.example.com
+          path: /
+          annotations:
+            external-dns.alpha.kubernetes.io/controller: ignore
+    asserts:
+      - equal:
+          path: metadata.annotations["external-dns.alpha.kubernetes.io/controller"]
+          value: ignore

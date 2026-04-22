@@ -30,7 +30,7 @@ data:
       {{- if .Values.ui.baseURL }}
       "baseURL": "{{ .Values.ui.baseURL }}"
       {{- else }}
-      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}"
+      "baseURL": "{{ include "ui.managementApiUrl" . }}"
       {{- end }}
       {{- if .Values.ui.enforceOrganizationId }},
       "organizationId": "{{ .Values.ui.enforceOrganizationId }}"
@@ -53,7 +53,7 @@ data:
       {{- if or .Values.gateway.enabled .Values.ui.title .Values.ui.portal }},
       "portal": {
         {{- if .Values.gateway.enabled }}
-        "entrypoint": "https://{{ index .Values.gateway.ingress.hosts 0 }}{{ .Values.gateway.ingress.path }}"
+        "entrypoint": "{{ include "ui.portalEntrypointUrl" . }}"
         {{- end }}
         {{- if .Values.ui.title }}{{ if .Values.gateway.enabled }},{{ end }}
         "title": "{{ .Values.ui.title }}"

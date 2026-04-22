@@ -74,3 +74,180 @@ tests:
               "scheduler": {"tasks":10},
               "defaultPortal": "next"
             }
+
+  - it: should derive portal entrypoint from the first gateway server ingress when top-level gateway ingress is disabled
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        servers:
+          - ingress:
+              enabled: true
+              hosts:
+                - gateway.example.com
+              path: /
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://gateway\.example\.com/"'
+
+  - it: should derive management API baseURL from httpRoute management when ingress is disabled
+    template: ui/ui-configmap.yaml
+    set:
+      api:
+        ingress:
+          management:
+            enabled: false
+        httpRoute:
+          management:
+            enabled: true
+            scheme: https
+            hostnames:
+              - api.httpRoute.example.com
+            path: /management
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"baseURL": "https://api\.httpRoute\.example\.com/management"'
+
+  - it: should derive portal entrypoint from top-level gateway httpRoute when ingress is disabled
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.httpRoute.example.com
+          path: /
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://gw\.httpRoute\.example\.com/"'
+
+  - it: should derive portal entrypoint from first gateway server httpRoute when server ingress is disabled
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        servers:
+          - httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw-server.httpRoute.example.com
+              path: /
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://gw-server\.httpRoute\.example\.com/"'
+
+  - it: should prefer gateway server ingress over server httpRoute and top-level routes
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: true
+          hosts:
+            - top-level-ingress.example.com
+          path: /top-level-ingress
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - top-level-httproute.example.com
+          path: /top-level-httproute
+        servers:
+          - ingress:
+              enabled: true
+              hosts:
+                - server-ingress.example.com
+              path: /server-ingress
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - server-httproute.example.com
+              path: /server-httproute
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://server-ingress\.example\.com/server-ingress"'
+
+  - it: should prefer gateway server httpRoute over top-level ingress when no server ingress matches
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: true
+          hosts:
+            - top-level-ingress.example.com
+          path: /top-level-ingress
+        servers:
+          - ingress:
+              enabled: false
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - server-httproute.example.com
+              path: /server-httproute
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://server-httproute\.example\.com/server-httproute"'
+
+  - it: should prefer top-level gateway ingress over top-level httpRoute when no server route matches
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: true
+          hosts:
+            - top-level-ingress.example.com
+          path: /top-level-ingress
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - top-level-httproute.example.com
+          path: /top-level-httproute
+        servers:
+          - ingress:
+              enabled: false
+            httpRoute:
+              enabled: false
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://top-level-ingress\.example\.com/top-level-ingress"'
+
+  - it: should skip non-matching servers and use the first later server route
+    template: ui/ui-configmap.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        servers:
+          - ingress:
+              enabled: false
+            httpRoute:
+              enabled: false
+          - httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - later-server.example.com
+              path: /later-server
+          - httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - ignored-server.example.com
+              path: /ignored-server
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: '"entrypoint": "https://later-server\.example\.com/later-server"'

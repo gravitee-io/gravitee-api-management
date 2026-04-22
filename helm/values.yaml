@@ -811,6 +811,16 @@ api:
         #  - hosts:
         #      - apim.example.com
         #    secretName: api-custom-cert
+      httpRoute:
+        enabled: false
+        gatewayName: ""
+        gatewayNamespace: ""
+        sectionName: ""
+        hostnames: []
+        pathMatchType: ""
+        path: ""
+        annotations: {}
+        filters: []
     subscription:
       enabled: false
 #      pre-expiration-notification-schedule: 15,10,5
@@ -843,6 +853,16 @@ api:
 #          annotations:
 #            kubernetes.io/ingress.class: nginx
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
+        httpRoute:
+          enabled: false
+          gatewayName: ""
+          gatewayNamespace: ""
+          sectionName: ""
+          hostnames: []
+          pathMatchType: ""
+          path: ""
+          annotations: {}
+          filters: []
         service:
 #       If you choose to enable this service, you'll need to expose the technical api
 #       on an accessible host outside of the pod: api.http.services.core.http.host
@@ -1002,6 +1022,39 @@ api:
       #    secretName: apim.example.com
       annotations:
         kubernetes.io/ingress.class: nginx
+  httpRoute:
+    management:
+      enabled: false
+      scheme: https
+      gatewayName: ""
+      gatewayNamespace: ""
+      sectionName: ""
+      hostnames: []
+      pathMatchType: ""
+      path: ""
+      annotations: {}
+      filters: []
+    portal:
+      enabled: false
+      scheme: https
+      gatewayName: ""
+      gatewayNamespace: ""
+      sectionName: ""
+      hostnames: []
+      pathMatchType: ""
+      path: ""
+      annotations: {}
+      filters: []
+    automation:
+      enabled: false
+      gatewayName: ""
+      gatewayNamespace: ""
+      sectionName: ""
+      hostnames: []
+      pathMatchType: ""
+      path: ""
+      annotations: {}
+      filters: []
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -1067,6 +1120,16 @@ api:
 #        - hosts:
 #            - apim.example.com
 #          secretName: api-custom-cert
+    httpRoute:
+      enabled: false
+      gatewayName: ""
+      gatewayNamespace: ""
+      sectionName: ""
+      hostnames: []
+      pathMatchType: ""
+      path: ""
+      annotations: {}
+      filters: []
     service:
       externalPort: 72
 
@@ -1649,6 +1712,16 @@ gateway:
         annotations: {}
 #            kubernetes.io/ingress.class: nginx
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
+      httpRoute:
+        enabled: false
+        gatewayName: ""
+        gatewayNamespace: ""
+        sectionName: ""
+        hostnames: []
+        pathMatchType: ""
+        path: ""
+        annotations: {}
+        filters: []
       service:
 #       If you choose to enable this service, you'll need to expose the technical api
 #       on an accessible host outside of the pod: api.http.services.core.http.host
@@ -1728,6 +1801,16 @@ gateway:
       #    - secretName: chart-example-tls
       #      hosts:
       #        - chart-example.local
+      httpRoute:
+        enabled: false
+        gatewayName: ""
+        gatewayNamespace: ""
+        sectionName: ""
+        hostnames: []
+        pathMatchType: ""
+        path: ""
+        annotations: {}
+        filters: []
     metrics:
       enabled: false
       prometheus:
@@ -1956,6 +2039,16 @@ gateway:
     #  - hosts:
     #      - apim.example.com
     #    secretName: api-custom-cert
+  httpRoute:
+    enabled: false
+    gatewayName: ""
+    gatewayNamespace: ""
+    sectionName: ""
+    hostnames: []
+    pathMatchType: ""
+    path: ""
+    annotations: {}
+    filters: []
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -2145,6 +2238,26 @@ portal:
     #  - hosts:
     #      - apim.example.com
     #    secretName: api-custom-cert
+  httpRoute:
+    enabled: false
+    gatewayName: ""
+    gatewayNamespace: ""
+    sectionName: ""
+    hostnames: []
+    pathMatchType: ""
+    path: ""
+    annotations: {}
+    filters: []
+    # - type: RequestHeaderModifier
+    #   requestHeaderModifier:
+    #     add:
+    #       - name: X-Forwarded-App
+    #         value: portal
+    # - type: ExtensionRef
+    #   extensionRef:
+    #     group: traefik.io
+    #     kind: Middleware
+    #     name: secure-headers
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -2343,6 +2456,26 @@ ui:
     #  - hosts:
     #      - apim.example.com
     #    secretName: api-custom-cert
+  httpRoute:
+    enabled: false
+    gatewayName: ""
+    gatewayNamespace: ""
+    sectionName: ""
+    hostnames: []
+    pathMatchType: ""
+    path: ""
+    annotations: {}
+    filters: []
+    # - type: RequestHeaderModifier
+    #   requestHeaderModifier:
+    #     add:
+    #       - name: X-Forwarded-App
+    #         value: console
+    # - type: ExtensionRef
+    #   extensionRef:
+    #     group: traefik.io
+    #     kind: Middleware
+    #     name: secure-headers
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little

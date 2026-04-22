@@ -437,3 +437,46 @@ tests:
           value:
             - name: portal.entrypoint
               value: https://my.custom.gateway.host/
+
+  - it: Auto configure portal entrypoint from top-level gateway httpRoute when ingress is disabled
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.httpRoute.example.com
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://gw.httpRoute.example.com/
+
+  - it: Auto configure portal entrypoint from server httpRoute when server ingress is disabled
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw-server.httpRoute.example.com
+              path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://gw-server.httpRoute.example.com/

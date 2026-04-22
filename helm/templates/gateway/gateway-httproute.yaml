@@ -1,0 +1,141 @@
+{{- if and .Values.gateway.enabled (not .Values.gateway.ingressController.enabled) -}}
+{{- $serviceGWName := include "gravitee.gateway.fullname" . -}}
+{{- $graviteeName := include "gravitee.name" . -}}
+{{- $serviceGWPort := .Values.gateway.service.externalPort -}}
+{{- if .Values.gateway.servers }}
+{{- range $i, $server := .Values.gateway.servers }}
+{{- $serverHttpRoute := default dict $server.httpRoute -}}
+{{- if (default false $serverHttpRoute.enabled) }}
+{{- $serverService := default dict $server.service -}}
+{{- $servicePort := default $server.port $serverService.externalPort -}}
+{{- $path := default "/" $serverHttpRoute.path -}}
+{{- $pathMatchType := default "PathPrefix" $serverHttpRoute.pathMatchType -}}
+{{- $hostnames := default (list) $serverHttpRoute.hostnames -}}
+{{- $filters := default (list) $serverHttpRoute.filters -}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ printf "%s-%d" $serviceGWName $i }}
+  labels:
+    app.kubernetes.io/name: {{ $graviteeName }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: {{ $.Values.gateway.image.tag | default $.Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ $.Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}
+    {{- if and $.Values.common $.Values.common.labels }}
+    {{- range $key, $value := $.Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- $hasAnnotations := or $serverHttpRoute.annotations (and $.Values.common $.Values.common.annotations) }}
+  {{- if $hasAnnotations }}
+  annotations:
+    {{- if $serverHttpRoute.annotations }}
+    {{- range $key, $value := $serverHttpRoute.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and $.Values.common $.Values.common.annotations }}
+    {{- range $key, $value := $.Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    - name: {{ required (printf "gateway.servers[%d].httpRoute.gatewayName is required when gateway.servers[%d].httpRoute.enabled=true" $i $i) $serverHttpRoute.gatewayName }}
+      {{- if $serverHttpRoute.gatewayNamespace }}
+      namespace: {{ $serverHttpRoute.gatewayNamespace }}
+      {{- end }}
+      {{- if $serverHttpRoute.sectionName }}
+      sectionName: {{ $serverHttpRoute.sectionName }}
+      {{- end }}
+  {{- if gt (len $hostnames) 0 }}
+  hostnames:
+    {{- range $hostname := $hostnames }}
+    - {{ $hostname | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ $pathMatchType }}
+            value: {{ $path }}
+      {{- if gt (len $filters) 0 }}
+      filters:
+{{ toYaml $filters | indent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $serviceGWName }}
+          port: {{ $servicePort }}
+{{ end }}
+{{- end }}
+{{- else }}
+{{- $httpRoute := default dict .Values.gateway.httpRoute -}}
+{{- if (default false $httpRoute.enabled) -}}
+{{- $path := default "/" $httpRoute.path -}}
+{{- $pathMatchType := default "PathPrefix" $httpRoute.pathMatchType -}}
+{{- $hostnames := default (list) $httpRoute.hostnames -}}
+{{- $filters := default (list) $httpRoute.filters -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ template "gravitee.gateway.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gateway.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- $hasAnnotations := or $httpRoute.annotations (and .Values.common .Values.common.annotations) }}
+  {{- if $hasAnnotations }}
+  annotations:
+    {{- if $httpRoute.annotations }}
+    {{- range $key, $value := $httpRoute.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    - name: {{ required "gateway.httpRoute.gatewayName is required when gateway.httpRoute.enabled=true" $httpRoute.gatewayName }}
+      {{- if $httpRoute.gatewayNamespace }}
+      namespace: {{ $httpRoute.gatewayNamespace }}
+      {{- end }}
+      {{- if $httpRoute.sectionName }}
+      sectionName: {{ $httpRoute.sectionName }}
+      {{- end }}
+  {{- if gt (len $hostnames) 0 }}
+  hostnames:
+    {{- range $hostname := $hostnames }}
+    - {{ $hostname | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ $pathMatchType }}
+            value: {{ $path }}
+      {{- if gt (len $filters) 0 }}
+      filters:
+{{ toYaml $filters | indent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $serviceGWName }}
+          port: {{ $serviceGWPort }}
+{{- end -}}
+{{- end }}
+{{- end -}}

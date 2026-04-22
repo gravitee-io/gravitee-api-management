@@ -1,0 +1,126 @@
+suite: Test UI HTTPRoute
+templates:
+  - "ui/ui-httproute.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute with ingress defaults
+    set:
+      ui:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: apim.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: RegularExpression
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /console(/.*)?
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-ui
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8002
+
+  - it: Renders custom parentRef path and middleware filters
+    set:
+      ui:
+        httpRoute:
+          enabled: true
+          gatewayName: public-gateway
+          gatewayNamespace: gateways
+          sectionName: websecure
+          hostnames:
+            - console.example.com
+          pathMatchType: PathPrefix
+          path: /console
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                add:
+                  - name: X-Forwarded-App
+                    value: console
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: secure-headers
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateways
+      - equal:
+          path: spec.parentRefs[0].sectionName
+          value: websecure
+      - equal:
+          path: spec.hostnames[0]
+          value: console.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /console
+      - equal:
+          path: spec.rules[0].filters[0].type
+          value: RequestHeaderModifier
+      - equal:
+          path: spec.rules[0].filters[0].requestHeaderModifier.add[0].name
+          value: X-Forwarded-App
+
+  - it: Renders generic URLRewrite and ExtensionRef filters as provided
+    set:
+      ui:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          filters:
+            - type: URLRewrite
+              urlRewrite:
+                path:
+                  type: ReplacePrefixMatch
+                  replacePrefixMatch: /
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: strip-console-prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].filters[0].type
+          value: URLRewrite
+      - equal:
+          path: spec.rules[0].filters[0].urlRewrite.path.type
+          value: ReplacePrefixMatch
+      - equal:
+          path: spec.rules[0].filters[1].extensionRef.name
+          value: strip-console-prefix
+
+  - it: Does not render in dbLess mode
+    set:
+      apim:
+        dbLess: true
+      ui:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0

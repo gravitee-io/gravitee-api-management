@@ -1,0 +1,70 @@
+{{- if and (.Values.gateway.enabled) (not .Values.apim.dbLess) -}}
+{{- if .Values.gateway.services.bridge.enabled -}}
+{{- $httpRoute := default dict .Values.gateway.services.bridge.httpRoute -}}
+{{- if (default false $httpRoute.enabled) -}}
+{{- $serviceGWName := include "gravitee.gateway.fullname" . -}}
+{{- $serviceGWPort := .Values.gateway.services.bridge.service.externalPort -}}
+{{- $path := default "/_bridge" $httpRoute.path -}}
+{{- $pathMatchType := default "PathPrefix" $httpRoute.pathMatchType -}}
+{{- $hostnames := default (list) $httpRoute.hostnames -}}
+{{- $filters := default (list) $httpRoute.filters -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $serviceGWName }}-bridge
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gateway.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- $hasAnnotations := or $httpRoute.annotations (and .Values.common .Values.common.annotations) }}
+  {{- if $hasAnnotations }}
+  annotations:
+    {{- if $httpRoute.annotations }}
+    {{- range $key, $value := $httpRoute.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    - name: {{ required "gateway.services.bridge.httpRoute.gatewayName is required when gateway.services.bridge.httpRoute.enabled=true" $httpRoute.gatewayName }}
+      {{- if $httpRoute.gatewayNamespace }}
+      namespace: {{ $httpRoute.gatewayNamespace }}
+      {{- end }}
+      {{- if $httpRoute.sectionName }}
+      sectionName: {{ $httpRoute.sectionName }}
+      {{- end }}
+  {{- if gt (len $hostnames) 0 }}
+  hostnames:
+    {{- range $hostname := $hostnames }}
+    - {{ $hostname | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ $pathMatchType }}
+            value: {{ $path }}
+      {{- if gt (len $filters) 0 }}
+      filters:
+{{ toYaml $filters | indent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $serviceGWName }}
+          port: {{ $serviceGWPort }}
+{{- end -}}
+{{- end -}}
+{{- end -}}

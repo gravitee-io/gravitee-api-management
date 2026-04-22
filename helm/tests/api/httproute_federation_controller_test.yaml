@@ -1,0 +1,136 @@
+suite: Test API Federation Controller HTTPRoute
+templates:
+  - "api/api-httproute-federation-controller.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Does not render when federation is disabled
+    set:
+      api:
+        federation:
+          enabled: false
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute when federation and httpRoute are enabled
+    set:
+      api:
+        federation:
+          enabled: true
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+            path: /integration-controller
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-api-integration-controller
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: api.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /integration-controller
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-api
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 72
+
+  - it: Uses federation httpRoute values when federation ingress and httpRoute are both enabled
+    set:
+      api:
+        federation:
+          enabled: true
+          ingress:
+            enabled: true
+            hosts:
+              - ingress.example.com
+            pathType: Prefix
+            path: /ingress-federation
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+            path: /integration-controller
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: api.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /integration-controller
+
+  - it: Renders with ExtensionRef filter for rewrite behavior
+    set:
+      api:
+        federation:
+          enabled: true
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: RegularExpression
+            path: /integration-controller(/.*)?
+            filters:
+              - type: ExtensionRef
+                extensionRef:
+                  group: traefik.io
+                  kind: Middleware
+                  name: federation-strip-regex
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: RegularExpression
+      - equal:
+          path: spec.rules[0].filters[0].extensionRef.name
+          value: federation-strip-regex
+
+  - it: Renders custom parentRef with namespace and sectionName
+    set:
+      api:
+        federation:
+          enabled: true
+          httpRoute:
+            enabled: true
+            gatewayName: public-gateway
+            gatewayNamespace: gateways
+            sectionName: websecure
+            hostnames:
+              - api.example.com
+            path: /integration-controller
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateways
+      - equal:
+          path: spec.parentRefs[0].sectionName
+          value: websecure
