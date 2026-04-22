@@ -21,6 +21,7 @@ import { provideRouter } from '@angular/router';
 
 import { PaginatedTableComponent, TableAction, TableColumn } from './paginated-table.component';
 import { PaginatedTableHarness } from './paginated-table.harness';
+import { TableCellDirective } from './table-cell.directive';
 
 type TestRow = {
   id: string;
@@ -30,7 +31,7 @@ type TestRow = {
 
 @Component({
   standalone: true,
-  imports: [PaginatedTableComponent],
+  imports: [PaginatedTableComponent, TableCellDirective],
   template: `
     <app-paginated-table
       [columns]="columns"
@@ -41,7 +42,13 @@ type TestRow = {
       [navigable]="navigable"
       [actions]="actions"
       (actionClick)="onActionClick($event)"
-    />
+    >
+      @if (withCustomNameCell) {
+        <ng-template appTableCell="name" let-row>
+          <span class="custom-name-cell">custom:{{ row.name }}</span>
+        </ng-template>
+      }
+    </app-paginated-table>
   `,
 })
 class TestHostComponent {
@@ -55,6 +62,7 @@ class TestHostComponent {
   pageSize = 10;
   navigable = true;
   actions: TableAction<TestRow>[] = [];
+  withCustomNameCell = false;
   receivedAction: { actionId: string; row: TestRow } | null = null;
 
   onActionClick(event: { actionId: string; row: TestRow }): void {
@@ -112,5 +120,26 @@ describe('PaginatedTableComponent', () => {
       actionId: 'delete',
       row: host.rows[0],
     });
+  });
+
+  it('should render default text for a column without a custom template', async () => {
+    fixture.detectChanges();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PaginatedTableHarness);
+
+    const cell = await harness.getCellElement(0, 'name');
+    expect((await cell?.text())?.trim()).toBe('First row');
+  });
+
+  it('should project a custom cell template by column id', async () => {
+    host.withCustomNameCell = true;
+    fixture.detectChanges();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PaginatedTableHarness);
+
+    const cell = await harness.getCellElement(0, 'name');
+    expect((await cell?.text())?.trim()).toBe('custom:First row');
+
+    // Other columns still use the default rendering.
+    const dateCell = await harness.getCellElement(0, 'createdAt');
+    expect((await dateCell?.text())?.trim()).toBe('2026-01-01');
   });
 });
