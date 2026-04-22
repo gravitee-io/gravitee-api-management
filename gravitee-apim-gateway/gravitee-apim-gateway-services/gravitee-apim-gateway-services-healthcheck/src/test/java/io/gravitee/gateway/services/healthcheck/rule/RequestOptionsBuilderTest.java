@@ -25,6 +25,7 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.node.api.Node;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.net.SocketAddress;
 import java.net.URL;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class RequestOptionsBuilderTest {
         RequestOptions options = builder.build(new URL("http://actual-backend.example.com:8080/health"), step);
 
         assertThat(options.getHost()).isEqualTo("custom-host.example.com");
-        assertThat(options.getServer().host()).isEqualTo("actual-backend.example.com");
+        assertThat(((SocketAddress) options.getServer()).host()).isEqualTo("actual-backend.example.com");
     }
 
     @Test
