@@ -173,6 +173,7 @@ import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.use_case.SearchUsersUseCase;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -1347,6 +1348,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ClientCertificateValidationDomainService clientCertificateValidationDomainService() {
         return mock(ClientCertificateValidationDomainService.class);
+    }
+
+    @Bean
+    public SearchUsersUseCase searchUsersUseCase() {
+        return mock(SearchUsersUseCase.class);
     }
 
     @Bean

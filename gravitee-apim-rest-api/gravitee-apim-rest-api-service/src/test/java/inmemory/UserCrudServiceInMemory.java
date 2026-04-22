@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlternative<BaseUserEntity> {
 
-    private final List<BaseUserEntity> storage = new ArrayList<>();
+    final List<BaseUserEntity> storage = new ArrayList<>();
 
     @Override
     public Optional<BaseUserEntity> findBaseUserById(String userId) {

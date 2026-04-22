@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static java.util.function.Predicate.not;
 
+import io.gravitee.apim.core.user.model.UserSearchQuery;
+import io.gravitee.apim.core.user.use_case.SearchUsersUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
@@ -24,15 +27,16 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
+import io.gravitee.rest.api.portal.rest.mapper.UsersSearchQueryMapper;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -42,9 +46,10 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -59,7 +64,9 @@ public class UsersResource extends AbstractResource {
     private UserService userService;
 
     @Inject
-    private IdentityService identityService;
+    private SearchUsersUseCase searchUsersUseCase;
+
+    private final UsersSearchQueryMapper usersSearchQueryMapper = UsersSearchQueryMapper.INSTANCE;
 
     /**
      * Register a new user. Generate a token and send it in an email to allow a user
@@ -136,30 +143,59 @@ public class UsersResource extends AbstractResource {
         return Response.serverError().build();
     }
 
+    /**
+     * Keeps reading pagination parameters and letting createListResponse expose them for backward compatibility with the
+     * legacy endpoint contract. IdentityManager-backed user search does not apply pagination at the source, so passing
+     * pageable input to the use case would incorrectly suggest that backend pagination is supported.
+     */
     @POST
     @Path("_search")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ) })
-    public Response getUsers(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam) {
-        String q = query;
-        if (q == null) {
-            q = "*";
-        }
-        List<User> users = identityService
-            .search(q)
-            .stream()
-            .map(searchableUser ->
-                userMapper
-                    .convert(searchableUser)
-                    .links(
-                        userMapper.computeUserLinks(PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()), null)
-                    )
-            )
-            .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastName(), o2.getLastName()))
-            .collect(Collectors.toList());
+    public Response getUsers(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam, UsersSearchInput input) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var searchQuery = resolveSearchQuery(query, input);
+        var applicationMembership = resolveApplicationMembership(input);
+        ensureCanReadApplicationMembership(executionContext, applicationMembership);
+        var output = searchUsersUseCase.execute(new SearchUsersUseCase.Input(executionContext, searchQuery, applicationMembership));
 
-        // No pagination, because userService did it already
-        return createListResponse(GraviteeContext.getExecutionContext(), users, paginationParam, false);
+        List<User> users = output
+            .data()
+            .stream()
+            .map(searchUser ->
+                userMapper
+                    .convert(searchUser)
+                    .links(userMapper.computeUserLinks(PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchUser.id()), null))
+            )
+            .toList();
+
+        var metadata = createUsersSearchMetadata(output);
+        return createListResponse(executionContext, users, paginationParam, metadata, false);
+    }
+
+    private UserSearchQuery resolveSearchQuery(String query, UsersSearchInput input) {
+        if (query != null && input != null) {
+            throw new BadRequestException("Query parameter 'q' cannot be used together with request body.");
+        }
+
+        if (query != null) {
+            return new UserSearchQuery(query);
+        }
+
+        if (input != null) {
+            return usersSearchQueryMapper.toSearchQuery(input);
+        }
+
+        return new UserSearchQuery(null);
+    }
+
+    private Optional<String> resolveApplicationMembership(UsersSearchInput input) {
+        if (input == null || input.getIncludes() == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(input.getIncludes().getApplicationMembership()).filter(not(String::isBlank));
     }
 
     @GET
@@ -178,43 +214,24 @@ public class UsersResource extends AbstractResource {
         return createPictureResponse(request, (InlinePictureEntity) picture);
     }
 
-    private static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
+    private Map<String, Map<String, Object>> createUsersSearchMetadata(SearchUsersUseCase.Output output) {
+        if (output.applicationMembership() == null) {
+            return null;
+        }
 
-    private static class CaseInsensitiveComparator implements Comparator<String>, java.io.Serializable {
+        Map<String, Map<String, Object>> metadata = new HashMap<>();
+        metadata.put("applicationMembership", new HashMap<>(output.applicationMembership()));
+        return metadata;
+    }
 
-        // use serialVersionUID from JDK 1.2.2 for interoperability
-        private static final long serialVersionUID = 8575799808933029326L;
-
-        @Override
-        public int compare(String s1, String s2) {
-            if (s1 == null) return 1;
-            if (s2 == null) return -1;
-
-            int n1 = s1.length();
-            int n2 = s2.length();
-            int min = Math.min(n1, n2);
-            for (int i = 0; i < min; i++) {
-                char c1 = s1.charAt(i);
-                char c2 = s2.charAt(i);
-                if (c1 != c2) {
-                    c1 = Character.toUpperCase(c1);
-                    c2 = Character.toUpperCase(c2);
-                    if (c1 != c2) {
-                        c1 = Character.toLowerCase(c1);
-                        c2 = Character.toLowerCase(c2);
-                        if (c1 != c2) {
-                            // No overflow because of numeric promotion
-                            return c1 - c2;
-                        }
-                    }
-                }
+    private void ensureCanReadApplicationMembership(
+        io.gravitee.rest.api.service.common.ExecutionContext executionContext,
+        Optional<String> applicationMembership
+    ) {
+        applicationMembership.ifPresent(applicationId -> {
+            if (!hasPermission(executionContext, RolePermission.APPLICATION_MEMBER, applicationId, READ)) {
+                throw new ForbiddenAccessException();
             }
-            return n1 - n2;
-        }
-
-        /** Replaces the de-serialized object. */
-        private Object readResolve() {
-            return CASE_INSENSITIVE_ORDER;
-        }
+        });
     }
 }
