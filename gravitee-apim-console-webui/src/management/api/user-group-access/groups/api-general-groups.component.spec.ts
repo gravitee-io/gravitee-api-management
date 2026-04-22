@@ -72,7 +72,7 @@ describe('ApiGeneralGroupsComponent', () => {
 
   describe('Groups tab for user with writing rights', () => {
     beforeEach(async () => {
-      await init(['api-definition-u', 'api-member-u']);
+      await init(['api-member-u']);
     });
 
     it('should show groups', async () => {
@@ -108,7 +108,7 @@ describe('ApiGeneralGroupsComponent', () => {
         declarations: [ApiGeneralMembersComponent],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
-          { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-member-u'] },
+          { provide: GioTestingPermissionProvider, useValue: ['api-member-u'] },
           { provide: MatDialog, useValue: matDialogSpy },
         ],
       }).compileComponents();
@@ -125,8 +125,7 @@ describe('ApiGeneralGroupsComponent', () => {
 
       [groupId1, groupId2].forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
       await harness.manageGroupsClick();
-      expectApiGetRequest({ ...api, groups: mockedReturnedGroups });
-      expectApiPutRequest({ ...api, groups: mockedReturnedGroups });
+      expectApiGroupsPutRequest(apiId, mockedReturnedGroups);
       expectApiGetRequest({ ...api, groups: mockedReturnedGroups });
       expectGetGroupsListRequest(mockedReturnedGroups);
       expectApiMembersGetRequest({ ...api, groups: mockedReturnedGroups });
@@ -172,7 +171,7 @@ describe('ApiGeneralGroupsComponent', () => {
       await init(['api-definition-r', 'api-member-r', 'api-gateway_definition-u']);
     });
 
-    it('should display list of groups', async () => {
+    it('should not show manage groups button', async () => {
       const api = fakeApiV4({ id: apiId, groups: [groupId1, groupId2] });
       await expectGetRequests(api, [groupId1, groupId2]);
       httpTestingController
@@ -190,14 +189,7 @@ describe('ApiGeneralGroupsComponent', () => {
 
       expect(await harness.getGroupsNames()).toEqual(api.groups.map(id => `Group ${id}-name`));
       expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
-
-      await harness.manageGroupsClick();
-
-      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
-      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(true);
-      expect(await groupsHarness.getReadOnlyGroupsText()).toContain(`${groupId1}-name, ${groupId2}-name`);
-      expect(await groupsHarness.isFillFormPresent()).toEqual(false);
-      expect(await groupsHarness.isSaveButtonVisible()).toEqual(false);
+      expect(await harness.isManageGroupsButtonVisible()).toEqual(false);
     });
   });
 
@@ -213,8 +205,8 @@ describe('ApiGeneralGroupsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiPutRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
+  function expectApiGroupsPutRequest(apiId: string, groups: string[]) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/groups`, method: 'PUT' }).flush(groups);
   }
 
   function expectGetGroupsListRequest(groups: string[]) {
