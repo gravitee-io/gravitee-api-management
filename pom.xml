@@ -332,7 +332,7 @@
         <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
 
         <!-- Gamma plugins -->
-        <gravitee-gamma-module-aim.version>1.0.0-alpha.2</gravitee-gamma-module-aim.version>
+        <gravitee-gamma-module-aim.version>1.0.0-alpha.3</gravitee-gamma-module-aim.version>
         <gravitee-gamma-module-authz.version>1.0.0-alpha.1</gravitee-gamma-module-authz.version>
     </properties>
 
