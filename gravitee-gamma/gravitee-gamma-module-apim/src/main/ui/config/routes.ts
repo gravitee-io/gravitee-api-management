@@ -15,16 +15,33 @@
  */
 import type { NavigateFunction } from 'react-router-dom';
 
-export const ROUTE_KEYS = ['apis', 'applications', 'analytics', 'settings'] as const;
+export const ROUTE_KEYS = [
+    'dashboard',
+    'apis',
+    'api-proxy-wizard',
+    'migration-studio',
+    'api-products',
+    'api-designer',
+    'dashboards',
+    'logs',
+    'lineage',
+    'settings',
+] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 const ROUTE_KEY_SET = new Set<string>(ROUTE_KEYS);
-const DEFAULT_ROUTE_KEY = 'apis';
+const DEFAULT_ROUTE_KEY = 'dashboard';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
-    apis: { path: 'apis', label: 'APIs' },
-    applications: { path: 'applications', label: 'Applications' },
-    analytics: { path: 'analytics', label: 'Analytics' },
+    dashboard: { path: 'dashboard', label: 'Dashboard' },
+    apis: { path: 'apis', label: 'API Proxies' },
+    'api-proxy-wizard': { path: 'api-proxy-wizard', label: 'API Proxy Wizard' },
+    'migration-studio': { path: 'migration-studio', label: 'Migration Studio' },
+    'api-products': { path: 'api-products', label: 'API Products' },
+    'api-designer': { path: 'api-designer', label: 'API Designer' },
+    dashboards: { path: 'dashboards', label: 'Dashboards' },
+    logs: { path: 'logs', label: 'Logs' },
+    lineage: { path: 'lineage', label: 'Lineage' },
     settings: { path: 'settings', label: 'Settings' },
 };
 
@@ -59,5 +76,5 @@ export function navigateToNavKey(navigate: NavigateFunction, modulePrefix: strin
         navigate(`/${modulePrefix}/${key}`);
         return;
     }
-    navigate(key === 'apis' ? '/' : `/${key}`);
+    navigate(key === DEFAULT_ROUTE_KEY ? '/' : `/${key}`);
 }

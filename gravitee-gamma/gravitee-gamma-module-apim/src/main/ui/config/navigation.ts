@@ -14,24 +14,37 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { Activity, Boxes, Computer, Settings } from 'lucide-react';
+
+import { BarChart3, FileText, LayoutDashboard, Network, Package, PencilRuler, Radio, Wrench } from 'lucide-react';
 
 import { ROUTES } from './routes';
 
 export const NAV_GROUPS: NavGroup[] = [
     {
-        label: 'Management',
+        label: 'Overview',
+        items: [{ key: 'dashboard', title: ROUTES.dashboard.label, icon: LayoutDashboard }],
+    },
+    {
+        label: 'Manage',
         items: [
-            { key: 'apis', title: ROUTES.apis.label, icon: Computer },
-            { key: 'applications', title: ROUTES.applications.label, icon: Boxes },
+            { key: 'apis', title: ROUTES.apis.label, icon: Radio },
+            { key: 'api-products', title: ROUTES['api-products'].label, icon: Package },
         ],
     },
     {
-        label: 'Observability',
-        items: [{ key: 'analytics', title: ROUTES.analytics.label, icon: Activity }],
+        label: 'Design',
+        items: [{ key: 'api-designer', title: ROUTES['api-designer'].label, icon: PencilRuler }],
     },
     {
-        label: 'Configuration',
-        items: [{ key: 'settings', title: ROUTES.settings.label, icon: Settings }],
+        label: 'Observe',
+        items: [
+            { key: 'dashboards', title: ROUTES.dashboards.label, icon: BarChart3 },
+            { key: 'logs', title: ROUTES.logs.label, icon: FileText },
+            { key: 'lineage', title: ROUTES.lineage.label, icon: Network },
+        ],
+    },
+    {
+        label: '',
+        items: [{ key: 'migration-studio', title: ROUTES['migration-studio'].label, icon: Wrench }],
     },
 ];
