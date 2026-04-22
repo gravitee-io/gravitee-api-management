@@ -34,6 +34,7 @@ import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api
 import { ApplicationLogComponent } from './dashboard/application-details/application-tab-logs/application-log/application-log.component';
 import { ApplicationLogTableComponent } from './dashboard/application-details/application-tab-logs/application-log-table/application-log-table.component';
 import { ApplicationTabLogsComponent } from './dashboard/application-details/application-tab-logs/application-tab-logs.component';
+import { ApplicationTabMembersComponent } from './dashboard/application-details/application-tab-members/application-tab-members.component';
 import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
@@ -201,6 +202,10 @@ export const routes: Routes = [
             path: 'settings',
             component: ApplicationTabSettingsComponent,
             resolve: { applicationTypeConfiguration: applicationTypeResolver },
+          },
+          {
+            path: 'members',
+            component: ApplicationTabMembersComponent,
           },
         ],
       },

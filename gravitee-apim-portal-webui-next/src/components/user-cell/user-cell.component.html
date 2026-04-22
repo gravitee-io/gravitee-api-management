@@ -1,0 +1,35 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="user-cell">
+  @if (showAvatar()) {
+    <img class="user-cell__avatar" [src]="user().avatarUrl" [alt]="user().displayName" (error)="onAvatarError()" />
+  } @else {
+    <span class="user-cell__initials next-gen-caption" aria-hidden="true">{{ user().initials }}</span>
+  }
+  <div class="user-cell__text">
+    <span class="user-cell__primary next-gen-body">
+      {{ user().displayName }}
+      @if (isCurrentUser()) {
+        <span class="user-cell__you next-gen-caption" i18n="@@userCellYouLabel">(you)</span>
+      }
+    </span>
+    @if (user().email) {
+      <span class="user-cell__secondary next-gen-caption">{{ user().email }}</span>
+    }
+  </div>
+</div>

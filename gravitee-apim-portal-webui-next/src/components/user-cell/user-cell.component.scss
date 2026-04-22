@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/theme/index' as app-theme;
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: app-theme.$default-text-contrast-color;
+    background-color: app-theme.$user-avatar-text-color;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__secondary {
+    color: app-theme.$secondary-main-color;
+  }
+
+  &__you {
+    margin-left: 4px;
+    color: app-theme.$secondary-main-color;
+  }
+}

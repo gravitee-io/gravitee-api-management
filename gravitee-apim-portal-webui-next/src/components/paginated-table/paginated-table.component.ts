@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DatePipe } from '@angular/common';
-import { Component, computed, input, output } from '@angular/core';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { Component, computed, contentChildren, input, output, TemplateRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 
+import { TableCellContext, TableCellDirective } from './table-cell.directive';
 import { DEFAULT_PAGE_SIZE_OPTIONS, PaginationComponent } from '../pagination/pagination.component';
 
 export interface TableColumn {
@@ -40,7 +41,7 @@ export interface TableAction<T> {
 @Component({
   selector: 'app-paginated-table',
   standalone: true,
-  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent, MatButtonModule],
+  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent, MatButtonModule, NgTemplateOutlet],
   templateUrl: './paginated-table.component.html',
   styleUrl: './paginated-table.component.scss',
 })
@@ -58,8 +59,18 @@ export class PaginatedTableComponent<T> {
   pageSizeChange = output<number>();
   actionClick = output<{ actionId: string; row: T }>();
 
+  private readonly cellDefs = contentChildren(TableCellDirective);
+
+  readonly cellTemplates = computed(() => {
+    const map = new Map<string, TemplateRef<TableCellContext<T>>>();
+    for (const def of this.cellDefs()) {
+      map.set(def.appTableCell(), def.templateRef as TemplateRef<TableCellContext<T>>);
+    }
+    return map;
+  });
+
   displayedColumns = computed(() => [
-    ...this.columns().map(c => c.id as string),
+    ...this.columns().map(column => column.id),
     ...(this.actions().length > 0 ? ['actions'] : []),
     ...(this.navigable() ? ['expand'] : []),
   ]);

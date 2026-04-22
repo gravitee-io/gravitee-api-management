@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input } from '@angular/core';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { Application } from '../../../entities/application/application';
+import { UserApplicationPermissions } from '../../../entities/permission/permission';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { applicationListBreadcrumb } from '../applications/application-breadcrumbs';
 
@@ -29,7 +30,11 @@ import { applicationListBreadcrumb } from '../applications/application-breadcrum
 })
 export default class ApplicationComponent {
   private readonly breadcrumbService = inject(BreadcrumbService);
+
   readonly application = input.required<Application>();
+  readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
+
+  readonly canViewMembersTab = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
 
   constructor() {
     effect(() => {
