@@ -31,4 +31,8 @@ export interface UpdateApiProduct {
    * List of API IDs included in the product.
    */
   apiIds?: string[];
+  /**
+   * Groups attached to this API Product.
+   */
+  groups?: string[];
 }

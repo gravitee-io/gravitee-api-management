@@ -40,6 +40,10 @@ export interface ApiProduct {
    */
   apiIds?: string[];
   /**
+   * Groups attached to this API Product (membership access through the console).
+   */
+  groups?: string[];
+  /**
    * The date (as timestamp) when the API Product was created.
    */
   createdAt?: Date;
