@@ -15,6 +15,7 @@
  */
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
@@ -23,17 +24,21 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
-import { ApiProductMembersComponent } from './api-product-members.component';
+import { ApiProductMembersComponent, GROUP_LIST_PAGE_SIZE } from './api-product-members.component';
+import { ApiProductGroupsDialogHarness } from './api-product-groups/api-product-groups.component.harness';
 import { ApiProductMembersComponentHarness } from './api-product-members.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Member } from '../../../entities/management-api-v2/member/member';
 import { fakeMember } from '../../../entities/management-api-v2/member/member.fixture';
+import { fakeGroup } from '../../../entities/management-api-v2/group/group.fixture';
 
 describe('ApiProductMembersComponent', () => {
   const API_PRODUCT_ID = 'test-api-product-id';
   const MEMBERS_URL = `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/members`;
+  const GROUPS_LIST_URL = `${CONSTANTS_TESTING.env.v2BaseURL}/groups`;
   const ROLES_URL = `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API_PRODUCT/roles`;
 
   let fixture: ComponentFixture<ApiProductMembersComponent>;
@@ -48,13 +53,13 @@ describe('ApiProductMembersComponent', () => {
     initialQueryParams: Record<string, string> = {},
   ) {
     await TestBed.configureTestingModule({
-      imports: [ApiProductMembersComponent, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
+      imports: [ApiProductMembersComponent, NoopAnimationsModule, GioTestingModule, MatIconTestingModule, MatDialogModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: permissions },
         { provide: SnackBarService, useValue: snackBarService },
         {
           provide: InteractivityChecker,
-          useValue: { isFocusable: () => true },
+          useValue: { isFocusable: () => true, isTabbable: () => true },
         },
         {
           provide: ActivatedRoute,
@@ -82,11 +87,72 @@ describe('ApiProductMembersComponent', () => {
     queryParams$.next({});
   });
 
-  function expectMembersRequest(members = [fakeMember()], totalCount = members.length, page = 1, perPage = 10) {
-    const req = httpTestingController.expectOne(r => r.url === MEMBERS_URL);
-    expect(req.request.params.get('page')).toEqual(page.toString());
-    expect(req.request.params.get('perPage')).toEqual(perPage.toString());
-    req.flush({ data: members, pagination: { totalCount, page, perPage } });
+  function expectMembersPageRequests(
+    members = [fakeMember()],
+    totalCount = members.length,
+    page = 1,
+    perPage = 10,
+    apiProductExtras: Record<string, unknown> = {},
+    groups = [fakeGroup({ id: 'group-1', name: 'Group One' })],
+  ) {
+    const pending = httpTestingController.match(
+      req => req.method === 'GET' && !req.url.includes('/configuration/rolescopes/API_PRODUCT/roles'),
+    );
+    expect(pending.length).toBe(3);
+    for (const req of pending) {
+      const url = req.request.url;
+      if (url.includes(`/api-products/${API_PRODUCT_ID}/members`)) {
+        expect(req.request.params.get('page')).toEqual(page.toString());
+        expect(req.request.params.get('perPage')).toEqual(perPage.toString());
+        req.flush({ data: members, pagination: { totalCount, page, perPage } });
+      } else if (url.includes(`/api-products/${API_PRODUCT_ID}`) && !url.includes('/members')) {
+        req.flush({
+          id: API_PRODUCT_ID,
+          name: 'Test API Product',
+          version: '1.0',
+          apiIds: [],
+          groups: [],
+          ...apiProductExtras,
+        });
+      } else if (url.includes(GROUPS_LIST_URL)) {
+        req.flush({
+          data: groups,
+          pagination: { totalCount: groups.length, page: 1, perPage: GROUP_LIST_PAGE_SIZE },
+        });
+      } else {
+        fail(`Unexpected GET ${url}`);
+      }
+    }
+  }
+
+  function expectMembersPageLoadFailure(errorMessage = 'Could not load members list', page = 1, perPage = 10) {
+    const pending = httpTestingController.match(
+      req => req.method === 'GET' && !req.url.includes('/configuration/rolescopes/API_PRODUCT/roles'),
+    );
+    expect(pending.length).toBe(3);
+    const membersReq = pending.find(r => r.request.url.includes(`/api-products/${API_PRODUCT_ID}/members`));
+    const apiProductReq = pending.find(
+      r => r.request.url.includes(`/api-products/${API_PRODUCT_ID}`) && !r.request.url.includes('/members'),
+    );
+    const groupsReq = pending.find(r => r.request.url.includes(GROUPS_LIST_URL));
+    expect(membersReq).toBeTruthy();
+    expect(apiProductReq).toBeTruthy();
+    expect(groupsReq).toBeTruthy();
+    expect(membersReq!.request.params.get('page')).toEqual(page.toString());
+    expect(membersReq!.request.params.get('perPage')).toEqual(perPage.toString());
+
+    apiProductReq!.flush({
+      id: API_PRODUCT_ID,
+      name: 'Test API Product',
+      version: '1.0',
+      apiIds: [],
+      groups: [],
+    });
+    groupsReq!.flush({
+      data: [],
+      pagination: { totalCount: 0, page: 1, perPage: GROUP_LIST_PAGE_SIZE },
+    });
+    membersReq!.flush({ message: errorMessage }, { status: 500, statusText: 'Internal Server Error' });
   }
 
   function expectRolesRequest() {
@@ -98,9 +164,43 @@ describe('ApiProductMembersComponent', () => {
     ]);
   }
 
+  /** Inherited group member tables load GET /groups/{id}/members after the main members page resolves. */
+  /** `gio-table-wrapper` may emit `filtersChange` after init and trigger a duplicate load for the same group. */
+  function flushGroupInheritedMemberRequests(groupIds: string[]) {
+    for (const groupId of groupIds) {
+      const requests = httpTestingController.match(r => r.method === 'GET' && r.url.includes(`/groups/${groupId}/members`));
+      expect(requests.length).toBeGreaterThan(0);
+      for (const req of requests) {
+        req.flush({ data: [], metadata: { groupName: groupId }, pagination: { totalCount: 0 } });
+      }
+    }
+  }
+
+  function flushGroupInheritedMemberForbidden(groupIds: string[]) {
+    for (const groupId of groupIds) {
+      const requests = httpTestingController.match(r => r.method === 'GET' && r.url.includes(`/groups/${groupId}/members`));
+      expect(requests.length).toBeGreaterThan(0);
+      for (const req of requests) {
+        req.flush(
+          { httpStatus: 403, message: 'You do not have the permissions to access this resource' },
+          { status: 403, statusText: 'Forbidden' },
+        );
+      }
+    }
+  }
+
+  function flushGroupInheritedMemberRequestsWithMembers(groupId: string, members: Member[]) {
+    const requests = httpTestingController.match(r => r.method === 'GET' && r.url.includes(`/groups/${groupId}/members`));
+    expect(requests.length).toBeGreaterThan(0);
+    const totalCount = members.length;
+    for (const req of requests) {
+      req.flush({ data: members, metadata: { groupName: groupId }, pagination: { totalCount, page: 1, perPage: 10 } });
+    }
+  }
+
   it('should render the Members section with title and description', fakeAsync(async () => {
     await init();
-    expectMembersRequest([]);
+    expectMembersPageRequests([]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -111,7 +211,7 @@ describe('ApiProductMembersComponent', () => {
 
   it('should render picture, Name and Role column headers', fakeAsync(async () => {
     await init();
-    expectMembersRequest([]);
+    expectMembersPageRequests([]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -125,7 +225,7 @@ describe('ApiProductMembersComponent', () => {
 
   it('should render delete column when user has delete permission', fakeAsync(async () => {
     await init(['api_product-member-r', 'api_product-member-c', 'api_product-member-d', 'api_product-member-u']);
-    expectMembersRequest([]);
+    expectMembersPageRequests([]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -140,7 +240,7 @@ describe('ApiProductMembersComponent', () => {
   it('should display existing members in the table', fakeAsync(async () => {
     await init();
     const member = fakeMember({ id: 'user-1', displayName: 'Alice', roles: [{ name: 'USER' }] });
-    expectMembersRequest([member]);
+    expectMembersPageRequests([member]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -157,7 +257,7 @@ describe('ApiProductMembersComponent', () => {
   it('should show Primary Owner role in the Role column', fakeAsync(async () => {
     await init();
     const owner = fakeMember({ id: 'owner-1', displayName: 'Admin', roles: [{ name: 'PRIMARY_OWNER' }] });
-    expectMembersRequest([owner]);
+    expectMembersPageRequests([owner]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -170,7 +270,7 @@ describe('ApiProductMembersComponent', () => {
 
   it('should show "No members found" when there are no members', fakeAsync(async () => {
     await init();
-    expectMembersRequest([]);
+    expectMembersPageRequests([]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -178,9 +278,32 @@ describe('ApiProductMembersComponent', () => {
     expect(await harness.getEmptyMessage()).toBe('No members found');
   }));
 
+  it('should surface load failure with message and retry (not empty state)', fakeAsync(async () => {
+    await init();
+    expectMembersPageLoadFailure('Members endpoint unavailable');
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    expect(snackBarService.error).not.toHaveBeenCalled();
+    expect(await harness.getLoadErrorMessage()).toBe('Members endpoint unavailable');
+    expect(await harness.getEmptyMessageOrNull()).toBeNull();
+
+    await harness.clickRetryMembersLoad();
+    tick();
+    fixture.detectChanges();
+
+    expectMembersPageRequests([]);
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.getLoadErrorMessage()).toBeNull();
+    expect(await harness.getEmptyMessage()).toBe('No members found');
+  }));
+
   it('should show "Add members" button when user has create permission', fakeAsync(async () => {
     await init(['api_product-member-r', 'api_product-member-c']);
-    expectMembersRequest([]);
+    expectMembersPageRequests([]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -188,9 +311,132 @@ describe('ApiProductMembersComponent', () => {
     expect(await harness.getAddMemberButton()).not.toBeNull();
   }));
 
+  it('should expose Manage groups when permitted and groups exist', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-u']);
+    expectMembersPageRequests([], 0, 1, 10, { groups: ['group-1'] }, [fakeGroup({ id: 'group-1', name: 'Group One' })]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+    flushGroupInheritedMemberRequests(['group-1']);
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.getManageGroupsButton()).not.toBeNull();
+  }));
+
+  it('should open Manage groups dialog with editable groups select and save when user has api_product-member-u', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-u']);
+    expectMembersPageRequests([], 0, 1, 10, { groups: ['group-1'] }, [fakeGroup({ id: 'group-1', name: 'Group One' })]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+    flushGroupInheritedMemberRequests(['group-1']);
+    tick();
+    fixture.detectChanges();
+
+    await harness.clickManageGroups();
+    tick();
+    fixture.detectChanges();
+
+    const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    const dialogBody = await rootLoader.getHarness(ApiProductGroupsDialogHarness);
+    expect(await dialogBody.getHeadingTitle()).toBe('Manage groups');
+    expect(await dialogBody.getGroupsSelect()).not.toBeNull();
+    expect(await dialogBody.getSaveButton()).not.toBeNull();
+  }));
+
+  it('should PUT API Product with selected groups when Manage groups save is confirmed', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-u']);
+    const g1 = fakeGroup({ id: 'group-1', name: 'Group One' });
+    const g2 = fakeGroup({ id: 'group-2', name: 'Group Two' });
+    expectMembersPageRequests([], 0, 1, 10, { groups: ['group-1'] }, [g1, g2]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+    flushGroupInheritedMemberRequestsWithMembers('group-1', [
+      fakeMember({ id: 'gm-1', displayName: 'Inherited User', roles: [{ name: 'USER', scope: 'API_PRODUCT' }] }),
+    ]);
+    tick();
+    fixture.detectChanges();
+
+    await harness.clickManageGroups();
+    tick();
+    fixture.detectChanges();
+
+    const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    const dialogBody = await rootLoader.getHarness(ApiProductGroupsDialogHarness);
+    expect(await dialogBody.getHeadingTitle()).toBe('Manage groups');
+    expect(await dialogBody.getGroupsSelect()).not.toBeNull();
+    expect(await dialogBody.getSaveButton()).not.toBeNull();
+
+    await dialogBody.clickSave();
+    tick();
+    fixture.detectChanges();
+
+    const putReq = httpTestingController.expectOne(
+      req => req.method === 'PUT' && req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`,
+    );
+    expect(putReq.request.body.groups).toEqual(['group-1']);
+    putReq.flush({
+      id: API_PRODUCT_ID,
+      name: 'Test API Product',
+      version: '1.0',
+      apiIds: [],
+      groups: ['group-1'],
+    });
+    tick();
+    fixture.detectChanges();
+
+    expectMembersPageRequests([], 0, 1, 10, { groups: ['group-1'] }, [g1, g2]);
+    tick();
+    fixture.detectChanges();
+  }));
+
+  it('should show permission message on inherited group card when group members API returns 403', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-u']);
+    expectMembersPageRequests([], 0, 1, 10, { groups: ['group-1'] }, [fakeGroup({ id: 'group-1', name: 'Group One' })]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+    flushGroupInheritedMemberForbidden(['group-1']);
+    tick();
+    fixture.detectChanges();
+
+    const cards = await harness.getInheritedGroupMemberCards();
+    expect(cards.length).toBe(1);
+    expect(await cards[0].getPermissionDeniedMessage()).toContain('appropriate permissions');
+    expect(await cards[0].getInheritedMembersTable()).toBeNull();
+  }));
+
+  it('should render inherited group member rows on group card when API returns members', fakeAsync(async () => {
+    await init(['api_product-member-r', 'api_product-member-u']);
+    expectMembersPageRequests([], 0, 1, 10, { groups: ['group-1'] }, [fakeGroup({ id: 'group-1', name: 'Group One' })]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+    flushGroupInheritedMemberRequestsWithMembers('group-1', [
+      fakeMember({ id: 'gm-1', displayName: 'Inherited User', roles: [{ name: 'USER', scope: 'API_PRODUCT' }] }),
+    ]);
+    tick();
+    fixture.detectChanges();
+
+    const cards = await harness.getInheritedGroupMemberCards();
+    expect(cards.length).toBe(1);
+    expect(await cards[0].getCardHeading()).toContain('Group One');
+    expect(await cards[0].getCardHeading()).toContain('inherited members');
+    const table = await cards[0].getInheritedMembersTable();
+    expect(table).not.toBeNull();
+    const rows = await table!.getRows();
+    expect(rows.length).toBe(1);
+    const cells = await rows[0].getCells();
+    const cellTexts = await Promise.all(cells.map(c => c.getText()));
+    expect(cellTexts[1]).toContain('Inherited User');
+    expect(cellTexts[2]).toContain('USER');
+  }));
+
   it('should hide "Add members" button when user lacks create permission', fakeAsync(async () => {
     await init(['api_product-member-r']);
-    expectMembersRequest([]);
+    expectMembersPageRequests([]);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -203,7 +449,7 @@ describe('ApiProductMembersComponent', () => {
     const router = TestBed.inject(Router);
     const navigateSpy = jest.spyOn(router, 'navigate');
 
-    expectMembersRequest([fakeMember({ id: 'm1', roles: [{ name: 'USER' }] })], 50, 1, 10);
+    expectMembersPageRequests([fakeMember({ id: 'm1', roles: [{ name: 'USER' }] })], 50, 1, 10);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -225,7 +471,7 @@ describe('ApiProductMembersComponent', () => {
     await init(['api_product-member-r', 'api_product-member-c', 'api_product-member-d']);
 
     const onlyMember = fakeMember({ id: 'last-member', displayName: 'Last Member', roles: [{ name: 'USER' }] });
-    expectMembersRequest([onlyMember], 11, 1, 10);
+    expectMembersPageRequests([onlyMember], 11, 1, 10);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -239,11 +485,11 @@ describe('ApiProductMembersComponent', () => {
     tick();
     fixture.detectChanges();
 
-    httpTestingController.expectOne(r => r.url === `${MEMBERS_URL}/last-member` && r.method === 'DELETE').flush({});
+    httpTestingController.expectOne(req => req.url === `${MEMBERS_URL}/last-member` && req.method === 'DELETE').flush({});
     tick();
     fixture.detectChanges();
 
-    expectMembersRequest([], 10, 1, 10);
+    expectMembersPageRequests([], 10, 1, 10);
     tick();
     fixture.detectChanges();
 
@@ -258,7 +504,7 @@ describe('ApiProductMembersComponent', () => {
     const navigateSpy = jest.spyOn(router, 'navigate');
 
     const onlyMember = fakeMember({ id: 'page3-member', displayName: 'Page 3 Member', roles: [{ name: 'USER' }] });
-    expectMembersRequest([onlyMember], 21, 3, 10);
+    expectMembersPageRequests([onlyMember], 21, 3, 10);
     expectRolesRequest();
     tick();
     fixture.detectChanges();
@@ -272,11 +518,11 @@ describe('ApiProductMembersComponent', () => {
     tick();
     fixture.detectChanges();
 
-    httpTestingController.expectOne(r => r.url === `${MEMBERS_URL}/page3-member` && r.method === 'DELETE').flush({});
+    httpTestingController.expectOne(req => req.url === `${MEMBERS_URL}/page3-member` && req.method === 'DELETE').flush({});
     tick();
     fixture.detectChanges();
 
-    httpTestingController.expectNone(r => r.url === MEMBERS_URL && r.method === 'GET');
+    httpTestingController.expectNone(req => req.url === MEMBERS_URL && req.method === 'GET');
     expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: 2 }, queryParamsHandling: 'merge' }));
   }));
 });

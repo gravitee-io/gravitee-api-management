@@ -27,8 +27,25 @@
             </p>
           </div>
           <div class="card__header__actions">
-            <button class="card__header__actions__button" mat-raised-button type="button" disabled>Transfer ownership</button>
-            <button class="card__header__actions__button" mat-raised-button type="button" disabled aria-label="Manage groups">
+            <button
+              class="card__header__actions__button"
+              mat-raised-button
+              type="button"
+              disabled
+              data-testid="api_product_members_transfer_ownership_button"
+            >
+              Transfer ownership
+            </button>
+            <button
+              *gioPermission="{ anyOf: ['api_product-member-u'] }"
+              class="card__header__actions__button"
+              mat-raised-button
+              type="button"
+              aria-label="Manage groups"
+              data-testid="api_product_members_manage_groups_button"
+              [disabled]="(state.groups?.length ?? 0) === 0"
+              (click)="openManageGroups()"
+            >
               Manage groups
             </button>
             <button
@@ -120,6 +137,19 @@
             <td [attr.colspan]="displayedColumns.length">
               @if (state.isLoading) {
                 <span data-testid="api_product_members_table_loading">Loading members…</span>
+              } @else if (state.loadError) {
+                <div class="card__table__no-data-error">
+                  <span data-testid="api_product_members_table_error">{{ state.loadError }}</span>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    color="primary"
+                    data-testid="api_product_members_retry_button"
+                    (click)="retryMembersLoad()"
+                  >
+                    Retry
+                  </button>
+                </div>
               } @else {
                 <span data-testid="api_product_members_table_empty">No members found</span>
               }
@@ -128,6 +158,21 @@
         </table>
       </gio-table-wrapper>
     </mat-card>
+
+    @if (visibleInheritedGroupCards().length) {
+      <div>
+        @for (group of visibleInheritedGroupCards(); track group.id) {
+          @if (groupInheritedVm()[group.id]) {
+            <api-product-group-members
+              [groupData]="group"
+              [filters]="groupInheritedFilters()[group.id] ?? groupInheritedFiltersDefault"
+              [dataSourceGroupVM]="groupInheritedVm()[group.id]"
+              (filtersChange)="onGroupInheritedFiltersChanged(group.id, $event)"
+            ></api-product-group-members>
+          }
+        }
+      </div>
+    }
 
     <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSave()"></gio-save-bar>
   }

@@ -27,6 +27,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
+  GIO_DIALOG_WIDTH,
   GioAvatarModule,
   GioConfirmDialogComponent,
   GioConfirmDialogData,
@@ -38,6 +39,18 @@ import { combineLatest, EMPTY, forkJoin, merge, Observable, of, Subject } from '
 import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap, take, tap } from 'rxjs/operators';
 import { isEqual, uniqueId } from 'lodash';
 
+import {
+  ApiProductGroupsComponent,
+  ApiProductGroupsDialogData,
+  ApiProductGroupsDialogResult,
+} from './api-product-groups/api-product-groups.component';
+import {
+  ApiProductGroupCardData,
+  ApiProductGroupMemberRow,
+  ApiProductGroupMembersComponent,
+  ApiProductGroupMembersViewModel,
+} from './api-product-group-members/api-product-group-members.component';
+
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -48,10 +61,12 @@ import {
   GioUsersSelectorData,
 } from '../../../shared/components/gio-users-selector/gio-users-selector.component';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
+import { GroupV2Service } from '../../../services-ngx/group-v2.service';
 import { RoleService } from '../../../services-ngx/role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../services-ngx/users.service';
-import { Member } from '../../../entities/management-api-v2';
+import { Group, Member } from '../../../entities/management-api-v2';
+import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { SearchableUser } from '../../../entities/user/searchableUser';
 
 export interface MemberRow {
@@ -65,11 +80,32 @@ export interface MemberRow {
 
 interface MembersState {
   isLoading: boolean;
+  loadError: string | null;
   rows: MemberRow[];
   totalCount: number;
+  apiProduct: ApiProduct | null;
+  groups: Group[];
+  groupCards: ApiProductGroupCardData[];
 }
 
-const LOADING_STATE: MembersState = { isLoading: true, rows: [], totalCount: 0 };
+const LOADING_STATE: MembersState = {
+  isLoading: true,
+  loadError: null,
+  rows: [],
+  totalCount: 0,
+  apiProduct: null,
+  groups: [],
+  groupCards: [],
+};
+
+const MEMBERS_PAGE_LOAD_FAILED = 'Could not load API Product members.';
+
+export const GROUP_LIST_PAGE_SIZE = 9999;
+
+export const GROUP_INHERITED_FILTERS_DEFAULT: Readonly<GioTableWrapperFilters> = {
+  pagination: { index: 1, size: 10 },
+  searchTerm: '',
+};
 
 function effectiveRoleName(member: Member): string {
   const roles = member.roles ?? [];
@@ -97,12 +133,15 @@ function effectiveRoleName(member: Member): string {
     GioSaveBarModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
+    ApiProductGroupMembersComponent,
+    ApiProductGroupsComponent,
   ],
 })
 export class ApiProductMembersComponent {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly groupV2Service = inject(GroupV2Service);
   private readonly roleService = inject(RoleService);
   private readonly usersService = inject(UsersService);
   private readonly permissionService = inject(GioPermissionService);
@@ -112,6 +151,9 @@ export class ApiProductMembersComponent {
 
   private readonly reloadMembers$ = new Subject<void>();
   private readonly pendingUsers = signal<Array<SearchableUser & { viewId: string; userPicture: string }>>([]);
+  protected readonly groupInheritedFilters = signal<Record<string, GioTableWrapperFilters>>({});
+  protected readonly groupInheritedVm = signal<Record<string, ApiProductGroupMembersViewModel>>({});
+  protected readonly groupInheritedFiltersDefault = GROUP_INHERITED_FILTERS_DEFAULT;
   protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['api_product-member-u']);
   protected readonly displayedColumns = this.permissionService.hasAnyMatching(['api_product-member-d'])
     ? ['picture', 'displayName', 'role', 'delete']
@@ -128,7 +170,16 @@ export class ApiProductMembersComponent {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
-  private readonly roles = toSignal(this.roleService.list('API_PRODUCT').pipe(take(1)));
+  /** `apiProductId` from the route (same stream as `membersLoadState` / pagination; no snapshot). */
+  private readonly apiProductIdFromRoute$ = this.activatedRoute.paramMap.pipe(
+    map(p => p.get('apiProductId') ?? ''),
+    distinctUntilChanged(),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  private readonly apiProductId = toSignal(this.apiProductIdFromRoute$, { initialValue: '' });
+
+  private readonly roles = toSignal(this.roleService.list('API_PRODUCT'));
 
   protected readonly roleNames = computed(() => (this.roles() ?? []).map(r => r.name));
 
@@ -139,25 +190,46 @@ export class ApiProductMembersComponent {
 
   protected readonly membersLoadState = toSignal(
     combineLatest([
-      this.activatedRoute.paramMap.pipe(
-        map(p => p.get('apiProductId') ?? ''),
-        filter(id => id !== ''),
-        distinctUntilChanged(),
-      ),
+      this.apiProductIdFromRoute$.pipe(filter(id => id !== '')),
       this.paginationFromRoute$,
       merge(of(null), this.reloadMembers$),
     ]).pipe(
       switchMap(([apiProductId, { page, size }]) =>
-        this.apiProductV2Service.getPagedMembers(apiProductId, page, size).pipe(
-          map(res => ({
-            isLoading: false,
-            rows: (res.data ?? []).map(m => this.mapMemberToRow(m)),
-            totalCount: res.pagination?.totalCount ?? 0,
-          })),
-          catchError(() => of({ ...LOADING_STATE, isLoading: false })),
+        forkJoin({
+          membersRes: this.apiProductV2Service.getPagedMembers(apiProductId, page, size),
+          apiProduct: this.apiProductV2Service.get(apiProductId),
+          groupsRes: this.groupV2Service.list(1, GROUP_LIST_PAGE_SIZE),
+        }).pipe(
+          map(({ membersRes, apiProduct, groupsRes }) => {
+            const groups = groupsRes.data ?? [];
+            const groupCards: ApiProductGroupCardData[] =
+              apiProduct.groups?.map(id => ({
+                id,
+                name: groups.find(g => g.id === id)?.name,
+              })) ?? [];
+            return {
+              isLoading: false,
+              loadError: null,
+              rows: (membersRes.data ?? []).map(m => this.mapMemberToRow(m)),
+              totalCount: membersRes.pagination?.totalCount ?? 0,
+              apiProduct,
+              groups,
+              groupCards,
+            };
+          }),
+          catchError((err: unknown) => {
+            const message =
+              err instanceof HttpErrorResponse
+                ? ((err.error?.message as string | undefined) ?? MEMBERS_PAGE_LOAD_FAILED)
+                : MEMBERS_PAGE_LOAD_FAILED;
+            return of({ ...LOADING_STATE, isLoading: false, loadError: message });
+          }),
         ),
       ),
-      tap(state => this.syncMembersFormGroup(state.rows)),
+      tap(state => {
+        this.syncMembersFormGroup(state.rows);
+        this.syncGroupInheritedMembersState(state);
+      }),
     ),
     { initialValue: LOADING_STATE },
   );
@@ -166,7 +238,9 @@ export class ApiProductMembersComponent {
     this.paginationFromRoute$.pipe(
       map(({ page, size }) => ({ pagination: { index: page, size }, searchTerm: '' }) satisfies GioTableWrapperFilters),
     ),
-    { initialValue: { pagination: { index: 1, size: 10 }, searchTerm: '' } satisfies GioTableWrapperFilters },
+    {
+      initialValue: { ...GROUP_INHERITED_FILTERS_DEFAULT } satisfies GioTableWrapperFilters,
+    },
   );
 
   private readonly pendingRows = computed<MemberRow[]>(() =>
@@ -182,9 +256,59 @@ export class ApiProductMembersComponent {
 
   protected readonly allRows = computed<MemberRow[]>(() => [...this.pendingRows(), ...this.membersLoadState().rows]);
 
+  protected readonly visibleInheritedGroupCards = computed<ApiProductGroupCardData[]>(() =>
+    (this.membersLoadState().groupCards ?? []).filter(g => !!g.id),
+  );
+
+  protected onGroupInheritedFiltersChanged(groupId: string, filters: GioTableWrapperFilters): void {
+    const previous = this.groupInheritedFilters()[groupId];
+    if (previous && isEqual(previous, filters)) {
+      return;
+    }
+    this.groupInheritedFilters.update(m => ({ ...m, [groupId]: filters }));
+    this.loadGroupInheritedMembers(groupId, filters.pagination.index, filters.pagination.size);
+  }
+
   private readonly roleValidationSubscription = merge(this.membersForm.statusChanges, this.membersForm.valueChanges)
     .pipe(startWith(null), takeUntilDestroyed())
     .subscribe(() => this.refreshRoleFieldRequiredErrors());
+
+  protected openManageGroups(): void {
+    const state = this.membersLoadState();
+    const apiProduct = state.apiProduct;
+    const groups = state.groups;
+    if (!apiProduct || groups.length === 0) {
+      return;
+    }
+
+    this.matDialog
+      .open<ApiProductGroupsComponent, ApiProductGroupsDialogData, ApiProductGroupsDialogResult>(ApiProductGroupsComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'apiProductManageGroupsDialog',
+        data: {
+          apiProduct,
+          groups: groups.filter(group => !group.apiPrimaryOwner),
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((result): result is ApiProductGroupsDialogResult => !!result),
+        switchMap(result =>
+          this.apiProductV2Service.update(this.apiProductId(), {
+            name: apiProduct.name,
+            version: apiProduct.version,
+            description: apiProduct.description,
+            apiIds: apiProduct.apiIds ?? [],
+            groups: result.groups,
+          }),
+        ),
+        tap(() => this.reloadMembers$.next()),
+        catchError(this.memberHttpErrorHandler('Could not update API Product groups.')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
 
   protected onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.router.navigate([], {
@@ -194,8 +318,12 @@ export class ApiProductMembersComponent {
     });
   }
 
+  protected retryMembersLoad(): void {
+    this.reloadMembers$.next();
+  }
+
   protected openAddMemberDialog(): void {
-    const apiProductId = this.apiProductId;
+    const apiProductId = this.apiProductId();
     const { totalCount, rows } = this.membersLoadState();
     const pendingIds = this.pendingUsers()
       .map(u => u.id ?? '')
@@ -216,7 +344,7 @@ export class ApiProductMembersComponent {
           const existingIds = new Set([...memberIds, ...pendingIds]);
           return this.matDialog
             .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
-              width: '500px',
+              width: GIO_DIALOG_WIDTH.MEDIUM,
               data: {
                 userFilterPredicate: user => !existingIds.has(user.id ?? ''),
               },
@@ -236,7 +364,7 @@ export class ApiProductMembersComponent {
     if (!member.id || member.isPending || member.isPrimaryOwner) {
       return;
     }
-    const apiProductId = this.apiProductId;
+    const apiProductId = this.apiProductId();
     const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
       data: {
         title: 'Remove API Product member',
@@ -275,7 +403,7 @@ export class ApiProductMembersComponent {
   }
 
   protected onSave(): void {
-    const apiProductId = this.apiProductId;
+    const apiProductId = this.apiProductId();
     const controls = this.membersForm.controls as Record<string, AbstractControl>;
     const dirtyEntries = Object.entries(controls).filter(([, c]) => c.dirty) as [string, FormControl<string>][];
 
@@ -322,10 +450,6 @@ export class ApiProductMembersComponent {
     return this.form.get('members') as FormGroup;
   }
 
-  private get apiProductId(): string {
-    return this.activatedRoute.snapshot.paramMap.get('apiProductId') ?? '';
-  }
-
   private memberHttpErrorHandler(fallbackMessage: string) {
     return (err: HttpErrorResponse) => {
       this.snackBarService.error(err.error?.message ?? fallbackMessage);
@@ -339,6 +463,134 @@ export class ApiProductMembersComponent {
       next[id] = this.membersForm.controls[id].hasError('required');
     }
     this.roleFieldShowsRequiredError.set(next);
+  }
+
+  private syncGroupInheritedMembersState(state: MembersState): void {
+    const visibleCards = (state.groupCards ?? []).filter(g => !!g.id);
+    const visibleIds = new Set(visibleCards.map(g => g.id));
+
+    this.groupInheritedFilters.update(m => {
+      const next = { ...m };
+      for (const id of Object.keys(next)) {
+        if (!visibleIds.has(id)) {
+          delete next[id];
+        }
+      }
+      return next;
+    });
+
+    this.groupInheritedVm.update(m => {
+      const next = { ...m };
+      for (const id of Object.keys(next)) {
+        if (!visibleIds.has(id)) {
+          delete next[id];
+        }
+      }
+      return next;
+    });
+
+    for (const card of visibleCards) {
+      const id = card.id;
+      if (this.groupInheritedVm()[id] !== undefined) {
+        continue;
+      }
+      this.groupInheritedFilters.update(m => ({
+        ...m,
+        [id]: m[id] ?? { ...GROUP_INHERITED_FILTERS_DEFAULT },
+      }));
+      this.groupInheritedVm.update(m => ({
+        ...m,
+        [id]: {
+          isLoading: true,
+          canViewGroupMembers: true,
+          memberTotalCount: 0,
+          membersPageResult: [],
+        },
+      }));
+      this.loadGroupInheritedMembers(id, 1, 10);
+    }
+  }
+
+  private loadGroupInheritedMembers(groupId: string, page: number, perPage: number): void {
+    const previousVm = this.groupInheritedVm()[groupId];
+    this.groupInheritedVm.update(m => ({
+      ...m,
+      [groupId]: {
+        isLoading: true,
+        canViewGroupMembers: previousVm?.canViewGroupMembers ?? true,
+        memberTotalCount: previousVm?.memberTotalCount ?? 0,
+        membersPageResult: [],
+      },
+    }));
+
+    this.groupV2Service
+      .getMembers(groupId, page, perPage)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        take(1),
+        catchError((err: HttpErrorResponse) => {
+          const forbidden = err.error?.httpStatus === 403 || err.status === 403;
+          if (forbidden) {
+            this.groupInheritedVm.update(m => ({
+              ...m,
+              [groupId]: {
+                isLoading: false,
+                canViewGroupMembers: false,
+                memberTotalCount: 0,
+                membersPageResult: [],
+              },
+            }));
+            return EMPTY;
+          }
+          this.snackBarService.error(err.error?.message ?? 'Could not load inherited group members.');
+          this.groupInheritedVm.update(m => ({
+            ...m,
+            [groupId]: {
+              isLoading: false,
+              canViewGroupMembers: previousVm?.canViewGroupMembers ?? true,
+              memberTotalCount: 0,
+              membersPageResult: [],
+            },
+          }));
+          return EMPTY;
+        }),
+      )
+      .subscribe(res => {
+        const totalCount = res.pagination?.totalCount ?? 0;
+        if (totalCount === 0) {
+          this.groupInheritedFilters.update(m => {
+            const next = { ...m };
+            delete next[groupId];
+            return next;
+          });
+          this.groupInheritedVm.update(m => {
+            const next = { ...m };
+            delete next[groupId];
+            return next;
+          });
+          return;
+        }
+        this.groupInheritedVm.update(m => ({
+          ...m,
+          [groupId]: {
+            isLoading: false,
+            canViewGroupMembers: true,
+            memberTotalCount: totalCount,
+            membersPageResult: (res.data ?? []).map(member => this.mapGroupMemberToRow(member)),
+          },
+        }));
+      });
+  }
+
+  private mapGroupMemberToRow(member: Member): ApiProductGroupMemberRow {
+    const roles = member.roles ?? [];
+    const roleName = roles.find(r => r.scope === 'API_PRODUCT')?.name ?? '';
+    return {
+      id: member.id ?? '',
+      role: roleName,
+      displayName: member.displayName ?? '',
+      picture: this.usersService.getUserAvatar(member.id),
+    };
   }
 
   private mapMemberToRow(member: Member): MemberRow {
