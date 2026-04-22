@@ -15,6 +15,9 @@ databaseChangeLog:
         - sql:
             dbms: 'postgresql,mssql'
             sql: UPDATE ${gravitee_prefix}plans SET environment_id = a.environment_id, definition_version = a.definition_version FROM ${gravitee_prefix}apis a WHERE api = a.id;
+        - sql:
+            comment: Remove plans referencing APIs that no longer exist; they would have a NULL environment_id and fail the NOT NULL constraint below.
+            sql: DELETE FROM ${gravitee_prefix}plans WHERE environment_id IS NULL;
         - addNotNullConstraint:
             columnName: environment_id
             columnDataType: VARCHAR(64)
