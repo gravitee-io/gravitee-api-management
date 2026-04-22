@@ -15,7 +15,17 @@
  */
 @use '../../../../scss/theme/index' as app-theme;
 
+app-search-bar {
+  display: block;
+  margin-bottom: 24px;
+  max-width: 400px;
+}
+
 .members {
+  &__title {
+    margin: 0 0 16px;
+  }
+
   &__empty-state {
     padding: 24px 0;
     text-align: center;

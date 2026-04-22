@@ -43,6 +43,17 @@ $empty-state-height: 400px;
     justify-content: space-between;
     gap: 16px;
 
+    &__controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+
+      app-search-bar {
+        width: 300px;
+      }
+    }
+
     &--mobile {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -68,13 +79,6 @@ $empty-state-height: 400px;
         grid-row: 2 / 3;
         width: 100%;
       }
-    }
-
-    &__controls {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 16px;
     }
   }
 

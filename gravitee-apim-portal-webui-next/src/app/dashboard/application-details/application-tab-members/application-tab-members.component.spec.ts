@@ -76,6 +76,35 @@ describe('ApplicationTabMembersComponent', () => {
     expect(await harness.getPaginatedTable()).not.toBeNull();
   });
 
+  it('should show section title with total member count from pagination', async () => {
+    await flush(fakeMembersResponse([fakeMember()], 42));
+    const harness = await getHarness();
+    const title = await harness.getSectionTitle();
+    expect(title).not.toBeNull();
+    expect((await title!.text())?.replace(/\s+/g, ' ').trim()).toBe('Members (42)');
+  });
+
+  it('should show Members (0) in section title when the list is empty', async () => {
+    await flush(fakeMembersResponse([]));
+    const harness = await getHarness();
+    const title = await harness.getSectionTitle();
+    expect(title).not.toBeNull();
+    expect((await title!.text())?.replace(/\s+/g, ' ').trim()).toBe('Members (0)');
+  });
+
+  it('should show section title and error when search fails', async () => {
+    fixture.detectChanges();
+    const req = httpTestingController.expectOne(r => r.url.includes('members/_search'));
+    req.flush({ error: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const harness = await getHarness();
+    const title = await harness.getSectionTitle();
+    expect(title).not.toBeNull();
+    expect((await title!.text())?.replace(/\s+/g, ' ').trim()).toBe('Members (0)');
+    expect(await harness.getErrorMessage()).not.toBeNull();
+  });
+
   it('should show loader until the first search response', async () => {
     // In-flight rxResource requests block fixture.whenStable(), which the harness API awaits;
     // fall back to a synchronous DOM check for the loading state (the rule's documented escape
@@ -192,6 +221,81 @@ describe('ApplicationTabMembersComponent', () => {
       const harness = await flush(fakeMembersResponse([fakeMember({ user: { id: 'other-user', display_name: 'Other', _links: {} } })]));
       const userCell = await harness.getFirstUserCell();
       expect(await userCell.hasYouBadge()).toBe(false);
+    });
+  });
+
+  describe('search behavior', () => {
+    it('should render search bar when canRead', () => {
+      fixture.detectChanges();
+      httpTestingController.expectOne(r => r.url.includes('members/_search')).flush(fakeMembersResponse([fakeMember()]));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-search-bar')).toBeTruthy();
+    });
+
+    it('should not render search bar when canRead is false', () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: [] }));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-search-bar')).toBeNull();
+    });
+
+    it('should send displayName in filters on initial load', () => {
+      fixture.detectChanges();
+      const req = httpTestingController.expectOne(r => r.url.includes('members/_search'));
+      expect(req.request.body).toEqual({ filters: { displayName: '' } });
+      req.flush(fakeMembersResponse([fakeMember()]));
+    });
+
+    it('should send displayName filter when search term is set', () => {
+      flush(fakeMembersResponse([fakeMember()]));
+      fixture.componentInstance.onSearchTermChange('alice');
+      fixture.detectChanges();
+      const req = httpTestingController.expectOne(r => r.url.includes('members/_search') && r.params.get('page') === '1');
+      expect(req.request.body).toEqual({ filters: { displayName: 'alice' } });
+      req.flush(fakeMembersResponse([fakeMember()]));
+    });
+
+    it('should reset page to 1 when search term changes', () => {
+      flush(fakeMembersResponse([fakeMember()], 25));
+      fixture.componentInstance.onPageChange(2);
+      fixture.detectChanges();
+      httpTestingController.expectOne(r => r.params.get('page') === '2').flush(fakeMembersResponse([fakeMember()]));
+
+      fixture.componentInstance.onSearchTermChange('alice');
+      fixture.detectChanges();
+      const req = httpTestingController.expectOne(r => r.url.includes('members/_search'));
+      expect(req.request.params.get('page')).toBe('1');
+      req.flush(fakeMembersResponse([fakeMember()]));
+    });
+
+    it('should show no-match empty state when search is active and returns 0 results', async () => {
+      await flush(fakeMembersResponse([fakeMember()]));
+      fixture.componentInstance.onSearchTermChange('zzz');
+      fixture.detectChanges();
+      const searchReq = httpTestingController.expectOne(r => r.url.includes('members/_search'));
+      searchReq.flush(fakeMembersResponse([]));
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="members-search-no-match"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.members__empty-state p')?.textContent?.trim()).toBe('No members match your search.');
+    });
+
+    it('should show generic empty state when no search is active and returns 0 results', async () => {
+      await flush(fakeMembersResponse([]));
+      expect(fixture.nativeElement.querySelector('[data-testid="members-search-no-match"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.members__empty-state p')?.textContent?.trim()).toBe('No members found.');
+    });
+
+    it('should clear displayName in filters after clearing the search term', async () => {
+      await flush(fakeMembersResponse([fakeMember()]));
+      fixture.componentInstance.onSearchTermChange('alice');
+      fixture.detectChanges();
+      httpTestingController.expectOne(r => r.url.includes('members/_search')).flush(fakeMembersResponse([fakeMember()]));
+
+      fixture.componentInstance.onSearchTermChange('');
+      fixture.detectChanges();
+      const req = httpTestingController.expectOne(r => r.url.includes('members/_search'));
+      expect(req.request.body).toEqual({ filters: { displayName: '' } });
+      req.flush(fakeMembersResponse([fakeMember()]));
     });
   });
 
