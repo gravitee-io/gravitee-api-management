@@ -19,7 +19,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 import { ClusterService } from '../../../services-ngx/cluster.service';
-import { DeployedCluster } from '../../../entities/management-api-v2';
+import { ClusterType, DeployedCluster } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'cluster-type',
@@ -36,7 +36,8 @@ export class ClusterTypeComponent extends FieldType<FieldTypeConfig> implements 
   }
 
   ngOnInit() {
-    const allClusters$ = this.clusterService.listDeployed().pipe(
+    const clusterType = this.props['clusterType'] as ClusterType | undefined;
+    const allClusters$ = this.clusterService.listDeployed(clusterType).pipe(
       catchError(() => of([])),
       shareReplay(1),
     );

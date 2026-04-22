@@ -201,8 +201,13 @@ export const expectUndeployClusterRequest = (
   req.flush(clusterUndeployed);
 };
 
-export const expectListDeployedClustersRequest = (httpTestingController: HttpTestingController, deployedClusters: any[] = []) => {
-  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/deployed`);
+export const expectListDeployedClustersRequest = (
+  httpTestingController: HttpTestingController,
+  deployedClusters: any[] = [],
+  type?: string,
+) => {
+  const queryParams = type ? `?type=${type}` : '';
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/deployed${queryParams}`);
   expect(req.request.method).toEqual('GET');
   req.flush(deployedClusters);
 };

@@ -84,8 +84,12 @@ export class ClusterService {
     return this.http.post<Cluster>(`${this.constants.env.v2BaseURL}/clusters/${id}/_undeploy`, {});
   }
 
-  listDeployed(): Observable<DeployedCluster[]> {
-    return this.http.get<DeployedCluster[]>(`${this.constants.env.v2BaseURL}/clusters/deployed`);
+  listDeployed(type?: ClusterType): Observable<DeployedCluster[]> {
+    let params = new HttpParams();
+    if (type) {
+      params = params.append('type', type);
+    }
+    return this.http.get<DeployedCluster[]>(`${this.constants.env.v2BaseURL}/clusters/deployed`, { params });
   }
 
   getConfigurationSchema(type?: ClusterType): Observable<unknown> {

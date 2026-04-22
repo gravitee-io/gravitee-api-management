@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
+import io.gravitee.definition.model.cluster.ClusterType;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ public class DeployedCluster {
     private String crossId;
     private String name;
     private String description;
+    private ClusterType type;
     private Instant deployedAt;
     private Integer version;
     private List<DeployedClusterConnection> connections;

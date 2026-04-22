@@ -136,9 +136,9 @@ public class ClustersResource extends AbstractResource {
     @Path("deployed")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
-    public Response getDeployedClusters() {
+    public Response getDeployedClusters(@QueryParam("type") ClusterType type) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = getDeployedClustersUseCase.execute(new GetDeployedClustersUseCase.Input(executionContext.getEnvironmentId()));
+        var output = getDeployedClustersUseCase.execute(new GetDeployedClustersUseCase.Input(executionContext.getEnvironmentId(), type));
         return Response.ok(output.deployedClusters()).build();
     }
 
