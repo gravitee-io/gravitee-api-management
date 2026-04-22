@@ -53,7 +53,7 @@ class RequestOptionsBuilder {
         if (configHeaders == null || configHeaders.isEmpty()) {
             return;
         }
-        final MultiMap headers = new HeadersMultiMap();
+        final MultiMap headers = HeadersMultiMap.httpHeaders();
         configHeaders.forEach(header -> headers.add(header.getKey(), header.getValue()));
         options.setHeaders(headers);
     }

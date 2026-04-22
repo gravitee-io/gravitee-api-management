@@ -53,6 +53,7 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.rxjava3.core.Vertx;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -448,7 +449,7 @@ public class HttpHealthCheckServiceTest {
             final io.vertx.core.http.RequestOptions options = RequestOptionsBuilder.build(ctx, hcConfig);
 
             Assertions.assertThat(options.getHost()).isEqualTo("custom-host.example.com");
-            Assertions.assertThat(options.getServer().host()).isEqualTo("actual-backend.example.com");
+            Assertions.assertThat(((SocketAddress) options.getServer()).host()).isEqualTo("actual-backend.example.com");
         }
 
         @Test
