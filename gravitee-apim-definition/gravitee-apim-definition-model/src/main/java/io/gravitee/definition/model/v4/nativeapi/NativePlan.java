@@ -46,6 +46,15 @@ public class NativePlan extends AbstractPlan {
 
     private List<NativeFlow> flows;
 
+    /**
+     * Port-based routing fields — only used when {@code kafka.routingMode=port}.
+     * Null in host (SNI) routing mode.
+     */
+    private Integer bootstrapPort;
+
+    private Integer brokerRangeStart;
+    private Integer brokerRangeEnd;
+
     @JsonIgnore
     @Override
     public List<Plugin> getPlugins() {
