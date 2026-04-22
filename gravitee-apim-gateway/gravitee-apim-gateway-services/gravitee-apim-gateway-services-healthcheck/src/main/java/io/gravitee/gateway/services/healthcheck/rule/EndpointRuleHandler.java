@@ -19,11 +19,9 @@ import static java.lang.System.currentTimeMillis;
 
 import io.gravitee.alert.api.event.Event;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
@@ -32,7 +30,6 @@ import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import io.gravitee.gateway.services.healthcheck.eval.assertion.AssertionEvaluation;
 import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
 import io.gravitee.node.api.Node;
-import io.gravitee.node.api.utils.NodeUtils;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
@@ -66,8 +63,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     // Pattern reuse for duplicate slash removal
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(grpc:|grpcs:|http:|https:|wss:|ws:))[//]+");
-
-    private static final String HTTPS_SCHEME = "https";
 
     private static final String EVENT_TYPE = "ENDPOINT_HEALTH_CHECK";
     private static final String CONTEXT_NODE_ID = "node.id";
@@ -146,36 +141,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     protected RequestOptions prepareHttpClientRequest(URL request, HealthCheckStep step) {
-        final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getProtocol()) ? 443 : 80);
-
-        String relativeUrl = (request.getQuery() == null) ? request.getPath() : request.getPath() + '?' + request.getQuery();
-
-        // Prepare request
-        RequestOptions options = new RequestOptions()
-            .setURI(relativeUrl)
-            .setPort(port)
-            .setHost(request.getHost())
-            .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
-            .putHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
-            .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
-
-        if (step.getRequest().getHeaders() != null) {
-            step
-                .getRequest()
-                .getHeaders()
-                .forEach(httpHeader -> {
-                    String resolvedHeader = null;
-                    try {
-                        resolvedHeader = templateEngine.getValue(httpHeader.getValue(), String.class);
-                    } catch (ExpressionEvaluationException e) {
-                        log.warn("Expression {} cannot be evaluated for healthcheck of API {}", httpHeader.getValue(), rule.api().getId());
-                    }
-
-                    options.putHeader(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
-                });
-        }
-
-        return options;
+        return new RequestOptionsBuilder(node, templateEngine, rule.api().getId()).build(request, step);
     }
 
     protected URL createRequest(T endpoint, HealthCheckStep step) throws MalformedURLException {

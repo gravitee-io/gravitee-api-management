@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -51,11 +53,13 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.rxjava3.core.Vertx;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -116,8 +120,8 @@ public class HttpHealthCheckServiceTest {
 
     @BeforeEach
     public void setup() {
-        when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
-        when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
+        lenient().when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
+        lenient().when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
         lenient().when(gatewayConfig.healthCheckJitterInMs()).thenReturn(900);
 
         apiDefinition.setId(API_ID);
@@ -430,6 +434,23 @@ public class HttpHealthCheckServiceTest {
 
         @Mock
         private Configuration configuration;
+
+        @Test
+        public void buildRequestOptions_should_use_configured_Host_header_value_for_RequestOptions_host() {
+            when(deploymentContext.getComponent(Api.class)).thenReturn(api);
+
+            hcConfig.setTarget("http://actual-backend.example.com:8080/health");
+            hcConfig.setAssertion("{#response.status == 200}");
+            hcConfig.setMethod(HttpMethod.GET);
+            hcConfig.setHeaders(List.of(new HttpHeader("Host", "custom-host.example.com")));
+
+            final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfig, deploymentContext);
+
+            final io.vertx.core.http.RequestOptions options = RequestOptionsBuilder.build(ctx, hcConfig);
+
+            Assertions.assertThat(options.getHost()).isEqualTo("custom-host.example.com");
+            Assertions.assertThat(((SocketAddress) options.getServer()).host()).isEqualTo("actual-backend.example.com");
+        }
 
         @Test
         public void should_call_target_using_instance_of_httpClient() throws Exception {
