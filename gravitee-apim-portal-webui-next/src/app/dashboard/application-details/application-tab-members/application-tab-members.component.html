@@ -16,6 +16,10 @@
 
 -->
 @if (canRead()) {
+  <app-search-bar (searchTerm)="onSearchTermChange($event)" />
+  <h4 class="next-gen-h4 members__title" data-testid="members-section-title" i18n="@@applicationMembersTitle">
+    Members ({{ totalElements() }})
+  </h4>
   @if (membersResource.isLoading()) {
     <app-loader />
   } @else if (membersResource.error()) {
@@ -23,9 +27,15 @@
       An error occurred while loading members. Try again later or contact your Portal administrator.
     </div>
   } @else if (totalElements() === 0) {
-    <div class="members__empty-state" data-testid="members-empty-state">
-      <p class="next-gen-body" i18n="@@membersEmptyState">No members found.</p>
-    </div>
+    @if (searchTerm() !== '') {
+      <div class="members__empty-state" data-testid="members-search-no-match">
+        <p i18n="@@membersSearchNoMatch">No members match your search.</p>
+      </div>
+    } @else {
+      <div class="members__empty-state" data-testid="members-empty-state">
+        <p class="next-gen-body" i18n="@@membersEmptyState">No members found.</p>
+      </div>
+    }
   } @else {
     <app-paginated-table
       [columns]="tableColumns"

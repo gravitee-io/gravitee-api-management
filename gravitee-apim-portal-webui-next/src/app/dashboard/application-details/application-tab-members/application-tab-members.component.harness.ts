@@ -23,6 +23,7 @@ export class ApplicationTabMembersComponentHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-application-tab-members';
 
   private readonly locateLoader = this.locatorForOptional(LoaderHarness);
+  private readonly locateSectionTitle = this.locatorForOptional('[data-testid="members-section-title"]');
   private readonly locateErrorMessage = this.locatorForOptional('[data-testid="members-list-error"]');
   private readonly locateEmptyState = this.locatorForOptional('[data-testid="members-empty-state"]');
   private readonly locatePaginatedTable = this.locatorForOptional(PaginatedTableHarness);
@@ -31,6 +32,10 @@ export class ApplicationTabMembersComponentHarness extends ComponentHarness {
 
   public async getLoader(): Promise<LoaderHarness | null> {
     return this.locateLoader();
+  }
+
+  public async getSectionTitle(): Promise<TestElement | null> {
+    return this.locateSectionTitle();
   }
 
   public async getErrorMessage(): Promise<TestElement | null> {

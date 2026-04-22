@@ -20,8 +20,9 @@ import { of } from 'rxjs';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableAction, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
 import { TableCellDirective } from '../../../../components/paginated-table/table-cell.directive';
+import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { UserCellComponent, UserCellVM } from '../../../../components/user-cell/user-cell.component';
-import { Member, MembersResponse } from '../../../../entities/member/member';
+import { Member, MemberSearchFilters, MembersResponse } from '../../../../entities/member/member';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { MembershipService } from '../../../../services/membership.service';
@@ -38,12 +39,13 @@ interface MembersRequestParams {
   applicationId: string;
   page: number;
   size: number;
+  filters: MemberSearchFilters;
 }
 
 @Component({
   selector: 'app-application-tab-members',
   standalone: true,
-  imports: [LoaderComponent, PaginatedTableComponent, TableCellDirective, UserCellComponent],
+  imports: [LoaderComponent, PaginatedTableComponent, SearchBarComponent, TableCellDirective, UserCellComponent],
   templateUrl: './application-tab-members.component.html',
   styleUrl: './application-tab-members.component.scss',
 })
@@ -56,6 +58,7 @@ export class ApplicationTabMembersComponent {
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly searchTerm = signal('');
 
   readonly tableColumns: TableColumn[] = [
     { id: 'name', label: $localize`:@@memberColumnName:Name` },
@@ -68,14 +71,34 @@ export class ApplicationTabMembersComponent {
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
 
   protected readonly membersResource = rxResource<MembersResponse | undefined, MembersRequestParams | null>({
-    params: () => (this.canRead() ? { applicationId: this.applicationId(), page: this.currentPage(), size: this.pageSize() } : null),
+    params: () =>
+      this.canRead()
+        ? {
+            applicationId: this.applicationId(),
+            page: this.currentPage(),
+            size: this.pageSize(),
+            filters: { displayName: this.searchTerm() },
+          }
+        : null,
     stream: ({ params }) =>
-      params ? this.membershipService.searchApplicationMembers(params.applicationId, params.page, params.size) : of(undefined),
+      params
+        ? this.membershipService.searchApplicationMembers(params.applicationId, params.page, params.size, params.filters)
+        : of(undefined),
   });
 
-  readonly rows = computed<MemberTableRow[]>(() => (this.membersResource.value()?.data ?? []).map(member => this.toRow(member)));
+  readonly rows = computed<MemberTableRow[]>(() => {
+    if (this.membersResource.error()) {
+      return [];
+    }
+    return (this.membersResource.value()?.data ?? []).map(member => this.toRow(member));
+  });
 
-  readonly totalElements = computed(() => this.membersResource.value()?.metadata?.pagination?.total ?? 0);
+  readonly totalElements = computed(() => {
+    if (this.membersResource.error()) {
+      return 0;
+    }
+    return this.membersResource.value()?.metadata?.pagination?.total ?? 0;
+  });
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
@@ -83,6 +106,11 @@ export class ApplicationTabMembersComponent {
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
+    this.currentPage.set(1);
+  }
+
+  onSearchTermChange(term: string): void {
+    this.searchTerm.set(term);
     this.currentPage.set(1);
   }
 
