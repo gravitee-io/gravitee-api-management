@@ -84,6 +84,8 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     protected static final String ENVIRONMENT_CLAIM = "env";
     protected static final String API_CLAIM = "api";
     protected static final String APPLICATION_CLAIM = "app";
+    protected static final String APPLICATION_PORTAL = "PORTAL";
+    protected static final String APPLICATION_GAMMA = "GAMMA_CONSOLE";
     private static final String COCKPIT_SOURCE = "cockpit";
 
     @Autowired
@@ -166,7 +168,8 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
 
-            if ("PORTAL".equalsIgnoreCase(jwtClaimsSet.getStringClaim(APPLICATION_CLAIM))) {
+            final String application = jwtClaimsSet.getStringClaim(APPLICATION_CLAIM);
+            if (APPLICATION_PORTAL.equalsIgnoreCase(application)) {
                 TokenEntity tokenEntity = generateToken(user, 30);
                 String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
                 if (url == null) {
@@ -181,6 +184,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 return Response.temporaryRedirect(
                     new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
                 ).build();
+            } else if (APPLICATION_GAMMA.equalsIgnoreCase(application)) {
+                final String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
+                return Response.temporaryRedirect(new URI("%s/environments/%s".formatted(gammaUrl, environmentId))).build();
             } else {
                 final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
                 final String apiId = Optional.ofNullable(apiCrossId)

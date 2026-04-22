@@ -198,6 +198,19 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     @Test
+    public void shouldAuthenticateToGamma() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
+    }
+
+    @Test
     public void shouldAuthenticateToPortalFromRequest() {
         UserEntity userEntity = mockUserEntity();
 
