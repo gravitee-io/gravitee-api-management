@@ -37,7 +37,7 @@ public class GetDeployedClustersUseCase {
     private final EventLatestQueryService eventLatestQueryService;
     private final ObjectMapper objectMapper;
 
-    public record Input(String environmentId) {}
+    public record Input(String environmentId, ClusterType type) {}
 
     public record Output(List<DeployedCluster> deployedClusters) {}
 
@@ -48,7 +48,11 @@ public class GetDeployedClustersUseCase {
             Event.EventProperties.CLUSTER_ID
         );
 
-        List<DeployedCluster> deployedClusters = events.stream().map(this::toDeployedCluster).collect(Collectors.toList());
+        var stream = events.stream().map(this::toDeployedCluster);
+        if (input.type() != null) {
+            stream = stream.filter(dc -> dc.getType() == input.type());
+        }
+        List<DeployedCluster> deployedClusters = stream.collect(Collectors.toList());
 
         return new Output(deployedClusters);
     }
@@ -73,6 +77,7 @@ public class GetDeployedClustersUseCase {
                 .crossId(cluster.getCrossId())
                 .name(cluster.getName())
                 .description(cluster.getDescription())
+                .type(cluster.getType())
                 .deployedAt(cluster.getDeployedAt())
                 .version(cluster.getVersion())
                 .connections(connections)

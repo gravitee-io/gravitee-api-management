@@ -22,6 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import inmemory.EventLatestQueryServiceInMemory;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
@@ -48,7 +49,7 @@ class GetDeployedClustersUseCaseTest {
 
     @Test
     void should_return_empty_list_when_no_deployed_clusters() {
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
         assertThat(output.deployedClusters()).isEmpty();
     }
 
@@ -88,7 +89,7 @@ class GetDeployedClustersUseCaseTest {
             )
         );
 
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
 
         assertThat(output.deployedClusters()).hasSize(1);
         DeployedCluster cluster = output.deployedClusters().get(0);
@@ -130,7 +131,62 @@ class GetDeployedClustersUseCaseTest {
             )
         );
 
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
         assertThat(output.deployedClusters()).isEmpty();
+    }
+
+    @Test
+    void should_filter_deployed_clusters_by_type() {
+        String kafkaClusterPayload = """
+            {
+                "id": "cluster-1",
+                "crossId": "kafka-cluster",
+                "name": "Kafka Cluster",
+                "type": "KAFKA_CLUSTER",
+                "configuration": { "connections": [] }
+            }
+            """;
+
+        String virtualClusterPayload = """
+            {
+                "id": "cluster-2",
+                "crossId": "virtual-cluster",
+                "name": "Virtual Cluster",
+                "type": "KAFKA_VIRTUAL_CLUSTER",
+                "configuration": { "backends": [] }
+            }
+            """;
+
+        var props1 = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
+        props1.put(Event.EventProperties.CLUSTER_ID, "kafka-cluster");
+        var props2 = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
+        props2.put(Event.EventProperties.CLUSTER_ID, "virtual-cluster");
+
+        eventLatestQueryService.initWith(
+            List.of(
+                Event.builder()
+                    .id("event-1")
+                    .type(EventType.DEPLOY_CLUSTER)
+                    .payload(kafkaClusterPayload)
+                    .environments(Set.of(ENV_ID))
+                    .properties(props1)
+                    .createdAt(ZonedDateTime.now())
+                    .build(),
+                Event.builder()
+                    .id("event-2")
+                    .type(EventType.DEPLOY_CLUSTER)
+                    .payload(virtualClusterPayload)
+                    .environments(Set.of(ENV_ID))
+                    .properties(props2)
+                    .createdAt(ZonedDateTime.now())
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, ClusterType.KAFKA_VIRTUAL_CLUSTER));
+
+        assertThat(output.deployedClusters()).hasSize(1);
+        assertThat(output.deployedClusters().get(0).getCrossId()).isEqualTo("virtual-cluster");
+        assertThat(output.deployedClusters().get(0).getType()).isEqualTo(ClusterType.KAFKA_VIRTUAL_CLUSTER);
     }
 }

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ClusterType } from './Cluster';
+
 export interface DeployedCluster {
   crossId: string;
   name: string;
   description?: string;
+  type?: ClusterType;
   deployedAt?: Date;
   version?: number;
   connections: DeployedClusterConnection[];
