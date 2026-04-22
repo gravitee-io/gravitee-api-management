@@ -55,6 +55,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
@@ -447,6 +448,12 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public UpdateApiGroupsUseCase updateApiGroupsUseCase() {
+        return mock(UpdateApiGroupsUseCase.class);
+    }
+
+    @Bean
+    @Primary
     public GetApiDefinitionUseCase getApiDefinitionUseCase() {
         return mock(GetApiDefinitionUseCase.class);
     }
