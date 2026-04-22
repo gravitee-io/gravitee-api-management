@@ -33,6 +33,7 @@ public record FilterSpec(
         API,
         APPLICATION,
         PLAN,
+        API_PRODUCT,
         GATEWAY,
         TENANT,
         ZONE,

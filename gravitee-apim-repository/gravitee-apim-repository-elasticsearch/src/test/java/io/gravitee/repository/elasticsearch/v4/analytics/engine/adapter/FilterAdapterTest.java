@@ -295,4 +295,42 @@ class FilterAdapterTest {
             assertThat(range4xx.get("lte").asInt()).isEqualTo(499);
         }
     }
+
+    @Nested
+    class ApiProductFilters {
+
+        @Test
+        void should_generate_term_query_for_eq_api_product_filter() throws JsonProcessingException {
+            var productId = "cf52e8b7-3a14-4d2e-9c87-3d5f4a6e0b12";
+            var filters = List.of(new Filter(Filter.Name.API_PRODUCT, Filter.Operator.EQ, productId));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            // API_PRODUCT filter must resolve to the "api-product-id" ES field
+            var termFilter = jsonQuery.at("/query/bool/filter/1/term/api-product-id");
+            assertThat(termFilter.isMissingNode()).isFalse();
+            assertThat(termFilter.asText()).isEqualTo(productId);
+        }
+
+        @Test
+        void should_generate_terms_query_for_in_api_product_filter() throws JsonProcessingException {
+            var productIds = List.of("cf52e8b7-0000-0000-0000-000000000001", "cf52e8b7-0000-0000-0000-000000000002");
+            var filters = List.of(new Filter(Filter.Name.API_PRODUCT, Filter.Operator.IN, productIds));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var termsFilter = jsonQuery.at("/query/bool/filter/1/terms/api-product-id");
+            assertThat(termsFilter.isMissingNode()).isFalse();
+            assertThat(termsFilter.isArray()).isTrue();
+            assertThat(termsFilter.size()).isEqualTo(2);
+            assertThat(termsFilter.get(0).asText()).isEqualTo("cf52e8b7-0000-0000-0000-000000000001");
+            assertThat(termsFilter.get(1).asText()).isEqualTo("cf52e8b7-0000-0000-0000-000000000002");
+        }
+    }
 }

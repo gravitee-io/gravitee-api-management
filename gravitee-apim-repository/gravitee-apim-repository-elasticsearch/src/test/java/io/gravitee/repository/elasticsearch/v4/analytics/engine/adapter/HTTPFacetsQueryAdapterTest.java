@@ -331,4 +331,25 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(composite).isNotNull();
         assertThat(composite.has("after")).isFalse();
     }
+
+    @Test
+    void should_build_query_grouping_by_api_product() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildSortedMetric();
+
+        var facets = List.of(Facet.API_PRODUCT);
+        var limit = 10;
+
+        var query = new FacetsQuery(timeRange, filters, metrics, facets, limit);
+        var queryString = adapter.adapt(query);
+        var jsonQuery = JSON.readTree(queryString);
+
+        // The terms aggregation must target the "api-product-id" ES field
+        var field = jsonQuery.at("/aggs/HTTP_REQUESTS#API_PRODUCT/terms/field").asText();
+        assertThat(field).isEqualTo("api-product-id");
+
+        var size = jsonQuery.at("/aggs/HTTP_REQUESTS#API_PRODUCT/terms/size").asInt();
+        assertThat(size).isEqualTo(limit);
+    }
 }

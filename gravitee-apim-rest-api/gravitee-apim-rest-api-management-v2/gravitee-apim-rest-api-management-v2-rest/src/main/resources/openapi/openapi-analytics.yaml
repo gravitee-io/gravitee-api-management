@@ -1302,6 +1302,7 @@ components:
                 - API
                 - APPLICATION
                 - PLAN
+                - API_PRODUCT
                 - GATEWAY
                 - TENANT
                 - ZONE
@@ -1335,6 +1336,7 @@ components:
                 - API
                 - APPLICATION
                 - PLAN
+                - API_PRODUCT
                 - GATEWAY
                 - TENANT
                 - ZONE
