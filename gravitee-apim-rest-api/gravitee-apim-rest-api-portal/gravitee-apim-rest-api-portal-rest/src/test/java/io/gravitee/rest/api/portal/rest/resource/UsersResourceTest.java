@@ -18,11 +18,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.user.model.UserSearchQuery;
+import io.gravitee.apim.core.user.use_case.SearchUsersUseCase;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
@@ -33,10 +34,12 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -44,60 +47,148 @@ import org.mockito.Mockito;
  */
 public class UsersResourceTest extends AbstractResourceTest {
 
+    @Autowired
+    private SearchUsersUseCase searchUsersUseCase;
+
     @Override
     protected String contextPath() {
         return "users/";
     }
 
-    private SearchableUser searchableUser;
+    private io.gravitee.apim.core.user.model.User searchUser;
 
     @BeforeEach
     public void init() {
         resetAllMocks();
+        reset(searchUsersUseCase);
 
-        searchableUser = Mockito.mock(SearchableUser.class);
-        doReturn("my-user-display-name").when(searchableUser).getDisplayName();
-        doReturn("my-user-email").when(searchableUser).getEmail();
-        doReturn("my-user-firstname").when(searchableUser).getFirstname();
-        doReturn("my-user-id").when(searchableUser).getId();
-        doReturn("my-user-lastname").when(searchableUser).getLastname();
-        doReturn("my-user-picture").when(searchableUser).getPicture();
-        doReturn("my-user-reference").when(searchableUser).getReference();
-        doReturn(Collections.singletonList(searchableUser)).when(identityService).search(anyString());
+        searchUser = io.gravitee.apim.core.user.model.User.builder()
+            .id("my-user-id")
+            .reference("my-user-reference")
+            .displayName("my-user-display-name")
+            .firstName("my-user-firstname")
+            .lastName("my-user-lastname")
+            .email("my-user-email")
+            .build();
 
-        doCallRealMethod().when(userMapper).convert(searchableUser);
+        doCallRealMethod().when(userMapper).convert(searchUser);
 
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test
-    public void shouldGetUsers() {
-        final Response response = target("_search").queryParam("q", "tests").request().post(null);
+    public void should_get_users_from_legacy_query_param() {
+        var anotherSearchUser = io.gravitee.apim.core.user.model.User.builder()
+            .id("another-user-id")
+            .displayName("another-user-display-name")
+            .lastName("another-user-lastname")
+            .build();
+        doCallRealMethod().when(userMapper).convert(anotherSearchUser);
+        when(searchUsersUseCase.execute(any())).thenReturn(new SearchUsersUseCase.Output(List.of(searchUser, anotherSearchUser), 2, null));
+
+        final Response response = target("_search").queryParam("q", "tests").queryParam("size", 1).request().post(null);
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        UsersResponse usersResponse = response.readEntity(UsersResponse.class);
+        assertEquals(2, usersResponse.getData().size());
+        assertEquals("my-user-id", usersResponse.getData().get(0).getId());
+        assertNull(usersResponse.getMetadata().getAdditionalProperty("paginateMetaData"));
+
+        Links links = usersResponse.getLinks();
+        assertNotNull(links);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(SearchUsersUseCase.Input.class);
+        verify(searchUsersUseCase).execute(captor.capture());
+        assertEquals("tests", captor.getValue().searchQuery().query());
+        assertEquals(Optional.empty(), captor.getValue().applicationMembership());
+    }
+
+    @Test
+    public void should_get_users_with_body_filters_and_application_membership_metadata() {
+        when(searchUsersUseCase.execute(any())).thenReturn(
+            new SearchUsersUseCase.Output(List.of(searchUser), 42, java.util.Map.of("my-user-id", true))
+        );
+
+        var input = new UsersSearchInput()
+            .filters(new UsersSearchFilters().query("body-query"))
+            .includes(new UsersSearchIncludes().applicationMembership("app-123"));
+
+        final Response response = target("_search").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         UsersResponse usersResponse = response.readEntity(UsersResponse.class);
         assertEquals(1, usersResponse.getData().size());
+        assertEquals(Boolean.TRUE, usersResponse.getMetadata().getApplicationMembership().get("my-user-id"));
+        assertNull(usersResponse.getMetadata().getAdditionalProperty("paginateMetaData"));
 
-        Links links = usersResponse.getLinks();
-        assertNotNull(links);
-        Mockito.verify(identityService).search("tests");
+        var captor = org.mockito.ArgumentCaptor.forClass(SearchUsersUseCase.Input.class);
+        verify(searchUsersUseCase).execute(captor.capture());
+        assertEquals("body-query", captor.getValue().searchQuery().query());
+        assertEquals(Optional.of("app-123"), captor.getValue().applicationMembership());
     }
 
     @Test
-    public void shouldGetNoUserAndNoLink() {
-        doReturn(Collections.emptyList()).when(identityService).search(anyString());
+    public void should_return_bad_request_when_legacy_query_param_and_request_body_are_both_provided() {
+        var input = new UsersSearchInput().filters(new UsersSearchFilters().query("body-query"));
 
-        // Test with default limit
+        final Response response = target("_search").queryParam("q", "legacy-query").request().post(Entity.json(input));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+
+        verify(searchUsersUseCase, never()).execute(any());
+    }
+
+    @Test
+    public void should_return_forbidden_when_application_membership_is_requested_without_application_member_permission() {
+        reset(permissionService);
+
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(io.gravitee.rest.api.model.permissions.RolePermission.ORGANIZATION_USERS),
+                eq(GraviteeContext.getExecutionContext().getOrganizationId()),
+                eq(io.gravitee.rest.api.model.permissions.RolePermissionAction.READ)
+            );
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_MEMBER),
+                eq("app-123"),
+                eq(io.gravitee.rest.api.model.permissions.RolePermissionAction.READ)
+            );
+
+        var input = new UsersSearchInput().includes(new UsersSearchIncludes().applicationMembership("app-123"));
+
+        final Response response = target("_search").request().post(Entity.json(input));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        verify(searchUsersUseCase, never()).execute(any());
+    }
+
+    @Test
+    public void should_use_default_criteria_when_no_query_and_no_body_are_provided() {
+        when(searchUsersUseCase.execute(any())).thenReturn(new SearchUsersUseCase.Output(List.of(), 0, null));
+
+        final Response response = target("_search").request().post(null);
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var captor = org.mockito.ArgumentCaptor.forClass(SearchUsersUseCase.Input.class);
+        verify(searchUsersUseCase).execute(captor.capture());
+        assertEquals(UserSearchQuery.DEFAULT_QUERY, captor.getValue().searchQuery().query());
+    }
+
+    @Test
+    public void should_get_no_user_and_no_link() {
+        when(searchUsersUseCase.execute(any())).thenReturn(new SearchUsersUseCase.Output(List.of(), 0, null));
+
         final Response response = target("_search").queryParam("q", "q").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         UsersResponse usersResponse = response.readEntity(UsersResponse.class);
         assertEquals(0, usersResponse.getData().size());
+        assertNull(usersResponse.getMetadata().getAdditionalProperty("paginateMetaData"));
+        assertNull(usersResponse.getLinks());
 
-        Links links = usersResponse.getLinks();
-        assertNull(links);
-
-        // Test with small limit
         final Response anotherResponse = target("_search")
             .queryParam("q", "q")
             .queryParam("page", 2)
@@ -108,9 +199,7 @@ public class UsersResourceTest extends AbstractResourceTest {
 
         usersResponse = anotherResponse.readEntity(UsersResponse.class);
         assertEquals(0, usersResponse.getData().size());
-
-        links = usersResponse.getLinks();
-        assertNull(links);
+        assertNull(usersResponse.getLinks());
     }
 
     @Test

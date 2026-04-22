@@ -2832,7 +2832,7 @@ paths:
 
                 Existing callers can keep using the deprecated query parameter `q`.
                 New callers should use `filters.query` in the request body.
-                When `includes.applicationMembership` is provided, the response metadata is enriched with an `applicationMembership` map keyed by returned user identifiers.
+                When `includes.applicationMembership` is provided, the response metadata is enriched with an `applicationMembership` map keyed by returned user identifiers. This enrichment requires `APPLICATION_MEMBER[READ]` on the requested application.
 
                 User must have the MANAGEMENT_USERS[READ] permission.
             operationId: getUsers
@@ -4733,16 +4733,13 @@ components:
                 query:
                     type: string
                     description: Canonical body-based query filter. Preserves the existing broad provider-backed search semantics previously exposed through query parameter `q`.
-                displayName:
-                    type: string
-                    description: Optional additional display-name filter. Narrows the result set on top of the generic query semantics. Search starts when at least one character is provided.
         UsersSearchIncludes:
             type: object
             description: Optional response enrichments for platform-user lookup.
             properties:
                 applicationMembership:
                     type: string
-                    description: Application identifier used to enrich `metadata.applicationMembership` with per-user membership flags for that application.
+                    description: Application identifier used to enrich `metadata.applicationMembership` with per-user membership flags for that application. Requires `APPLICATION_MEMBER[READ]` on the referenced application.
         SearchApplicationsLogsParams:
             type: object
             description: Search filters for application logs
