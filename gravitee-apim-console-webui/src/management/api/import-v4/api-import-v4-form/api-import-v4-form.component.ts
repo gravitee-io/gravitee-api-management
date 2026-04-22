@@ -75,6 +75,7 @@ export class ApiImportV4FormComponent {
 
   readonly updateTargetApiId = input<string | undefined>(undefined);
   readonly embeddedInDialog = input(false);
+  readonly embeddedDialogApiName = input<string | undefined>(undefined);
 
   readonly importCompleted = output<string>();
   readonly dismissed = output<void>();

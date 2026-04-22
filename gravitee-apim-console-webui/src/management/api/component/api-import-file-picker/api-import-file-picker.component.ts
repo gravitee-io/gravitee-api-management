@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, effect, EventEmitter, inject, input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, effect, EventEmitter, inject, input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { GioFormFilePickerModule, NewFile } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -26,11 +26,16 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
   imports: [CommonModule, FormsModule, GioFormFilePickerModule, ReactiveFormsModule],
   templateUrl: './api-import-file-picker.component.html',
   styleUrls: ['./api-import-file-picker.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  host: {
+    '[class.api-import-file-picker--fill-drop-zone]': 'fillDropZoneLayout()',
+  },
 })
 export class ApiImportFilePickerComponent implements OnInit {
   private snackBarService = inject(SnackBarService);
   private destroyRef = inject(DestroyRef);
   allowedFileExtensions = input<string[]>(['yml', 'yaml', 'json', 'wsdl', 'xml', 'js']);
+  fillDropZoneLayout = input(false);
   filePickerControl = new FormControl();
   importType: string;
   accept: string;

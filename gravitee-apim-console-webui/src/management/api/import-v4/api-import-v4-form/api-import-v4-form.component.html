@@ -32,7 +32,7 @@
     let-cancelAsDismiss="cancelAsDismiss"
   >
     @if (cancelAsDismiss) {
-      <button mat-button type="button" (click)="onDismiss()">Cancel</button>
+      <button mat-button mat-raised-button type="button" (click)="onDismiss()">Cancel</button>
     } @else {
       <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
     }
@@ -51,7 +51,25 @@
     </div>
   </ng-template>
 
-  <mat-card>
+  @if (embeddedInDialog()) {
+    <div class="import-api-v4-form__dialog-surface">
+      @if (embeddedDialogApiName(); as dialogApiName) {
+        <div class="import-api-v4-form__dialog-heading">
+          <h1 class="page-header__page-title">Update API</h1>
+          <span class="import-api-v4-form__dialog-heading-api-name">{{ dialogApiName }}</span>
+        </div>
+      }
+      <div class="import-api-v4-form__dialog-stepper-wrap">
+        <ng-container *ngTemplateOutlet="importApiV4StepperTpl"></ng-container>
+      </div>
+    </div>
+  } @else {
+    <mat-card>
+      <ng-container *ngTemplateOutlet="importApiV4StepperTpl"></ng-container>
+    </mat-card>
+  }
+
+  <ng-template #importApiV4StepperTpl>
     <mat-stepper linear color="accent" [disableRipple]="true">
       <!-- step 1-->
       <mat-step [stepControl]="selectApiFormatForm">
@@ -112,16 +130,17 @@
                 @if (configureFileSourceForm.controls.source.value === 'local') {
                   <span class="configure-file-source__col-heading">File</span>
                   <div class="configure-file-source__detail-panel configure-file-source__detail-panel--file">
-                    <!-- Remount when format changes: gio-form-file-picker/native accept may not refresh if only inputs change. -->
-                    @for (pickerKey of [importFormat() ?? 'gravitee']; track pickerKey) {
-                      <api-import-file-picker [allowedFileExtensions]="allowedImportFileExtensions()" (onFilePicked)="onImportFile($event)">
-                        <div class="configure-file-source__file-picker">
-                          <mat-icon svgIcon="gio:upload"></mat-icon>
-                          <p class="mat-body-strong">Drag and drop a file</p>
-                          <p class="mat-body">Supported file formats: {{ allowedImportFileExtensionsLabel() }}</p>
-                        </div>
-                      </api-import-file-picker>
-                    }
+                    <api-import-file-picker
+                      [allowedFileExtensions]="allowedImportFileExtensions()"
+                      [fillDropZoneLayout]="true"
+                      (onFilePicked)="onImportFile($event)"
+                    >
+                      <div class="configure-file-source__file-picker">
+                        <mat-icon svgIcon="gio:upload"></mat-icon>
+                        <p class="mat-body-strong">Drag and drop a file</p>
+                        <p class="mat-body">Supported file formats: {{ allowedImportFileExtensionsLabel() }}</p>
+                      </div>
+                    </api-import-file-picker>
                     @if (configureFileSourceForm.hasError('mismatchFileFormat')) {
                       <gio-banner-error>The file does not match the selected API format</gio-banner-error>
                     }
@@ -288,5 +307,5 @@
         </div>
       </mat-step>
     </mat-stepper>
-  </mat-card>
+  </ng-template>
 </div>
