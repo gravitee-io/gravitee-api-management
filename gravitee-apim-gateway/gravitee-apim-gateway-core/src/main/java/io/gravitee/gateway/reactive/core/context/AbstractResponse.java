@@ -29,6 +29,7 @@ import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
+import java.util.function.Consumer;
 
 /**
  * Base implementation of {@link Response} that does nothing in particular and <b>can be</b> used to avoid reimplementing all methods.
@@ -156,6 +157,10 @@ public abstract class AbstractResponse implements MutableResponse, HttpResponseI
     public MutableResponse setHeaders(HttpHeaders headers) {
         this.headers = headers;
         return this;
+    }
+
+    public void registerBodyChangeListener(Consumer<Buffer> listener) {
+        lazyBufferFlow().registerBodyChangeListener(listener);
     }
 
     @Override
