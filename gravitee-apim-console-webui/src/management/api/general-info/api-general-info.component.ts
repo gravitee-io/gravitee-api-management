@@ -409,6 +409,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       this.matDialog
         .open<ApiImportV4FormDialogComponent, ApiImportV4FormDialogData, string | undefined>(ApiImportV4FormDialogComponent, {
           data: { apiId: this.apiId, apiName: this.api.name },
+          ariaLabel: `Import API — ${this.api.name}`,
           width: GIO_DIALOG_WIDTH.LARGE,
           maxHeight: '90vh',
           role: 'dialog',
