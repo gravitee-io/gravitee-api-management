@@ -8,8 +8,8 @@ Each domain within the module follows this structure:
 
 ```
 io.gravitee.gamma.module.apim/
-├── rest/                              
-│   ├── resource/                      # @RestController 
+├── rest/
+│   ├── resource/                      # @RestController
 │   ├── exception/                     # Exception handlers
 ├── core/                              # Business logic (framework-free)
 │   ├── <domain>/
@@ -28,14 +28,14 @@ io.gravitee.gamma.module.apim/
 
 ## 2. Naming Conventions
 
-| Artifact             | Suffix                | Annotation           | Package                        |
-|----------------------|-----------------------|----------------------|--------------------------------|
-| Use case class       | `UseCase`             | `@UseCase`           | `core.<domain>.use_case`       |
-| Domain service class | `DomainService`       | `@DomainService`     | `core.<domain>.domain_service` |
-| Repository interface | `Repository`          | —                    | `core.<domain>.repository`     |
-| Repository impl      | `MongoRepository` | `@Repository`        | `infra.repository.<domain>`    |
+| Artifact             | Suffix                | Annotation             | Package                        |
+| -------------------- | --------------------- | ---------------------- | ------------------------------ |
+| Use case class       | `UseCase`             | `@UseCase`             | `core.<domain>.use_case`       |
+| Domain service class | `DomainService`       | `@DomainService`       | `core.<domain>.domain_service` |
+| Repository interface | `Repository`          | —                      | `core.<domain>.repository`     |
+| Repository impl      | `MongoRepository`     | `@Repository`          | `infra.repository.<domain>`    |
 | Domain exception     | context-specific name | extends base exception | `core.<domain>.exception`      |
-| Adapter              | `Adapter`             | —             | `infra.adapter`                |
+| Adapter              | `Adapter`             | —                      | `infra.adapter`                |
 
 ## 3. Use Case Rules
 
@@ -73,7 +73,6 @@ public class GetClusterUseCase {
 - **Framework-agnostic** — no Spring dependencies, no dependencies to infra packages.
 - Can be called by use cases and other domain services.
 - A DomainService is a class not an interface. If it needs to use a Legacy service, it should call a LegacyService wrapper from port package.
-
 
 ## 5. Core Layer Independence
 
@@ -125,7 +124,6 @@ public interface ClusterAdapter {
 - Use records for simple response DTOs.
 - For resource creating stuff, the id should come from the request instead of the usecase generating one.
 
-
 ## 10. Testing
 
 ### Domain Tests
@@ -135,27 +133,27 @@ public interface ClusterAdapter {
 - **One sub-fixture, one responsibility**: each sub-fixture owns its use-cases and in-memory repositories, and exposes `givenXxx(...)` methods that return the persisted entity, ready to feed the `// When`.
 - **Lambda customization**: `givenXxx` methods accept a `UnaryOperator<XxxBuilder>` to override defaults without bloating the API surface. Defaults must produce a valid entity with no argument.
 
-  ```java
-  public class ApiFixture {
-      public final CreateApiUseCase createApiUseCase;
-      public final ApiCrudServiceInMemory apiCrudService;
+    ```java
+    public class ApiFixture {
+        public final CreateApiUseCase createApiUseCase;
+        public final ApiCrudServiceInMemory apiCrudService;
 
-      public Api givenAnApi() {
-          return givenAnApi(builder -> builder);
-      }
+        public Api givenAnApi() {
+            return givenAnApi(builder -> builder);
+        }
 
-      public Api givenAnApi(UnaryOperator<Api.ApiBuilder> customizer) {
-          Api.ApiBuilder defaults = Api.builder()
-              .id(UUID.randomUUID().toString())
-              .name("default-api")
-              .version("1.0");
-          return createApiUseCase.execute(customizer.apply(defaults).build());
-      }
-  }
+        public Api givenAnApi(UnaryOperator<Api.ApiBuilder> customizer) {
+            Api.ApiBuilder defaults = Api.builder()
+                .id(UUID.randomUUID().toString())
+                .name("default-api")
+                .version("1.0");
+            return createApiUseCase.execute(customizer.apply(defaults).build());
+        }
+    }
 
-  // Usage in a test
-  var api = rootFixture.apiFixture.givenAnApi(a -> a.name("my-api"));
-  ```
+    // Usage in a test
+    var api = rootFixture.apiFixture.givenAnApi(a -> a.name("my-api"));
+    ```
 
 - **Cross-domain scenarios**: a `givenAnApiWithAPlan()` orchestrates multiple sub-domains. Placement rule:
     - Scenario stays **within one** sub-domain → method on the sub-fixture (`apiFixture.givenAnApiWithMetadata(...)`).
