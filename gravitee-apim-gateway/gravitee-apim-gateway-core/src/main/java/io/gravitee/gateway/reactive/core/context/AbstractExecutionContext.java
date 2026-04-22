@@ -38,11 +38,13 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,6 +63,8 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     private EvaluableRequest evaluableRequest;
     private EvaluableResponse evaluableResponse;
     private EvaluableExecutionContext evaluableExecutionContext;
+
+    private List<BiConsumer<String, Object>> attributeChangeListeners;
 
     @Getter
     private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onResponseActions = null;
@@ -170,6 +174,13 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
         return componentProvider.getComponent(componentClass);
     }
 
+    public void registerAttributeChangeListener(BiConsumer<String, Object> listener) {
+        if (attributeChangeListeners == null) {
+            attributeChangeListeners = new ArrayList<>();
+        }
+        attributeChangeListeners.add(listener);
+    }
+
     @Override
     public void setAttribute(String name, Object value) {
         putAttribute(name, value);
@@ -178,11 +189,19 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     @Override
     public void putAttribute(String name, Object value) {
         attributes.put(name, value);
+        notifyAttributeChangeListeners(name, value);
     }
 
     @Override
     public void removeAttribute(String name) {
         attributes.remove(name);
+        notifyAttributeChangeListeners(name, null);
+    }
+
+    private void notifyAttributeChangeListeners(String name, Object value) {
+        if (attributeChangeListeners != null) {
+            attributeChangeListeners.forEach(l -> l.accept(name, value));
+        }
     }
 
     @Override

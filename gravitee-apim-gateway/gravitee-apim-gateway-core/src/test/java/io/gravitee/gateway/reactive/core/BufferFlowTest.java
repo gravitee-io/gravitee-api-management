@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -125,6 +127,82 @@ class BufferFlowTest {
             Buffer chunks = Buffer.buffer("init");
             cut = new BufferFlow(Flowable.just(chunks), () -> false);
             cut.bodyOrEmpty().test().assertValue(chunks);
+        }
+    }
+
+    @Nested
+    class BodyChangeListenerTest {
+
+        @Test
+        void should_notify_listener_on_imperative_body_set() {
+            List<Buffer> received = new ArrayList<>();
+            cut = new BufferFlow(() -> false);
+            cut.registerBodyChangeListener(received::add);
+
+            Buffer buffer = Buffer.buffer("hello");
+            cut.body(buffer);
+
+            assertThat(received).singleElement().hasToString("hello");
+        }
+
+        @Test
+        void should_not_notify_listener_when_streaming() {
+            List<Buffer> received = new ArrayList<>();
+            cut = new BufferFlow(() -> true);
+            cut.registerBodyChangeListener(received::add);
+
+            cut.body(Buffer.buffer("hello"));
+
+            assertThat(received).isEmpty();
+        }
+
+        @Test
+        void should_notify_listener_when_body_materialized_from_chunks() {
+            List<Buffer> received = new ArrayList<>();
+            Buffer buffer = Buffer.buffer("data");
+            cut = new BufferFlow(Flowable.just(buffer), () -> false);
+            cut.registerBodyChangeListener(received::add);
+
+            cut.body().test().assertValue(buffer).assertComplete();
+
+            assertThat(received).singleElement().hasToString("data");
+        }
+
+        @Test
+        void should_notify_listener_on_onBody_transformation() {
+            List<Buffer> received = new ArrayList<>();
+            Buffer initial = Buffer.buffer("init");
+            Buffer transformed = Buffer.buffer("transformed");
+            cut = new BufferFlow(Flowable.just(initial), () -> false);
+            cut.registerBodyChangeListener(received::add);
+
+            cut
+                .onBody(body -> Maybe.just(transformed))
+                .test()
+                .assertComplete();
+
+            assertThat(received).singleElement().hasToString("transformed");
+        }
+
+        @Test
+        void should_notify_multiple_listeners() {
+            List<Buffer> received1 = new ArrayList<>();
+            List<Buffer> received2 = new ArrayList<>();
+            cut = new BufferFlow(() -> false);
+            cut.registerBodyChangeListener(received1::add);
+            cut.registerBodyChangeListener(received2::add);
+
+            cut.body(Buffer.buffer("hello"));
+
+            assertThat(received1).hasSize(1);
+            assertThat(received2).hasSize(1);
+        }
+
+        @Test
+        void should_not_fail_when_no_listeners_registered() {
+            cut = new BufferFlow(() -> false);
+            cut.body(Buffer.buffer("hello"));
+            // No exception expected
         }
     }
 }

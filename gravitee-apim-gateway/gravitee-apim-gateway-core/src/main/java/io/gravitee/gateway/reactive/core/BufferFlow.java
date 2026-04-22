@@ -23,7 +23,9 @@ import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -33,6 +35,7 @@ import java.util.function.Supplier;
 public class BufferFlow implements OnBuffersInterceptor {
 
     private List<FlowableTransformer<Buffer, Buffer>> bufferInterceptors;
+    private List<Consumer<Buffer>> bodyChangeListeners;
 
     private final Supplier<Boolean> isStreaming;
     private Flowable<Buffer> chunks;
@@ -80,6 +83,7 @@ public class BufferFlow implements OnBuffersInterceptor {
             cachedBuffer = Maybe.just(buffer);
             this.chunks = cachedBuffer.toFlowable();
             applyBuffersInterceptors();
+            notifyBodyChangeListeners(buffer);
         }
     }
 
@@ -116,10 +120,17 @@ public class BufferFlow implements OnBuffersInterceptor {
         return chunks != null;
     }
 
+    public void registerBodyChangeListener(Consumer<Buffer> listener) {
+        if (bodyChangeListeners == null) {
+            bodyChangeListeners = new ArrayList<>();
+        }
+        bodyChangeListeners.add(listener);
+    }
+
     @Override
     public void registerBuffersInterceptor(FlowableTransformer<Buffer, Buffer> buffersInterceptor) {
         if (this.bufferInterceptors == null) {
-            this.bufferInterceptors = new java.util.ArrayList<>();
+            this.bufferInterceptors = new ArrayList<>();
         }
         this.bufferInterceptors.add(buffersInterceptor);
     }
@@ -147,7 +158,10 @@ public class BufferFlow implements OnBuffersInterceptor {
                         cachedBuffer = Maybe.just(Buffer.buffer());
                     }
                 })
-                .doOnSuccess(buffer -> cachedBuffer = Maybe.just(buffer));
+                .doOnSuccess(buffer -> {
+                    cachedBuffer = Maybe.just(buffer);
+                    notifyBodyChangeListeners(buffer);
+                });
     }
 
     /**
@@ -187,6 +201,12 @@ public class BufferFlow implements OnBuffersInterceptor {
 
     private FlowableTransformer<Buffer, Buffer> chunksToCache() {
         return upstream -> upstream.reduce(Buffer::appendBuffer).compose(bodyToCache()).toFlowable();
+    }
+
+    private void notifyBodyChangeListeners(Buffer buffer) {
+        if (bodyChangeListeners != null) {
+            bodyChangeListeners.forEach(l -> l.accept(buffer));
+        }
     }
 
     private void applyBuffersInterceptors() {

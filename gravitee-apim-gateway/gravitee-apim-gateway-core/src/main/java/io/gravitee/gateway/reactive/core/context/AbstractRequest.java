@@ -32,6 +32,7 @@ import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
+import java.util.function.Consumer;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -242,6 +243,10 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     public MutableRequest remoteAddress(String remoteAddress) {
         this.remoteAddress = remoteAddress;
         return this;
+    }
+
+    public void registerBodyChangeListener(Consumer<Buffer> listener) {
+        lazyBufferFlow().registerBodyChangeListener(listener);
     }
 
     @Override
