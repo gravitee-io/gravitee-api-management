@@ -23,6 +23,7 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         API,
         APPLICATION,
         PLAN,
+        API_PRODUCT,
         GATEWAY,
         TENANT,
         ZONE,

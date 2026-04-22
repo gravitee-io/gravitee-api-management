@@ -24,6 +24,7 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         API,
         APPLICATION,
         PLAN,
+        API_PRODUCT,
         GATEWAY,
         TENANT,
         ZONE,

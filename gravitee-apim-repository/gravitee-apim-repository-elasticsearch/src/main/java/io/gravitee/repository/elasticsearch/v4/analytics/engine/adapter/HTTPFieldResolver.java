@@ -69,6 +69,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case Filter.Name.MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case Filter.Name.MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
+            case Filter.Name.API_PRODUCT -> "api-product-id";
             default -> throw new UnsupportedOperationException("not an HTTP filter");
         };
     }
@@ -100,6 +101,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
+            case API_PRODUCT -> "api-product-id";
             default -> throw new UnsupportedOperationException("not an HTTP facet");
         };
     }

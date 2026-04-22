@@ -23,6 +23,7 @@ public enum Facet {
     API,
     APPLICATION,
     PLAN,
+    API_PRODUCT,
     GATEWAY,
     TENANT,
     ZONE,

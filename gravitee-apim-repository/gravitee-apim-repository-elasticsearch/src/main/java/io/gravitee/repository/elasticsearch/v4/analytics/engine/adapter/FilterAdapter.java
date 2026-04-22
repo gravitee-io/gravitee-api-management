@@ -56,6 +56,7 @@ public class FilterAdapter {
         Filter.Name.API,
         Filter.Name.APPLICATION,
         Filter.Name.PLAN,
+        Filter.Name.API_PRODUCT,
         Filter.Name.GATEWAY,
         Filter.Name.HOST,
         Filter.Name.TENANT,

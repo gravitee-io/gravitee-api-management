@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -84,6 +85,7 @@ class HTTPFieldResolverTest {
             "MCP_PROXY_TOOL",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
+            "API_PRODUCT",
         }
     )
     void should_resolve_from_http_filter(Filter.Name name) {
@@ -118,6 +120,7 @@ class HTTPFieldResolverTest {
             "MCP_PROXY_TOOL",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
+            "API_PRODUCT",
         }
     )
     void should_resolve_from_http_facet(Facet name) {
@@ -138,6 +141,18 @@ class HTTPFieldResolverTest {
         assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_PROMPT, Filter.Operator.EQ, "prompt"))).isEqualTo(
             "additional-metrics.keyword_mcp-proxy_prompts/get"
         );
+    }
+
+    @Test
+    void should_resolve_api_product_filter_to_api_product_id_es_field() {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.API_PRODUCT, Filter.Operator.IN, List.of("product-id")))).isEqualTo(
+            "api-product-id"
+        );
+    }
+
+    @Test
+    void should_resolve_api_product_facet_to_api_product_id_es_field() {
+        assertThat(fieldResolver.fromFacet(Facet.API_PRODUCT)).isEqualTo("api-product-id");
     }
 
     @Test
