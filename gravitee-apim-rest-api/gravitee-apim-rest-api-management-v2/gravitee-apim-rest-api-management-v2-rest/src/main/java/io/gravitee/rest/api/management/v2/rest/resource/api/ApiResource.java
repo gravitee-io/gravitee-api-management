@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
-import static io.gravitee.rest.api.model.permissions.SystemRole.*;
+import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -98,7 +99,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -243,6 +243,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
 
+    @Inject
+    private UpdateApiGroupsUseCase updateApiGroupsUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -372,6 +375,17 @@ public class ApiResource extends AbstractResource {
             throw new ApiDefinitionVersionNotSupportedException(definitionVersion.name());
         }
         return apiResponse(updatedApi);
+    }
+
+    @PUT
+    @Path("groups")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = { RolePermissionAction.UPDATE }) })
+    public Response updateApiGroups(@PathParam("apiId") String apiId, @Valid @NotNull final List<@NotNull String> groups) {
+        var groupsSet = Set.copyOf(groups);
+        var output = updateApiGroupsUseCase.execute(new UpdateApiGroupsUseCase.Input(apiId, groupsSet, getAuditInfo()));
+        return Response.ok().entity(output.groups()).build();
     }
 
     private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {

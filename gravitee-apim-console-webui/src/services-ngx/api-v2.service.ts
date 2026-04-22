@@ -76,6 +76,10 @@ export class ApiV2Service {
     );
   }
 
+  updateGroups(apiId: string, groups: string[]): Observable<string[]> {
+    return this.http.put<string[]>(`${this.constants.env.v2BaseURL}/apis/${apiId}/groups`, groups);
+  }
+
   delete(apiId: string, closePlans = false): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlans ? '?closePlans=true' : ''}`);
   }
