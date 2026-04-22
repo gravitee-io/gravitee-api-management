@@ -89,4 +89,15 @@
       text-transform: none;
     }
   }
+
+  &__model-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    .gio-badge-neutral,
+    .gio-badge-accent {
+      text-transform: unset;
+    }
+  }
 }

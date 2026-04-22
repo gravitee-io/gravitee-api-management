@@ -414,7 +414,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+ <!--       <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-groovy</artifactId>
             <version>${gravitee-policy-groovy.version}</version>
@@ -426,7 +426,7 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-html-json</artifactId>

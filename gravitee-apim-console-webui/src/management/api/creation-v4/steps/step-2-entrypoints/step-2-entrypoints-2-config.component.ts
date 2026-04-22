@@ -200,11 +200,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         break;
       case 'PROXY':
       case 'MCP_PROXY':
-      case 'LLM_PROXY':
       case 'A2A_PROXY':
         this.stepService.goToNextStep({
           groupNumber: 3,
           component: Step3Endpoints2ConfigComponent,
+        });
+        break;
+      case 'LLM_PROXY':
+        this.stepService.goToNextStep({
+          groupNumber: 3,
+          component: Step3Endpoints1ListComponent,
         });
         break;
     }

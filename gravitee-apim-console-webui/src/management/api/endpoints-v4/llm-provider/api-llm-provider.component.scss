@@ -38,6 +38,48 @@
       padding-bottom: 12px;
     }
   }
+
+  &__selection-list {
+    width: 100%;
+    margin-bottom: 16px;
+
+    &__title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+
+    &__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+  }
+
+  &__type-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0 16px;
+
+    &__label {
+      color: mat.get-theme-color(gio.$mat-theme, foreground, secondary-text);
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    &__value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
 }
 
 .provider-create {

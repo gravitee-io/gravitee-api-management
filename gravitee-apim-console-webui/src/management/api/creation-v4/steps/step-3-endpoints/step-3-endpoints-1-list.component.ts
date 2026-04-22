@@ -33,6 +33,7 @@ import {
 } from '../../../component/gio-information-dialog/gio-information-dialog.component';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'step-3-endpoints-1-list',
@@ -46,6 +47,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   public formGroup: UntypedFormGroup;
 
   public endpoints: ConnectorVM[];
+  public apiType: ApiCreationPayload['type'];
 
   public shouldUpgrade = false;
   public license$: Observable<License>;
@@ -68,9 +70,16 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    this.apiType = currentStepPayload.type ?? 'MESSAGE';
     const currentSelectedEndpointIds = (currentStepPayload.selectedEndpoints ?? []).map(p => p.id);
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
+    if (this.apiType === 'LLM_PROXY') {
+      this.licenseOptions = {
+        feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
+        context: UTMTags.API_CREATION_LLM_ENDPOINT_CONFIG,
+      };
+    }
 
     this.formGroup = this.formBuilder.group({
       selectedEndpointsIds: this.formBuilder.control(currentSelectedEndpointIds, [Validators.required]),

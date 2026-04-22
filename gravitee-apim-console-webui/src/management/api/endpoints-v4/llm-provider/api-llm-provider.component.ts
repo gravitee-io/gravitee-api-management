@@ -18,16 +18,26 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV4, EndpointGroupV4, EndpointV4, EndpointV4Default, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import {
+  ApiV4,
+  ConnectorPlugin,
+  ConnectorVM,
+  EndpointGroupV4,
+  EndpointV4,
+  EndpointV4Default,
+  UpdateApiV4,
+  mapAndFilterBySupportedQos,
+} from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint-v4-unique-name';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { IconService } from '../../../../services-ngx/icon.service';
 
 export type ProviderMode = 'create-group' | 'edit-group' | 'create-endpoint' | 'edit-endpoint';
 
@@ -50,6 +60,16 @@ export class ApiLlmProviderComponent implements OnInit {
   public providerSchema: { config: GioJsonSchema | null; sharedConfig: GioJsonSchema | null };
   public initialFormValue: any;
   public backPath = '../../';
+  public selectedEndpointType: string = 'llm-proxy';
+  public llmEndpointPlugins: ConnectorPlugin[] = [];
+  public selectedEndpointPlugin: ConnectorPlugin | null = null;
+  public endpointTypeOptions: ConnectorVM[] = [];
+  public selectedEndpointOption: ConnectorVM | null = null;
+  public isTypeSelectionDone = false;
+  public showTypeSelectionStep = false;
+  public endpointTypeSelectionForm = new FormGroup<{ selectedEndpointType: FormControl<string | null> }>({
+    selectedEndpointType: new FormControl<string | null>(null, { validators: [Validators.required] }),
+  });
 
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
@@ -57,6 +77,7 @@ export class ApiLlmProviderComponent implements OnInit {
   private readonly connectorPluginsV2Service = inject(ConnectorPluginsV2Service);
   private readonly snackBarService = inject(SnackBarService);
   private readonly permissionService = inject(GioPermissionService);
+  private readonly iconService = inject(IconService);
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   public get pageTitle(): string {
@@ -188,8 +209,55 @@ export class ApiLlmProviderComponent implements OnInit {
           return;
         }
       }
+
+      // When editing or adding to an existing group, reuse the group's endpoint type
+      this.selectedEndpointType = this.provider.type || 'llm-proxy';
     }
 
+    this.loadLlmEndpointPlugins();
+  }
+
+  private loadLlmEndpointPlugins(): void {
+    this.connectorPluginsV2Service
+      .listEndpointPluginsByApiType('LLM_PROXY')
+      .pipe(
+        tap(plugins => {
+          this.llmEndpointPlugins = plugins;
+          this.endpointTypeOptions = mapAndFilterBySupportedQos(plugins, [], this.iconService);
+
+          const defaultType = this.selectedEndpointType || plugins.find(p => p.id === 'llm-proxy')?.id || plugins[0]?.id;
+          if (!defaultType) {
+            this.snackBarService.error('No LLM endpoint plugins available.');
+            return;
+          }
+          this.selectedEndpointType = defaultType;
+          this.selectedEndpointPlugin = plugins.find(p => p.id === defaultType) ?? null;
+          this.selectedEndpointOption = this.endpointTypeOptions.find(o => o.id === defaultType) ?? null;
+
+          // Only show the dedicated selection step when creating a brand-new group and we have multiple options
+          this.showTypeSelectionStep = this.mode === 'create-group' && plugins.length > 1;
+          this.isTypeSelectionDone = !this.showTypeSelectionStep;
+          this.endpointTypeSelectionForm.controls.selectedEndpointType.setValue(defaultType, { emitEvent: false });
+
+          if (this.isTypeSelectionDone) {
+            this.initForm();
+            this.loadSchemas();
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  public onEndpointTypeSelected(): void {
+    const selectedType = this.endpointTypeSelectionForm.controls.selectedEndpointType.value;
+    if (!selectedType) {
+      return;
+    }
+    this.selectedEndpointType = selectedType;
+    this.selectedEndpointPlugin = this.llmEndpointPlugins.find(p => p.id === selectedType) ?? null;
+    this.selectedEndpointOption = this.endpointTypeOptions.find(o => o.id === selectedType) ?? null;
+    this.isTypeSelectionDone = true;
     this.initForm();
     this.loadSchemas();
   }
@@ -231,8 +299,9 @@ export class ApiLlmProviderComponent implements OnInit {
   }
 
   private loadSchemas(): void {
+    const endpointType = this.selectedEndpointType || 'llm-proxy';
     this.connectorPluginsV2Service
-      .getEndpointPluginSchema('llm-proxy')
+      .getEndpointPluginSchema(endpointType)
       .pipe(
         tap(config => {
           this.providerSchema = {
@@ -245,7 +314,7 @@ export class ApiLlmProviderComponent implements OnInit {
       .subscribe();
 
     this.connectorPluginsV2Service
-      .getEndpointPluginSharedConfigurationSchema('llm-proxy')
+      .getEndpointPluginSharedConfigurationSchema(endpointType)
       .pipe(
         tap(sharedConfig => {
           this.providerSchema = {
@@ -259,12 +328,13 @@ export class ApiLlmProviderComponent implements OnInit {
   }
 
   private createNewProvider(api: ApiV4, cleanName: string, configuration: any, sharedConfiguration: any): UpdateApiV4 {
+    const endpointType = this.selectedEndpointType || 'llm-proxy';
     const newProvider: EndpointGroupV4 = {
       name: cleanName,
-      type: 'llm-proxy',
+      type: endpointType,
       endpoints: [
         {
-          ...EndpointV4Default.byTypeAndGroupName('llm-proxy', cleanName),
+          ...EndpointV4Default.byTypeAndGroupName(endpointType, cleanName),
           configuration,
           ...(sharedConfiguration ? { sharedConfigurationOverride: sharedConfiguration } : {}),
         },
@@ -302,8 +372,9 @@ export class ApiLlmProviderComponent implements OnInit {
       throw new Error('Cannot create endpoint: provider or index is null');
     }
 
+    const endpointType = this.provider.type || this.selectedEndpointType || 'llm-proxy';
     const newEndpoint: EndpointV4 = {
-      ...EndpointV4Default.byTypeAndGroupName('llm-proxy', cleanName),
+      ...EndpointV4Default.byTypeAndGroupName(endpointType, cleanName),
       name: cleanName,
       configuration,
       inheritConfiguration: true,

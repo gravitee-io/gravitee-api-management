@@ -22,50 +22,112 @@
   </a>
 </div>
 
-<form *ngIf="formGroup" autocomplete="off" [formGroup]="formGroup">
+@if (showTypeSelectionStep && !isTypeSelectionDone) {
   <mat-card class="endpoint-card">
     <mat-card-content>
       <div class="endpoint-card__header__group-name">
-        <span class="mat-h3">{{ pageTitle }}</span>
+        <span class="mat-h3">Select your LLM endpoint type</span>
       </div>
+      <form [formGroup]="endpointTypeSelectionForm" (ngSubmit)="onEndpointTypeSelected()">
+        <mat-radio-group
+          *ngIf="endpointTypeOptions?.length; else loadingTpl"
+          formControlName="selectedEndpointType"
+          class="gio-selection-list endpoint-card__selection-list"
+          aria-label="Select LLM endpoint type"
+        >
+          <mat-radio-button
+            *ngFor="let endpoint of endpointTypeOptions"
+            [value]="endpoint.id"
+            [class.gio-selection__selected]="endpointTypeSelectionForm.get('selectedEndpointType').value === endpoint.id"
+            labelPosition="after"
+          >
+            <gio-selection-list-option-layout>
+              <gio-selection-list-option-layout-title>
+                <div class="endpoint-card__selection-list__title">
+                  <mat-icon [svgIcon]="endpoint.icon"></mat-icon>
+                  {{ endpoint.name }}
+                  <span class="gio-badge-accent" *ngIf="endpoint.isEnterprise">Enterprise</span>
+                  <span class="gio-badge-warning" *ngIf="!endpoint.deployed">Not deployed</span>
+                </div>
+              </gio-selection-list-option-layout-title>
+              <gio-selection-list-option-layout-body>
+                {{ endpoint.description }}
+              </gio-selection-list-option-layout-body>
+            </gio-selection-list-option-layout>
+          </mat-radio-button>
+        </mat-radio-group>
 
-      <mat-form-field appearance="outline" class="endpoint-card__form__field">
-        <input id="name" type="text" matInput formControlName="name" required="true" />
-        <mat-label>Name</mat-label>
-        @if (formGroup.controls.name.errors?.required) {
-          <mat-error>
-            {{ mode === 'edit-group' || mode === 'create-group' ? 'Provider name is required' : 'Endpoint name is required' }}
-          </mat-error>
-        }
-        @if (formGroup.controls.name.errors?.isUnique) {
-          <mat-error>This name is used by another provider or endpoint group.</mat-error>
-        }
-      </mat-form-field>
-
-      @if (showConfiguration && providerSchema?.config) {
-        <div class="endpoint-card__form__field">
-          @if (formGroup.dirty && formGroup.errors?.aliasesMismatch; as mismatch) {
-            <gio-banner-error>
-              All endpoints in this group must use the same list of aliases ({{ mismatch.expected.join(', ') }}).
-            </gio-banner-error>
-          }
-          <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config" />
+        <div class="endpoint-card__selection-list__footer">
+          <button mat-stroked-button type="button" [routerLink]="backPath">Cancel</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="endpointTypeSelectionForm.invalid">
+            Select endpoint type
+          </button>
         </div>
-      }
-
-      @if (showSharedConfiguration && providerSchema?.sharedConfig) {
-        <div class="endpoint-card__form__field">
-          <gio-form-json-schema formControlName="sharedConfigurationOverride" [jsonSchema]="providerSchema.sharedConfig" />
-        </div>
-      }
+      </form>
     </mat-card-content>
   </mat-card>
+} @else if (formGroup) {
+  <form autocomplete="off" [formGroup]="formGroup">
+    <mat-card class="endpoint-card">
+      <mat-card-content>
+        <div class="endpoint-card__header__group-name">
+          <span class="mat-h3">{{ pageTitle }}</span>
+        </div>
 
-  <gio-save-bar
-    class="save-bar"
-    [creationMode]="mode === 'create-group' || mode === 'create-endpoint'"
-    [form]="formGroup"
-    [formInitialValues]="initialFormValue"
-    (submitted)="onSave()"
-  ></gio-save-bar>
-</form>
+        @if (selectedEndpointPlugin || selectedEndpointOption) {
+          <div class="endpoint-card__type-summary">
+            <div class="endpoint-card__type-summary__label">LLM endpoint type</div>
+            <div class="endpoint-card__type-summary__value">
+              @if (selectedEndpointOption?.icon) {
+                <mat-icon [svgIcon]="selectedEndpointOption.icon"></mat-icon>
+              }
+              <span>{{ selectedEndpointOption?.name ?? selectedEndpointPlugin?.name }}</span>
+            </div>
+          </div>
+        }
+
+        <mat-form-field appearance="outline" class="endpoint-card__form__field">
+          <input id="name" type="text" matInput formControlName="name" required="true" />
+          <mat-label>Name</mat-label>
+          @if (formGroup.controls.name.errors?.required) {
+            <mat-error>
+              {{ mode === 'edit-group' || mode === 'create-group' ? 'Provider name is required' : 'Endpoint name is required' }}
+            </mat-error>
+          }
+          @if (formGroup.controls.name.errors?.isUnique) {
+            <mat-error>This name is used by another provider or endpoint group.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (showConfiguration && providerSchema?.config) {
+          <div class="endpoint-card__form__field">
+            @if (formGroup.dirty && formGroup.errors?.aliasesMismatch; as mismatch) {
+              <gio-banner-error>
+                All endpoints in this group must use the same list of aliases ({{ mismatch.expected.join(', ') }}).
+              </gio-banner-error>
+            }
+            <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config" />
+          </div>
+        }
+
+        @if (showSharedConfiguration && providerSchema?.sharedConfig) {
+          <div class="endpoint-card__form__field">
+            <gio-form-json-schema formControlName="sharedConfigurationOverride" [jsonSchema]="providerSchema.sharedConfig" />
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <gio-save-bar
+      class="save-bar"
+      [creationMode]="mode === 'create-group' || mode === 'create-endpoint'"
+      [form]="formGroup"
+      [formInitialValues]="initialFormValue"
+      (submitted)="onSave()"
+    ></gio-save-bar>
+  </form>
+} @else {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+}
+
+<ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

@@ -53,7 +53,7 @@ export class ApiEndpointGroupsLlmHarness extends ComponentHarness {
   public async getEndpointProviderType(cardIndex: number, endpointIndex: number): Promise<string> {
     const selector = `.endpoint-group-card:nth-child(${cardIndex + 1}) .endpoint-group-card__endpoint:nth-child(${endpointIndex + 2}) .gio-badge-primary`;
     const element = await this.locatorForOptional(selector)();
-    return element ? await element.text() : '';
+    return element ? (await element.text()).trim() : '';
   }
 
   public async getEndpointCount(cardIndex: number): Promise<number> {

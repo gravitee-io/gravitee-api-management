@@ -48,9 +48,18 @@
             <div class="endpoint-group-card__endpoint__header">
               <div class="endpoint-group-card__endpoint__header__title">
                 <h4 class="mat-h4">{{ endpoint.name }}</h4>
-                <span class="gio-badge-primary">
-                  {{ getProviderTypeDisplayName(endpoint.providerConfiguration?.provider) }}
-                </span>
+                @if (endpoint.providerConfiguration?.provider) {
+                  <span class="gio-badge-primary">
+                    {{ getProviderTypeDisplayName(endpoint.providerConfiguration.provider) }}
+                  </span>
+                } @else {
+                  @if (plugins().get(provider.type); as plugin) {
+                    <span class="gio-badge-primary">
+                      <mat-icon [svgIcon]="plugin.icon"></mat-icon>
+                      {{ plugin.name }}
+                    </span>
+                  }
+                }
               </div>
               <div class="endpoint-group-card__endpoint__header__actions">
                 <button
@@ -88,7 +97,14 @@
               <ng-container matColumnDef="model">
                 <th mat-header-cell *matHeaderCellDef>Model</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ element.name }}
+                  <span class="endpoint-group-card__model-cell">
+                    <span>{{ element.name }}</span>
+                    @if (element.pipelineKind === 'LOCAL') {
+                      <span class="gio-badge-neutral" aria-label="Local pipeline">Local</span>
+                    } @else if (element.pipelineKind === 'REMOTE') {
+                      <span class="gio-badge-accent" aria-label="Remote pipeline">Remote</span>
+                    }
+                  </span>
                 </td>
               </ng-container>
 
@@ -96,7 +112,11 @@
               <ng-container matColumnDef="costInput">
                 <th mat-header-cell *matHeaderCellDef>Cost per 1m tokens (input) ($)</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ element.inputPrice | number: '1.2' }}
+                  @if (element?.inputPrice !== null && element?.inputPrice !== undefined) {
+                    {{ element.inputPrice | number: '1.2' }}
+                  } @else {
+                    N/A
+                  }
                 </td>
               </ng-container>
 
@@ -104,7 +124,11 @@
               <ng-container matColumnDef="costOutput">
                 <th mat-header-cell *matHeaderCellDef>Cost per 1m tokens (output) ($)</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ element.outputPrice | number: '1.2' }}
+                  @if (element?.outputPrice !== null && element?.outputPrice !== undefined) {
+                    {{ element.outputPrice | number: '1.2' }}
+                  } @else {
+                    N/A
+                  }
                 </td>
               </ng-container>
 
