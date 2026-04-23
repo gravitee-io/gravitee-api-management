@@ -96,7 +96,10 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 accessPointsToCreate
             );
 
-            createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
+            // Seed default portal navigation items only when Cockpit registers this environment for the first time
+            if (existingEnvironment == null) {
+                createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
+            }
 
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId()));
