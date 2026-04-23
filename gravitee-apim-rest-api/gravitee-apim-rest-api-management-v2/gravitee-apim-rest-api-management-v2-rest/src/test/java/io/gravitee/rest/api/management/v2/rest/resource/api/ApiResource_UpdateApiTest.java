@@ -207,7 +207,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_false_for_allowedInApiProducts_when_entity_has_false() {
+    public void should_return_false_for_allowedInApiProducts_when_entity_has_null() {
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).allowedInApiProducts(null).build();
         UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 

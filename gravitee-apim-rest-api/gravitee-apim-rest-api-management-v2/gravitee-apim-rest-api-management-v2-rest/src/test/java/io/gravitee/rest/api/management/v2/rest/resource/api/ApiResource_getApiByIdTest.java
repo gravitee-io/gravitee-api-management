@@ -538,7 +538,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     }
 
     @Test
-    public void shouldNotGetApiBecauseNotFound() {
+    public void should_not_get_api_because_not_found() {
         final String UNKNOWN_API = "unknown";
 
         doThrow(ApiNotFoundException.class)

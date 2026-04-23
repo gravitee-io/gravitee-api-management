@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -165,11 +166,9 @@ public class ApiMapperTest {
         def.setType(ApiType.PROXY);
         def.setName("name");
         def.setApiVersion("1");
-        String rawJson = objectMapper.writeValueAsString(def);
-        String defJson = rawJson
-            .replace(",\"allowedInApiProducts\":null", "")
-            .replace("\"allowedInApiProducts\":null,", "")
-            .replace("\"allowedInApiProducts\":null", "");
+        ObjectNode node = (ObjectNode) objectMapper.readTree(objectMapper.writeValueAsString(def));
+        node.remove("allowedInApiProducts");
+        String defJson = node.toString();
         Api repo = new Api();
         repo.setId("idAbsent");
         repo.setDefinition(defJson);

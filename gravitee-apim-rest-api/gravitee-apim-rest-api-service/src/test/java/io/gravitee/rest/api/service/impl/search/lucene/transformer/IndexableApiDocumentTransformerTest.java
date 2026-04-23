@@ -184,6 +184,23 @@ public class IndexableApiDocumentTransformerTest {
     }
 
     @Test
+    void should_index_explicit_false_allowedInApiProducts() {
+        var indexable = new IndexableApi(
+            ApiFixtures.aProxyApiV4()
+                .toBuilder()
+                .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().allowedInApiProducts(false).build())
+                .build(),
+            PRIMARY_OWNER,
+            Map.of(),
+            Set.of()
+        );
+
+        var result = cut.transform(indexable);
+
+        assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCTS).stringValue()).isEqualTo("false");
+    }
+
+    @Test
     void should_transform_primary_owner_info() {
         // Given
         var indexable = new IndexableApi(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, Map.of(), Set.of());
