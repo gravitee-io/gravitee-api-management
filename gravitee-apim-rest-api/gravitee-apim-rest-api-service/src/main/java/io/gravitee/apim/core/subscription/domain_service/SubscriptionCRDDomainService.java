@@ -23,7 +23,7 @@ import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SubscriptionCRDSpecDomainService {
+public interface SubscriptionCRDDomainService {
     SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec);
     void delete(AuditInfo auditInfo, String id);
 }

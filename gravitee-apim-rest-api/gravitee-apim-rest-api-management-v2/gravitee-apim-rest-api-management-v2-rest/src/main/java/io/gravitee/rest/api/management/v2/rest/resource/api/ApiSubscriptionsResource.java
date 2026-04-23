@@ -24,12 +24,9 @@ import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
-import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
-import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.*;
@@ -143,7 +140,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private SecurityContext securityContext;
 
     @Inject
-    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+    private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
 
     @Inject
     private DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase;
@@ -348,7 +345,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
         return Response.ok(
-            importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), spec)).status()
+            importSubscriptionCRDUseCase.execute(new ImportSubscriptionCRDUseCase.Input(getAuditInfo(), spec)).status()
         ).build();
     }
 

@@ -31,7 +31,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
-import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -63,7 +63,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
     private PlanCrudServiceInMemory planCrudService;
 
     @Autowired
-    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+    private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
 
     static final String HRID = "subscription-hrid";
     static final String API_HRID = "api-hrid";
@@ -76,7 +76,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         apiCrudService.reset();
         applicationCrudService.reset();
         planCrudService.reset();
-        reset(importSubscriptionSpecUseCase);
+        reset(importSubscriptionCRDUseCase);
     }
 
     @Nested
@@ -253,8 +253,8 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void should_handle_put_delete_put_lifecycle() {
-            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
-                new ImportSubscriptionSpecUseCase.Output(
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionCRDUseCase.Output(
                     SubscriptionCRDStatus.builder()
                         .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
                         .startingAt(Instant.now().atZone(ZoneOffset.UTC))

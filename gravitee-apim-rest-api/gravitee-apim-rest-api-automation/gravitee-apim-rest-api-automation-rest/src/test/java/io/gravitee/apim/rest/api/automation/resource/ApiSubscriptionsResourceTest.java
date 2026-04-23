@@ -22,7 +22,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
-import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.ws.rs.client.Entity;
@@ -38,11 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Autowired
-    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+    private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
 
     @AfterEach
     void tearDown() {
-        reset(importSubscriptionSpecUseCase);
+        reset(importSubscriptionCRDUseCase);
     }
 
     static final String API_HRID = "api-hrid";
@@ -52,8 +52,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
-                new ImportSubscriptionSpecUseCase.Output(
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionCRDUseCase.Output(
                     SubscriptionCRDStatus.builder()
                         .startingAt(Instant.now().atZone(ZoneOffset.UTC))
                         .status(ACCEPTED.name())
@@ -69,6 +69,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getApiHrid()).isEqualTo(API_HRID);
                 soft.assertThat(state.getApplicationHrid()).isEqualTo("application_hrid");
                 soft.assertThat(state.getPlanHrid()).isEqualTo("plan_hrid");
+                soft.assertThat(state.getCustomApiKey()).isEqualTo("custom-api-key");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
@@ -76,8 +77,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_legacy_id() {
-            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
-                new ImportSubscriptionSpecUseCase.Output(
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionCRDUseCase.Output(
                     SubscriptionCRDStatus.builder()
                         .id("subscription_id")
                         .startingAt(Instant.now().atZone(ZoneOffset.UTC))

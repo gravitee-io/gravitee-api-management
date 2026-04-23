@@ -58,4 +58,5 @@ public class SubscriptionCRDSpec {
     private String planId;
     private ZonedDateTime endingAt;
     private Map<String, String> metadata;
+    private String customApiKey;
 }

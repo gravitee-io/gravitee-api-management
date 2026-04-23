@@ -53,7 +53,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
-import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -87,7 +87,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SubscriptionCRDSpecDomainServiceImplTest {
+class SubscriptionCRDDomainServiceImplTest {
 
     private static final Instant THEN = Instant.parse("2023-10-22T10:15:30Z");
 
@@ -103,6 +103,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     private static final String APPLICATION_ID = "application-id";
     private static final String PLAN_ID = "plan-id";
     private static final String SUBSCRIPTION_ID = "subscription-id";
+    private static final String CUSTOM_API_KEY = "my-custom-api-key";
 
     private static final SubscriptionCRDSpec SPEC = SubscriptionCRDSpec.builder()
         .id(SUBSCRIPTION_ID)
@@ -137,7 +138,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
 
     private final SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
 
-    private SubscriptionCRDSpecDomainService cut;
+    private SubscriptionCRDDomainService cut;
 
     @BeforeAll
     static void init() {
@@ -156,7 +157,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
         );
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
-        cut = new SubscriptionCRDSpecDomainServiceImpl(
+        cut = new SubscriptionCRDDomainServiceImpl(
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService(),
@@ -260,6 +261,31 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             soft.assertThat(subscription.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
             soft.assertThat(subscription.getMetadata()).isEqualTo(metadata);
         });
+    }
+
+    @Test
+    void should_create_with_custom_api_key() {
+        givenExistingApiKeyPlan();
+
+        var specWithCustomApiKey = SPEC.toBuilder().customApiKey(CUSTOM_API_KEY).build();
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID))).thenReturn(
+            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithCustomApiKey))
+        );
+
+        subscriptionCrudService.initWith(
+            List.of(
+                subscriptionAdapter
+                    .fromSpec(specWithCustomApiKey)
+                    .toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .subscribedBy(USER_ID)
+                    .build()
+            )
+        );
+
+        cut.createOrUpdate(AUDIT_INFO, specWithCustomApiKey);
+
+        verify(subscriptionService).create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID));
     }
 
     @Test

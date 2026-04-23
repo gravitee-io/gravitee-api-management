@@ -17,7 +17,7 @@ package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -30,7 +30,7 @@ public class DeleteSubscriptionSpecUseCase {
 
     public record Input(AuditInfo auditInfo, String id) {}
 
-    private final SubscriptionCRDSpecDomainService subscriptionSpecDomainService;
+    private final SubscriptionCRDDomainService subscriptionSpecDomainService;
 
     public void execute(Input input) {
         subscriptionSpecDomainService.delete(input.auditInfo, input.id);
