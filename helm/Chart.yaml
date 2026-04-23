@@ -30,6 +30,8 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
+    - kind: changed
+      description: 'Migrate repository configuration (management, analytics, ratelimit) under repositories.* prefix in configmaps. Legacy keys are deprecated and will be removed in a future release.'
     - kind: added
       description: 'Add configurable OpenShift security context adaptation with auto, force and disabled modes.'
     - kind: fixed

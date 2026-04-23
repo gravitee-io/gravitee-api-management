@@ -4,6 +4,7 @@
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
 ### 4.12.0
+- Migrate repository configuration (management, analytics, ratelimit) under `repositories.*` prefix in configmaps. No impact on user values. Legacy keys are deprecated and will be removed in a future release.
 - Add Gamma API ingress
 - Add Gamma UI component: new management console
     - New templates: deployment, service, ingress, configmap, autoscaler, PDB

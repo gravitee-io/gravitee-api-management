@@ -90,7 +90,6 @@ data:
             {{ toYaml .Values.jdbc.pool | nindent 12 | trim -}}
           {{- end }}
         {{- end }}
-
       analytics:
         {{- if (eq .Values.api.analytics.type "elasticsearch") }}
         type: elasticsearch
