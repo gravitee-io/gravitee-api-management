@@ -97,6 +97,27 @@ class InvitationQueryServiceImplTest {
     }
 
     @Test
+    void should_find_invitations_by_reference() throws Exception {
+        var createdAt = OffsetDateTime.parse("2026-04-23T09:30:00Z");
+        var invitation = anInvitation(INVITATION_ID_1, "john@example.com", "USER", createdAt, createdAt);
+        when(invitationRepository.findByReferenceIdAndReferenceType(APPLICATION_ID, InvitationReferenceType.APPLICATION)).thenReturn(
+            List.of(invitation)
+        );
+
+        var result = cut.findByReference(
+            io.gravitee.apim.core.invitation.model.InvitationReferenceType.APPLICATION,
+            APPLICATION_ID
+        );
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_1));
+        assertThat(result.getFirst().email()).isEqualTo("john@example.com");
+        assertThat(result.getFirst().roleName()).isEqualTo("USER");
+        assertThat(result.getFirst().createdAt()).isEqualTo(createdAt.toInstant().atZone(TimeProvider.clock().getZone()));
+        verify(invitationRepository).findByReferenceIdAndReferenceType(APPLICATION_ID, InvitationReferenceType.APPLICATION);
+    }
+
+    @Test
     void should_wrap_technical_exception() throws Exception {
         var repositoryCriteria = new InvitationCriteria(APPLICATION_ID, InvitationReferenceType.APPLICATION, null);
         var sortable = new SortableBuilder().field("email").order(Order.ASC).build();
