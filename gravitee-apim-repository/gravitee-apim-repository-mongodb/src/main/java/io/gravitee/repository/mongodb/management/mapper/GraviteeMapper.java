@@ -364,6 +364,10 @@ public interface GraviteeMapper {
     Cluster map(ClusterMongo source);
     ClusterMongo map(Cluster source);
 
+    // KafkaPortRange mapping
+    KafkaPortRange map(KafkaPortRangeMongo source);
+    KafkaPortRangeMongo map(KafkaPortRange source);
+
     // PortalNavigationItem mapping
     PortalNavigationItem map(PortalNavigationItemMongo toMap);
     PortalNavigationItemMongo map(PortalNavigationItem toMap);
