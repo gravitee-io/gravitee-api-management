@@ -6,9 +6,25 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
+@mixin flex-column-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+@mixin flex-item-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 @mixin stepper-actions-right {
   display: flex;
   gap: 8px;
+}
+
+@mixin embedded-dialog-margin-top {
+  margin-top: 16px;
 }
 
 :host {
@@ -22,29 +38,60 @@ $typography: map.get(gio.$mat-theme, typography);
   padding-bottom: 0;
   padding-left: 0;
   padding-right: 0;
+  @include flex-column-fill;
+  max-height: 100%;
+
+  .configure-file-source__body {
+    @include embedded-dialog-margin-top;
+
+    h3 {
+      margin: 0 0 12px;
+    }
+  }
+
+  .configure-file-source__actions,
+  .select-api-format__actions,
+  .options-step__actions {
+    @include embedded-dialog-margin-top;
+  }
+
+  .review-import-step {
+    @include embedded-dialog-margin-top;
+
+    &__actions {
+      @include embedded-dialog-margin-top;
+    }
+  }
+}
+
+.import-api-v4-form__dialog-surface {
+  @include flex-column-fill;
 }
 
 .import-api-v4-form__dialog-heading {
-  margin: 0 0 16px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
 }
 
 .import-api-v4-form__dialog-heading-api-name {
   margin: 0;
   font-weight: 400;
   @include mat.m2-typography-level($typography, body-2);
-  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker60);
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker80);
 }
 
 .import-api-v4-form__dialog-stepper-wrap {
-  min-height: 0;
+  @include flex-item-fill;
 }
 
 .api-import-v4-form {
   display: block;
+}
+
+:host(.api-import-v4-form--embedded-dialog) .import-api-v4-form {
+  @include flex-column-fill;
 }
 
 :host(.api-import-v4-form--embedded-dialog) .import-api-v4-form__dialog-heading .page-header__page-title {
@@ -127,10 +174,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__detail-panel--file {
     > api-import-file-picker {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-height: 0;
+      @include flex-column-fill;
     }
   }
 

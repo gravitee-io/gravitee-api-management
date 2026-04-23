@@ -35,7 +35,8 @@ api-import-file-picker.api-import-file-picker--fill-drop-zone {
     flex-direction: column !important;
     flex: 1 !important;
     min-height: 0 !important;
-    width: 100% !important;
+    align-self: stretch !important;
+    min-width: 0 !important;
   }
 
   gio-form-file-picker.file-picker > .file-picker {
@@ -71,6 +72,7 @@ api-import-file-picker.api-import-file-picker--fill-drop-zone {
   gio-form-file-picker.file-picker > .file-picker .file-picker__preview__file {
     flex: 1 !important;
     min-height: 0 !important;
-    font-size: 16px !important;
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
   }
 }

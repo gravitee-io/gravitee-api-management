@@ -44,7 +44,6 @@ import {
   ApiGeneralInfoIncludedInDialogComponent,
   ApiGeneralInfoIncludedInDialogData,
 } from './api-general-info-included-in-dialog/api-general-info-included-in-dialog.component';
-import { ApiImportV4FormDialogComponent, ApiImportV4FormDialogData } from './api-import-v4-form-dialog/api-import-v4-form-dialog.component';
 
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
@@ -52,6 +51,11 @@ import { CategoryService } from '../../../services-ngx/category.service';
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioApiImportDialogComponent, GioApiImportDialogData } from '../component/gio-api-import-dialog/gio-api-import-dialog.component';
+import {
+  API_IMPORT_V4_FORM_DIALOG_MAX_HEIGHT,
+  ApiImportV4FormDialogComponent,
+  ApiImportV4FormDialogData,
+} from '../import-v4/api-import-v4-form-dialog/api-import-v4-form-dialog.component';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
@@ -411,7 +415,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           data: { apiId: this.apiId, apiName: this.api.name },
           ariaLabel: `Import API — ${this.api.name}`,
           width: GIO_DIALOG_WIDTH.LARGE,
-          maxHeight: '90vh',
+          maxHeight: API_IMPORT_V4_FORM_DIALOG_MAX_HEIGHT,
           role: 'dialog',
           id: 'importApiV4Dialog',
         })
