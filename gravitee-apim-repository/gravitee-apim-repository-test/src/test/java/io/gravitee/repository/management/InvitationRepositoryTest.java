@@ -15,9 +15,15 @@
  */
 package io.gravitee.repository.management;
 
+import static io.gravitee.repository.management.InvitationFixtures.anInvitation;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.InvitationRepository.InvitationCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.util.Date;
@@ -131,6 +137,35 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
         final List<Invitation> invitations = invitationRepository.findByReferenceIdAndReferenceType("api-id", InvitationReferenceType.API);
         assertNotNull(invitations);
         assertEquals(1, invitations.size());
+    }
+
+    @Test
+    public void shouldSearchByCriteriaWithSortableAndPageable() throws Exception {
+        invitationRepository.create(
+            anInvitation("search-1", "search-application", InvitationReferenceType.APPLICATION, "alpha@example.com")
+        );
+        invitationRepository.create(
+            anInvitation("search-2", "search-application", InvitationReferenceType.APPLICATION, "bravo@example.com")
+        );
+        invitationRepository.create(
+            anInvitation("search-3", "search-application", InvitationReferenceType.APPLICATION, "charlie@example.com")
+        );
+        invitationRepository.create(
+            anInvitation("search-4", "search-application", InvitationReferenceType.APPLICATION, "other@gravitee.io")
+        );
+        invitationRepository.create(anInvitation("search-5", "search-application", InvitationReferenceType.API, "delta@example.com"));
+
+        Page<Invitation> page = invitationRepository.search(
+            new InvitationCriteria("search-application", InvitationReferenceType.APPLICATION, "EXAMPLE.COM"),
+            new SortableBuilder().field("email").order(Order.DESC).build(),
+            new PageableBuilder().pageNumber(1).pageSize(1).build()
+        );
+
+        assertNotNull(page);
+        assertEquals(3L, page.getTotalElements());
+        assertEquals(1, page.getPageElements());
+        assertEquals(1, page.getPageNumber());
+        assertEquals("bravo@example.com", page.getContent().get(0).getEmail());
     }
 
     @Test(expected = IllegalStateException.class)

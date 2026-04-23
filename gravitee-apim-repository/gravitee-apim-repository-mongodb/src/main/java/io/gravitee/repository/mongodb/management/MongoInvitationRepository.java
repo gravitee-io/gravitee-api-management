@@ -15,8 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
+import io.gravitee.repository.management.api.InvitationRepository.InvitationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.InvitationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.InvitationMongoRepository;
@@ -125,6 +129,17 @@ public class MongoInvitationRepository implements InvitationRepository {
 
         log.debug("Find invitation by reference '{}' / '{}' done", referenceId, referenceType);
         return invitations.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        log.debug("Search invitations");
+
+        var invitations = internalInvitationRepo.search(criteria, sortable, pageable).map(this::map);
+
+        log.debug("Search invitations - Done");
+
+        return invitations;
     }
 
     @Override

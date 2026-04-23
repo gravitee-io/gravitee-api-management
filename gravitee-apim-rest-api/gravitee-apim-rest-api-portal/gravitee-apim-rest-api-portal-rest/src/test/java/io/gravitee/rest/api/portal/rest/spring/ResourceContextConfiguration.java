@@ -107,6 +107,7 @@ import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.json_patch.domain_service.JsonMergePatchService;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
@@ -456,6 +457,11 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchApplicationMembersDomainService searchApplicationMembersDomainService() {
         return mock(SearchApplicationMembersDomainService.class);
+    }
+
+    @Bean
+    public InvitationQueryService invitationQueryService() {
+        return mock(InvitationQueryService.class);
     }
 
     @Bean

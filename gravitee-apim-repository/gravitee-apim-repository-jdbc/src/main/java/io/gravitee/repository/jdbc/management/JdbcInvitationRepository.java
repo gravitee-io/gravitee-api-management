@@ -15,17 +15,28 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.jdbc.utils.FieldUtils;
 import io.gravitee.repository.management.api.InvitationRepository;
+import io.gravitee.repository.management.api.InvitationRepository.InvitationCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.InvitationReferenceType;
+import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -34,6 +45,26 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitation, String> implements InvitationRepository {
+
+    private static final String DEFAULT_SORT_FIELD = "email";
+    private static final Set<String> SORTABLE_COLUMNS = Set.of(
+        "id",
+        "reference_type",
+        "reference_id",
+        "email",
+        "api_role",
+        "application_role",
+        "created_at",
+        "updated_at"
+    );
+    private static final Set<String> CASE_INSENSITIVE_SORTABLE_COLUMNS = Set.of(
+        "id",
+        "reference_type",
+        "reference_id",
+        "email",
+        "api_role",
+        "application_role"
+    );
 
     JdbcInvitationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "invitations");
@@ -76,6 +107,23 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     }
 
     @Override
+    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        log.debug("JdbcInvitationRepository.search({})", criteria);
+
+        try {
+            var query = new StringBuilder(getOrm().getSelectAllSql());
+            addCriteriaClauses(query, criteria);
+            applySortable(sortable, query);
+
+            var invitations = jdbcTemplate.query(query.toString(), ps -> fillPreparedStatement(criteria, ps), getOrm().getRowMapper());
+            return getResultAsPage(pageable, invitations);
+        } catch (final Exception ex) {
+            log.error("Failed to search invitations", ex);
+            throw new TechnicalException("Failed to search invitations", ex);
+        }
+    }
+
+    @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
         throws TechnicalException {
         log.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
@@ -101,5 +149,66 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
             log.error("Failed to delete invitation for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete invitation by reference", ex);
         }
+    }
+
+    private void addCriteriaClauses(StringBuilder query, InvitationCriteria criteria) {
+        var clauses = new ArrayList<String>();
+
+        if (criteria != null) {
+            if (StringUtils.hasText(criteria.referenceId())) {
+                clauses.add("reference_id = ?");
+            }
+            if (criteria.referenceType() != null) {
+                clauses.add("reference_type = ?");
+            }
+            if (StringUtils.hasText(criteria.email())) {
+                clauses.add("lower(email) like ? escape '\\'");
+            }
+        }
+
+        if (!clauses.isEmpty()) {
+            query.append(" where ").append(String.join(" and ", clauses));
+        }
+    }
+
+    private void fillPreparedStatement(InvitationCriteria criteria, PreparedStatement ps) throws java.sql.SQLException {
+        if (criteria == null) {
+            return;
+        }
+
+        var index = 1;
+        if (StringUtils.hasText(criteria.referenceId())) {
+            ps.setString(index++, criteria.referenceId());
+        }
+        if (criteria.referenceType() != null) {
+            ps.setString(index++, criteria.referenceType().name());
+        }
+        if (StringUtils.hasText(criteria.email())) {
+            ps.setString(index, "%" + escapeLike(criteria.email().toLowerCase(Locale.ROOT)) + "%");
+        }
+    }
+
+    private String escapeLike(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    private void applySortable(Sortable sortable, StringBuilder query) {
+        var field = sortable != null && StringUtils.hasText(sortable.field())
+            ? FieldUtils.toSnakeCase(sortable.field())
+            : DEFAULT_SORT_FIELD;
+
+        if (!SORTABLE_COLUMNS.contains(field)) {
+            field = DEFAULT_SORT_FIELD;
+        }
+
+        query.append(" order by case when ").append(field).append(" is null then 1 else 0 end, ");
+
+        if (CASE_INSENSITIVE_SORTABLE_COLUMNS.contains(field)) {
+            query.append("lower(").append(field).append(")");
+        } else {
+            query.append(field);
+        }
+
+        query.append(sortable != null && Order.DESC.equals(sortable.order()) ? " desc " : " asc ");
     }
 }

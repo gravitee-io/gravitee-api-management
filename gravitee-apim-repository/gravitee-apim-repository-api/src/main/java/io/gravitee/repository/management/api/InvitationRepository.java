@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.util.List;
@@ -26,6 +29,10 @@ import java.util.List;
  */
 public interface InvitationRepository extends CrudRepository<Invitation, String> {
     List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) throws TechnicalException;
+
+    Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
+
+    record InvitationCriteria(String referenceId, InvitationReferenceType referenceType, String email) {}
 
     /**
      * Delete invitation by reference

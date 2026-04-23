@@ -15,20 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.InvitationRepository.InvitationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.InvitationMongo;
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
-import org.springframework.stereotype.Repository;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface InvitationMongoRepository extends MongoRepository<InvitationMongo, String>, InvitationMongoRepositoryCustom {
-    List<InvitationMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
-
-    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
-    List<InvitationMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
+public interface InvitationMongoRepositoryCustom {
+    Page<InvitationMongo> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable);
 }
