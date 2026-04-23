@@ -115,4 +115,12 @@ public class PlanMongo extends Auditable {
     private String referenceId;
 
     private String referenceType;
+
+    /**
+     * Port-based routing fields — only used for native (Kafka) plans with port routing mode.
+     */
+    private Integer bootstrapPort;
+
+    private Integer brokerRangeStart;
+    private Integer brokerRangeEnd;
 }

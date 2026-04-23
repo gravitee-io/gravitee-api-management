@@ -54,7 +54,11 @@ public class PlanMapper {
     }
 
     public NativePlanEntity toNativeEntity(Plan plan, List<NativeFlow> flows) {
-        return toEntity(plan, new NativePlanEntity(flows));
+        NativePlanEntity entity = toEntity(plan, new NativePlanEntity(flows));
+        entity.setBootstrapPort(plan.getBootstrapPort());
+        entity.setBrokerRangeStart(plan.getBrokerRangeStart());
+        entity.setBrokerRangeEnd(plan.getBrokerRangeEnd());
+        return entity;
     }
 
     private <T extends BasePlanEntity> T toEntity(Plan plan, T entity) {

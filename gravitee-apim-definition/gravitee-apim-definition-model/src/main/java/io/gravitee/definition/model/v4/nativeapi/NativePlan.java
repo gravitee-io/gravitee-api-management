@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Optional;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,7 +34,6 @@ import lombok.experimental.SuperBuilder;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
-@AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @Getter
 @Setter
@@ -54,6 +52,10 @@ public class NativePlan extends AbstractPlan {
 
     private Integer brokerRangeStart;
     private Integer brokerRangeEnd;
+
+    public NativePlan(List<NativeFlow> flows) {
+        this.flows = flows;
+    }
 
     @JsonIgnore
     @Override

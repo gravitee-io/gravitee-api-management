@@ -29,7 +29,6 @@ import lombok.experimental.SuperBuilder;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString(callSuper = true)
@@ -41,4 +40,16 @@ public class NativePlanEntity extends BasePlanEntity {
     @DeploymentRequired
     @Builder.Default
     private List<NativeFlow> flows = new ArrayList<>();
+
+    /**
+     * Port-based routing fields — only used for native (Kafka) plans with port routing mode.
+     */
+    private Integer bootstrapPort;
+
+    private Integer brokerRangeStart;
+    private Integer brokerRangeEnd;
+
+    public NativePlanEntity(List<NativeFlow> flows) {
+        this.flows = flows;
+    }
 }

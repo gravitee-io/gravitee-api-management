@@ -160,6 +160,15 @@ public class Plan {
      */
     private ApiType apiType;
 
+    /**
+     * Port-based routing fields — only used when {@code kafka.routingMode=port} and {@code apiType=NATIVE}.
+     * Null in host (SNI) routing mode.
+     */
+    private Integer bootstrapPort;
+
+    private Integer brokerRangeStart;
+    private Integer brokerRangeEnd;
+
     public Plan(Plan cloned) {
         this.id = cloned.id;
         this.definitionVersion = cloned.definitionVersion;
@@ -192,6 +201,9 @@ public class Plan {
         this.apiType = cloned.apiType;
         this.referenceId = cloned.referenceId;
         this.referenceType = cloned.referenceType;
+        this.bootstrapPort = cloned.bootstrapPort;
+        this.brokerRangeStart = cloned.brokerRangeStart;
+        this.brokerRangeEnd = cloned.brokerRangeEnd;
     }
 
     @Override
