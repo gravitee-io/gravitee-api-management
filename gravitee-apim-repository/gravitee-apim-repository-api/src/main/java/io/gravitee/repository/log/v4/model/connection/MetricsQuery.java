@@ -53,6 +53,7 @@ public class MetricsQuery {
         private List<ResponseTimeRange> responseTimeRanges;
         private Set<String> errorKeys;
         private Set<String> nativeKafkaClientIds;
+        private Set<String> nativeKafkaConnectionStatuses;
 
         @Data
         @Builder

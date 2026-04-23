@@ -568,6 +568,45 @@ class ApiLogsResourceTest extends ApiResourceTest {
                     assertThat(p.getTotalCount()).isEqualTo(2L);
                 });
         }
+
+        @Test
+        void should_return_connection_logs_filtered_by_connection_status() {
+            connectionLogStorageService.initWithConnectionLogs(
+                List.of(
+                    connectionLogFixtures
+                        .aConnectionLog("req1")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_connection-status", "CONNECTED"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req2")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_connection-status", "SESSION_ERROR"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req3")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_connection-status", "CONNECTION_ERROR"))
+                        .build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(
+                SearchLogsParam.CONNECTION_STATUSES_QUERY_PARAM_NAME,
+                "SESSION_ERROR,CONNECTION_ERROR"
+            );
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .satisfies(body -> {
+                    assertThat(body.getPagination().getTotalCount()).isEqualTo(2L);
+                    assertThat(body.getData())
+                        .extracting(io.gravitee.rest.api.management.v2.rest.model.ApiLog::getRequestId)
+                        .containsExactlyInAnyOrder("req2", "req3");
+                });
+        }
     }
 
     @Nested

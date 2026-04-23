@@ -57,6 +57,7 @@ public class RequestV2MetricsV4Fields {
     public static final Field ENDPOINT = new Field("endpoint", "endpoint");
     public static final Field API_PRODUCT_ID = new Field("api-product-id");
     public static final Field NATIVE_KAFKA_CLIENT_ID = new Field(ADDITIONAL_METRICS + ".keyword_native-kafka_client-id");
+    public static final Field NATIVE_KAFKA_CONNECTION_STATUS = new Field(ADDITIONAL_METRICS + ".keyword_native-kafka_connection-status");
 
     public record Field(String v2Request, String v4Metrics) {
         public Field(String v4Metrics) {

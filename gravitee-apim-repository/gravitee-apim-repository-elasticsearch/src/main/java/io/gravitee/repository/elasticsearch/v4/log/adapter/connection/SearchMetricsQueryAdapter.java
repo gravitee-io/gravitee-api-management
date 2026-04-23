@@ -81,6 +81,8 @@ public class SearchMetricsQueryAdapter {
 
         addNativeKafkaClientIdFilter(filter, mustFilterList);
 
+        addNativeKafkaConnectionStatusFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
@@ -213,6 +215,14 @@ public class SearchMetricsQueryAdapter {
     private static void addNativeKafkaClientIdFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getNativeKafkaClientIds())) {
             mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.NATIVE_KAFKA_CLIENT_ID, filter.getNativeKafkaClientIds()));
+        }
+    }
+
+    private static void addNativeKafkaConnectionStatusFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getNativeKafkaConnectionStatuses())) {
+            mustFilterList.add(
+                buildV4Terms(RequestV2MetricsV4Fields.NATIVE_KAFKA_CONNECTION_STATUS, filter.getNativeKafkaConnectionStatuses())
+            );
         }
     }
 

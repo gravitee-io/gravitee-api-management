@@ -47,6 +47,7 @@ class ApiLogsMapperTest {
             param.setEntrypointIds(Set.of("native-kafka"));
             param.setErrorKeys(Set.of("SOME_ERROR"));
             param.setNativeKafkaClientIds(Set.of("consumer-A"));
+            param.setConnectionStatuses(Set.of("CONNECTED"));
 
             SearchLogsFilters filters = mapper.toSearchLogsFilters(param);
 
@@ -59,6 +60,7 @@ class ApiLogsMapperTest {
             assertThat(filters.entrypointIds()).containsExactly("native-kafka");
             assertThat(filters.errorKeys()).containsExactly("SOME_ERROR");
             assertThat(filters.nativeKafkaClientIds()).containsExactly("consumer-A");
+            assertThat(filters.connectionStatuses()).containsExactly("CONNECTED");
         }
     }
 }

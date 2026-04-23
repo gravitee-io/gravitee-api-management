@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
 public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudService, InMemoryAlternative<Object> {
 
     public static final String NATIVE_KAFKA_CLIENT_ID_KEY = "keyword_native-kafka_client-id";
+    public static final String NATIVE_KAFKA_CONNECTION_STATUS_KEY = "keyword_native-kafka_connection-status";
 
     private final InMemoryConnectionLogs connectionLogs = new InMemoryConnectionLogs();
     private final InMemoryConnectionLogDetails connectionLogDetails = new InMemoryConnectionLogDetails();
@@ -290,6 +291,15 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
                 if (metrics == null) return false;
                 var clientId = metrics.get(NATIVE_KAFKA_CLIENT_ID_KEY);
                 return clientId instanceof String s && logsFilters.nativeKafkaClientIds().contains(s);
+            });
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.connectionStatuses())) {
+            predicate = predicate.and(connectionLog -> {
+                var metrics = connectionLog.getAdditionalMetrics();
+                if (metrics == null) return false;
+                var status = metrics.get(NATIVE_KAFKA_CONNECTION_STATUS_KEY);
+                return status instanceof String s && logsFilters.connectionStatuses().contains(s);
             });
         }
 
