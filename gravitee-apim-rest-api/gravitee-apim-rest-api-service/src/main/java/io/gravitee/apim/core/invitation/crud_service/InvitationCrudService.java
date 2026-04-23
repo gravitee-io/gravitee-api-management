@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.query_service;
+package io.gravitee.apim.core.invitation.crud_service;
 
 import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
-import io.gravitee.apim.core.invitation.model.InvitationReferenceType;
-import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.common.Pageable;
-import jakarta.annotation.Nonnull;
 import java.util.List;
 
-public interface InvitationQueryService {
-    List<ApplicationInvitationItem> findByReference(InvitationReferenceType referenceType, String referenceId);
-
-    Page<ApplicationInvitationItem> findByApplicationId(
-        String applicationId,
-        @Nonnull SearchApplicationInvitationsCriteria criteria,
-        @Nonnull Pageable pageable
-    );
+public interface InvitationCrudService {
+    List<ApplicationInvitationItem> createApplicationInvitations(String applicationId, String role, List<String> emails);
 }

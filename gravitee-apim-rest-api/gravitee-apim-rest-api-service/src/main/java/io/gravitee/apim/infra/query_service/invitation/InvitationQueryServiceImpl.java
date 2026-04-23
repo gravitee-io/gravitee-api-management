@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.InvitationReferenceType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import jakarta.annotation.Nonnull;
+import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +41,22 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
 
     public InvitationQueryServiceImpl(@Lazy InvitationRepository invitationRepository) {
         this.invitationRepository = invitationRepository;
+    }
+
+    @Override
+    public List<ApplicationInvitationItem> findByReference(
+        io.gravitee.apim.core.invitation.model.InvitationReferenceType referenceType,
+        String referenceId
+    ) {
+        try {
+            return invitationRepository
+                .findByReferenceIdAndReferenceType(referenceId, InvitationReferenceType.valueOf(referenceType.name()))
+                .stream()
+                .map(ApplicationInvitationItemMapper.INSTANCE::toApplicationInvitationItem)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find invitations by reference", e);
+        }
     }
 
     @Override

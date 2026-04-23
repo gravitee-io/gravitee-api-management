@@ -108,6 +108,7 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
+import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.json_patch.domain_service.JsonMergePatchService;
@@ -358,6 +359,11 @@ public class ResourceContextConfiguration {
     @Bean
     public InvitationQueryService invitationQueryService() {
         return mock(InvitationQueryService.class);
+    }
+
+    @Bean
+    public InvitationCrudService invitationCrudService() {
+        return mock(InvitationCrudService.class);
     }
 
     @Bean
