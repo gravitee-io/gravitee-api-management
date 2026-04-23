@@ -64,28 +64,28 @@ public class UpdateApiGroupsUseCase {
         var validationResult = validateGroupsDomainService.validateAndSanitize(validationInput);
         Set<String> sanitizedGroups = validationResult.value().map(ValidateGroupsDomainService.Input::groups).orElse(input.groups());
 
-        Set<String> oldGroups = api.getGroups();
+        Api oldApi = api.toBuilder().build();
 
         api.setGroups(sanitizedGroups);
         Api updated = apiCrudService.update(api);
 
-        createAuditLog(oldGroups, updated.getGroups(), input.apiId(), input.auditInfo());
+        createAuditLog(oldApi, updated, input.auditInfo());
 
         return new Output(updated.getGroups());
     }
 
-    private void createAuditLog(Set<String> groupsBeforeUpdate, Set<String> groupsAfterUpdate, String apiId, AuditInfo auditInfo) {
+    private void createAuditLog(Api oldApi, Api updatedApi, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
-                .apiId(apiId)
+                .apiId(updatedApi.getId())
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ApiAuditEvent.API_UPDATED)
                 .actor(auditInfo.actor())
-                .oldValue(groupsBeforeUpdate)
-                .newValue(groupsAfterUpdate)
+                .oldValue(oldApi)
+                .newValue(updatedApi)
                 .createdAt(TimeProvider.now())
-                .properties(Map.of(AuditProperties.API, apiId))
+                .properties(Map.of(AuditProperties.API, updatedApi.getId()))
                 .build()
         );
     }
