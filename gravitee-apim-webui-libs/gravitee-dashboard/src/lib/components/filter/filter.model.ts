@@ -57,8 +57,30 @@ function getOperatorSymbol(op: string): string {
   return OPERATOR_SYMBOLS[op] ?? op;
 }
 
+const hasOperator = (definition: Pick<FilterDefinition, 'operators'>, op: string): boolean => definition.operators.some(o => o === op);
+
+/**
+ * Aligns membership operators with how many values are selected when the definition allows both forms:
+ * multi-value → IN / NOT_IN, single-value → EQ / NEQ. No-op when the target operator is not available.
+ */
+export function normalizeMembershipOperatorForValues(
+  definition: Pick<FilterDefinition, 'operators'>,
+  operator: string,
+  valueCount: number,
+): string {
+  if (valueCount >= 2) {
+    if (operator === 'EQ' && hasOperator(definition, 'IN')) return 'IN';
+    if (operator === 'NEQ' && hasOperator(definition, 'NOT_IN')) return 'NOT_IN';
+  }
+  if (valueCount === 1) {
+    if (operator === 'IN' && hasOperator(definition, 'EQ')) return 'EQ';
+    if (operator === 'NOT_IN' && hasOperator(definition, 'NEQ')) return 'NEQ';
+  }
+  return operator;
+}
+
 // Visual-only normalization: IN with a single value displays as = for readability.
-// The stored FilterCondition keeps operator: 'IN' — consistent with what the edit form will re-present.
+// New filters emit EQ in that case; this still handles legacy IN + one value from storage/API.
 function displayOperator(condition: FilterCondition): string {
   if (condition.values.length === 1 && condition.operator === 'IN') return 'EQ';
   return condition.operator;

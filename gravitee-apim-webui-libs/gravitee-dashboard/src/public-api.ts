@@ -34,3 +34,5 @@ export * from './lib/components/filter/generic-filter-bar/generic-filter-bar.com
 export * from './lib/components/filter/filter.model';
 export * from './lib/components/filter/filter-chip/filter-chip.component';
 export * from './lib/components/filter/dynamic-filter-bar/dynamic-filter-bar.component';
+export * from './lib/components/filter/add-filter-dialog/add-filter-dialog.component';
+export * from './lib/components/filter/filter-providers';

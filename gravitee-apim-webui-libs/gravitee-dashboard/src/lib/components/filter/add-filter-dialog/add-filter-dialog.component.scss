@@ -1,0 +1,193 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+:host {
+  display: block;
+  font-family: inherit;
+}
+
+.gd-add-filter__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 560px;
+  font-family: inherit;
+  // mat-dialog-content defaults to overflow:auto which clips outline floating labels.
+  overflow: visible;
+  padding-top: 8px;
+}
+
+.gd-add-filter__row-block {
+  &--disabled {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+}
+
+// ─── Dialog actions — Gravitee-styled buttons ───────────────────────────────
+// Defaults reproduce the Gravitee orange→red gradient used in Console UI so the
+// dialog feels native when dropped into the console (ui-particles theme) while
+// still being fully customizable for Portal Next or any other host app.
+// Consumers override behavior by setting the tokens below on any ancestor (e.g.
+// :root, body, or the dialog container) — no template changes required.
+//
+// Public tokens:
+//   --gd-filter-dialog-primary-button-background      : gradient OR flat color
+//   --gd-filter-dialog-primary-button-hover-background: flat color used on hover
+//   --gd-filter-dialog-primary-button-color           : primary label text color
+//   --gd-filter-dialog-primary-button-radius          : primary border-radius
+//   --gd-filter-dialog-primary-button-weight          : primary label weight
+//   --gd-filter-dialog-cancel-button-color            : cancel label text color
+//   --gd-filter-dialog-cancel-button-weight           : cancel label weight
+.gd-add-filter__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+
+  // Cancel — text button with a neutral dark label, matching Console UI.
+  .gd-add-filter__cancel-btn {
+    --mdc-text-button-label-text-color: var(--gd-filter-dialog-cancel-button-color, #1e1b1b);
+    --mdc-text-button-label-text-weight: var(--gd-filter-dialog-cancel-button-weight, 700);
+
+    font-weight: var(--gd-filter-dialog-cancel-button-weight, 700);
+  }
+
+  // Primary — mat-flat-button (filled) matching Console UI style.
+  // Gravitee orange→red gradient, white bold label, rectangular (4px radius).
+  // We only apply the background-image when the button is idle (not hovered
+  // and not disabled) so Material's disabled + hover states keep working.
+  .gd-add-filter__submit-btn {
+    --mdc-filled-button-label-text-color: var(--gd-filter-dialog-primary-button-color, #fff);
+    --mdc-filled-button-container-shape: var(--gd-filter-dialog-primary-button-radius, 4px);
+
+    border-radius: var(--gd-filter-dialog-primary-button-radius, 4px);
+    font-weight: var(--gd-filter-dialog-primary-button-weight, 700);
+
+    &:not(:disabled, :hover) {
+      background-image: var(--gd-filter-dialog-primary-button-background, linear-gradient(222.67deg, #ff7200 7.45%, #f01114 94.83%));
+    }
+
+    &:hover:not(:disabled) {
+      background-color: var(--gd-filter-dialog-primary-button-hover-background, #da3b00);
+    }
+  }
+}
+
+.gd-add-filter__field,
+.gd-add-filter__operator,
+.gd-add-filter__value-placeholder {
+  width: 100%;
+}
+
+// Avoid clipping the outline notch / floating label at the top of focused fields.
+:host ::ng-deep .gd-add-filter__field .mat-mdc-text-field-wrapper,
+:host ::ng-deep .gd-add-filter__operator .mat-mdc-text-field-wrapper,
+:host ::ng-deep .gd-add-filter__value-placeholder .mat-mdc-text-field-wrapper {
+  overflow: visible;
+}
+
+.gd-add-filter__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  // `width: 100%` alone stays shrink-wrapped inside Material’s `mdc-list-item__primary-text`.
+  // Panel sets `--gd-add-filter-field-panel-inner-px` on open so the row matches the real panel width.
+  width: var(--gd-add-filter-field-panel-inner-px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.gd-add-filter__row-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gd-add-filter__row-meta {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  text-align: right;
+}
+
+.gd-add-filter__api-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  background-color: rgba(103, 80, 164, 0.12);
+  color: #4a4458;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+// Autocomplete panel is portaled under `.cdk-overlay-container`. Anchor on
+// `.mat-mdc-autocomplete-panel.gd-add-filter__autocomplete-panel` (class from the template, moved
+// onto the panel div by Material) so overrides always match — no dependency on CDK `panelClass`.
+// Outranks `.mat-mdc-option .mdc-list-item__primary-text { margin-right: auto }`: flex-grow on the
+// primary-text flex item so `.gd-add-filter__row` spans the full option width.
+@at-root {
+  .cdk-overlay-container div.mat-mdc-autocomplete-panel.gd-add-filter__autocomplete-panel,
+  .cdk-overlay-container div.gd-add-filter__autocomplete-panel.mat-mdc-autocomplete-panel {
+    min-width: min(100vw - 32px, 600px);
+
+    mat-option.mat-mdc-option.mdc-list-item.gd-add-filter__field-item.gd-add-filter__field-option {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    mat-option.mat-mdc-option.mdc-list-item.gd-add-filter__field-item.gd-add-filter__field-option span.mdc-list-item__primary-text {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      flex-shrink: 1;
+      flex-basis: 0%;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      // Beat Material’s `margin-right: auto` / RTL mirror when stylesheet order loses.
+      margin-inline-start: 0 !important;
+      margin-inline-end: 0 !important;
+      box-sizing: border-box;
+    }
+
+    mat-option.mat-mdc-option.mdc-list-item.gd-add-filter__field-item.gd-add-filter__field-option .gd-add-filter__row {
+      display: flex;
+      flex: 1 1 auto;
+      width: 100%;
+      min-width: 0;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+    }
+  }
+
+  .cdk-overlay-container .mat-mdc-select-panel.gd-add-filter__select-panel {
+    min-width: min(100vw - 32px, 600px);
+  }
+}
