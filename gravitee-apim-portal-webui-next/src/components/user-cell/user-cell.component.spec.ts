@@ -48,16 +48,16 @@ describe('UserCellComponent', () => {
     expect(await harness.getPrimaryText()).toBe('Alice Smith');
   });
 
-  it('should render email as secondary text when present', async () => {
+  it('should render email as caption text when present', async () => {
     render({ displayName: 'Alice', email: 'alice@example.com', initials: 'A' });
     const harness = await getHarness();
-    expect(await harness.getSecondaryText()).toBe('alice@example.com');
+    expect(await harness.getCaptionText()).toBe('alice@example.com');
   });
 
-  it('should not render secondary text when email is missing', async () => {
+  it('should not render caption text when email is missing', async () => {
     render({ displayName: 'Alice', initials: 'A' });
     const harness = await getHarness();
-    expect(await harness.hasSecondary()).toBe(false);
+    expect(await harness.hasCaption()).toBe(false);
   });
 
   it('should show initials when avatarUrl is missing', async () => {

@@ -183,12 +183,12 @@ describe('ApplicationTabMembersComponent', () => {
       expect(await userCell.getPrimaryText()).toBe('user-xyz');
     });
 
-    it('should render email as secondary text', async () => {
+    it('should render email as caption text', async () => {
       const harness = await flush(
         fakeMembersResponse([fakeMember({ user: { id: 'u1', display_name: 'Alice', email: 'alice@example.com', _links: {} } })]),
       );
       const userCell = await harness.getFirstUserCell();
-      expect(await userCell.getSecondaryText()).toBe('alice@example.com');
+      expect(await userCell.getCaptionText()).toBe('alice@example.com');
     });
 
     it('should compute initials from display_name split by space', async () => {

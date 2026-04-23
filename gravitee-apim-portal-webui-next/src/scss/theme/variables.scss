@@ -23,7 +23,6 @@ $font-family: var(--gio-app-font-family);
 $default-text-color: var(--gio-app-font-color, #1d192b);
 $default-text-contrast-color: var(--gio-app-font-contrast-color, #fff);
 $paragraph-color: color-mix(in srgb, $default-text-color 75%, transparent);
-$link-icon-color: var(--gio-app-outline-color, #909090);
 
 // -- Theme Color Palette calculated by a theme service --
 $background-color: var(--gio-app-background-color, #f7f8fd);
@@ -78,7 +77,7 @@ $nav-bar-elevation: var(--gio-app-nav-bar-elevation);
 $nav-bar-tab-indicator-height: 3px;
 $nav-bar-mobile-menu-icon-color: var(--gio-app-nav-bar-mobile-menu-icon-color, #000);
 $nav-bar-mobile-menu-box-elevation-shadow: var(--gio-app-nav-bar-mobile-menu-elevation-shadow, 0 11px 15px 0 $shadow-color);
-$nav-bar-link-external-icon-color: var(--gio-app-nav-bar-link-external-icon-color, $link-icon-color);
+$nav-bar-link-external-icon-color: var(--gio-app-nav-bar-link-external-icon-color, $paragraph-color);
 $footer-border-color: var(--gio-app-footer-outline-color, $border-color);
 
 // -- Banner --
