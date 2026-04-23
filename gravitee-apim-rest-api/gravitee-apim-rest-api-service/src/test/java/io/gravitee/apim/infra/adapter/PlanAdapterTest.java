@@ -304,6 +304,87 @@ class PlanAdapterTest {
         }
 
         @Test
+        void should_convert_from_native_repository_with_port_routing_to_core_model() {
+            var repository = planNativeV4().bootstrapPort(9092).brokerRangeStart(9100).brokerRangeEnd(9102).build();
+
+            var plan = PlanAdapter.INSTANCE.fromRepository(repository);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getPlanDefinitionNativeV4().getBootstrapPort()).isEqualTo(9092);
+                soft.assertThat(plan.getPlanDefinitionNativeV4().getBrokerRangeStart()).isEqualTo(9100);
+                soft.assertThat(plan.getPlanDefinitionNativeV4().getBrokerRangeEnd()).isEqualTo(9102);
+            });
+        }
+
+        @Test
+        void should_convert_native_plan_with_port_routing_to_repository() {
+            var model = PlanFixtures.NativeV4.aKeyless()
+                .toBuilder()
+                .planDefinitionNativeV4(
+                    io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                        .security(PlanSecurity.builder().type("key-less").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .bootstrapPort(9092)
+                        .brokerRangeStart(9100)
+                        .brokerRangeEnd(9102)
+                        .build()
+                )
+                .build();
+
+            var plan = PlanAdapter.INSTANCE.toRepository(model);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getBootstrapPort()).isEqualTo(9092);
+                soft.assertThat(plan.getBrokerRangeStart()).isEqualTo(9100);
+                soft.assertThat(plan.getBrokerRangeEnd()).isEqualTo(9102);
+            });
+        }
+
+        @Test
+        void should_convert_native_plan_without_port_routing_to_repository_with_null_ports() {
+            // Host/SNI routing mode: no port fields set on the definition
+            var model = PlanFixtures.NativeV4.aKeyless();
+
+            var plan = PlanAdapter.INSTANCE.toRepository(model);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getBootstrapPort()).isNull();
+                soft.assertThat(plan.getBrokerRangeStart()).isNull();
+                soft.assertThat(plan.getBrokerRangeEnd()).isNull();
+            });
+        }
+
+        @Test
+        void should_roundtrip_native_plan_with_port_routing_through_repository_mapping() {
+            // Simulates the full DEPLOY event chain: core Plan → repo Plan → core Plan
+            var originalModel = PlanFixtures.NativeV4.aKeyless()
+                .toBuilder()
+                .planDefinitionNativeV4(
+                    io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                        .security(PlanSecurity.builder().type("key-less").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .bootstrapPort(9092)
+                        .brokerRangeStart(9100)
+                        .brokerRangeEnd(9102)
+                        .build()
+                )
+                .build();
+
+            var repo = PlanAdapter.INSTANCE.toRepository(originalModel);
+            repo.setApiType(ApiType.NATIVE);
+            repo.setDefinitionVersion(DefinitionVersion.V4);
+            var roundTripped = PlanAdapter.INSTANCE.fromRepository(repo);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(roundTripped.getPlanDefinitionNativeV4().getBootstrapPort()).isEqualTo(9092);
+                soft.assertThat(roundTripped.getPlanDefinitionNativeV4().getBrokerRangeStart()).isEqualTo(9100);
+                soft.assertThat(roundTripped.getPlanDefinitionNativeV4().getBrokerRangeEnd()).isEqualTo(9102);
+            });
+        }
+
+        @Test
         void should_convert_federated_plan_to_repository() {
             var model = PlanFixtures.aFederatedPlan()
                 .toBuilder()
