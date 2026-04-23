@@ -124,6 +124,12 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
                     new BytesRef(lastnameFirstname)
                 );
                 doc.add(lastnameFirstnameSortedField);
+            } else {
+                SortedDocValuesField lastnameFirstnameSortedField = new SortedDocValuesField(
+                    FIELD_LASTNAME_FIRSTNAME_SORTED,
+                    new BytesRef(user.getDisplayName())
+                );
+                doc.add(lastnameFirstnameSortedField);
             }
         }
 
