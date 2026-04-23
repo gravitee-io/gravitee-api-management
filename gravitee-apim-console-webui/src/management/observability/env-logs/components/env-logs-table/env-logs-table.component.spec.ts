@@ -132,13 +132,18 @@ describe('EnvLogsTableComponent', () => {
     expect(warningIcon).toBeTruthy();
   });
 
-  it('should display api product name as subtitle when present', async () => {
+  it('should display "Standalone API" as subtitle when backend sends it explicitly (log-1)', async () => {
     const subtitle = await logsTableHarness.getApiProductSubtitle(0);
     expect(subtitle).toEqual('Standalone API');
   });
 
-  it('should not display api product subtitle when api product name is absent', async () => {
+  it('should display nothing as subtitle when api product name is absent (orphaned product, log-2)', async () => {
     const subtitle = await logsTableHarness.getApiProductSubtitle(1);
     expect(subtitle).toBeNull();
+  });
+
+  it('should display the product name as subtitle when api is part of a product (log-4)', async () => {
+    const subtitle = await logsTableHarness.getApiProductSubtitle(3);
+    expect(subtitle).toEqual('Data Orchestration');
   });
 });

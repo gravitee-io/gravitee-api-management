@@ -392,18 +392,24 @@ public class SearchEnvironmentLogsUseCase {
 
     private SearchLogsResponse enrichWithApiProductNames(ExecutionContext executionContext, SearchLogsResponse response) {
         var ids = response.data().stream().map(ApiLog::apiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
-        if (ids.isEmpty()) {
-            return response;
-        }
-        var nameById = apiProductQueryService
-            .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
-            .stream()
-            .filter(p -> p.getName() != null)
-            .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+
+        var nameById = ids.isEmpty()
+            ? Map.<String, String>of()
+            : apiProductQueryService
+                .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
+                .stream()
+                .filter(p -> p.getName() != null)
+                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+
         var enriched = response
             .data()
             .stream()
-            .map(log -> log.apiProductId() != null ? log.toBuilder().apiProductName(nameById.get(log.apiProductId())).build() : log)
+            .map(log -> {
+                if (log.apiProductId() == null) {
+                    return log.toBuilder().apiProductName("Standalone API").build();
+                }
+                return log.toBuilder().apiProductName(nameById.get(log.apiProductId())).build();
+            })
             .toList();
         return new SearchLogsResponse(enriched, response.pagination());
     }

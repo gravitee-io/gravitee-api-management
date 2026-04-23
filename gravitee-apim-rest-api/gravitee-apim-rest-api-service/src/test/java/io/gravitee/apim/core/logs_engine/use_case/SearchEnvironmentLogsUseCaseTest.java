@@ -1479,7 +1479,7 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @Test
-        void should_not_call_api_product_service_when_no_logs_have_a_product_id() {
+        void should_set_standalone_api_label_and_skip_db_query_when_no_logs_have_a_product_id() {
             var connectionLog = BaseConnectionLog.builder()
                 .apiId(API1.getId())
                 .timestamp(OffsetDateTime.now().toString())
@@ -1502,9 +1502,10 @@ class SearchEnvironmentLogsUseCaseTest {
             );
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
 
             verify(apiProductQueryService, never()).findByEnvironmentIdAndIdIn(any(), any());
+            assertThat(response.data().getFirst().apiProductName()).isEqualTo("Standalone API");
         }
 
         @Test
