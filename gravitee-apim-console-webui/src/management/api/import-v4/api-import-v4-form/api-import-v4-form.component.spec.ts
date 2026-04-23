@@ -321,6 +321,59 @@ describe('ApiImportV4FormComponent', () => {
     httpMock.verify();
   });
 
+  it('should show the options step for WSDL', async () => {
+    fixture.componentInstance.selectApiFormatForm.patchValue({ format: 'wsdl' });
+    fixture.detectChanges();
+    const showOptions = (fixture.componentInstance as unknown as { showImportOptionsStep: () => boolean }).showImportOptionsStep;
+    expect(showOptions()).toBe(true);
+  });
+
+  it('should POST WSDL from a local file', async () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+    const wsdlContent = '<definitions name="CalculatorService"/>';
+
+    await harness.selectFormat('wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File([wsdlContent], 'calculator.wsdl', { type: 'text/xml' })]);
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    const req = httpMock.expectOne(r => r.method === 'POST' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/wsdl`);
+    expect(req.request.body).toEqual(
+      expect.objectContaining({
+        payload: wsdlContent,
+        type: 'INLINE',
+      }),
+    );
+    req.flush(fakeApiV4({ id: 'imported-wsdl' }));
+    httpMock.verify();
+  });
+
+  it('should call importWsdlApi with remote URL for WSDL', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'importWsdlApi').mockReturnValue(of({ id: 'new-api' } as ApiV4));
+
+    await harness.selectFormat('wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.selectSource('remote');
+    await harness.setRemoteUrl('https://example.com/calculator.wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.importWsdlApi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: 'https://example.com/calculator.wsdl',
+        type: 'URL',
+      }),
+    );
+  });
+
   it('should show actionable message when remote fetch fails with status 0', async () => {
     const snackBarService = TestBed.inject(SnackBarService);
     const snackBarErrorSpy = jest.spyOn(snackBarService, 'error');
@@ -423,6 +476,22 @@ describe('ApiImportV4FormComponent (oas-validation policy installed)', () => {
 
     expect(await harness.isConfigureSourceNextDisabled()).toBe(false);
     expect(await harness.getPickedFilesCount()).toBe(1);
+  });
+
+  it('should expose documentation and OAS validation toggles for WSDL when oas-validation policy is installed', async () => {
+    await harness.selectFormat('wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File(['<definitions/>'], 'service.wsdl', { type: 'text/xml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await harness.clickNext();
+
+    expect(await harness.isDocumentationImportSelected()).toBe(true);
+    expect(await harness.isDocumentationImportDisabled()).toBe(false);
+    expect(await harness.isOasValidationPolicyImportPresent()).toBe(true);
+    expect(await harness.isOasValidationPolicyImportSelected()).toBe(true);
+    expect(await harness.isOasValidationPolicyImportDisabled()).toBe(false);
   });
 
   it('should still skip the options step for Gravitee definition when policy is installed', async () => {

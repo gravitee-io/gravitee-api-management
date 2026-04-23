@@ -72,6 +72,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -81,6 +82,7 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
+import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
@@ -653,6 +655,17 @@ public class ResourceContextConfiguration {
     @Primary
     public OAIToUpdateApiUseCase oaiToUpdateApiUseCase() {
         return mock(OAIToUpdateApiUseCase.class);
+    }
+
+    @Bean
+    public WsdlParserDomainService wsdlParserDomainService() {
+        return mock(WsdlParserDomainService.class);
+    }
+
+    @Bean
+    @Primary
+    public WsdlToImportApiUseCase wsdlToImportApiUseCase() {
+        return mock(WsdlToImportApiUseCase.class);
     }
 
     @Bean

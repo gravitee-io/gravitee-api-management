@@ -79,11 +79,7 @@
             <h3>API format</h3>
             <gio-form-selection-inline formControlName="format">
               @for (format of formats; track format.value) {
-                <gio-form-selection-inline-card
-                  [value]="format.value"
-                  [disabled]="format.value === 'wsdl'"
-                  [matTooltip]="format.value === 'wsdl' ? 'Coming soon' : null"
-                >
+                <gio-form-selection-inline-card [value]="format.value">
                   <gio-form-selection-inline-card-content [icon]="format.icon">
                     <gio-card-content-title>{{ format.label }}</gio-card-content-title>
                   </gio-form-selection-inline-card-content>

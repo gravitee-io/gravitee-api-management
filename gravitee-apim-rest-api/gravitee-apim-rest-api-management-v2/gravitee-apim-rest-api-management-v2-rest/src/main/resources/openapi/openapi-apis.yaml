@@ -133,6 +133,36 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/_import/wsdl:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Create API from WSDL
+            description: |-
+                Create a v4 HTTP Proxy API from a WSDL descriptor. The WSDL is converted to OpenAPI
+                and processed through the v4 OAI import pipeline. Payload can be inline WSDL (type: INLINE)
+                or a remote URL (type: URL).
+
+                User must have the ENVIRONMENT_API[CREATE] permission.
+            operationId: createApiFromWsdl
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportWsdlDescriptor"
+                required: true
+            responses:
+                "201":
+                    description: API successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/_import/definition:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -3849,6 +3879,34 @@ components:
                     description: The list of API's media used in pages.
                     items:
                         $ref: "#/components/schemas/Media"
+
+        ImportWsdlDescriptor:
+            type: object
+            required:
+                - payload
+            properties:
+                payload:
+                    type: string
+                    description: Inline WSDL content (when type is INLINE) or a remote URL (when type is URL).
+                type:
+                    type: string
+                    description: Whether the payload is inline WSDL or a remote URL.
+                    enum:
+                        - INLINE
+                        - URL
+                    default: INLINE
+                withDocumentation:
+                    type: boolean
+                    description: Generate a Swagger documentation page from the converted OpenAPI spec.
+                withOASValidationPolicy:
+                    type: boolean
+                    description: Add an OAS Validation policy to every flow.
+                withPolicies:
+                    type: array
+                    description: Policy visitor IDs to apply (e.g. rest-to-soap, json-validation, mock, validate-request, xml-validation).
+                    items:
+                        type: string
+                    uniqueItems: true
 
         ImportSwaggerDescriptor:
             type: object

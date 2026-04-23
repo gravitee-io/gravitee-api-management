@@ -39,6 +39,7 @@ import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
+import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -56,6 +57,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
+import io.gravitee.rest.api.management.v2.rest.model.ImportWsdlDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPaths;
@@ -151,6 +153,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
 
+    @Inject
+    private WsdlToImportApiUseCase wsdlToImportApiUseCase;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -242,6 +247,34 @@ public class ApisResource extends AbstractResource {
 
             return Response.created(this.getLocationHeader(importOutput.apiWithFlows().getId()))
                 .entity(ApiMapper.INSTANCE.map(importOutput.apiWithFlows(), uriInfo, isSynchronized))
+                .build();
+        } catch (InvalidPathsException e) {
+            throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
+    }
+
+    @POST
+    @Path("/_import/wsdl")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    public Response createApiFromWsdl(@Valid @NotNull ImportWsdlDescriptor descriptor) {
+        try {
+            var audit = getAuditInfo();
+            var output = wsdlToImportApiUseCase.execute(
+                WsdlToImportApiUseCase.Input.of(
+                    descriptor.getPayload(),
+                    ImportWsdlDescriptor.TypeEnum.URL.equals(descriptor.getType()),
+                    Boolean.TRUE.equals(descriptor.getWithDocumentation()),
+                    Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()),
+                    audit
+                )
+            );
+
+            boolean isSynchronized = apiStateDomainService.isSynchronized(output.apiWithFlows(), audit);
+
+            return Response.created(this.getLocationHeader(output.apiWithFlows().getId()))
+                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
                 .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);

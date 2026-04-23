@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+    xmlns:tns="http://gravitee.io/wsdl/calculator"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://gravitee.io/wsdl/calculator"
+    name="CalculatorService">
+
+    <types>
+        <xsd:schema targetNamespace="http://gravitee.io/wsdl/calculator">
+
+            <xsd:element name="AddRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="a" type="xsd:double"/>
+                        <xsd:element name="b" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="AddResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="SubtractRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="a" type="xsd:double"/>
+                        <xsd:element name="b" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="SubtractResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="MultiplyRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="a" type="xsd:double"/>
+                        <xsd:element name="b" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="MultiplyResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="DivideRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="a" type="xsd:double"/>
+                        <xsd:element name="b" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DivideResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+        </xsd:schema>
+    </types>
+
+    <!-- Messages -->
+    <message name="AddRequest">
+        <part name="parameters" element="tns:AddRequest"/>
+    </message>
+    <message name="AddResponse">
+        <part name="parameters" element="tns:AddResponse"/>
+    </message>
+    <message name="SubtractRequest">
+        <part name="parameters" element="tns:SubtractRequest"/>
+    </message>
+    <message name="SubtractResponse">
+        <part name="parameters" element="tns:SubtractResponse"/>
+    </message>
+    <message name="MultiplyRequest">
+        <part name="parameters" element="tns:MultiplyRequest"/>
+    </message>
+    <message name="MultiplyResponse">
+        <part name="parameters" element="tns:MultiplyResponse"/>
+    </message>
+    <message name="DivideRequest">
+        <part name="parameters" element="tns:DivideRequest"/>
+    </message>
+    <message name="DivideResponse">
+        <part name="parameters" element="tns:DivideResponse"/>
+    </message>
+
+    <!-- Port Type -->
+    <portType name="CalculatorPortType">
+        <operation name="Add">
+            <input message="tns:AddRequest"/>
+            <output message="tns:AddResponse"/>
+        </operation>
+        <operation name="Subtract">
+            <input message="tns:SubtractRequest"/>
+            <output message="tns:SubtractResponse"/>
+        </operation>
+        <operation name="Multiply">
+            <input message="tns:MultiplyRequest"/>
+            <output message="tns:MultiplyResponse"/>
+        </operation>
+        <operation name="Divide">
+            <input message="tns:DivideRequest"/>
+            <output message="tns:DivideResponse"/>
+        </operation>
+    </portType>
+
+    <!-- SOAP 1.1 Binding -->
+    <binding name="CalculatorSoap11Binding" type="tns:CalculatorPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="Add">
+            <soap:operation soapAction="http://gravitee.io/wsdl/calculator/Add"/>
+            <input><soap:body use="literal"/></input>
+            <output><soap:body use="literal"/></output>
+        </operation>
+        <operation name="Subtract">
+            <soap:operation soapAction="http://gravitee.io/wsdl/calculator/Subtract"/>
+            <input><soap:body use="literal"/></input>
+            <output><soap:body use="literal"/></output>
+        </operation>
+        <operation name="Multiply">
+            <soap:operation soapAction="http://gravitee.io/wsdl/calculator/Multiply"/>
+            <input><soap:body use="literal"/></input>
+            <output><soap:body use="literal"/></output>
+        </operation>
+        <operation name="Divide">
+            <soap:operation soapAction="http://gravitee.io/wsdl/calculator/Divide"/>
+            <input><soap:body use="literal"/></input>
+            <output><soap:body use="literal"/></output>
+        </operation>
+    </binding>
+
+    <!-- SOAP 1.2 Binding -->
+    <binding name="CalculatorSoap12Binding" type="tns:CalculatorPortType">
+        <soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="Add">
+            <soap12:operation soapAction="http://gravitee.io/wsdl/calculator/Add"/>
+            <input><soap12:body use="literal"/></input>
+            <output><soap12:body use="literal"/></output>
+        </operation>
+        <operation name="Subtract">
+            <soap12:operation soapAction="http://gravitee.io/wsdl/calculator/Subtract"/>
+            <input><soap12:body use="literal"/></input>
+            <output><soap12:body use="literal"/></output>
+        </operation>
+        <operation name="Multiply">
+            <soap12:operation soapAction="http://gravitee.io/wsdl/calculator/Multiply"/>
+            <input><soap12:body use="literal"/></input>
+            <output><soap12:body use="literal"/></output>
+        </operation>
+        <operation name="Divide">
+            <soap12:operation soapAction="http://gravitee.io/wsdl/calculator/Divide"/>
+            <input><soap12:body use="literal"/></input>
+            <output><soap12:body use="literal"/></output>
+        </operation>
+    </binding>
+
+    <!-- Service -->
+    <service name="CalculatorService">
+        <port name="CalculatorSoap11Port" binding="tns:CalculatorSoap11Binding">
+            <soap:address location="http://localhost:8080/calculator"/>
+        </port>
+        <port name="CalculatorSoap12Port" binding="tns:CalculatorSoap12Binding">
+            <soap12:address location="http://localhost:8080/calculator"/>
+        </port>
+    </service>
+
+</definitions>

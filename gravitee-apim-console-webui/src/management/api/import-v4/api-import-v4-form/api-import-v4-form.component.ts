@@ -34,6 +34,7 @@ import { catchError, distinctUntilChanged, finalize, map, startWith, switchMap, 
 import { ApiImportFilePickerComponent } from '../../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV4, PolicyPlugin } from '../../../../entities/management-api-v2';
 import { ImportSwaggerDescriptor } from '../../../../entities/management-api-v2/api/v4/importSwaggerDescriptor';
+import { ImportWsdlDescriptor } from '../../../../entities/management-api-v2/api/v4/importWsdlDescriptor';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -422,7 +423,7 @@ export class ApiImportV4FormComponent {
       if (!url || this.configureFileSourceForm.controls.remoteUrl.invalid) {
         return false;
       }
-      return format === 'gravitee' || format === 'openapi';
+      return format === 'gravitee' || format === 'openapi' || format === 'wsdl';
     }
 
     const type = this.importType();
@@ -431,7 +432,11 @@ export class ApiImportV4FormComponent {
       return false;
     }
 
-    return (format === 'gravitee' && type === 'MAPI_V2') || (format === 'openapi' && type === 'SWAGGER');
+    return (
+      (format === 'gravitee' && type === 'MAPI_V2') ||
+      (format === 'openapi' && type === 'SWAGGER') ||
+      (format === 'wsdl' && type === 'WSDL')
+    );
   }
 
   private resolveImportRequest$(): Observable<ApiV4> | null {
@@ -447,6 +452,9 @@ export class ApiImportV4FormComponent {
       const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim() as string;
       if (format === 'gravitee') {
         return this.importGraviteeDefinitionFromRemoteUrl$(url, updateId);
+      }
+      if (format === 'wsdl') {
+        return this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(url, 'URL'));
       }
       return updateId
         ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(url))
@@ -470,6 +478,9 @@ export class ApiImportV4FormComponent {
         ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(fileContent as string))
         : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(fileContent as string));
     }
+    if (format === 'wsdl' && pickedType === 'WSDL') {
+      return this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(fileContent as string, 'INLINE'));
+    }
     return null;
   }
 
@@ -478,6 +489,17 @@ export class ApiImportV4FormComponent {
     const rawOptions = this.optionsForm.getRawValue();
     return {
       payload,
+      withDocumentation: rawOptions.withDocumentation,
+      withOASValidationPolicy: rawOptions.withOASValidationPolicy,
+    };
+  }
+
+  /** Builds the WSDL import descriptor sent to the Management API. */
+  private buildImportWsdlDescriptor(payload: string, type: 'INLINE' | 'URL'): ImportWsdlDescriptor {
+    const rawOptions = this.optionsForm.getRawValue();
+    return {
+      payload,
+      type,
       withDocumentation: rawOptions.withDocumentation,
       withOASValidationPolicy: rawOptions.withOASValidationPolicy,
     };
