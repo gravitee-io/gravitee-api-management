@@ -59,9 +59,7 @@ public class UpdateApiGroupsUseCase {
         var validationInput = new ValidateGroupsDomainService.Input(
             input.auditInfo().environmentId(),
             input.groups(),
-            api.getDefinitionVersion().getLabel(),
-            null,
-            false
+            api.getDefinitionVersion().getLabel()
         );
         var validationResult = validateGroupsDomainService.validateAndSanitize(validationInput);
         Set<String> sanitizedGroups = validationResult.value().map(ValidateGroupsDomainService.Input::groups).orElse(input.groups());
