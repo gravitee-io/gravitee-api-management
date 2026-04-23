@@ -207,6 +207,44 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     }
 
     @Test
+    public void should_return_false_for_allowedInApiProducts_when_entity_has_false() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).allowedInApiProducts(null).build();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
+        when(
+            apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
+        ).thenReturn(apiEntity.toBuilder().allowedInApiProducts(false).build());
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV4 apiV4 = response.readEntity(ApiV4.class);
+        assertNotNull(apiV4);
+        assertEquals(Boolean.FALSE, apiV4.getAllowedInApiProducts());
+    }
+
+    @Test
+    public void should_preserve_true_for_allowedInApiProducts_when_entity_has_true() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).allowedInApiProducts(true).build();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
+        when(
+            apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
+        ).thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV4 apiV4 = response.readEntity(ApiV4.class);
+        assertNotNull(apiV4);
+        assertEquals(Boolean.TRUE, apiV4.getAllowedInApiProducts());
+    }
+
+    @Test
     public void should_return_bad_request_when_updating_v4_api_with_v2_defition() {
         final ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         final UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();

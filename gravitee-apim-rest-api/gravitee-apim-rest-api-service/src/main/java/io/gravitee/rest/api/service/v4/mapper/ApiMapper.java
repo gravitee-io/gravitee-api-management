@@ -132,13 +132,7 @@ public class ApiMapper {
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
 
                 if (apiDefinition.getType() == ApiType.PROXY) {
-                    var jsonNode = objectMapper.readTree(api.getDefinition());
-                    boolean hasAllowedInApiProducts = jsonNode.has("allowedInApiProducts");
-                    if (hasAllowedInApiProducts) {
-                        apiEntity.setAllowedInApiProducts(apiDefinition.getAllowedInApiProducts());
-                    } else {
-                        apiEntity.setAllowedInApiProducts(false);
-                    }
+                    apiEntity.setAllowedInApiProducts(Boolean.TRUE.equals(apiDefinition.getAllowedInApiProducts()));
                 }
             } catch (IOException ioe) {
                 log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);

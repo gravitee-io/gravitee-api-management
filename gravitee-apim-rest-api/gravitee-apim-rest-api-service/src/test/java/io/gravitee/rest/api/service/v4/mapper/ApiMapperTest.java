@@ -141,6 +141,63 @@ public class ApiMapperTest {
     }
 
     @Test
+    public void shouldDefaultAllowedInApiProductsToFalseWhenStoredValueIsNull() throws Exception {
+        var def = new io.gravitee.definition.model.v4.Api();
+        def.setDefinitionVersion(DefinitionVersion.V4);
+        def.setType(ApiType.PROXY);
+        def.setAllowedInApiProducts(null);
+        def.setName("name");
+        def.setApiVersion("1");
+        Api repo = new Api();
+        repo.setId("idNull");
+        repo.setDefinition(objectMapper.writeValueAsString(def));
+        repo.setType(ApiType.PROXY);
+
+        var entity = apiMapper.toEntity(repo, new PrimaryOwnerEntity());
+
+        assertThat(entity.getAllowedInApiProducts()).isFalse();
+    }
+
+    @Test
+    public void shouldDefaultAllowedInApiProductsToFalseWhenKeyIsAbsentInDefinition() throws Exception {
+        var def = new io.gravitee.definition.model.v4.Api();
+        def.setDefinitionVersion(DefinitionVersion.V4);
+        def.setType(ApiType.PROXY);
+        def.setName("name");
+        def.setApiVersion("1");
+        String rawJson = objectMapper.writeValueAsString(def);
+        String defJson = rawJson
+            .replace(",\"allowedInApiProducts\":null", "")
+            .replace("\"allowedInApiProducts\":null,", "")
+            .replace("\"allowedInApiProducts\":null", "");
+        Api repo = new Api();
+        repo.setId("idAbsent");
+        repo.setDefinition(defJson);
+        repo.setType(ApiType.PROXY);
+
+        var entity = apiMapper.toEntity(repo, new PrimaryOwnerEntity());
+
+        assertThat(entity.getAllowedInApiProducts()).isFalse();
+    }
+
+    @Test
+    public void shouldNotSetAllowedInApiProductsForNonProxyType() throws Exception {
+        var def = new io.gravitee.definition.model.v4.Api();
+        def.setDefinitionVersion(DefinitionVersion.V4);
+        def.setType(ApiType.MESSAGE);
+        def.setName("name");
+        def.setApiVersion("1");
+        Api repo = new Api();
+        repo.setId("idMsg");
+        repo.setDefinition(objectMapper.writeValueAsString(def));
+        repo.setType(ApiType.MESSAGE);
+
+        var entity = apiMapper.toEntity(repo, new PrimaryOwnerEntity());
+
+        assertThat(entity.getAllowedInApiProducts()).isNull();
+    }
+
+    @Test
     public void shouldIncludeAllowedInApiProductsWhenToRepositoryFromApiEntity() throws Exception {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("id");
