@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_09_add_kafka_port_ranges_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}kafka_port_ranges
+            columns:
+              - column: { name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: sharding_tag, type: nvarchar(128) }
+              - column: { name: bootstrap_port, type: int, constraints: { nullable: false } }
+              - column: { name: range_start, type: int, constraints: { nullable: false } }
+              - column: { name: range_end, type: int, constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: updated_at, type: timestamp(6) }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}kafka_port_ranges
+            columnNames: plan_id
+            tableName: ${gravitee_prefix}kafka_port_ranges
+        - createIndex:
+            tableName: ${gravitee_prefix}kafka_port_ranges
+            indexName: idx_${gravitee_prefix}kpr_env_tag
+            columns:
+              - column: { name: environment_id, type: nvarchar(64) }
+              - column: { name: sharding_tag, type: nvarchar(128) }
