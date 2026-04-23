@@ -1375,6 +1375,178 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/invitations:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+            requestBody:
+                description: Use to create one or more invitations for an application.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationCreateInput"
+            summary: Create application invitations
+            description: |
+                Create one or more invitations for an application.
+
+                User must be allowed to manage invitations for the application.
+                Planned permission key: APPLICATION_INVITATION[CREATE].
+                This operation is all-or-nothing: invitations are created for all recipients or for none.
+                The API does not return per-recipient success or error entries and does not use `207 Multi-Status`.
+            operationId: createApplicationInvitations
+            responses:
+                201:
+                    description: Created invitations for all requested recipients
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationsResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                409:
+                    description: All-or-nothing conflict. If at least one recipient already has a pending invitation or is already an active member, no invitations are created for any recipient.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/invitations/_search:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            requestBody:
+                description: Use to search pending application invitations.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApplicationInvitationsSearchInput"
+            summary: Search application invitations
+            description: |
+                Search pending invitations for an application.
+
+                User must be allowed to read invitations for the application.
+                Planned permission key: APPLICATION_INVITATION[READ].
+                Pagination controls are always provided in the `links` object.
+            operationId: searchInvitationsByApplicationId
+            responses:
+                200:
+                    description: List of invitations with pagination links
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationsResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/invitations/{invitationId}:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/invitationIdParam"
+        put:
+            tags:
+                - Application
+            requestBody:
+                description: Use to update an invitation role.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationUpdateInput"
+            summary: Update an application invitation
+            description: |
+                Update an application invitation.
+
+                User must be allowed to manage invitations for the application.
+                Planned permission key: APPLICATION_INVITATION[UPDATE].
+            operationId: updateApplicationInvitation
+            responses:
+                200:
+                    description: Updated invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Invitation"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Invitation not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        delete:
+            tags:
+                - Application
+            summary: Delete an application invitation
+            description: |
+                Delete an application invitation.
+
+                User must be allowed to manage invitations for the application.
+                Planned permission key: APPLICATION_INVITATION[DELETE].
+            operationId: deleteApplicationInvitation
+            responses:
+                204:
+                    description: No-Content
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Invitation not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/invitations/{invitationId}/_resend:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/invitationIdParam"
+        post:
+            tags:
+                - Application
+            summary: Resend an application invitation
+            description: |
+                Resend an application invitation.
+
+                User must be allowed to manage invitations for the application.
+                Planned permission key: APPLICATION_INVITATION[UPDATE].
+            operationId: resendApplicationInvitation
+            responses:
+                204:
+                    description: No-Content
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Invitation not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /applications/{applicationId}/metadata:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
@@ -2567,9 +2739,10 @@ paths:
                 Create a new user for the portal.
 
                 User registration must be enabled.
+                This endpoint is also used to accept an application invitation when the token claim `action` is `APPLICATION_INVITATION`.
             operationId: finalizeUserRegistration
             requestBody:
-                description: Used to finalize a user registration.
+                description: Used to finalize a user registration or an application invitation acceptance backed by a token whose `action` claim is `APPLICATION_INVITATION`.
                 content:
                     application/json:
                         schema:
@@ -3683,6 +3856,13 @@ components:
             description: Id of a member.
             schema:
                 type: string
+        invitationIdParam:
+            name: invitationId
+            in: path
+            required: true
+            description: Id of an invitation.
+            schema:
+                type: string
         metadataIdParam:
             name: metadataId
             in: path
@@ -4219,6 +4399,11 @@ components:
             type: string
             enum:
                 - documentation
+        InvitationStatus:
+            type: string
+            enum:
+                - PENDING
+                - EXPIRED
         #####################
         # Responses Objects #
         #####################
@@ -4297,6 +4482,19 @@ components:
                 displayName:
                     type: string
                     description: Search phrase applied to member display name. Search starts when at least one character is provided.
+        ApplicationInvitationsSearchInput:
+            type: object
+            description: Search input for application invitations. The filters object is extensible for future search attributes.
+            properties:
+                filters:
+                    $ref: "#/components/schemas/ApplicationInvitationsSearchFilters"
+        ApplicationInvitationsSearchFilters:
+            type: object
+            description: Search filters for application invitations.
+            properties:
+                email:
+                    type: string
+                    description: Search phrase applied to invitation email. Search starts when at least one character is provided.
         UsersSearchInput:
             type: object
             description: Optional search input for platform-user lookup. This body extends the existing `POST /users/_search` contract without breaking callers that still rely on the deprecated `q` query parameter.
@@ -4458,6 +4656,18 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Member"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
+        InvitationsResponse:
+            type: object
+            properties:
+                data:
+                    description: List of invitations.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Invitation"
                 metadata:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
@@ -5188,6 +5398,42 @@ components:
                 role:
                     description: Role of the member. (OWNER, USER, ...).
                     type: string
+        Invitation:
+            type: object
+            required:
+                - id
+                - email
+                - role
+                - status
+            properties:
+                id:
+                    description: Unique identifier of an invitation.
+                    type: string
+                email:
+                    description: Invited email.
+                    type: string
+                    format: email
+                role:
+                    description: Role assigned to the invitation.
+                    type: string
+                status:
+                    $ref: "#/components/schemas/InvitationStatus"
+                registered_user:
+                    description: True when the invited person already has a platform account but has not accepted the invitation yet.
+                    type: boolean
+                    default: false
+                created_at:
+                    description: Creation date and time of the invitation.
+                    type: string
+                    format: date-time
+                updated_at:
+                    description: Last update date and time of the invitation.
+                    type: string
+                    format: date-time
+                expires_at:
+                    description: Expiration date and time of the invitation.
+                    type: string
+                    format: date-time
         ReferenceMetadata:
             required:
                 - key
@@ -6307,6 +6553,44 @@ components:
                 role:
                     type: string
                     description: Role's name
+        InvitationCreateInput:
+            type: object
+            required:
+                - recipients
+                - role
+            properties:
+                recipients:
+                    description: >
+                        Invitees to create as pending invitations. The batch is processed all-or-nothing:
+                        all recipients are invited or none are, and the API does not return per-recipient results.
+                    type: array
+                    minItems: 1
+                    items:
+                        $ref: "#/components/schemas/InvitationRecipientInput"
+                role:
+                    description: Role assigned to all created invitations.
+                    type: string
+                notify:
+                    description: Whether invitation notifications should be sent when invitations are created.
+                    type: boolean
+                    default: true
+        InvitationRecipientInput:
+            type: object
+            required:
+                - email
+            properties:
+                email:
+                    description: Invitee email.
+                    type: string
+                    format: email
+        InvitationUpdateInput:
+            type: object
+            required:
+                - role
+            properties:
+                role:
+                    description: Updated role assigned to the invitation.
+                    type: string
         AlertInput:
             properties:
                 application:
@@ -6504,7 +6788,7 @@ components:
                 - lastname
             properties:
                 token:
-                    description: Token of the registered user to be validated.
+                    description: Token of the registered user to be validated, or an application invitation token whose `action` claim is `APPLICATION_INVITATION`.
                     type: string
                 password:
                     description: Password of the registered user.
