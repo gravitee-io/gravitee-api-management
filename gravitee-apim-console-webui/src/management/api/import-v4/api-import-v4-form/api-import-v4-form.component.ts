@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Component, computed, DestroyRef, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, output, signal, Signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
@@ -28,7 +28,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { combineLatest, defer, EMPTY, merge, Observable, of, throwError } from 'rxjs';
-import { catchError, finalize, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, finalize, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { ApiImportFilePickerComponent } from '../../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV4, PolicyPlugin } from '../../../../entities/management-api-v2';
@@ -36,6 +36,16 @@ import { ImportSwaggerDescriptor } from '../../../../entities/management-api-v2/
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+
+function formValidSignal(form: AbstractControl, initialValue = form.valid): Signal<boolean> {
+  return toSignal(
+    merge(form.statusChanges, form.valueChanges).pipe(
+      startWith(null),
+      map(() => form.valid),
+    ),
+    { initialValue },
+  );
+}
 
 @Component({
   selector: 'api-import-v4-form',
@@ -137,19 +147,17 @@ export class ApiImportV4FormComponent {
     { initialValue: this.configureFileSourceForm.controls.source.value },
   );
 
-  private readonly formValidityPulse = toSignal(
-    merge(
-      this.selectApiFormatForm.statusChanges,
-      this.configureFileSourceForm.statusChanges,
-      this.configureFileSourceForm.controls.remoteUrl.statusChanges,
-      this.configureFileSourceForm.controls.remoteUrl.valueChanges,
-      this.configureFileSourceForm.controls.authorizationHeader.statusChanges,
-      this.configureFileSourceForm.controls.authorizationHeader.valueChanges,
-      this.optionsForm.statusChanges,
-      this.optionsForm.valueChanges,
-    ).pipe(startWith(undefined)),
-    { initialValue: undefined },
-  );
+  private readonly selectApiFormatFormValid = formValidSignal(this.selectApiFormatForm);
+
+  private readonly configureFileSourceFormValid = formValidSignal(this.configureFileSourceForm);
+
+  private readonly optionsFormValidSignal = formValidSignal(this.optionsForm);
+
+  protected readonly isFormatStepNextDisabled = computed(() => !this.selectApiFormatFormValid());
+
+  protected readonly isFileSourceStepNextDisabled = computed(() => !this.configureFileSourceFormValid());
+
+  protected readonly isOptionsStepNextDisabled = computed(() => !this.optionsFormValidSignal());
 
   protected readonly allowedImportFileExtensions = computed((): string[] => {
     const format = this.importFormat();
@@ -185,16 +193,17 @@ export class ApiImportV4FormComponent {
   protected readonly importInProgress = signal(false);
 
   protected readonly canSubmitImport = computed(() => {
-    this.formValidityPulse();
     this.importFileContent();
     this.importType();
-    return (
-      this.selectApiFormatForm.valid &&
-      this.configureFileSourceForm.valid &&
-      (this.showImportOptionsStep() ? this.optionsForm.valid : true) &&
-      this.importRequestContextOk()
-    );
+
+    const formatOk = this.selectApiFormatFormValid();
+    const fileSourceOk = this.configureFileSourceFormValid();
+    const optionsOk = this.showImportOptionsStep() ? this.optionsFormValidSignal() : true;
+
+    return formatOk && fileSourceOk && optionsOk && this.importRequestContextOk();
   });
+
+  protected readonly isReviewImportPrimaryDisabled = computed(() => !this.canSubmitImport() || this.importInProgress());
 
   private readonly formatAndPolicies = toSignal(
     combineLatest([
@@ -359,7 +368,7 @@ export class ApiImportV4FormComponent {
 
   /**
    * Same readiness rules as {@link resolveImportRequest$} without allocating observables
-   * (used by {@link canSubmitImport} on every tick).
+   * (used by {@link canSubmitImport}).
    */
   private importRequestContextOk(): boolean {
     const source = this.configureFileSourceForm.controls.source.value;

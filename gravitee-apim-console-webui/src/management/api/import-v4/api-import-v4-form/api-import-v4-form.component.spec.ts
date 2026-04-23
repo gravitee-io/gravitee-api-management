@@ -43,8 +43,8 @@ describe('ApiImportV4FormComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(fixture.componentInstance).toBeTruthy();
+  it('should create', async () => {
+    expect(await harness.hasRoot()).toBe(true);
   });
 
   it('should render form root', async () => {
@@ -52,20 +52,23 @@ describe('ApiImportV4FormComponent', () => {
   });
 
   it.each([
-    ['gravitee', ['json']],
-    ['openapi', ['yml', 'yaml']],
-  ])('should expose allowedImportFileExtensions for format %s', async (format, expected) => {
+    ['gravitee', 'Supported file formats: json'],
+    ['openapi', 'Supported file formats: yml, yaml'],
+  ])('should surface supported file formats in the UI for format %s', async (format, expectedBanner) => {
     await harness.selectFormat(format as string);
     fixture.detectChanges();
-    const cmp = fixture.componentInstance as unknown as { allowedImportFileExtensions: () => string[] };
-    expect(cmp.allowedImportFileExtensions()).toEqual(expected);
+    await harness.clickNext();
+    fixture.detectChanges();
+    expect(await harness.getSupportedFileFormatsBannerText()).toBe(expectedBanner);
   });
 
-  it('should expose wsdl/xml extensions when format is wsdl', () => {
+  it('should surface wsdl/xml in the supported-formats banner when format is wsdl', async () => {
+    // WSDL is not yet selectable from the inline format cards (disabled in the template).
     fixture.componentInstance.selectApiFormatForm.patchValue({ format: 'wsdl' });
     fixture.detectChanges();
-    const cmp = fixture.componentInstance as unknown as { allowedImportFileExtensions: () => string[] };
-    expect(cmp.allowedImportFileExtensions()).toEqual(['wsdl', 'xml']);
+    await harness.clickNext();
+    fixture.detectChanges();
+    expect(await harness.getSupportedFileFormatsBannerText()).toBe('Supported file formats: wsdl, xml');
   });
 
   it('should POST Gravitee definition from a local JSON file', async () => {
@@ -137,8 +140,7 @@ describe('ApiImportV4FormComponent', () => {
   it('should show the options step for OpenAPI specification', async () => {
     await harness.selectFormat('openapi');
     fixture.detectChanges();
-    const showOptions = (fixture.componentInstance as unknown as { showImportOptionsStep: () => boolean }).showImportOptionsStep;
-    expect(showOptions()).toBe(true);
+    expect(await harness.hasOptionsStep()).toBe(true);
   });
 
   it('should not start a second import while the first is in progress', async () => {
@@ -155,18 +157,19 @@ describe('ApiImportV4FormComponent', () => {
     await harness.clickNext();
     await harness.clickNext();
 
-    const cmp = fixture.componentInstance as unknown as { importApi(): void; importInProgress: () => boolean };
-    cmp.importApi();
-    expect(cmp.importInProgress()).toBe(true);
-    cmp.importApi();
+    await harness.clickImport();
+    expect(await harness.isImportButtonDisabled()).toBe(true);
+    expect(apiV2.importSwaggerApi).toHaveBeenCalledTimes(1);
+
+    await harness.clickImport();
     expect(apiV2.importSwaggerApi).toHaveBeenCalledTimes(1);
 
     result$.next({ id: 'new-api' } as ApiV4);
     result$.complete();
     fixture.detectChanges();
-    expect(cmp.importInProgress()).toBe(false);
+    expect(await harness.isImportButtonDisabled()).toBe(false);
 
-    cmp.importApi();
+    await harness.clickImport();
     expect(apiV2.importSwaggerApi).toHaveBeenCalledTimes(2);
   });
 
@@ -236,7 +239,7 @@ describe('ApiImportV4FormComponent', () => {
 
     expect(await harness.isImportButtonDisabled()).toBe(false);
 
-    (fixture.componentInstance as unknown as { importApi(): void }).importApi();
+    await harness.clickImport();
     const remoteReq = httpMock.expectOne(r => r.url === 'https://cdn.example/def.json');
     expect(remoteReq.request.method).toBe('GET');
     remoteReq.flush(JSON.stringify({ api: { definitionVersion: 'V4' } }));
@@ -258,7 +261,7 @@ describe('ApiImportV4FormComponent', () => {
     fixture.detectChanges();
     await harness.clickNext();
 
-    (fixture.componentInstance as unknown as { importApi(): void }).importApi();
+    await harness.clickImport();
     const remoteReq = httpMock.expectOne(r => r.url === 'https://cdn.example/def.json');
     remoteReq.error(new ProgressEvent('error'));
 

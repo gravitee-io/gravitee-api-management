@@ -16,12 +16,14 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
-import { ApiImportV4FormComponent } from '../../import-v4/api-import-v4-form/api-import-v4-form.component';
+import { ApiImportV4FormComponent } from '../api-import-v4-form/api-import-v4-form.component';
 
 export interface ApiImportV4FormDialogData {
   apiId: string;
   apiName: string;
 }
+
+export const API_IMPORT_V4_FORM_DIALOG_MAX_HEIGHT = '96dvh';
 
 @Component({
   selector: 'api-import-v4-form-dialog',

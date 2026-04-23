@@ -32,9 +32,9 @@
     let-cancelAsDismiss="cancelAsDismiss"
   >
     @if (cancelAsDismiss) {
-      <button mat-button mat-raised-button type="button" (click)="onDismiss()">Cancel</button>
+      <button mat-raised-button type="button" (click)="onDismiss()">Cancel</button>
     } @else {
-      <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
+      <a mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
     }
     <div class="stepper-actions-right">
       @if (btnBack) {
@@ -98,7 +98,7 @@
                 btnBack: null,
                 btnPrimary: 'Next',
                 useMatNext: true,
-                btnDisabled: !selectApiFormatForm.valid,
+                btnDisabled: isFormatStepNextDisabled(),
                 cancelAsDismiss: embeddedInDialog(),
               }"
             ></ng-container>
@@ -138,7 +138,9 @@
                       <div class="configure-file-source__file-picker">
                         <mat-icon svgIcon="gio:upload"></mat-icon>
                         <p class="mat-body-strong">Drag and drop a file</p>
-                        <p class="mat-body">Supported file formats: {{ allowedImportFileExtensionsLabel() }}</p>
+                        <p class="mat-body" data-testid="supported-file-formats">
+                          Supported file formats: {{ allowedImportFileExtensionsLabel() }}
+                        </p>
                       </div>
                     </api-import-file-picker>
                     @if (configureFileSourceForm.hasError('mismatchFileFormat')) {
@@ -180,7 +182,7 @@
                 btnBack: 'Back',
                 btnPrimary: 'Next',
                 useMatNext: true,
-                btnDisabled: !configureFileSourceForm.valid,
+                btnDisabled: isFileSourceStepNextDisabled(),
                 cancelAsDismiss: embeddedInDialog(),
               }"
             ></ng-container>
@@ -227,7 +229,7 @@
                   btnBack: 'Previous',
                   btnPrimary: 'Next',
                   useMatNext: true,
-                  btnDisabled: !optionsForm.valid,
+                  btnDisabled: isOptionsStepNextDisabled(),
                   cancelAsDismiss: embeddedInDialog(),
                 }"
               ></ng-container>
@@ -299,7 +301,7 @@
                 btnBack: 'Previous',
                 btnPrimary: primaryImportActionLabel(),
                 useMatNext: false,
-                btnDisabled: !canSubmitImport() || importInProgress(),
+                btnDisabled: isReviewImportPrimaryDisabled(),
                 cancelAsDismiss: embeddedInDialog(),
               }"
             ></ng-container>
