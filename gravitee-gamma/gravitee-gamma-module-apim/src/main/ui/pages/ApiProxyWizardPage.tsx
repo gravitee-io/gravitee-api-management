@@ -20,6 +20,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { resolveModulePath } from '../config/routes';
+import { ApiProxyWizardScratch } from './api-proxy-wizard/ApiProxyWizardScratch';
 
 const DOCS_BASE = 'https://documentation.gravitee.io/apim';
 
@@ -194,6 +195,7 @@ function LearnMoreHttpProxy() {
 
 export function ApiProxyWizardPage() {
     const [templatesOpen, setTemplatesOpen] = useState(false);
+    const [wizardMode, setWizardMode] = useState<'picker' | 'scratch'>('picker');
     const location = useLocation();
 
     const { modulePrefix } = useMemo(() => resolveModulePath(location.pathname), [location.pathname]);
@@ -251,6 +253,10 @@ export function ApiProxyWizardPage() {
         console.log('Selected template', id);
     }, []);
 
+    if (wizardMode === 'scratch') {
+        return <ApiProxyWizardScratch onExitToPicker={() => setWizardMode('picker')} />;
+    }
+
     return (
         <div className={cn('flex flex-col gap-6 p-6')}>
             <header>
@@ -293,7 +299,7 @@ export function ApiProxyWizardPage() {
                             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                         )}
                         aria-label="Start from scratch"
-                        onClick={() => {}}
+                        onClick={() => setWizardMode('scratch')}
                     >
                         <div className="rounded-lg bg-primary/15 p-3">
                             <Pencil className="size-6 text-primary" aria-hidden />
