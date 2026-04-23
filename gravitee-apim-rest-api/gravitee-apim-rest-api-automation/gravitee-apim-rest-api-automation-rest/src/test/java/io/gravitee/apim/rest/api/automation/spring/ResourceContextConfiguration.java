@@ -28,7 +28,6 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
-import inmemory.MembershipDomainServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
@@ -158,14 +157,15 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGrou
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
-import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
+import io.gravitee.apim.core.subscription.domain_service.ValidateSubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
-import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
@@ -179,7 +179,7 @@ import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDom
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
-import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -759,13 +759,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public SubscriptionCRDSpecDomainService subscriptionSpecDomainService(
+    public SubscriptionCRDDomainService subscriptionSpecDomainService(
         SubscriptionService subscriptionService,
         SubscriptionAdapter subscriptionAdapter,
         AcceptSubscriptionDomainService acceptSubscriptionDomainService,
         CloseSubscriptionDomainService closeSubscriptionDomainService
     ) {
-        return new SubscriptionCRDSpecDomainServiceImpl(
+        return new SubscriptionCRDDomainServiceImpl(
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService,
@@ -774,12 +774,18 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase() {
-        return mock(ImportSubscriptionSpecUseCase.class);
+    public ValidateSubscriptionCRDDomainService validateSubscriptionCRDDomainService() {
+        return mock(ValidateSubscriptionCRDDomainService.class);
     }
 
     @Bean
-    public DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase(SubscriptionCRDSpecDomainService subscriptionSpecDomainService) {
+    @Primary
+    public ImportSubscriptionCRDUseCase importSubscriptionSpecUseCase() {
+        return mock(ImportSubscriptionCRDUseCase.class);
+    }
+
+    @Bean
+    public DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase(SubscriptionCRDDomainService subscriptionSpecDomainService) {
         return new DeleteSubscriptionSpecUseCase(subscriptionSpecDomainService);
     }
 

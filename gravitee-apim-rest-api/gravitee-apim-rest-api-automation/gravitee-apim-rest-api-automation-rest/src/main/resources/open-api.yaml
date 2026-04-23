@@ -873,6 +873,11 @@ components:
           examples:
             - key1: value1
               key2: value2
+        customApiKey:
+          type: string
+          writeOnly: true
+          description: Custom API key to assign when creating API-KEY plan subscription.
+          example: my-custom-api-key
       required:
         - hrid
         - applicationHrid

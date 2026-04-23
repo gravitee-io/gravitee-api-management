@@ -23,7 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
-import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.common.http.MediaType;
@@ -52,7 +52,7 @@ import jakarta.ws.rs.core.Response;
 public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
-    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+    private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
 
     @Context
     private ResourceContext resourceContext;
@@ -94,10 +94,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .planId(legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId())
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
             .metadata(spec.getMetadata())
+            .customApiKey(spec.getCustomApiKey())
             .build();
 
-        SubscriptionCRDStatus status = importSubscriptionSpecUseCase
-            .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec))
+        SubscriptionCRDStatus status = importSubscriptionCRDUseCase
+            .execute(new ImportSubscriptionCRDUseCase.Input(auditInfo, subscriptionCRDSpec))
             .status();
 
         return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();

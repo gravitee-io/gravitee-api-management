@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.domain_service.subscription;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
-import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
 @CustomLog
 @Service
 @RequiredArgsConstructor
-public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpecDomainService {
+public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainService {
 
     private static final String ACCEPT_REASON = "Kubernetes subscriptions are always auto accepted";
 
@@ -80,7 +80,12 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
         entity.setReasonMessage(ACCEPT_REASON);
         entity.setEndingAt(spec.getEndingAt());
 
-        var subscription = subscriptionService.create(toExecutionContext(auditInfo), adapter.fromCoreForCreate(entity), null, spec.getId());
+        var subscription = subscriptionService.create(
+            toExecutionContext(auditInfo),
+            adapter.fromCoreForCreate(entity),
+            spec.getCustomApiKey(),
+            spec.getId()
+        );
 
         if (entity.getEndingAt() != null) {
             subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(entity));
