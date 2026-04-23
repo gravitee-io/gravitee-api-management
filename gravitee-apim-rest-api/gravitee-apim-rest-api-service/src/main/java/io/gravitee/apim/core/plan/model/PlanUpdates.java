@@ -47,6 +47,10 @@ public class PlanUpdates {
     private String referenceId;
     private GenericPlanEntity.ReferenceType referenceType;
 
+    private Integer bootstrapPort;
+    private Integer brokerRangeStart;
+    private Integer brokerRangeEnd;
+
     public Plan applyTo(Plan oldPlan) {
         Plan result = oldPlan
             .toBuilder()
@@ -70,6 +74,12 @@ public class PlanUpdates {
         definition.setSelectionRule(selectionRule);
         if (definition.getSecurity() != null) {
             definition.getSecurity().setConfiguration(securityConfiguration);
+        }
+        if (result.getPlanDefinitionNativeV4() != null) {
+            var nativePlan = result.getPlanDefinitionNativeV4();
+            nativePlan.setBootstrapPort(bootstrapPort);
+            nativePlan.setBrokerRangeStart(brokerRangeStart);
+            nativePlan.setBrokerRangeEnd(brokerRangeEnd);
         }
         return result;
     }
