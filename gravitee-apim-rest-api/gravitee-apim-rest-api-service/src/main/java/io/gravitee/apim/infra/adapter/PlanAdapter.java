@@ -65,18 +65,9 @@ public interface PlanAdapter {
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
-    @Mapping(
-        target = "bootstrapPort",
-        expression = "java(source.getPlanDefinitionNativeV4() != null ? source.getPlanDefinitionNativeV4().getBootstrapPort() : null)"
-    )
-    @Mapping(
-        target = "brokerRangeStart",
-        expression = "java(source.getPlanDefinitionNativeV4() != null ? source.getPlanDefinitionNativeV4().getBrokerRangeStart() : null)"
-    )
-    @Mapping(
-        target = "brokerRangeEnd",
-        expression = "java(source.getPlanDefinitionNativeV4() != null ? source.getPlanDefinitionNativeV4().getBrokerRangeEnd() : null)"
-    )
+    @Mapping(target = "bootstrapPort", source = "planDefinitionNativeV4.bootstrapPort")
+    @Mapping(target = "brokerRangeStart", source = "planDefinitionNativeV4.brokerRangeStart")
+    @Mapping(target = "brokerRangeEnd", source = "planDefinitionNativeV4.brokerRangeEnd")
     io.gravitee.repository.management.model.Plan toRepository(Plan source);
 
     @Mapping(target = "status", source = "planStatus")
