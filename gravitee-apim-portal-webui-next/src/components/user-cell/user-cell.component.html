@@ -25,11 +25,11 @@
     <span class="user-cell__primary next-gen-body">
       {{ user().displayName }}
       @if (isCurrentUser()) {
-        <span class="user-cell__you next-gen-caption" i18n="@@userCellYouLabel">(you)</span>
+        <span class="user-cell__you" i18n="@@userCellYouLabel">(you)</span>
       }
     </span>
     @if (user().email) {
-      <span class="user-cell__secondary next-gen-caption">{{ user().email }}</span>
+      <span class="user-cell__caption next-gen-caption">{{ user().email }}</span>
     }
   </div>
 </div>

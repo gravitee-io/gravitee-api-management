@@ -34,9 +34,9 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    color: app-theme.$default-text-contrast-color;
-    background-color: app-theme.$user-avatar-text-color;
+    border-radius: app-theme.$user-avatar-container-shape;
+    color: app-theme.$user-avatar-text-color;
+    border: 1px solid app-theme.$user-avatar-border-color;
     flex-shrink: 0;
   }
 
@@ -45,12 +45,11 @@
     flex-direction: column;
   }
 
-  &__secondary {
-    color: app-theme.$secondary-main-color;
+  &__caption {
+    color: app-theme.$paragraph-color;
   }
 
   &__you {
-    margin-left: 4px;
-    color: app-theme.$secondary-main-color;
+    color: app-theme.$paragraph-color;
   }
 }

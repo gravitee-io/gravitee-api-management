@@ -19,7 +19,7 @@ export class UserCellHarness extends ComponentHarness {
   static hostSelector = 'app-user-cell';
 
   private readonly locatePrimary = this.locatorForOptional('.user-cell__primary');
-  private readonly locateSecondary = this.locatorForOptional('.user-cell__secondary');
+  private readonly locateCaption = this.locatorForOptional('.user-cell__caption');
   private readonly locateInitials = this.locatorForOptional('.user-cell__initials');
   private readonly locateAvatar = this.locatorForOptional('img.user-cell__avatar');
   private readonly locateYou = this.locatorForOptional('.user-cell__you');
@@ -29,13 +29,13 @@ export class UserCellHarness extends ComponentHarness {
     return el ? (await el.text()).trim() : null;
   }
 
-  async getSecondaryText(): Promise<string | null> {
-    const el = await this.locateSecondary();
+  async getCaptionText(): Promise<string | null> {
+    const el = await this.locateCaption();
     return el ? (await el.text()).trim() : null;
   }
 
-  async hasSecondary(): Promise<boolean> {
-    return !!(await this.locateSecondary());
+  async hasCaption(): Promise<boolean> {
+    return !!(await this.locateCaption());
   }
 
   async getInitialsText(): Promise<string | null> {
