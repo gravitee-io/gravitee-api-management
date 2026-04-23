@@ -2446,6 +2446,7 @@ paths:
                           - f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff
                 - $ref: "#/components/parameters/errorKeys"
                 - $ref: "#/components/parameters/nativeKafkaClientIds"
+                - $ref: "#/components/parameters/connectionStatuses"
             tags:
                 - API Analytics
             summary: Get API logs
@@ -8971,6 +8972,18 @@ components:
                 type: array
                 items:
                     type: string
+        connectionStatuses:
+            name: connectionStatuses
+            description: >-
+                Return only connection logs whose lifecycle status matches any of the supplied values.
+                Populated only on Native Kafka connection logs; this filter has no effect on HTTP APIs.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum: [CONNECTED, SESSION_ERROR, CONNECTION_ERROR, INTERNAL_ERROR]
         eventIdParam:
             name: eventId
             in: path

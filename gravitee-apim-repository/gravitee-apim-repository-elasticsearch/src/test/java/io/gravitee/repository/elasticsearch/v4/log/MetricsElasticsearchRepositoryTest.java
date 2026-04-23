@@ -977,5 +977,25 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             assertThat(result.total()).isEqualTo(2);
             assertThat(result.data()).extracting(Metrics::getErrorKey).containsExactlyInAnyOrder("KAFKA_AUTH_FAILED", "KAFKA_INTERRUPTION");
         }
+
+        @Test
+        void should_filter_by_connection_status() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .filter(
+                        Filter.builder()
+                            .apiIds(Set.of("kafka-api-001"))
+                            .nativeKafkaConnectionStatuses(Set.of("CONNECTION_ERROR", "SESSION_ERROR"))
+                            .build()
+                    )
+                    .size(10)
+                    .build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(2);
+            assertThat(result.data()).extracting(Metrics::getRequestId).containsExactlyInAnyOrder("kafka-conn-002", "kafka-conn-001");
+        }
     }
 }

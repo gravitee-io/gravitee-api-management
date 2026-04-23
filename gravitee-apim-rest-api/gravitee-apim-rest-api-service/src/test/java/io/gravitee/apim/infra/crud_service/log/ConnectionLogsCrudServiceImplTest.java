@@ -292,6 +292,7 @@ class ConnectionLogsCrudServiceImplTest {
                     .statuses(Set.of(3))
                     .errorKeys(Set.of("GATEWAY_KAFKA_CONNECTION_ERROR"))
                     .nativeKafkaClientIds(Set.of("consumer-A"))
+                    .connectionStatuses(Set.of("CONNECTED"))
                     .build(),
                 new PageableImpl(1, 20)
             );
@@ -322,6 +323,7 @@ class ConnectionLogsCrudServiceImplTest {
                             .statuses(Set.of(3))
                             .errorKeys(Set.of("GATEWAY_KAFKA_CONNECTION_ERROR"))
                             .nativeKafkaClientIds(Set.of("consumer-A"))
+                            .nativeKafkaConnectionStatuses(Set.of("CONNECTED"))
                             .build()
                     )
                     .build()

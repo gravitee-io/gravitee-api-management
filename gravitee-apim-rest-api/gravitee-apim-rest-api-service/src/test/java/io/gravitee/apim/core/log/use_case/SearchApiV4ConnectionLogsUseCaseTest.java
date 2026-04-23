@@ -500,4 +500,33 @@ class SearchApiV4ConnectionLogsUseCaseTest {
             soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
         });
     }
+
+    @Test
+    void should_filter_by_connection_status() {
+        logStorageService.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures
+                    .aConnectionLog("req1")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(Map.of(ConnectionLogsCrudServiceInMemory.NATIVE_KAFKA_CONNECTION_STATUS_KEY, "CONNECTED"))
+                    .build(),
+                connectionLogFixtures
+                    .aConnectionLog("req2")
+                    .toBuilder()
+                    .entrypointId("native-kafka")
+                    .additionalMetrics(Map.of(ConnectionLogsCrudServiceInMemory.NATIVE_KAFKA_CONNECTION_STATUS_KEY, "SESSION_ERROR"))
+                    .build()
+            )
+        );
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().connectionStatuses(Set.of("SESSION_ERROR")).build())
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(1);
+            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req2");
+        });
+    }
 }

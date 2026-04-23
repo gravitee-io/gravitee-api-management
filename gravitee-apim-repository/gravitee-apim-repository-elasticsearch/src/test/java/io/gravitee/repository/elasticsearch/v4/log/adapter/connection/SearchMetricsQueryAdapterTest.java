@@ -758,6 +758,45 @@ class SearchMetricsQueryAdapterTest {
         }
     }
 
+    @Nested
+    class NativeKafkaConnectionStatusFilter {
+
+        @Test
+        void should_add_connection_status_filter_with_multiple_values() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaConnectionStatuses(Set.of("CONNECTED", "SESSION_ERROR")).build())
+                .build();
+
+            var termsValues = extractTermsValues(query, RequestV2MetricsV4Fields.NATIVE_KAFKA_CONNECTION_STATUS.v4Metrics());
+
+            assertThat(termsValues).containsExactlyInAnyOrder("CONNECTED", "SESSION_ERROR");
+        }
+
+        @Test
+        void should_not_add_connection_status_filter_when_set_is_null() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaConnectionStatuses(null).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.NATIVE_KAFKA_CONNECTION_STATUS.v4Metrics())).isFalse();
+        }
+
+        @Test
+        void should_not_add_connection_status_filter_when_set_is_empty() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaConnectionStatuses(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.NATIVE_KAFKA_CONNECTION_STATUS.v4Metrics())).isFalse();
+        }
+    }
+
     private List<Object> extractTermsValues(MetricsQuery query, String field) {
         var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
         var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");

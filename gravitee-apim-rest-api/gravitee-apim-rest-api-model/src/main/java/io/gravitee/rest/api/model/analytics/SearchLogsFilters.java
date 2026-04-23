@@ -23,10 +23,11 @@ import lombok.Builder;
 /**
  * Criteria for searching connection logs.
  *
- * <p>{@code errorKeys} is a caller-supplied inclusion filter on the {@code error-key} field.
- * Callers who want only failed connections pass the full set of failure-bucket values (e.g.
- * {@code GATEWAY_KAFKA_CONNECTION_ERROR}, {@code GATEWAY_KAFKA_SESSION_ERROR},
- * {@code GATEWAY_KAFKA_INTERNAL_ERROR}). No server-side error-key filter injection.
+ * <p>{@code errorKeys} is a caller-supplied inclusion filter on the {@code error-key} field
+ * (Kafka protocol codes from {@code org.apache.kafka.common.protocol.Errors.name()}).
+ * {@code connectionStatuses} filters on the lifecycle phase keyword
+ * ({@code additional-metrics.keyword_native-kafka_connection-status}) with values
+ * {@code CONNECTED}, {@code SESSION_ERROR}, {@code CONNECTION_ERROR}, {@code INTERNAL_ERROR}.
  */
 @Builder(toBuilder = true)
 public record SearchLogsFilters(
@@ -46,5 +47,6 @@ public record SearchLogsFilters(
     String bodyText,
     Set<String> errorKeys,
     Set<String> apiProductIds,
-    Set<String> nativeKafkaClientIds
+    Set<String> nativeKafkaClientIds,
+    Set<String> connectionStatuses
 ) {}
