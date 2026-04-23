@@ -1,0 +1,123 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>{{ isEditMode() ? 'Edit filter' : 'Add a filter' }}</h2>
+
+<mat-dialog-content class="gd-add-filter__content">
+  <!-- Row 1 — Filter by -->
+  <div class="gd-add-filter__row-block">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-add-filter__field">
+      <mat-label>Filter by</mat-label>
+      <input
+        #fieldTrigger="matAutocompleteTrigger"
+        id="gd-add-filter-field"
+        matInput
+        type="text"
+        matAutocompletePosition="below"
+        [formControl]="fieldControl"
+        [matAutocomplete]="fieldAuto"
+        (click)="onFieldInputClick()"
+      />
+      <mat-autocomplete
+        #fieldAuto="matAutocomplete"
+        [displayWith]="displayDefinition"
+        [hideSingleSelectionIndicator]="true"
+        (closed)="onFieldAutocompletePanelClosed()"
+        (opened)="onFieldAutocompletePanelOpened()"
+        (optionSelected)="onFieldSelected($event)"
+        class="gd-add-filter__autocomplete-panel"
+      >
+        @for (def of filteredDefinitions$ | async; track def.name) {
+          <mat-option [value]="def" class="gd-add-filter__field-item gd-add-filter__field-option">
+            <div class="gd-add-filter__row">
+              <span class="gd-add-filter__row-label">{{ def.label }}</span>
+              @if (def.apiTypes?.length) {
+                <span class="gd-add-filter__row-meta">
+                  @for (apiType of def.apiTypes; track apiType) {
+                    <span class="gd-add-filter__api-badge">{{ apiType }}</span>
+                  }
+                </span>
+              }
+            </div>
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <!-- Row 2 — Choose operator -->
+  <div class="gd-add-filter__row-block" [class.gd-add-filter__row-block--disabled]="!selectedDefinition()">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-add-filter__operator">
+      <mat-label>Choose operator</mat-label>
+      <mat-select id="gd-add-filter-operator" [formControl]="operatorControl" panelClass="gd-add-filter__select-panel">
+        @for (op of availableOperators(); track op) {
+          <mat-option [value]="op">{{ operatorLabel(op) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Row 3 — Filter value -->
+  <div class="gd-add-filter__row-block" [class.gd-add-filter__row-block--disabled]="!selectedDefinition() || !selectedOperator()">
+    @if (selectedDefinition(); as def) {
+      @if (selectedOperator()) {
+        @switch (resolvedFilterType()) {
+          @case ('ENUM') {
+            <gd-enum-value-input
+              [definition]="def"
+              [selectedOperator]="selectedOperator()!"
+              [selectedValues]="selectedValues()"
+              (valuesChange)="onValuesChange($event)"
+            />
+          }
+          @case ('KEYWORD') {
+            <gd-keyword-value-input
+              [filterName]="def.name"
+              [timeFrom]="data.timeFrom"
+              [timeTo]="data.timeTo"
+              [selectedValues]="selectedValues()"
+              (valuesChange)="onValuesChange($event)"
+            />
+          }
+          @case ('NUMBER') {
+            <gd-number-value-input [definition]="def" [selectedValues]="selectedValues()" (valuesChange)="onValuesChange($event)" />
+          }
+          @case ('STRING') {
+            <gd-string-value-input [selectedValues]="selectedValues()" (valuesChange)="onValuesChange($event)" />
+          }
+        }
+      } @else {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-add-filter__value-placeholder">
+          <mat-label>Filter value</mat-label>
+          <input matInput type="text" disabled />
+        </mat-form-field>
+      }
+    } @else {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-add-filter__value-placeholder">
+        <mat-label>Filter value</mat-label>
+        <input matInput type="text" disabled />
+      </mat-form-field>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="gd-add-filter__actions">
+  <button mat-button type="button" class="gd-add-filter__cancel-btn" [mat-dialog-close]="undefined">Cancel</button>
+  <button mat-flat-button type="button" color="primary" class="gd-add-filter__submit-btn" [disabled]="!canConfirm()" (click)="confirm()">
+    {{ isEditMode() ? 'Update' : 'Apply' }}
+  </button>
+</mat-dialog-actions>

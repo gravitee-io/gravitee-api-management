@@ -36,12 +36,24 @@
 html {
   font-family: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
 
-  // Override M3 body typography tokens so overlays (tooltip, menu, dialog)
-  // that live outside the component tree also use Kanit.
-  // azure-blue.css sets these to Roboto on :root.
-  --mat-sys-body-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  // Override M3 typography tokens so overlays (tooltip, menu, dialog) and
+  // form fields (mat-form-field, mat-input) that pick the font from M3 tokens
+  // also use Kanit. azure-blue.css sets these to Roboto on :root.
+  --mat-sys-body-large-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
   --mat-sys-body-medium-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-body-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
   --mat-sys-label-large-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-label-medium-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-label-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-title-large-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-title-medium-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-title-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-headline-large-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-headline-medium-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-headline-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-display-large-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-display-medium-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
+  --mat-sys-display-small-font: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
 
   --mat-sys-primary: #fe733f;
   --mat-sys-on-primary: #ffffff;
@@ -52,4 +64,14 @@ html {
   --mat-sys-on-primary-fixed: #9c3900;
   --mat-sys-on-primary-fixed-variant: #c45200;
   --mat-sys-inverse-primary: #ffb990;
+
+  // M3 azure-blue maps overlay surfaces to tinted gray containers.
+  // Console UI (particles / M2-based) uses white surfaces — override to match.
+  --mat-sys-surface: #ffffff;
+  --mat-sys-surface-container: #ffffff;
+  --mat-sys-surface-container-low: #ffffff;
+  --mat-sys-surface-container-high: #ffffff;
+  --mat-autocomplete-background-color: #ffffff;
+  --mat-menu-container-color: #ffffff;
+  --mat-dialog-container-color: #ffffff;
 }

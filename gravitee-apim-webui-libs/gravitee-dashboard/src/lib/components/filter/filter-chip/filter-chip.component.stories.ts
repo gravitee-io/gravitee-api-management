@@ -464,7 +464,6 @@ update in real time. Copy the values you like into your application's stylesheet
 `;
 
 export const CustomTokens: StoryObj<StoryArgs> = {
-  name: 'Custom Tokens',
   parameters: {
     docs: {
       description: { story: CUSTOM_TOKENS_DESCRIPTION },

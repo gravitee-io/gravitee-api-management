@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
+// Full width of the parent so inner flex (chips `flex: 1`) can push Clear to the trailing edge.
+// Without this, a column parent with `align-items: flex-start` (e.g. add-filter-dialog trigger story)
+// shrink-wraps the host and Clear sits immediately after chips instead of at the viewport edge.
 gd-dynamic-filter-bar {
   display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .gd-dynamic-filter-bar {
