@@ -48,6 +48,10 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         Group.GroupEvent groupEvent,
         boolean addDefaultGroups
     ) implements Validator.Input {
+        public Input(String environmentId, Set<String> groups, String definitionVersion) {
+            this(environmentId, groups, definitionVersion, null, false);
+        }
+
         Input sanitized(Set<String> sanitizedGroups) {
             return new Input(environmentId, sanitizedGroups, definitionVersion, groupEvent, addDefaultGroups);
         }
