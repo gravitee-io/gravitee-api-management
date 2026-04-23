@@ -64,7 +64,7 @@ tests:
           path: spec.rules[0].backendRefs[0].port
           value: 92
 
-  - it: Uses bridge httpRoute values when bridge ingress and httpRoute are both enabled
+  - it: Ignores api.services.bridge.ingress values when both ingress and httpRoute are enabled
     set:
       api:
         services:
@@ -95,6 +95,53 @@ tests:
           path: spec.rules[0].matches[0].path.value
           value: /api/_bridge
 
+  - it: Fails when api.services.bridge.httpRoute.path is missing
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - bridge.example.com
+              pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.services.bridge.httpRoute.path is required when api.services.bridge.httpRoute.enabled=true"
+
+  - it: Fails when api.services.bridge.httpRoute.pathMatchType is missing
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - bridge.example.com
+              path: /api/_bridge
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.services.bridge.httpRoute.pathMatchType is required when api.services.bridge.httpRoute.enabled=true"
+
+  - it: Fails when api.services.bridge.httpRoute.hostnames is empty
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              pathMatchType: PathPrefix
+              path: /api/_bridge
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.services.bridge.httpRoute.hostnames must contain at least one hostname when api.services.bridge.httpRoute.enabled=true"
+
   - it: Renders with filters
     set:
       api:
@@ -108,6 +155,7 @@ tests:
               gatewayName: traefik
               hostnames:
                 - bridge.example.com
+              pathMatchType: PathPrefix
               path: /api/_bridge
               filters:
                 - type: ExtensionRef

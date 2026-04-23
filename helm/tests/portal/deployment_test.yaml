@@ -294,6 +294,54 @@ tests:
           path: spec.template.spec.containers[0].env[0].value
           value: "https://api.httpRoute.example.com/portal/"
 
+  - it: Should set PORTAL_API_URL from root httpRoute portal path when ingress is disabled
+    template: portal/portal-deployment.yaml
+    set:
+      api:
+        ingress:
+          portal:
+            enabled: false
+        httpRoute:
+          portal:
+            enabled: true
+            scheme: https
+            hostnames:
+              - api.httpRoute.example.com
+            path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "PORTAL_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "https://api.httpRoute.example.com/"
+
+  - it: Should set portal config baseURL from root httpRoute portal path when ingress is disabled
+    template: portal/portal-configmap.yaml
+    set:
+      api:
+        ingress:
+          portal:
+            enabled: false
+        httpRoute:
+          portal:
+            enabled: true
+            scheme: https
+            hostnames:
+              - api.httpRoute.example.com
+            path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data["config.json"]
+          pattern: '"baseURL": "https://api\.httpRoute\.example\.com/"'
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"baseURL": "https://api\.httpRoute\.example\.com/"'
+
   - it: Should set PORTAL_BASE_HREF from portal httpRoute when ingress is disabled
     template: portal/portal-deployment.yaml
     set:

@@ -1,21 +1,46 @@
 {{/*
-API helper split:
-- api.management.httpRoute.* and api.portal.httpRoute.* are strict helpers for HTTPRoute manifests only
-- api.management.route.* and api.portal.route.* are shared discovery helpers for runtime URLs and config
+API helpers split:
+
+Two helper families exist for every API sub-component (management, portal,
+automation, bridge, federation):
+
+1. STRICT HTTPRoute helpers (api.<component>.httpRoute.*)
+   Used ONLY by the corresponding HTTPRoute manifest.
+   They read ONLY from .Values.api.httpRoute.<component>.*
+   Required fields fail loudly when missing — no fallback to ingress.
+
+2. EFFECTIVE route helpers (api.<component>.route.*)
+   Used by sibling components (configmaps, deployment env vars, URL builders)
+   that need to know the effective host/path for the API regardless of which
+   exposure mechanism is enabled.
+   Precedence is INGRESS-FIRST:
+     - If <component>.ingress.enabled=true  → use ingress values
+     - Else if <component>.httpRoute.enabled=true → use httpRoute values
+     - Else → component-specific safe default
+
+ingress.pathType -> HTTPRoute pathMatchType translation (effective helpers only):
+  Prefix                 -> PathPrefix
+  ImplementationSpecific -> RegularExpression
+  Exact                  -> Exact (passthrough)
 */}}
 
-{{/* --- Management strict HTTPRoute helpers --- */}}
+{{/* ============================================================ */}}
+{{/* Strict HTTPRoute helpers (no ingress fallback, fail on missing) */}}
+{{/* ============================================================ */}}
 
 {{- define "api.management.httpRoute.path" -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- required "api.httpRoute.management.path is required when api.httpRoute.management.enabled=true" (get $managementHttpRoute "path") -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "management") -}}
+{{- required "api.httpRoute.management.path is required when api.httpRoute.management.enabled=true" (get $hr "path") -}}
+{{- end -}}
+
+{{- define "api.management.httpRoute.pathMatchType" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "management") -}}
+{{- required "api.httpRoute.management.pathMatchType is required when api.httpRoute.management.enabled=true" (get $hr "pathMatchType") -}}
 {{- end -}}
 
 {{- define "api.management.httpRoute.hosts" -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- $hostnames := default (list) (get $managementHttpRoute "hostnames") -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "management") -}}
+{{- $hostnames := default (list) (get $hr "hostnames") -}}
 {{- if gt (len $hostnames) 0 -}}
 {{ toYaml $hostnames }}
 {{- else -}}
@@ -23,98 +48,19 @@ API helper split:
 {{- end -}}
 {{- end -}}
 
-{{- define "api.management.httpRoute.pathMatchType" -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- required "api.httpRoute.management.pathMatchType is required when api.httpRoute.management.enabled=true" (get $managementHttpRoute "pathMatchType") -}}
-{{- end -}}
-
-{{/* --- Management active route helpers --- */}}
-
-
-{{- define "api.management.route.path" -}}
-{{- $management := default dict .Values.api.ingress.management -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- if and (default false (get $management "enabled")) (get $management "path") -}}
-{{- get $management "path" -}}
-{{- else if and (default false (get $managementHttpRoute "enabled")) (get $managementHttpRoute "path") -}}
-{{- get $managementHttpRoute "path" -}}
-{{- else -}}
-/management
-{{- end -}}
-{{- end -}}
-
-{{- define "api.management.route.hosts" -}}
-{{- $management := default dict .Values.api.ingress.management -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- if and (default false (get $management "enabled")) (get $management "hosts") -}}
-{{ toYaml (get $management "hosts") }}
-{{- else if and (default false (get $managementHttpRoute "enabled")) (get $managementHttpRoute "hostnames") -}}
-{{ toYaml (get $managementHttpRoute "hostnames") }}
-{{- else -}}
-[]
-{{- end -}}
-{{- end -}}
-
-{{- define "api.management.route.scheme" -}}
-{{- $management := default dict .Values.api.ingress.management -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- if and (default false (get $management "enabled")) -}}
-{{- default "https" (get $management "scheme") -}}
-{{- else if and (default false (get $managementHttpRoute "enabled")) -}}
-{{- default "https" (get $managementHttpRoute "scheme") -}}
-{{- else -}}
-https
-{{- end -}}
-{{- end -}}
-
-
-{{/*
-Builds the full management API URL (scheme://host/path) for use in configmaps and other templates.
-Logic:
-- Gets the host(s) using the precedence: ingress hosts if enabled, else httpRoute hostnames if enabled, else empty.
-- Gets the scheme (https/http) and path (e.g., /management) using the same precedence.
-- If at least one host is present, outputs the URL as: scheme://host/path (using the first host).
-- If no hosts, outputs nothing.
-*/}}
-{{- define "api.management.route.url" -}}
-{{- $hosts := fromYamlArray (include "api.management.route.hosts" .) -}}
-{{- $scheme := include "api.management.route.scheme" . -}}
-{{- $path := include "api.management.route.path" . -}}
-{{- if gt (len $hosts) 0 -}}
-{{ printf "%s://%s%s" $scheme (index $hosts 0) (regexFind "/[a-zA-Z0-9-\\/_.~]+" $path) }}
-{{- end -}}
-{{- end -}}
-
-{{- define "api.management.route.pathMatchType" -}}
-{{- $management := default dict .Values.api.ingress.management -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $managementHttpRoute := default dict (get $apiHttpRoute "management") -}}
-{{- if and (default false (get $management "enabled")) -}}
-  {{- $pt := default "Prefix" (get $management "pathType") -}}
-  {{- if eq $pt "ImplementationSpecific" -}}RegularExpression{{- else if eq $pt "Prefix" -}}PathPrefix{{- else -}}{{ $pt }}{{- end -}}
-{{- else if and (default false (get $managementHttpRoute "enabled")) (get $managementHttpRoute "pathMatchType") -}}
-{{- get $managementHttpRoute "pathMatchType" -}}
-{{- else -}}
-PathPrefix
-{{- end -}}
-{{- end -}}
-
-{{/* --- Portal strict HTTPRoute helpers --- */}}
-
 {{- define "api.portal.httpRoute.path" -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- required "api.httpRoute.portal.path is required when api.httpRoute.portal.enabled=true" (get $portalHttpRoute "path") -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "portal") -}}
+{{- required "api.httpRoute.portal.path is required when api.httpRoute.portal.enabled=true" (get $hr "path") -}}
+{{- end -}}
+
+{{- define "api.portal.httpRoute.pathMatchType" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "portal") -}}
+{{- required "api.httpRoute.portal.pathMatchType is required when api.httpRoute.portal.enabled=true" (get $hr "pathMatchType") -}}
 {{- end -}}
 
 {{- define "api.portal.httpRoute.hosts" -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- $hostnames := default (list) (get $portalHttpRoute "hostnames") -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "portal") -}}
+{{- $hostnames := default (list) (get $hr "hostnames") -}}
 {{- if gt (len $hostnames) 0 -}}
 {{ toYaml $hostnames }}
 {{- else -}}
@@ -122,48 +68,150 @@ PathPrefix
 {{- end -}}
 {{- end -}}
 
-{{- define "api.portal.httpRoute.pathMatchType" -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- required "api.httpRoute.portal.pathMatchType is required when api.httpRoute.portal.enabled=true" (get $portalHttpRoute "pathMatchType") -}}
+{{- define "api.automation.httpRoute.path" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "automation") -}}
+{{- required "api.httpRoute.automation.path is required when api.httpRoute.automation.enabled=true" (get $hr "path") -}}
 {{- end -}}
 
-{{/* --- Portal active route helpers --- */}}
+{{- define "api.automation.httpRoute.pathMatchType" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "automation") -}}
+{{- required "api.httpRoute.automation.pathMatchType is required when api.httpRoute.automation.enabled=true" (get $hr "pathMatchType") -}}
+{{- end -}}
+
+{{- define "api.automation.httpRoute.hosts" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "automation") -}}
+{{- $hostnames := default (list) (get $hr "hostnames") -}}
+{{- if gt (len $hostnames) 0 -}}
+{{ toYaml $hostnames }}
+{{- else -}}
+{{- fail "api.httpRoute.automation.hostnames must contain at least one hostname when api.httpRoute.automation.enabled=true" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "api.bridge.httpRoute.path" -}}
+{{- $hr := default dict .Values.api.services.bridge.httpRoute -}}
+{{- required "api.services.bridge.httpRoute.path is required when api.services.bridge.httpRoute.enabled=true" (get $hr "path") -}}
+{{- end -}}
+
+{{- define "api.bridge.httpRoute.pathMatchType" -}}
+{{- $hr := default dict .Values.api.services.bridge.httpRoute -}}
+{{- required "api.services.bridge.httpRoute.pathMatchType is required when api.services.bridge.httpRoute.enabled=true" (get $hr "pathMatchType") -}}
+{{- end -}}
+
+{{- define "api.bridge.httpRoute.hosts" -}}
+{{- $hr := default dict .Values.api.services.bridge.httpRoute -}}
+{{- $hostnames := default (list) (get $hr "hostnames") -}}
+{{- if gt (len $hostnames) 0 -}}
+{{ toYaml $hostnames }}
+{{- else -}}
+{{- fail "api.services.bridge.httpRoute.hostnames must contain at least one hostname when api.services.bridge.httpRoute.enabled=true" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "api.federation.httpRoute.path" -}}
+{{- $hr := default dict .Values.api.federation.httpRoute -}}
+{{- required "api.federation.httpRoute.path is required when api.federation.httpRoute.enabled=true" (get $hr "path") -}}
+{{- end -}}
+
+{{- define "api.federation.httpRoute.pathMatchType" -}}
+{{- $hr := default dict .Values.api.federation.httpRoute -}}
+{{- required "api.federation.httpRoute.pathMatchType is required when api.federation.httpRoute.enabled=true" (get $hr "pathMatchType") -}}
+{{- end -}}
+
+{{- define "api.federation.httpRoute.hosts" -}}
+{{- $hr := default dict .Values.api.federation.httpRoute -}}
+{{- $hostnames := default (list) (get $hr "hostnames") -}}
+{{- if gt (len $hostnames) 0 -}}
+{{ toYaml $hostnames }}
+{{- else -}}
+{{- fail "api.federation.httpRoute.hostnames must contain at least one hostname when api.federation.httpRoute.enabled=true" -}}
+{{- end -}}
+{{- end -}}
+
+{{/* ============================================================ */}}
+{{/* Effective route helpers (ingress-first, used by sibling components) */}}
+{{/* ============================================================ */}}
+
+{{/* --- Management --- */}}
+
+{{- define "api.management.route.path" -}}
+{{- $ingress := default dict .Values.api.ingress.management -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "management") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "/management" (get $ingress "path") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "/management" (get $httpRoute "path") -}}
+{{- else -}}
+/management
+{{- end -}}
+{{- end -}}
+
+{{- define "api.management.route.hosts" -}}
+{{- $ingress := default dict .Values.api.ingress.management -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "management") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{ toYaml (default (list) (get $ingress "hosts")) }}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{ toYaml (default (list) (get $httpRoute "hostnames")) }}
+{{- else -}}
+[]
+{{- end -}}
+{{- end -}}
+
+{{- define "api.management.route.scheme" -}}
+{{- $ingress := default dict .Values.api.ingress.management -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "management") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "https" (get $ingress "scheme") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "https" (get $httpRoute "scheme") -}}
+{{- else -}}
+https
+{{- end -}}
+{{- end -}}
+
+{{- define "api.management.route.url" -}}
+{{- $hosts := fromYamlArray (include "api.management.route.hosts" .) -}}
+{{- $scheme := include "api.management.route.scheme" . -}}
+{{- $path := include "api.management.route.path" . -}}
+{{- if gt (len $hosts) 0 -}}
+{{ printf "%s://%s%s" $scheme (index $hosts 0) (regexFind "/[a-zA-Z0-9-\\/_.~]*" $path) }}
+{{- end -}}
+{{- end -}}
+
+{{/* --- Portal --- */}}
 
 {{- define "api.portal.route.path" -}}
-{{- $portal := default dict .Values.api.ingress.portal -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- if and (default false (get $portal "enabled")) (get $portal "path") -}}
-{{- get $portal "path" -}}
-{{- else if and (default false (get $portalHttpRoute "enabled")) (get $portalHttpRoute "path") -}}
-{{- get $portalHttpRoute "path" -}}
+{{- $ingress := default dict .Values.api.ingress.portal -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "portal") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "/portal" (get $ingress "path") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "/portal" (get $httpRoute "path") -}}
 {{- else -}}
 /portal
 {{- end -}}
 {{- end -}}
 
 {{- define "api.portal.route.hosts" -}}
-{{- $portal := default dict .Values.api.ingress.portal -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- if and (default false (get $portal "enabled")) (get $portal "hosts") -}}
-{{ toYaml (get $portal "hosts") }}
-{{- else if and (default false (get $portalHttpRoute "enabled")) (get $portalHttpRoute "hostnames") -}}
-{{ toYaml (get $portalHttpRoute "hostnames") }}
+{{- $ingress := default dict .Values.api.ingress.portal -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "portal") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{ toYaml (default (list) (get $ingress "hosts")) }}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
 []
 {{- end -}}
 {{- end -}}
 
 {{- define "api.portal.route.scheme" -}}
-{{- $portal := default dict .Values.api.ingress.portal -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- if and (default false (get $portal "enabled")) -}}
-{{- default "https" (get $portal "scheme") -}}
-{{- else if and (default false (get $portalHttpRoute "enabled")) -}}
-{{- default "https" (get $portalHttpRoute "scheme") -}}
+{{- $ingress := default dict .Values.api.ingress.portal -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "portal") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "https" (get $ingress "scheme") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "https" (get $httpRoute "scheme") -}}
 {{- else -}}
 https
 {{- end -}}
@@ -174,20 +222,84 @@ https
 {{- $scheme := include "api.portal.route.scheme" . -}}
 {{- $path := include "api.portal.route.path" . -}}
 {{- if gt (len $hosts) 0 -}}
-{{ printf "%s://%s%s" $scheme (index $hosts 0) (regexFind "/[a-zA-Z0-9-\\/_.~]+" $path) }}
+{{ printf "%s://%s%s" $scheme (index $hosts 0) (regexFind "/[a-zA-Z0-9-\\/_.~]*" $path) }}
 {{- end -}}
 {{- end -}}
 
-{{- define "api.portal.route.pathMatchType" -}}
-{{- $portal := default dict .Values.api.ingress.portal -}}
-{{- $apiHttpRoute := default dict .Values.api.httpRoute -}}
-{{- $portalHttpRoute := default dict (get $apiHttpRoute "portal") -}}
-{{- if and (default false (get $portal "enabled")) -}}
-  {{- $pt := default "Prefix" (get $portal "pathType") -}}
-  {{- if eq $pt "ImplementationSpecific" -}}RegularExpression{{- else if eq $pt "Prefix" -}}PathPrefix{{- else -}}{{ $pt }}{{- end -}}
-{{- else if and (default false (get $portalHttpRoute "enabled")) (get $portalHttpRoute "pathMatchType") -}}
-{{- get $portalHttpRoute "pathMatchType" -}}
+{{/* --- Automation --- */}}
+
+{{- define "api.automation.route.path" -}}
+{{- $ingress := default dict .Values.api.ingress.automation -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "automation") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "/automation" (get $ingress "path") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "/automation" (get $httpRoute "path") -}}
 {{- else -}}
-PathPrefix
+/automation
+{{- end -}}
+{{- end -}}
+
+{{- define "api.automation.route.hosts" -}}
+{{- $ingress := default dict .Values.api.ingress.automation -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "automation") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{ toYaml (default (list) (get $ingress "hosts")) }}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{ toYaml (default (list) (get $httpRoute "hostnames")) }}
+{{- else -}}
+[]
+{{- end -}}
+{{- end -}}
+
+{{/* --- Bridge (api.services.bridge) --- */}}
+
+{{- define "api.bridge.route.path" -}}
+{{- $ingress := default dict .Values.api.services.bridge.ingress -}}
+{{- $httpRoute := default dict .Values.api.services.bridge.httpRoute -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "/_bridge" (get $ingress "path") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "/_bridge" (get $httpRoute "path") -}}
+{{- else -}}
+/_bridge
+{{- end -}}
+{{- end -}}
+
+{{- define "api.bridge.route.hosts" -}}
+{{- $ingress := default dict .Values.api.services.bridge.ingress -}}
+{{- $httpRoute := default dict .Values.api.services.bridge.httpRoute -}}
+{{- if default false (get $ingress "enabled") -}}
+{{ toYaml (default (list) (get $ingress "hosts")) }}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{ toYaml (default (list) (get $httpRoute "hostnames")) }}
+{{- else -}}
+[]
+{{- end -}}
+{{- end -}}
+
+{{/* --- Federation (api.federation) --- */}}
+
+{{- define "api.federation.route.path" -}}
+{{- $ingress := default dict .Values.api.federation.ingress -}}
+{{- $httpRoute := default dict .Values.api.federation.httpRoute -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "/integration-controller" (get $ingress "path") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "/integration-controller" (get $httpRoute "path") -}}
+{{- else -}}
+/integration-controller
+{{- end -}}
+{{- end -}}
+
+{{- define "api.federation.route.hosts" -}}
+{{- $ingress := default dict .Values.api.federation.ingress -}}
+{{- $httpRoute := default dict .Values.api.federation.httpRoute -}}
+{{- if default false (get $ingress "enabled") -}}
+{{ toYaml (default (list) (get $ingress "hosts")) }}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{ toYaml (default (list) (get $httpRoute "hostnames")) }}
+{{- else -}}
+[]
 {{- end -}}
 {{- end -}}

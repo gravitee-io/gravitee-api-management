@@ -163,8 +163,8 @@ data:
         {{- end }}
       {{- end }}
         proxyPath:
-          management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" (include "api.management.route.path" .) }}
-          portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" (include "api.portal.route.path" .) }}
+          management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.management.route.path" .) }}
+          portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.portal.route.path" .) }}
           gamma: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.gamma.path }}
       {{- if ne (include "installation.type" .) "multi-tenant" }}
       standalone:

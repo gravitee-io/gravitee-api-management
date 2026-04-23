@@ -112,7 +112,7 @@ spec:
           securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.ui.deployment.securityContext) | nindent 12 }}
           env:
             - name: MGMT_API_URL
-              value: "{{ include "ui.managementApiUrl" . }}/"
+              value: "{{ trimSuffix "/" (include "ui.managementApiUrl" .) }}/"
             {{- if not (eq $base_href_defined "true") }}
             - name: CONSOLE_BASE_HREF
               value: {{ include "ui.consoleBaseHref" . | quote }}

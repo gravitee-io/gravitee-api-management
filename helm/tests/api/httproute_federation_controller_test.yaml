@@ -24,6 +24,8 @@ tests:
       api:
         federation:
           enabled: true
+          ingress:
+            enabled: false
           httpRoute:
             enabled: true
             gatewayName: traefik
@@ -60,7 +62,7 @@ tests:
           path: spec.rules[0].backendRefs[0].port
           value: 72
 
-  - it: Uses federation httpRoute values when federation ingress and httpRoute are both enabled
+  - it: Ignores api.federation.ingress values when both ingress and httpRoute are enabled
     set:
       api:
         federation:
@@ -87,6 +89,50 @@ tests:
       - equal:
           path: spec.rules[0].matches[0].path.value
           value: /integration-controller
+
+  - it: Fails when api.federation.httpRoute.path is missing
+    set:
+      api:
+        federation:
+          enabled: true
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.federation.httpRoute.path is required when api.federation.httpRoute.enabled=true"
+
+  - it: Fails when api.federation.httpRoute.pathMatchType is missing
+    set:
+      api:
+        federation:
+          enabled: true
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            path: /integration-controller
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.federation.httpRoute.pathMatchType is required when api.federation.httpRoute.enabled=true"
+
+  - it: Fails when api.federation.httpRoute.hostnames is empty
+    set:
+      api:
+        federation:
+          enabled: true
+          httpRoute:
+            enabled: true
+            gatewayName: traefik
+            pathMatchType: PathPrefix
+            path: /integration-controller
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.federation.httpRoute.hostnames must contain at least one hostname when api.federation.httpRoute.enabled=true"
 
   - it: Renders with ExtensionRef filter for rewrite behavior
     set:
@@ -126,6 +172,7 @@ tests:
             sectionName: websecure
             hostnames:
               - api.example.com
+            pathMatchType: PathPrefix
             path: /integration-controller
     asserts:
       - equal:

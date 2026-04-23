@@ -117,7 +117,7 @@ spec:
           securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.portal.deployment.securityContext) | nindent 12 }}
           env:
             - name: PORTAL_API_URL
-              value: "{{ include "api.portal.route.url" . }}/"
+              value: "{{ trimSuffix "/" (include "api.portal.route.url" .) }}/"
             {{- if not (eq $base_href_defined "true") }}
             - name: PORTAL_BASE_HREF
               value: {{ include "portal.route.baseHref" . }}

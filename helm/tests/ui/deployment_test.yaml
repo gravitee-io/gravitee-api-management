@@ -106,6 +106,56 @@ tests:
           path: spec.template.spec.containers[0].env[1].value
           value: "/"
 
+  - it: Should set MGMT_API_URL from root httpRoute management path when ingress is disabled
+    template: ui/ui-deployment.yaml
+    set:
+      api:
+        ingress:
+          management:
+            enabled: false
+        httpRoute:
+          management:
+            enabled: true
+            scheme: https
+            hostnames:
+              - api.httpRoute.example.com
+            path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "MGMT_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "https://api.httpRoute.example.com/"
+
+  - it: Should set MGMT_API_URL with HTTP scheme from httpRoute management when ingress is disabled
+    template: ui/ui-deployment.yaml
+    set:
+      api:
+        ingress:
+          management:
+            enabled: false
+            hosts:
+              - stale-ingress.example.com
+        httpRoute:
+          management:
+            enabled: true
+            scheme: http
+            hostnames:
+              - api-http.example.com
+            path: /management
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "MGMT_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "http://api-http.example.com/management/"
+
   - it: Should override generated CONSOLE_BASE_HREF environment variable
     template: ui/ui-deployment.yaml
     set:

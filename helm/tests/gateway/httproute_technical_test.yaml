@@ -50,7 +50,7 @@ tests:
           path: spec.rules[0].backendRefs[0].port
           value: 18082
 
-  - it: Uses core httpRoute values when core ingress and httpRoute are both enabled
+  - it: Ignores gateway.services.core.ingress values when both ingress and httpRoute are enabled
     set:
       gateway:
         services:
@@ -80,6 +80,50 @@ tests:
           path: spec.rules[0].matches[0].path.value
           value: /
 
+  - it: Fails when gateway.services.core.httpRoute.path is missing
+    set:
+      gateway:
+        services:
+          core:
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - technical.example.com
+              pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.services.core.httpRoute.path is required when gateway.services.core.httpRoute.enabled=true"
+
+  - it: Fails when gateway.services.core.httpRoute.pathMatchType is missing
+    set:
+      gateway:
+        services:
+          core:
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - technical.example.com
+              path: /
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.services.core.httpRoute.pathMatchType is required when gateway.services.core.httpRoute.enabled=true"
+
+  - it: Fails when gateway.services.core.httpRoute.hostnames is empty
+    set:
+      gateway:
+        services:
+          core:
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              pathMatchType: PathPrefix
+              path: /
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.services.core.httpRoute.hostnames must contain at least one hostname when gateway.services.core.httpRoute.enabled=true"
+
   - it: Renders with filters
     set:
       gateway:
@@ -90,6 +134,7 @@ tests:
               gatewayName: traefik
               hostnames:
                 - technical.example.com
+              pathMatchType: PathPrefix
               path: /
               filters:
                 - type: ExtensionRef
@@ -135,6 +180,7 @@ tests:
               gatewayName: traefik
               hostnames:
                 - technical.example.com
+              pathMatchType: PathPrefix
               path: /
             service:
               externalPort: 18082

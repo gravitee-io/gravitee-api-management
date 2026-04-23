@@ -3,9 +3,9 @@
 {{- if (default false $httpRoute.enabled) -}}
 {{- $serviceAPIName := include "gravitee.api.fullname" . -}}
 {{- $serviceAPIPort := .Values.api.federation.service.externalPort -}}
-{{- $path := default "/integration-controller" $httpRoute.path -}}
-{{- $pathMatchType := default "PathPrefix" $httpRoute.pathMatchType -}}
-{{- $hostnames := default (list) $httpRoute.hostnames -}}
+{{- $path := include "api.federation.httpRoute.path" . -}}
+{{- $pathMatchType := include "api.federation.httpRoute.pathMatchType" . -}}
+{{- $hostnames := fromYamlArray (include "api.federation.httpRoute.hosts" .) -}}
 {{- $filters := default (list) $httpRoute.filters -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

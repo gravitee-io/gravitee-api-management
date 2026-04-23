@@ -2020,6 +2020,7 @@ gateway:
   ingress:
     enabled: true
     pathType: Prefix
+    scheme: https
     path: /
     ingressClassName: ""
     # Used to create an Ingress record.
@@ -2041,6 +2042,7 @@ gateway:
     #    secretName: api-custom-cert
   httpRoute:
     enabled: false
+    scheme: https
     gatewayName: ""
     gatewayNamespace: ""
     sectionName: ""
@@ -2225,6 +2227,7 @@ portal:
   ingress:
     enabled: true
     pathType: Prefix
+    scheme: https
     path: /
     ingressClassName: ""
     # Used to create an Ingress record.
@@ -2240,6 +2243,7 @@ portal:
     #    secretName: api-custom-cert
   httpRoute:
     enabled: false
+    scheme: https
     gatewayName: ""
     gatewayNamespace: ""
     sectionName: ""
@@ -2443,6 +2447,7 @@ ui:
   ingress:
     enabled: true
     pathType: ImplementationSpecific
+    scheme: https
     path: /console(/.*)?
     ingressClassName: ""
     # Used to create an Ingress record.
@@ -2458,6 +2463,7 @@ ui:
     #    secretName: api-custom-cert
   httpRoute:
     enabled: false
+    scheme: https
     gatewayName: ""
     gatewayNamespace: ""
     sectionName: ""

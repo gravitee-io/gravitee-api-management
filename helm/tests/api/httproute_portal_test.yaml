@@ -10,6 +10,9 @@ tests:
   - it: Renders an HTTPRoute with explicit httpRoute values
     set:
       api:
+        ingress:
+          portal:
+            enabled: false
         httpRoute:
           portal:
             enabled: true
@@ -44,7 +47,7 @@ tests:
           path: spec.rules[0].backendRefs[0].port
           value: 83
 
-  - it: Uses httpRoute hostnames and path when both ingress and httpRoute are enabled
+  - it: Ignores api.ingress.portal values when both ingress and httpRoute are enabled
     set:
       api:
         ingress:
@@ -74,6 +77,47 @@ tests:
       - equal:
           path: spec.rules[0].matches[0].path.value
           value: /api-portal(/.*)?
+
+  - it: Fails when api.httpRoute.portal.path is missing
+    set:
+      api:
+        httpRoute:
+          portal:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.portal.path is required when api.httpRoute.portal.enabled=true"
+
+  - it: Fails when api.httpRoute.portal.pathMatchType is missing
+    set:
+      api:
+        httpRoute:
+          portal:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            path: /portal
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.portal.pathMatchType is required when api.httpRoute.portal.enabled=true"
+
+  - it: Fails when api.httpRoute.portal.hostnames is empty
+    set:
+      api:
+        httpRoute:
+          portal:
+            enabled: true
+            gatewayName: traefik
+            pathMatchType: PathPrefix
+            path: /portal
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.portal.hostnames must contain at least one hostname when api.httpRoute.portal.enabled=true"
 
   - it: Renders custom parentRef, path and filters
     set:

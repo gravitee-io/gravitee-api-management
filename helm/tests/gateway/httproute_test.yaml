@@ -60,7 +60,7 @@ tests:
           path: spec.rules[0].backendRefs[0].port
           value: 82
 
-  - it: Uses top-level gateway httpRoute values when top-level ingress and httpRoute are both enabled
+  - it: Ignores gateway.ingress values when both top-level ingress and httpRoute are enabled
     set:
       gateway:
         ingress:
@@ -85,6 +85,50 @@ tests:
           path: spec.rules[0].matches[0].path.value
           value: /
 
+  - it: Fails when gateway.httpRoute.path is missing
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gateway.example.com
+          pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.httpRoute.path is required when gateway.httpRoute.enabled=true"
+
+  - it: Fails when gateway.httpRoute.pathMatchType is missing
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gateway.example.com
+          path: /
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.httpRoute.pathMatchType is required when gateway.httpRoute.enabled=true"
+
+  - it: Fails when gateway.httpRoute.hostnames is empty
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          pathMatchType: PathPrefix
+          path: /
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.httpRoute.hostnames must contain at least one hostname when gateway.httpRoute.enabled=true"
+
   - it: Renders with custom parentRef namespace and sectionName
     set:
       gateway:
@@ -97,6 +141,7 @@ tests:
           sectionName: websecure
           hostnames:
             - gw.example.com
+          pathMatchType: PathPrefix
           path: /
     asserts:
       - equal:
@@ -119,6 +164,7 @@ tests:
           gatewayName: traefik
           hostnames:
             - gw.example.com
+          pathMatchType: PathPrefix
           path: /
           filters:
             - type: ExtensionRef
@@ -188,7 +234,7 @@ tests:
           value: 43
         documentIndex: 1
 
-  - it: Uses server httpRoute values when server ingress and httpRoute are both enabled
+  - it: Ignores gateway.servers[i].ingress values when both server ingress and httpRoute are enabled
     set:
       gateway:
         servers:
@@ -219,6 +265,37 @@ tests:
           path: spec.rules[0].matches[0].path.value
           value: /
 
+  - it: Fails when gateway.servers[i].httpRoute.pathMatchType is missing
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw.example.com
+              path: /
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.servers[0].httpRoute.pathMatchType is required when gateway.servers[0].httpRoute.enabled=true"
+
+  - it: Fails when gateway.servers[i].httpRoute.hostnames is empty
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              pathMatchType: PathPrefix
+              path: /
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.servers[0].httpRoute.hostnames must contain at least one hostname when gateway.servers[0].httpRoute.enabled=true"
+
   - it: Does not render servers with httpRoute disabled
     set:
       gateway:
@@ -234,6 +311,7 @@ tests:
               gatewayName: traefik
               hostnames:
                 - gw.example.com
+              pathMatchType: PathPrefix
               path: /
     asserts:
       - hasDocuments:
@@ -258,6 +336,7 @@ tests:
           gatewayName: traefik
           hostnames:
             - gw.example.com
+          pathMatchType: PathPrefix
           path: /
     asserts:
       - equal:
@@ -277,6 +356,7 @@ tests:
           gatewayName: traefik
           hostnames:
             - gw.example.com
+          pathMatchType: PathPrefix
           path: /
     asserts:
       - equal:
@@ -293,6 +373,7 @@ tests:
           gatewayName: traefik
           hostnames:
             - gw.example.com
+          pathMatchType: PathPrefix
           path: /
           annotations:
             external-dns.alpha.kubernetes.io/controller: ignore

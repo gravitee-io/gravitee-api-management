@@ -8,9 +8,12 @@
 {{- if (default false $serverHttpRoute.enabled) }}
 {{- $serverService := default dict $server.service -}}
 {{- $servicePort := default $server.port $serverService.externalPort -}}
-{{- $path := default "/" $serverHttpRoute.path -}}
-{{- $pathMatchType := default "PathPrefix" $serverHttpRoute.pathMatchType -}}
+{{- $path := required (printf "gateway.servers[%d].httpRoute.path is required when gateway.servers[%d].httpRoute.enabled=true" $i $i) $serverHttpRoute.path -}}
+{{- $pathMatchType := required (printf "gateway.servers[%d].httpRoute.pathMatchType is required when gateway.servers[%d].httpRoute.enabled=true" $i $i) $serverHttpRoute.pathMatchType -}}
 {{- $hostnames := default (list) $serverHttpRoute.hostnames -}}
+{{- if eq (len $hostnames) 0 -}}
+{{- fail (printf "gateway.servers[%d].httpRoute.hostnames must contain at least one hostname when gateway.servers[%d].httpRoute.enabled=true" $i $i) -}}
+{{- end -}}
 {{- $filters := default (list) $serverHttpRoute.filters -}}
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -75,9 +78,9 @@ spec:
 {{- else }}
 {{- $httpRoute := default dict .Values.gateway.httpRoute -}}
 {{- if (default false $httpRoute.enabled) -}}
-{{- $path := default "/" $httpRoute.path -}}
-{{- $pathMatchType := default "PathPrefix" $httpRoute.pathMatchType -}}
-{{- $hostnames := default (list) $httpRoute.hostnames -}}
+{{- $path := include "gateway.httpRoute.path" . -}}
+{{- $pathMatchType := include "gateway.httpRoute.pathMatchType" . -}}
+{{- $hostnames := fromYamlArray (include "gateway.httpRoute.hosts" .) -}}
 {{- $filters := default (list) $httpRoute.filters -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

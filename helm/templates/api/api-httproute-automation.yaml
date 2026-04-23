@@ -4,9 +4,9 @@
 {{- if (default false (get $httpRoute "enabled")) -}}
 {{- $serviceAPIName := include "gravitee.api.fullname" . -}}
 {{- $serviceAPIPort := .Values.api.service.externalPort -}}
-{{- $path := default "/automation" $httpRoute.path -}}
-{{- $pathMatchType := default "PathPrefix" $httpRoute.pathMatchType -}}
-{{- $hostnames := default (list) $httpRoute.hostnames -}}
+{{- $path := include "api.automation.httpRoute.path" . -}}
+{{- $pathMatchType := include "api.automation.httpRoute.pathMatchType" . -}}
+{{- $hostnames := fromYamlArray (include "api.automation.httpRoute.hosts" .) -}}
 {{- $filters := default (list) $httpRoute.filters -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

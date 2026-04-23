@@ -10,6 +10,9 @@ tests:
   - it: Renders an HTTPRoute with explicit httpRoute values
     set:
       api:
+        ingress:
+          management:
+            enabled: false
         httpRoute:
           management:
             enabled: true
@@ -44,7 +47,7 @@ tests:
           path: spec.rules[0].backendRefs[0].port
           value: 83
 
-  - it: Uses httpRoute hostnames and path when both ingress and httpRoute are enabled
+  - it: Ignores api.ingress.management values when both ingress and httpRoute are enabled
     set:
       api:
         ingress:
@@ -74,6 +77,47 @@ tests:
       - equal:
           path: spec.rules[0].matches[0].path.value
           value: /mgmt(/.*)?
+
+  - it: Fails when api.httpRoute.management.path is missing
+    set:
+      api:
+        httpRoute:
+          management:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.management.path is required when api.httpRoute.management.enabled=true"
+
+  - it: Fails when api.httpRoute.management.pathMatchType is missing
+    set:
+      api:
+        httpRoute:
+          management:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            path: /management
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.management.pathMatchType is required when api.httpRoute.management.enabled=true"
+
+  - it: Fails when api.httpRoute.management.hostnames is empty
+    set:
+      api:
+        httpRoute:
+          management:
+            enabled: true
+            gatewayName: traefik
+            pathMatchType: PathPrefix
+            path: /management
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.management.hostnames must contain at least one hostname when api.httpRoute.management.enabled=true"
 
   - it: Renders custom parentRef, path and filters
     set:

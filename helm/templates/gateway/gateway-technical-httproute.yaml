@@ -3,9 +3,9 @@
 {{- if (default false $httpRoute.enabled) -}}
 {{- $serviceGWName := include "gravitee.gateway.fullname" . -}}
 {{- $serviceGWPort := .Values.gateway.services.core.service.externalPort -}}
-{{- $path := default "/" $httpRoute.path -}}
-{{- $pathMatchType := default "PathPrefix" $httpRoute.pathMatchType -}}
-{{- $hostnames := default (list) $httpRoute.hostnames -}}
+{{- $path := include "gateway.technical.httpRoute.path" . -}}
+{{- $pathMatchType := include "gateway.technical.httpRoute.pathMatchType" . -}}
+{{- $hostnames := fromYamlArray (include "gateway.technical.httpRoute.hosts" .) -}}
 {{- $filters := default (list) $httpRoute.filters -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
