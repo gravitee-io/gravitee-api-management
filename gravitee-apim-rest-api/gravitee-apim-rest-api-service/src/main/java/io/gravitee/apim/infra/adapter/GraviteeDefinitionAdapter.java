@@ -68,6 +68,9 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
     @Mapping(target = "mode", source = "source.planDefinitionNativeV4.mode")
     @Mapping(target = "status", source = "source.planDefinitionNativeV4.status")
+    @Mapping(target = "bootstrapPort", source = "source.planDefinitionNativeV4.bootstrapPort")
+    @Mapping(target = "brokerRangeStart", source = "source.planDefinitionNativeV4.brokerRangeStart")
+    @Mapping(target = "brokerRangeEnd", source = "source.planDefinitionNativeV4.brokerRangeEnd")
     PlanDescriptor.Native mapPlanNative(Plan source, boolean ignoreId);
 
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")

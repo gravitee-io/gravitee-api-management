@@ -248,7 +248,11 @@ public sealed interface PlanDescriptor {
         String commentMessage,
         String generalConditions,
 
-        Collection<NativeFlow> flows
+        Collection<NativeFlow> flows,
+
+        Integer bootstrapPort,
+        Integer brokerRangeStart,
+        Integer brokerRangeEnd
     ) implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
@@ -281,7 +285,10 @@ public sealed interface PlanDescriptor {
                 commentRequired,
                 commentMessage,
                 generalConditions,
-                newFlow
+                newFlow,
+                bootstrapPort,
+                brokerRangeStart,
+                brokerRangeEnd
             );
         }
     }
