@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -113,8 +114,6 @@ public class EnvironmentCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-
-        verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
     }
 
     @Test
@@ -186,5 +185,70 @@ public class EnvironmentCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
+    @Test
+    @SneakyThrows
+    public void environmentCreationCreatesDefaultPortalNavigationItems() {
+        String envId = "env#1";
+        String orgId = "orga#1";
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
+            .id(envId)
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId(orgId)
+            .description("Environment description")
+            .name("Environment name")
+            .build();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
+
+        when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
+        when(environmentService.createOrUpdate(eq(orgId), eq(envId), any(UpdateEnvironmentEntity.class))).thenReturn(
+            EnvironmentEntity.builder().id(envId).organizationId(orgId).build()
+        );
+
+        TestObserver<EnvironmentReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
+    }
+
+    @Test
+    public void environmentUpdateDoesNotCreateDefaultPortalNavigationItems() throws InterruptedException {
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
+            .id("env#1")
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId("orga#1")
+            .description("Environment description")
+            .name("Environment name")
+            .build();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
+        EnvironmentEntity existingEnvironment = mock(EnvironmentEntity.class);
+        when(existingEnvironment.getId()).thenReturn("DEFAULT");
+        when(existingEnvironment.getOrganizationId()).thenReturn("DEFAULT");
+        when(environmentService.findByCockpitId(any())).thenReturn(existingEnvironment);
+        when(
+            environmentService.createOrUpdate(
+                eq("DEFAULT"),
+                eq("DEFAULT"),
+                argThat(
+                    newEnvironment ->
+                        newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
+                        newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
+                        newEnvironment.getDescription().equals(environmentPayload.description()) &&
+                        newEnvironment.getName().equals(environmentPayload.name())
+                )
+            )
+        ).thenReturn(new EnvironmentEntity());
+
+        TestObserver<EnvironmentReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verify(createDefaultPortalNavigationItemsUseCase, never()).execute(any(), any());
     }
 }
