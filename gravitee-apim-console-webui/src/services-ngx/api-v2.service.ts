@@ -38,6 +38,7 @@ import {
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
+import { ImportWsdlDescriptor } from '../entities/management-api-v2/api/v4/importWsdlDescriptor';
 import { MigrateToV4Response } from '../entities/management-api-v2/api/v2/migrateToV4Response';
 import { ApiProductInfo } from '../entities/management-api-v2/api-product/apiProductInfo';
 
@@ -154,6 +155,14 @@ export class ApiV2Service {
 
   importSwaggerApi(descriptor: ImportSwaggerDescriptor) {
     return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/swagger`, descriptor, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  importWsdlApi(descriptor: ImportWsdlDescriptor): Observable<ApiV4> {
+    return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/wsdl`, descriptor, {
       headers: {
         'Content-Type': 'application/json',
       },
