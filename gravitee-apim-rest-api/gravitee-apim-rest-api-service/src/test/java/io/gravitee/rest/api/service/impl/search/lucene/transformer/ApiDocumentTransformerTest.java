@@ -211,6 +211,45 @@ class ApiDocumentTransformerTest {
     }
 
     @Test
+    void transform_api_entity_v4_http_proxy_should_index_allow_in_api_products_as_false_when_null() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setAllowedInApiProducts(null);
+
+        Document doc = cut.transform(api);
+        assertThat(doc.get(FIELD_ALLOW_IN_API_PRODUCTS)).isEqualTo("false");
+    }
+
+    @Test
+    void transform_api_entity_v4_http_proxy_should_index_allow_in_api_products_as_false_when_false() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setAllowedInApiProducts(false);
+
+        Document doc = cut.transform(api);
+        assertThat(doc.get(FIELD_ALLOW_IN_API_PRODUCTS)).isEqualTo("false");
+    }
+
+    @Test
+    void transform_api_entity_v4_message_should_still_index_allow_in_api_products_as_false_when_null() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.MESSAGE);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setAllowedInApiProducts(null);
+
+        Document doc = cut.transform(api);
+        assertThat(doc.get(FIELD_ALLOW_IN_API_PRODUCTS)).isEqualTo("false");
+    }
+
+    @Test
     void transform_api_entity_federated_verify_api_type() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");

@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.ApiFixtures;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -504,6 +505,36 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getProxy());
         assertEquals("/test", responseApi.getProxy().getVirtualHosts().get(0).getPath());
         assertNull(responseApi.getProxy().getVirtualHosts().get(0).getHost());
+    }
+
+    @Test
+    public void should_return_false_for_allowedInApiProducts_when_entity_has_false() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).allowedInApiProducts(false).build();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+        assertNotNull(responseApi);
+        assertEquals(Boolean.FALSE, responseApi.getAllowedInApiProducts());
+    }
+
+    @Test
+    public void should_preserve_true_for_allowedInApiProducts_when_entity_has_true() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).allowedInApiProducts(true).build();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+        assertNotNull(responseApi);
+        assertEquals(Boolean.TRUE, responseApi.getAllowedInApiProducts());
     }
 
     @Test

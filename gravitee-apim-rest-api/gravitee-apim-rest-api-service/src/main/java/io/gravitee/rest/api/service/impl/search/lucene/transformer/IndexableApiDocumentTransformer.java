@@ -188,12 +188,11 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             default -> {}
         }
 
-        // allowedInApiProducts - only for V4 HTTP Proxy APIs
+        // allowedInApiProducts - only for V4 HTTP Proxy APIs; null is normalized to false so existing APIs are
+        // always indexed and remain findable by a search for allowedInApiProducts=false.
         if (apiDefinitionV4 instanceof io.gravitee.definition.model.v4.Api v4Api) {
-            Boolean allowedInApiProducts = v4Api.getAllowedInApiProducts();
-            if (allowedInApiProducts != null) {
-                doc.add(new StringField(FIELD_ALLOW_IN_API_PRODUCTS, Boolean.toString(allowedInApiProducts), Field.Store.NO));
-            }
+            boolean allowedInApiProducts = Boolean.TRUE.equals(v4Api.getAllowedInApiProducts());
+            doc.add(new StringField(FIELD_ALLOW_IN_API_PRODUCTS, Boolean.toString(allowedInApiProducts), Field.Store.NO));
         }
 
         // tags

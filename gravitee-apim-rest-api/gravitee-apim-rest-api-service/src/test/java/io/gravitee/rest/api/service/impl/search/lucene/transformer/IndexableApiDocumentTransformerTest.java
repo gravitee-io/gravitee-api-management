@@ -178,8 +178,8 @@ public class IndexableApiDocumentTransformerTest {
             // origin
             softly.assertThat(result.getField(FIELD_ORIGIN).stringValue()).isEqualTo("management");
 
-            // allow_in_api_products should not be indexed when missing in definition
-            softly.assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCTS)).isNull();
+            // null allowedInApiProducts is normalized to false so the API remains findable by allowedInApiProducts=false
+            softly.assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCTS).stringValue()).isEqualTo("false");
         });
     }
 
