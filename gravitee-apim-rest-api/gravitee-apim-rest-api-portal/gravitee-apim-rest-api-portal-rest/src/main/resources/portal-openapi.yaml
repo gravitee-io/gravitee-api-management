@@ -4622,11 +4622,6 @@ components:
             type: string
             enum:
                 - documentation
-        InvitationStatus:
-            type: string
-            enum:
-                - PENDING
-                - EXPIRED
         #####################
         # Responses Objects #
         #####################
@@ -5624,7 +5619,6 @@ components:
                 - id
                 - email
                 - role
-                - status
             properties:
                 id:
                     description: Unique identifier of an invitation.
@@ -5634,24 +5628,14 @@ components:
                     type: string
                     format: email
                 role:
-                    description: Role assigned to the invitation.
+                    description: Application role name assigned to the invitation.
                     type: string
-                status:
-                    $ref: "#/components/schemas/InvitationStatus"
-                registered_user:
-                    description: True when the invited person already has a platform account but has not accepted the invitation yet.
-                    type: boolean
-                    default: false
                 created_at:
                     description: Creation date and time of the invitation.
                     type: string
                     format: date-time
                 updated_at:
                     description: Last update date and time of the invitation.
-                    type: string
-                    format: date-time
-                expires_at:
-                    description: Expiration date and time of the invitation.
                     type: string
                     format: date-time
         ReferenceMetadata:
