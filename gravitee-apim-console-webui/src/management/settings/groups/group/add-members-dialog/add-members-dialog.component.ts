@@ -206,7 +206,12 @@ export class AddMembersDialogComponent implements OnInit {
   }
 
   submit() {
+    this.syncMembershipsFromForm();
     this.matDialogRef.close({ memberships: this.memberships });
+  }
+
+  private syncMembershipsFromForm(): void {
+    this.memberships = this.selectedUsers.map(user => this.mapGroupMembership(user));
   }
 
   mapGroupMembership(user: SearchableUser): GroupMembership {
@@ -269,7 +274,7 @@ export class AddMembersDialogComponent implements OnInit {
       const membershipIndex = this.memberships.findIndex(member => member.id === user.id);
 
       if (membershipIndex >= 0) {
-        this.memberships.splice(index, 1);
+        this.memberships.splice(membershipIndex, 1);
       }
     }
     this.changeFormState();
@@ -296,7 +301,8 @@ export class AddMembersDialogComponent implements OnInit {
     return this.memberships.filter(membership => membership.roles.find(role => role.scope === 'API').name === RoleName.PRIMARY_OWNER);
   }
 
-  onAPIRoleChange() {
+  /** Clears user chips and memberships when any default role changes; refreshes PRIMARY_OWNER search rules via changeFormState. */
+  onDefaultRoleChange(): void {
     this.selectedUsers = [];
     this.memberships = [];
     this.changeFormState();

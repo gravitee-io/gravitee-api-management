@@ -20,7 +20,7 @@
   <form [formGroup]="addMemberForm" class="add-member__form">
     <mat-form-field aria-hidden="false" aria-label="Select default API role">
       <mat-label>Default API Role</mat-label>
-      <mat-select formControlName="defaultAPIRole" (selectionChange)="onAPIRoleChange()">
+      <mat-select formControlName="defaultAPIRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultAPIRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="disabledAPIRoles.has(role.id)">{{ role.name }}</mat-option>
         }
@@ -29,7 +29,7 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default API product role">
       <mat-label>Default API Product Role</mat-label>
-      <mat-select formControlName="defaultAPIProductRole">
+      <mat-select formControlName="defaultAPIProductRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultAPIProductRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
         }
@@ -38,7 +38,7 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default application role">
       <mat-label>Default Application Role</mat-label>
-      <mat-select formControlName="defaultApplicationRole">
+      <mat-select formControlName="defaultApplicationRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultApplicationRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
         }
@@ -47,7 +47,7 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default integration role">
       <mat-label>Default Integration Role</mat-label>
-      <mat-select formControlName="defaultIntegrationRole">
+      <mat-select formControlName="defaultIntegrationRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultIntegrationRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
         }
@@ -56,7 +56,7 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default cluster role">
       <mat-label>Default Cluster Role</mat-label>
-      <mat-select formControlName="defaultClusterRole">
+      <mat-select formControlName="defaultClusterRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultClusterRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
         }
