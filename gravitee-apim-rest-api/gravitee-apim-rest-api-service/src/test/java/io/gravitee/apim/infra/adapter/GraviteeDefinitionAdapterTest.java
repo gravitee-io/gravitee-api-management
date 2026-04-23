@@ -20,13 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
+import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.WorkflowState;
 import java.util.List;
 import java.util.Set;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -113,5 +118,64 @@ class GraviteeDefinitionAdapterTest {
         );
 
         assertThat(descriptor.allowedInApiProducts()).isNull();
+    }
+
+    @Test
+    void mapPlanNative_should_propagate_port_routing_fields_from_definition() {
+        // Given a core Plan with port-based routing configured on the native definition
+        var nativePlanDefinition = NativePlan.builder()
+            .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
+            .mode(PlanMode.STANDARD)
+            .status(PlanStatus.PUBLISHED)
+            .bootstrapPort(9092)
+            .brokerRangeStart(9100)
+            .brokerRangeEnd(9102)
+            .build();
+
+        var corePlan = io.gravitee.apim.core.plan.model.Plan.builder()
+            .id("plan-id")
+            .name("plan-name")
+            .definitionVersion(DefinitionVersion.V4)
+            .apiType(ApiType.NATIVE)
+            .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+            .planDefinitionNativeV4(nativePlanDefinition)
+            .build();
+
+        // When exported via GraviteeDefinitionAdapter
+        PlanDescriptor.Native descriptor = GraviteeDefinitionAdapter.INSTANCE.mapPlanNative(corePlan, false);
+
+        // Then port fields are present in the exported descriptor
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(descriptor.bootstrapPort()).isEqualTo(9092);
+            soft.assertThat(descriptor.brokerRangeStart()).isEqualTo(9100);
+            soft.assertThat(descriptor.brokerRangeEnd()).isEqualTo(9102);
+        });
+    }
+
+    @Test
+    void mapPlanNative_should_leave_port_routing_fields_null_when_not_set() {
+        // Given a native plan in host/SNI routing mode (no port fields)
+        var nativePlanDefinition = NativePlan.builder()
+            .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
+            .mode(PlanMode.STANDARD)
+            .status(PlanStatus.PUBLISHED)
+            .build();
+
+        var corePlan = io.gravitee.apim.core.plan.model.Plan.builder()
+            .id("plan-id")
+            .name("plan-name")
+            .definitionVersion(DefinitionVersion.V4)
+            .apiType(ApiType.NATIVE)
+            .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+            .planDefinitionNativeV4(nativePlanDefinition)
+            .build();
+
+        PlanDescriptor.Native descriptor = GraviteeDefinitionAdapter.INSTANCE.mapPlanNative(corePlan, false);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(descriptor.bootstrapPort()).isNull();
+            soft.assertThat(descriptor.brokerRangeStart()).isNull();
+            soft.assertThat(descriptor.brokerRangeEnd()).isNull();
+        });
     }
 }

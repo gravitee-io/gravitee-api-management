@@ -386,6 +386,68 @@ public class PlanMapperTest {
         assertEquals(planWithFlows.getFlows().size(), plan.getFlows().size());
     }
 
+    @Test
+    void should_map_native_PlanWithFlows_with_port_routing_to_PlanV4() {
+        final var basePlan = PlanFixtures.aPlanWithNativeFlows();
+        basePlan.getPlanDefinitionNativeV4().setBootstrapPort(9092);
+        basePlan.getPlanDefinitionNativeV4().setBrokerRangeStart(9100);
+        basePlan.getPlanDefinitionNativeV4().setBrokerRangeEnd(9102);
+
+        final var plan = planMapper.map(basePlan);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(plan.getBootstrapPort()).isEqualTo(9092);
+            soft.assertThat(plan.getBrokerRangeStart()).isEqualTo(9100);
+            soft.assertThat(plan.getBrokerRangeEnd()).isEqualTo(9102);
+        });
+    }
+
+    @Test
+    void should_leave_port_routing_fields_null_when_mapping_http_PlanWithFlows() {
+        // HTTP plans have no planDefinitionNativeV4, so port fields stay null
+        final var planWithFlows = PlanFixtures.aPlanWithHttpFlows();
+
+        final var plan = planMapper.map(planWithFlows);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(plan.getBootstrapPort()).isNull();
+            soft.assertThat(plan.getBrokerRangeStart()).isNull();
+            soft.assertThat(plan.getBrokerRangeEnd()).isNull();
+        });
+    }
+
+    @Test
+    void should_map_CreatePlanV4_port_routing_fields_to_native_plan_definition() {
+        final var createPlanV4 = PlanFixtures.aCreatePlanNativeV4();
+        createPlanV4.setBootstrapPort(9092);
+        createPlanV4.setBrokerRangeStart(9100);
+        createPlanV4.setBrokerRangeEnd(9102);
+
+        final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.NATIVE).build());
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(plan.getPlanDefinitionNativeV4().getBootstrapPort()).isEqualTo(9092);
+            soft.assertThat(plan.getPlanDefinitionNativeV4().getBrokerRangeStart()).isEqualTo(9100);
+            soft.assertThat(plan.getPlanDefinitionNativeV4().getBrokerRangeEnd()).isEqualTo(9102);
+        });
+    }
+
+    @Test
+    void should_map_UpdatePlanV4_port_routing_fields_to_PlanUpdates() {
+        final var updatePlanV4 = PlanFixtures.anUpdatePlanNativeV4();
+        updatePlanV4.setBootstrapPort(9092);
+        updatePlanV4.setBrokerRangeStart(9100);
+        updatePlanV4.setBrokerRangeEnd(9102);
+
+        final var planUpdates = planMapper.mapToPlanUpdates(updatePlanV4);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(planUpdates.getBootstrapPort()).isEqualTo(9092);
+            soft.assertThat(planUpdates.getBrokerRangeStart()).isEqualTo(9100);
+            soft.assertThat(planUpdates.getBrokerRangeEnd()).isEqualTo(9102);
+        });
+    }
+
     private void assertSecurityV4Equals(
         PlanSecurity planEntitySecurity,
         io.gravitee.rest.api.management.v2.rest.model.PlanSecurity planSecurity
