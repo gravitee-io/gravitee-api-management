@@ -5063,6 +5063,18 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+                      bootstrapPort:
+                          type: integer
+                          description: Bootstrap port for port-based routing (native Kafka APIs only). Null in host/SNI routing mode.
+                          example: 9092
+                      brokerRangeStart:
+                          type: integer
+                          description: Start of broker port range for port-based routing (native Kafka APIs only).
+                          example: 9100
+                      brokerRangeEnd:
+                          type: integer
+                          description: End of broker port range for port-based routing (native Kafka APIs only).
+                          example: 9102
         PlanFederated:
             type: object
             title: "PlanFederated"
@@ -5312,6 +5324,18 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       mode:
                           $ref: "#/components/schemas/PlanMode"
+                      bootstrapPort:
+                          type: integer
+                          description: Bootstrap port for port-based routing (native Kafka APIs only). Null in host/SNI routing mode.
+                          example: 9092
+                      brokerRangeStart:
+                          type: integer
+                          description: Start of broker port range for port-based routing (native Kafka APIs only).
+                          example: 9100
+                      brokerRangeEnd:
+                          type: integer
+                          description: End of broker port range for port-based routing (native Kafka APIs only).
+                          example: 9102
         PlanMode:
             type: string
             description: The behavioural mode of the Plan (Standard for classical plan, Push for subscription plan).
@@ -5433,6 +5457,18 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+                      bootstrapPort:
+                          type: integer
+                          description: Bootstrap port for port-based routing (native Kafka APIs only). Null in host/SNI routing mode.
+                          example: 9092
+                      brokerRangeStart:
+                          type: integer
+                          description: Start of broker port range for port-based routing (native Kafka APIs only).
+                          example: 9100
+                      brokerRangeEnd:
+                          type: integer
+                          description: End of broker port range for port-based routing (native Kafka APIs only).
+                          example: 9102
 
         UpdatePlanFederated:
             type: object
