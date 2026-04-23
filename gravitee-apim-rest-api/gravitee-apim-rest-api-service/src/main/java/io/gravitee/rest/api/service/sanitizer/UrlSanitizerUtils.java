@@ -30,6 +30,15 @@ import java.util.List;
  */
 public class UrlSanitizerUtils {
 
+    public static boolean isUrl(String content) {
+        try {
+            new URL(content);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static void checkAllowed(String url, List<String> whitelist, boolean allowPrivate) {
         checkUrlForbiddenCharacters(url);
         checkUriSyntax(url);
