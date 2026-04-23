@@ -201,7 +201,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())
             .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
-            .errorKeys(searchLogsFilters.errorKeys());
+            .errorKeys(searchLogsFilters.errorKeys())
+            .nativeKafkaClientIds(searchLogsFilters.nativeKafkaClientIds());
     }
 
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(

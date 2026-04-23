@@ -659,17 +659,7 @@ class SearchMetricsQueryAdapterTest {
                 )
                 .build();
 
-            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-
-            var hasErrorKeysFilter = mustClauses
-                .stream()
-                .map(o -> (JsonObject) o)
-                .anyMatch(
-                    clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.ERROR_KEY)
-                );
-
-            assertThat(hasErrorKeysFilter).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isTrue();
         }
 
         @Test
@@ -678,17 +668,7 @@ class SearchMetricsQueryAdapterTest {
                 .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).errorKeys(null).build())
                 .build();
 
-            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-
-            var hasErrorKeysFilter = mustClauses
-                .stream()
-                .map(o -> (JsonObject) o)
-                .anyMatch(
-                    clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.ERROR_KEY)
-                );
-
-            assertThat(hasErrorKeysFilter).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isFalse();
         }
 
         @Test
@@ -697,17 +677,7 @@ class SearchMetricsQueryAdapterTest {
                 .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).errorKeys(Set.of()).build())
                 .build();
 
-            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-
-            var hasErrorKeysFilter = mustClauses
-                .stream()
-                .map(o -> (JsonObject) o)
-                .anyMatch(
-                    clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.ERROR_KEY)
-                );
-
-            assertThat(hasErrorKeysFilter).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isFalse();
         }
     }
 
@@ -725,19 +695,7 @@ class SearchMetricsQueryAdapterTest {
                 )
                 .build();
 
-            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-
-            var hasApiProductFilter = mustClauses
-                .stream()
-                .map(o -> (JsonObject) o)
-                .anyMatch(
-                    clause ->
-                        clause.containsKey("terms") &&
-                        clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())
-                );
-
-            assertThat(hasApiProductFilter).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isTrue();
         }
 
         @Test
@@ -746,19 +704,7 @@ class SearchMetricsQueryAdapterTest {
                 .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(null).build())
                 .build();
 
-            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-
-            var hasApiProductFilter = mustClauses
-                .stream()
-                .map(o -> (JsonObject) o)
-                .anyMatch(
-                    clause ->
-                        clause.containsKey("terms") &&
-                        clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())
-                );
-
-            assertThat(hasApiProductFilter).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isFalse();
         }
 
         @Test
@@ -769,19 +715,74 @@ class SearchMetricsQueryAdapterTest {
                 )
                 .build();
 
-            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-
-            var hasApiProductFilter = mustClauses
-                .stream()
-                .map(o -> (JsonObject) o)
-                .anyMatch(
-                    clause ->
-                        clause.containsKey("terms") &&
-                        clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())
-                );
-
-            assertThat(hasApiProductFilter).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isFalse();
         }
+    }
+
+    @Nested
+    class NativeKafkaClientIdFilter {
+
+        @Test
+        void should_add_kafka_client_id_filter_with_multiple_values() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaClientIds(Set.of("consumer-a", "consumer-b")).build())
+                .build();
+
+            var termsValues = extractTermsValues(query, RequestV2MetricsV4Fields.NATIVE_KAFKA_CLIENT_ID.v4Metrics());
+
+            assertThat(termsValues).containsExactlyInAnyOrder("consumer-a", "consumer-b");
+        }
+
+        @Test
+        void should_not_add_kafka_client_id_filter_when_set_is_null() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaClientIds(null).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.NATIVE_KAFKA_CLIENT_ID.v4Metrics())).isFalse();
+        }
+
+        @Test
+        void should_not_add_kafka_client_id_filter_when_set_is_empty() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().nativeKafkaClientIds(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.NATIVE_KAFKA_CLIENT_ID.v4Metrics())).isFalse();
+        }
+    }
+
+    private List<Object> extractTermsValues(MetricsQuery query, String field) {
+        var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+        var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+        return mustClauses
+            .stream()
+            .map(o -> (JsonObject) o)
+            .filter(clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(field))
+            .findFirst()
+            .map(clause -> clause.getJsonObject("terms").getJsonArray(field).getList())
+            .orElseThrow(() -> new AssertionError("No terms clause found for field: " + field));
+    }
+
+    private boolean hasTermsOn(MetricsQuery query, String field) {
+        var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+        var queryNode = result.getJsonObject("query");
+        if (queryNode == null || queryNode.getJsonObject("bool") == null) {
+            return false;
+        }
+        var mustClauses = queryNode.getJsonObject("bool").getJsonArray("must");
+        if (mustClauses == null) {
+            return false;
+        }
+        return mustClauses
+            .stream()
+            .map(o -> (JsonObject) o)
+            .anyMatch(clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(field));
     }
 }

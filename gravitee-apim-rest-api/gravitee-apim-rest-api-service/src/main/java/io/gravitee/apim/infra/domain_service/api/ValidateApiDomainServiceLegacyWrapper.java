@@ -219,7 +219,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         // Validate and clean flows
         apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
 
-        apiDefinition.setAnalytics(apiDefinition.getAnalytics() != null ? apiDefinition.getAnalytics() : new NativeAnalytics());
+        apiDefinition.setAnalytics(validateAndSanitizeAnalytics(apiDefinition.getAnalytics()));
 
         apiDefinition.setResources(apiValidationService.validateAndSanitize(apiDefinition.getResources()));
 
@@ -228,5 +228,12 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         );
 
         return apiDefinition;
+    }
+
+    private NativeAnalytics validateAndSanitizeAnalytics(NativeAnalytics analytics) {
+        if (analytics == null) {
+            return new NativeAnalytics(); // defaults-true for both enabled and reporterMetricsEnabled
+        }
+        return analytics;
     }
 }

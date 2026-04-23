@@ -2444,6 +2444,8 @@ paths:
                           type: string
                       example:
                           - f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff
+                - $ref: "#/components/parameters/errorKeys"
+                - $ref: "#/components/parameters/nativeKafkaClientIds"
             tags:
                 - API Analytics
             summary: Get API logs
@@ -3192,6 +3194,12 @@ components:
                     $ref: "#/components/schemas/LoggingV4"
                 tracing:
                     $ref: "#/components/schemas/TracingV4"
+                reporterMetricsEnabled:
+                    type: boolean
+                    description: |-
+                        Enable the connection-metrics reporter on the gateway. Only applies to Native v4 APIs. For HTTP v4 APIs this field is silently discarded by the server.
+                        Independent of the parent `enabled` flag: event-metrics reporting and the connection-metrics reporter are gated separately.
+                    default: true
         Api:
             oneOf:
                 - $ref: "#/components/schemas/ApiV2"
@@ -8939,6 +8947,30 @@ components:
                 type: array
                 items:
                     type: integer
+        errorKeys:
+            name: errorKeys
+            description: >-
+                Return only connection logs whose error key matches any of the supplied values.
+                For Native Kafka APIs with connection logging enabled and debug disabled, this filter
+                is AND-composed with the default failed-connections-only filter.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
+        nativeKafkaClientIds:
+            name: nativeKafkaClientIds
+            description: >-
+                Return only connection logs whose Kafka `client.id` matches any of the supplied values.
+                The Kafka `client.id` is populated only on Native Kafka connection logs; this filter
+                has no effect on HTTP APIs.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
         eventIdParam:
             name: eventId
             in: path

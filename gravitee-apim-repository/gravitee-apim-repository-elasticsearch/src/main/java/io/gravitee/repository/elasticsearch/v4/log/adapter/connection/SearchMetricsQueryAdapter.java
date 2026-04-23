@@ -79,6 +79,8 @@ public class SearchMetricsQueryAdapter {
 
         addResponseTimeRangesFilter(filter, mustFilterList);
 
+        addNativeKafkaClientIdFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
@@ -205,6 +207,12 @@ public class SearchMetricsQueryAdapter {
                 timestampJsonObject.put("lte", new Date(filter.getTo()));
             }
             mustFilterList.add(JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, timestampJsonObject)));
+        }
+    }
+
+    private static void addNativeKafkaClientIdFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getNativeKafkaClientIds())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.NATIVE_KAFKA_CLIENT_ID, filter.getNativeKafkaClientIds()));
         }
     }
 

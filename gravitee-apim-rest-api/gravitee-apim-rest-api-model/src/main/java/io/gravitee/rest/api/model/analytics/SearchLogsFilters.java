@@ -20,6 +20,14 @@ import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 
+/**
+ * Criteria for searching connection logs.
+ *
+ * <p>{@code errorKeys} is a caller-supplied inclusion filter on the {@code error-key} field.
+ * Callers who want only failed connections pass the full set of failure-bucket values (e.g.
+ * {@code GATEWAY_KAFKA_CONNECTION_ERROR}, {@code GATEWAY_KAFKA_SESSION_ERROR},
+ * {@code GATEWAY_KAFKA_INTERNAL_ERROR}). No server-side error-key filter injection.
+ */
 @Builder(toBuilder = true)
 public record SearchLogsFilters(
     Long from,
@@ -37,5 +45,6 @@ public record SearchLogsFilters(
     String uri,
     String bodyText,
     Set<String> errorKeys,
-    Set<String> apiProductIds
+    Set<String> apiProductIds,
+    Set<String> nativeKafkaClientIds
 ) {}

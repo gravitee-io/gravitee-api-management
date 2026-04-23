@@ -24,6 +24,7 @@ import fixtures.core.model.PlanFixtures;
 import fixtures.repository.ConnectionLogDetailFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.*;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -81,6 +82,7 @@ class ApiLogsResourceTest extends ApiResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
+        apiCrudService.initWith(List.of(Api.builder().id(API).build()));
         planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION));
     }
@@ -91,9 +93,13 @@ class ApiLogsResourceTest extends ApiResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
 
-        Stream.of(applicationStorageService, connectionLogStorageService, messageLogStorageService, planStorageService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+            apiCrudService,
+            applicationStorageService,
+            connectionLogStorageService,
+            messageLogStorageService,
+            planStorageService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Override
@@ -527,6 +533,40 @@ class ApiLogsResourceTest extends ApiResourceTest {
             assertThat(apiLogsResponse.getData())
                 .extracting(io.gravitee.rest.api.management.v2.rest.model.ApiLog::getRequestId)
                 .containsExactlyInAnyOrder("req1", "req2");
+        }
+
+        @Test
+        void should_return_connection_logs_filtered_by_native_kafka_client_id() {
+            connectionLogStorageService.initWithConnectionLogs(
+                List.of(
+                    connectionLogFixtures
+                        .aConnectionLog("req1")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-A"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req2")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-B"))
+                        .build(),
+                    connectionLogFixtures
+                        .aConnectionLog("req3")
+                        .toBuilder()
+                        .additionalMetrics(Map.of("keyword_native-kafka_client-id", "consumer-A"))
+                        .build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.NATIVE_KAFKA_CLIENT_IDS_QUERY_PARAM_NAME, "consumer-A");
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getPagination)
+                .satisfies(p -> {
+                    assertThat(p.getTotalCount()).isEqualTo(2L);
+                });
         }
     }
 

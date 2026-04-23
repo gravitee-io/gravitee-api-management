@@ -290,6 +290,8 @@ class ConnectionLogsCrudServiceImplTest {
                     .planIds(Set.of("plan-1"))
                     .methods(Set.of(HttpMethod.GET))
                     .statuses(Set.of(3))
+                    .errorKeys(Set.of("GATEWAY_KAFKA_CONNECTION_ERROR"))
+                    .nativeKafkaClientIds(Set.of("consumer-A"))
                     .build(),
                 new PageableImpl(1, 20)
             );
@@ -318,6 +320,8 @@ class ConnectionLogsCrudServiceImplTest {
                             .planIds(Set.of("plan-1"))
                             .methods(Set.of(HttpMethod.GET))
                             .statuses(Set.of(3))
+                            .errorKeys(Set.of("GATEWAY_KAFKA_CONNECTION_ERROR"))
+                            .nativeKafkaClientIds(Set.of("consumer-A"))
                             .build()
                     )
                     .build()

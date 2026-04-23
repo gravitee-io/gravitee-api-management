@@ -17,21 +17,21 @@ package io.gravitee.definition.model.v4.nativeapi;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
+@Data
 public class NativeAnalytics {
 
+    /** Gates event-metrics reporting. Independent of reporterMetricsEnabled. */
+    // TODO: rename to `eventMetricsEnabled` for symmetry with `reporterMetricsEnabled`. Breaking change — persisted in v4 API definitions.
     @Builder.Default
     protected boolean enabled = true;
+
+    /** Gates the connection-metrics reporter on the gateway. Independent of analytics.enabled. */
+    @Builder.Default
+    protected boolean reporterMetricsEnabled = true;
 }
