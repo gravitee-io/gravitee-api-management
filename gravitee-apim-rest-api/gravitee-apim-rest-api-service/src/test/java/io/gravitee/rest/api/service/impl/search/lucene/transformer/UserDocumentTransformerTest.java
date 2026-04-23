@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.rest.api.model.UserEntity;
 import java.util.Map;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -37,6 +38,74 @@ public class UserDocumentTransformerTest {
         user.setId("user-uuid");
         Document doc = transformer.transform(user);
         assertThat(doc.get("id")).isEqualTo(user.getId());
+    }
+
+    @Nested
+    class LastnameFirstnameSortField {
+
+        @Test
+        void should_use_lastname_firstname_lowercased_as_sort_value_when_both_are_present() {
+            var user = UserEntity.builder().id("user-uuid").firstname("Alice").lastname("Smith").build();
+
+            var doc = transformer.transform(user);
+
+            var sortField = doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED);
+            assertThat(sortField).isNotNull();
+            assertThat(sortField.binaryValue()).isEqualTo(new BytesRef("smith alice"));
+        }
+
+        @Test
+        void should_strip_accents_and_lowercase_lastname_firstname_sort_value() {
+            var user = UserEntity.builder().id("user-uuid").firstname("Élodie").lastname("Müller").build();
+
+            var doc = transformer.transform(user);
+
+            var sortField = doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED);
+            assertThat(sortField).isNotNull();
+            assertThat(sortField.binaryValue()).isEqualTo(new BytesRef("muller elodie"));
+        }
+
+        @Test
+        void should_use_display_name_as_sort_value_when_user_has_no_firstname_or_lastname() {
+            var user = UserEntity.builder().id("user-uuid").sourceId("svc-ci-my-service-account").build();
+
+            var doc = transformer.transform(user);
+
+            var sortField = doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED);
+            assertThat(sortField).isNotNull();
+            assertThat(sortField.binaryValue()).isEqualTo(new BytesRef("svc-ci-my-service-account"));
+        }
+
+        @Test
+        void should_use_display_name_as_sort_value_when_only_firstname_is_present() {
+            var user = UserEntity.builder().id("user-uuid").firstname("Alice").build();
+
+            var doc = transformer.transform(user);
+
+            var sortField = doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED);
+            assertThat(sortField).isNotNull();
+            assertThat(sortField.binaryValue()).isEqualTo(new BytesRef("Alice"));
+        }
+
+        @Test
+        void should_use_display_name_as_sort_value_when_only_lastname_is_present() {
+            var user = UserEntity.builder().id("user-uuid").lastname("Smith").build();
+
+            var doc = transformer.transform(user);
+
+            var sortField = doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED);
+            assertThat(sortField).isNotNull();
+            assertThat(sortField.binaryValue()).isEqualTo(new BytesRef("Smith"));
+        }
+
+        @Test
+        void should_not_include_sort_field_when_user_has_no_display_name() {
+            var user = UserEntity.builder().id("user-uuid").build();
+
+            var doc = transformer.transform(user);
+
+            assertThat(doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED)).isNull();
+        }
     }
 
     @Nested
