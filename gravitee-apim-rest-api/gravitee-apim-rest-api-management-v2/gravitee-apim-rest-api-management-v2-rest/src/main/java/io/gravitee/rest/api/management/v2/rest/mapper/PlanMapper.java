@@ -98,18 +98,9 @@ public interface PlanMapper {
     @Mapping(target = "mode", source = "planDefinitionV4.mode")
     @Mapping(target = "flows", expression = "java(computeFlows(source))")
     @Mapping(target = "definitionVersion", constant = "V4")
-    @Mapping(
-        target = "bootstrapPort",
-        expression = "java(source.getPlanDefinitionNativeV4() != null ? source.getPlanDefinitionNativeV4().getBootstrapPort() : null)"
-    )
-    @Mapping(
-        target = "brokerRangeStart",
-        expression = "java(source.getPlanDefinitionNativeV4() != null ? source.getPlanDefinitionNativeV4().getBrokerRangeStart() : null)"
-    )
-    @Mapping(
-        target = "brokerRangeEnd",
-        expression = "java(source.getPlanDefinitionNativeV4() != null ? source.getPlanDefinitionNativeV4().getBrokerRangeEnd() : null)"
-    )
+    @Mapping(target = "bootstrapPort", source = "planDefinitionNativeV4.bootstrapPort")
+    @Mapping(target = "brokerRangeStart", source = "planDefinitionNativeV4.brokerRangeStart")
+    @Mapping(target = "brokerRangeEnd", source = "planDefinitionNativeV4.brokerRangeEnd")
     PlanV4 map(PlanWithFlows source);
 
     default <T extends PlanDescriptor> PlanV4 map(T source) {
