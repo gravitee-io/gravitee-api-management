@@ -39,6 +39,8 @@ import org.springframework.util.StringUtils;
 
 public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudService, InMemoryAlternative<Object> {
 
+    public static final String NATIVE_KAFKA_CLIENT_ID_KEY = "keyword_native-kafka_client-id";
+
     private final InMemoryConnectionLogs connectionLogs = new InMemoryConnectionLogs();
     private final InMemoryConnectionLogDetails connectionLogDetails = new InMemoryConnectionLogDetails();
 
@@ -254,7 +256,9 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.errorKeys())) {
-            predicate = predicate.and(connectionLog -> logsFilters.errorKeys().contains(connectionLog.getErrorKey()));
+            predicate = predicate.and(
+                connectionLog -> connectionLog.getErrorKey() != null && logsFilters.errorKeys().contains(connectionLog.getErrorKey())
+            );
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.apiProductIds())) {
@@ -278,6 +282,15 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         if (StringUtils.hasLength(uri)) {
             var normalizedUri = getNormalizedUri(uri);
             predicate = predicate.and(connectionLog -> connectionLog.getUri().startsWith(normalizedUri));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.nativeKafkaClientIds())) {
+            predicate = predicate.and(connectionLog -> {
+                var metrics = connectionLog.getAdditionalMetrics();
+                if (metrics == null) return false;
+                var clientId = metrics.get(NATIVE_KAFKA_CLIENT_ID_KEY);
+                return clientId instanceof String s && logsFilters.nativeKafkaClientIds().contains(s);
+            });
         }
 
         return predicate;

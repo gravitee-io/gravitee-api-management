@@ -50,12 +50,13 @@ public class RequestV2MetricsV4Fields {
     public static final Field CLIENT_IDENTIFIER = new Field("subscription", "client-identifier");
     public static final Field TRANSACTION_ID = new Field("transaction", "transaction-id");
     public static final Field HTTP_METHOD = new Field("method", "http-method");
-    public static final Field MCP_METHOD = new Field("additional-metrics.keyword_mcp-proxy_method");
+    public static final Field MCP_METHOD = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_method");
     public static final Field GATEWAY_RESPONSE_TIME = new Field("response-time", "gateway-response-time-ms");
     public static final Field ENTRYPOINT_ID = new Field(null, "entrypoint-id");
     public static final Field REQUEST_ENDED = new Field(null, "request-ended");
     public static final Field ENDPOINT = new Field("endpoint", "endpoint");
     public static final Field API_PRODUCT_ID = new Field("api-product-id");
+    public static final Field NATIVE_KAFKA_CLIENT_ID = new Field(ADDITIONAL_METRICS + ".keyword_native-kafka_client-id");
 
     public record Field(String v2Request, String v4Metrics) {
         public Field(String v4Metrics) {

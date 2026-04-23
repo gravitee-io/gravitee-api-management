@@ -58,6 +58,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -382,6 +383,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals(true, dynamicPropertyConfiguration.getOverrideConfiguration());
         assertNotNull(dynamicPropertyConfiguration.getConfiguration());
         assertEquals("dynamic-property", dynamicPropertyConfiguration.getType());
+
+        assertTrue(responseApi.getAnalytics().getReporterMetricsEnabled());
     }
 
     @Test
@@ -736,6 +739,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         dynamicProperty.setEnabled(true);
         dynamicProperty.setOverrideConfiguration(true);
         apiEntity.setServices(new NativeApiServices(dynamicProperty));
+        apiEntity.setAnalytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(true).build());
 
         return apiEntity;
     }

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.log.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -49,23 +50,27 @@ public class SearchApiV4ConnectionLogsUseCase {
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
+    private final ApiCrudService apiCrudService;
     private final ApiProductQueryService apiProductQueryService;
 
     public SearchApiV4ConnectionLogsUseCase(
         ConnectionLogsCrudService connectionLogsCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService,
+        ApiCrudService apiCrudService,
         ApiProductQueryService apiProductQueryService
     ) {
         this.connectionLogsCrudService = connectionLogsCrudService;
         this.planCrudService = planCrudService;
         this.applicationCrudService = applicationCrudService;
+        this.apiCrudService = apiCrudService;
         this.apiProductQueryService = apiProductQueryService;
     }
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        var pageable = input.pageable.orElse(new PageableImpl(1, 20));
+        apiCrudService.get(input.apiId()); // 404 propagation if the API doesn't exist
 
+        var pageable = input.pageable.orElse(new PageableImpl(1, 20));
         var response = connectionLogsCrudService.searchApiConnectionLogs(
             executionContext,
             input.apiId(),

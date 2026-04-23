@@ -33,6 +33,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.InvalidApiLifecycleStateException;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
@@ -110,6 +111,11 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @InjectMocks
     ValidateApiDomainServiceLegacyWrapper service;
+
+    private static Api nativeApiWithAnalytics(NativeAnalytics analytics) {
+        var base = ApiFixtures.aNativeApi();
+        return base.toBuilder().apiDefinitionNativeV4(base.getApiDefinitionNativeV4().toBuilder().analytics(analytics).build()).build();
+    }
 
     @Nested
     class ValidateAndSanitizeForCreationApiHttpV4 {
@@ -247,7 +253,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
-                        .analytics(new NativeAnalytics(true))
+                        .analytics(NativeAnalytics.builder().enabled(true).build())
                         .build()
                 )
                 .build();
@@ -348,14 +354,17 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
         @Test
         void should_throw_when_multiple_api_flows() {
-            var nativeApi = ApiFixtures.aNativeApi();
-            nativeApi.setApiDefinitionValue(
-                nativeApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
-                    .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
-                    .build()
-            );
+            var baseApi = ApiFixtures.aNativeApi();
+            var nativeApi = baseApi
+                .toBuilder()
+                .apiDefinitionNativeV4(
+                    baseApi
+                        .getApiDefinitionNativeV4()
+                        .toBuilder()
+                        .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
+                        .build()
+                )
+                .build();
 
             doThrow(new NativeApiWithMultipleFlowsException())
                 .when(flowValidationDomainService)
@@ -366,6 +375,18 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             );
 
             Assertions.assertThat(throwable).isInstanceOf(NativeApiWithMultipleFlowsException.class);
+        }
+
+        @Test
+        void should_replace_null_analytics_with_defaults() {
+            var api = nativeApiWithAnalytics(null);
+
+            var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+
+            var analytics = result.getApiDefinitionNativeV4().getAnalytics();
+            Assertions.assertThat(analytics).isNotNull();
+            Assertions.assertThat(analytics.isEnabled()).isTrue();
+            Assertions.assertThat(analytics.isReporterMetricsEnabled()).isTrue();
         }
     }
 
@@ -514,14 +535,17 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
         @Test
         void should_throw_when_multiple_api_flows() {
-            var nativeApi = ApiFixtures.aNativeApi();
-            nativeApi.setApiDefinitionValue(
-                nativeApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
-                    .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
-                    .build()
-            );
+            var baseApi = ApiFixtures.aNativeApi();
+            var nativeApi = baseApi
+                .toBuilder()
+                .apiDefinitionNativeV4(
+                    baseApi
+                        .getApiDefinitionNativeV4()
+                        .toBuilder()
+                        .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
+                        .build()
+                )
+                .build();
 
             doThrow(new NativeApiWithMultipleFlowsException())
                 .when(flowValidationDomainService)
