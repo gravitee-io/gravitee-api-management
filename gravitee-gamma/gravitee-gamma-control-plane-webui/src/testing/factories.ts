@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { CurrentUser } from '../features/auth/auth.types';
+import type { Environment } from '../features/environment/environment.types';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
 export const TEST_CONFIG: BootstrapConfig = {
@@ -40,3 +41,20 @@ export function buildUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
 export function buildBootstrapConfig(overrides: Partial<BootstrapConfig> = {}): BootstrapConfig {
     return { ...TEST_CONFIG, ...overrides };
 }
+
+export function buildEnvironment(overrides: Partial<Environment> = {}): Environment {
+    return {
+        id: 'env-1-id',
+        hrids: ['env-1'],
+        name: 'Environment 1',
+        description: 'First environment',
+        organizationId: TEST_CONFIG.organizationId,
+        ...overrides,
+    };
+}
+
+/** Two environments for MSW and integration-style tests. */
+export const TEST_ENVIRONMENTS: Environment[] = [
+    buildEnvironment(),
+    buildEnvironment({ id: 'env-2-id', hrids: ['env-2'], name: 'Environment 2' }),
+];

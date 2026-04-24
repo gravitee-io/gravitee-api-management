@@ -17,7 +17,7 @@ import { http, HttpResponse, type JsonBodyType } from 'msw';
 
 import { permissionService } from '@gravitee/gamma-modules-sdk';
 
-import { buildBootstrapConfig, TEST_MANAGEMENT_BASE } from './factories';
+import { buildBootstrapConfig, TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from './factories';
 import { server } from './server';
 import { useAuthStore } from '../features/auth/auth.store';
 import { useEnvironmentStore } from '../features/environment/environment.store';
@@ -86,7 +86,7 @@ export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url:
 export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
     useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
-    useEnvironmentStore.setState({ organizationId: '', environmentId: 'DEFAULT' });
+    useEnvironmentStore.getState().reset();
     permissionService.reset();
     localStorage.clear();
 }
@@ -103,6 +103,20 @@ export function seedBootstrap(overrides: Partial<BootstrapConfig> = {}) {
  * Overrides the default environment permissions MSW handler for a single test.
  * Reset automatically by `server.resetHandlers()` in afterEach.
  */
-export function fakePermissions(permissions: Record<string, string[]>) {
-    server.use(http.get(`${TEST_MANAGEMENT_BASE}/environments/DEFAULT/permissions`, () => HttpResponse.json(permissions)));
+export function fakePermissions(permissions: Record<string, string[]>, envId = 'env-1-id') {
+    server.use(http.get(`${TEST_MANAGEMENT_BASE}/environments/${envId}/permissions`, () => HttpResponse.json(permissions)));
+}
+
+/** Pre-populates the environment store as if `initialize` succeeded with {@link TEST_ENVIRONMENTS}. */
+export function seedEnvironments() {
+    const first = TEST_ENVIRONMENTS[0]!;
+    useEnvironmentStore.setState({
+        organizationId: 'test-org',
+        environments: TEST_ENVIRONMENTS,
+        currentEnvironment: first,
+        environmentId: first.id,
+        loading: false,
+        error: null,
+        initialized: true,
+    });
 }

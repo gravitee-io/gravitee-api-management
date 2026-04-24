@@ -18,7 +18,7 @@ import { waitFor } from '@testing-library/react';
 import { permissionService } from '@gravitee/gamma-modules-sdk';
 
 import { startPermissionSync } from './permission-sync';
-import { buildUser, TEST_MANAGEMENT_BASE } from '../../testing/factories';
+import { buildEnvironment, buildUser, TEST_MANAGEMENT_BASE } from '../../testing/factories';
 import { respondWithError, trackHandler } from '../../testing/helpers';
 import { useAuthStore } from '../auth/auth.store';
 import { useEnvironmentStore } from '../environment/environment.store';
@@ -63,7 +63,7 @@ describe('permission-sync', () => {
             API: ['R'],
         });
 
-        useEnvironmentStore.getState().setEnvironment('test-org', 'staging');
+        useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'staging' }));
 
         await waitFor(() => expect(tracker.callCount).toBe(1));
         expect(permissionService.hasAnyOf(['environment-api-r'])).toBe(true);
@@ -74,7 +74,7 @@ describe('permission-sync', () => {
             API: ['R'],
         });
 
-        useEnvironmentStore.getState().setEnvironment('test-org', 'staging');
+        useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'staging' }));
 
         expect(tracker.callCount).toBe(0);
     });
@@ -96,8 +96,8 @@ describe('permission-sync', () => {
     });
 
     it('should reload environment permissions on login when environmentId does not change', async () => {
-        useEnvironmentStore.getState().setEnvironment('test-org', 'DEFAULT');
-        const envPermTracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments/DEFAULT/permissions`, {
+        useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'env-1-id' }));
+        const envPermTracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments/env-1-id/permissions`, {
             API: ['R'],
         });
 
