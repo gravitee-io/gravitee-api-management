@@ -66,6 +66,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.JsonMergePatchService;
+import io.gravitee.apim.core.api.domain_service.JsonPatchService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
@@ -225,6 +226,7 @@ import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
+import io.gravitee.apim.infra.domain_service.api.ApiJsonPatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.JsonMergePatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
@@ -573,8 +575,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ApiPatchDomainService apiPatchDomainService(JsonMergePatchService jsonMergePatchService) {
-        return new ApiPatchDomainService(jsonMergePatchService);
+    public JsonPatchService jsonPatchService() {
+        return new ApiJsonPatchServiceImpl();
+    }
+
+    @Bean
+    public ApiPatchDomainService apiPatchDomainService(JsonMergePatchService jsonMergePatchService, JsonPatchService jsonPatchService) {
+        return new ApiPatchDomainService(jsonMergePatchService, jsonPatchService);
     }
 
     @Bean

@@ -13,34 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.infra.domain_service.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.apim.core.DomainService;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
+import io.gravitee.apim.core.api.domain_service.JsonPatchService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import org.springframework.stereotype.Service;
 
 /**
  * @author GraviteeSource Team
  */
-@DomainService
-@RequiredArgsConstructor
-public class ApiPatchDomainService {
+@Service
+public class ApiJsonPatchServiceImpl implements JsonPatchService {
 
-    private final JsonMergePatchService jsonMergePatchService;
-    private final JsonPatchService jsonPatchService;
-
-    public JsonNode applyMergePatch(JsonNode patch, JsonNode target) throws ValidationDomainException {
-        if (!patch.isObject()) {
-            throw new ValidationDomainException("Invalid patch: a merge patch must be a JSON object");
-        }
-        return jsonMergePatchService.applyMergePatch(patch, target);
-    }
-
+    @Override
     public JsonNode applyJsonPatch(JsonNode patch, JsonNode target) throws ValidationDomainException {
-        if (!patch.isArray()) {
-            throw new ValidationDomainException("Invalid patch: a JSON patch must be an array");
+        try {
+            return JsonPatch.fromJson(patch).apply(target);
+        } catch (JsonPatchException e) {
+            throw new ValidationDomainException("Failed to apply patch: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new ValidationDomainException("Invalid patch: " + e.getMessage(), e);
         }
-        return jsonPatchService.applyJsonPatch(patch, target);
     }
 }
