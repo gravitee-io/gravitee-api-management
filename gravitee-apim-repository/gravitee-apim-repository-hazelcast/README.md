@@ -10,22 +10,13 @@ As a consequence:
 
 - `cluster.type: hazelcast` is required. Running with `cluster.type: standalone` throws `UnsupportedOperationException` at startup, by design (local counters on a single node are not distributed rate limiting; use `ratelimit.type: memory` instead).
 - The Hazelcast version shipped by `gravitee-node` is the authoritative one. This plugin has no version to align.
+- There is nothing to configure in this plugin. All Hazelcast-level settings (cluster discovery, members, CP subsystem, merge policies, ports) live in `hazelcast-cluster.xml` owned by the cluster plugin.
 
-## Configuration
-
-Under the `ratelimit.hazelcast` prefix in `gravitee.yml`:
-
-| Parameter | Default       | Description                                            |
-|-----------|---------------|--------------------------------------------------------|
-| `map`     | `rate-limits` | Name of the distributed map used to hold the counters. |
-
-To enable:
+## Enabling
 
 ```yaml
 ratelimit:
   type: hazelcast
-  hazelcast:
-    map: rate-limits
 
 cluster:
   type: hazelcast

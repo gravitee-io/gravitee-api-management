@@ -17,7 +17,6 @@ package io.gravitee.repository.hazelcast.spring;
 
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.hazelcast.ratelimit.HazelcastRateLimitRepository;
-import io.gravitee.repository.hazelcast.ratelimit.configuration.HazelcastRateLimitConfiguration;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,13 +24,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PluginConfiguration {
 
-    @Bean
-    public RateLimitRepository rateLimitRepository(ClusterManager clusterManager, HazelcastRateLimitConfiguration configuration) {
-        return new HazelcastRateLimitRepository(clusterManager.distributedMap(configuration.getRateLimitMap()));
-    }
+    private static final String RATE_LIMIT_MAP = "rate-limits";
 
     @Bean
-    public HazelcastRateLimitConfiguration hazelcastRateLimitConfiguration() {
-        return new HazelcastRateLimitConfiguration();
+    public RateLimitRepository rateLimitRepository(ClusterManager clusterManager) {
+        return new HazelcastRateLimitRepository(clusterManager.distributedMap(RATE_LIMIT_MAP));
     }
 }
