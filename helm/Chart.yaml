@@ -30,6 +30,8 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
+    - kind: added
+      description: 'Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal). Compatible with any provider; Ingress Nginx takes priority if enabled.'
     - kind: changed
       description: 'Migrate repository configuration (management, analytics, ratelimit) under repositories.* prefix in configmaps. Legacy keys are deprecated and will be removed in a future release.'
     - kind: added
