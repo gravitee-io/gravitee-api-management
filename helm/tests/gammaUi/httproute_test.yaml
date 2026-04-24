@@ -1,0 +1,174 @@
+suite: Test Gamma UI HTTPRoute
+templates:
+  - "gammaUi/gammaUi-httproute.yaml"
+set:
+  gamma:
+    enabled: true
+  gammaUi:
+    enabled: true
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute with explicit httpRoute values
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gamma-console.example.com
+          pathMatchType: PathPrefix
+          path: /gamma-console
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: gamma-console.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /gamma-console
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-gamma
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8005
+
+  - it: Ignores gammaUi.ingress values when both ingress and httpRoute are enabled
+    set:
+      gammaUi:
+        ingress:
+          enabled: true
+          hosts:
+            - ingress.example.com
+          path: /legacy-gamma-console(/.*)?
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gamma-console.example.com
+          pathMatchType: PathPrefix
+          path: /gamma-console
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: gamma-console.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /gamma-console
+
+  - it: Fails when gammaUi.httpRoute.path is missing
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gamma-console.example.com
+          pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "gammaUi.httpRoute.path is required when gammaUi.httpRoute.enabled=true"
+
+  - it: Fails when gammaUi.httpRoute.pathMatchType is missing
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gamma-console.example.com
+          path: /gamma-console
+    asserts:
+      - failedTemplate:
+          errorMessage: "gammaUi.httpRoute.pathMatchType is required when gammaUi.httpRoute.enabled=true"
+
+  - it: Fails when gammaUi.httpRoute.hostnames is empty
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          pathMatchType: PathPrefix
+          path: /gamma-console
+    asserts:
+      - failedTemplate:
+          errorMessage: "gammaUi.httpRoute.hostnames must contain at least one hostname when gammaUi.httpRoute.enabled=true"
+
+  - it: Renders custom parentRef and filters
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: public-gateway
+          gatewayNamespace: gateways
+          sectionName: websecure
+          hostnames:
+            - gamma-console.example.com
+          pathMatchType: PathPrefix
+          path: /gamma-console
+          filters:
+            - type: URLRewrite
+              urlRewrite:
+                path:
+                  type: ReplacePrefixMatch
+                  replacePrefixMatch: /
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: secure-headers
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateways
+      - equal:
+          path: spec.parentRefs[0].sectionName
+          value: websecure
+      - equal:
+          path: spec.rules[0].filters[0].type
+          value: URLRewrite
+      - equal:
+          path: spec.rules[0].filters[1].extensionRef.name
+          value: secure-headers
+
+  - it: Does not render in dbLess mode
+    set:
+      apim:
+        dbLess: true
+      gammaUi:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0

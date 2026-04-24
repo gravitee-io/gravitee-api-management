@@ -165,7 +165,7 @@ data:
         proxyPath:
           management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.management.route.path" .) }}
           portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.portal.route.path" .) }}
-          gamma: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.gamma.path }}
+          gamma: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.gamma.route.path" .) }}
       {{- if ne (include "installation.type" .) "multi-tenant" }}
       standalone:
         console:
@@ -185,7 +185,7 @@ data:
           {{- if index .Values.installation.standalone "gamma-console" "urls" }}
             {{- toYaml (index .Values.installation.standalone "gamma-console") | nindent 10 }}
           {{ else }}
-          url: https://{{ index .Values.gammaUi.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.gammaUi.ingress.path }}
+          url: {{ include "gammaUi.consoleUrl" . }}
           {{- end }}
         {{- end}}
       {{ else }}

@@ -1045,6 +1045,17 @@ api:
       path: ""
       annotations: {}
       filters: []
+    gamma:
+      enabled: false
+      scheme: https
+      gatewayName: ""
+      gatewayNamespace: ""
+      sectionName: ""
+      hostnames: []
+      pathMatchType: ""
+      path: ""
+      annotations: {}
+      filters: []
     automation:
       enabled: false
       gatewayName: ""
@@ -2655,6 +2666,17 @@ gammaUi:
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /$1
+  httpRoute:
+    enabled: false
+    scheme: https
+    gatewayName: ""
+    gatewayNamespace: ""
+    sectionName: ""
+    hostnames: []
+    pathMatchType: ""
+    path: ""
+    annotations: {}
+    filters: []
     # tls:
       # Secrets must be manually created in the namespace.
     #  - hosts:

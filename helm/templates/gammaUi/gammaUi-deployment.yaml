@@ -112,10 +112,10 @@ spec:
           securityContext: {{ toYaml .Values.gammaUi.deployment.securityContext | nindent 12 }}
           env:
             - name: GAMMA_API_URL
-              value: "{{ .Values.api.ingress.gamma.scheme }}://{{index .Values.api.ingress.gamma.hosts 0 }}{{ .Values.api.ingress.gamma.path }}/"
+              value: "{{ include "gammaUi.apiUrl" . }}"
             {{- if not (eq $base_href_defined "true") }}
             - name: GAMMA_BASE_HREF
-              value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.gammaUi.ingress.path) "/" }}
+              value: {{ include "gammaUi.baseHref" . | quote }}
             {{- end }}
 {{- if .Values.gammaUi.env | default .Values.gammaUi.deployment.extraEnvs }}
 {{ toYaml ( .Values.gammaUi.env | default .Values.gammaUi.deployment.extraEnvs ) | indent 12 }}

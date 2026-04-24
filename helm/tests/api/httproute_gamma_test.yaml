@@ -1,0 +1,203 @@
+suite: Test Gamma API HTTPRoute
+templates:
+  - "api/api-httproute-gamma.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute with explicit httpRoute values
+    set:
+      gamma:
+        enabled: true
+      api:
+        ingress:
+          gamma:
+            enabled: false
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - gamma.example.com
+            pathMatchType: PathPrefix
+            path: /gamma
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: gamma.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /gamma
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-api
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 83
+
+  - it: Ignores api.ingress.gamma values when both ingress and httpRoute are enabled
+    set:
+      gamma:
+        enabled: true
+      api:
+        ingress:
+          gamma:
+            enabled: true
+            hosts:
+              - ingress.example.com
+            pathType: Prefix
+            path: /ingress-gamma
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - route.example.com
+            pathMatchType: RegularExpression
+            path: /gamma(/.*)?
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: route.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: RegularExpression
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /gamma(/.*)?
+
+  - it: Fails when api.httpRoute.gamma.path is missing
+    set:
+      gamma:
+        enabled: true
+      api:
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - gamma.example.com
+            pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.gamma.path is required when api.httpRoute.gamma.enabled=true"
+
+  - it: Fails when api.httpRoute.gamma.pathMatchType is missing
+    set:
+      gamma:
+        enabled: true
+      api:
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - gamma.example.com
+            path: /gamma
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.gamma.pathMatchType is required when api.httpRoute.gamma.enabled=true"
+
+  - it: Fails when api.httpRoute.gamma.hostnames is empty
+    set:
+      gamma:
+        enabled: true
+      api:
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+            pathMatchType: PathPrefix
+            path: /gamma
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.gamma.hostnames must contain at least one hostname when api.httpRoute.gamma.enabled=true"
+
+  - it: Renders custom parentRef, path and filters
+    set:
+      gamma:
+        enabled: true
+      api:
+        ingress:
+          gamma:
+            enabled: false
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: public-gateway
+            gatewayNamespace: gateways
+            sectionName: websecure
+            hostnames:
+              - gamma.example.com
+            pathMatchType: PathPrefix
+            path: /gamma
+            filters:
+              - type: ExtensionRef
+                extensionRef:
+                  group: traefik.io
+                  kind: Middleware
+                  name: secure-headers
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateways
+      - equal:
+          path: spec.parentRefs[0].sectionName
+          value: websecure
+      - equal:
+          path: spec.hostnames[0]
+          value: gamma.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /gamma
+      - equal:
+          path: spec.rules[0].filters[0].extensionRef.name
+          value: secure-headers
+
+  - it: Does not render in dbLess mode
+    set:
+      gamma:
+        enabled: true
+      apim:
+        dbLess: true
+      api:
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Does not render when api is disabled
+    set:
+      gamma:
+        enabled: true
+      api:
+        enabled: false
+        httpRoute:
+          gamma:
+            enabled: true
+            gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0

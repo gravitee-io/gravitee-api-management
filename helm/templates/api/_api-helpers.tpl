@@ -68,6 +68,26 @@ ingress.pathType -> HTTPRoute pathMatchType translation (effective helpers only)
 {{- end -}}
 {{- end -}}
 
+{{- define "api.gamma.httpRoute.path" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "gamma") -}}
+{{- required "api.httpRoute.gamma.path is required when api.httpRoute.gamma.enabled=true" (get $hr "path") -}}
+{{- end -}}
+
+{{- define "api.gamma.httpRoute.pathMatchType" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "gamma") -}}
+{{- required "api.httpRoute.gamma.pathMatchType is required when api.httpRoute.gamma.enabled=true" (get $hr "pathMatchType") -}}
+{{- end -}}
+
+{{- define "api.gamma.httpRoute.hosts" -}}
+{{- $hr := default dict (get (default dict .Values.api.httpRoute) "gamma") -}}
+{{- $hostnames := default (list) (get $hr "hostnames") -}}
+{{- if gt (len $hostnames) 0 -}}
+{{ toYaml $hostnames }}
+{{- else -}}
+{{- fail "api.httpRoute.gamma.hostnames must contain at least one hostname when api.httpRoute.gamma.enabled=true" -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "api.automation.httpRoute.path" -}}
 {{- $hr := default dict (get (default dict .Values.api.httpRoute) "automation") -}}
 {{- required "api.httpRoute.automation.path is required when api.httpRoute.automation.enabled=true" (get $hr "path") -}}
@@ -221,6 +241,53 @@ https
 {{- $hosts := fromYamlArray (include "api.portal.route.hosts" .) -}}
 {{- $scheme := include "api.portal.route.scheme" . -}}
 {{- $path := include "api.portal.route.path" . -}}
+{{- if gt (len $hosts) 0 -}}
+{{ printf "%s://%s%s" $scheme (index $hosts 0) (regexFind "/[a-zA-Z0-9-\\/_.~]*" $path) }}
+{{- end -}}
+{{- end -}}
+
+{{/* --- Gamma --- */}}
+
+{{- define "api.gamma.route.path" -}}
+{{- $ingress := default dict .Values.api.ingress.gamma -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "gamma") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "/gamma" (get $ingress "path") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "/gamma" (get $httpRoute "path") -}}
+{{- else -}}
+/gamma
+{{- end -}}
+{{- end -}}
+
+{{- define "api.gamma.route.hosts" -}}
+{{- $ingress := default dict .Values.api.ingress.gamma -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "gamma") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{ toYaml (default (list) (get $ingress "hosts")) }}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{ toYaml (default (list) (get $httpRoute "hostnames")) }}
+{{- else -}}
+[]
+{{- end -}}
+{{- end -}}
+
+{{- define "api.gamma.route.scheme" -}}
+{{- $ingress := default dict .Values.api.ingress.gamma -}}
+{{- $httpRoute := default dict (get (default dict .Values.api.httpRoute) "gamma") -}}
+{{- if default false (get $ingress "enabled") -}}
+{{- default "https" (get $ingress "scheme") -}}
+{{- else if default false (get $httpRoute "enabled") -}}
+{{- default "https" (get $httpRoute "scheme") -}}
+{{- else -}}
+https
+{{- end -}}
+{{- end -}}
+
+{{- define "api.gamma.route.url" -}}
+{{- $hosts := fromYamlArray (include "api.gamma.route.hosts" .) -}}
+{{- $scheme := include "api.gamma.route.scheme" . -}}
+{{- $path := include "api.gamma.route.path" . -}}
 {{- if gt (len $hosts) 0 -}}
 {{ printf "%s://%s%s" $scheme (index $hosts 0) (regexFind "/[a-zA-Z0-9-\\/_.~]*" $path) }}
 {{- end -}}

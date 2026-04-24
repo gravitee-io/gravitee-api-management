@@ -21,6 +21,11 @@ tests:
 
   - it: Should generate a GAMMA_API_URL environment variable with default values
     template: gammaUi/gammaUi-deployment.yaml
+    set:
+      api:
+        ingress:
+          gamma:
+            enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -37,6 +42,7 @@ tests:
       api:
         ingress:
           gamma:
+            enabled: true
             scheme: http
             hosts:
               - custom.example.com
@@ -110,6 +116,67 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: "/test/"
+
+  - it: Should generate GAMMA_API_URL from gamma httpRoute when ingress is disabled
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      api:
+        ingress:
+          gamma:
+            enabled: false
+            hosts:
+              - stale-ingress.example.com
+        httpRoute:
+          gamma:
+            enabled: true
+            scheme: http
+            hostnames:
+              - gamma-route.example.com
+            pathMatchType: PathPrefix
+            path: /gamma
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "GAMMA_API_URL"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "http://gamma-route.example.com/gamma/"
+
+  - it: Should generate GAMMA_BASE_HREF from gammaUi httpRoute when ingress is disabled
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          pathMatchType: PathPrefix
+          path: /gamma-console
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/gamma-console/"
+
+  - it: Should generate GAMMA_BASE_HREF from root gammaUi httpRoute when ingress is disabled
+    template: gammaUi/gammaUi-deployment.yaml
+    set:
+      gammaUi:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          pathMatchType: PathPrefix
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/"
 
   - it: Should override generated GAMMA_BASE_HREF environment variable
     template: gammaUi/gammaUi-deployment.yaml
