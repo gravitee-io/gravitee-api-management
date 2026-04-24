@@ -13,42 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
-import { useCallback, useMemo } from 'react';
-import { Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { NAV_GROUPS } from '../config/navigation';
-import { navigateToNavKey, ROUTES, resolveModulePath } from '../config/routes';
+import { APIM_ROUTE_CONFIG } from '../config/routes';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
 function ModuleLayout() {
-    const location = useLocation();
     const navigate = useNavigate();
+    const { activeNavKey, navigateToKey, rootPath } = useModuleRouting(APIM_ROUTE_CONFIG);
 
-    const { modulePrefix, activeNavKey } = useMemo(() => resolveModulePath(location.pathname), [location.pathname]);
-
-    const handleNavSelect = useCallback(
-        (key: string) => {
-            navigateToNavKey(navigate, modulePrefix, key);
-        },
-        [navigate, modulePrefix],
+    const breadcrumbs = useMemo(
+        () => buildLinearBreadcrumbs(navigate, [{ label: 'APIM', to: rootPath }, { label: APIM_ROUTE_CONFIG.routes[activeNavKey].label }]),
+        [activeNavKey, navigate, rootPath],
     );
-
-    const breadcrumbs = useMemo(() => {
-        const pageLabel = ROUTES[activeNavKey].label;
-        const rootPath = modulePrefix ? `/${modulePrefix}/apis` : '/';
-        return buildLinearBreadcrumbs(navigate, [{ label: 'APIM', to: rootPath }, { label: pageLabel }]);
-    }, [activeNavKey, navigate, modulePrefix]);
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
+            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, handleNavSelect],
+        [activeNavKey, breadcrumbs, navigateToKey],
     );
 
     return <Outlet />;
