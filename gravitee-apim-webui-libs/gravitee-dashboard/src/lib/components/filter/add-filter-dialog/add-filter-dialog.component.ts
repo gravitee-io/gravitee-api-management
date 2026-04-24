@@ -31,6 +31,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger, MatOption } from '@angular/material/autocomplete';
 import { MatButton } from '@angular/material/button';
+import { MatCheckbox, MatCheckboxChange } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -42,11 +43,20 @@ import {
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
 import { defer, Observable, of } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
 import { FILTER_DEFINITION_PROVIDER } from '../filter-providers';
-import { FilterCondition, FilterDefinition, FilterOperator, normalizeMembershipOperatorForValues, OPERATOR_SYMBOLS } from '../filter.model';
+import {
+  FilterCondition,
+  FilterDefinition,
+  FilterOperator,
+  FilterValueSelection,
+  normalizeFilterValueSelection,
+  normalizeMembershipOperatorForValues,
+  OPERATOR_SYMBOLS,
+} from '../filter.model';
 import { EnumValueInputComponent } from './value-inputs/enum-value-input.component';
 import { KeywordValueInputComponent } from './value-inputs/keyword-value-input.component';
 import { NumberValueInputComponent } from './value-inputs/number-value-input.component';
@@ -60,6 +70,17 @@ export interface AddFilterDialogData {
 
 const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>(['EQ', 'NEQ', 'IN', 'NOT_IN', 'LTE', 'GTE']);
 
+/** Human-readable labels for `FilterDefinition.apiTypes` in the "Filter by" list; tokens not listed stay as-is (e.g. LLM, MCP). */
+const ADD_FILTER_API_TYPE_DISPLAY_LABELS: Readonly<Record<string, string>> = {
+  HTTP_PROXY: 'HTTP Proxy',
+  MESSAGE: 'Message',
+};
+
+/** Canonical map key: spaces → underscores, trim, uppercase (matches `HTTP_PROXY`, `HTTP PROXY`, `http_proxy`). */
+function normalizeApiTypeTokenForLookup(token: string): string {
+  return token.trim().replace(/\s+/g, '_').toUpperCase();
+}
+
 @Component({
   selector: 'gd-add-filter-dialog',
   standalone: true,
@@ -72,6 +93,8 @@ const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>(['EQ', 'NEQ
     MatOption,
     MatSelect,
     MatButton,
+    MatCheckbox,
+    MatTooltip,
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
@@ -100,10 +123,15 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
   protected readonly fieldControl = new FormControl<FilterDefinition | string | null>(null);
   protected readonly operatorControl = new FormControl<string | null>(null);
 
+  /** When both dashboard bounds exist, default true so value suggestions stay scoped (previous behavior). */
+  protected readonly limitKeywordValuesToTimeframe = signal(this.data.timeFrom != null && this.data.timeTo != null);
+
   protected definitions = signal<FilterDefinition[]>([]);
   protected selectedDefinition = signal<FilterDefinition | null>(null);
   protected selectedOperator = signal<string | null>(null);
   protected selectedValues = signal<string[]>([]);
+  /** Parallel to selectedValues — display names for KEYWORD filters (ids stay in selectedValues). */
+  protected selectedValueLabels = signal<string[]>([]);
 
   protected filteredDefinitions$: Observable<FilterDefinition[]> = of([]);
 
@@ -141,28 +169,50 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     return this.selectedDefinition() != null && this.selectedOperator() != null && this.selectedValues().length > 0;
   });
 
+  protected readonly hasKeywordTimeframeBounds = computed(() => this.data.timeFrom != null && this.data.timeTo != null);
+
+  /** Effective range passed to KEYWORD value search; omitted when user disables timeframe limiting. */
+  protected readonly keywordValuesTimeFrom = computed(() => {
+    if (this.selectedDefinition()?.type !== 'KEYWORD' || !this.hasKeywordTimeframeBounds() || !this.limitKeywordValuesToTimeframe()) {
+      return undefined;
+    }
+    return this.data.timeFrom;
+  });
+
+  protected readonly keywordValuesTimeTo = computed(() => {
+    if (this.selectedDefinition()?.type !== 'KEYWORD' || !this.hasKeywordTimeframeBounds() || !this.limitKeywordValuesToTimeframe()) {
+      return undefined;
+    }
+    return this.data.timeTo;
+  });
+
   ngOnInit(): void {
     this.definitionProvider.getDefinitions().subscribe(defs => {
-      this.definitions.set(defs);
+      const sorted = this.sortDefinitionsByLabel(defs);
+      this.definitions.set(sorted);
       this.setupFieldAutocomplete();
       this.setupOperatorSelect();
-      this.restoreExistingCondition(defs);
+      this.restoreExistingCondition(sorted);
     });
   }
 
   ngAfterViewInit(): void {
-    // The dialog's default autoFocus behavior targets the first tabbable element,
-    // which is the "Filter by" input. That would auto-open the autocomplete on mount.
-    // We explicitly close any panel that opened during dialog focus so the user
-    // has to click the input to reveal options (matches the target UX).
-    Promise.resolve().then(() => {
-      this.fieldTrigger()?.closePanel();
-    });
+    // Default dialog focus can still target the first input in some cases; ensure the
+    // "Filter by" autocomplete stays closed until the user opens it explicitly.
+    const close = (): void => this.fieldTrigger()?.closePanel();
+    Promise.resolve().then(close);
+    afterNextRender(close, { injector: this.injector });
+    requestAnimationFrame(close);
+  }
+
+  protected onLimitKeywordValuesToTimeframeChange(event: MatCheckboxChange): void {
+    this.limitKeywordValuesToTimeframe.set(event.checked);
   }
 
   protected selectDefinition(def: FilterDefinition): void {
     this.selectedDefinition.set(def);
     this.selectedValues.set([]);
+    this.selectedValueLabels.set([]);
     // Reset operator control so mat-select reflects the new definition's operators.
     this.operatorControl.setValue(null);
     this.selectedOperator.set(null);
@@ -181,8 +231,10 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     }
   }
 
-  protected onValuesChange(values: string[]): void {
+  protected onValuesChange(payload: string[] | FilterValueSelection): void {
+    const { values, valueLabels } = normalizeFilterValueSelection(payload);
     this.selectedValues.set(values);
+    this.selectedValueLabels.set(valueLabels);
     this.syncOperatorToValueCount();
   }
 
@@ -191,6 +243,13 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     if (this.isFilterDefinition(value)) return value.label;
     return String(value);
   };
+
+  /** Badge text for an API/engine type token from filter definitions. */
+  protected formatApiTypeForDisplay(apiType: string): string {
+    const key = normalizeApiTypeTokenForLookup(apiType);
+    const label = ADD_FILTER_API_TYPE_DISPLAY_LABELS[key];
+    return label ?? apiType.trim();
+  }
 
   /** Human-readable operator text only (no raw token suffix like "in IN"). */
   protected operatorLabel(op: string): string {
@@ -229,11 +288,14 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     if (!def || !op || vals.length === 0) return;
 
     const operator = normalizeMembershipOperatorForValues(def, op, vals.length);
+    const lbls = this.selectedValueLabels();
+    const valueLabels = lbls.length === vals.length ? lbls : vals.map((v, i) => lbls[i] ?? v);
     const condition: FilterCondition = {
       field: def.name,
       label: def.label,
       operator,
       values: vals,
+      valueLabels,
     };
     this.dialogRef.close(condition);
   }
@@ -296,6 +358,7 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
           this.selectedDefinition.set(null);
           this.selectedOperator.set(null);
           this.selectedValues.set([]);
+          this.selectedValueLabels.set([]);
           this.operatorControl.setValue(null);
         }
       }
@@ -321,12 +384,25 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     if (!value || this.isFilterDefinition(value)) return all;
     const term = value.toLowerCase();
     if (!term) return all;
-    return all.filter(
-      d =>
-        d.label.toLowerCase().includes(term) ||
-        d.name.toLowerCase().includes(term) ||
-        (d.apiTypes ?? []).some(t => t.toLowerCase().includes(term)),
+    return this.sortDefinitionsByLabel(
+      all.filter(
+        d =>
+          d.label.toLowerCase().includes(term) ||
+          d.name.toLowerCase().includes(term) ||
+          (d.apiTypes ?? []).some(t => t.toLowerCase().includes(term)),
+      ),
     );
+  }
+
+  /** Stable alphabetical order for "Filter by" (label first, then technical name). */
+  private sortDefinitionsByLabel(defs: ReadonlyArray<FilterDefinition>): FilterDefinition[] {
+    return [...defs].sort((a, b) => {
+      const byLabel = a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
+      if (byLabel !== 0) {
+        return byLabel;
+      }
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    });
   }
 
   private isFilterDefinition(value: unknown): value is FilterDefinition {
@@ -344,6 +420,11 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
       this.selectedOperator.set(existing.operator);
       this.operatorControl.setValue(existing.operator, { emitEvent: false });
       this.selectedValues.set([...existing.values]);
+      this.selectedValueLabels.set(
+        existing.valueLabels != null && existing.valueLabels.length === existing.values.length
+          ? [...existing.valueLabels]
+          : [...existing.values],
+      );
       this.syncOperatorToValueCount();
     }
   }

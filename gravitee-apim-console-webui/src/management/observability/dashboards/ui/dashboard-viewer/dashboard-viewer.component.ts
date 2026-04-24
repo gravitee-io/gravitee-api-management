@@ -14,26 +14,44 @@
  * limitations under the License.
  */
 import {
+  AddFilterDialogComponent,
+  AddFilterDialogData,
   Dashboard,
   DashboardCapabilities,
   DEFAULT_CAPABILITIES,
+  DynamicFilterBarComponent,
+  epochMsRangeFromDashboardQueryParams,
   Filter,
+  FilterCondition,
   GraviteeDashboardComponent,
+  provideFilterDefinitions,
+  provideFilterValues,
   SaveState,
 } from '@gravitee/gravitee-dashboard';
 
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, input, output } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiFilterService } from './filters/api-filter.service';
 import { ApplicationFilterService } from './filters/application-filter.service';
+import { DashboardFiltersStore } from './dashboard-filters.store';
 
+import { ObservabilityFiltersApiService } from '../../../data-access/observability-filters-api.service';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   selector: 'dashboard-viewer',
-  imports: [GraviteeDashboardComponent],
+  imports: [GraviteeDashboardComponent, DynamicFilterBarComponent],
   templateUrl: './dashboard-viewer.component.html',
   styleUrl: './dashboard-viewer.component.scss',
+  providers: [
+    DashboardFiltersStore,
+    ObservabilityFiltersApiService,
+    provideFilterDefinitions(ObservabilityFiltersApiService),
+    provideFilterValues(ObservabilityFiltersApiService),
+  ],
 })
 export class DashboardViewerComponent {
   dashboard = input.required<Dashboard>();
@@ -45,6 +63,16 @@ export class DashboardViewerComponent {
   readonly saveStateChange = output<SaveState>();
 
   readonly baseURL = inject(Constants).env.v2BaseURL;
+
+  readonly filtersStore = inject(DashboardFiltersStore);
+  private readonly dialog = inject(MatDialog);
+  /** Dialog content must use this injector so `FILTER_*_PROVIDER` from `providers` above are visible. */
+  private readonly injector = inject(Injector);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly queryParams = toSignal(this.route.queryParams, { initialValue: {} });
+  private readonly timeRangeEpoch = computed(() => epochMsRangeFromDashboardQueryParams(this.queryParams()));
 
   private readonly apisResultsLoader = inject(ApiFilterService).resultsLoader;
   private readonly applicationsResultsLoader = inject(ApplicationFilterService).resultsLoader;
@@ -61,4 +89,38 @@ export class DashboardViewerComponent {
       dataLoader: this.applicationsResultsLoader,
     },
   ];
+
+  openAddFilter(): void {
+    const { from, to } = this.timeRangeEpoch();
+    this.dialog
+      .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
+        data: { timeFrom: from, timeTo: to },
+        injector: this.injector,
+        autoFocus: 'dialog',
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(condition => {
+        if (condition) {
+          this.filtersStore.add(condition);
+        }
+      });
+  }
+
+  openEditFilter(index: number, condition: FilterCondition): void {
+    const { from, to } = this.timeRangeEpoch();
+    this.dialog
+      .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
+        data: { existingCondition: condition, timeFrom: from, timeTo: to },
+        injector: this.injector,
+        autoFocus: 'dialog',
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(updated => {
+        if (updated) {
+          this.filtersStore.edit(index, updated);
+        }
+      });
+  }
 }

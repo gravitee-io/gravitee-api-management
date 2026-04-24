@@ -1,0 +1,159 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Portaled under .cdk-overlay-container — must not rely on component view encapsulation.
+
+// ENUM mat-select — min-width matches dialog operator panel.
+@at-root {
+  .cdk-overlay-container .mat-mdc-select-panel.gd-value-input-values-panel {
+    min-width: min(100vw - 32px, 600px);
+    max-height: 280px;
+    box-sizing: border-box;
+    border-radius: var(--mat-sys-corner-extra-small, 4px);
+    background-color: var(--mat-select-panel-background-color, var(--mat-sys-surface-container, #fff));
+    box-shadow: var(
+      --mat-select-container-elevation-shadow,
+      0 3px 1px -2px rgba(0, 0, 0, 0.2),
+      0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 1px 5px 0 rgba(0, 0, 0, 0.12)
+    );
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    --mat-pseudo-checkbox-minimal-selected-checkmark-color: var(--gd-filter-chip-color, #f15115);
+    --mat-pseudo-checkbox-full-selected-icon-color: var(--gd-filter-chip-color, #f15115);
+    --mat-pseudo-checkbox-full-selected-checkmark-color: var(--gd-filter-chip-badge-foreground, #ffffff);
+  }
+
+  // KEYWORD CDK pane — width is set inline by Overlay; do not force min-width or the panel overrides the trigger.
+  .cdk-overlay-container .cdk-overlay-pane.gd-value-input-values-panel.gd-keyword-values-overlay {
+    min-width: 0;
+    max-width: min(100vw - 16px, 600px);
+    max-height: 280px;
+    box-sizing: border-box;
+    border-radius: var(--mat-sys-corner-extra-small, 4px);
+    background-color: var(--mat-select-panel-background-color, var(--mat-sys-surface-container, #fff));
+    box-shadow: var(
+      --mat-select-container-elevation-shadow,
+      0 3px 1px -2px rgba(0, 0, 0, 0.2),
+      0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 1px 5px 0 rgba(0, 0, 0, 0.12)
+    );
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cdk-overlay-container .mat-mdc-select-panel.gd-value-input-values-panel .mat-mdc-option.mat-mdc-option-multiple {
+    min-height: 48px;
+  }
+
+  .cdk-overlay-container
+    .mat-mdc-select-panel.gd-value-input-values-panel
+    .mat-mdc-option.mat-mdc-option-multiple:hover:not(.mdc-list-item--disabled) {
+    background-color: var(--mat-option-hover-state-layer-color, color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent));
+  }
+
+  // KEYWORD: inner portal root (TemplatePortal content lives inside the pane).
+  .cdk-overlay-container .gd-keyword-values-overlay-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-height: 280px;
+    box-sizing: border-box;
+    padding: 8px 0;
+    background-color: var(--mat-select-panel-background-color, var(--mat-sys-surface-container, #fff));
+    // Align mat-pseudo-checkbox with gd-filter-chip orange (same as keyword chips / bar).
+    --mat-pseudo-checkbox-minimal-selected-checkmark-color: var(--gd-filter-chip-color, #f15115);
+    --mat-pseudo-checkbox-full-selected-icon-color: var(--gd-filter-chip-color, #f15115);
+    --mat-pseudo-checkbox-full-selected-checkmark-color: var(--gd-filter-chip-badge-foreground, #ffffff);
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel .gd-keyword-values-overlay__scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: none;
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel button.gd-value-input-option-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    margin: 0;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    text-align: start;
+    font-family: inherit;
+    font-size: var(--mat-option-label-text-size, var(--mat-sys-body-large-size, 1rem));
+    line-height: var(--mat-option-label-text-line-height, var(--mat-sys-label-large-line-height, 1.25));
+    color: var(--mat-option-label-text-color, var(--mat-sys-on-surface, #1c1b1f));
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel button.gd-value-input-option-row:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--mat-sys-on-surface) 6%, var(--mat-sys-surface));
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel button.gd-value-input-option-row:focus-visible {
+    outline: 2px solid var(--gd-filter-chip-color, #f15115);
+    outline-offset: -2px;
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel button.gd-value-input-option-row:disabled {
+    cursor: default;
+    opacity: 0.38;
+    pointer-events: none;
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel .gd-value-input-option-row__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    text-align: start;
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel .mat-mdc-pseudo-checkbox,
+  .cdk-overlay-container .gd-keyword-values-overlay-panel mat-pseudo-checkbox {
+    flex-shrink: 0;
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel .gd-keyword-values-overlay__hint {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--mat-sys-on-surface-variant, #49454f);
+  }
+
+  .cdk-overlay-container .gd-keyword-values-overlay-panel .gd-keyword-values-overlay__hint--muted {
+    opacity: 0.75;
+  }
+}
