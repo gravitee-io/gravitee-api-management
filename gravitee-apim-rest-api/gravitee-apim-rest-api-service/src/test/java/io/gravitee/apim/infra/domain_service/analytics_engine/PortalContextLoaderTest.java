@@ -286,6 +286,11 @@ class PortalContextLoaderTest {
     @Nested
     class AnonymousUserWithoutSecurityContext {
 
+        @BeforeEach
+        void setup() {
+            SecurityContextHolder.clearContext();
+        }
+
         // Intentionally does NOT call setUpSecurityContext — verifies isAdmin() is null-safe when the
         // SecurityContextHolder has no Authentication (true anonymous access to the portal).
 

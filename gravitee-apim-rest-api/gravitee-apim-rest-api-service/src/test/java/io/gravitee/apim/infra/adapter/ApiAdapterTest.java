@@ -20,6 +20,7 @@ import static assertions.CoreAssertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -38,6 +39,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -393,6 +395,27 @@ class ApiAdapterTest {
                     .assertThat(updateApiEntity.getListeners().getFirst())
                     .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
             });
+        }
+
+        @Test
+        void should_propagate_null_responseTemplates_to_UpdateApiEntity() {
+            var definition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().responseTemplates(null).build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionValue(definition).build();
+
+            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, model.getApiDefinitionHttpV4());
+
+            assertThat(updateApiEntity.getResponseTemplates()).isNull();
+        }
+
+        @Test
+        void should_propagate_non_null_responseTemplates_to_UpdateApiEntity() {
+            var templates = Map.of("KEY", Map.of("application/json", new ResponseTemplate()));
+            var definition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().responseTemplates(templates).build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionValue(definition).build();
+
+            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, model.getApiDefinitionHttpV4());
+
+            assertThat(updateApiEntity.getResponseTemplates()).isEqualTo(templates);
         }
     }
 
