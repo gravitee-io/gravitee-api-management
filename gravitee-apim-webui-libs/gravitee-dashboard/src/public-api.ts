@@ -36,3 +36,4 @@ export * from './lib/components/filter/filter-chip/filter-chip.component';
 export * from './lib/components/filter/dynamic-filter-bar/dynamic-filter-bar.component';
 export * from './lib/components/filter/add-filter-dialog/add-filter-dialog.component';
 export * from './lib/components/filter/filter-providers';
+export * from './lib/components/filter/timeframe-selector/utils/timeframe-ranges';

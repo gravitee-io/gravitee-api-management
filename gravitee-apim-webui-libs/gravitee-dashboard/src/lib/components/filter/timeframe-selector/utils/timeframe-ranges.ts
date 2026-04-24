@@ -104,3 +104,33 @@ export const calculateCustomInterval = (from: number, to: number, nbValuesByBuck
   const range: number = to - from;
   return Math.floor(range / nbValuesByBucket);
 };
+
+function firstQueryParamValue(value: string | string[] | undefined | null): string | undefined {
+  if (value == null) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/**
+ * Epoch millisecond range from dashboard URL query params (`period`, optional `from` / `to` for `custom`).
+ * Mirrors `GraviteeDashboardComponent` time-range resolution for observability filter value queries.
+ */
+export function epochMsRangeFromDashboardQueryParams(params: Record<string, string | string[] | undefined | null>): {
+  from: number;
+  to: number;
+} {
+  const periodRaw = firstQueryParamValue(params['period']);
+  const normalizedPeriod = periodRaw || '5m';
+  const fromStr = firstQueryParamValue(params['from']);
+  const toStr = firstQueryParamValue(params['to']);
+
+  if (normalizedPeriod === 'custom' && fromStr && toStr) {
+    return {
+      from: Number.parseInt(fromStr, 10),
+      to: Number.parseInt(toStr, 10),
+    };
+  }
+
+  const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) ?? timeFrames.find(tf => tf.id === '5m')!;
+  const range = timeFrameRangesParams(timeFrame.id);
+  return { from: range.from, to: range.to };
+}

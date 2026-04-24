@@ -14,26 +14,68 @@
  * limitations under the License.
  */
 
+@use './value-inputs/value-input-values-panel.shared';
+
+// Short viewports: keep title + actions visible and let the form body scroll so
+// outlined fields do not overlap. Width follows the viewport to avoid a horizontal
+// scrollbar from a fixed min-width.
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  max-height: min(92dvh, calc(100vh - 24px));
+  min-height: 0;
+  width: min(560px, calc(100vw - 32px));
+  max-width: 100%;
   font-family: inherit;
+}
+
+:host > h2[mat-dialog-title] {
+  flex-shrink: 0;
 }
 
 .gd-add-filter__content {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 560px;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
   font-family: inherit;
-  // mat-dialog-content defaults to overflow:auto which clips outline floating labels.
-  overflow: visible;
-  padding-top: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  // Extra top padding so outline floating labels are not clipped at the scroll edge.
+  padding-top: 12px;
+  padding-bottom: 4px;
+  box-sizing: border-box;
+  // Let the host flex chain own vertical bounds; Material’s default max-height on
+  // dialog content can fight flex + min-height:0 and produce “crushed” overlap.
+  max-height: none;
 }
 
 .gd-add-filter__row-block {
   &--disabled {
     opacity: 0.55;
     pointer-events: none;
+  }
+}
+
+.gd-add-filter__keyword-value-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.gd-add-filter__keyword-timeframe-option {
+  margin-top: 8px;
+
+  mat-checkbox {
+    font-size: 13px;
+    line-height: 1.35;
   }
 }
 
@@ -53,6 +95,7 @@
 //   --gd-filter-dialog-cancel-button-color            : cancel label text color
 //   --gd-filter-dialog-cancel-button-weight           : cancel label weight
 .gd-add-filter__actions {
+  flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -132,17 +175,24 @@
   text-align: right;
 }
 
+// API type pills in the "Filter by" list — same visual family as gd-filter-chip (light fill, darker label).
+// Optional host overrides: --gd-add-filter-type-badge-background, --gd-add-filter-type-badge-foreground,
+// --gd-add-filter-type-badge-font-weight (default to --gd-filter-chip-* when unset).
 .gd-add-filter__api-badge {
   display: inline-flex;
   align-items: center;
-  padding: 1px 8px;
-  border-radius: 10px;
+  justify-content: center;
+  min-width: 14px;
+  min-height: 18px;
+  padding: 2px 6px;
+  border-radius: var(--gd-filter-chip-radius, 6px);
   font-size: 10px;
-  font-weight: 600;
-  background-color: rgba(103, 80, 164, 0.12);
-  color: #4a4458;
+  font-weight: var(--gd-add-filter-type-badge-font-weight, var(--gd-filter-chip-font-weight, 600));
+  line-height: 1;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-  line-height: 1.4;
+  background-color: var(--gd-add-filter-type-badge-background, var(--gd-filter-chip-background, #fff3eb));
+  color: var(--gd-add-filter-type-badge-foreground, var(--gd-filter-chip-color, #f15115));
 }
 
 // Autocomplete panel is portaled under `.cdk-overlay-container`. Anchor on
@@ -170,9 +220,9 @@
       width: 100%;
       min-width: 0;
       max-width: none;
-      // Beat Material’s `margin-right: auto` / RTL mirror when stylesheet order loses.
-      margin-inline-start: 0 !important;
-      margin-inline-end: 0 !important;
+      // Reset Material’s `margin-right: auto` on primary text so `.gd-add-filter__row` spans the option;
+      // long selector + same specificity as theme — no `!important` (revisit if a host loads a later global with `!important`).
+      margin: 0;
       box-sizing: border-box;
     }
 

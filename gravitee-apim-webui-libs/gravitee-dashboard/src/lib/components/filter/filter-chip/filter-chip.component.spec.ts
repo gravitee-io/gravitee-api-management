@@ -96,6 +96,17 @@ describe('buildChipLabelParts', () => {
   it('should_return_bare_count_and_isCount_true_for_multiple_not_in_values', () => {
     expect(buildChipLabelParts(STATUS_CODE_NOT_IN_300_404)).toEqual({ name: 'Status Code', operator: 'not in', value: '2', isCount: true });
   });
+
+  it('should_show_label_not_id_for_single_value_when_valueLabels_set', () => {
+    const planEq: FilterCondition = {
+      field: 'PLAN',
+      label: 'Plan',
+      operator: 'EQ',
+      values: ['00583cfe-b5b2-4f01-983c-feb5b28f013c'],
+      valueLabels: ['Gold plan'],
+    };
+    expect(buildChipLabelParts(planEq)).toEqual({ name: 'Plan', operator: '=', value: 'Gold plan', isCount: false });
+  });
 });
 
 describe('buildChipTooltip', () => {
@@ -113,6 +124,17 @@ describe('buildChipTooltip', () => {
 
   it('should_display_raw_operator_name_when_operator_is_unknown', () => {
     expect(buildChipTooltip(STATUS_CODE_UNKNOWN_OP)).toBe('Status Code UNKNOWN_OP value');
+  });
+
+  it('should_use_valueLabels_for_display_when_ids_differ', () => {
+    const apiIn: FilterCondition = {
+      field: 'API',
+      label: 'API',
+      operator: 'IN',
+      values: ['uuid-a', 'uuid-b'],
+      valueLabels: ['Orders API', 'Payments API'],
+    };
+    expect(buildChipTooltip(apiIn)).toBe('API in [Orders API, Payments API]');
   });
 });
 

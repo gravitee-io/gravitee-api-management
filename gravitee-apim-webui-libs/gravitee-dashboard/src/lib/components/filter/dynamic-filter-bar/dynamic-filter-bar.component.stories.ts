@@ -169,6 +169,17 @@ mutations (add, edit, remove, clear) to the parent via outputs.
 | \`editRequested\` | \`{ index, condition }\` | User clicked a chip to edit it |
 | \`removeRequested\` | \`number\` | User removed a chip (by index) |
 | \`clearRequested\` | \`void\` | User clicked "Clear all" |
+
+### Styling (CSS custom properties)
+
+Set \`--gd-filter-chip-*\` on any ancestor of \`gd-dynamic-filter-bar\`. The inner \`.gd-dynamic-filter-bar\` resolves
+inherited values to the Storybook palette when unset.
+
+| Token | Role |
+|---|---|
+| \`--gd-filter-chip-background\`, \`--gd-filter-chip-color\`, … | Shared by filter chips and inherited by \`gd-filter-chip\` (see filter chip docs). |
+| \`--gd-filter-chip-add-background\` | "Add filter" chip fill (default: \`transparent\`). |
+| \`--gd-filter-chip-add-background-hover\` | "Add filter" fill on hover/focus-within (default: same as \`--gd-filter-chip-background\`). |
         `,
       },
     },

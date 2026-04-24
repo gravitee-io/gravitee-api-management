@@ -17,6 +17,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatOption, MatSelect, MatSelectChange } from '@angular/material/select';
 
+import { isMultiSelectForFilter } from './filter-value-multi-select.util';
 import { FilterDefinition } from '../../filter.model';
 
 @Component({
@@ -29,7 +30,7 @@ import { FilterDefinition } from '../../filter.model';
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-value-input">
       <mat-label>Filter value</mat-label>
       <mat-select
-        panelClass="gd-value-input-select-panel"
+        panelClass="gd-value-input-select-panel gd-value-input-values-panel"
         [multiple]="isMultiSelect()"
         [value]="selectValue()"
         (selectionChange)="onSelectionChange($event)"
@@ -48,10 +49,12 @@ export class EnumValueInputComponent {
   selectedValues = input<string[]>([]);
   valuesChange = output<string[]>();
 
-  protected readonly isMultiSelect = computed(() => {
-    const op = this.selectedOperator();
-    return op === 'IN' || op === 'NOT_IN';
-  });
+  /**
+   * Stay in multi-select while the definition supports IN/NOT_IN even after the dialog
+   * normalizes IN→EQ for a single picked value — otherwise mat-select flips to single mode,
+   * the next pick replaces the first, and EQ→IN never runs for multiple selections.
+   */
+  protected readonly isMultiSelect = computed(() => isMultiSelectForFilter(this.definition(), this.selectedOperator()));
 
   /** Value binding for `mat-select`: array when multi, first value when single. */
   protected selectValue(): string | string[] | null {

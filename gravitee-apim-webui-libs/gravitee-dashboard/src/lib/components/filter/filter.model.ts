@@ -33,6 +33,12 @@ export interface FilterDefinition {
 
 export const ID_BASED_FILTER_NAMES: ReadonlyArray<string> = ['API', 'APPLICATION', 'PLAN'];
 
+/** Emitted by keyword-style value inputs: API ids plus parallel display labels. */
+export interface FilterValueSelection {
+  values: string[];
+  valueLabels: string[];
+}
+
 // FilterCondition — represents a single active filter applied by the user.
 // One condition per field at a time (enforced by filter-bar, Phase 2).
 export interface FilterCondition {
@@ -40,6 +46,8 @@ export interface FilterCondition {
   label: string; // display label — same semantic as FilterDefinition.label (snapshot at creation time)
   operator: FilterOperator | string; // wider: unknown operators from backend are passed through
   values: string[]; // guaranteed non-empty — enforced by the filter-form (Phase 2)
+  /** Same length as `values` when set — human-readable labels for chips/tooltips only. `values` stay API ids. */
+  valueLabels?: string[];
 }
 
 // Partial allows safe indexing with any string — no 'as' cast needed
@@ -55,6 +63,30 @@ export const OPERATOR_SYMBOLS: Partial<Record<string, string>> = {
 // Unknown operator falls back to its raw name (e.g. 'CONTAINS' instead of undefined)
 function getOperatorSymbol(op: string): string {
   return OPERATOR_SYMBOLS[op] ?? op;
+}
+
+/** Chip / tooltip text for `values[index]`; uses `valueLabels` when aligned, else the raw value. */
+export function filterConditionValueDisplay(condition: FilterCondition, index: number): string {
+  const v = condition.values[index];
+  if (v === undefined) return '';
+  const labels = condition.valueLabels;
+  const lbl = labels?.[index];
+  return lbl != null && lbl !== '' ? lbl : v;
+}
+
+/** Normalize child payloads: enum/string/number emit `string[]` only (label === value). */
+export function normalizeFilterValueSelection(payload: string[] | FilterValueSelection): FilterValueSelection {
+  if (Array.isArray(payload)) {
+    return { values: payload, valueLabels: [...payload] };
+  }
+  const { values, valueLabels } = payload;
+  if (valueLabels.length === values.length) {
+    return { values, valueLabels: [...valueLabels] };
+  }
+  return {
+    values,
+    valueLabels: values.map((v, i) => valueLabels[i] ?? v),
+  };
 }
 
 const hasOperator = (definition: Pick<FilterDefinition, 'operators'>, op: string): boolean => definition.operators.some(o => o === op);
@@ -90,7 +122,7 @@ export function buildChipLabel(condition: FilterCondition): string {
   if (condition.values.length === 0) return condition.label;
   const op = getOperatorSymbol(displayOperator(condition));
   if (condition.values.length > 1) return `${condition.label} ${op} (${condition.values.length})`;
-  return `${condition.label} ${op} ${condition.values[0]}`;
+  return `${condition.label} ${op} ${filterConditionValueDisplay(condition, 0)}`;
 }
 
 // Structured label for the template — enables distinct font weights per part
@@ -109,14 +141,17 @@ export function buildChipLabelParts(condition: FilterCondition): ChipLabelParts 
   if (condition.values.length > 1) {
     return { name: condition.label, operator: op, value: `${condition.values.length}`, isCount: true };
   }
-  return { name: condition.label, operator: op, value: condition.values[0], isCount: false };
+  return { name: condition.label, operator: op, value: filterConditionValueDisplay(condition, 0), isCount: false };
 }
 
 export function buildChipTooltip(condition: FilterCondition): string {
   if (condition.values.length === 0) return condition.label;
   const op = getOperatorSymbol(displayOperator(condition));
-  if (condition.values.length > 1) return `${condition.label} ${op} [${condition.values.join(', ')}]`;
-  return `${condition.label} ${op} ${condition.values[0]}`;
+  if (condition.values.length > 1) {
+    const displays = condition.values.map((_, i) => filterConditionValueDisplay(condition, i));
+    return `${condition.label} ${op} [${displays.join(', ')}]`;
+  }
+  return `${condition.label} ${op} ${filterConditionValueDisplay(condition, 0)}`;
 }
 
 // Deliberate bridge casts: FilterCondition uses widened string types for forward compatibility,

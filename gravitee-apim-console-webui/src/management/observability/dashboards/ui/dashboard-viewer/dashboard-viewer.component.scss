@@ -1,0 +1,68 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Observability dashboard: gravitee-dashboard filter chips use `--gd-filter-chip-*` (see package CHANGELOG).
+// Tokens on :host inherit into `gd-dynamic-filter-bar` and `gd-filter-chip` without !important.
+// "Add filter" : fond transparent au repos (défaut lib) ; peach au hover via `--gd-filter-chip-add-background-hover` seulement.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  --gd-filter-chip-background: #fff3eb;
+  --gd-filter-chip-color: #f15115;
+  --gd-filter-chip-badge-background: #f15115;
+  --gd-filter-chip-badge-foreground: #fff3eb;
+  --gd-filter-chip-font-weight: 600;
+  --gd-filter-chip-badge-font-weight: 700;
+  --gd-filter-chip-add-background-hover: var(--gd-filter-chip-background);
+}
+
+// `display: contents` keeps :host flex layout; children participate in the host flex as direct flex items.
+.observability-dashboard-viewer {
+  display: contents;
+}
+
+// Same horizontal inset as `gravitee-dashboard` `.filterBar` + `gd-grid` default outer margin (32px)
+// so the filter row lines up with the timeframe bar and widget cards below.
+.observability-dashboard-viewer__filters-shell {
+  box-sizing: border-box;
+  margin-left: 32px;
+  margin-right: 32px;
+  padding: 10px 12px;
+  border: 1px solid var(--mat-form-field-outlined-outline-color);
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+// Console global `mat-chip { mat.chips-overrides(...) }` can beat `gd-filter-chip mat-chip` specificity.
+// Re-assert tokens under this route (no !important) so Observability matches gravitee-dashboard.
+:host .observability-dashboard-viewer gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip {
+  --mat-chip-container-shape-radius: var(--gd-filter-chip-radius, 6px);
+  --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
+  --mat-chip-elevated-container-color: var(--gd-filter-chip-background, #fff3eb);
+  --mat-chip-label-text-color: var(--gd-filter-chip-color, #f15115);
+  --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, #f15115);
+  --mat-chip-outline-width: 0;
+  --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
+  // Label weight is handled in gravitee-dashboard (operator 400, name/value 600) — do not force 600 here.
+}
+
+:host .observability-dashboard-viewer gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .gd-filter-chip__value--badge {
+  background-color: var(--gd-filter-chip-badge-background, #f15115);
+  color: var(--gd-filter-chip-badge-foreground, #fff3eb);
+  font-weight: var(--gd-filter-chip-badge-font-weight, 700);
+}

@@ -15,24 +15,30 @@
  */
 
 /**
- * Customizable tokens (set on the gd-filter-chip element or any ancestor):
+ * Customizable tokens (set on `gd-filter-chip` or any ancestor — e.g. `:host` in the parent app):
  *
- *   --gd-filter-chip-radius        border radius               (default: 6px — rectangular pill)
+ *   --gd-filter-chip-radius        border radius               (default: 6px)
  *   --gd-filter-chip-height        chip height                 (default: 24px)
  *   --gd-filter-chip-padding-h     horizontal padding          (default: 8px)
- *   --gd-filter-chip-background    background color            (default: --mat-sys-primary-container)
- *   --gd-filter-chip-color         label + icon color          (default: --mat-sys-on-primary-container)
- *                                  ⚠ Always set both background and color together
- *                                  to ensure sufficient WCAG contrast (min 4.5:1).
- *   --gd-filter-chip-font-family            label font family           (default: inherit — picks up the app's body font)
- *   --gd-filter-chip-font-size              label font size             (default: 12px)
- *   --gd-filter-chip-font-weight            name + value font weight    (default: 600 — bold)
- *   --gd-filter-chip-operator-font-weight   operator font weight        (default: 400 — normal)
+ *   --gd-filter-chip-background    chip fill                   (default: #fff3eb)
+ *   --gd-filter-chip-color         label + remove icon         (default: #f15115)
+ *                                  Set background + color together for WCAG contrast (min 4.5:1).
+ *   --gd-filter-chip-badge-background   count-badge fill       (default: #f15115 or derived accent)
+ *   --gd-filter-chip-badge-foreground   count-badge text       (default: #fff3eb or derived tint)
+ *   --gd-filter-chip-badge-font-weight  count-badge numerals   (default: 700)
+ *   --gd-filter-chip-font-family        label font family      (default: inherit)
+ *   --gd-filter-chip-font-size          label font size        (default: 12px)
+ *   --gd-filter-chip-font-weight        name + value weight    (default: 600)
+ *   --gd-filter-chip-operator-font-weight  operator weight     (default: 400)
  *
- * Color resolution order (cascade):
- *   1. --gd-filter-chip-* (consumer explicit override — highest priority)
- *   2. --mat-sys-primary-container / on-primary-container (M3 theme — automatic)
- *   3. Hardcoded fallback (M2 apps or no theme configured)
+ * Inside `gd-dynamic-filter-bar`, the bar resolves `--gd-filter-chip-*` to the Storybook palette when
+ * unset so nested chips inherit peach / orange. Add-button tokens live on the bar only:
+ *   --gd-filter-chip-add-background       (default: transparent)
+ *   --gd-filter-chip-add-background-hover (default: same as chip background)
+ *
+ * Color resolution on this component:
+ *   1. Consumer `--gd-filter-chip-*` when set on an ancestor.
+ *   2. Lib hex fallbacks (#fff3eb / #f15115) when unset — avoids neutral host Material tokens replacing the chip look.
  *
  * editable state:
  *   When [editable]=false the chip is rendered with Material's [disabled] attribute:
@@ -42,90 +48,134 @@
  *   disabled fade; pointer-events:auto restores hover so matTooltip still fires
  *   (MatRipple internally respects the disabled flag — no ripple on click).
  *
- * Implementation note: ViewEncapsulation.None means Angular does NOT compile
- * :host — the component selector is used as the CSS scope directly.
- * Official --mat-chip-* tokens cascade into mat-chip via CSS custom property
- * inheritance. Padding has no official token and is overridden directly.
+ * ViewEncapsulation.None — no :host; tokens inherit into `mat-chip` via official `--mat-chip-*` names.
+ *
+ * Specificity: host apps often use `mat-chip { @include mat.chips-overrides(...) }` (0,1,1), which beats
+ * `gd-filter-chip mat-chip` (0,0,2). Rules on `mat-chip.mat-mdc-chip.mat-mdc-standard-chip` restore our tokens.
+ *
+ * Typography (Storybook): `--mat-chip-label-text-weight` follows `--gd-filter-chip-font-weight` (600); the
+ * operator uses `--gd-filter-chip-operator-font-weight` (400). Name/value/operator weights use long selectors
+ * (chip host may include `.mdc-evolution-chip`; fallbacks repeat the same rules without it) so host `mat-chip`
+ * theme rules do not require `!important`.
  */
 gd-filter-chip {
-  // Official Angular Material chip tokens.
-  // Background → primary-container (light tint), text/icon → on-primary-container (dark readable).
-  // Hardcoded fallbacks are a last-resort for M2 environments without --mat-sys-* tokens.
   --mat-chip-container-shape-radius: var(--gd-filter-chip-radius, 6px);
   --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
-  --mat-chip-elevated-container-color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
-  --mat-chip-label-text-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
-  --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
+  --mat-chip-elevated-container-color: var(--gd-filter-chip-background, #fff3eb);
+  --mat-chip-label-text-color: var(--gd-filter-chip-color, #f15115);
+  --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, #f15115);
+  --mat-chip-outline-width: 0;
+  --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
+  --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
+  --_gd-filter-chip-accent: var(--gd-filter-chip-color, #f15115);
+  --_gd-filter-chip-tint: var(--gd-filter-chip-background, #fff3eb);
+}
+
+// Re-assert Material chip tokens on the real chip host (specificity above global `mat-chip` overrides).
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip {
+  --mat-chip-container-shape-radius: var(--gd-filter-chip-radius, 6px);
+  --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
+  --mat-chip-elevated-container-color: var(--gd-filter-chip-background, #fff3eb);
+  --mat-chip-label-text-color: var(--gd-filter-chip-color, #f15115);
+  --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, #f15115);
   --mat-chip-outline-width: 0;
   --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
   --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
 }
 
-// Material sets cursor:default on the internal action element — override to pointer.
-// Disabled chips re-enable pointer-events:auto for tooltip support (see rule below),
-// so cursor:default is explicitly re-overridden there to prevent the pointer from showing.
 gd-filter-chip .mdc-evolution-chip__action--primary {
   cursor: pointer;
 }
 
-// Disabled (non-editable) chips get a 1px outline to visually separate them from
-// adjacent chips on the same line. The color defaults to Material's outline token.
-// --mat-chip-outline-width re-declaration on the chip element overrides the 0 set on the
-// gd-filter-chip host via CSS custom property inheritance.
-// opacity:1 prevents Material's default disabled fade so the label stays fully readable.
-// pointer-events:auto overrides MDC's `pointer-events:none` on the disabled container so
-// that matTooltip still receives hover events. MatRipple internally checks its own
-// `disabled` flag so the ripple does NOT reappear.
 gd-filter-chip .mdc-evolution-chip--disabled {
   --mat-chip-outline-width: 1px;
   opacity: 1;
   pointer-events: auto;
 }
 
-// Specificity (0,2,1) beats the pointer rule above (0,1,1) — cursor stays default on disabled chips.
 gd-filter-chip .mdc-evolution-chip--disabled .mdc-evolution-chip__action--primary {
   cursor: default;
 }
 
-// Padding has no official Material token — direct override is required.
-// Targets all chip variants (editable has a trailing action, disabled does not).
-// Specificity (0,2,1) beats Material's (0,2,0).
 gd-filter-chip .mat-mdc-standard-chip .mdc-evolution-chip__action--primary {
   padding-left: var(--gd-filter-chip-padding-h, 8px);
 }
 
-// font-family uses inherit so it picks up the app's global body font (e.g. Kanit in console-webui).
-// --mat-chip-label-text-font cannot be used here: its fallback `inherit` would resolve to
-// the Roboto value set by the prebuilt Material theme on :root, not the body font-family.
-// Targeting the label element directly makes CSS inherit work as expected.
-//
-// display: inline-flex + align-items: center ensures all label parts (name, operator, badge)
-// are perfectly centered regardless of their individual heights — no vertical-align hacks needed.
-//
-// Specificity note: Material's own rule is
-//   .mat-mdc-standard-chip .mdc-evolution-chip__text-label  →  (0,2,0)
-// Adding .mat-mdc-standard-chip to our selector gives (0,2,1) which beats it.
-gd-filter-chip .mat-mdc-standard-chip .mdc-evolution-chip__text-label {
+// Specificity: include mat-chip + text-label so host `mat-chip { chips-overrides }` does not flatten weights.
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .mdc-evolution-chip__text-label,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .mdc-evolution-chip__text-label {
   display: inline-flex;
   align-items: center;
   font-family: var(--gd-filter-chip-font-family, inherit);
 }
 
-// Operator rendered at normal weight to visually recede between the bold name and value.
-gd-filter-chip .gd-filter-chip__operator {
+// Long selector chain beats global `mat-chip { … }` / M3 label rules without `!important`.
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .mdc-evolution-chip__text-label .gd-filter-chip__name,
+gd-filter-chip
+  mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip
+  .mdc-evolution-chip__text-label
+  .gd-filter-chip__value:not(.gd-filter-chip__value--badge),
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .mdc-evolution-chip__text-label .gd-filter-chip__name,
+gd-filter-chip
+  mat-chip.mat-mdc-chip.mat-mdc-standard-chip
+  .mdc-evolution-chip__text-label
+  .gd-filter-chip__value:not(.gd-filter-chip__value--badge) {
+  font-weight: var(--gd-filter-chip-font-weight, 600);
+  font-synthesis-weight: auto;
+}
+
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .mdc-evolution-chip__text-label .gd-filter-chip__operator,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .mdc-evolution-chip__text-label .gd-filter-chip__operator {
+  /* Keep lighter than name/value when chip label uses semi-bold (Storybook / M3). */
   font-weight: var(--gd-filter-chip-operator-font-weight, 400);
   margin-left: 0.25em;
 }
 
-gd-filter-chip .gd-filter-chip__value {
+gd-filter-chip
+  mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip
+  .mdc-evolution-chip__text-label
+  .gd-filter-chip__value:not(.gd-filter-chip__value--badge),
+gd-filter-chip
+  mat-chip.mat-mdc-chip.mat-mdc-standard-chip
+  .mdc-evolution-chip__text-label
+  .gd-filter-chip__value:not(.gd-filter-chip__value--badge) {
   margin-left: 0.25em;
 }
 
-// Count badge: small circle with inverted chip colors (text color becomes background,
-// chip background becomes text). Automatically adapts when --gd-filter-chip-* tokens
-// are overridden by the consumer.
-// No vertical-align needed — centering is handled by the parent inline-flex container.
-gd-filter-chip .gd-filter-chip__value--badge {
+// Fallback when label text is not nested under `.mdc-evolution-chip__text-label` (Material / DOM differences).
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .mat-mdc-chip-action-label .gd-filter-chip__name,
+gd-filter-chip
+  mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip
+  .mat-mdc-chip-action-label
+  .gd-filter-chip__value:not(.gd-filter-chip__value--badge),
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .gd-filter-chip__name,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .gd-filter-chip__value:not(.gd-filter-chip__value--badge),
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .mat-mdc-chip-action-label .gd-filter-chip__name,
+gd-filter-chip
+  mat-chip.mat-mdc-chip.mat-mdc-standard-chip
+  .mat-mdc-chip-action-label
+  .gd-filter-chip__value:not(.gd-filter-chip__value--badge),
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .gd-filter-chip__name,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .gd-filter-chip__value:not(.gd-filter-chip__value--badge) {
+  font-weight: var(--gd-filter-chip-font-weight, 600);
+  font-synthesis-weight: auto;
+}
+
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .mat-mdc-chip-action-label .gd-filter-chip__operator,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .gd-filter-chip__operator,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .mat-mdc-chip-action-label .gd-filter-chip__operator,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .gd-filter-chip__operator {
+  font-weight: var(--gd-filter-chip-operator-font-weight, 400);
+  margin-left: 0.25em;
+}
+
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .gd-filter-chip__value:not(.gd-filter-chip__value--badge),
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .gd-filter-chip__value:not(.gd-filter-chip__value--badge) {
+  margin-left: 0.25em;
+}
+
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip.mdc-evolution-chip .mdc-evolution-chip__text-label .gd-filter-chip__value--badge,
+gd-filter-chip mat-chip.mat-mdc-chip.mat-mdc-standard-chip .mdc-evolution-chip__text-label .gd-filter-chip__value--badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -134,9 +184,9 @@ gd-filter-chip .gd-filter-chip__value--badge {
   padding: 0 2px;
   margin-left: 4px;
   border-radius: 7px;
-  background-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
-  color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
+  background-color: var(--gd-filter-chip-badge-background, var(--_gd-filter-chip-accent, #f15115));
+  color: var(--gd-filter-chip-badge-foreground, var(--_gd-filter-chip-tint, #fff3eb));
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--gd-filter-chip-badge-font-weight, 700);
   line-height: 1;
 }

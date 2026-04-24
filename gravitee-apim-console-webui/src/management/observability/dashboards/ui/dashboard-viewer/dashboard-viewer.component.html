@@ -15,13 +15,25 @@
     limitations under the License.
 
 -->
-<gd-dashboard
-  [dashboard]="dashboard()"
-  [baseURL]="baseURL"
-  [filters]="filters"
-  [capabilities]="capabilities()"
-  [showTitle]="showTitle()"
-  (deleteRequested)="deleteRequested.emit()"
-  (nameChanged)="nameChanged.emit($event)"
-  (saveStateChange)="saveStateChange.emit($event)"
-/>
+<div class="observability-dashboard-viewer">
+  <div class="observability-dashboard-viewer__filters-shell">
+    <gd-dynamic-filter-bar
+      [conditions]="filtersStore.conditions()"
+      [editable]="true"
+      (addRequested)="openAddFilter()"
+      (editRequested)="openEditFilter($event.index, $event.condition)"
+      (removeRequested)="filtersStore.remove($event)"
+      (clearRequested)="filtersStore.clear()"
+    />
+  </div>
+  <gd-dashboard
+    [dashboard]="dashboard()"
+    [baseURL]="baseURL"
+    [filters]="filters"
+    [capabilities]="capabilities()"
+    [showTitle]="showTitle()"
+    (deleteRequested)="deleteRequested.emit()"
+    (nameChanged)="nameChanged.emit($event)"
+    (saveStateChange)="saveStateChange.emit($event)"
+  />
+</div>
