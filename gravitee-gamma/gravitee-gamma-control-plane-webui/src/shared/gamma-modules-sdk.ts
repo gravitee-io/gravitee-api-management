@@ -14,5 +14,12 @@
  * limitations under the License.
  */
 
-/** Top-level barrel for `@gravitee/gamma-modules-sdk`; add new domains with `export * from './<domain>/index'`. */
+/**
+ * Host barrel for `@gravitee/gamma-modules-sdk` — replaces the package stubs
+ * with the real implementation via rspack alias + MF singleton.
+ *
+ * Only domains that need host override belong here (e.g. permissions).
+ * Standalone domains like routing live on their own subpath
+ * (`@gravitee/gamma-modules-sdk/routing`) and are NOT re-exported here.
+ */
 export * from './permissions/index';
