@@ -26,7 +26,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spi.properties.ClusterProperty;
 import io.gravitee.node.api.cluster.DistributedMap;
 import io.gravitee.node.api.cluster.DistributedMapProvider;
-import io.gravitee.node.plugin.cluster.hazelcast.HazelcastDistributedMapProvider;
+import io.gravitee.node.plugin.cluster.hazelcast.provider.HazelcastDistributedMapProvider;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;

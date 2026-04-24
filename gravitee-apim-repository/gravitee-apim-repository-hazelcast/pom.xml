@@ -63,10 +63,10 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Test scope: real Hazelcast + HazelcastClusterManager for the integration test -->
+		<!-- Test scope: real Hazelcast + HazelcastDistributedMapProvider for the integration test -->
 		<dependency>
 			<groupId>io.gravitee.node</groupId>
-			<artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
+			<artifactId>gravitee-node-cluster-plugin-hazelcast-provider</artifactId>
 			<version>${gravitee-node.version}</version>
 			<scope>test</scope>
 		</dependency>
