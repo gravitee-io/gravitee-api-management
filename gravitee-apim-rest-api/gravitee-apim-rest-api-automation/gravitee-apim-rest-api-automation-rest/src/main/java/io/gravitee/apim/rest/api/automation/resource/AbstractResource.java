@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -29,6 +30,10 @@ public abstract class AbstractResource {
 
     protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    protected AuditInfo getAuditInfo() {
+        return buildAuditInfo(GraviteeContext.getExecutionContext(), getAuthenticatedUserDetails());
     }
 
     protected static AuditInfo buildAuditInfo(ExecutionContext executionContext, UserDetails userDetails) {
