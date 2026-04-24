@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,6 +54,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ApiMapperTest {
 
     private final ApiMapper apiMapper = Mappers.getMapper(ApiMapper.class);
@@ -155,6 +158,25 @@ public class ApiMapperTest {
         var mapped = apiMapper.mapToNewNativeApi(newApi);
         assertThat(mapped).isNotNull();
         assertThat(mapped.getVisibility()).isEqualTo(Api.Visibility.valueOf(visibility.name()));
+    }
+
+    static Stream<Boolean> allowedInApiProductsValues() {
+        return Stream.of(true, false, null);
+    }
+
+    @ParameterizedTest
+    @MethodSource("allowedInApiProductsValues")
+    void should_pass_through_allowedInApiProducts(Boolean value) {
+        CreateApiV4 dto = new CreateApiV4();
+        dto.setName("Test API");
+        dto.setApiVersion("1.0.0");
+        dto.setDefinitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4);
+        dto.setType(io.gravitee.rest.api.management.v2.rest.model.ApiType.PROXY);
+        dto.setAllowedInApiProducts(value);
+
+        var mapped = apiMapper.mapToNewHttpApi(dto);
+
+        assertThat(mapped.getAllowedInApiProducts()).isEqualTo(value);
     }
 
     @Nested

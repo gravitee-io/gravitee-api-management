@@ -65,4 +65,22 @@ class NewHttpApiTest {
         assertThat(definition.getType()).isEqualTo(ApiType.PROXY);
         assertThat(definition.getAllowedInApiProducts()).isNull();
     }
+
+    @Test
+    void should_forward_allowedInApiProducts_true_into_domain_api_definition() {
+        NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder().allowedInApiProducts(true).build();
+
+        var definition = newHttpApi.toApiDefinitionBuilder().build();
+
+        assertThat(definition.getAllowedInApiProducts()).isTrue();
+    }
+
+    @Test
+    void should_forward_allowedInApiProducts_false_into_domain_api_definition() {
+        NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder().allowedInApiProducts(false).build();
+
+        var definition = newHttpApi.toApiDefinitionBuilder().build();
+
+        assertThat(definition.getAllowedInApiProducts()).isFalse();
+    }
 }

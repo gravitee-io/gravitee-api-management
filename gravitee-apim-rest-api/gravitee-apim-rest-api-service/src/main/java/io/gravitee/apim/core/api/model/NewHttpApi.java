@@ -51,6 +51,8 @@ public class NewHttpApi extends AbstractNewApi {
 
     private Failover failover;
 
+    private Boolean allowedInApiProducts;
+
     /**
      * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this NewV4Api.
      */
@@ -67,7 +69,8 @@ public class NewHttpApi extends AbstractNewApi {
             .endpointGroups(endpointGroups)
             .flows(flows)
             .flowExecution(flowExecution)
-            .failover(failover);
+            .failover(failover)
+            .allowedInApiProducts(allowedInApiProducts);
 
         return builder;
     }

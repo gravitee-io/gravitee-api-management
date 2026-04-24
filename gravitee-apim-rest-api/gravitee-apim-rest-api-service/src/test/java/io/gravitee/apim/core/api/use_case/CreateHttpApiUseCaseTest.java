@@ -100,6 +100,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateHttpApiUseCaseTest {
@@ -586,6 +587,22 @@ class CreateHttpApiUseCaseTest {
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .build()
         );
+    }
+
+    static Stream<Boolean> allowedInApiProductsValues() {
+        return Stream.of(true, false, null);
+    }
+
+    @ParameterizedTest
+    @MethodSource("allowedInApiProductsValues")
+    void should_persist_allowedInApiProducts(Boolean value) {
+        var newApi = NewApiFixtures.aProxyApiV4().toBuilder().allowedInApiProducts(value).build();
+
+        useCase.execute(new Input(newApi, AUDIT_INFO));
+
+        assertThat(apiCrudService.storage())
+            .extracting(api -> api.getApiDefinitionHttpV4().getAllowedInApiProducts())
+            .containsExactly(value);
     }
 
     private void enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode mode) {
