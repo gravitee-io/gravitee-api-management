@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
-import { TEST_MANAGEMENT_BASE } from '../factories';
-
-/** Default env permissions for tests (feature key -> CRUD letters). */
-export const permissionsHandlers = [
-    http.get(`${TEST_MANAGEMENT_BASE}/environments/DEFAULT/permissions`, () =>
-        HttpResponse.json({
-            API: ['R', 'C', 'U', 'D'],
-            APPLICATION: ['R', 'C', 'U', 'D'],
-        }),
-    ),
-];
+export function PathnameProbe({ onPath }: { readonly onPath: (p: string) => void }) {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        onPath(pathname);
+    }, [pathname, onPath]);
+    return null;
+}

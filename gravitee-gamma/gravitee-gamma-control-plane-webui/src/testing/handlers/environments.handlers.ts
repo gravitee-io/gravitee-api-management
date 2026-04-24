@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { authHandlers } from './auth.handlers';
-import { bootstrapHandlers } from './bootstrap.handlers';
-import { environmentsHandlers } from './environments.handlers';
-import { modulesHandlers } from './modules.handlers';
+import { http, HttpResponse } from 'msw';
 
-export const defaultHandlers = [...bootstrapHandlers, ...authHandlers, ...modulesHandlers, ...environmentsHandlers];
+import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from '../factories';
+
+/** List environments and per-env permissions (any env id). */
+export const environmentsHandlers = [
+    http.get(`${TEST_MANAGEMENT_BASE}/environments`, () => HttpResponse.json(TEST_ENVIRONMENTS)),
+    http.get(`${TEST_MANAGEMENT_BASE}/environments/:envId/permissions`, () =>
+        HttpResponse.json({
+            API: ['R', 'C', 'U', 'D'],
+            APPLICATION: ['R', 'C', 'U', 'D'],
+        }),
+    ),
+];
