@@ -5,7 +5,8 @@
         "outDir": "../../dist/out-tsc",
         "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
         "paths": {
-            "@gravitee/gamma-modules-sdk": ["../packages/gamma-modules-sdk/src/index.ts"]
+            "@gravitee/gamma-modules-sdk": ["../packages/gamma-modules-sdk/src/index.ts"],
+            "@gravitee/gamma-modules-sdk/routing": ["../packages/gamma-modules-sdk/src/routing.ts"]
         }
     },
     "exclude": [

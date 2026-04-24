@@ -21,6 +21,7 @@ export default {
     moduleNameMapper: {
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
+        '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../../packages/gamma-modules-sdk/src/routing.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',

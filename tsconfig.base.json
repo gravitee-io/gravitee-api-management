@@ -16,7 +16,8 @@
         "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "paths": {
-            "@gravitee/gamma-modules-sdk": ["gravitee-gamma/packages/gamma-modules-sdk/src/index.ts"]
+            "@gravitee/gamma-modules-sdk": ["gravitee-gamma/packages/gamma-modules-sdk/src/index.ts"],
+            "@gravitee/gamma-modules-sdk/routing": ["gravitee-gamma/packages/gamma-modules-sdk/src/routing.ts"]
         }
     },
     "exclude": ["node_modules", "tmp"]
