@@ -62,6 +62,7 @@ public class PlanConverter {
         entity.setDescription(plan.getDescription());
         entity.setReferenceId(plan.getReferenceId());
         entity.setReferenceType(GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
+        entity.setApi(plan.getReferenceId());
 
         entity.setEnvironmentId(plan.getEnvironmentId());
         entity.setCreatedAt(plan.getCreatedAt());
