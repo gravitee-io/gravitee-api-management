@@ -25,6 +25,9 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -150,6 +153,48 @@ class GraviteeDefinitionAdapterTest {
             soft.assertThat(descriptor.brokerRangeStart()).isEqualTo(9100);
             soft.assertThat(descriptor.brokerRangeEnd()).isEqualTo(9102);
         });
+    }
+
+    @Test
+    void mapNative_should_propagate_reporterMetricsEnabled_from_analytics() {
+        // Given a Native API whose analytics explicitly opts out of connection-metrics reporting
+        var nativeDefinition = new NativeApi();
+        nativeDefinition.setDefinitionVersion(DefinitionVersion.V4);
+        nativeDefinition.setType(ApiType.NATIVE);
+        nativeDefinition.setApiVersion("1.0.0");
+        nativeDefinition.setName("my-kafka");
+        nativeDefinition.setAnalytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(false).build());
+
+        Api coreApi = Api.builder()
+            .id("api-id")
+            .environmentId("env-id")
+            .version("1.0.0")
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.NATIVE)
+            .apiDefinitionNativeV4(nativeDefinition)
+            .build();
+
+        var primaryOwner = PrimaryOwnerEntity.builder()
+            .id("po-id")
+            .email("po@acme.test")
+            .displayName("PO")
+            .type(PrimaryOwnerEntity.Type.USER)
+            .build();
+
+        // When
+        ApiDescriptor.Native descriptor = GraviteeDefinitionAdapter.INSTANCE.mapNative(
+            coreApi,
+            primaryOwner,
+            WorkflowState.REVIEW_OK,
+            Set.of("group-1"),
+            java.util.Collections.<NewApiMetadata>emptyList(),
+            List.of(new NativeFlow()),
+            false
+        );
+
+        // Then the descriptor carries the flag's non-default value end-to-end — proves the @Mapping wiring.
+        assertThat(descriptor.analytics()).isNotNull();
+        assertThat(descriptor.analytics().isReporterMetricsEnabled()).isFalse();
     }
 
     @Test

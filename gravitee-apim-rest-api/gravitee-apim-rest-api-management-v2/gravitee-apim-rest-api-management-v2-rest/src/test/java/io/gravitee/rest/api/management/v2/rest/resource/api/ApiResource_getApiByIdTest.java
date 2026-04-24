@@ -241,6 +241,10 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals(true, dynamicPropertyConfiguration.getOverrideConfiguration());
         assertNotNull(dynamicPropertyConfiguration.getConfiguration());
         assertEquals("dynamic-property", dynamicPropertyConfiguration.getType());
+
+        // reporterMetricsEnabled is Native-only; must not appear on HTTP v4 responses.
+        assertNotNull(responseApi.getAnalytics());
+        assertNull(responseApi.getAnalytics().getReporterMetricsEnabled());
     }
 
     @Test
