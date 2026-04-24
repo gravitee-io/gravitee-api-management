@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.audit.model.AuditInfo;
+import jakarta.ws.rs.NotSupportedException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface UpdateApiDomainService {
-    Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo);
+@Provider
+public class NotSupportedExceptionMapper extends AbstractExceptionMapper<NotSupportedException> {
 
-    Api updateV4(Api api, AuditInfo auditInfo);
-
-    Api validateV4(Api api, AuditInfo auditInfo);
+    @Override
+    public Response toResponse(NotSupportedException e) {
+        final Response.Status status = Response.Status.UNSUPPORTED_MEDIA_TYPE;
+        return Response.status(status).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, status.getStatusCode())).build();
+    }
 }

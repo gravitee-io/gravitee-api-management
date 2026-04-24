@@ -290,6 +290,50 @@ paths:
                                 $ref: "#/components/schemas/Api"
                 default:
                     $ref: "#/components/responses/Error"
+        patch:
+            tags:
+                - APIs
+            summary: Patch a V4 HTTP Proxy API
+            description: |-
+                Partially update a V4 HTTP Proxy API using JSON Patch (RFC 6902) or JSON Merge Patch (RFC 7396).
+
+                Only the following fields are patchable: name, description, apiVersion, visibility, labels, tags,
+                lifecycleState, categories, analytics, failover, flowExecution, services, allowedInApiProducts,
+                allowMultiJwtOauth2Subscriptions, disableMembershipNotifications, groups, properties,
+                responseTemplates.
+
+                Use dryRun=true to preview the result without persisting.
+
+                User must have API_DEFINITION[UPDATE] or API_GATEWAY_DEFINITION[UPDATE] permissions.
+            operationId: patchApi
+            parameters:
+                - name: dryRun
+                  in: query
+                  required: false
+                  schema:
+                      type: boolean
+                      default: false
+            requestBody:
+                required: true
+                content:
+                    application/merge-patch+json:
+                        schema:
+                            $ref: "#/components/schemas/ApiMergePatch"
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiMergePatch"
+                    application/json-patch+json:
+                        schema:
+                            $ref: "#/components/schemas/ApiJsonPatch"
+            responses:
+                "200":
+                    description: API successfully patched
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
         delete:
             parameters:
                 - name: closePlans
@@ -3182,6 +3226,20 @@ paths:
 
 components:
     schemas:
+        ApiMergePatch:
+            type: object
+            description: |-
+                A JSON Merge Patch document (RFC 7396) for partially updating a V4 HTTP Proxy API.
+                Only patchable fields are accepted.
+            additionalProperties: true
+        ApiJsonPatch:
+            type: array
+            description: |-
+                A JSON Patch document (RFC 6902) for partially updating a V4 HTTP Proxy API.
+                Only operations targeting patchable fields are accepted.
+            items:
+                type: object
+                additionalProperties: true
         Analytics:
             type: object
             properties:

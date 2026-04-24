@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.api.exception;
 
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.Map;
 
 /**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface UpdateApiDomainService {
-    Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo);
+public class ApiPatchNotAllowedException extends ValidationDomainException {
 
-    Api updateV4(Api api, AuditInfo auditInfo);
-
-    Api validateV4(Api api, AuditInfo auditInfo);
+    public ApiPatchNotAllowedException(String fieldName, String reason) {
+        super("Field '" + fieldName + "' cannot be patched: " + reason, Map.of("field", fieldName));
+    }
 }

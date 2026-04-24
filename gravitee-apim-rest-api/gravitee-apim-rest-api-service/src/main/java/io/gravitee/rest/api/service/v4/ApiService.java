@@ -42,6 +42,8 @@ public interface ApiService {
         final String userId
     );
 
+    void validate(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);
+
     void delete(final ExecutionContext executionContext, final String apiId, boolean closePlans);
 
     Page<GenericApiEntity> findAll(

@@ -32,6 +32,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
@@ -61,6 +62,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
+import io.gravitee.rest.api.management.v2.rest.model.ApiWorkflowState;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
@@ -142,7 +144,9 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -225,6 +229,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiDuplicateService duplicateApiService;
+
+    @Inject
+    private PatchApiUseCase patchApiUseCase;
 
     @Inject
     UpdateFederatedApiUseCase updateFederatedApiUseCase;
@@ -438,6 +445,36 @@ public class ApiResource extends AbstractResource {
             }
             default -> throw new ApiDefinitionVersionNotSupportedException(updateApi.getDefinitionVersion().name());
         };
+    }
+
+    @PATCH
+    @Consumes({ MediaType.APPLICATION_JSON, "application/merge-patch+json" })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(
+        {
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response patchApi(@PathParam("apiId") String apiId, @QueryParam("dryRun") @DefaultValue("false") boolean dryRun, String body) {
+        var input = PatchApiUseCase.Input.builder()
+            .apiId(apiId)
+            .patchType(PatchApiUseCase.PatchType.MERGE_PATCH)
+            .patchBody(body)
+            .dryRun(dryRun)
+            .auditInfo(getAuditInfo())
+            .build();
+        var output = patchApiUseCase.execute(input);
+        var apiV4 = ApiMapper.INSTANCE.mapToV4(output.api(), uriInfo, null);
+        apiV4.primaryOwner(ApiMapper.INSTANCE.map(output.primaryOwner()));
+        apiV4.workflowState(output.workflowState() != null ? ApiWorkflowState.valueOf(output.workflowState().name()) : null);
+        var rawUpdatedAt = output.api().getUpdatedAt();
+        var updatedAt = rawUpdatedAt != null ? rawUpdatedAt.toInstant() : null;
+        var builder = Response.ok(apiV4);
+        if (updatedAt != null) {
+            builder.tag(Long.toString(updatedAt.toEpochMilli())).lastModified(java.util.Date.from(updatedAt));
+        }
+        return builder.build();
     }
 
     @PUT

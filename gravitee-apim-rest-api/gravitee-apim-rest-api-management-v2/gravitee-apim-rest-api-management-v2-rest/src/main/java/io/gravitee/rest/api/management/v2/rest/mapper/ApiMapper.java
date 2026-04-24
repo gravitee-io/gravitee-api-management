@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
@@ -50,7 +51,9 @@ import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
+import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
@@ -197,6 +200,17 @@ public interface ApiMapper {
         return mapToHttpV4(source, uriInfo, deploymentState);
     }
 
+    default PrimaryOwner map(PrimaryOwnerEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        return new PrimaryOwner()
+            .id(entity.id())
+            .email(entity.email())
+            .displayName(entity.displayName())
+            .type(entity.type() != null ? MembershipMemberType.valueOf(entity.type().name()) : null);
+    }
+
     default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
         if (genericApiEntity instanceof ApiEntity asApiEntity) {
             return mapToV4(asApiEntity);
@@ -209,13 +223,20 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
+    @Mapping(target = "allowedInApiProducts", source = "source.apiDefinitionHttpV4.allowedInApiProducts", defaultValue = "false")
     @Mapping(target = "deploymentState", source = "deploymentState")
     @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "failover", source = "source.apiDefinitionHttpV4.failover")
     @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
     @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(
+        target = "responseTemplates",
+        expression = "java(source != null && source.getApiDefinitionHttpV4() != null ? responseTemplateMapper.mapResponseTemplateToApiModel(source.getApiDefinitionHttpV4().getResponseTemplates()) : null)"
+    )
+    @Mapping(target = "services", source = "source.apiDefinitionHttpV4.services")
     @Mapping(target = "state", source = "source.lifecycleState")
     ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
