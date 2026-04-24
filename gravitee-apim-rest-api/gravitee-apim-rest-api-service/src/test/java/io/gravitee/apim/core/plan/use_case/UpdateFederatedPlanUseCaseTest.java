@@ -106,6 +106,7 @@ class UpdateFederatedPlanUseCaseTest {
         );
         var eventCrudService = mock(EventCrudService.class);
         var eventLatestCrudService = mock(EventLatestCrudService.class);
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         var updatePlanDomainService = new UpdatePlanDomainService(
             planQueryService,
             planCrudService,
@@ -114,7 +115,9 @@ class UpdateFederatedPlanUseCaseTest {
             flowCrudService,
             auditDomainService,
             planSynchronizationService,
-            reorderPlanDomainService
+            reorderPlanDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges
         );
         useCase = new UpdateFederatedPlanUseCase(updatePlanDomainService);
     }

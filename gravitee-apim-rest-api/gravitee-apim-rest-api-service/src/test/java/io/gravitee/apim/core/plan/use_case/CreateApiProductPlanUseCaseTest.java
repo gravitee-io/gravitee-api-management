@@ -90,12 +90,15 @@ class CreateApiProductPlanUseCaseTest {
         policyValidationDomainService,
         new EntrypointPluginQueryServiceInMemory()
     );
+    inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     CreatePlanDomainService createPlanDomainService = new CreatePlanDomainService(
         planValidatorService,
         flowValidationDomainService,
         planCrudService,
         flowCrudService,
-        auditDomainService
+        auditDomainService,
+        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+        kafkaPortRanges
     );
 
     CreateApiProductPlanUseCase createPlanUseCase = new CreateApiProductPlanUseCase(createPlanDomainService, apiProductCrudServiceInMemory);

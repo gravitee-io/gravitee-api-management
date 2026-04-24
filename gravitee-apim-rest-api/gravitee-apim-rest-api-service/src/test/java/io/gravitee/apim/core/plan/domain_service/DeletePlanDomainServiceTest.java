@@ -82,7 +82,8 @@ class DeletePlanDomainServiceTest {
         service = new DeletePlanDomainService(
             planCrudService,
             subscriptionQueryService,
-            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()),
+            new inmemory.KafkaPortRangeCrudServiceInMemory()
         );
     }
 

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -36,15 +37,18 @@ public class DeletePlanDomainService {
     private final PlanCrudService planCrudService;
     private final SubscriptionQueryService subscriptionQueryService;
     private final AuditDomainService auditService;
+    private final KafkaPortRangeCrudService kafkaPortRangeCrudService;
 
     public DeletePlanDomainService(
         PlanCrudService planCrudService,
         SubscriptionQueryService subscriptionQueryService,
-        AuditDomainService auditService
+        AuditDomainService auditService,
+        KafkaPortRangeCrudService kafkaPortRangeCrudService
     ) {
         this.planCrudService = planCrudService;
         this.subscriptionQueryService = subscriptionQueryService;
         this.auditService = auditService;
+        this.kafkaPortRangeCrudService = kafkaPortRangeCrudService;
     }
 
     public void delete(Plan plan, AuditInfo auditInfo) {
@@ -52,6 +56,8 @@ public class DeletePlanDomainService {
             throw new ValidationDomainException("Impossible to delete a plan with active subscriptions");
         }
         planCrudService.delete(plan.getId());
+        // Free the port allocation (no-op when the plan never had a port-range row).
+        kafkaPortRangeCrudService.delete(plan.getId());
         createAuditLog(plan, auditInfo);
     }
 

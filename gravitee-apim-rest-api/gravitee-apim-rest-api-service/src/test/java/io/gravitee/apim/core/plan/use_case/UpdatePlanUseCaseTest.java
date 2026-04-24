@@ -112,6 +112,7 @@ class UpdatePlanUseCaseTest {
     ReorderPlanDomainService reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
     EventCrudService eventCrudService = mock(EventCrudService.class);
     EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     UpdatePlanDomainService updatePlanDomainService = new UpdatePlanDomainService(
         planQueryService,
         planCrudService,
@@ -120,7 +121,9 @@ class UpdatePlanUseCaseTest {
         flowCrudService,
         auditDomainService,
         planSynchronizationService,
-        reorderPlanDomainService
+        reorderPlanDomainService,
+        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+        kafkaPortRanges
     );
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 

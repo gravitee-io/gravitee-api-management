@@ -155,12 +155,15 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
             policyValidationDomainService,
             new EntrypointPluginQueryServiceInMemory()
         );
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         createPlanDomainService = new CreatePlanDomainService(
             planValidatorService,
             flowValidationDomainService,
             planCrudService,
             flowCrudService,
-            auditDomainService
+            auditDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges
         );
 
         createApiDocumentationDomainService = new CreateApiDocumentationDomainService(

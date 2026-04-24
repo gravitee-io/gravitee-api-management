@@ -125,12 +125,15 @@ class CreatePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         service = new CreatePlanDomainService(
             new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
             new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
             planCrudService,
             flowCrudService,
-            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()),
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges
         );
 
         parametersQueryService.initWith(
