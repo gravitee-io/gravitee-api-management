@@ -736,6 +736,18 @@ public class ReactorHandlerRegistryTest {
         int durationMs = 3000;
         long deadline = System.currentTimeMillis() + durationMs;
 
+        // Pre-create stress reactables and their handlers on the test thread to avoid
+        // calling Mockito APIs from worker threads, which is not thread-safe.
+        int stressPoolSize = 50;
+        List<DummyReactable> stressReactables = new ArrayList<>();
+        for (int i = 0; i < stressPoolSize; i++) {
+            String id = "stress" + i;
+            DummyReactable reactable = createReactable(id);
+            ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
+            when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+            stressReactables.add(reactable);
+        }
+
         // Reader threads: continuously iterate getAcceptors on event-loop-like threads
         int readerCount = 4;
         ExecutorService readers = Executors.newFixedThreadPool(readerCount);
@@ -763,13 +775,11 @@ public class ReactorHandlerRegistryTest {
         // Writer thread: continuously create and remove reactables
         ExecutorService writer = Executors.newSingleThreadExecutor();
         writer.submit(() -> {
-            int idx = 100;
+            int idx = 0;
             while (System.currentTimeMillis() < deadline && errors.get() == null) {
                 try {
-                    String id = "stress" + (idx++);
-                    DummyReactable reactable = createReactable(id);
-                    ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
-                    when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+                    DummyReactable reactable = stressReactables.get(idx % stressPoolSize);
+                    idx++;
                     reactorHandlerRegistry.create(reactable);
                     reactorHandlerRegistry.remove(reactable);
                 } catch (Throwable t) {
