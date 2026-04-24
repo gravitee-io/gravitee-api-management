@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Map;
@@ -78,6 +79,12 @@ public class CrdIdHelper {
                 pageCRD.setParentId(HRIDToUUID.page().context(audit).api(apiHrid).page(pageCRD.getParentHrid()).id());
             }
         });
+    }
+
+    public static void generateGroupId(GroupCRDSpec spec, AuditInfo audit) {
+        if (spec.getId() == null) {
+            spec.setId(HRIDToUUID.group().context(audit).hrid(spec.getName()).id());
+        }
     }
 
     public static void generateApplicationId(ApplicationCRDSpec spec, AuditInfo audit) {

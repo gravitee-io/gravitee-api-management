@@ -20,7 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 /**
  * Fluent DSL for generating deterministic UUIDs from HRIDs.
  * <p>
- * Top-level resources (API, Application, SharedPolicyGroup) produce both {@code id()} and {@code crossId()}.
+ * Top-level resources (API, Application, SharedPolicyGroup, Group) produce both {@code id()} and {@code crossId()}.
  * Sub-resources (Plan, Page, Subscription) are scoped to a parent API and only produce {@code id()}.
  * <p>
  * Examples:
@@ -45,6 +45,10 @@ public final class HRIDToUUID {
     }
 
     public static TopLevelBuilder sharedPolicyGroup() {
+        return new TopLevelBuilder();
+    }
+
+    public static TopLevelBuilder group() {
         return new TopLevelBuilder();
     }
 

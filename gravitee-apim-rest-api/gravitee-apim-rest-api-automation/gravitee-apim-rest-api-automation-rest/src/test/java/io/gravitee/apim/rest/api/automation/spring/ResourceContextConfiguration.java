@@ -100,14 +100,13 @@ import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
+import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
-import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.query_service.MemberQueryService;
@@ -854,13 +853,14 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ImportGroupCRDUseCase importGroupCRDUseCase(
-        ValidateGroupCRDDomainService validateGroupCRDDomainService,
-        GroupQueryService groupQueryService,
-        GroupCrudService groupCrudService,
-        CRDMembersDomainService crdMembersDomainService
-    ) {
-        return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
+    public ImportGroupCRDUseCase importGroupCRDUseCase() {
+        return mock(ImportGroupCRDUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public ValidateGroupCRDUseCase validateGroupCRDUseCase() {
+        return mock(ValidateGroupCRDUseCase.class);
     }
 
     @Bean

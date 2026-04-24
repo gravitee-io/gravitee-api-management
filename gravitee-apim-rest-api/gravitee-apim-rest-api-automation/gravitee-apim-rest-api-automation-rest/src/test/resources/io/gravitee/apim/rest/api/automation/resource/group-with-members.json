@@ -1,0 +1,13 @@
+{
+  "name": "my-group",
+  "members": [
+    {
+      "source": "gravitee",
+      "sourceId": "user@example.com",
+      "roles": {
+        "API": "USER"
+      }
+    }
+  ],
+  "notifyMembers": true
+}
