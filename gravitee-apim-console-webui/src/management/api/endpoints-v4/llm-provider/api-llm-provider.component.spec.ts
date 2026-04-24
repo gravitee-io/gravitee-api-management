@@ -317,7 +317,7 @@ describe('ApiProviderComponent', () => {
       expectApiPutRequest(updatedApi);
 
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Endpoint successfully updated!');
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../../'], { relativeTo: expect.anything() });
       await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
   });

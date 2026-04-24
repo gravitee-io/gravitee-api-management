@@ -55,6 +55,10 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
+    this.selectedEndpoints = currentStepPayload.selectedEndpoints;
+    this.shouldUpgrade = this.selectedEndpoints.some(({ deployed }) => !deployed);
+    this.license$ = this.licenseService.getLicense$();
+    this.isOEM$ = this.licenseService.isOEM$();
 
     forkJoin(
       currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {
@@ -77,11 +81,6 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         this.endpointSchemas = omitBy(displayableSchemas, ({ config, sharedConfig }) => {
           return !config && !sharedConfig;
         });
-
-        this.selectedEndpoints = currentStepPayload.selectedEndpoints;
-        this.shouldUpgrade = this.selectedEndpoints.some(({ deployed }) => !deployed);
-        this.license$ = this.licenseService.getLicense$();
-        this.isOEM$ = this.licenseService.isOEM$();
 
         this.formGroup = new UntypedFormGroup({
           epg_name: new UntypedFormControl(currentStepPayload?.customGroupName),
