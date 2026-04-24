@@ -100,7 +100,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @AfterEach
     void teardown() {
-        Stream.of(apiQueryService, applicationQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiQueryService, applicationQueryService, connectionLogsCrudService).forEach(InMemoryAlternative::reset);
         analyticsQueryService.reset();
     }
 
