@@ -22,7 +22,7 @@ export function AboutPage() {
             <h1>About</h1>
             <p>
                 <Button variant="link" asChild>
-                    <Link to="/">Home</Link>
+                    <Link to="../home">Home</Link>
                 </Button>
             </p>
         </div>

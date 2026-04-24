@@ -16,32 +16,82 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import type { Environment } from './environment.types';
+import { resolveEnvironmentFromSegment } from './environment.utils';
+import { managementApi } from '../../shared/api/api-client';
+
 interface EnvironmentState {
     organizationId: string;
     environmentId: string;
+    environments: Environment[];
+    currentEnvironment: Environment | null;
     loading: boolean;
+    error: Error | null;
     initialized: boolean;
     initialize: (organizationId: string) => Promise<void>;
-    setEnvironment: (org: string, env: string) => void;
+    setCurrentEnvironment: (env: Environment) => void;
+    resolveEnvironment: (envHridOrId: string) => Environment | null;
+    reset: () => void;
 }
+
+const initialState = {
+    organizationId: '',
+    environmentId: '',
+    environments: [] as Environment[],
+    currentEnvironment: null as Environment | null,
+    loading: false,
+    error: null as Error | null,
+    initialized: false,
+};
 
 export const useEnvironmentStore = create<EnvironmentState>()(
     devtools(
         (set, get) => ({
-            organizationId: '',
-            environmentId: '',
-            loading: false,
-            initialized: false,
+            ...initialState,
+
+            reset: () => set({ ...initialState }),
+
+            resolveEnvironment: (envHridOrId: string) => resolveEnvironmentFromSegment(get().environments, envHridOrId),
 
             initialize: async (organizationId: string) => {
                 if (get().initialized) return;
-                set({ loading: true });
+                set({ loading: true, error: null });
 
-                set({ initialized: true, loading: false, organizationId, environmentId: 'DEFAULT' });
+                try {
+                    const environments = await managementApi.get<Environment[]>('/environments');
+                    if (!environments?.length) {
+                        set({
+                            ...initialState,
+                            organizationId,
+                            initialized: true,
+                            loading: false,
+                            error: new Error('No environment found!'),
+                        });
+                        return;
+                    }
+                    const first = environments[0]!;
+                    set({
+                        organizationId,
+                        environments,
+                        currentEnvironment: first,
+                        environmentId: first.id,
+                        loading: false,
+                        error: null,
+                        initialized: true,
+                    });
+                } catch (e) {
+                    set({
+                        ...initialState,
+                        organizationId,
+                        loading: false,
+                        error: e instanceof Error ? e : new Error(String(e)),
+                        initialized: true,
+                    });
+                }
             },
 
-            setEnvironment: (organizationId: string, environmentId: string) => {
-                set({ organizationId, environmentId });
+            setCurrentEnvironment: (env: Environment) => {
+                set({ currentEnvironment: env, environmentId: env.id, organizationId: env.organizationId || get().organizationId });
             },
         }),
         { name: 'environment' },

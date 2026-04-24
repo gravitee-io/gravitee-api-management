@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
+import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { AboutPage } from '../pages/AboutPage';
 import { HomePage } from '../pages/HomePage';
@@ -31,15 +32,20 @@ export function AppRoutes() {
                 <Route path="/login" element={<LoginPage />} />
             </Route>
             <Route element={<ProtectedRoute />}>
-                <Route element={<ShellLayout modules={modules} />}>
-                    <Route element={<RouteLayout />}>
-                        <Route path="/" element={<HomePage modules={modules} loading={loading} error={error} />} />
-                        <Route path="/about" element={<AboutPage />} />
+                <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
+                    <Route element={<EnvironmentGuard />}>
+                        <Route element={<RouteLayout />}>
+                            <Route path="home" element={<HomePage modules={modules} loading={loading} error={error} />} />
+                            <Route path="about" element={<AboutPage />} />
+                        </Route>
+                        {modules.map((m: GammaModule) => (
+                            <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
+                        ))}
+                        <Route index element={<Navigate to="home" replace />} />
                     </Route>
-                    {modules.map((m: GammaModule) => (
-                        <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
-                    ))}
                 </Route>
+                <Route path="/" element={<RootRedirect />} />
+                <Route path="*" element={<RootRedirect />} />
             </Route>
         </Routes>
     );
