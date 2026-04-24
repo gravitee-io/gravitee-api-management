@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /** Sidebar / route keys for the host shell area (home, about, …). */
 export type HostNavKey = 'home' | 'about';
 
-export const DEFAULT_HOST_NAV_KEY: HostNavKey = 'home';
+export const HOME_NAV_KEY: HostNavKey = 'home';
+export const ABOUT_NAV_KEY: HostNavKey = 'about';
 
 /** Labels for sidebar titles and breadcrumbs (single source of truth). */
 export const HOST_NAV_LABELS: Record<HostNavKey, string> = {
@@ -25,11 +25,13 @@ export const HOST_NAV_LABELS: Record<HostNavKey, string> = {
     about: 'About',
 };
 
-/** React Router paths for each nav key. */
-export const HOST_NAV_PATHS: Record<HostNavKey, string> = {
-    home: '/',
-    about: '/about',
-};
+/**
+ * Path for a host nav key under a given environment segment (hrid or id in URL).
+ * @example hostNavPath('home', 'default') -> '/environments/default/home'
+ */
+export function hostNavPath(navKey: HostNavKey, envHrid: string): string {
+    return `/environments/${envHrid}/${navKey}`;
+}
 
 export interface HostBreadcrumbSegment {
     readonly label: string;
@@ -38,42 +40,82 @@ export interface HostBreadcrumbSegment {
 
 interface HostNavArea {
     readonly navKey: HostNavKey;
-    readonly matches: (pathname: string) => boolean;
-    readonly breadcrumbSegments: readonly HostBreadcrumbSegment[];
+    readonly matches: (subPath: string) => boolean;
+    readonly breadcrumbSegments: (envHrid: string) => readonly HostBreadcrumbSegment[];
 }
 
-/**
- * Most specific matchers first. Extend this list as host routes grow; keep
- * `matches` disjoint or ordered so the first win is intentional.
- */
 const HOST_NAV_AREAS: readonly HostNavArea[] = [
     {
-        navKey: 'about',
-        matches: p => p === '/about' || p.startsWith('/about/'),
-        breadcrumbSegments: [{ label: HOST_NAV_LABELS.home, to: HOST_NAV_PATHS.home }, { label: HOST_NAV_LABELS.about }],
+        navKey: ABOUT_NAV_KEY,
+        matches: sub => sub === ABOUT_NAV_KEY || sub.startsWith(`${ABOUT_NAV_KEY}/`),
+        breadcrumbSegments: envHrid => [
+            { label: HOST_NAV_LABELS.home, to: hostNavPath(HOME_NAV_KEY, envHrid) },
+            { label: HOST_NAV_LABELS.about },
+        ],
     },
     {
-        navKey: 'home',
-        matches: p => p === '/' || p === '',
-        breadcrumbSegments: [{ label: HOST_NAV_LABELS.home }],
+        navKey: HOME_NAV_KEY,
+        matches: sub => sub === HOME_NAV_KEY || sub === '' || sub.startsWith(`${HOME_NAV_KEY}/`),
+        breadcrumbSegments: () => [{ label: HOST_NAV_LABELS.home }],
     },
 ];
 
-export function resolveHostRoute(pathname: string): {
+/**
+ * Path segments after /environments/:envHrid (e.g. ['apim', 'x'] for .../environments/e/apim/x).
+ * Empty when the pathname is not under that environment prefix.
+ */
+export function pathSegmentsAfterEnvironment(pathname: string, envHrid: string): string[] {
+    const prefix = `/environments/${envHrid}`;
+    if (!pathname.startsWith(prefix)) {
+        return [];
+    }
+    const tail = pathname.slice(prefix.length);
+    return tail.split('/').filter(Boolean);
+}
+
+/**
+ * New pathname when changing the environment segment while keeping the same page
+ * (host area, module path, or nested route). If there is no path under the current
+ * environment, returns /environments/{new}/home.
+ */
+export function buildPathnameAfterEnvironmentChange(pathname: string, currentEnvHrid: string, newEnvHrid: string): string {
+    const rest = pathSegmentsAfterEnvironment(pathname, currentEnvHrid);
+    const base = `/environments/${newEnvHrid}`;
+    return rest.length > 0 ? `${base}/${rest.join('/')}` : `${base}/home`;
+}
+
+function extractSubPath(pathname: string, envHrid: string): string | null {
+    const prefix = `/environments/${envHrid}`;
+    if (!pathname.startsWith(prefix)) return null;
+    const tail = pathname.slice(prefix.length);
+    if (tail === '' || tail === '/') return '';
+    if (tail.startsWith('/')) return tail.slice(1);
+    return null;
+}
+
+export function resolveHostRoute(
+    pathname: string,
+    envHrid: string,
+): {
     activeNavKey: HostNavKey;
     breadcrumbSegments: readonly HostBreadcrumbSegment[];
 } {
+    const defaultResult = {
+        activeNavKey: HOME_NAV_KEY,
+        breadcrumbSegments: [{ label: HOST_NAV_LABELS.home, to: hostNavPath(HOME_NAV_KEY, envHrid) }] as readonly HostBreadcrumbSegment[],
+    };
+
+    const subPath = extractSubPath(pathname, envHrid);
+    if (subPath === null) return defaultResult;
+
     for (const area of HOST_NAV_AREAS) {
-        if (area.matches(pathname)) {
-            return { activeNavKey: area.navKey, breadcrumbSegments: area.breadcrumbSegments };
+        if (area.matches(subPath)) {
+            return { activeNavKey: area.navKey, breadcrumbSegments: area.breadcrumbSegments(envHrid) };
         }
     }
-    return {
-        activeNavKey: DEFAULT_HOST_NAV_KEY,
-        breadcrumbSegments: [{ label: HOST_NAV_LABELS.home }],
-    };
+    return defaultResult;
 }
 
 export function isHostNavKey(key: string): key is HostNavKey {
-    return key === 'home' || key === 'about';
+    return key === HOME_NAV_KEY || key === ABOUT_NAV_KEY;
 }

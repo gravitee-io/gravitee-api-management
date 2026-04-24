@@ -34,7 +34,7 @@ export function HomePage({
             <ul>
                 <li>
                     <Button variant="link" asChild>
-                        <Link to="/about">About</Link>
+                        <Link to="../about">About</Link>
                     </Button>
                 </li>
             </ul>
@@ -47,7 +47,7 @@ export function HomePage({
                     {modules.map(m => (
                         <li key={m.id}>
                             <Button variant="link" asChild>
-                                <Link to={`/${m.id}`}>
+                                <Link to={`../${m.id}`}>
                                     <strong>{m.name}</strong>
                                 </Link>
                             </Button>{' '}

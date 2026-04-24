@@ -17,22 +17,24 @@ import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gra
 import { useCallback, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { useEnvHrid } from '../../features/environment/environment.utils';
 import { NAV_GROUPS } from '../config/navigation';
-import { HOST_NAV_PATHS, isHostNavKey, resolveHostRoute } from '../config/routes';
+import { hostNavPath, isHostNavKey, resolveHostRoute } from '../config/routes';
 
 export function RouteLayout() {
     const navigate = useNavigate();
+    const envHrid = useEnvHrid();
     const { pathname } = useLocation();
 
-    const { activeNavKey, breadcrumbSegments } = useMemo(() => resolveHostRoute(pathname), [pathname]);
+    const { activeNavKey, breadcrumbSegments } = useMemo(() => resolveHostRoute(pathname, envHrid), [pathname, envHrid]);
 
     const handleNavSelect = useCallback(
         (key: string) => {
             if (isHostNavKey(key)) {
-                navigate(HOST_NAV_PATHS[key]);
+                navigate(hostNavPath(key, envHrid));
             }
         },
-        [navigate],
+        [navigate, envHrid],
     );
 
     const breadcrumbs = useMemo(() => buildLinearBreadcrumbs(navigate, [...breadcrumbSegments]), [breadcrumbSegments, navigate]);

@@ -19,7 +19,10 @@ import { useCallback, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useLogout, useUser } from '../../features/auth';
+import { useEnvironmentStore } from '../../features/environment/environment.store';
+import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
+import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
 
@@ -42,9 +45,16 @@ function buildAppDefinitions(modules: readonly GammaModule[]) {
     ];
 }
 
-function resolveActiveAppKey(pathname: string, modules: readonly GammaModule[]): string {
+function resolveActiveAppKey(pathname: string, envHrid: string, modules: readonly GammaModule[]): string {
+    const rest = pathSegmentsAfterEnvironment(pathname, envHrid);
+    if (rest.length === 0) {
+        return GAMMA_APP_KEY;
+    }
+    if (rest[0] === 'home' || rest[0] === 'about') {
+        return GAMMA_APP_KEY;
+    }
     for (const m of modules) {
-        if (pathname === `/${m.id}` || pathname.startsWith(`/${m.id}/`)) {
+        if (rest[0] === m.id) {
             return m.id;
         }
     }
@@ -55,22 +65,38 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const user = useUser();
     const logout = useLogout();
     const navigate = useNavigate();
+    const envHrid = useEnvHrid();
     const location = useLocation();
     const pathname = location.pathname;
     const { slots } = useLayoutSlots();
 
+    const environments = useEnvironmentStore(s => s.environments);
+
     const apps = useMemo(() => buildAppDefinitions(modules), [modules]);
-    const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, modules), [pathname, modules]);
+    const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, envHrid, modules), [pathname, envHrid, modules]);
+
+    const envItems = useMemo(
+        () => environments.map(env => ({ key: getPrimaryHrid(env), label: env.name ?? getPrimaryHrid(env) })),
+        [environments],
+    );
 
     const handleAppChange = useCallback(
         (key: string) => {
             if (key === GAMMA_APP_KEY) {
-                navigate('/');
+                navigate(`/environments/${envHrid}/home`);
                 return;
             }
-            navigate(`/${key}`);
+            navigate(`/environments/${envHrid}/${key}`);
         },
-        [navigate],
+        [envHrid, navigate],
+    );
+
+    const handleEnvironmentChange = useCallback(
+        (newEnvHrid: string) => {
+            const newPathname = buildPathnameAfterEnvironmentChange(pathname, envHrid, newEnvHrid);
+            navigate({ pathname: newPathname, search: location.search, hash: location.hash });
+        },
+        [envHrid, location.hash, location.search, navigate, pathname],
     );
 
     const handleSignOut = useCallback(() => {
@@ -88,6 +114,9 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                     activeAppKey={activeAppKey}
                     onAppChange={handleAppChange}
                     renderNavigation={() => slots.navigation}
+                    environments={envItems}
+                    activeEnvironmentKey={envHrid}
+                    onEnvironmentChange={handleEnvironmentChange}
                 />
             }
             subheader={
