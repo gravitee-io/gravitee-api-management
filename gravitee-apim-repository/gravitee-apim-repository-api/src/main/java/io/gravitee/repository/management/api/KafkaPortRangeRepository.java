@@ -47,6 +47,30 @@ public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange,
     ) throws TechnicalException;
 
     /**
+     * Same semantics as {@link #findConflicting(String, String, int, int, int, String)} but acquires
+     * a row-level lock on each matching row for the duration of the current transaction (JDBC
+     * {@code SELECT ... FOR UPDATE}).
+     *
+     * <p>Callers must invoke this inside an active transaction and follow up with a {@code create}
+     * of the candidate row before the transaction commits. This prevents a TOCTOU race where two
+     * concurrent plan saves both see "no conflict" and both persist.</p>
+     *
+     * <p><b>MongoDB limitation:</b> the MongoDB implementation delegates to the non-locking
+     * {@link #findConflicting} — row-level locks are not available outside of MongoDB multi-document
+     * transactions (which require a replica-set or sharded cluster plus explicit client-side
+     * session management). Deployments that require strict concurrent-save protection on MongoDB
+     * must enable multi-document transactions and wire this call through a ClientSession.</p>
+     */
+    List<KafkaPortRange> findConflictingForUpdate(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId
+    ) throws TechnicalException;
+
+    /**
      * Deletes every port-range row for the given API, in one transactional call. Used when an API
      * is undeployed or deleted — frees all port allocations associated with that API.
      */

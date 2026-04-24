@@ -88,6 +88,23 @@ public class MongoKafkaPortRangeRepository implements KafkaPortRangeRepository {
     }
 
     @Override
+    public List<KafkaPortRange> findConflictingForUpdate(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId
+    ) throws TechnicalException {
+        // MongoDB row-level locks require a multi-document transaction on a replica set or sharded
+        // cluster plus a ClientSession passed on every operation. Without that wiring, SELECT ...
+        // FOR UPDATE has no MongoDB equivalent, so we fall back to the non-locking query. Deployments
+        // that require strict concurrent-save protection on MongoDB should enable multi-document
+        // transactions and route this call through a ClientSession.
+        return findConflicting(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId);
+    }
+
+    @Override
     public void deleteByApiId(String apiId) throws TechnicalException {
         log.debug("Delete kafka port ranges for api [{}]", apiId);
         internalRepository.deleteByApiId(apiId);
