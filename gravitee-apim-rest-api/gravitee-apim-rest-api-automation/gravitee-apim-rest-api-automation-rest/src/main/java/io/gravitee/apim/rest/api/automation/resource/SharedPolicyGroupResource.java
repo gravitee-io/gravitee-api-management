@@ -76,25 +76,15 @@ public class SharedPolicyGroupResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        var auditInfo = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
-
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
                 hridContainsUUID ? hrid : HRIDToUUID.sharedPolicyGroup().context(executionContext).hrid(hrid).id()
             );
             if (!dryRun) {
-                deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), auditInfo));
+                deleteSharedPolicyGroupUseCase.execute(
+                    new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), buildAuditInfo(executionContext, userDetails))
+                );
             }
         } catch (SharedPolicyGroupNotFoundException e) {
             log.warn("SharedPolicyGroup not found for hrid: {}, operation: delete", hrid);

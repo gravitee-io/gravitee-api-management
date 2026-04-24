@@ -135,19 +135,9 @@ public class ApiSubscriptionResource extends AbstractResource {
 
             var userDetails = getAuthenticatedUserDetails();
 
-            AuditInfo auditInfo = AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build();
-
-            deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(auditInfo, subscriptionId));
+            deleteSubscriptionSpecUseCase.execute(
+                new DeleteSubscriptionSpecUseCase.Input(buildAuditInfo(executionContext, userDetails), subscriptionId)
+            );
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: delete", hrid, apiHrid);
             throw new HRIDNotFoundException(hrid);

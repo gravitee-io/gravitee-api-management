@@ -46,6 +46,14 @@
     "lifecycleState": "PUBLISHED",
     "visibility": "PUBLIC",
     "flows": [],
+    "pages": [
+        {
+            "hrid": "default-page",
+            "name": "Default page",
+            "type": "MARKDOWN",
+            "content": "Default page content"
+        }
+    ],
     "plans": [
         {
             "name": "Keyless plan",

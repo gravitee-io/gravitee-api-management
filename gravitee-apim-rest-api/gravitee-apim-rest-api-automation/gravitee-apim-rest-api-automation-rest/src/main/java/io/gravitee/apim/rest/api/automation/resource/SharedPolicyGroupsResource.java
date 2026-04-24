@@ -18,8 +18,6 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
@@ -70,17 +68,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        var audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+        var auditInfo = buildAuditInfo(executionContext, userDetails);
 
         var sharedPolicyGroupCRD = SharedPolicyGroupMapper.INSTANCE.map(spec);
 
@@ -92,20 +80,20 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             // it avoids confusion in the database
             sharedPolicyGroupCRD.setHrid(null);
         } else {
-            CrdIdHelper.generateSharedPolicyGroupIds(sharedPolicyGroupCRD, audit);
+            CrdIdHelper.generateSharedPolicyGroupIds(sharedPolicyGroupCRD, auditInfo);
         }
 
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();
             validateSharedPolicyGroupCRDDomainService
-                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(audit, sharedPolicyGroupCRD))
+                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(auditInfo, sharedPolicyGroupCRD))
                 .peek(
                     sanitized ->
                         statusBuilder
                             .id(sanitized.crd().getSharedPolicyGroupId())
                             .crossId(sanitized.crd().getCrossId())
-                            .organizationId(audit.organizationId())
-                            .environmentId(audit.environmentId()),
+                            .organizationId(auditInfo.organizationId())
+                            .environmentId(auditInfo.environmentId()),
                     errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
                 );
             return Response.ok(
@@ -114,7 +102,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         }
 
         var output = importSharedPolicyGroupCRDCRDUseCase.execute(
-            new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, sharedPolicyGroupCRD)
+            new ImportSharedPolicyGroupCRDCRDUseCase.Input(auditInfo, sharedPolicyGroupCRD)
         );
 
         return Response.ok(

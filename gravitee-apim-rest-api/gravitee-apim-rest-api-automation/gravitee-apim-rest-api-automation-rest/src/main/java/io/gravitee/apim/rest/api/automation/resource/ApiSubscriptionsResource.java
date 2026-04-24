@@ -18,8 +18,6 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
@@ -76,17 +74,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo auditInfo = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+        var auditInfo = buildAuditInfo(executionContext, userDetails);
 
         // Legacy mode means 'Hrid' fields contains GUID from GKO Status
         // that were preexisting in the kube cluster
