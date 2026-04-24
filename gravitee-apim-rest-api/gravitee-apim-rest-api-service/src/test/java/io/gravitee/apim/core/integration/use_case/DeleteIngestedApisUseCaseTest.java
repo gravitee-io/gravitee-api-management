@@ -164,7 +164,12 @@ class DeleteIngestedApisUseCaseTest {
             new IntegrationAgentInMemory()
         );
         var deleteSubscriptionDomainService = new DeleteSubscriptionDomainService(subscriptionCrudService, auditDomainService);
-        var deletePlanDomainService = new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
+        var deletePlanDomainService = new DeletePlanDomainService(
+            planCrudService,
+            subscriptionQueryService,
+            auditDomainService,
+            new inmemory.KafkaPortRangeCrudServiceInMemory()
+        );
         var updateApiDocumentationService = new UpdateApiDocumentationDomainService(
             pageCrudService,
             pageRevisionCrudServiceInMemory,

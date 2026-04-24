@@ -195,12 +195,15 @@ class StartIngestIntegrationApisUseCaseTest {
         policyValidationDomainService,
         entrypointConnectorPluginService
     );
+    inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     CreatePlanDomainService createPlanDomainService = new CreatePlanDomainService(
         planValidatorService,
         flowValidationDomainService,
         planCrudService,
         flowCrudService,
-        auditDomainService
+        auditDomainService,
+        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+        kafkaPortRanges
     );
     ApiPrimaryOwnerFactory apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
         groupQueryService,
@@ -227,7 +230,9 @@ class StartIngestIntegrationApisUseCaseTest {
         flowCrudService,
         auditDomainService,
         planSynchronizationService,
-        reorderPlanDomainService
+        reorderPlanDomainService,
+        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+        kafkaPortRanges
     );
     ApiPrimaryOwnerDomainService apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
         auditDomainService,

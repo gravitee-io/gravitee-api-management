@@ -97,12 +97,15 @@ class CreatePlanUseCaseTest {
         policyValidationDomainService,
         new EntrypointPluginQueryServiceInMemory()
     );
+    inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     CreatePlanDomainService createPlanDomainService = new CreatePlanDomainService(
         planValidatorService,
         flowValidationDomainService,
         planCrudService,
         flowCrudService,
-        auditDomainService
+        auditDomainService,
+        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+        kafkaPortRanges
     );
 
     CreatePlanUseCase createPlanUseCase = new CreatePlanUseCase(createPlanDomainService, apiCrudService);
@@ -301,6 +304,82 @@ class CreatePlanUseCaseTest {
                 creadedPlan -> creadedPlan.getPlanMode().name()
             )
             .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
+    }
+
+    @Test
+    void should_persist_port_range_row_when_creating_native_plan_with_port_routing() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+        var portMode = PlanFixtures.NativeV4.aKeyless()
+            .toBuilder()
+            .id(null)
+            .planDefinitionNativeV4(
+                io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                    .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
+                    .mode(PlanMode.STANDARD)
+                    .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                    .bootstrapPort(9092)
+                    .brokerRangeStart(9100)
+                    .brokerRangeEnd(9102)
+                    .build()
+            )
+            .build();
+        var input = new Input(api.getId(), _api -> portMode, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
+
+        // When
+        var result = createPlanUseCase.execute(input);
+
+        // Then — port-range row was written with the same values as the plan definition
+        var persisted = kafkaPortRanges.findByPlanId(result.id());
+        Assertions.assertThat(persisted)
+            .isPresent()
+            .hasValueSatisfying(pr -> {
+                Assertions.assertThat(pr.getBootstrapPort()).isEqualTo(9092);
+                Assertions.assertThat(pr.getRangeStart()).isEqualTo(9100);
+                Assertions.assertThat(pr.getRangeEnd()).isEqualTo(9102);
+                Assertions.assertThat(pr.getApiId()).isEqualTo(api.getId());
+                Assertions.assertThat(pr.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+            });
+    }
+
+    @Test
+    void should_reject_native_plan_whose_port_range_conflicts_with_existing_plan() {
+        // Given — an already-registered port-range row for another plan on the same env
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+        kafkaPortRanges.create(
+            io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
+                .planId("existing-plan")
+                .apiId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .shardingTag("tag1") // must match ApiFixtures.aNativeApi() which has tags=Set.of("tag1")
+                .bootstrapPort(9092)
+                .rangeStart(9100)
+                .rangeEnd(9105)
+                .build()
+        );
+        var overlapping = PlanFixtures.NativeV4.aKeyless()
+            .toBuilder()
+            .id(null)
+            .planDefinitionNativeV4(
+                io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                    .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
+                    .mode(PlanMode.STANDARD)
+                    .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                    .bootstrapPort(9192)
+                    .brokerRangeStart(9103) // overlaps with [9100-9105]
+                    .brokerRangeEnd(9108)
+                    .build()
+            )
+            .build();
+        var input = new Input(api.getId(), _api -> overlapping, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
+
+        // Then
+        Assertions.assertThat(throwable)
+            .isInstanceOf(io.gravitee.apim.core.plan.exception.PortRangeConflictException.class)
+            .hasMessageContaining("plan 'existing-plan'");
     }
 
     @Test

@@ -29,9 +29,12 @@ import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.KafkaPortRange;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -55,6 +58,8 @@ public class UpdatePlanDomainService {
     private final AuditDomainService auditService;
     private final PlanSynchronizationService planSynchronizationService;
     private final ReorderPlanDomainService reorderPlanDomainService;
+    private final VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService;
+    private final KafkaPortRangeCrudService kafkaPortRangeCrudService;
 
     public UpdatePlanDomainService(
         PlanQueryService planQueryService,
@@ -64,7 +69,9 @@ public class UpdatePlanDomainService {
         FlowCrudService flowCrudService,
         AuditDomainService auditService,
         PlanSynchronizationService planSynchronizationService,
-        ReorderPlanDomainService reorderPlanDomainService
+        ReorderPlanDomainService reorderPlanDomainService,
+        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService,
+        KafkaPortRangeCrudService kafkaPortRangeCrudService
     ) {
         this.planQueryService = planQueryService;
         this.planCrudService = planCrudService;
@@ -74,6 +81,8 @@ public class UpdatePlanDomainService {
         this.auditService = auditService;
         this.planSynchronizationService = planSynchronizationService;
         this.reorderPlanDomainService = reorderPlanDomainService;
+        this.verifyPlanPortRangesDomainService = verifyPlanPortRangesDomainService;
+        this.kafkaPortRangeCrudService = kafkaPortRangeCrudService;
     }
 
     public void bulkUpdate(
@@ -153,7 +162,7 @@ public class UpdatePlanDomainService {
         Plan updatePlan = existingPlan.update(planToUpdate);
 
         if (api.isNative()) {
-            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, auditInfo, updateFunction);
+            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo, updateFunction);
         }
 
         return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo, updateFunction);
@@ -208,9 +217,12 @@ public class UpdatePlanDomainService {
         Plan existingPlan,
         Plan updatePlan,
         List<NativeFlow> flows,
+        Api api,
         AuditInfo auditInfo,
         BinaryOperator<Plan> updateFunction
     ) {
+        validatePortRoutingIfConfigured(updatePlan, api, auditInfo);
+
         var sanitizedNativeFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
 
         if (!planSynchronizationService.checkNativePlanSynchronized(existingPlan, List.of(), updatePlan, sanitizedNativeFlows)) {
@@ -221,8 +233,62 @@ public class UpdatePlanDomainService {
 
         flowCrudService.saveNativePlanFlows(updated.getId(), sanitizedNativeFlows);
 
+        persistPortRangeIfConfigured(updated, api, auditInfo);
+
         createAuditLog(existingPlan, updated, auditInfo);
         return updated;
+    }
+
+    /**
+     * Validates the updated plan's port allocation before the row is written. No-op when the plan
+     * doesn't configure port-based routing. Excludes the plan itself from the sibling check so
+     * unchanged allocations don't conflict with themselves.
+     */
+    private void validatePortRoutingIfConfigured(Plan updatePlan, Api api, AuditInfo auditInfo) {
+        var nativeDefinition = updatePlan.getPlanDefinitionNativeV4();
+        if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
+            return;
+        }
+        verifyPlanPortRangesDomainService.verify(
+            auditInfo.environmentId(),
+            firstShardingTag(api),
+            updatePlan.getId(),
+            nativeDefinition.getBootstrapPort(),
+            nativeDefinition.getBrokerRangeStart(),
+            nativeDefinition.getBrokerRangeEnd()
+        );
+    }
+
+    /**
+     * Upserts the {@code kafka_port_ranges} row after the plan has been updated. Creates the row
+     * when the plan transitions from host to port mode, updates when it was already on port mode,
+     * and deletes when the plan reverts to host mode (port fields cleared).
+     */
+    private void persistPortRangeIfConfigured(Plan updated, Api api, AuditInfo auditInfo) {
+        var nativeDefinition = updated.getPlanDefinitionNativeV4();
+        if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
+            kafkaPortRangeCrudService.delete(updated.getId());
+            return;
+        }
+        var row = KafkaPortRange.builder()
+            .planId(updated.getId())
+            .apiId(api.getId())
+            .environmentId(auditInfo.environmentId())
+            .shardingTag(firstShardingTag(api))
+            .bootstrapPort(nativeDefinition.getBootstrapPort())
+            .rangeStart(nativeDefinition.getBrokerRangeStart())
+            .rangeEnd(nativeDefinition.getBrokerRangeEnd())
+            .updatedAt(TimeProvider.now())
+            .build();
+        if (kafkaPortRangeCrudService.findByPlanId(updated.getId()).isPresent()) {
+            kafkaPortRangeCrudService.update(row);
+        } else {
+            kafkaPortRangeCrudService.create(row.toBuilder().createdAt(TimeProvider.now()).build());
+        }
+    }
+
+    private static String firstShardingTag(Api api) {
+        return api.getTags() == null || api.getTags().isEmpty() ? null : api.getTags().iterator().next();
     }
 
     /**

@@ -27,7 +27,9 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.KafkaPortRange;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
@@ -51,19 +53,25 @@ public class CreatePlanDomainService {
     private final PlanCrudService planCrudService;
     private final FlowCrudService flowCrudService;
     private final AuditDomainService auditService;
+    private final VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService;
+    private final KafkaPortRangeCrudService kafkaPortRangeCrudService;
 
     public CreatePlanDomainService(
         PlanValidatorDomainService planValidatorDomainService,
         FlowValidationDomainService flowValidationDomainService,
         PlanCrudService planCrudService,
         FlowCrudService flowCrudService,
-        AuditDomainService auditDomainService
+        AuditDomainService auditDomainService,
+        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService,
+        KafkaPortRangeCrudService kafkaPortRangeCrudService
     ) {
         this.planValidatorDomainService = planValidatorDomainService;
         this.flowValidationDomainService = flowValidationDomainService;
         this.planCrudService = planCrudService;
         this.flowCrudService = flowCrudService;
         this.auditService = auditDomainService;
+        this.verifyPlanPortRangesDomainService = verifyPlanPortRangesDomainService;
+        this.kafkaPortRangeCrudService = kafkaPortRangeCrudService;
     }
 
     public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
@@ -101,6 +109,8 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
+        validatePortRoutingIfConfigured(plan, api, auditInfo);
+
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
         var createdPlan = planCrudService.create(
             plan
@@ -119,6 +129,8 @@ public class CreatePlanDomainService {
         );
 
         var createdFlows = flowCrudService.saveNativePlanFlows(createdPlan.getId(), sanitizedFlows);
+
+        persistPortRangeIfConfigured(createdPlan, api, auditInfo);
 
         createAuditLog(createdPlan, auditInfo);
 
@@ -215,6 +227,57 @@ public class CreatePlanDomainService {
         );
         createApiProductAuditLog(createdPlan, auditInfo);
         return createdPlan;
+    }
+
+    /**
+     * Validates the candidate plan's port allocation against existing plans before the plan row is
+     * written. No-op when the plan doesn't configure port-based routing.
+     */
+    private void validatePortRoutingIfConfigured(Plan plan, Api api, AuditInfo auditInfo) {
+        var nativeDefinition = plan.getPlanDefinitionNativeV4();
+        if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
+            return;
+        }
+        verifyPlanPortRangesDomainService.verify(
+            auditInfo.environmentId(),
+            firstShardingTag(api),
+            null, // new plan — nothing to exclude from the conflict check
+            nativeDefinition.getBootstrapPort(),
+            nativeDefinition.getBrokerRangeStart(),
+            nativeDefinition.getBrokerRangeEnd()
+        );
+    }
+
+    /**
+     * Writes the {@code kafka_port_ranges} row for a newly created plan. No-op when the plan
+     * doesn't configure port-based routing. Called after the plan has been persisted so the row
+     * is only written when the plan save itself succeeded.
+     */
+    private void persistPortRangeIfConfigured(Plan createdPlan, Api api, AuditInfo auditInfo) {
+        var nativeDefinition = createdPlan.getPlanDefinitionNativeV4();
+        if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
+            return;
+        }
+        kafkaPortRangeCrudService.create(
+            KafkaPortRange.builder()
+                .planId(createdPlan.getId())
+                .apiId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .shardingTag(firstShardingTag(api))
+                .bootstrapPort(nativeDefinition.getBootstrapPort())
+                .rangeStart(nativeDefinition.getBrokerRangeStart())
+                .rangeEnd(nativeDefinition.getBrokerRangeEnd())
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .build()
+        );
+    }
+
+    private static String firstShardingTag(Api api) {
+        // Sharding-tag scoping: a plan may declare multiple tags in `plan.tags`. For the first
+        // iteration of port-conflict detection we scope the row to the first tag only; full
+        // multi-tag expansion is tracked in the plan's Iteration 3 / sharding-tag section.
+        return api.getTags() == null || api.getTags().isEmpty() ? null : api.getTags().iterator().next();
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {

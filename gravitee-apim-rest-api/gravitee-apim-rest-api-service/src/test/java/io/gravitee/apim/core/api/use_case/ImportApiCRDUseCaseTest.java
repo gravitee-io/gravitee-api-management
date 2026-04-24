@@ -295,12 +295,16 @@ class ImportApiCRDUseCaseTest {
             policyValidationDomainService,
             new EntrypointPluginQueryServiceInMemory()
         );
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
+        var verifyPlanPortRanges = new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges);
         var createPlanDomainService = new CreatePlanDomainService(
             planValidatorService,
             flowValidationDomainService,
             planCrudService,
             flowCrudService,
-            auditDomainService
+            auditDomainService,
+            verifyPlanPortRanges,
+            kafkaPortRanges
         );
         var reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
         var updatePlanDomainService = new UpdatePlanDomainService(
@@ -311,9 +315,16 @@ class ImportApiCRDUseCaseTest {
             flowCrudService,
             auditDomainService,
             planSynchronizationService,
-            reorderPlanDomainService
+            reorderPlanDomainService,
+            verifyPlanPortRanges,
+            kafkaPortRanges
         );
-        var deletePlanDomainService = new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
+        var deletePlanDomainService = new DeletePlanDomainService(
+            planCrudService,
+            subscriptionQueryService,
+            auditDomainService,
+            kafkaPortRanges
+        );
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
 
         var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(

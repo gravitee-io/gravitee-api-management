@@ -85,12 +85,16 @@ public class ImportDefinitionPlanDomainServiceTestInitializer {
             policyValidationDomainService,
             entrypointPluginQueryServiceInMemory
         );
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
+        var verifyPlanPortRanges = new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges);
         createPlanDomainService = new CreatePlanDomainService(
             planValidatorDomainService,
             flowValidationDomainService,
             planCrudServiceInMemory,
             flowCrudServiceInMemory,
-            auditDomainService
+            auditDomainService,
+            verifyPlanPortRanges,
+            kafkaPortRanges
         );
 
         var reorderPlanDomainService = new ReorderPlanDomainService(planQueryServiceInMemory, planCrudServiceInMemory);
@@ -102,13 +106,16 @@ public class ImportDefinitionPlanDomainServiceTestInitializer {
             flowCrudServiceInMemory,
             auditDomainService,
             planSynchronizationService,
-            reorderPlanDomainService
+            reorderPlanDomainService,
+            verifyPlanPortRanges,
+            kafkaPortRanges
         );
 
         deletePlanDomainService = new DeletePlanDomainService(
             planCrudServiceInMemory,
             subscriptionQueryServiceInMemory,
-            auditDomainService
+            auditDomainService,
+            kafkaPortRanges
         );
     }
 

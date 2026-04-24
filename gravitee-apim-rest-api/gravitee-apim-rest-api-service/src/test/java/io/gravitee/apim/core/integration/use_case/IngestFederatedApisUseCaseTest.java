@@ -276,7 +276,13 @@ class IngestFederatedApisUseCaseTest {
             workflowCrudService,
             createCategoryApiDomainService
         );
-        var deletePlanDomainService = new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
+        var deletePlanDomainService = new DeletePlanDomainService(
+            planCrudService,
+            subscriptionQueryService,
+            auditDomainService,
+            kafkaPortRanges
+        );
         var planValidatorService = new PlanValidatorDomainService(
             parametersQueryService,
             policyValidationDomainService,
@@ -311,7 +317,9 @@ class IngestFederatedApisUseCaseTest {
             flowValidationDomainService,
             planCrudService,
             flowCrudService,
-            auditDomainService
+            auditDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges
         );
 
         var eventCrudService = mock(EventCrudService.class);
@@ -324,7 +332,9 @@ class IngestFederatedApisUseCaseTest {
             flowCrudService,
             auditDomainService,
             planSynchronizationService,
-            reorderPlanDomainService
+            reorderPlanDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges
         );
 
         var apiIndexerDomainService = new ApiIndexerDomainService(

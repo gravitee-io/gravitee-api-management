@@ -130,6 +130,7 @@ class UpdatePlanDomainServiceTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
 
+        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         service = new UpdatePlanDomainService(
             planQueryService,
             planCrudService,
@@ -138,7 +139,9 @@ class UpdatePlanDomainServiceTest {
             flowCrudService,
             auditDomainService,
             planSynchronizationService,
-            new ReorderPlanDomainService(planQueryService, planCrudService)
+            new ReorderPlanDomainService(planQueryService, planCrudService),
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges
         );
 
         parametersQueryService.initWith(
