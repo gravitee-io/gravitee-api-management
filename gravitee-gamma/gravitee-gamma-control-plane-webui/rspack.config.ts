@@ -40,6 +40,7 @@ export default {
     },
     devServer: {
         port: 4200,
+        allowedHosts: 'all',
         proxy: [
             {
                 context: ['/management'],

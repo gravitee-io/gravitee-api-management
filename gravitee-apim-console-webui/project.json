@@ -153,6 +153,7 @@
         "proxyConfig": "gravitee-apim-console-webui/proxy.conf.mjs",
         "disableHostCheck": true,
         "port": 4000,
+        "host": "0.0.0.0",
         "buildTarget": "console:build"
       },
       "configurations": {
