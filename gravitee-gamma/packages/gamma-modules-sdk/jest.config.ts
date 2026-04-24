@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * Root barrel — contains domains that the host overrides via Module Federation
- * singleton (e.g. permissions). Standalone domains like routing have their own
- * subpath: `@gravitee/gamma-modules-sdk/routing`.
- */
-export * from './permissions';
+export default {
+    displayName: 'gamma-modules-sdk',
+    testEnvironment: 'node',
+    transform: {
+        '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
+    },
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+    coverageDirectory: __dirname + '/coverage',
+};
