@@ -41,6 +41,7 @@
         <module>gravitee-apim-repository-mongodb</module>
         <module>gravitee-apim-repository-jdbc</module>
         <module>gravitee-apim-repository-redis</module>
+        <module>gravitee-apim-repository-hazelcast</module>
         <module>gravitee-apim-repository-coverage</module>
     </modules>
 
