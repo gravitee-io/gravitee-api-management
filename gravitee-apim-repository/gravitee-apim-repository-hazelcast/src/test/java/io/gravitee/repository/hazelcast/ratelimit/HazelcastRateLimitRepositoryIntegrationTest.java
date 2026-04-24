@@ -24,9 +24,9 @@ import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spi.properties.ClusterProperty;
-import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.DistributedMap;
-import io.gravitee.node.plugin.cluster.hazelcast.HazelcastClusterManager;
+import io.gravitee.node.api.cluster.DistributedMapProvider;
+import io.gravitee.node.plugin.cluster.hazelcast.HazelcastDistributedMapProvider;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -41,10 +41,11 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
- * End-to-end test wiring the repository against a real embedded Hazelcast (via {@link HazelcastClusterManager}),
- * proving that the policy-facing contract enforced by unit tests also holds when backed by a real {@link com.hazelcast.map.IMap}:
- * native TTL eviction, {@code IMap.lock}-based per-key locking, and shared state across repeated
- * {@link ClusterManager#distributedMap(String)} calls.
+ * End-to-end test wiring the repository against a real embedded Hazelcast via the
+ * {@link DistributedMapProvider} SPI, proving that the policy-facing contract enforced by unit
+ * tests also holds when backed by a real {@link com.hazelcast.map.IMap}: native TTL eviction,
+ * {@code IMap.lock}-based per-key locking, and shared state across repeated
+ * {@link DistributedMapProvider#get(String)} calls.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HazelcastRateLimitRepositoryIntegrationTest {
@@ -53,11 +54,11 @@ class HazelcastRateLimitRepositoryIntegrationTest {
     private static final long WINDOW_MS = 60_000;
 
     private HazelcastInstance hazelcast;
-    private ClusterManager clusterManager;
+    private DistributedMapProvider distributedMapProvider;
     private HazelcastRateLimitRepository repository;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         Config config = new Config();
         config.setInstanceName("apim-ratelimit-it-" + System.nanoTime());
         config.setProperty(ClusterProperty.HEALTH_MONITORING_LEVEL.getName(), "OFF");
@@ -69,16 +70,14 @@ class HazelcastRateLimitRepositoryIntegrationTest {
         join.getAutoDetectionConfig().setEnabled(false);
 
         hazelcast = Hazelcast.newHazelcastInstance(config);
-        clusterManager = new HazelcastClusterManager(hazelcast);
-        clusterManager.start();
+        distributedMapProvider = new HazelcastDistributedMapProvider(hazelcast);
 
-        DistributedMap<String, RateLimit> counters = clusterManager.distributedMap("rate-limits");
+        DistributedMap<String, RateLimit> counters = distributedMapProvider.get("rate-limits");
         repository = new HazelcastRateLimitRepository(counters);
     }
 
     @AfterEach
-    void tearDown() throws Exception {
-        clusterManager.stop();
+    void tearDown() {
         hazelcast.shutdown();
     }
 
@@ -148,7 +147,7 @@ class HazelcastRateLimitRepositoryIntegrationTest {
             pool.shutdownNow();
         }
 
-        RateLimit finalState = clusterManager.<String, RateLimit>distributedMap("rate-limits").get(KEY);
+        RateLimit finalState = distributedMapProvider.<String, RateLimit>get("rate-limits").get(KEY);
         assertThat(finalState).isNotNull();
         assertThat(finalState.getCounter()).isEqualTo((long) threads * incrementsPerThread);
     }
