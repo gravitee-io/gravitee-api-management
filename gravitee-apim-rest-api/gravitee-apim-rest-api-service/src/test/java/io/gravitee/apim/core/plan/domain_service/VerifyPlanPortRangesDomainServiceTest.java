@@ -17,11 +17,19 @@ package io.gravitee.apim.core.plan.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.KafkaPortRangeCrudServiceInMemory;
+import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.exception.PortRangeConflictException;
 import io.gravitee.apim.core.plan.model.KafkaPortRange;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -196,6 +204,26 @@ class VerifyPlanPortRangesDomainServiceTest {
             portRanges.create(existing("sibling", 9092, 9100, 9102).toBuilder().shardingTag("us-east").build());
 
             assertThatCode(() -> cut.verify("env-1", "eu-west", null, 9092, 9100, 9102)).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    class ConcurrentSaveLocking {
+
+        @Test
+        void should_query_conflicts_using_for_update_variant() {
+            // The locking variant is what prevents two concurrent plan saves from both observing
+            // "no conflict" and both persisting. Verify the service calls findConflictingForUpdate
+            // (not the non-locking findConflicting) by using a pure mock so no internal delegation
+            // between the two methods can confuse the assertion.
+            KafkaPortRangeCrudService mockService = mock(KafkaPortRangeCrudService.class);
+            when(mockService.findConflictingForUpdate(any(), any(), anyInt(), anyInt(), anyInt(), any())).thenReturn(List.of());
+            VerifyPlanPortRangesDomainService lockingCut = new VerifyPlanPortRangesDomainService(mockService);
+
+            lockingCut.verify("env-1", null, null, 9092, 9100, 9102);
+
+            verify(mockService).findConflictingForUpdate("env-1", null, 9092, 9100, 9102, null);
+            verify(mockService, never()).findConflicting(any(), any(), anyInt(), anyInt(), anyInt(), any());
         }
     }
 }

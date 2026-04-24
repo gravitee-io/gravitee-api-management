@@ -91,6 +91,20 @@ public class KafkaPortRangeCrudServiceInMemory implements KafkaPortRangeCrudServ
     }
 
     @Override
+    public List<KafkaPortRange> findConflictingForUpdate(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId
+    ) {
+        // In-memory has no transaction/locking semantics; the FOR UPDATE variant is observably
+        // equivalent to the non-locking query for unit tests.
+        return findConflicting(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId);
+    }
+
+    @Override
     public void initWith(List<KafkaPortRange> items) {
         storage.clear();
         storage.addAll(items);

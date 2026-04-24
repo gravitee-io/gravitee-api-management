@@ -69,7 +69,19 @@ public class VerifyPlanPortRangesDomainService {
             );
         }
 
-        var conflicts = kafkaPortRangeCrudService.findConflicting(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, planId);
+        // Locking variant: rows returned (or the index range scanned, depending on DB) are held for
+        // the duration of the surrounding @UseCase / @Transactional boundary. A concurrent save that
+        // would conflict blocks here until we commit, then re-runs the conflict check and fails
+        // cleanly — preventing the TOCTOU race where two saves both observe "no conflict" and both
+        // persist.
+        var conflicts = kafkaPortRangeCrudService.findConflictingForUpdate(
+            environmentId,
+            shardingTag,
+            bootstrapPort,
+            rangeStart,
+            rangeEnd,
+            planId
+        );
         if (!conflicts.isEmpty()) {
             var first = conflicts.get(0);
             throw new PortRangeConflictException(first.getPlanId(), first.getApiId(), rangeStart, rangeEnd, bootstrapPort);

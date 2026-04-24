@@ -63,6 +63,30 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
         int rangeEnd,
         String excludePlanId
     ) throws TechnicalException {
+        return runConflictQuery(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId, false);
+    }
+
+    @Override
+    public List<KafkaPortRange> findConflictingForUpdate(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId
+    ) throws TechnicalException {
+        return runConflictQuery(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId, true);
+    }
+
+    private List<KafkaPortRange> runConflictQuery(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId,
+        boolean forUpdate
+    ) throws TechnicalException {
         try {
             // Four conflict conditions in a single indexed query (see KafkaPortRangeRepository javadoc).
             final StringBuilder sql = new StringBuilder(getOrm().getSelectAllSql())
@@ -75,6 +99,13 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
                 .append("  or (bootstrap_port between ? and ?)") // 3. existing bootstrap inside new range
                 .append("  or (bootstrap_port = ?)") // 4. bootstrap port collision
                 .append(")");
+
+            if (forUpdate) {
+                // Row-level lock held until transaction commit — prevents TOCTOU between concurrent
+                // plan saves: the second transaction blocks on the first's locks, then re-reads the
+                // freshly-inserted row in its own conflict check and fails cleanly.
+                sql.append(" for update");
+            }
 
             final var params = new java.util.ArrayList<Object>();
             params.add(environmentId);

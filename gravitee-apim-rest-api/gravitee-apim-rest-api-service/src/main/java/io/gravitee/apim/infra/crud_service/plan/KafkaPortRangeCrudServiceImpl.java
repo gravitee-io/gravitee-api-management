@@ -101,4 +101,24 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
             throw new TechnicalManagementException("Failed to query conflicting kafka port ranges", e);
         }
     }
+
+    @Override
+    public List<KafkaPortRange> findConflictingForUpdate(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId
+    ) {
+        try {
+            return repository
+                .findConflictingForUpdate(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+                .stream()
+                .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to query conflicting kafka port ranges for update", e);
+        }
+    }
 }

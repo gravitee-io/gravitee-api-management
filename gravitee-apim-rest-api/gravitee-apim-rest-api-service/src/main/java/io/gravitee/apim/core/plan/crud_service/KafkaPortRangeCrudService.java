@@ -48,4 +48,23 @@ public interface KafkaPortRangeCrudService {
         int rangeEnd,
         String excludePlanId
     );
+
+    /**
+     * Same as {@link #findConflicting} but acquires a row-level lock (JDBC {@code SELECT ... FOR
+     * UPDATE}) on each matching row for the duration of the surrounding transaction. Callers must
+     * invoke this inside an active transaction and must create the candidate row before the
+     * transaction commits; otherwise the lock is released with no effect.
+     *
+     * <p>On MongoDB, row-level locks are not available outside of multi-document transactions and
+     * this call silently degrades to {@link #findConflicting} — see the repository javadoc for
+     * details.</p>
+     */
+    List<KafkaPortRange> findConflictingForUpdate(
+        String environmentId,
+        String shardingTag,
+        int bootstrapPort,
+        int rangeStart,
+        int rangeEnd,
+        String excludePlanId
+    );
 }
