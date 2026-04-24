@@ -17,7 +17,7 @@ package io.gravitee.repository.hazelcast;
 
 import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
-import io.gravitee.repository.hazelcast.spring.PluginConfiguration;
+import io.gravitee.repository.hazelcast.ratelimit.RateLimitRepositoryConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,6 +39,6 @@ public class HazelcastRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Class<?> configuration(Scope scope) {
-        return scope == Scope.RATE_LIMIT ? PluginConfiguration.class : null;
+        return scope == Scope.RATE_LIMIT ? RateLimitRepositoryConfiguration.class : null;
     }
 }

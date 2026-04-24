@@ -18,7 +18,7 @@ package io.gravitee.repository.hazelcast;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.platform.repository.api.Scope;
-import io.gravitee.repository.hazelcast.spring.PluginConfiguration;
+import io.gravitee.repository.hazelcast.ratelimit.RateLimitRepositoryConfiguration;
 import org.junit.jupiter.api.Test;
 
 class HazelcastRepositoryProviderTest {
@@ -36,8 +36,8 @@ class HazelcastRepositoryProviderTest {
     }
 
     @Test
-    void should_return_plugin_configuration_class_for_rate_limit_scope() {
-        assertThat(provider.configuration(Scope.RATE_LIMIT)).isEqualTo(PluginConfiguration.class);
+    void should_return_rate_limit_configuration_class_for_rate_limit_scope() {
+        assertThat(provider.configuration(Scope.RATE_LIMIT)).isEqualTo(RateLimitRepositoryConfiguration.class);
     }
 
     @Test

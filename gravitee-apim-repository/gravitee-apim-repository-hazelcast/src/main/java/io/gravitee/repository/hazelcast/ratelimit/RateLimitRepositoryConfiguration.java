@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.hazelcast.spring;
+package io.gravitee.repository.hazelcast.ratelimit;
 
 import io.gravitee.node.api.cluster.ClusterManager;
-import io.gravitee.repository.hazelcast.ratelimit.HazelcastRateLimitRepository;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class PluginConfiguration {
+public class RateLimitRepositoryConfiguration {
 
     private static final String RATE_LIMIT_MAP = "rate-limits";
 
