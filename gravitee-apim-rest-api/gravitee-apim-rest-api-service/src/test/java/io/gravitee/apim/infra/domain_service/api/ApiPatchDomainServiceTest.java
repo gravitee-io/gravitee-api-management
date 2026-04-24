@@ -29,7 +29,37 @@ import org.junit.jupiter.api.Test;
 class ApiPatchDomainServiceTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ApiPatchDomainService cut = new ApiPatchDomainService(new JsonMergePatchServiceImpl());
+    private final ApiPatchDomainService cut = new ApiPatchDomainService(new JsonMergePatchServiceImpl(), new ApiJsonPatchServiceImpl());
+
+    @Test
+    void applyJsonPatch_applies_replace_operation() throws Exception {
+        var target = objectMapper.readTree("{\"name\":\"old\"}");
+        var patch = objectMapper.readTree("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"new\"}]");
+
+        var result = cut.applyJsonPatch(patch, target);
+
+        assertThat(result.get("name").asText()).isEqualTo("new");
+    }
+
+    @Test
+    void applyJsonPatch_wraps_failed_operation_in_validation_exception() throws Exception {
+        var target = objectMapper.readTree("{}");
+        var patch = objectMapper.readTree("[{\"op\":\"replace\",\"path\":\"/missing\",\"value\":\"x\"}]");
+
+        assertThatThrownBy(() -> cut.applyJsonPatch(patch, target))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageStartingWith("Failed to apply patch:");
+    }
+
+    @Test
+    void applyJsonPatch_wraps_malformed_patch_in_validation_exception() throws Exception {
+        var target = objectMapper.readTree("{}");
+        var patch = objectMapper.readTree("{\"not\":\"an array\"}");
+
+        assertThatThrownBy(() -> cut.applyJsonPatch(patch, target))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageStartingWith("Invalid patch:");
+    }
 
     @Test
     void applyMergePatch_applies_field_override() throws Exception {

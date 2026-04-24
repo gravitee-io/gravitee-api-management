@@ -181,6 +181,11 @@ import lombok.CustomLog;
 @CustomLog
 public class ApiResource extends AbstractResource {
 
+    private static final jakarta.ws.rs.core.MediaType JSON_PATCH_MEDIA_TYPE = new jakarta.ws.rs.core.MediaType(
+        "application",
+        "json-patch+json"
+    );
+
     private static final String REVIEWS_ACTION_ASK = "ask";
     private static final String REVIEWS_ACTION_ACCEPT = "accept";
     private static final String REVIEWS_ACTION_REJECT = "reject";
@@ -448,7 +453,7 @@ public class ApiResource extends AbstractResource {
     }
 
     @PATCH
-    @Consumes({ MediaType.APPLICATION_JSON, "application/merge-patch+json" })
+    @Consumes({ MediaType.APPLICATION_JSON, "application/merge-patch+json", "application/json-patch+json" })
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(
         {
@@ -456,10 +461,20 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
         }
     )
-    public Response patchApi(@PathParam("apiId") String apiId, @QueryParam("dryRun") @DefaultValue("false") boolean dryRun, String body) {
+    public Response patchApi(
+        @PathParam("apiId") String apiId,
+        @QueryParam("dryRun") @DefaultValue("false") boolean dryRun,
+        @Context HttpHeaders headers,
+        String body
+    ) {
+        var contentType = headers.getMediaType();
+        var patchType = contentType != null && JSON_PATCH_MEDIA_TYPE.isCompatible(contentType)
+            ? PatchApiUseCase.PatchType.JSON_PATCH
+            : PatchApiUseCase.PatchType.MERGE_PATCH;
+
         var input = PatchApiUseCase.Input.builder()
             .apiId(apiId)
-            .patchType(PatchApiUseCase.PatchType.MERGE_PATCH)
+            .patchType(patchType)
             .patchBody(body)
             .dryRun(dryRun)
             .auditInfo(getAuditInfo())

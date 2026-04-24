@@ -291,6 +291,7 @@ public interface ApiMapper {
         target = "responseTemplates",
         expression = "java(source != null && source.getApiDefinitionHttpV4() != null ? responseTemplateMapper.mapResponseTemplateToApiModel(source.getApiDefinitionHttpV4().getResponseTemplates()) : null)"
     )
+    @Mapping(target = "properties", source = "source.apiDefinitionHttpV4.properties")
     @Mapping(target = "services", source = "source.apiDefinitionHttpV4.services")
     @Mapping(target = "state", source = "source.lifecycleState")
     ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);

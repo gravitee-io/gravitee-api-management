@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +38,12 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.util.ArrayList;
@@ -45,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -55,10 +62,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PatchApiUseCase {
 
+    private static final String FIELD_NAME = "name";
     private static final String FIELD_DESCRIPTION = "description";
     private static final String FIELD_API_VERSION = "apiVersion";
     private static final String FIELD_VISIBILITY = "visibility";
+    private static final String FIELD_LABELS = "labels";
+    private static final String FIELD_TAGS = "tags";
     private static final String FIELD_LIFECYCLE_STATE = "lifecycleState";
+    private static final String FIELD_CATEGORIES = "categories";
+    private static final String FIELD_ANALYTICS = "analytics";
+    private static final String FIELD_FAILOVER = "failover";
+    private static final String FIELD_FLOW_EXECUTION = "flowExecution";
+    private static final String FIELD_SERVICES = "services";
     private static final String FIELD_ALLOWED_IN_API_PRODUCTS = "allowedInApiProducts";
     private static final String FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS = "allowMultiJwtOauth2Subscriptions";
     private static final String FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS = "disableMembershipNotifications";
@@ -66,18 +81,18 @@ public class PatchApiUseCase {
     private static final String FIELD_RESPONSE_TEMPLATES = "responseTemplates";
 
     private static final Set<String> ALLOWED_FIELDS = Set.of(
-        "name",
+        FIELD_NAME,
         FIELD_DESCRIPTION,
         FIELD_API_VERSION,
         FIELD_VISIBILITY,
-        "labels",
-        "tags",
+        FIELD_LABELS,
+        FIELD_TAGS,
         FIELD_LIFECYCLE_STATE,
-        "categories",
-        "analytics",
-        "failover",
-        "flowExecution",
-        "services",
+        FIELD_CATEGORIES,
+        FIELD_ANALYTICS,
+        FIELD_FAILOVER,
+        FIELD_FLOW_EXECUTION,
+        FIELD_SERVICES,
         FIELD_ALLOWED_IN_API_PRODUCTS,
         FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS,
         FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS,
@@ -85,8 +100,13 @@ public class PatchApiUseCase {
         FIELD_RESPONSE_TEMPLATES
     );
 
+    private static final int MAX_PATCH_OPS = 200;
+
     private static final Set<String> BLOCKED_WITH_HINT = Set.of("state");
     private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("flows", "endpointGroups", "listeners", "resources");
+
+    private static final String NULL_NOT_ALLOWED_MESSAGE_FORMAT =
+        "'%s' cannot be null; omit the field to leave it unchanged, or send an explicit value";
 
     private final ApiCrudService apiCrudService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
@@ -108,16 +128,16 @@ public class PatchApiUseCase {
         var currentNode = toJsonNode(existingApi);
         var patchNode = parseBody(input.patchBody());
 
-        enforceAllowList(patchNode);
+        enforceAllowList(input.patchType(), patchNode);
 
-        var patchedNode = apiPatchDomainService.applyMergePatch(patchNode, currentNode);
+        var patchedNode = applyPatch(input.patchType(), patchNode, currentNode);
 
         var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
 
         var workflows = workflowQueryService.findAllByApiIdAndType(input.apiId(), Workflow.Type.REVIEW);
         var workflowState = workflows.isEmpty() ? null : workflows.get(0).getState();
 
-        var updatedApi = applyPatchedValues(existingApi, patchedNode, patchNode);
+        var updatedApi = applyPatchedValues(existingApi, patchedNode, input.patchType(), patchNode);
 
         if (input.dryRun()) {
             var validated = updateApiDomainService.validateV4(updatedApi, input.auditInfo());
@@ -129,33 +149,14 @@ public class PatchApiUseCase {
     }
 
     private JsonNode toJsonNode(Api api) {
-        var view = buildPatchableView(api);
-        return objectMapper.valueToTree(view);
+        return objectMapper.valueToTree(PatchableView.from(api, requireHttpV4(api)));
     }
 
-    private PatchableView buildPatchableView(Api api) {
-        if (!(api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api httpV4)) {
-            throw new IllegalStateException("API definition is not an HTTP v4 definition");
+    private static io.gravitee.definition.model.v4.Api requireHttpV4(Api api) {
+        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api httpV4) {
+            return httpV4;
         }
-        return new PatchableView(
-            api.getName(),
-            api.getDescription(),
-            api.getVersion(),
-            api.getVisibility() != null ? api.getVisibility().name() : null,
-            api.getLabels(),
-            httpV4.getTags(),
-            api.getApiLifecycleState() != null ? api.getApiLifecycleState().name() : null,
-            api.getCategories(),
-            httpV4.getAnalytics(),
-            httpV4.getFailover(),
-            httpV4.getFlowExecution(),
-            httpV4.getServices(),
-            httpV4.getAllowedInApiProducts(),
-            api.isAllowMultiJwtOauth2Subscriptions(),
-            api.isDisableMembershipNotifications(),
-            httpV4.getProperties(),
-            httpV4.getResponseTemplates()
-        );
+        throw new IllegalStateException("API definition is not an HTTP v4 definition");
     }
 
     private JsonNode parseBody(String body) {
@@ -169,14 +170,89 @@ public class PatchApiUseCase {
         }
     }
 
-    private void enforceAllowList(JsonNode patchNode) {
-        if (!patchNode.isObject()) {
+    private void enforceAllowList(PatchType patchType, JsonNode patchNode) {
+        if (patchType == PatchType.JSON_PATCH) {
+            enforceAllowListJsonPatch(patchNode);
+        } else {
+            enforceAllowListMergePatch(patchNode);
+        }
+    }
+
+    private void enforceAllowListJsonPatch(JsonNode patchArray) {
+        if (!patchArray.isArray()) {
+            throw new ValidationDomainException("JSON Patch body must be a JSON array");
+        }
+        if (patchArray.size() > MAX_PATCH_OPS) {
+            throw new ValidationDomainException("JSON Patch request exceeds maximum of " + MAX_PATCH_OPS + " operations");
+        }
+        var index = 0;
+        for (JsonNode op : patchArray) {
+            var pathNode = op.path("path");
+            if (pathNode.isMissingNode() || !pathNode.isTextual()) {
+                throw new ValidationDomainException("JSON Patch operation at index " + index + " is missing required 'path' field");
+            }
+            validateJsonPatchField(index, "path", pathNode.asText());
+            var opType = op.path("op").asText();
+            if ("move".equals(opType) || "copy".equals(opType)) {
+                var fromNode = op.path("from");
+                if (fromNode.isMissingNode()) {
+                    throw new ValidationDomainException("JSON Patch operation at index " + index + " is missing required 'from' field");
+                }
+                if (!fromNode.isTextual()) {
+                    throw new ValidationDomainException(
+                        "JSON Patch operation at index " + index + " has invalid 'from' field: must be a string"
+                    );
+                }
+                validateJsonPatchField(index, "from", fromNode.asText());
+            }
+            index++;
+        }
+    }
+
+    private void validateJsonPatchField(int opIndex, String pointerName, String pointer) {
+        if (!pointer.isEmpty() && !pointer.startsWith("/")) {
+            throw new ValidationDomainException(
+                "JSON Patch operation at index " +
+                    opIndex +
+                    " has '" +
+                    pointerName +
+                    "' value '" +
+                    pointer +
+                    "' which is not a valid JSON Pointer: must start with '/'"
+            );
+        }
+        var field = extractTopLevelField(pointer);
+        if (field.isEmpty()) {
+            throw new ValidationDomainException(
+                "JSON Patch operation at index " +
+                    opIndex +
+                    " has '" +
+                    pointerName +
+                    "' value '" +
+                    pointer +
+                    "' which does not target a specific field"
+            );
+        }
+        validateField(field);
+    }
+
+    private void enforceAllowListMergePatch(JsonNode mergePatchNode) {
+        if (!mergePatchNode.isObject()) {
             throw new ValidationDomainException("JSON Merge Patch body must be a JSON object");
         }
-        var fieldNames = patchNode.fieldNames();
+        var fieldNames = mergePatchNode.fieldNames();
         while (fieldNames.hasNext()) {
             validateField(fieldNames.next());
         }
+    }
+
+    private String extractTopLevelField(String jsonPointer) {
+        if (jsonPointer == null || jsonPointer.isEmpty()) {
+            return "";
+        }
+        var withoutLeadingSlash = jsonPointer.startsWith("/") ? jsonPointer.substring(1) : jsonPointer;
+        var slashIndex = withoutLeadingSlash.indexOf('/');
+        return slashIndex < 0 ? withoutLeadingSlash : withoutLeadingSlash.substring(0, slashIndex);
     }
 
     private void validateField(String field) {
@@ -191,74 +267,75 @@ public class PatchApiUseCase {
         }
     }
 
-    private Api applyPatchedValues(Api existingApi, JsonNode patchedNode, JsonNode rawPatchNode) {
-        if (!(existingApi.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api httpV4)) {
-            throw new IllegalStateException("API definition is not an HTTP v4 definition");
+    private JsonNode applyPatch(PatchType patchType, JsonNode patchNode, JsonNode currentNode) {
+        if (patchType == PatchType.JSON_PATCH) {
+            return apiPatchDomainService.applyJsonPatch(patchNode, currentNode);
         }
+        return apiPatchDomainService.applyMergePatch(patchNode, currentNode);
+    }
 
-        rejectExplicitNullOnNonNullable(rawPatchNode, "name");
-        var name = textOrDefault(patchedNode, "name", existingApi.getName());
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_DESCRIPTION);
-        var description = textOrDefault(patchedNode, FIELD_DESCRIPTION, existingApi.getDescription());
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_API_VERSION);
+    private Api applyPatchedValues(Api existingApi, JsonNode patchedNode, PatchType patchType, JsonNode rawPatchNode) {
+        var httpV4 = requireHttpV4(existingApi);
+
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_NAME);
+        var name = textOrDefault(patchedNode, FIELD_NAME, existingApi.getName());
+        var description = resolveNullableString(patchType, rawPatchNode, patchedNode, FIELD_DESCRIPTION, existingApi.getDescription());
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_API_VERSION);
         var apiVersion = textOrDefault(patchedNode, FIELD_API_VERSION, existingApi.getVersion());
 
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_VISIBILITY);
-        var visibility = readVisibility(patchedNode, existingApi.getVisibility());
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_LIFECYCLE_STATE);
-        var lifecycleState = readLifecycleState(patchedNode, existingApi.getApiLifecycleState());
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_VISIBILITY);
+        var visibility = readEnum(patchedNode, FIELD_VISIBILITY, Api.Visibility.class, existingApi.getVisibility(), FIELD_VISIBILITY);
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_LIFECYCLE_STATE);
+        var lifecycleState = readEnum(
+            patchedNode,
+            FIELD_LIFECYCLE_STATE,
+            Api.ApiLifecycleState.class,
+            existingApi.getApiLifecycleState(),
+            FIELD_LIFECYCLE_STATE
+        );
 
-        var labels = resolveNullableList(rawPatchNode, patchedNode, "labels", existingApi.getLabels());
-        var categories = resolveNullableSet(rawPatchNode, patchedNode, "categories", existingApi.getCategories());
-        var tags = resolveNullableSet(rawPatchNode, patchedNode, "tags", httpV4.getTags());
+        var labels = resolveNullableList(patchType, rawPatchNode, patchedNode, FIELD_LABELS, existingApi.getLabels());
+        var categories = resolveNullableSet(patchType, rawPatchNode, patchedNode, FIELD_CATEGORIES, existingApi.getCategories());
+        var tags = resolveNullableSet(patchType, rawPatchNode, patchedNode, FIELD_TAGS, httpV4.getTags());
 
-        var analytics = resolveNullableObject(rawPatchNode, patchedNode, "analytics", Analytics.class, httpV4.getAnalytics());
-        var failover = resolveNullableObject(rawPatchNode, patchedNode, "failover", Failover.class, httpV4.getFailover());
-        var flowExecution = resolveNullableObject(
+        var patchableAnalytics = resolveNullableObject(
+            patchType,
             rawPatchNode,
             patchedNode,
-            "flowExecution",
-            FlowExecution.class,
-            httpV4.getFlowExecution()
+            FIELD_ANALYTICS,
+            PatchableAnalytics.class,
+            PatchableAnalytics.from(httpV4.getAnalytics())
         );
-        var services = resolveNullableObject(rawPatchNode, patchedNode, "services", ApiServices.class, httpV4.getServices());
+        var analytics = patchableAnalytics != null ? patchableAnalytics.toDomain() : null;
+        var failover = resolveNullableObject(patchType, rawPatchNode, patchedNode, FIELD_FAILOVER, Failover.class, httpV4.getFailover());
+        var patchableFlowExecution = resolveNullableObject(
+            patchType,
+            rawPatchNode,
+            patchedNode,
+            FIELD_FLOW_EXECUTION,
+            PatchableFlowExecution.class,
+            PatchableFlowExecution.from(httpV4.getFlowExecution())
+        );
+        var flowExecution = patchableFlowExecution != null ? patchableFlowExecution.toDomain() : null;
+        var services = resolveNullableObject(patchType, rawPatchNode, patchedNode, FIELD_SERVICES, ApiServices.class, httpV4.getServices());
 
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_ALLOWED_IN_API_PRODUCTS);
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_ALLOWED_IN_API_PRODUCTS);
         var allowedInApiProducts = readBooleanObject(patchedNode, FIELD_ALLOWED_IN_API_PRODUCTS, httpV4.getAllowedInApiProducts());
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS);
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS);
         var allowMultiJwt = readBoolean(
             patchedNode,
             FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS,
             existingApi.isAllowMultiJwtOauth2Subscriptions()
         );
-        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS);
+        rejectExplicitNullOnNonNullable(patchType, rawPatchNode, FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS);
         var disableMembershipNotifications = readBoolean(
             patchedNode,
             FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS,
             existingApi.isDisableMembershipNotifications()
         );
 
-        var properties = httpV4.getProperties();
-        if (rawPatchNode.has(FIELD_PROPERTIES)) {
-            if (rawPatchNode.get(FIELD_PROPERTIES).isNull()) {
-                properties = List.of();
-            } else {
-                properties = readList(patchedNode, FIELD_PROPERTIES, Property.class, null);
-            }
-        }
-
-        var responseTemplates = httpV4.getResponseTemplates();
-        if (rawPatchNode.has(FIELD_RESPONSE_TEMPLATES)) {
-            if (rawPatchNode.get(FIELD_RESPONSE_TEMPLATES).isNull()) {
-                responseTemplates = null;
-            } else {
-                try {
-                    responseTemplates = objectMapper.treeToValue(patchedNode.get(FIELD_RESPONSE_TEMPLATES), new TypeReference<>() {});
-                } catch (Exception e) {
-                    throw new ValidationDomainException("Invalid value for field 'responseTemplates': " + e.getMessage());
-                }
-            }
-        }
+        var properties = resolveProperties(patchType, rawPatchNode, patchedNode, httpV4.getProperties());
+        var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
 
         var updatedDefinition = httpV4
             .toBuilder()
@@ -290,37 +367,186 @@ public class PatchApiUseCase {
             .build();
     }
 
-    private boolean isExplicitNull(JsonNode rawPatchNode, String field) {
-        return rawPatchNode.has(field) && rawPatchNode.get(field).isNull();
+    private List<Property> resolveProperties(PatchType patchType, JsonNode rawPatchNode, JsonNode patchedNode, List<Property> existing) {
+        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(FIELD_PROPERTIES)) {
+            if (rawPatchNode.get(FIELD_PROPERTIES).isNull()) {
+                return null;
+            }
+            return readList(patchedNode, FIELD_PROPERTIES, Property.class, null);
+        }
+        if (patchType == PatchType.JSON_PATCH) {
+            if (patchedNode.get(FIELD_PROPERTIES) == null && isRemovedByJsonPatch(patchType, rawPatchNode, FIELD_PROPERTIES)) {
+                return null;
+            }
+            if (patchedNode.has(FIELD_PROPERTIES)) {
+                if (patchedNode.get(FIELD_PROPERTIES).isNull() && isNullReplacedByJsonPatch(rawPatchNode, FIELD_PROPERTIES)) {
+                    return null;
+                }
+                return readList(patchedNode, FIELD_PROPERTIES, Property.class, existing);
+            }
+        }
+        return existing;
     }
 
-    private void rejectExplicitNullOnNonNullable(JsonNode rawPatchNode, String field) {
-        if (isExplicitNull(rawPatchNode, field)) {
-            throw new ValidationDomainException(
-                "'" + field + "' cannot be null; omit the field to leave it unchanged, or send an explicit value"
+    private Map<String, Map<String, ResponseTemplate>> resolveResponseTemplates(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        Map<String, Map<String, ResponseTemplate>> existing
+    ) {
+        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(FIELD_RESPONSE_TEMPLATES)) {
+            if (rawPatchNode.get(FIELD_RESPONSE_TEMPLATES).isNull()) {
+                return null;
+            }
+            return parseResponseTemplates(patchedNode);
+        }
+        if (patchType == PatchType.JSON_PATCH) {
+            if (
+                patchedNode.get(FIELD_RESPONSE_TEMPLATES) == null && isRemovedByJsonPatch(patchType, rawPatchNode, FIELD_RESPONSE_TEMPLATES)
+            ) {
+                return null;
+            }
+            if (patchedNode.has(FIELD_RESPONSE_TEMPLATES)) {
+                if (
+                    patchedNode.get(FIELD_RESPONSE_TEMPLATES).isNull() && isNullReplacedByJsonPatch(rawPatchNode, FIELD_RESPONSE_TEMPLATES)
+                ) {
+                    return null;
+                }
+                return parseResponseTemplates(patchedNode);
+            }
+        }
+        return existing;
+    }
+
+    private Map<String, Map<String, ResponseTemplate>> parseResponseTemplates(JsonNode patchedNode) {
+        try {
+            var patchable = objectMapper.treeToValue(
+                patchedNode.get(FIELD_RESPONSE_TEMPLATES),
+                new TypeReference<Map<String, Map<String, PatchableResponseTemplate>>>() {}
             );
+            return fromPatchableResponseTemplates(patchable);
+        } catch (JsonProcessingException e) {
+            throw new ValidationDomainException("Invalid value for field 'responseTemplates': " + e.getMessage());
         }
     }
 
-    private List<String> resolveNullableList(JsonNode rawPatchNode, JsonNode patchedNode, String field, List<String> existing) {
-        if (isExplicitNull(rawPatchNode, field)) {
+    private static Map<String, Map<String, ResponseTemplate>> fromPatchableResponseTemplates(
+        Map<String, Map<String, PatchableResponseTemplate>> patchable
+    ) {
+        if (patchable == null) {
+            return null;
+        }
+        return patchable
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(Map.Entry::getKey, e ->
+                    (e.getValue() == null ? Map.<String, PatchableResponseTemplate>of() : e.getValue()).entrySet()
+                        .stream()
+                        .filter(inner -> inner.getValue() != null)
+                        .collect(Collectors.toMap(Map.Entry::getKey, inner -> inner.getValue().toDomain()))
+                )
+            );
+    }
+
+    private boolean isExplicitNull(PatchType patchType, JsonNode rawPatchNode, String field) {
+        return patchType == PatchType.MERGE_PATCH && rawPatchNode.has(field) && rawPatchNode.get(field).isNull();
+    }
+
+    private boolean isRemovedByJsonPatch(PatchType patchType, JsonNode rawPatchNode, String field) {
+        if (patchType != PatchType.JSON_PATCH) {
+            return false;
+        }
+        for (JsonNode op : rawPatchNode) {
+            if ("remove".equals(op.path("op").asText()) && ("/" + field).equals(op.path("path").asText())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isNullReplacedByJsonPatch(JsonNode rawPatchNode, String field) {
+        for (JsonNode op : rawPatchNode) {
+            String opType = op.path("op").asText();
+            JsonNode value = op.get("value");
+            if (
+                ("/" + field).equals(op.path("path").asText()) &&
+                ("replace".equals(opType) || "add".equals(opType)) &&
+                value != null &&
+                value.isNull()
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void rejectExplicitNullOnNonNullable(PatchType patchType, JsonNode rawPatchNode, String field) {
+        boolean nullified = switch (patchType) {
+            case MERGE_PATCH -> isExplicitNull(patchType, rawPatchNode, field);
+            case JSON_PATCH -> isRemovedByJsonPatch(patchType, rawPatchNode, field) || isNullReplacedByJsonPatch(rawPatchNode, field);
+        };
+        if (nullified) {
+            throw new ValidationDomainException(NULL_NOT_ALLOWED_MESSAGE_FORMAT.formatted(field));
+        }
+    }
+
+    private boolean shouldNullify(PatchType patchType, JsonNode rawPatchNode, JsonNode patchedNode, String field) {
+        if (isExplicitNull(patchType, rawPatchNode, field)) {
+            return true;
+        }
+        var fieldNode = patchedNode.get(field);
+        if (fieldNode != null && fieldNode.isNull()) {
+            return true;
+        }
+        return fieldNode == null && isRemovedByJsonPatch(patchType, rawPatchNode, field);
+    }
+
+    private List<String> resolveNullableList(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        String field,
+        List<String> existing
+    ) {
+        if (shouldNullify(patchType, rawPatchNode, patchedNode, field)) {
             return new ArrayList<>();
         }
         return readStringList(patchedNode, field, existing);
     }
 
-    private Set<String> resolveNullableSet(JsonNode rawPatchNode, JsonNode patchedNode, String field, Set<String> existing) {
-        if (isExplicitNull(rawPatchNode, field)) {
+    private Set<String> resolveNullableSet(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        String field,
+        Set<String> existing
+    ) {
+        if (shouldNullify(patchType, rawPatchNode, patchedNode, field)) {
             return new HashSet<>();
         }
         return readStringSet(patchedNode, field, existing);
     }
 
-    private <T> T resolveNullableObject(JsonNode rawPatchNode, JsonNode patchedNode, String field, Class<T> type, T existing) {
-        if (isExplicitNull(rawPatchNode, field)) {
+    private <T> T resolveNullableObject(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        String field,
+        Class<T> type,
+        T existing
+    ) {
+        if (shouldNullify(patchType, rawPatchNode, patchedNode, field)) {
             return null;
         }
         return readObject(patchedNode, field, type, existing);
+    }
+
+    private String resolveNullableString(PatchType patchType, JsonNode rawPatchNode, JsonNode patchedNode, String field, String existing) {
+        if (shouldNullify(patchType, rawPatchNode, patchedNode, field)) {
+            return null;
+        }
+        return textOrDefault(patchedNode, field, existing);
     }
 
     private String textOrDefault(JsonNode node, String field, String defaultValue) {
@@ -331,27 +557,15 @@ public class PatchApiUseCase {
         return fieldNode.asText(defaultValue);
     }
 
-    private Api.Visibility readVisibility(JsonNode node, Api.Visibility defaultValue) {
-        var fieldNode = node.get(FIELD_VISIBILITY);
+    private <E extends Enum<E>> E readEnum(JsonNode node, String field, Class<E> type, E defaultValue, String errorLabel) {
+        var fieldNode = node.get(field);
         if (fieldNode == null || fieldNode.isNull()) {
             return defaultValue;
         }
         try {
-            return Api.Visibility.valueOf(fieldNode.asText());
+            return Enum.valueOf(type, fieldNode.asText());
         } catch (IllegalArgumentException e) {
-            throw new ValidationDomainException("Invalid visibility value: " + fieldNode.asText());
-        }
-    }
-
-    private Api.ApiLifecycleState readLifecycleState(JsonNode node, Api.ApiLifecycleState defaultValue) {
-        var fieldNode = node.get(FIELD_LIFECYCLE_STATE);
-        if (fieldNode == null || fieldNode.isNull()) {
-            return defaultValue;
-        }
-        try {
-            return Api.ApiLifecycleState.valueOf(fieldNode.asText());
-        } catch (IllegalArgumentException e) {
-            throw new ValidationDomainException("Invalid lifecycleState value: " + fieldNode.asText());
+            throw new ValidationDomainException("Invalid " + errorLabel + " value: " + fieldNode.asText());
         }
     }
 
@@ -423,6 +637,7 @@ public class PatchApiUseCase {
     }
 
     public enum PatchType {
+        JSON_PATCH,
         MERGE_PATCH,
     }
 
@@ -431,6 +646,71 @@ public class PatchApiUseCase {
 
     public record Output(Api api, PrimaryOwnerEntity primaryOwner, Workflow.State workflowState) {}
 
+    record PatchableFlowExecution(String mode, boolean matchRequired) {
+        static PatchableFlowExecution from(FlowExecution domain) {
+            if (domain == null) {
+                return null;
+            }
+            return new PatchableFlowExecution(
+                domain.getMode() != null ? domain.getMode().name() : FlowMode.DEFAULT.name(),
+                domain.isMatchRequired()
+            );
+        }
+
+        FlowExecution toDomain() {
+            if (mode == null) {
+                throw new ValidationDomainException("Invalid flowExecution.mode value: null");
+            }
+            FlowMode resolvedMode;
+            try {
+                resolvedMode = FlowMode.valueOf(mode);
+            } catch (IllegalArgumentException e) {
+                throw new ValidationDomainException("Invalid flowExecution.mode value: " + mode);
+            }
+            var execution = new FlowExecution();
+            execution.setMode(resolvedMode);
+            execution.setMatchRequired(matchRequired);
+            return execution;
+        }
+    }
+
+    record PatchableAnalytics(boolean enabled, Sampling sampling, Logging logging, Tracing tracing) {
+        static PatchableAnalytics from(Analytics domain) {
+            if (domain == null) {
+                return null;
+            }
+            return new PatchableAnalytics(domain.isEnabled(), domain.getMessageSampling(), domain.getLogging(), domain.getTracing());
+        }
+
+        Analytics toDomain() {
+            return Analytics.builder().enabled(enabled).messageSampling(sampling).logging(logging).tracing(tracing).build();
+        }
+    }
+
+    record PatchableResponseTemplate(Integer statusCode, Map<String, String> headers, String body, Boolean propagateErrorKeyToLogs) {
+        static PatchableResponseTemplate from(ResponseTemplate domain) {
+            if (domain == null) {
+                return null;
+            }
+            return new PatchableResponseTemplate(
+                domain.getStatusCode(),
+                domain.getHeaders(),
+                domain.getBody(),
+                domain.isPropagateErrorKeyToLogs()
+            );
+        }
+
+        ResponseTemplate toDomain() {
+            return ResponseTemplate.builder()
+                .statusCode(statusCode != null ? statusCode : 0)
+                .headers(headers)
+                .body(body)
+                .propagateErrorKeyToLogs(propagateErrorKeyToLogs != null && propagateErrorKeyToLogs)
+                .build();
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     record PatchableView(
         String name,
         String description,
@@ -440,14 +720,55 @@ public class PatchApiUseCase {
         Set<String> tags,
         String lifecycleState,
         Set<String> categories,
-        Analytics analytics,
+        PatchableAnalytics analytics,
         Failover failover,
-        FlowExecution flowExecution,
+        PatchableFlowExecution flowExecution,
         ApiServices services,
         Boolean allowedInApiProducts,
         boolean allowMultiJwtOauth2Subscriptions,
         boolean disableMembershipNotifications,
         List<Property> properties,
-        Map<String, Map<String, ResponseTemplate>> responseTemplates
-    ) {}
+        Map<String, Map<String, PatchableResponseTemplate>> responseTemplates
+    ) {
+        static PatchableView from(Api api, io.gravitee.definition.model.v4.Api httpV4) {
+            return new PatchableView(
+                api.getName(),
+                api.getDescription(),
+                api.getVersion(),
+                api.getVisibility() != null ? api.getVisibility().name() : null,
+                api.getLabels(),
+                httpV4.getTags(),
+                api.getApiLifecycleState() != null ? api.getApiLifecycleState().name() : null,
+                api.getCategories(),
+                PatchableAnalytics.from(httpV4.getAnalytics()),
+                httpV4.getFailover(),
+                PatchableFlowExecution.from(httpV4.getFlowExecution()),
+                httpV4.getServices(),
+                httpV4.getAllowedInApiProducts(),
+                api.isAllowMultiJwtOauth2Subscriptions(),
+                api.isDisableMembershipNotifications(),
+                httpV4.getProperties(),
+                toPatchableResponseTemplates(httpV4.getResponseTemplates())
+            );
+        }
+
+        private static Map<String, Map<String, PatchableResponseTemplate>> toPatchableResponseTemplates(
+            Map<String, Map<String, ResponseTemplate>> templates
+        ) {
+            if (templates == null) {
+                return null;
+            }
+            return templates
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e ->
+                        (e.getValue() == null ? Map.<String, ResponseTemplate>of() : e.getValue()).entrySet()
+                            .stream()
+                            .filter(inner -> inner.getValue() != null)
+                            .collect(Collectors.toMap(Map.Entry::getKey, inner -> PatchableResponseTemplate.from(inner.getValue())))
+                    )
+                );
+        }
+    }
 }
