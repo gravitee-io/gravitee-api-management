@@ -22,15 +22,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 
-/**
- * Entry point for {@code /portal/environments/{envId}/analytics/**} endpoints.
- *
- * <p>Acts as the single gate for the Next Gen Portal analytics feature: before routing to any sub-resource,
- * {@link PortalAnalyticsGate#requireAnalyticsEnabled} is invoked so every analytics endpoint (dashboards today,
- * computation tomorrow) inherits the {@code PORTAL_NEXT_ANALYTICS_ENABLED} check without repeating it.</p>
- *
- * @author GraviteeSource Team
- */
 public class PortalAnalyticsResource extends AbstractResource {
 
     @Context
@@ -43,5 +34,11 @@ public class PortalAnalyticsResource extends AbstractResource {
     public PortalAnalyticsDashboardsResource getDashboardsResource() {
         PortalAnalyticsGate.requireAnalyticsEnabled(parameterService);
         return resourceContext.getResource(PortalAnalyticsDashboardsResource.class);
+    }
+
+    @Path("/")
+    public PortalAnalyticsComputationResource getComputationResource() {
+        PortalAnalyticsGate.requireAnalyticsEnabled(parameterService);
+        return resourceContext.getResource(PortalAnalyticsComputationResource.class);
     }
 }

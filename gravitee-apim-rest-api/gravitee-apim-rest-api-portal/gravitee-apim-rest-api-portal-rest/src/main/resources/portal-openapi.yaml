@@ -3438,6 +3438,229 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /analytics/measures:
+        post:
+            tags:
+                - Analytics
+                - computation
+            summary: Query measures analytics
+            description: |
+                Return aggregated values for specified metrics within a time range.
+                Results are scoped to the APIs and applications the authenticated portal user is allowed to see.
+            operationId: queryMeasures
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AnalyticsMeasuresRequest"
+                        examples:
+                            single-metric:
+                                summary: Single metric with multiple measures request
+                                value:
+                                    timeRange:
+                                        from: "2025-01-01T00:00:00Z"
+                                        to: "2025-01-31T23:59:59Z"
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                            multiple-metrics:
+                                summary: Multiple metrics request
+                                value:
+                                    timeRange:
+                                        from: "2025-01-01T00:00:00Z"
+                                        to: "2025-01-31T23:59:59Z"
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                        - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                                          measures: ["AVG"]
+            responses:
+                200:
+                    description: Aggregated measures response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AnalyticsMeasuresResponse"
+                            examples:
+                                single-metric:
+                                    summary: Single metric with multiple values response
+                                    value:
+                                        metrics:
+                                            - name: "HTTP_REQUESTS"
+                                              measures:
+                                                  - name: "COUNT"
+                                                    value: 2984
+                                multiple-metrics:
+                                    summary: Multiple metrics response
+                                    value:
+                                        metrics:
+                                            - name: "HTTP_REQUESTS"
+                                              measures:
+                                                  - name: "COUNT"
+                                                    value: 2984
+                                            - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                                              measures:
+                                                  - name: "AVG"
+                                                    value: 89.5
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /analytics/facets:
+        post:
+            tags:
+                - Analytics
+                - computation
+            summary: Query facets analytics
+            description: |
+                Group data by facet values with optional ranging, sorting and limits.
+                Facet requests are limited to three dimensions in the `by` clause.
+                Results are scoped to the APIs and applications the authenticated portal user is allowed to see.
+            operationId: queryFacets
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AnalyticsFacetsRequest"
+                        examples:
+                            single-facet-with-sort:
+                                summary: Single facet with sort request
+                                value:
+                                    timeRange:
+                                        from: "2025-01-01T00:00:00Z"
+                                        to: "2025-01-31T23:59:59Z"
+                                    by: ["API"]
+                                    limit: 5
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                          sorts: [{ "measure": "COUNT", "order": "DESC" }]
+                            multiple-facets:
+                                summary: Multiple facets request
+                                value:
+                                    timeRange:
+                                        from: "2025-01-01T00:00:00Z"
+                                        to: "2025-01-31T23:59:59Z"
+                                    by: ["API", "APPLICATION"]
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+            responses:
+                200:
+                    description: Facets response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AnalyticsFacetsResponse"
+                            examples:
+                                facets-response:
+                                    summary: Nested facet buckets
+                                    value:
+                                        metrics:
+                                            - name: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              buckets:
+                                                  - key: "49ddd7db-35d6-497e-b497-2dc16af0cdcc"
+                                                    name: "api-1"
+                                                    type: GROUP
+                                                    buckets:
+                                                        - key: "e65289b0-35b2-40e7-8d41-711fba7fdc96"
+                                                          name: "app-1"
+                                                          type: LEAF
+                                                          measures:
+                                                              - name: "COUNT"
+                                                                value: 45
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /analytics/time-series:
+        post:
+            tags:
+                - Analytics
+                - computation
+            summary: Query time series analytics
+            description: |
+                Return data points over time with optional grouping by facets (up to two facet dimensions).
+                Results are scoped to the APIs and applications the authenticated portal user is allowed to see.
+            operationId: queryTimeSeries
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AnalyticsTimeSeriesRequest"
+                        examples:
+                            hourly-by-api:
+                                summary: Hourly series grouped by API
+                                value:
+                                    timeRange:
+                                        from: "2025-01-01T00:00:00Z"
+                                        to: "2025-01-31T23:59:59Z"
+                                    interval: 3600000
+                                    by: ["API"]
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                            shorthand-interval:
+                                summary: Interval as duration string
+                                value:
+                                    timeRange:
+                                        from: "2025-01-01T00:00:00Z"
+                                        to: "2025-01-31T23:59:59Z"
+                                    interval: "1h"
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+            responses:
+                200:
+                    description: Time-series response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AnalyticsTimeSeriesResponse"
+                            examples:
+                                time-series-response:
+                                    summary: Time buckets with nested facet leaves
+                                    value:
+                                        metrics:
+                                            - name: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              buckets:
+                                                  - key: "2025-01-01T00:00:00Z"
+                                                    timestamp: 1735689600000
+                                                    type: GROUP
+                                                    buckets:
+                                                        - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
+                                                          name: "api-1"
+                                                          type: LEAF
+                                                          measures:
+                                                              - name: "COUNT"
+                                                                value: 1234
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
     /auth/login:
         post:
             tags:
@@ -5906,6 +6129,200 @@ components:
                 y:
                     type: integer
                     format: int32
+        AnalyticsMetricName:
+            type: string
+            enum:
+                - HTTP_REQUESTS
+                - HTTP_ERRORS
+                - HTTP_ERROR_RATE
+                - HTTP_REQUEST_CONTENT_LENGTH
+                - HTTP_RESPONSE_CONTENT_LENGTH
+                - HTTP_ENDPOINT_RESPONSE_TIME
+                - HTTP_GATEWAY_RESPONSE_TIME
+                - HTTP_GATEWAY_LATENCY
+                - LLM_PROMPT_TOKEN_SENT
+                - LLM_PROMPT_TOKEN_RECEIVED
+                - LLM_PROMPT_TOKEN_SENT_COST
+                - LLM_PROMPT_TOKEN_RECEIVED_COST
+                - LLM_PROMPT_TOTAL_TOKEN
+                - LLM_PROMPT_TOKEN_TOTAL_COST
+                - MESSAGE_PAYLOAD_SIZE
+                - MESSAGES
+                - MESSAGE_ERRORS
+                - MESSAGE_GATEWAY_LATENCY
+            description: Available metric names for analytics queries
+        AnalyticsFacetName:
+            type: string
+            enum:
+                - API
+                - APPLICATION
+                - PLAN
+                - API_PRODUCT
+                - GATEWAY
+                - TENANT
+                - ZONE
+                - HTTP_METHOD
+                - HTTP_STATUS_CODE_GROUP
+                - HTTP_STATUS
+                - HTTP_PATH
+                - HTTP_PATH_MAPPING
+                - HOST
+                - GEO_IP_COUNTRY
+                - GEO_IP_REGION
+                - GEO_IP_CITY
+                - GEO_IP_CONTINENT
+                - CONSUMER_IP
+                - HTTP_USER_AGENT_OS_NAME
+                - HTTP_USER_AGENT_DEVICE
+                - MESSAGE_CONNECTOR_TYPE
+                - MESSAGE_CONNECTOR_ID
+                - MESSAGE_OPERATION_TYPE
+                - LLM_PROXY_MODEL
+                - LLM_PROXY_PROVIDER
+                - MCP_PROXY_METHOD
+                - MCP_PROXY_TOOL
+                - MCP_PROXY_RESOURCE
+                - MCP_PROXY_PROMPT
+            description: Available facet names for grouping analytics data
+        AnalyticsFilterName:
+            type: string
+            enum:
+                - API
+                - APPLICATION
+                - PLAN
+                - API_PRODUCT
+                - GATEWAY
+                - TENANT
+                - ZONE
+                - HTTP_METHOD
+                - HTTP_STATUS_CODE_GROUP
+                - HTTP_STATUS
+                - HTTP_PATH
+                - HTTP_PATH_MAPPING
+                - HOST
+                - GEO_IP_COUNTRY
+                - GEO_IP_REGION
+                - GEO_IP_CITY
+                - GEO_IP_CONTINENT
+                - CONSUMER_IP
+                - HTTP_USER_AGENT_OS_NAME
+                - HTTP_USER_AGENT_DEVICE
+                - MESSAGE_CONNECTOR_TYPE
+                - MESSAGE_CONNECTOR_ID
+                - MESSAGE_OPERATION_TYPE
+                - MESSAGE_SIZE
+                - MESSAGE_COUNT
+                - MESSAGE_ERROR_COUNT
+                - HTTP_ENDPOINT_RESPONSE_TIME
+                - HTTP_GATEWAY_LATENCY
+                - HTTP_GATEWAY_RESPONSE_TIME
+                - HTTP_REQUEST_CONTENT_LENGTH
+                - HTTP_RESPONSE_CONTENT_LENGTH
+                - LLM_PROXY_MODEL
+                - LLM_PROXY_PROVIDER
+                - MCP_PROXY_METHOD
+                - MCP_PROXY_TOOL
+                - MCP_PROXY_RESOURCE
+                - MCP_PROXY_PROMPT
+                - API_TYPE
+                - ERROR_KEY
+            description: Available filter names for filtering analytics data
+        AnalyticsFilterOperator:
+            type: string
+            enum:
+                - EQ
+                - IN
+                - LTE
+                - GTE
+            description: Filter operator
+        AnalyticsMeasureName:
+            type: string
+            enum:
+                - AVG
+                - MIN
+                - MAX
+                - P50
+                - P90
+                - P95
+                - P99
+                - COUNT
+                - PERCENTAGE
+            description: Measure / aggregation name
+            example: "COUNT"
+        AnalyticsUnitName:
+            type: string
+            enum:
+                - BYTES
+                - MILLISECONDS
+                - NUMBER
+                - PERCENT
+            description: Unit of measurement for metric values
+            example: "NUMBER"
+        AnalyticsInterval:
+            description: |
+                Interval for time-series queries as milliseconds (integer) or duration shorthand (`10s`, `1m`, `5h`, `1d`),
+                aligned with the Management API analytics contract.
+            oneOf:
+                - type: string
+                  pattern: ^\d+[smhd]$
+                  example: "1h"
+                - type: integer
+                  format: int64
+                  description: Interval in milliseconds
+                  example: 3600000
+        AnalyticsFilter:
+            description: |
+                Typed filter for analytics queries (same semantics as the Management API).
+            oneOf:
+                - $ref: "#/components/schemas/AnalyticsStringFilter"
+                - $ref: "#/components/schemas/AnalyticsNumberFilter"
+                - $ref: "#/components/schemas/AnalyticsArrayFilter"
+            discriminator:
+                propertyName: operator
+                mapping:
+                    EQ: "#/components/schemas/AnalyticsStringFilter"
+                    IN: "#/components/schemas/AnalyticsArrayFilter"
+                    LTE: "#/components/schemas/AnalyticsNumberFilter"
+                    GTE: "#/components/schemas/AnalyticsNumberFilter"
+            example:
+                name: "API"
+                operator: "EQ"
+                value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
+        AnalyticsStringFilter:
+            description: Filter for string values (operator EQ)
+            type: object
+            required: [name, operator, value]
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsFilterName"
+                operator:
+                    $ref: "#/components/schemas/AnalyticsFilterOperator"
+                value:
+                    type: string
+        AnalyticsNumberFilter:
+            description: Filter for numeric values (operators LTE, GTE)
+            type: object
+            required: [name, operator, value]
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsFilterName"
+                operator:
+                    $ref: "#/components/schemas/AnalyticsFilterOperator"
+                value:
+                    type: number
+        AnalyticsArrayFilter:
+            description: Filter for array values (operator IN)
+            type: object
+            required: [name, operator, value]
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsFilterName"
+                operator:
+                    $ref: "#/components/schemas/AnalyticsFilterOperator"
+                value:
+                    type: array
+                    items:
+                        type: string
         AnalyticsWidgetRequest:
             properties:
                 type:
@@ -5915,26 +6332,32 @@ components:
                     $ref: "#/components/schemas/AnalyticsTimeRange"
                 metrics:
                     type: array
+                    minItems: 1
                     items:
                         $ref: "#/components/schemas/AnalyticsMetricRequest"
                 interval:
-                    description: Interval in milliseconds for time-series widgets.
-                    type: integer
-                    format: int64
+                    $ref: "#/components/schemas/AnalyticsInterval"
                 by:
                     description: Facets used to group analytics data.
                     type: array
+                    maxItems: 3
                     items:
-                        type: string
+                        $ref: "#/components/schemas/AnalyticsFacetName"
                 limit:
                     description: Maximum number of buckets to return.
                     type: integer
                     format: int32
+                    minimum: 1
                 filters:
                     type: array
                     items:
                         $ref: "#/components/schemas/AnalyticsFilter"
         AnalyticsTimeRange:
+            type: object
+            required:
+                - from
+                - to
+            description: Time range for analytics queries
             properties:
                 from:
                     type: string
@@ -5943,30 +6366,20 @@ components:
                     type: string
                     format: date-time
         AnalyticsMetricRequest:
+            type: object
+            required:
+                - name
             properties:
                 name:
-                    description: Analytics metric identifier.
-                    type: string
+                    $ref: "#/components/schemas/AnalyticsMetricName"
                 measures:
-                    description: Measures requested for the metric.
                     type: array
                     items:
-                        type: string
+                        $ref: "#/components/schemas/AnalyticsMeasureName"
                 filters:
                     type: array
                     items:
                         $ref: "#/components/schemas/AnalyticsFilter"
-        AnalyticsFilter:
-            properties:
-                name:
-                    description: Analytics filter identifier.
-                    type: string
-                operator:
-                    description: Operator applied to the filter.
-                    type: string
-                value:
-                    description: Value applied to the filter.
-                    type: object
         AnalyticsWidgetType:
             type: string
             enum:
@@ -5978,6 +6391,346 @@ components:
                 - time-series-bar
                 - vertical-bar
                 - horizontal-bar
+        AnalyticsMeasuresRequest:
+            description: |
+                Request for aggregated measures over a time range. Each entry in `metrics` describes
+                a metric and the list of measures to compute for it. Top-level `filters` apply to all
+                metrics; metric-level filters refine a specific metric.
+            type: object
+            required:
+                - timeRange
+                - metrics
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/AnalyticsTimeRange"
+                filters:
+                    description: Top-level filters applied to every metric.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+                metrics:
+                    description: Metrics to compute measures for.
+                    type: array
+                    minItems: 1
+                    items:
+                        $ref: "#/components/schemas/AnalyticsComputationMetricRequest"
+        AnalyticsFacetsRequest:
+            description: |
+                Request for measures grouped by one or more facet dimensions. The `by` array controls
+                the grouping order and produces a tree of buckets in the response. Up to three facet dimensions.
+            type: object
+            required:
+                - timeRange
+                - by
+                - metrics
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/AnalyticsTimeRange"
+                by:
+                    description: Facet dimensions to group by. Applies to all metrics.
+                    type: array
+                    minItems: 1
+                    maxItems: 3
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFacetName"
+                limit:
+                    description: Maximum number of buckets to return.
+                    type: integer
+                    format: int32
+                    minimum: 1
+                filters:
+                    description: Top-level filters applied to every metric.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+                metrics:
+                    description: Metrics to compute facets for. May carry metric-level filters and sorts.
+                    type: array
+                    minItems: 1
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFacetMetricRequest"
+                ranges:
+                    description: Optional numeric ranges to bucket values into (applied to the last facet).
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsNumberRange"
+        AnalyticsTimeSeriesRequest:
+            description: |
+                Request for measures spread over time, optionally grouped by facets (at most two facet dimensions).
+            type: object
+            required:
+                - timeRange
+                - interval
+                - metrics
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/AnalyticsTimeRange"
+                interval:
+                    $ref: "#/components/schemas/AnalyticsInterval"
+                by:
+                    description: Facet dimensions to nest inside each time bucket.
+                    type: array
+                    maxItems: 2
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFacetName"
+                limit:
+                    description: Maximum number of nested buckets to return.
+                    type: integer
+                    format: int32
+                    minimum: 1
+                filters:
+                    description: Top-level filters applied to every metric.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+                metrics:
+                    description: Metrics to compute time series for. May carry metric-level filters and sorts.
+                    type: array
+                    minItems: 1
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFacetMetricRequest"
+                ranges:
+                    description: Optional numeric ranges to bucket values into (applied to the last facet).
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsNumberRange"
+        AnalyticsComputationMetricRequest:
+            description: A metric request for a measures query (no grouping or sorting).
+            type: object
+            required:
+                - name
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsMetricName"
+                measures:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMeasureName"
+                filters:
+                    description: Metric-level filters.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+        AnalyticsFacetMetricRequest:
+            description: A metric request for faceted/time-series queries with optional sorts.
+            type: object
+            required:
+                - name
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsMetricName"
+                measures:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMeasureName"
+                filters:
+                    description: Metric-level filters.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFilter"
+                sorts:
+                    description: Sort criteria applied to the last facet.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsSort"
+        AnalyticsSort:
+            description: Sort criteria over a measure.
+            type: object
+            required:
+                - measure
+                - order
+            properties:
+                measure:
+                    $ref: "#/components/schemas/AnalyticsMeasureName"
+                order:
+                    type: string
+                    enum:
+                        - ASC
+                        - DESC
+                    description: Sort direction
+        AnalyticsNumberRange:
+            description: A numeric range used to break down facet buckets.
+            type: object
+            required:
+                - from
+                - to
+            properties:
+                from:
+                    type: number
+                to:
+                    type: number
+        AnalyticsMeasure:
+            description: A single measure value.
+            type: object
+            required:
+                - name
+                - value
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsMeasureName"
+                value:
+                    description: Measure value.
+                    type: number
+        AnalyticsMeasuresResponse:
+            description: Response containing one entry per metric with their aggregated measures.
+            type: object
+            required:
+                - metrics
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMeasuresResponseMetric"
+        AnalyticsMeasuresResponseMetric:
+            description: Aggregated measures for a single metric.
+            type: object
+            required:
+                - name
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsMetricName"
+                unit:
+                    $ref: "#/components/schemas/AnalyticsUnitName"
+                measures:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMeasure"
+        AnalyticsFacetsResponse:
+            description: Response containing one entry per metric with their faceted buckets.
+            type: object
+            required:
+                - metrics
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsFacetsResponseMetric"
+        AnalyticsFacetsResponseMetric:
+            description: Faceted buckets for a single metric.
+            type: object
+            required:
+                - name
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsMetricName"
+                unit:
+                    $ref: "#/components/schemas/AnalyticsUnitName"
+                buckets:
+                    $ref: "#/components/schemas/AnalyticsFacetBucketList"
+        AnalyticsFacetBucket:
+            description: Facet bucket node — either a leaf with measures or a group with nested buckets.
+            oneOf:
+                - $ref: "#/components/schemas/AnalyticsFacetBucketLeaf"
+                - $ref: "#/components/schemas/AnalyticsFacetBucketGroup"
+            discriminator:
+                propertyName: type
+                mapping:
+                    LEAF: "#/components/schemas/AnalyticsFacetBucketLeaf"
+                    GROUP: "#/components/schemas/AnalyticsFacetBucketGroup"
+        AnalyticsFacetBucketLeaf:
+            description: Leaf facet bucket with measure values.
+            type: object
+            required: [key, name, type, measures]
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                type:
+                    type: string
+                    enum: [LEAF]
+                measures:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMeasure"
+        AnalyticsFacetBucketGroup:
+            description: Group facet bucket containing nested buckets.
+            type: object
+            required: [key, name, type, buckets]
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                type:
+                    type: string
+                    enum: [GROUP]
+                buckets:
+                    $ref: "#/components/schemas/AnalyticsFacetBucketList"
+        AnalyticsFacetBucketList:
+            type: array
+            items:
+                $ref: "#/components/schemas/AnalyticsFacetBucket"
+        AnalyticsTimeSeriesResponse:
+            description: Response containing one entry per metric with their time-series buckets.
+            type: object
+            required:
+                - metrics
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsTimeSeriesResponseMetric"
+        AnalyticsTimeSeriesResponseMetric:
+            description: Time-series buckets for a single metric.
+            type: object
+            required:
+                - name
+            properties:
+                name:
+                    $ref: "#/components/schemas/AnalyticsMetricName"
+                unit:
+                    $ref: "#/components/schemas/AnalyticsUnitName"
+                buckets:
+                    $ref: "#/components/schemas/AnalyticsTimeSeriesBucketList"
+        AnalyticsTimeSeriesBucket:
+            description: Time-series bucket — leaf with measures at a timestamp or group nesting facet buckets.
+            oneOf:
+                - $ref: "#/components/schemas/AnalyticsTimeSeriesBucketLeaf"
+                - $ref: "#/components/schemas/AnalyticsTimeSeriesBucketGroup"
+            discriminator:
+                propertyName: type
+                mapping:
+                    LEAF: "#/components/schemas/AnalyticsTimeSeriesBucketLeaf"
+                    GROUP: "#/components/schemas/AnalyticsTimeSeriesBucketGroup"
+        AnalyticsTimeSeriesBucketLeaf:
+            description: Time-series leaf bucket.
+            type: object
+            required: [key, timestamp, type, measures]
+            properties:
+                type:
+                    type: string
+                    enum: [LEAF]
+                key:
+                    type: string
+                    format: date-time
+                timestamp:
+                    type: integer
+                    format: int64
+                measures:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AnalyticsMeasure"
+        AnalyticsTimeSeriesBucketGroup:
+            description: Time-series group bucket with nested facet buckets.
+            type: object
+            required: [key, timestamp, type, buckets]
+            properties:
+                type:
+                    type: string
+                    enum: [GROUP]
+                key:
+                    type: string
+                    format: date-time
+                timestamp:
+                    type: integer
+                    format: int64
+                buckets:
+                    $ref: "#/components/schemas/AnalyticsFacetBucketList"
+        AnalyticsTimeSeriesBucketList:
+            type: array
+            items:
+                $ref: "#/components/schemas/AnalyticsTimeSeriesBucket"
         Info:
             properties:
                 name:
