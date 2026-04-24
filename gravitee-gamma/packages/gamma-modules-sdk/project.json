@@ -3,5 +3,14 @@
     "$schema": "../../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "gravitee-gamma/packages/gamma-modules-sdk/src",
     "projectType": "library",
-    "tags": []
+    "tags": [],
+    "targets": {
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "gravitee-gamma/packages/gamma-modules-sdk/jest.config.ts"
+            }
+        }
+    }
 }
