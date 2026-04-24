@@ -20,6 +20,9 @@
   <h4 class="next-gen-h4 members__title" data-testid="members-section-title" i18n="@@applicationMembersTitle">
     Members ({{ totalElements() }})
   </h4>
+  @if (error(); as errorText) {
+    <p class="members__error next-gen-small" data-testid="members-delete-error" role="alert">{{ errorText }}</p>
+  }
   @if (membersResource.isLoading()) {
     <app-loader />
   } @else if (membersResource.error()) {
@@ -44,9 +47,10 @@
       [currentPage]="currentPage()"
       [pageSize]="pageSize()"
       [navigable]="false"
-      [actions]="actions"
+      [actions]="actions()"
       (pageChange)="onPageChange($event)"
       (pageSizeChange)="onPageSizeChange($event)"
+      (actionClick)="onActionClick($event)"
     >
       <ng-template appTableCell="name" let-row>
         <app-user-cell [user]="row.user" [isCurrentUser]="row.isCurrentUser" />

@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialogModule } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { ApplicationTabMembersComponent } from './application-tab-members.component';
 import { ApplicationTabMembersComponentHarness } from './application-tab-members.component.harness';
+import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/confirm-dialog.harness';
 import { MembersResponse } from '../../../../entities/member/member';
 import { fakeMember, fakeMembersResponse } from '../../../../entities/member/member.fixtures';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
@@ -34,11 +39,12 @@ const CURRENT_USER_ID = 'current-user-id';
 describe('ApplicationTabMembersComponent', () => {
   let fixture: ComponentFixture<ApplicationTabMembersComponent>;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
   const applicationId = 'app-1';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabMembersComponent],
+      imports: [ApplicationTabMembersComponent, ConfirmDialogComponent, MatDialogModule],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -47,10 +53,13 @@ describe('ApplicationTabMembersComponent', () => {
         { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
         { provide: CurrentUserService, useValue: { user: () => ({ id: CURRENT_USER_ID }) } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true } })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApplicationTabMembersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.componentRef.setInput('applicationId', applicationId);
     fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
   });
@@ -137,7 +146,7 @@ describe('ApplicationTabMembersComponent', () => {
     expect(await harness.getPaginatedTable()).toBeNull();
   });
 
-  it('should render no action buttons in phase 01', async () => {
+  it('should not show delete button when user lacks MEMBER[D] permission', async () => {
     const harness = await flush(fakeMembersResponse([fakeMember(), fakeMember({ id: 'member-2', role: 'PRIMARY_OWNER' })]));
     const table = await harness.getPaginatedTable();
     const actions = await table!.getActionButtons();
@@ -308,6 +317,84 @@ describe('ApplicationTabMembersComponent', () => {
     it('should not mark other roles as PRIMARY_OWNER', async () => {
       const harness = await flush(fakeMembersResponse([fakeMember({ role: 'USER' })]));
       expect(await harness.isPrimaryOwnerRoleVisible()).toBe(false);
+    });
+  });
+
+  describe('delete action', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+    });
+
+    it('should show delete button when user has MEMBER[D] permission', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      const table = await harness.getPaginatedTable();
+      const deleteButton = await table!.getActionButton('delete');
+      expect(deleteButton).not.toBeNull();
+    });
+
+    it('should hide delete button for PRIMARY_OWNER', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember({ role: 'PRIMARY_OWNER' })]));
+      const table = await harness.getPaginatedTable();
+      const deleteButton = await table!.getActionButton('delete');
+      expect(deleteButton).toBeNull();
+    });
+
+    it('should disable delete button for current user', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember({ user: { id: CURRENT_USER_ID, _links: {} } })]));
+      const table = await harness.getPaginatedTable();
+      const deleteButton = await table!.getActionButton('delete');
+      expect(await deleteButton!.isDisabled()).toBe(true);
+    });
+
+    it('should not disable delete button for other members', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      const table = await harness.getPaginatedTable();
+      const deleteButton = await table!.getActionButton('delete');
+      expect(await deleteButton!.isDisabled()).toBe(false);
+    });
+
+    it('should open confirmation dialog on delete click', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      const table = await harness.getPaginatedTable();
+      await table!.getActionButton('delete').then(btn => btn!.click());
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      expect(dialog).not.toBeNull();
+    });
+
+    it('should send DELETE request and reload list on confirm', async () => {
+      const member = fakeMember({ id: 'member-1' });
+      const harness = await flush(fakeMembersResponse([member]));
+      const table = await harness.getPaginatedTable();
+      await table!.getActionButton('delete').then(btn => btn!.click());
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.confirm();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/${member.id}` && r.method === 'DELETE')
+        .flush(null, { status: 204, statusText: 'No Content' });
+      fixture.detectChanges();
+
+      // reload() triggers a new _search request; flush it before calling whenStable()
+      httpTestingController.expectOne(r => r.url.includes('members/_search')).flush(fakeMembersResponse([member]));
+      await fixture.whenStable();
+    });
+
+    it('should not send DELETE request when dialog is cancelled', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      const table = await harness.getPaginatedTable();
+      await table!.getActionButton('delete').then(btn => btn!.click());
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.cancel();
+      fixture.detectChanges();
+
+      httpTestingController.expectNone(r => r.method === 'DELETE');
     });
   });
 });

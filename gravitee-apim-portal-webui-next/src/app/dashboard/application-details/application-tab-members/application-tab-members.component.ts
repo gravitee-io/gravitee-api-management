@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
+import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { EMPTY, of, switchMap, tap } from 'rxjs';
 
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableAction, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
 import { TableCellDirective } from '../../../../components/paginated-table/table-cell.directive';
@@ -45,13 +47,15 @@ interface MembersRequestParams {
 @Component({
   selector: 'app-application-tab-members',
   standalone: true,
-  imports: [LoaderComponent, PaginatedTableComponent, SearchBarComponent, TableCellDirective, UserCellComponent],
+  imports: [LoaderComponent, MatDialogModule, PaginatedTableComponent, SearchBarComponent, TableCellDirective, UserCellComponent],
   templateUrl: './application-tab-members.component.html',
   styleUrl: './application-tab-members.component.scss',
 })
 export class ApplicationTabMembersComponent {
   private readonly membershipService = inject(MembershipService);
   private readonly currentUserService = inject(CurrentUserService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly applicationId = input.required<string>();
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
@@ -59,16 +63,30 @@ export class ApplicationTabMembersComponent {
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
   readonly searchTerm = signal('');
+  readonly error = signal<string | null>(null);
 
   readonly tableColumns: TableColumn[] = [
     { id: 'name', label: $localize`:@@memberColumnName:Name` },
     { id: 'role', label: $localize`:@@memberColumnRole:Role` },
   ];
 
-  // Empty in phase 01; update/delete will be added in phase 02 (APIM-12770).
-  readonly actions: TableAction<MemberTableRow>[] = [];
-
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
+
+  readonly actions = computed<TableAction<MemberTableRow>[]>(() =>
+    this.canDelete()
+      ? [
+          {
+            id: 'delete',
+            icon: 'delete_outline',
+            ariaLabel: $localize`:@@deleteMemberAriaLabel:Delete member`,
+            color: 'warn',
+            isVisible: (row: MemberTableRow) => !row.isPrimaryOwner,
+            isDisabled: (row: MemberTableRow) => row.isCurrentUser,
+          },
+        ]
+      : [],
+  );
 
   protected readonly membersResource = rxResource<MembersResponse | undefined, MembersRequestParams | null>({
     params: () =>
@@ -112,6 +130,35 @@ export class ApplicationTabMembersComponent {
   onSearchTermChange(term: string): void {
     this.searchTerm.set(term);
     this.currentPage.set(1);
+  }
+
+  onActionClick({ actionId, row }: { actionId: string; row: MemberTableRow }): void {
+    if (actionId === 'delete') {
+      this.openDeleteConfirmation(row);
+    }
+  }
+
+  private openDeleteConfirmation(member: MemberTableRow): void {
+    this.error.set(null);
+    this.matDialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        data: {
+          title: $localize`:@@deleteMemberDialogTitle:Delete member?`,
+          content: $localize`:@@deleteMemberDialogContent:Are you sure you want to remove ${member.user.displayName}:memberName: from this application? They will lose all access.`,
+          confirmLabel: $localize`:@@deleteMemberDialogConfirm:Delete`,
+          cancelLabel: $localize`:@@deleteMemberDialogCancel:Cancel`,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap(confirmed => (confirmed ? this.membershipService.deleteApplicationMember(this.applicationId(), member.id) : EMPTY)),
+        tap(() => this.membersResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        error: () => this.error.set($localize`:@@deleteMemberError:An error occurred while removing the member. Please try again.`),
+      });
   }
 
   private toRow(member: Member): MemberTableRow {

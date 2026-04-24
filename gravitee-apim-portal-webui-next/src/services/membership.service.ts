@@ -34,4 +34,8 @@ export class MembershipService {
       { params: { page, size } },
     );
   }
+
+  deleteApplicationMember(applicationId: string, memberId: string): Observable<void> {
+    return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/members/${memberId}`);
+  }
 }
