@@ -288,7 +288,7 @@ tests:
           pattern: "proxyPath:[\\S\\s\\n]*management: /custom-management[\\S\\s\\n]*portal: /custom-portal"
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: "proxyPath:\n\s+management: /custom-management\n\s+portal: /custom-portal\n\s+gamma: /gamma"
+          pattern: "proxyPath:\\n\\s+management: /custom-management\\n\\s+portal: /custom-portal\\n\\s+gamma: /gamma"
 
   - it: Set installation proxyPath.gamma from gamma httpRoute when ingress is disabled
     template: api/api-configmap.yaml
