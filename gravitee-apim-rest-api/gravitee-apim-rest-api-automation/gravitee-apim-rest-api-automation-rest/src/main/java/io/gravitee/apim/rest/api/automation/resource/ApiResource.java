@@ -153,20 +153,6 @@ public class ApiResource extends AbstractResource {
         return Response.noContent().build();
     }
 
-    private static AuditInfo buildAuditInfo(ExecutionContext executionContext, UserDetails userDetails) {
-        return AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
-    }
-
     private static void setPageParentAndGeneralConditionsHRIDs(ApiCRDSpec api) {
         Map<String, String> pageIDsToHrid = new HashMap<>();
         if (api.getPages() != null) {

@@ -22,8 +22,6 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
@@ -83,20 +81,10 @@ public class ApisResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+        var auditInfo = buildAuditInfo(executionContext, userDetails);
 
         checkPlanAndPagesUnicity(spec);
-        SharedPolicyGroupIdHelper.addSharedPolicyGroupIdFromHrid(spec, audit);
+        SharedPolicyGroupIdHelper.addSharedPolicyGroupIdFromHrid(spec, auditInfo);
 
         ApiCRDSpec apiCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(
             ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
@@ -112,28 +100,28 @@ public class ApisResource extends AbstractResource {
         } else {
             // Generate deterministic CRD IDs for API, plans, and pages based on HRID and environment context.
             // This ensures stable, unique identifiers for resources imported via CRD without legacy ID compatibility.
-            CrdIdHelper.generateApiIds(apiCRDSpec, audit);
-            CrdIdHelper.generatePlanIds(apiCRDSpec.getPlans(), apiCRDSpec.getHrid(), audit);
-            CrdIdHelper.generatePageIds(apiCRDSpec.getPages(), apiCRDSpec.getHrid(), audit);
+            CrdIdHelper.generateApiIds(apiCRDSpec, auditInfo);
+            CrdIdHelper.generatePlanIds(apiCRDSpec.getPlans(), apiCRDSpec.getHrid(), auditInfo);
+            CrdIdHelper.generatePageIds(apiCRDSpec.getPages(), apiCRDSpec.getHrid(), auditInfo);
         }
 
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
             validateApiCRDDomainService
-                .validateAndSanitize(new ValidateApiCRDDomainService.Input(audit, apiCRDSpec))
+                .validateAndSanitize(new ValidateApiCRDDomainService.Input(auditInfo, apiCRDSpec))
                 .peek(
                     sanitized ->
                         statusBuilder
                             .id(sanitized.spec().getId())
                             .crossId(sanitized.spec().getCrossId())
-                            .organizationId(audit.organizationId())
-                            .environmentId(audit.environmentId()),
+                            .organizationId(auditInfo.organizationId())
+                            .environmentId(auditInfo.environmentId()),
                     errors -> statusBuilder.errors(ApiCRDStatus.Errors.fromErrorList(errors))
                 );
             return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, statusBuilder.build())).build();
         }
 
-        ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(audit, apiCRDSpec)).status();
+        ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(auditInfo, apiCRDSpec)).status();
 
         SharedPolicyGroupIdHelper.removeSharedPolicyGroupId(spec);
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();

@@ -122,5 +122,9 @@ public final class HRIDToUUID {
         public String id() {
             return UuidString.generateFrom(apiCrossId, environmentId, extraHrid);
         }
+
+        public String crossId() {
+            return UuidString.generateFrom(apiCrossId, extraHrid);
+        }
     }
 }

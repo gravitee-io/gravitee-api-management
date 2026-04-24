@@ -54,7 +54,7 @@ public class CrdIdHelper {
             if (planCRD.getId() == null) {
                 var idGenerator = HRIDToUUID.plan().context(audit).api(apiHrid).plan(key);
                 planCRD.setId(idGenerator.id());
-                planCRD.setCrossId(idGenerator.apiCrossId());
+                planCRD.setCrossId(idGenerator.crossId());
             }
             if (
                 (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
@@ -72,6 +72,7 @@ public class CrdIdHelper {
         pages.forEach((key, pageCRD) -> {
             if (pageCRD.getId() == null) {
                 pageCRD.setId(HRIDToUUID.page().context(audit).api(apiHrid).page(key).id());
+                pageCRD.setCrossId(HRIDToUUID.page().context(audit).api(apiHrid).page(key).crossId());
             }
             if (pageCRD.getParentId() == null && pageCRD.getParentHrid() != null) {
                 pageCRD.setParentId(HRIDToUUID.page().context(audit).api(apiHrid).page(pageCRD.getParentHrid()).id());

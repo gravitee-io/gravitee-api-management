@@ -48,9 +48,20 @@
     "lifecycleState": "PUBLISHED",
     "visibility": "PUBLIC",
     "flows": [],
+    "pages": [
+      {
+        "id": "ed99bc1a-8ee2-481e-9af2-6cd182a2e265",
+        "crossId": "add2db35-55fd-4564-afb3-eda4f1833a57",
+        "hrid": "default-page",
+        "name": "Default page",
+        "type": "MARKDOWN",
+        "content": "Default page content"
+      }
+    ],
     "plans": [
         {
             "id": "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24",
+            "crossId": "283cdefc-b3a4-49f3-999f-446bea0a0b37",
             "hrid": "KEY_LESS",
             "name": "Keyless plan",
             "description": "No authentication",
