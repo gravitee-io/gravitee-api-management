@@ -53,6 +53,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -301,6 +302,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .properties(List.of(new Property()))
             .resources(List.of(new Resource()))
             .updatedAt(Instant.now())
+            .analytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(true).build())
             .endpointGroups(List.of(endpointGroup))
             .flows(List.of(flow))
             .build();
@@ -584,6 +586,10 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         var conditionSelector = flow.getSelectors().get(2).getConditionSelector();
         assertThat(conditionSelector.getCondition()).isEqualTo("my-condition");
+
+        // reporterMetricsEnabled is Native-only; must not appear on HTTP v4 exports.
+        assertThat(responseApi.getAnalytics()).isNotNull();
+        assertThat(responseApi.getAnalytics().getReporterMetricsEnabled()).isNull();
     }
 
     private void testReturnedNativeApi(ApiV4 responseApi) {
@@ -627,6 +633,10 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(step.getCondition()).isEqualTo("my-condition");
 
         assertThat(flow.getSelectors()).isNotNull().isEmpty();
+
+        // reporterMetricsEnabled is Native-only; Native exports must carry it.
+        assertThat(responseApi.getAnalytics()).isNotNull();
+        assertThat(responseApi.getAnalytics().getReporterMetricsEnabled()).isEqualTo(true);
     }
 
     private void testReturnedMembers(Set<Member> members) {

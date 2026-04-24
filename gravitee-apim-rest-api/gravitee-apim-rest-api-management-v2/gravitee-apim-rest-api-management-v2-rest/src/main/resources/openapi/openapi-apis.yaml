@@ -3256,9 +3256,9 @@ components:
                 reporterMetricsEnabled:
                     type: boolean
                     description: |-
-                        Enable the connection-metrics reporter on the gateway. Only applies to Native v4 APIs. For HTTP v4 APIs this field is silently discarded by the server.
+                        Enable the connection-metrics reporter on the gateway. Only applicable to Native v4 APIs; ignored on HTTP v4 requests and omitted from HTTP v4 responses.
+                        Server-side default for Native v4 on create is `true`.
                         Independent of the parent `enabled` flag: event-metrics reporting and the connection-metrics reporter are gated separately.
-                    default: true
         Api:
             oneOf:
                 - $ref: "#/components/schemas/ApiV2"

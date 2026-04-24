@@ -132,6 +132,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
     @Mapping(target = "listeners", source = "apiEntity.apiDefinitionNativeV4.listeners")
+    @Mapping(target = "analytics", source = "apiEntity.apiDefinitionNativeV4.analytics")
     @Mapping(target = "flows", source = "apiEntity.apiDefinitionNativeV4.flows")
     @Mapping(target = "properties", source = "apiEntity.apiDefinitionNativeV4.properties")
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionNativeV4.resources")
