@@ -41,6 +41,9 @@ import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransfor
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
@@ -1289,6 +1292,21 @@ public class ResourceContextConfiguration {
     @Bean
     public GetDashboardUseCase getDashboardUseCase() {
         return mock(GetDashboardUseCase.class);
+    }
+
+    @Bean
+    public ComputeMeasuresUseCase computeMeasuresUseCase() {
+        return mock(ComputeMeasuresUseCase.class);
+    }
+
+    @Bean
+    public ComputeFacetsUseCase computeFacetsUseCase() {
+        return mock(ComputeFacetsUseCase.class);
+    }
+
+    @Bean
+    public ComputeTimeSeriesUseCase computeTimeSeriesUseCase() {
+        return mock(ComputeTimeSeriesUseCase.class);
     }
 
     @Bean

@@ -98,9 +98,15 @@
                                 <dateLibrary>java8</dateLibrary>
                                 <enumPropertyNaming>legacy</enumPropertyNaming>
                                 <useBeanValidation>true</useBeanValidation>
+                                <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
+                                <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>
                             </configOptions>
+                            <importMappings>
+                                <importMapping>AnalyticsInterval=io.gravitee.rest.api.portal.rest.model.CustomInterval</importMapping>
+                            </importMappings>
                             <typeMappings>
                                 <typeMapping>BigDecimal=Number</typeMapping>
+                                <typeMapping>AnalyticsInterval=CustomInterval</typeMapping>
                             </typeMappings>
                             <globalProperties>
                                 <skipFormModel>false</skipFormModel>
