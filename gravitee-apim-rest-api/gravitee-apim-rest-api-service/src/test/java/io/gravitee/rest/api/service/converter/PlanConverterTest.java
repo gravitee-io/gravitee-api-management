@@ -66,7 +66,7 @@ public class PlanConverterTest {
         assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
         assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
-        assertEquals(plan.getApi(), planEntity.getApi());
+        assertEquals(plan.getReferenceId(), planEntity.getApi());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(plan.getSecurity().name(), planEntity.getSecurity().name());
         assertSame(flows, planEntity.getFlows());
