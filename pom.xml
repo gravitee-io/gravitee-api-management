@@ -142,7 +142,6 @@
         <owasp-java-html-sanitizer.version>20260102.1</owasp-java-html-sanitizer.version>
         <postgresql.version>42.7.7</postgresql.version>
         <reactor-adapter.version>3.5.2</reactor-adapter.version>
-        <hazelcast.version>5.5.0</hazelcast.version>
         <reactor-core.version>3.7.4</reactor-core.version>
         <slf4j2-mock.version>2.4.0</slf4j2-mock.version>
         <snakeyaml.version>2.4</snakeyaml.version>
