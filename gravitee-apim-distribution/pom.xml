@@ -2470,7 +2470,7 @@
 
                 <dependency>
                     <groupId>io.gravitee.node</groupId>
-                    <artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
+                    <artifactId>gravitee-node-plugin-hazelcast</artifactId>
                     <version>${gravitee-node.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
