@@ -66,6 +66,7 @@ public interface GroupMapper {
 
     default GroupState groupToGroupState(Group group, Set<GroupCRDSpec.Member> members) {
         GroupSpec spec = new GroupSpec();
+        spec.setHrid(group.getHrid());
         spec.setName(group.getName());
         spec.setNotifyMembers(!group.isDisableMembershipNotifications());
         spec.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : List.of());

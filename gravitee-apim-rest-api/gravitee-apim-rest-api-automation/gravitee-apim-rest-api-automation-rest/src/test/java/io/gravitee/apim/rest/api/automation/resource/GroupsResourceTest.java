@@ -63,6 +63,7 @@ class GroupsResourceTest extends AbstractResourceTest {
             var state = expectEntity("group-with-name.json");
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getStatus().getId()).isEqualTo("group-id");
+                soft.assertThat(state.getSpec().getHrid()).isEqualTo("my-group");
                 soft.assertThat(state.getSpec().getName()).isEqualTo("my-group");
                 soft.assertThat(state.getSpec().getNotifyMembers()).isTrue();
             });

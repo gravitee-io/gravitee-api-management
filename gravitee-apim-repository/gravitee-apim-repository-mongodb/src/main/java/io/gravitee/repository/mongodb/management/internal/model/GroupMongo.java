@@ -35,6 +35,7 @@ public class GroupMongo extends DeprecatedAuditable {
 
     private String environmentId;
     private String name;
+    private String hrid;
     private List<String> administrators;
     private List<GroupEventRuleMongo> eventRules;
     private Integer maxInvitation;

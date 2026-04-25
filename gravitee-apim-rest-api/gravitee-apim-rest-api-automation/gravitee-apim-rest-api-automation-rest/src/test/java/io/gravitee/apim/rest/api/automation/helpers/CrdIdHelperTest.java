@@ -33,8 +33,8 @@ class CrdIdHelperTest {
     class GenerateGroupId {
 
         @Test
-        void should_generate_id_from_name() {
-            var spec = GroupCRDSpec.builder().name("my-group").build();
+        void should_generate_id_from_hrid() {
+            var spec = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
 
             CrdIdHelper.generateGroupId(spec, AUDIT_INFO);
 
@@ -44,7 +44,7 @@ class CrdIdHelperTest {
         @Test
         void should_not_override_existing_id() {
             var existingId = "existing-uuid";
-            var spec = GroupCRDSpec.builder().id(existingId).name("my-group").build();
+            var spec = GroupCRDSpec.builder().id(existingId).hrid("my-group").name("My Group").build();
 
             CrdIdHelper.generateGroupId(spec, AUDIT_INFO);
 
@@ -53,8 +53,8 @@ class CrdIdHelperTest {
 
         @Test
         void should_generate_deterministic_id() {
-            var spec1 = GroupCRDSpec.builder().name("my-group").build();
-            var spec2 = GroupCRDSpec.builder().name("my-group").build();
+            var spec1 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
+            var spec2 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
 
             CrdIdHelper.generateGroupId(spec1, AUDIT_INFO);
             CrdIdHelper.generateGroupId(spec2, AUDIT_INFO);
@@ -63,9 +63,9 @@ class CrdIdHelperTest {
         }
 
         @Test
-        void should_generate_different_ids_for_different_names() {
-            var spec1 = GroupCRDSpec.builder().name("group-a").build();
-            var spec2 = GroupCRDSpec.builder().name("group-b").build();
+        void should_generate_different_ids_for_different_hrids() {
+            var spec1 = GroupCRDSpec.builder().hrid("group-a").name("Group A").build();
+            var spec2 = GroupCRDSpec.builder().hrid("group-b").name("Group B").build();
 
             CrdIdHelper.generateGroupId(spec1, AUDIT_INFO);
             CrdIdHelper.generateGroupId(spec2, AUDIT_INFO);
@@ -78,8 +78,8 @@ class CrdIdHelperTest {
             var audit1 = AuditInfo.builder().organizationId(ORGANIZATION).environmentId("env-1").build();
             var audit2 = AuditInfo.builder().organizationId(ORGANIZATION).environmentId("env-2").build();
 
-            var spec1 = GroupCRDSpec.builder().name("my-group").build();
-            var spec2 = GroupCRDSpec.builder().name("my-group").build();
+            var spec1 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
+            var spec2 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
 
             CrdIdHelper.generateGroupId(spec1, audit1);
             CrdIdHelper.generateGroupId(spec2, audit2);
@@ -92,8 +92,8 @@ class CrdIdHelperTest {
             var audit1 = AuditInfo.builder().organizationId("org-1").environmentId(ENVIRONMENT).build();
             var audit2 = AuditInfo.builder().organizationId("org-2").environmentId(ENVIRONMENT).build();
 
-            var spec1 = GroupCRDSpec.builder().name("my-group").build();
-            var spec2 = GroupCRDSpec.builder().name("my-group").build();
+            var spec1 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
+            var spec2 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
 
             CrdIdHelper.generateGroupId(spec1, audit1);
             CrdIdHelper.generateGroupId(spec2, audit2);

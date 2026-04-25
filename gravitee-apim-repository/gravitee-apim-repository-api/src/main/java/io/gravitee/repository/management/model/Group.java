@@ -43,6 +43,7 @@ public class Group {
     private String id;
     private String environmentId;
     private String name;
+    private String hrid;
     private List<GroupEventRule> eventRules;
     private Date createdAt;
     private Date updatedAt;
