@@ -99,6 +99,10 @@ public class GroupResource extends AbstractResource {
     }
 
     private Set<GroupCRDSpec.Member> buildGroupMembers(ExecutionContext executionContext, Set<MemberEntity> memberEntities) {
+        if (memberEntities.isEmpty()) {
+            return Set.of();
+        }
+
         var memberRolesById = new HashMap<String, Map<RoleScope, String>>();
 
         for (MemberEntity member : memberEntities) {
