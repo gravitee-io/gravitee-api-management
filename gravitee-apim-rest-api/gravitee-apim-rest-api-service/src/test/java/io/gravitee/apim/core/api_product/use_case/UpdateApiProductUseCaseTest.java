@@ -163,6 +163,22 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_throw_exception_when_product_belongs_to_different_environment() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId("other-env")
+            .build();
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().name("Name").version("1.0.0").build();
+        Assertions.assertThatThrownBy(() ->
+            updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO))
+        ).isInstanceOf(ApiProductNotFoundException.class);
+    }
+
+    @Test
     void should_throw_exception_when_api_not_allowed_in_product() {
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")

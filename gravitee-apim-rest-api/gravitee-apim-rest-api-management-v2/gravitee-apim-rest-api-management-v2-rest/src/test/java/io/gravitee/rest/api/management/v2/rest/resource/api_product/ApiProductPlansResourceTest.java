@@ -17,16 +17,21 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
@@ -60,6 +65,9 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     @Inject
+    private VerifyApiProductExistsUseCase verifyApiProductExistsUseCase;
+
+    @Inject
     private GetPlansUseCase getPlansUseCase;
 
     @Inject
@@ -83,17 +91,35 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        givenApiProductExists();
     }
 
     @AfterEach
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getPlansUseCase, createPlanUseCase);
+        reset(verifyApiProductExistsUseCase, getPlansUseCase, createPlanUseCase);
+    }
+
+    private void givenApiProductExists() {
+        doNothing().when(verifyApiProductExistsUseCase).execute(any());
+    }
+
+    private void givenApiProductMissing() {
+        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
     }
 
     @Nested
     class GetApiProductPlansTest {
+
+        @Test
+        void should_return_404_when_api_product_not_found() {
+            givenApiProductMissing();
+
+            Response response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
 
         @Test
         void should_return_plans_list() {

@@ -76,18 +76,7 @@ public class ApiProductApisResource extends AbstractResource {
         );
 
         var output = getApiProductApisUseCase.execute(input);
-
-        if (output.apiProduct().isEmpty()) {
-            log.debug("API Product not found: {}", apiProductId);
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        Page<GenericApiEntity> apisPage = output.apisPage();
-        if (apisPage == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response.ok(toApisResponse(apisPage, paginationParam)).build();
+        return Response.ok(toApisResponse(output.apisPage(), paginationParam)).build();
     }
 
     private ApisResponse toApisResponse(Page<GenericApiEntity> apisPage, PaginationParam paginationParam) {

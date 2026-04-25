@@ -15,17 +15,21 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
+import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
@@ -36,8 +40,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +49,9 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "my-env";
     private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
+
+    @Inject
+    private VerifyApiProductExistsUseCase verifyApiProductExistsUseCase;
 
     @Inject
     private GetApiProductApisUseCase getApiProductApisUseCase;
@@ -75,18 +80,33 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getApiProductApisUseCase);
+        reset(verifyApiProductExistsUseCase, getApiProductApisUseCase);
+    }
+
+    private void givenApiProductExists() {
+        doNothing().when(verifyApiProductExistsUseCase).execute(any());
+    }
+
+    private void givenApiProductMissing() {
+        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
     }
 
     @Nested
     class GetApiProductApisTest {
 
         @Test
+        void should_return_404_when_api_product_not_found() {
+            when(getApiProductApisUseCase.execute(any())).thenThrow(new ApiProductNotFoundException(API_PRODUCT_ID));
+
+            Response response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
         void should_return_empty_list_when_product_has_no_apis() {
-            var apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("My Product").apiIds(Set.of()).build();
-            when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(), 1, 10, 0))
-            );
+            givenApiProductExists();
+            when(getApiProductApisUseCase.execute(any())).thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
 
             Response response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
 
@@ -102,12 +122,7 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_apis_page_when_product_has_apis() {
-            var apiProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId(ENV_ID)
-                .name("My Product")
-                .apiIds(Set.of("api-1", "api-2"))
-                .build();
+            givenApiProductExists();
 
             var genericApi = new ApiEntity();
             genericApi.setId("api-1");
@@ -115,7 +130,7 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
             genericApi.setDefinitionVersion(DefinitionVersion.V4);
 
             when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(genericApi), 1, 10, 2))
+                new GetApiProductApisUseCase.Output(new Page<>(List.of(genericApi), 1, 10, 2))
             );
 
             Response response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
@@ -134,15 +149,8 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_pagination_and_query_to_use_case() {
-            var apiProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId(ENV_ID)
-                .name("My Product")
-                .apiIds(Set.of("api-1"))
-                .build();
-            when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(Optional.of(apiProduct), new Page<>(List.of(), 2, 20, 0))
-            );
+            givenApiProductExists();
+            when(getApiProductApisUseCase.execute(any())).thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(), 2, 20, 0)));
 
             rootTarget().queryParam("page", 2).queryParam("perPage", 20).queryParam("query", "search-term").request().get();
 

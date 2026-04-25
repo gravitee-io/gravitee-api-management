@@ -91,11 +91,7 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         apiProductCrudService.create(
             io.gravitee.apim.core.api_product.model.ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build()
         );
-        apiProductQueryService.initWith(
-            java.util.List.of(
-                io.gravitee.apim.core.api_product.model.ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build()));
         var input = new DeleteApiProductUseCase.Input(productId, AUDIT_INFO);
         deleteApiProductUseCase.execute(input);
         assertThat(apiProductCrudService.findById(productId)).isEmpty();
@@ -149,6 +145,16 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> deleteApiProductUseCase.execute(input))
             .isInstanceOf(ApiProductNotFoundException.class)
             .hasMessage("API Product not found.");
+    }
+
+    @Test
+    void should_throw_exception_when_product_belongs_to_different_environment() {
+        var productId = "api-product-id";
+        apiProductQueryService.initWith(List.of(ApiProduct.builder().id(productId).name("Product").environmentId("other-env").build()));
+
+        assertThatThrownBy(() -> deleteApiProductUseCase.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO))).isInstanceOf(
+            ApiProductNotFoundException.class
+        );
     }
 
     @Test
