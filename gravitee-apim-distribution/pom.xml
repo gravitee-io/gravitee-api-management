@@ -1062,6 +1062,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-hazelcast</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-redis</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
