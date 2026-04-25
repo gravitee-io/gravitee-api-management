@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
+import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -49,6 +50,12 @@ import lombok.CustomLog;
 @CustomLog
 public class ApiProductResource extends AbstractResource {
 
+    @PathParam("apiProductId")
+    private String apiProductId;
+
+    @Inject
+    private VerifyApiProductExistsUseCase verifyApiProductExistsUseCase;
+
     @Inject
     private GetApiProductsUseCase getApiProductByIdUseCase;
 
@@ -70,7 +77,7 @@ public class ApiProductResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response getApiProductById(@PathParam("apiProductId") String apiProductId) {
+    public Response getApiProductById() {
         var executionContext = GraviteeContext.getExecutionContext();
         var input = GetApiProductsUseCase.Input.of(executionContext.getEnvironmentId(), apiProductId, executionContext.getOrganizationId());
         log.debug("Get API Product by id: {}", apiProductId);
@@ -86,7 +93,7 @@ public class ApiProductResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.DELETE }) })
-    public Response deleteApiProductById(@PathParam("apiProductId") String apiProductId) {
+    public Response deleteApiProductById() {
         AuditInfo audit = getAuditInfo();
         deleteApiProductUseCase.execute(DeleteApiProductUseCase.Input.of(apiProductId, audit));
         return Response.noContent().build();
@@ -96,7 +103,8 @@ public class ApiProductResource extends AbstractResource {
     @Path("/deployments/_verify")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response verifyApiProductDeployment(@PathParam("apiProductId") String apiProductId) {
+    public Response verifyApiProductDeployment() {
+        verifyApiProductInCurrentEnvironment();
         var executionContext = GraviteeContext.getExecutionContext();
         log.debug("Verify deployment for API Product [{}]", apiProductId);
         var output = verifyApiProductDeployUseCase.execute(new VerifyApiProductDeployUseCase.Input(executionContext.getOrganizationId()));
@@ -108,7 +116,7 @@ public class ApiProductResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
-    public Response deployApiProduct(@PathParam("apiProductId") String apiProductId) {
+    public Response deployApiProduct() {
         AuditInfo audit = getAuditInfo();
         var input = new DeployApiProductUseCase.Input(apiProductId, audit);
         log.debug("Deploy API Product [{}]", apiProductId);
@@ -121,10 +129,7 @@ public class ApiProductResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiProductById(
-        @PathParam("apiProductId") String apiProductId,
-        @Valid @NotNull UpdateApiProduct updateApiProduct
-    ) {
+    public Response updateApiProductById(@Valid @NotNull UpdateApiProduct updateApiProduct) {
         AuditInfo audit = getAuditInfo();
         var input = new UpdateApiProductUseCase.Input(apiProductId, updateApiProduct, audit);
         log.debug("Update API Product by id: {}", apiProductId);
@@ -140,21 +145,30 @@ public class ApiProductResource extends AbstractResource {
 
     @Path("/members")
     public ApiProductMembersResource getApiProductMembersResource() {
+        verifyApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductMembersResource.class);
     }
 
     @Path("/plans")
     public ApiProductPlansResource getApiProductPlansResource() {
+        verifyApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductPlansResource.class);
     }
 
     @Path("/subscriptions")
     public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
+        verifyApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductSubscriptionsResource.class);
     }
 
     @Path("/notificationSettings")
     public ApiProductNotificationSettingsResource getApiProductNotificationSettingsResource() {
+        verifyApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductNotificationSettingsResource.class);
+    }
+
+    private void verifyApiProductInCurrentEnvironment() {
+        var ctx = GraviteeContext.getExecutionContext();
+        verifyApiProductExistsUseCase.execute(new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId));
     }
 }

@@ -57,6 +57,9 @@ public class DeleteApiProductUseCase {
         ApiProduct apiProduct = apiProductQueryService
             .findById(input.apiProductId())
             .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+        if (!input.auditInfo().environmentId().equals(apiProduct.getEnvironmentId())) {
+            throw new ApiProductNotFoundException(input.apiProductId());
+        }
 
         if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
             for (var api : validateApiProductService.getApisToUndeployOnRemoval(apiProduct.getApiIds(), apiProduct.getId())) {
