@@ -86,6 +86,7 @@ import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
@@ -246,6 +247,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MediaService;
@@ -254,6 +256,7 @@ import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
@@ -333,8 +336,18 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public GenericNotificationConfigService genericNotificationConfigService() {
+        return mock(GenericNotificationConfigService.class);
+    }
+
+    @Bean
     public MembershipService membershipService() {
         return mock(MembershipService.class);
+    }
+
+    @Bean
+    public PortalNotificationConfigService portalNotificationConfigService() {
+        return mock(PortalNotificationConfigService.class);
     }
 
     @Bean
@@ -1051,6 +1064,12 @@ public class ResourceContextConfiguration {
     @Primary
     public VerifyApiProductExistsUseCase verifyApiProductExistsUseCase() {
         return mock(VerifyApiProductExistsUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public VerifyApiProductDeployUseCase verifyApiProductDeployUseCase() {
+        return mock(VerifyApiProductDeployUseCase.class);
     }
 
     @Bean

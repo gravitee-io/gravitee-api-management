@@ -70,6 +70,9 @@ public class UpdateApiProductUseCase {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
         ApiProduct existingApiProduct = existingApiProductOpt.get();
+        if (!input.auditInfo().environmentId().equals(existingApiProduct.getEnvironmentId())) {
+            throw new ApiProductNotFoundException(input.apiProductId());
+        }
 
         ApiProduct beforeUpdate = existingApiProduct
             .toBuilder()

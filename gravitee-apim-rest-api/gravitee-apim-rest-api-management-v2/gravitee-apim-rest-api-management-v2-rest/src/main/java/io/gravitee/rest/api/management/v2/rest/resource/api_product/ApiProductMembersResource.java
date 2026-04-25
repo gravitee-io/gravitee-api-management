@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
-import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.DeleteApiProductMemberUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.GetApiProductMembersUseCase;
@@ -64,9 +63,6 @@ public class ApiProductMembersResource extends AbstractResource {
     private String apiProductId;
 
     @Inject
-    private VerifyApiProductExistsUseCase verifyApiProductExistsUseCase;
-
-    @Inject
     private GetApiProductMembersUseCase getApiProductMembersUseCase;
 
     @Inject
@@ -85,7 +81,6 @@ public class ApiProductMembersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = { RolePermissionAction.READ }) })
     public Response getApiProductMembers(@BeanParam @Valid PaginationParam paginationParam) {
-        verifyApiProductInCurrentEnvironment();
         var output = getApiProductMembersUseCase.execute(new GetApiProductMembersUseCase.Input(apiProductId));
         var members = output.members().stream().map(MemberMapper.INSTANCE::map).toList();
 
@@ -104,8 +99,6 @@ public class ApiProductMembersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.CREATE) })
     public Response createApiProductMembership(@Valid @NotNull AddMember apiProductMembership) {
-        verifyApiProductInCurrentEnvironment();
-
         var output = addApiProductMemberUseCase.execute(
             new AddApiProductMemberUseCase.Input(MemberMapper.INSTANCE.map(apiProductMembership), apiProductId)
         );
@@ -118,8 +111,6 @@ public class ApiProductMembersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response updateApiProductMembership(@PathParam("memberId") String memberId, @Valid @NotNull UpdateMember updateMember) {
-        verifyApiProductInCurrentEnvironment();
-
         var output = updateApiProductMemberUseCase.execute(
             new UpdateApiProductMemberUseCase.Input(updateMember.getRoleName(), memberId, apiProductId)
         );
@@ -130,7 +121,6 @@ public class ApiProductMembersResource extends AbstractResource {
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApiProductMembership(@PathParam("memberId") String memberId) {
-        verifyApiProductInCurrentEnvironment();
         deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input(apiProductId, memberId));
         return Response.noContent().build();
     }
@@ -139,7 +129,6 @@ public class ApiProductMembersResource extends AbstractResource {
     @Path("/permissions")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiProductMemberPermissions() {
-        verifyApiProductInCurrentEnvironment();
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String userId = getAuthenticatedUser();
@@ -170,15 +159,9 @@ public class ApiProductMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response transferApiProductOwnership(@Valid @NotNull ApiProductTransferOwnership transferOwnership) {
-        verifyApiProductInCurrentEnvironment();
         transferApiProductOwnershipUseCase.execute(
             new TransferApiProductOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), apiProductId)
         );
         return Response.noContent().build();
-    }
-
-    private void verifyApiProductInCurrentEnvironment() {
-        var ctx = GraviteeContext.getExecutionContext();
-        verifyApiProductExistsUseCase.execute(new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId));
     }
 }
