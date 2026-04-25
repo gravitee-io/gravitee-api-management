@@ -140,6 +140,21 @@ class GroupResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_get_group_with_no_members() {
+            givenExistingGroup();
+            givenNoMembers();
+
+            try (var response = rootTarget().path(HRID).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var state = response.readEntity(GroupState.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(state.getSpec().getMembers()).isEmpty();
+                    soft.assertThat(state.getStatus().getMembers()).isEqualTo(0L);
+                });
+            }
+        }
+
+        @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
             try (var response = rootTarget().path("unknown").request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);

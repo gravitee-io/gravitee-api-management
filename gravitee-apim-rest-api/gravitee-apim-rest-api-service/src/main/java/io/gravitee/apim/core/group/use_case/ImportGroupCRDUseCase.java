@@ -25,6 +25,7 @@ import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import java.util.List;
 import lombok.CustomLog;
 
 /**
@@ -57,14 +58,9 @@ public class ImportGroupCRDUseCase {
     }
 
     public Output execute(Input input) {
-        return queryService
-            .findById(input.spec.getId())
-            .map(existing -> this.update(input))
-            .orElseGet(() -> this.create(input));
-    }
-
-    private Output create(Input input) {
-        var validationResult = validationService.validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo, input.spec));
+        var validationResult = validationService
+            .validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo, input.spec))
+            .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
         validationResult
             .severe()
@@ -72,26 +68,28 @@ public class ImportGroupCRDUseCase {
                 throw new TechnicalDomainException(errors.iterator().next().getMessage());
             });
 
-        var errors = validationResult.errors().map(GroupCRDStatus.Errors::fromErrorList).orElse(GroupCRDStatus.Errors.EMPTY);
+        var warnings = validationResult.warning().orElseGet(List::of);
+        var sanitizedInput = validationResult.value().orElseThrow(() -> new TechnicalDomainException("Unable to sanitize CRD spec"));
 
+        var status = queryService
+            .findById(sanitizedInput.spec.getId())
+            .map(existing -> this.update(sanitizedInput))
+            .orElseGet(() -> this.create(sanitizedInput));
+
+        status.setErrors(GroupCRDStatus.Errors.fromErrorList(warnings));
+
+        return new Output(status);
+    }
+
+    private GroupCRDStatus create(Input input) {
         crudService.create(input.spec.toGroup(input.auditInfo.environmentId()));
         membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
-        return new Output(new GroupCRDStatus(input.spec.getId(), input.spec.getMembers().size(), errors));
+        return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
     }
 
-    private Output update(Input input) {
-        var validationResult = validationService.validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo, input.spec));
-
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new TechnicalDomainException(errors.iterator().next().getMessage());
-            });
-
-        var errors = validationResult.errors().map(GroupCRDStatus.Errors::fromErrorList).orElse(GroupCRDStatus.Errors.EMPTY);
-
+    private GroupCRDStatus update(Input input) {
         crudService.update(input.spec.toGroup(input.auditInfo.environmentId()));
         membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
-        return new Output(new GroupCRDStatus(input.spec.getId(), input.spec.getMembers().size(), errors));
+        return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
     }
 }
