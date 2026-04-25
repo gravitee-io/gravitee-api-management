@@ -77,6 +77,7 @@ class GroupResourceTest extends AbstractResourceTest {
             List.of(
                 Group.builder()
                     .id(groupIdFromHrid(HRID))
+                    .hrid(HRID)
                     .name("My Group")
                     .environmentId(ENVIRONMENT)
                     .disableMembershipNotifications(false)
@@ -104,6 +105,7 @@ class GroupResourceTest extends AbstractResourceTest {
                 var state = response.readEntity(GroupState.class);
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(state.getStatus().getId()).isEqualTo(groupIdFromHrid(HRID));
+                    soft.assertThat(state.getSpec().getHrid()).isEqualTo(HRID);
                     soft.assertThat(state.getSpec().getName()).isEqualTo("My Group");
                     soft.assertThat(state.getSpec().getNotifyMembers()).isTrue();
                 });

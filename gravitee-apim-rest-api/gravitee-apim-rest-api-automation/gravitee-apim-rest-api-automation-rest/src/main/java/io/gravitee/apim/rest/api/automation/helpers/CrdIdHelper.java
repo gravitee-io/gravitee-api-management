@@ -83,7 +83,7 @@ public class CrdIdHelper {
 
     public static void generateGroupId(GroupCRDSpec spec, AuditInfo audit) {
         if (spec.getId() == null) {
-            spec.setId(HRIDToUUID.group().context(audit).hrid(spec.getName()).id());
+            spec.setId(HRIDToUUID.group().context(audit).hrid(spec.getHrid()).id());
         }
     }
 

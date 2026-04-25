@@ -944,6 +944,8 @@ components:
         Groups allow organizing users and managing their access to APIs and applications collectively.
       type: object
       properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
         name:
           type: string
           description: Group's name.
@@ -962,6 +964,7 @@ components:
           description: If true, members will be notified when the group is synced with APIM.
           default: true
       required:
+        - hrid
         - name
     GroupMember:
       description: A member of a group, identified by an external IDP source.

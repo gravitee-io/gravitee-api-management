@@ -76,7 +76,8 @@ public class GroupsResource extends AbstractResource {
         var groupCRDSpec = GroupMapper.INSTANCE.groupSpecToGroupCRDSpec(spec);
 
         if (hridContainsUUID) {
-            groupCRDSpec.setId(spec.getName());
+            groupCRDSpec.setId(spec.getHrid());
+            groupCRDSpec.setHrid(null);
         } else {
             CrdIdHelper.generateGroupId(groupCRDSpec, auditInfo);
         }
