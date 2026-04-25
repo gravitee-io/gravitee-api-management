@@ -17,11 +17,13 @@ package io.gravitee.apim.core.api_product.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiAuthorizationDomainService;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
@@ -34,23 +36,24 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetApiProductApisUseCase {
 
-    private final ApiProductQueryService apiProductQueryService;
     private final ApiAuthorizationDomainService apiAuthorizationDomainService;
     private final ApiProductSearchQueryService apiProductSearchQueryService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public Output execute(Input input) {
-        Optional<ApiProduct> apiProduct = apiProductQueryService.findById(input.apiProductId());
-
-        if (apiProduct.isEmpty()) {
-            return new Output(Optional.empty(), null);
+        ApiProduct apiProduct = apiProductQueryService
+            .findById(input.apiProductId())
+            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+        if (!input.executionContext().getEnvironmentId().equals(apiProduct.getEnvironmentId())) {
+            throw new ApiProductNotFoundException(input.apiProductId());
         }
 
-        List<String> apiIds = Optional.ofNullable(apiProduct.get().getApiIds())
+        List<String> apiIds = Optional.ofNullable(apiProduct.getApiIds())
             .map(ids -> ids.stream().toList())
             .orElse(List.of());
 
         if (apiIds.isEmpty()) {
-            return new Output(apiProduct, emptyPage(input.pageable()));
+            return new Output(emptyPage(input.pageable()));
         }
 
         List<String> searchIds = apiIds;
@@ -60,10 +63,10 @@ public class GetApiProductApisUseCase {
                 input.userId(),
                 io.gravitee.apim.core.api.model.ApiQueryCriteria.builder().ids(apiIds).build(),
                 null,
-                true // manageOnly
+                true
             );
             if (manageableIds == null || manageableIds.isEmpty()) {
-                return new Output(apiProduct, emptyPage(input.pageable()));
+                return new Output(emptyPage(input.pageable()));
             }
             searchIds = new ArrayList<>(manageableIds);
         }
@@ -80,7 +83,7 @@ public class GetApiProductApisUseCase {
             input.pageable()
         );
 
-        return new Output(apiProduct, apis);
+        return new Output(apis);
     }
 
     private static Page<GenericApiEntity> emptyPage(Pageable pageable) {
@@ -92,10 +95,10 @@ public class GetApiProductApisUseCase {
         String apiProductId,
         String query,
         Pageable pageable,
-        io.gravitee.rest.api.model.common.Sortable sortable,
+        Sortable sortable,
         String userId,
         boolean isAdmin
     ) {}
 
-    public record Output(Optional<ApiProduct> apiProduct, Page<GenericApiEntity> apisPage) {}
+    public record Output(Page<GenericApiEntity> apisPage) {}
 }

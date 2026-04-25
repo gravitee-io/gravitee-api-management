@@ -103,6 +103,16 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_throw_exception_when_product_belongs_to_different_environment() {
+        var productId = "api-product-id";
+        apiProductQueryService.initWith(List.of(ApiProduct.builder().id(productId).name("Product").environmentId("other-env").build()));
+
+        assertThatThrownBy(() -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO))).isInstanceOf(
+            ApiProductNotFoundException.class
+        );
+    }
+
+    @Test
     void should_deploy_when_all_apis_have_their_own_published_plan() {
         var productId = "api-product-id";
         var apiId = "api-1";

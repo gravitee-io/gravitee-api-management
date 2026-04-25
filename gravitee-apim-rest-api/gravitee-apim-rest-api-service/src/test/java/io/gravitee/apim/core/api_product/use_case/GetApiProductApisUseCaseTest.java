@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -24,10 +25,12 @@ import static org.mockito.Mockito.when;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -50,8 +53,8 @@ class GetApiProductApisUseCaseTest {
     private static final String API_PRODUCT_ID = "api-product-1";
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORG_ID, ENV_ID);
 
-    private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = new ApiAuthorizationDomainServiceInMemory();
+    private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
 
     @Mock
     private ApiProductSearchQueryService apiProductSearchQueryService;
@@ -60,19 +63,19 @@ class GetApiProductApisUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new GetApiProductApisUseCase(apiProductQueryService, apiAuthorizationDomainService, apiProductSearchQueryService);
+        useCase = new GetApiProductApisUseCase(apiAuthorizationDomainService, apiProductSearchQueryService, apiProductQueryService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiProductQueryService, apiAuthorizationDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiAuthorizationDomainService, apiProductQueryService).forEach(InMemoryAlternative::reset);
     }
 
     private GetApiProductApisUseCase.Input input(
         String apiProductId,
         String query,
         io.gravitee.rest.api.model.common.Pageable pageable,
-        io.gravitee.rest.api.model.common.Sortable sortable,
+        Sortable sortable,
         String userId,
         boolean isAdmin
     ) {
@@ -83,12 +86,20 @@ class GetApiProductApisUseCaseTest {
     class ProductNotFound {
 
         @Test
-        void should_return_empty_output_when_product_not_found() {
-            var input = input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true);
-            var output = useCase.execute(input);
+        void should_throw_when_product_not_found() {
+            assertThatThrownBy(() ->
+                useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true))
+            ).isInstanceOf(ApiProductNotFoundException.class);
+        }
 
-            assertThat(output.apiProduct()).isEmpty();
-            assertThat(output.apisPage()).isNull();
+        @Test
+        void should_throw_when_product_belongs_to_different_environment() {
+            apiProductQueryService.initWith(
+                List.of(ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId("other-env").apiIds(Set.of()).build())
+            );
+            assertThatThrownBy(() ->
+                useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true))
+            ).isInstanceOf(ApiProductNotFoundException.class);
         }
     }
 
@@ -97,14 +108,12 @@ class GetApiProductApisUseCaseTest {
 
         @Test
         void should_return_empty_page_when_product_has_no_api_ids() {
-            ApiProduct product = ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).apiIds(Set.of()).build();
-            apiProductQueryService.initWith(List.of(product));
+            apiProductQueryService.initWith(
+                List.of(ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).apiIds(Set.of()).build())
+            );
 
-            var input = input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true);
-            var output = useCase.execute(input);
+            var output = useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true));
 
-            assertThat(output.apiProduct()).isPresent();
-            assertThat(output.apiProduct().get().getId()).isEqualTo(API_PRODUCT_ID);
             assertThat(output.apisPage()).isNotNull();
             assertThat(output.apisPage().getContent()).isEmpty();
             assertThat(output.apisPage().getTotalElements()).isZero();
@@ -112,26 +121,23 @@ class GetApiProductApisUseCaseTest {
 
         @Test
         void should_return_empty_page_when_product_has_null_api_ids() {
-            ApiProduct product = ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).apiIds(null).build();
-            apiProductQueryService.initWith(List.of(product));
+            apiProductQueryService.initWith(
+                List.of(ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).apiIds(null).build())
+            );
 
-            var input = input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true);
-            var output = useCase.execute(input);
+            var output = useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true));
 
-            assertThat(output.apiProduct()).isPresent();
             assertThat(output.apisPage()).isNotNull();
             assertThat(output.apisPage().getContent()).isEmpty();
         }
 
         @Test
         void should_return_apis_page_when_admin_and_product_has_apis() {
-            ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1", "api-2"))
-                .build();
-            apiProductQueryService.initWith(List.of(product));
+            apiProductQueryService.initWith(
+                List.of(
+                    ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build()
+                )
+            );
 
             var apiEntity = new ApiEntity();
             apiEntity.setId("api-1");
@@ -140,11 +146,8 @@ class GetApiProductApisUseCaseTest {
                 new Page<>(List.of(apiEntity), 1, 10, 2)
             );
 
-            var input = input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true);
-            var output = useCase.execute(input);
+            var output = useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, true));
 
-            assertThat(output.apiProduct()).isPresent();
-            assertThat(output.apiProduct().get().getId()).isEqualTo(API_PRODUCT_ID);
             assertThat(output.apisPage()).isNotNull();
             assertThat(output.apisPage().getContent()).hasSize(1);
             assertThat(output.apisPage().getTotalElements()).isEqualTo(2);
@@ -156,19 +159,21 @@ class GetApiProductApisUseCaseTest {
 
         @Test
         void should_return_page_from_search_when_product_has_apis() {
-            ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1", "api-2", "api-3"))
-                .build();
-            apiProductQueryService.initWith(List.of(product));
+            apiProductQueryService.initWith(
+                List.of(
+                    ApiProduct.builder()
+                        .id(API_PRODUCT_ID)
+                        .name("Product")
+                        .environmentId(ENV_ID)
+                        .apiIds(Set.of("api-1", "api-2", "api-3"))
+                        .build()
+                )
+            );
             when(apiProductSearchQueryService.searchApis(any(), anyString(), anyBoolean(), any(), any(), any(), any())).thenReturn(
                 new Page<>(List.of(new ApiEntity(), new ApiEntity()), 1, 2, 3)
             );
 
-            var input = input(API_PRODUCT_ID, null, new PageableImpl(1, 2), null, USER_ID, true);
-            var output = useCase.execute(input);
+            var output = useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 2), null, USER_ID, true));
 
             assertThat(output.apisPage()).isNotNull();
             assertThat(output.apisPage().getContent()).hasSize(2);

@@ -49,6 +49,9 @@ public class DeployApiProductUseCase {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
         ApiProduct apiProduct = apiProductOpt.get();
+        if (!input.auditInfo().environmentId().equals(apiProduct.getEnvironmentId())) {
+            throw new ApiProductNotFoundException(input.apiProductId());
+        }
         validateApiProductService.validateForDeploy(apiProduct);
         deployApiProductDomainService.deploy(input.auditInfo(), apiProduct);
         return new Output(apiProduct);

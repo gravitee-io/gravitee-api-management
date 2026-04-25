@@ -54,6 +54,7 @@ public class GetApiProductsUseCase {
         if (input.apiProductId() != null) {
             Optional<ApiProduct> apiProduct = apiProductQueryService
                 .findById(input.apiProductId())
+                .filter(p -> p.getEnvironmentId().equals(input.environmentId()))
                 .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
                 .map(this::computeDeploymentState);
             return Output.single(apiProduct);
