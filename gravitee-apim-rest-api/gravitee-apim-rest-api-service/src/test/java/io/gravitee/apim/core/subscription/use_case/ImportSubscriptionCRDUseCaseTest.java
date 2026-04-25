@@ -29,6 +29,7 @@ import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainSe
 import io.gravitee.apim.core.subscription.domain_service.ValidateSubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.validation.Validator;
 import java.time.ZonedDateTime;
@@ -52,7 +53,7 @@ class ImportSubscriptionCRDUseCaseTest {
         .referenceType(SubscriptionReferenceType.API)
         .applicationId("application-id")
         .planId("plan-id")
-        .customApiKey("custom-key")
+        .apiKeys(List.of(ApiKeyCRDSpec.builder().key("custom-key").build()))
         .build();
 
     private final SubscriptionCRDDomainService subscriptionCRDDomainService = mock(SubscriptionCRDDomainService.class);
@@ -67,7 +68,7 @@ class ImportSubscriptionCRDUseCaseTest {
 
     @Test
     void should_import_with_sanitized_input() {
-        var sanitizedSpec = SPEC.toBuilder().customApiKey("another-custom-key").build();
+        var sanitizedSpec = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key("another-custom-key").build())).build();
         when(validateSubscriptionCRDDomainService.validateAndSanitize(any(ValidateSubscriptionCRDDomainService.Input.class))).thenReturn(
             Validator.Result.ofValue(new ValidateSubscriptionCRDDomainService.Input(AUDIT_INFO, sanitizedSpec))
         );
@@ -89,12 +90,12 @@ class ImportSubscriptionCRDUseCaseTest {
     @Test
     void should_reject_import_when_validation_contains_severe_errors() {
         when(validateSubscriptionCRDDomainService.validateAndSanitize(any(ValidateSubscriptionCRDDomainService.Input.class))).thenReturn(
-            Validator.Result.ofErrors(List.of(Validator.Error.severe("customApiKey requires an API_KEY plan")))
+            Validator.Result.ofErrors(List.of(Validator.Error.severe("apiKeys is only allowed for API_KEY plans")))
         );
 
         assertThatThrownBy(() -> cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, SPEC)))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("Unable to import because of errors")
-            .hasMessageContaining("customApiKey requires an API_KEY plan");
+            .hasMessageContaining("apiKeys is only allowed for API_KEY plans");
     }
 }

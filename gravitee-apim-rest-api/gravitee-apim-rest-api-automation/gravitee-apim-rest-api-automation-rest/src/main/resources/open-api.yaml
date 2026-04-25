@@ -873,15 +873,32 @@ components:
           examples:
             - key1: value1
               key2: value2
-        customApiKey:
-          type: string
+        apiKeys:
+          type: array
           writeOnly: true
-          description: Custom API key to assign when creating API-KEY plan subscription.
-          example: my-custom-api-key
+          description: List of custom API keys with optional expiry dates. Used for API-KEY plan subscriptions.
+          items:
+            $ref: "#/components/schemas/ApiKeySpec"
       required:
         - hrid
         - applicationHrid
         - planHrid
+
+    ApiKeySpec:
+      description: API key specification with optional expiry date
+      type: object
+      properties:
+        key:
+          type: string
+          description: The custom API key value.
+          example: my-custom-api-key
+        expireAt:
+          type: string
+          format: date-time
+          description: Optional expiry date for this API key.
+          example: "2040-12-25T09:12:28Z"
+      required:
+        - key
 
     SubscriptionState:
       description: State of subscription that has been created/update
