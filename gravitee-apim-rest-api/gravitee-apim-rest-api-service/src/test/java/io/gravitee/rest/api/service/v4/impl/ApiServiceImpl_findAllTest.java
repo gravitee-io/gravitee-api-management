@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.rest.api.service.impl.promotion.PromotionServiceTest.USER_ID;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,6 +29,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -82,6 +89,7 @@ import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -207,6 +215,15 @@ public class ApiServiceImpl_findAllTest {
     private ApiCategoryService apiCategoryService;
 
     @Mock
+<<<<<<< HEAD
+=======
+    private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
+
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
+    @Mock
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
     private CategoryMapper categoryMapper;
 
     private ApiService apiService;
@@ -278,7 +295,13 @@ public class ApiServiceImpl_findAllTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
+<<<<<<< HEAD
             apiCategoryService
+=======
+            apiCategoryService,
+            removeApiFromApiProductsDomainService,
+            apiMetadataQueryService
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
         );
     }
 
@@ -446,5 +469,66 @@ public class ApiServiceImpl_findAllTest {
             .isEqualTo(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
 
         verify(primaryOwnerService).getPrimaryOwner(anyString(), eq("API_1"));
+    }
+
+    @Test
+    public void should_fetch_metadata_when_metadata_expand_is_present() {
+        var sortable = new SortableBuilder().field("name").order(Order.ASC).build();
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        var api1 = new Api();
+        api1.setId("API_1");
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(sortable),
+                eq(pageable),
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
+            )
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+
+        when(apiMetadataQueryService.findApiMetadataForApis(anyString(), eq(List.of("API_1")))).thenReturn(
+            Map.of("API_1", Map.of("env", ApiMetadata.builder().key("env").value("production").build()))
+        );
+
+        final Page<GenericApiEntity> apis = apiService.findAll(
+            GraviteeContext.getExecutionContext(),
+            "UnitTests",
+            true,
+            Set.of("metadata"),
+            new SortableImpl("name", true),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(apis.getContent().get(0).getMetadata()).isNotNull();
+        verify(apiMetadataQueryService).findApiMetadataForApis(anyString(), eq(List.of("API_1")));
+    }
+
+    @Test
+    public void should_not_fetch_metadata_when_metadata_expand_is_absent() {
+        var sortable = new SortableBuilder().field("name").order(Order.ASC).build();
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        var api1 = new Api();
+        api1.setId("API_1");
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(sortable),
+                eq(pageable),
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
+            )
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+
+        apiService.findAll(
+            GraviteeContext.getExecutionContext(),
+            "UnitTests",
+            true,
+            Set.of("primaryOwner"),
+            new SortableImpl("name", true),
+            new PageableImpl(1, 10)
+        );
+
+        verify(apiMetadataQueryService, never()).findApiMetadataForApis(any(), any());
     }
 }
