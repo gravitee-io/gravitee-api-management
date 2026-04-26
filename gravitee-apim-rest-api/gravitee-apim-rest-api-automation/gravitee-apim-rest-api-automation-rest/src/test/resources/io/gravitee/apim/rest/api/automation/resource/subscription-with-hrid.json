@@ -2,5 +2,9 @@
   "hrid": "subscription_hrid",
   "applicationHrid":  "application_hrid",
   "planHrid": "plan_hrid",
-  "customApiKey": "custom-api-key"
+  "apiKeys": [
+    {
+      "key": "custom-api-key"
+    }
+  ]
 }

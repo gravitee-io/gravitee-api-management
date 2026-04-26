@@ -19,10 +19,12 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
+import io.gravitee.apim.rest.api.automation.model.ApiKeySpec;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -42,6 +44,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -96,7 +99,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             )
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
             .metadata(spec.getMetadata())
-            .customApiKey(spec.getCustomApiKey())
+            .apiKeys(toApiKeyCRDSpecs(spec.getApiKeys()))
             .build();
 
         SubscriptionCRDStatus status = importSubscriptionCRDUseCase
@@ -104,5 +107,17 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .status();
 
         return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();
+    }
+
+    private static List<ApiKeyCRDSpec> toApiKeyCRDSpecs(List<ApiKeySpec> apiKeys) {
+        if (apiKeys == null || apiKeys.isEmpty()) {
+            return null;
+        }
+        return apiKeys
+            .stream()
+            .map(k ->
+                ApiKeyCRDSpec.builder().key(k.getKey()).expireAt(k.getExpireAt() != null ? k.getExpireAt().toZonedDateTime() : null).build()
+            )
+            .toList();
     }
 }
