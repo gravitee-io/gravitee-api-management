@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,57 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
             return apiMetadata;
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to find metadata for an API [apiId={}]", apiId, e);
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    @Override
+    public Map<String, Map<String, ApiMetadata>> findApiMetadataForApis(final String environmentId, final List<String> apiIds) {
+        try {
+            // Load environment-level defaults once
+            Map<String, ApiMetadata> envDefaults = metadataRepository
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, environmentId)
+                .stream()
+                .map(m ->
+                    ApiMetadata.builder()
+                        .key(m.getKey())
+                        .defaultValue(m.getValue())
+                        .name(m.getName())
+                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                        .build()
+                )
+                .collect(toMap(ApiMetadata::getKey, Function.identity()));
+
+            // Initialize each API's metadata map with env defaults
+            Map<String, Map<String, ApiMetadata>> result = apiIds
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), id -> new HashMap<>(envDefaults)));
+
+            // Apply API-level overrides, single $in query for all APIs
+            metadataRepository
+                .findByReferenceTypeAndReferenceIdIn(MetadataReferenceType.API, apiIds)
+                .forEach(m -> {
+                    String apiId = m.getReferenceId();
+                    result
+                        .get(apiId)
+                        .compute(m.getKey(), (key, existing) ->
+                            Optional.ofNullable(existing)
+                                .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                                .orElse(
+                                    ApiMetadata.builder()
+                                        .apiId(apiId)
+                                        .key(m.getKey())
+                                        .value(m.getValue())
+                                        .name(m.getName())
+                                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                                        .build()
+                                )
+                        );
+                });
+
+            return result;
+        } catch (TechnicalException e) {
+            log.error("An error occurs while trying to find metadata for APIs [apiIds={}]", apiIds, e);
             throw new TechnicalManagementException(e);
         }
     }
