@@ -28,6 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -56,6 +58,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -112,6 +115,9 @@ public class ApiSearchService_SearchTest {
     @Mock
     private IntegrationRepository integrationRepository;
 
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
     @Captor
     ArgumentCaptor<Query<? extends Indexable>> queryCaptor;
 
@@ -157,7 +163,8 @@ public class ApiSearchService_SearchTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository,
+            apiMetadataQueryService
         );
     }
 
@@ -181,7 +188,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
             false,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -227,7 +235,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
             false,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -284,7 +293,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(2, 2),
             false,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -343,7 +353,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
             false,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -388,7 +399,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
             false,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -433,7 +445,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
             false,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -486,7 +499,8 @@ public class ApiSearchService_SearchTest {
             apiEntityQueryBuilder,
             new PageableImpl(1, 2),
             true,
-            true
+            true,
+            null
         );
 
         assertThat(apis).isNotNull();
@@ -506,5 +520,92 @@ public class ApiSearchService_SearchTest {
         verify(apiRepository, times(1)).search(any(), any());
         verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
         verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
+    }
+
+    @Test
+    public void should_populate_metadata_when_metadata_expand_requested() {
+        QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class);
+        apiEntityQueryBuilder.setQuery("*");
+
+        var ids = List.of("id-1", "id-2");
+
+        when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(ids));
+
+        var repoApi1 = new Api();
+        repoApi1.setId("id-1");
+        repoApi1.setDefinitionVersion(DefinitionVersion.V4);
+        repoApi1.setType(ApiType.PROXY);
+        repoApi1.setLifecycleState(LifecycleState.STARTED);
+
+        var repoApi2 = new Api();
+        repoApi2.setId("id-2");
+        repoApi2.setDefinitionVersion(DefinitionVersion.V4);
+        repoApi2.setType(ApiType.PROXY);
+        repoApi2.setLifecycleState(LifecycleState.STARTED);
+
+        when(apiRepository.search(any(), any())).thenReturn(List.of(repoApi1, repoApi2));
+
+        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        primaryOwnerEntity.setId("owner-1");
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList())).thenReturn(
+            Map.of("id-1", primaryOwnerEntity, "id-2", primaryOwnerEntity)
+        );
+
+        when(apiMetadataQueryService.findApiMetadataForApis(any(), any())).thenReturn(
+            Map.of(
+                "id-1",
+                Map.of("team-contact", ApiMetadata.builder().key("team-contact").value("team@gravitee.io").build()),
+                "id-2",
+                Map.of("team-contact", ApiMetadata.builder().key("team-contact").value("other@gravitee.io").build())
+            )
+        );
+
+        var apis = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            USER_ID,
+            true,
+            apiEntityQueryBuilder,
+            new PageableImpl(1, 2),
+            false,
+            true,
+            Set.of(ApiService.EXPAND_METADATA)
+        );
+
+        assertThat(apis.getContent()).hasSize(2);
+        assertThat(apis.getContent().get(0).getMetadata()).containsKey("team-contact");
+        assertThat(apis.getContent().get(1).getMetadata()).containsKey("team-contact");
+        verify(apiMetadataQueryService, times(1)).findApiMetadataForApis(any(), eq(List.of("id-1", "id-2")));
+    }
+
+    @Test
+    public void should_not_populate_metadata_when_expand_not_requested() {
+        QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class);
+        apiEntityQueryBuilder.setQuery("*");
+
+        when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(List.of("id-1")));
+
+        var repoApi = new Api();
+        repoApi.setId("id-1");
+        repoApi.setDefinitionVersion(DefinitionVersion.V4);
+        repoApi.setType(ApiType.PROXY);
+        repoApi.setLifecycleState(LifecycleState.STARTED);
+
+        when(apiRepository.search(any(), any())).thenReturn(List.of(repoApi));
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList())).thenReturn(Map.of());
+
+        var apis = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            USER_ID,
+            true,
+            apiEntityQueryBuilder,
+            new PageableImpl(1, 1),
+            false,
+            true,
+            null
+        );
+
+        assertThat(apis.getContent()).hasSize(1);
+        assertThat(apis.getContent().get(0).getMetadata()).isNullOrEmpty();
+        verify(apiMetadataQueryService, never()).findApiMetadataForApis(any(), any());
     }
 }
