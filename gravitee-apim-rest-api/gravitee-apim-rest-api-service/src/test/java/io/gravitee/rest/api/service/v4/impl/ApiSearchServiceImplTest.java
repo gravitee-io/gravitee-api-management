@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -132,6 +133,9 @@ public class ApiSearchServiceImplTest {
     @Mock
     private IntegrationRepository integrationRepository;
 
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
     private ApiSearchService apiSearchService;
     private Api api;
 
@@ -172,7 +176,8 @@ public class ApiSearchServiceImplTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository,
+            apiMetadataQueryService
         );
 
         reset(searchEngineService);

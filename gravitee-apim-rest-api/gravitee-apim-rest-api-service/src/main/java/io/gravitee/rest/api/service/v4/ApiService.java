@@ -30,6 +30,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiService {
+    String EXPAND_METADATA = "metadata";
+
     ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity api, final String userId);
 
     ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);

@@ -55,6 +55,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.event.EventManager;
@@ -298,6 +299,9 @@ public class ApiServiceImplTest {
     private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
 
     @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
+    @Mock
     private IntegrationRepository integrationRepository;
 
     @Mock
@@ -373,7 +377,8 @@ public class ApiServiceImplTest {
             apiAuthorizationService,
             groupService,
             apiCategoryService,
-            removeApiFromApiProductsDomainService
+            removeApiFromApiProductsDomainService,
+            apiMetadataQueryService
         );
         var apiSearchService = new ApiSearchServiceImpl(
             apiRepository,
@@ -383,7 +388,8 @@ public class ApiServiceImplTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository,
+            apiMetadataQueryService
         );
         apiStateService = new ApiStateServiceImpl(
             apiSearchService,

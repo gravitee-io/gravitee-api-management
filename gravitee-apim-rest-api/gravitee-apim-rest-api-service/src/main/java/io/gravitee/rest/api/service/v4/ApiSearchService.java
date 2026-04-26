@@ -66,7 +66,8 @@ public interface ApiSearchService {
         final QueryBuilder<ApiEntity> queryBuilder,
         final Pageable pageable,
         final boolean mapToFullGenericApiEntity,
-        final boolean manageOnly
+        final boolean manageOnly,
+        final Set<String> expands
     );
 
     Collection<String> searchIds(
