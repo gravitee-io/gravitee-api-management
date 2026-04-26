@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -91,6 +92,9 @@ public class ApiSearchService_SearchIdsTest {
     @Mock
     private IntegrationRepository integrationRepository;
 
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
     private ApiSearchService apiSearchService;
 
     @AfterClass
@@ -135,7 +139,8 @@ public class ApiSearchService_SearchIdsTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository,
+            apiMetadataQueryService
         );
     }
 
