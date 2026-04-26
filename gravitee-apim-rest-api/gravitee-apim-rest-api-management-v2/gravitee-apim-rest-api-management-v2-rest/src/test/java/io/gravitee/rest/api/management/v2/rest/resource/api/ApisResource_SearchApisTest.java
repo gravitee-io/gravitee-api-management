@@ -19,6 +19,7 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
@@ -47,6 +48,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -107,7 +109,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -147,7 +150,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -188,7 +192,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -225,7 +230,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -275,7 +281,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -312,7 +319,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -350,7 +358,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -393,7 +402,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -436,7 +446,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(true),
-                eq(true)
+                eq(true),
+                eq(Set.of("deploymentState"))
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -474,7 +485,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(true)
+                eq(true),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -523,6 +535,44 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_search_with_metadata_expand() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setQuery("api-name");
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId("api-id");
+        apiEntity.setState(Lifecycle.State.INITIALIZED);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setMetadata(Map.of("team-contact", "team@gravitee.io", "version", "1.0"));
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10)),
+                eq(false),
+                eq(true),
+                eq(Set.of("metadata"))
+            )
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+
+        final Response response = rootTarget().queryParam("expands", "metadata").request().post(Entity.json(apiSearchQuery));
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApisResponse.class)
+            .extracting(ApisResponse::getData)
+            .satisfies(list -> {
+                assertThat(list).hasSize(1);
+                assertThat(list.getFirst().getApiV4()).satisfies(api -> {
+                    assertThat(api.getId()).isEqualTo("api-id");
+                    assertThat(api.getMetadata()).containsEntry("team-contact", "team@gravitee.io").containsEntry("version", "1.0");
+                });
+            });
+    }
+
+    @Test
     public void should_not_search_managed_only_apis() {
         var apiSearchQuery = new ApiSearchQuery();
         apiSearchQuery.setQuery("");
@@ -540,7 +590,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 apiQueryBuilderCaptor.capture(),
                 eq(new PageableImpl(1, 10)),
                 eq(false),
-                eq(false)
+                eq(false),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 

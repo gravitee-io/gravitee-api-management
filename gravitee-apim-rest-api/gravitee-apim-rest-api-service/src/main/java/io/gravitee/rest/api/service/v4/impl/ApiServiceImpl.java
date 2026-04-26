@@ -25,6 +25,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
@@ -170,6 +172,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
     private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
+    private final ApiMetadataQueryService apiMetadataQueryService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -205,7 +208,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
         ApiCategoryService apiCategoryService,
-        RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService
+        RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
+        ApiMetadataQueryService apiMetadataQueryService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -238,6 +242,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
         this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
+        this.apiMetadataQueryService = apiMetadataQueryService;
     }
 
     @Override
@@ -734,7 +739,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             new ApiFieldFilter.Builder().excludePicture().build()
         );
 
-        return apis
+        List<GenericApiEntity> apiEntityList = apis
             .getContent()
             .stream()
             .map(api -> {
@@ -746,9 +751,42 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 return genericApiMapper.toGenericApi(api, primaryOwner);
             })
+            .collect(Collectors.toList());
+
+        if (expands != null && expands.contains(EXPAND_METADATA) && !apiEntityList.isEmpty()) {
+            fetchAndSetMetadata(executionContext, apiEntityList);
+        }
+
+        return new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements());
+    }
+
+    private void fetchAndSetMetadata(final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
+        List<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).filter(Objects::nonNull).distinct().toList();
+        if (apiIds.isEmpty()) {
+            return;
+        }
+        Map<String, Map<String, ApiMetadata>> metadataByApiId = apiMetadataQueryService.findApiMetadataForApis(
+            executionContext.getEnvironmentId(),
+            apiIds
+        );
+        for (GenericApiEntity apiEntity : apiEntityList) {
+            Map<String, ApiMetadata> apiMetadataMap = metadataByApiId.get(apiEntity.getId());
+            if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
+                apiEntity.setMetadata(toResolvedMetadataValues(apiMetadataMap));
+            }
+        }
+    }
+
+    private static Map<String, Object> toResolvedMetadataValues(final Map<String, ApiMetadata> apiMetadataMap) {
+        return apiMetadataMap
+            .values()
+            .stream()
+            .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
             .collect(
-                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
-                    new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
+                toMap(
+                    ApiMetadata::getKey,
+                    metadata -> (Object) (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
+                    (existing, replacement) -> replacement
                 )
             );
     }

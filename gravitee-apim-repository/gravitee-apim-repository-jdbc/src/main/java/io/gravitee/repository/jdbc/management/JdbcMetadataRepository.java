@@ -26,9 +26,12 @@ import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataFormat;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import java.sql.Types;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -209,6 +212,28 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         } catch (final Exception ex) {
             log.error("Failed to find metadata by reference type and reference id", ex);
             throw new TechnicalException("Failed to find metadata by reference type and reference id", ex);
+        }
+    }
+
+    @Override
+    public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds)
+        throws TechnicalException {
+        log.debug("JdbcMetadataRepository.findByReferenceTypeAndReferenceIdIn({}, {})", referenceType, referenceIds);
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
+            String inClause = getOrm().buildInClause(referenceIds);
+            Object[] args = Stream.of(Stream.of(referenceType.name()), referenceIds.stream())
+                .flatMap(s -> s)
+                .toArray();
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in (" + inClause + ")",
+                getOrm().getRowMapper(),
+                args
+            );
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find metadata by reference type and reference ids", ex);
         }
     }
 
