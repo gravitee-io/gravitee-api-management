@@ -25,6 +25,12 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -166,6 +172,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
+<<<<<<< HEAD
+=======
+    private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
+    private final ApiMetadataQueryService apiMetadataQueryService;
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -200,7 +211,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final TagsValidationService tagsValidationService,
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
+<<<<<<< HEAD
         ApiCategoryService apiCategoryService
+=======
+        ApiCategoryService apiCategoryService,
+        RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
+        ApiMetadataQueryService apiMetadataQueryService
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -232,6 +249,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.groupService = groupService;
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
+<<<<<<< HEAD
+=======
+        this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
+        this.apiMetadataQueryService = apiMetadataQueryService;
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
     }
 
     @Override
@@ -700,7 +722,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             new ApiFieldFilter.Builder().excludePicture().build()
         );
 
-        return apis
+        List<GenericApiEntity> apiEntityList = apis
             .getContent()
             .stream()
             .map(api -> {
@@ -712,9 +734,42 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 return genericApiMapper.toGenericApi(api, primaryOwner);
             })
+            .collect(Collectors.toList());
+
+        if (expands != null && expands.contains(EXPAND_METADATA) && !apiEntityList.isEmpty()) {
+            fetchAndSetMetadata(executionContext, apiEntityList);
+        }
+
+        return new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements());
+    }
+
+    private void fetchAndSetMetadata(final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
+        List<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).filter(Objects::nonNull).distinct().toList();
+        if (apiIds.isEmpty()) {
+            return;
+        }
+        Map<String, Map<String, ApiMetadata>> metadataByApiId = apiMetadataQueryService.findApiMetadataForApis(
+            executionContext.getEnvironmentId(),
+            apiIds
+        );
+        for (GenericApiEntity apiEntity : apiEntityList) {
+            Map<String, ApiMetadata> apiMetadataMap = metadataByApiId.get(apiEntity.getId());
+            if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
+                apiEntity.setMetadata(toResolvedMetadataValues(apiMetadataMap));
+            }
+        }
+    }
+
+    private static Map<String, Object> toResolvedMetadataValues(final Map<String, ApiMetadata> apiMetadataMap) {
+        return apiMetadataMap
+            .values()
+            .stream()
+            .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
             .collect(
-                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
-                    new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
+                toMap(
+                    ApiMetadata::getKey,
+                    metadata -> (Object) (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
+                    (existing, replacement) -> replacement
                 )
             );
     }

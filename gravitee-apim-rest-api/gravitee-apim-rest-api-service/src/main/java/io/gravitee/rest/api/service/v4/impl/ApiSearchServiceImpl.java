@@ -19,9 +19,12 @@ import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -32,6 +35,7 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -54,6 +58,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
@@ -91,6 +96,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final SearchEngineService searchEngineService;
     private final ApiAuthorizationService apiAuthorizationService;
     private final IntegrationRepository integrationRepository;
+    private final ApiMetadataQueryService apiMetadataQueryService;
 
     public ApiSearchServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -100,7 +106,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         @Lazy final CategoryService categoryService,
         final SearchEngineService searchEngineService,
         @Lazy final ApiAuthorizationService apiAuthorizationService,
-        @Lazy final IntegrationRepository integrationRepository
+        @Lazy final IntegrationRepository integrationRepository,
+        final ApiMetadataQueryService apiMetadataQueryService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -110,6 +117,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         this.searchEngineService = searchEngineService;
         this.apiAuthorizationService = apiAuthorizationService;
         this.integrationRepository = integrationRepository;
+        this.apiMetadataQueryService = apiMetadataQueryService;
     }
 
     @Override
@@ -238,7 +246,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final QueryBuilder<ApiEntity> apiQueryBuilder,
         final Pageable pageable,
         final boolean mapToFullGenericApiEntity,
-        final boolean manageOnly
+        final boolean manageOnly,
+        final Set<String> expands
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         var apiQuery = apiQueryBuilder.build();
@@ -310,11 +319,44 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         }
 
         // Step 6: Sort by subset order and add Page information
-        return apisStream
+        List<GenericApiEntity> apiEntityList = apisStream
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
+            .collect(Collectors.toList());
+
+        if (expands != null && expands.contains(ApiService.EXPAND_METADATA) && !apiEntityList.isEmpty()) {
+            fetchAndSetMetadata(executionContext, apiEntityList);
+        }
+
+        return new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size());
+    }
+
+    private void fetchAndSetMetadata(final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
+        List<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).filter(Objects::nonNull).distinct().toList();
+        if (apiIds.isEmpty()) {
+            return;
+        }
+        Map<String, Map<String, ApiMetadata>> metadataByApiId = apiMetadataQueryService.findApiMetadataForApis(
+            executionContext.getEnvironmentId(),
+            apiIds
+        );
+        for (GenericApiEntity apiEntity : apiEntityList) {
+            Map<String, ApiMetadata> apiMetadataMap = metadataByApiId.get(apiEntity.getId());
+            if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
+                apiEntity.setMetadata(toResolvedMetadataValues(apiMetadataMap));
+            }
+        }
+    }
+
+    private static Map<String, Object> toResolvedMetadataValues(final Map<String, ApiMetadata> apiMetadataMap) {
+        return apiMetadataMap
+            .values()
+            .stream()
+            .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
             .collect(
-                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
-                    new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
+                toMap(
+                    ApiMetadata::getKey,
+                    metadata -> (Object) (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
+                    (existing, replacement) -> replacement
                 )
             );
     }
