@@ -15,11 +15,15 @@
  */
 import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
-export const ROUTE_KEYS = ['apis', 'applications', 'analytics', 'settings'] as const;
+export const ROUTE_KEYS = ['dashboard', 'apis', 'api-products', 'applications', 'analytics', 'settings'] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
+const DEFAULT_ROUTE_KEY: RouteKey = 'dashboard';
+
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
-    apis: { path: 'apis', label: 'APIs' },
+    dashboard: { path: '', label: 'Dashboard' },
+    apis: { path: 'apis', label: 'API Proxies' },
+    'api-products': { path: 'api-products', label: 'API Products' },
     applications: { path: 'applications', label: 'Applications' },
     analytics: { path: 'analytics', label: 'Analytics' },
     settings: { path: 'settings', label: 'Settings' },
@@ -28,5 +32,5 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
 export const APIM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
     routeKeys: ROUTE_KEYS,
     routes: ROUTES,
-    defaultRouteKey: 'apis',
-};
+    defaultRouteKey: DEFAULT_ROUTE_KEY,
+} as const;
