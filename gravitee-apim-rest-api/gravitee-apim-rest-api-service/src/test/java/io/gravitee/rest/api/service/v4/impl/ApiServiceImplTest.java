@@ -55,6 +55,11 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
@@ -294,6 +299,15 @@ public class ApiServiceImplTest {
     private ApiCategoryService apiCategoryService;
 
     @Mock
+<<<<<<< HEAD
+=======
+    private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
+
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
+    @Mock
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
     private IntegrationRepository integrationRepository;
 
     @Mock
@@ -368,7 +382,13 @@ public class ApiServiceImplTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
+<<<<<<< HEAD
             apiCategoryService
+=======
+            apiCategoryService,
+            removeApiFromApiProductsDomainService,
+            apiMetadataQueryService
+>>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
         );
         var apiSearchService = new ApiSearchServiceImpl(
             apiRepository,
@@ -378,7 +398,8 @@ public class ApiServiceImplTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository,
+            apiMetadataQueryService
         );
         apiStateService = new ApiStateServiceImpl(
             apiSearchService,
