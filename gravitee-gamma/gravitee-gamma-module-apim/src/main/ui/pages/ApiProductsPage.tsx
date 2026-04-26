@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { ArchiveIcon, HomeIcon, RadioIcon } from '@gravitee/graphene-core/icons';
+import { Card } from '@gravitee/graphene-core';
 
-import { ROUTES } from './routes';
-
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Dashboard',
-        items: [{ key: 'dashboard', title: ROUTES.dashboard.label, icon: HomeIcon }],
-    },
-    {
-        label: 'Manage',
-        items: [
-            { key: 'apis', title: ROUTES.apis.label, icon: RadioIcon },
-            { key: 'api-products', title: ROUTES['api-products'].label, icon: ArchiveIcon },
-        ],
-    },
-];
+export function ApiProductsPage() {
+    return (
+        <div className="space-y-4">
+            <h1>API Products</h1>
+            <Card className="p-4">
+                <p className="text-muted-foreground">Bundle API proxies into products for your developer portal.</p>
+            </Card>
+        </div>
+    );
+}

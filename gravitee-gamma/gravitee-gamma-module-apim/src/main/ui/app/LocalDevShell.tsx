@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene-core';
-import { Boxes } from 'lucide-react';
+import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 
 const localDevApp = {
     key: 'module-local',
     label: 'API Management',
     description: 'Local dev',
-    icon: <Boxes size={20} />,
+    icon: <AppWindowIcon size={20} />,
 };
 
 /** Minimal app chrome for standalone `nx serve` only; the host provides the real shell when federated. */
