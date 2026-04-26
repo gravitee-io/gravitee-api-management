@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.MetadataMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataPkMongo;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -153,6 +154,17 @@ public class MongoMetadataRepository implements MetadataRepository {
             LOGGER.error("Failed to delete metadata by refId: {}/{}", referenceId, referenceId, ex);
             throw new TechnicalException("Failed to delete metadata by reference");
         }
+    }
+
+    @Override
+    public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds) {
+        log.debug("Find metadata by ref type '{}' and ref ids '{}'", referenceType, referenceIds);
+        final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceIdIn(
+            referenceType,
+            referenceIds
+        );
+        log.debug("Find metadata by ref type '{}' and ref ids '{}' done", referenceType, referenceIds);
+        return metadata.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override

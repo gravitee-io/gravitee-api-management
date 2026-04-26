@@ -63,6 +63,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.service.v4.ApiService;
 import jakarta.annotation.Nullable;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
@@ -70,10 +71,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
@@ -120,13 +124,18 @@ public interface ApiMapper {
 
     @Nullable
     default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
+        return map(apiEntity, uriInfo, isSynchronized, null);
+    }
+
+    @Nullable
+    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized, Set<String> expands) {
         GenericApi.DeploymentStateEnum state = null;
 
         if (isSynchronized != null) {
             state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         }
 
-        return switch (apiEntity) {
+        Api api = switch (apiEntity) {
             case FederatedApiAgentEntity federatedAgent -> new io.gravitee.rest.api.management.v2.rest.model.Api(
                 mapToFederatedAgent(federatedAgent, uriInfo)
             );
@@ -141,13 +150,28 @@ public interface ApiMapper {
                 : new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV2(legacy, uriInfo, state));
             case null, default -> null;
         };
+
+        if (api != null) {
+            applyMetadataExpand(apiEntity, api, expands);
+        }
+
+        return api;
     }
 
     default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
+        return map(apiEntities, uriInfo, isSynchronized, null);
+    }
+
+    default List<Api> map(
+        List<GenericApiEntity> apiEntities,
+        UriInfo uriInfo,
+        Function<GenericApiEntity, Boolean> isSynchronized,
+        Set<String> expands
+    ) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
-                result.add(this.map(api, uriInfo, isSynchronized.apply(api)));
+                result.add(this.map(api, uriInfo, isSynchronized.apply(api), expands));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
@@ -155,6 +179,37 @@ public interface ApiMapper {
             }
         });
         return result;
+    }
+
+    private static void applyMetadataExpand(GenericApiEntity source, Api apiWrapper, Set<String> expands) {
+        Object inner = apiWrapper.getActualInstance();
+        if (!(inner instanceof GenericApi genericApi)) {
+            return;
+        }
+        if (
+            expands != null &&
+            expands.contains(ApiService.EXPAND_METADATA) &&
+            source != null &&
+            source.getMetadata() != null &&
+            !source.getMetadata().isEmpty()
+        ) {
+            genericApi.setMetadata(source.getMetadata());
+        } else {
+            // Explicitly null out the field, the generated class initializes it to new HashMap<>(),
+            // which would serialize as {} without an expand request.
+            genericApi.setMetadata(null);
+        }
+    }
+
+    /**
+     * Null out the metadata field on every directly-mapped ApiV4 (create, import, single-get responses).
+     * The generated class initializes this field to {@code new HashMap<>()}, which would serialize as
+     * {@code "metadata": {}} in responses that don't go through {@code applyMetadataExpand()}.
+     * The list/search paths call {@code applyMetadataExpand()} which overrides this as needed.
+     */
+    @AfterMapping
+    default void clearMetadataOnDirectMapping(@MappingTarget ApiV4 target) {
+        target.setMetadata(null);
     }
 
     @Mapping(target = "originContext", expression = "java(computeOriginContext(apiEntity))")

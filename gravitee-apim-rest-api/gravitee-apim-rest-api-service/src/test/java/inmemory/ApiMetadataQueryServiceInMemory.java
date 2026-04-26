@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<Metadata> {
 
@@ -72,6 +73,11 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
             );
 
         return apiMetadata;
+    }
+
+    @Override
+    public Map<String, Map<String, ApiMetadata>> findApiMetadataForApis(String environmentId, List<String> apiIds) {
+        return apiIds.stream().collect(Collectors.toMap(Function.identity(), apiId -> findApiMetadata(environmentId, apiId)));
     }
 
     @Override

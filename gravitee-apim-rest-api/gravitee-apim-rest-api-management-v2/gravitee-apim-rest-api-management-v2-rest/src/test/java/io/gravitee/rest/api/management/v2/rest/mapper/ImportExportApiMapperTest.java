@@ -144,4 +144,22 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         // Then
         assertThat(importDefinition.getApiExport().getPrimaryOwner()).isNull();
     }
+
+    @Test
+    void shouldNotIncludeMetadataExpandFieldInExportedApi() {
+        // metadata is an expand-only field on GET /apis and must never appear in export/import payloads.
+        // GenericApi (parent of ApiV4) initializes it to new HashMap<>() by default; if not explicitly
+        // nulled out, it would serialize as "metadata": {} in every exported API definition.
+        var api = new ApiV4();
+        api.setMetadata(null);
+
+        var exportApiV4 = new ExportApiV4();
+        exportApiV4.setApi(api);
+
+        var importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApiV4);
+
+        assertThat(importDefinition.getApiExport()).isNotNull();
+        // The metadata Map in GenericApi (expand field) must be null — not an empty map
+        assertThat(api.getMetadata()).isNull();
+    }
 }
