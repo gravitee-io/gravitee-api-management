@@ -53,6 +53,30 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindByReferenceTypeAndReferenceIdIn() throws Exception {
+        // apiId has 1 entry, api-delete has 2 entries — total 3
+        final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceIdIn(
+            MetadataReferenceType.API,
+            List.of("apiId", "api-delete")
+        );
+
+        assertNotNull(metadataList);
+        assertEquals(3, metadataList.size());
+        assertTrue(metadataList.stream().allMatch(m -> m.getReferenceType() == MetadataReferenceType.API));
+    }
+
+    @Test
+    public void shouldReturnEmptyListWhenNoMatchForReferenceTypeAndReferenceIdIn() throws Exception {
+        final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceIdIn(
+            MetadataReferenceType.API,
+            List.of("unknown-api-1", "unknown-api-2")
+        );
+
+        assertNotNull(metadataList);
+        assertTrue(metadataList.isEmpty());
+    }
+
+    @Test
     public void shouldFindByKeyAndReferenceType() throws Exception {
         final List<Metadata> metadataList = metadataRepository.findByKeyAndReferenceType("string", MetadataReferenceType.API);
 
