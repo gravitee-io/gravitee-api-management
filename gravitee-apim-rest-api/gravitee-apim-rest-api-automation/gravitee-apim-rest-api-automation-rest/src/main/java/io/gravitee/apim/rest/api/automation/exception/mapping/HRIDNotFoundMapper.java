@@ -16,7 +16,7 @@
 package io.gravitee.apim.rest.api.automation.exception.mapping;
 
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
-import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.AbstractDomainExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.AbstractDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;

@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain;
 
-import io.gravitee.apim.core.exception.ConflictDomainException;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Map;
 
-public class ConflictDomainExceptionMapper extends AbstractDomainExceptionMapper<ConflictDomainException> {
+public class NotFoundDomainExceptionMapper extends AbstractDomainExceptionMapper<NotFoundDomainException> {
 
     @Override
-    public Response toResponse(ConflictDomainException exception) {
-        return Response.status(Response.Status.CONFLICT)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(conflictDomainError(exception))
-            .build();
+    public Response toResponse(NotFoundDomainException nfe) {
+        return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON_TYPE).entity(notFoundDomainError(nfe)).build();
     }
 
-    private Error conflictDomainError(ConflictDomainException exception) {
+    private Error notFoundDomainError(NotFoundDomainException nfe) {
         return new Error()
-            .httpStatus(Response.Status.CONFLICT.getStatusCode())
-            .message(exception.getMessage())
-            .parameters(exception.getId() != null ? Map.of("id", exception.getId()) : null);
+            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+            .message(nfe.getMessage())
+            .parameters(nfe.getId() != null ? Map.of("id", nfe.getId()) : null);
     }
 }

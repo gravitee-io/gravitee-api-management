@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
-import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
+import lombok.CustomLog;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
 @Provider
-public class ManagementExceptionMapper extends AbstractExceptionMapper<AbstractManagementException> {
+@CustomLog
+public class ThrowableMapper extends AbstractExceptionMapper<Throwable> {
 
     @Override
-    public Response toResponse(AbstractManagementException mex) {
-        return Response.status(mex.getHttpStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(mex)).build();
+    public Response toResponse(Throwable e) {
+        log.error("Internal error", e);
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .type(MediaType.APPLICATION_JSON_TYPE)
+            .entity(convert(e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+            .build();
     }
 }

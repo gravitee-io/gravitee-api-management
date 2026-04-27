@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.core.MediaType;
+import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
-/**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
- */
 @Provider
-public class NotFoundExceptionMapper extends AbstractExceptionMapper<NotFoundException> {
+public class PreconditionFailedExceptionMapper extends AbstractExceptionMapper<PreconditionFailedException> {
 
     @Override
-    public Response toResponse(final NotFoundException e) {
-        final Response.Status error = Response.Status.NOT_FOUND;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
+    public Response toResponse(PreconditionFailedException e) {
+        return Response.status(e.getHttpStatusCode()).build();
     }
 }

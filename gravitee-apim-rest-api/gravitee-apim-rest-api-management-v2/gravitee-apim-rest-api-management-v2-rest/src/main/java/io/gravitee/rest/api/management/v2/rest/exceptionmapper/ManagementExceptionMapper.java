@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
-import jakarta.ws.rs.BadRequestException;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
- * @author GraviteeSource Team
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 @Provider
-public class BadRequestExceptionMapper extends AbstractExceptionMapper<BadRequestException> {
+public class ManagementExceptionMapper extends AbstractExceptionMapper<AbstractManagementException> {
 
     @Override
-    public Response toResponse(BadRequestException e) {
-        final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
+    public Response toResponse(AbstractManagementException mex) {
+        return Response.status(mex.getHttpStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(mex)).build();
     }
 }
