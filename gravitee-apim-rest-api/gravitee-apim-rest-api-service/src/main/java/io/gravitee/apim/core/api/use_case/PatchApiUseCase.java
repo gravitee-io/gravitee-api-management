@@ -55,24 +55,34 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PatchApiUseCase {
 
+    private static final String FIELD_DESCRIPTION = "description";
+    private static final String FIELD_API_VERSION = "apiVersion";
+    private static final String FIELD_VISIBILITY = "visibility";
+    private static final String FIELD_LIFECYCLE_STATE = "lifecycleState";
+    private static final String FIELD_ALLOWED_IN_API_PRODUCTS = "allowedInApiProducts";
+    private static final String FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS = "allowMultiJwtOauth2Subscriptions";
+    private static final String FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS = "disableMembershipNotifications";
+    private static final String FIELD_PROPERTIES = "properties";
+    private static final String FIELD_RESPONSE_TEMPLATES = "responseTemplates";
+
     private static final Set<String> ALLOWED_FIELDS = Set.of(
         "name",
-        "description",
-        "apiVersion",
-        "visibility",
+        FIELD_DESCRIPTION,
+        FIELD_API_VERSION,
+        FIELD_VISIBILITY,
         "labels",
         "tags",
-        "lifecycleState",
+        FIELD_LIFECYCLE_STATE,
         "categories",
         "analytics",
         "failover",
         "flowExecution",
         "services",
-        "allowedInApiProducts",
-        "allowMultiJwtOauth2Subscriptions",
-        "disableMembershipNotifications",
-        "properties",
-        "responseTemplates"
+        FIELD_ALLOWED_IN_API_PRODUCTS,
+        FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS,
+        FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS,
+        FIELD_PROPERTIES,
+        FIELD_RESPONSE_TEMPLATES
     );
 
     private static final Set<String> BLOCKED_WITH_HINT = Set.of("state");
@@ -188,14 +198,14 @@ public class PatchApiUseCase {
 
         rejectExplicitNullOnNonNullable(rawPatchNode, "name");
         var name = textOrDefault(patchedNode, "name", existingApi.getName());
-        rejectExplicitNullOnNonNullable(rawPatchNode, "description");
-        var description = textOrDefault(patchedNode, "description", existingApi.getDescription());
-        rejectExplicitNullOnNonNullable(rawPatchNode, "apiVersion");
-        var apiVersion = textOrDefault(patchedNode, "apiVersion", existingApi.getVersion());
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_DESCRIPTION);
+        var description = textOrDefault(patchedNode, FIELD_DESCRIPTION, existingApi.getDescription());
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_API_VERSION);
+        var apiVersion = textOrDefault(patchedNode, FIELD_API_VERSION, existingApi.getVersion());
 
-        rejectExplicitNullOnNonNullable(rawPatchNode, "visibility");
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_VISIBILITY);
         var visibility = readVisibility(patchedNode, existingApi.getVisibility());
-        rejectExplicitNullOnNonNullable(rawPatchNode, "lifecycleState");
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_LIFECYCLE_STATE);
         var lifecycleState = readLifecycleState(patchedNode, existingApi.getApiLifecycleState());
 
         var labels = resolveNullableList(rawPatchNode, patchedNode, "labels", existingApi.getLabels());
@@ -213,33 +223,37 @@ public class PatchApiUseCase {
         );
         var services = resolveNullableObject(rawPatchNode, patchedNode, "services", ApiServices.class, httpV4.getServices());
 
-        rejectExplicitNullOnNonNullable(rawPatchNode, "allowedInApiProducts");
-        var allowedInApiProducts = readBooleanObject(patchedNode, "allowedInApiProducts", httpV4.getAllowedInApiProducts());
-        rejectExplicitNullOnNonNullable(rawPatchNode, "allowMultiJwtOauth2Subscriptions");
-        var allowMultiJwt = readBoolean(patchedNode, "allowMultiJwtOauth2Subscriptions", existingApi.isAllowMultiJwtOauth2Subscriptions());
-        rejectExplicitNullOnNonNullable(rawPatchNode, "disableMembershipNotifications");
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_ALLOWED_IN_API_PRODUCTS);
+        var allowedInApiProducts = readBooleanObject(patchedNode, FIELD_ALLOWED_IN_API_PRODUCTS, httpV4.getAllowedInApiProducts());
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS);
+        var allowMultiJwt = readBoolean(
+            patchedNode,
+            FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS,
+            existingApi.isAllowMultiJwtOauth2Subscriptions()
+        );
+        rejectExplicitNullOnNonNullable(rawPatchNode, FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS);
         var disableMembershipNotifications = readBoolean(
             patchedNode,
-            "disableMembershipNotifications",
+            FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS,
             existingApi.isDisableMembershipNotifications()
         );
 
         var properties = httpV4.getProperties();
-        if (rawPatchNode.has("properties")) {
-            if (rawPatchNode.get("properties").isNull()) {
+        if (rawPatchNode.has(FIELD_PROPERTIES)) {
+            if (rawPatchNode.get(FIELD_PROPERTIES).isNull()) {
                 properties = List.of();
             } else {
-                properties = readList(patchedNode, "properties", Property.class, null);
+                properties = readList(patchedNode, FIELD_PROPERTIES, Property.class, null);
             }
         }
 
         var responseTemplates = httpV4.getResponseTemplates();
-        if (rawPatchNode.has("responseTemplates")) {
-            if (rawPatchNode.get("responseTemplates").isNull()) {
+        if (rawPatchNode.has(FIELD_RESPONSE_TEMPLATES)) {
+            if (rawPatchNode.get(FIELD_RESPONSE_TEMPLATES).isNull()) {
                 responseTemplates = null;
             } else {
                 try {
-                    responseTemplates = objectMapper.treeToValue(patchedNode.get("responseTemplates"), new TypeReference<>() {});
+                    responseTemplates = objectMapper.treeToValue(patchedNode.get(FIELD_RESPONSE_TEMPLATES), new TypeReference<>() {});
                 } catch (Exception e) {
                     throw new ValidationDomainException("Invalid value for field 'responseTemplates': " + e.getMessage());
                 }
@@ -318,7 +332,7 @@ public class PatchApiUseCase {
     }
 
     private Api.Visibility readVisibility(JsonNode node, Api.Visibility defaultValue) {
-        var fieldNode = node.get("visibility");
+        var fieldNode = node.get(FIELD_VISIBILITY);
         if (fieldNode == null || fieldNode.isNull()) {
             return defaultValue;
         }
@@ -330,7 +344,7 @@ public class PatchApiUseCase {
     }
 
     private Api.ApiLifecycleState readLifecycleState(JsonNode node, Api.ApiLifecycleState defaultValue) {
-        var fieldNode = node.get("lifecycleState");
+        var fieldNode = node.get(FIELD_LIFECYCLE_STATE);
         if (fieldNode == null || fieldNode.isNull()) {
             return defaultValue;
         }
