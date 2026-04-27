@@ -32,6 +32,7 @@ import { ApiCreationV4SpecStepperHelper } from './api-creation-v4-spec-stepper-h
 import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expects';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakeApiV4, fakePlanV4 } from '../../../entities/management-api-v2';
 import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 import { Constants } from '../../../entities/Constants';
 
@@ -385,6 +386,43 @@ describe('ApiCreationV4Component - Message', () => {
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
       expect(step4Summary).toContain('Update name' + 'KEY_LESS');
+    }));
+
+    it('should not include allowedInApiProducts in the create POST body for MESSAGE APIs', fakeAsync(async () => {
+      await stepperHelper.fillAndValidateStep1_ApiDetails();
+      await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture();
+      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('MESSAGE');
+      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig();
+      await stepperHelper.fillAndValidateStep3_1_EndpointsList();
+      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig();
+      await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
+
+      const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
+      await step5Harness.clickCreateMyApiButton();
+
+      const createApiRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis`, method: 'POST' });
+      expect(createApiRequest.request.body).not.toHaveProperty('allowedInApiProducts');
+      createApiRequest.flush(fakeApiV4({ id: 'api-id' }));
+
+      const createPlan0Request = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-id/plans`,
+        method: 'POST',
+      });
+      createPlan0Request.flush(fakePlanV4({ apiId: 'api-id', id: 'plan-id-0' }));
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-id/plans/plan-id-0/_publish`, method: 'POST' })
+        .flush({});
+
+      const createPlan1Request = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-id/plans`,
+        method: 'POST',
+      });
+      createPlan1Request.flush(fakePlanV4({ apiId: 'api-id', id: 'plan-id-1' }));
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-id/plans/plan-id-1/_publish`, method: 'POST' })
+        .flush({});
+
+      flush();
     }));
   });
 });
