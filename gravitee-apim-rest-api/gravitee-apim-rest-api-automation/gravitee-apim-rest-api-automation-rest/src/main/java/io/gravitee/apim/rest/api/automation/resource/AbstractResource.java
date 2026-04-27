@@ -18,8 +18,12 @@ package io.gravitee.apim.rest.api.automation.resource;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -27,6 +31,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
+
+    @Inject
+    private PermissionService permissionService;
+
+    protected boolean hasPermission(
+        ExecutionContext executionContext,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    ) {
+        return permissionService.hasPermission(executionContext, permission, referenceId, acls);
+    }
 
     protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

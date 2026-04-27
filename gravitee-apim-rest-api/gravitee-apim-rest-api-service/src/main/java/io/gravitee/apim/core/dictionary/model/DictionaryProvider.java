@@ -13,36 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.configuration.dictionary;
+package io.gravitee.apim.core.dictionary.model;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
 @Data
-public class NewDictionaryEntity {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DictionaryProvider {
 
-    private String id;
-
-    private String key;
-
-    @NotNull
-    @Size(min = 3)
-    private String name;
-
-    private String description;
-
-    @NotNull
-    private DictionaryType type;
-
-    private DictionaryProviderEntity provider;
-
-    private DictionaryTriggerEntity trigger;
-
-    private Map<String, String> properties;
+    private String type;
+    private JsonNode configuration;
 }
