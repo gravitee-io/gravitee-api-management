@@ -112,10 +112,10 @@ spec:
           securityContext: {{ include "gravitee.adaptContainerSecurityContext" (dict "context" . "securityContext" .Values.ui.deployment.securityContext) | nindent 12 }}
           env:
             - name: MGMT_API_URL
-              value: "https://{{index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}/"
+              value: "{{ trimSuffix "/" (include "ui.managementApiUrl" .) }}/"
             {{- if not (eq $base_href_defined "true") }}
             - name: CONSOLE_BASE_HREF
-              value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path) "/" }}
+              value: {{ include "ui.consoleBaseHref" . | quote }}
             {{- end }}
 {{- if .Values.ui.env | default .Values.ui.deployment.extraEnvs }}
 {{ toYaml ( .Values.ui.env | default .Values.ui.deployment.extraEnvs ) | indent 12 }}

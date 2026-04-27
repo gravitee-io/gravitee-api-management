@@ -1,4 +1,11 @@
 {{- if and (and (.Values.portal.enabled) (not .Values.apim.dbLess)) (not (include "portal.externalConfig" .)) -}}
+{{- $state := dict "baseURL" .Values.portal.baseURL -}}
+{{- if not (get $state "baseURL") -}}
+{{- $_ := set $state "baseURL" (include "api.portal.route.url" .) -}}
+{{- if not (get $state "baseURL") -}}
+{{- fail "portal.baseURL must be set when no API portal route URL can be resolved" -}}
+{{- end -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -27,11 +34,7 @@ data:
   gzip-types: "*"
   config.json: |
     {
-      {{- if .Values.portal.baseURL }}
-      "baseURL": "{{ .Values.portal.baseURL }}",
-      {{- else }}
-      "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}",
-      {{- end }}
+      "baseURL": "{{ get $state "baseURL" }}",
       {{- if .Values.portal.enforceEnvironmentId }}
       "environmentId": "{{ .Values.portal.enforceEnvironmentId }}",
       {{- end }}
@@ -48,10 +51,6 @@ data:
       {{- if .Values.portal.enforceEnvironmentId }}
       "environmentId": "{{ .Values.portal.enforceEnvironmentId }}",
       {{- end }}
-      {{- if .Values.portal.baseURL }}
-      "baseURL": "{{ .Values.portal.baseURL }}"
-      {{- else }}
-      "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}"
-      {{- end }}
+      "baseURL": "{{ get $state "baseURL" }}"
     }
 {{- end -}}

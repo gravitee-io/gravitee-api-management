@@ -1,0 +1,262 @@
+suite: Test Portal HTTPRoute
+templates:
+  - "portal/portal-httproute.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute with explicit httpRoute values
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /portal
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: portal.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /portal
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-portal
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8003
+
+  - it: Ignores portal.ingress values when both ingress and httpRoute are enabled
+    set:
+      portal:
+        ingress:
+          enabled: true
+          hosts:
+            - ingress.example.com
+          pathType: Prefix
+          path: /custom-portal
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - route.example.com
+          pathMatchType: RegularExpression
+          path: /portal(/.*)?
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: route.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: RegularExpression
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /portal(/.*)?
+
+  - it: Fails when portal.httpRoute.path is missing
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "portal.httpRoute.path is required when portal.httpRoute.enabled=true"
+
+  - it: Fails when portal.httpRoute.pathMatchType is missing
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          path: /portal
+    asserts:
+      - failedTemplate:
+          errorMessage: "portal.httpRoute.pathMatchType is required when portal.httpRoute.enabled=true"
+
+  - it: Fails when portal.httpRoute.hostnames is empty
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          pathMatchType: PathPrefix
+          path: /portal
+    asserts:
+      - failedTemplate:
+          errorMessage: "portal.httpRoute.hostnames must contain at least one hostname when portal.httpRoute.enabled=true"
+
+  - it: Renders custom parentRef path and middleware filters
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: public-gateway
+          gatewayNamespace: gateways
+          sectionName: websecure
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /portal
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                add:
+                  - name: X-Forwarded-App
+                    value: portal
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: secure-headers
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateways
+      - equal:
+          path: spec.parentRefs[0].sectionName
+          value: websecure
+      - equal:
+          path: spec.hostnames[0]
+          value: portal.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /portal
+      - equal:
+          path: spec.rules[0].filters[0].type
+          value: RequestHeaderModifier
+      - equal:
+          path: spec.rules[0].filters[0].requestHeaderModifier.add[0].name
+          value: X-Forwarded-App
+      - equal:
+          path: spec.rules[0].filters[1].extensionRef.name
+          value: secure-headers
+
+  - it: Renders generic URLRewrite and ExtensionRef filters as provided
+    set:
+      portal:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /portal
+          filters:
+            - type: URLRewrite
+              urlRewrite:
+                path:
+                  type: ReplacePrefixMatch
+                  replacePrefixMatch: /
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: strip-portal-prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].filters[0].type
+          value: URLRewrite
+      - equal:
+          path: spec.rules[0].filters[0].urlRewrite.path.type
+          value: ReplacePrefixMatch
+      - equal:
+          path: spec.rules[0].filters[1].extensionRef.name
+          value: strip-portal-prefix
+
+  - it: Does not render in dbLess mode
+    set:
+      apim:
+        dbLess: true
+      portal:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders from explicit httpRoute values when ingress is disabled
+    set:
+      portal:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: portal.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /
+
+  - it: Renders annotations from httpRoute and common
+    set:
+      common:
+        annotations:
+          common-annotation: common-value
+      portal:
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - portal.example.com
+          pathMatchType: PathPrefix
+          path: /portal
+          annotations:
+            external-dns.alpha.kubernetes.io/controller: ignore
+    asserts:
+      - equal:
+          path: metadata.annotations["external-dns.alpha.kubernetes.io/controller"]
+          value: "ignore"
+      - equal:
+          path: metadata.annotations["common-annotation"]
+          value: "common-value"

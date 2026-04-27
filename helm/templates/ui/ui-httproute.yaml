@@ -1,0 +1,65 @@
+{{- if and (.Values.ui.enabled) (not .Values.apim.dbLess) (.Values.ui.httpRoute.enabled) -}}
+{{- $serviceAPIName := include "gravitee.ui.fullname" . -}}
+{{- $serviceAPIPort := .Values.ui.service.externalPort -}}
+{{- $pathMatchType := include "ui.httpRoute.pathMatchType" . -}}
+{{- $path := include "ui.httpRoute.path" . -}}
+{{- $hostnames := fromYamlArray (include "ui.httpRoute.hostnames" .) -}}
+{{- $filters := default (list) .Values.ui.httpRoute.filters -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $serviceAPIName }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.ui.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.ui.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- $hasAnnotations := or .Values.ui.httpRoute.annotations (and .Values.common .Values.common.annotations) }}
+  {{- if $hasAnnotations }}
+  annotations:
+    {{- if .Values.ui.httpRoute.annotations }}
+    {{- range $key, $value := .Values.ui.httpRoute.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    - name: {{ required "ui.httpRoute.gatewayName is required when ui.httpRoute.enabled=true" .Values.ui.httpRoute.gatewayName }}
+      {{- if .Values.ui.httpRoute.gatewayNamespace }}
+      namespace: {{ .Values.ui.httpRoute.gatewayNamespace }}
+      {{- end }}
+      {{- if .Values.ui.httpRoute.sectionName }}
+      sectionName: {{ .Values.ui.httpRoute.sectionName }}
+      {{- end }}
+  {{- if gt (len $hostnames) 0 }}
+  hostnames:
+    {{- range $hostname := $hostnames }}
+    - {{ $hostname | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ $pathMatchType }}
+            value: {{ $path }}
+      {{- if gt (len $filters) 0 }}
+      filters:
+{{ toYaml $filters | indent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $serviceAPIName }}
+          port: {{ $serviceAPIPort }}
+{{- end }}

@@ -142,7 +142,7 @@ data:
       {{- if .Values.installation.api.url }}
         url: {{ .Values.installation.api.url }}
       {{ else }}
-        url: {{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}
+        url: {{ include "api.management.route.scheme" . }}://{{ index (fromYamlArray (include "api.management.route.hosts" .)) 0 }}
       {{- end }}
       {{- if .Values.installation.api.console }}
         console:
@@ -163,29 +163,29 @@ data:
         {{- end }}
       {{- end }}
         proxyPath:
-          management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.management.path }}
-          portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.portal.path }}
-          gamma: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.gamma.path }}
+          management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.management.route.path" .) }}
+          portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.portal.route.path" .) }}
+          gamma: {{ regexFind "/[a-zA-Z0-9-\\/_.~]*" (include "api.gamma.route.path" .) }}
       {{- if ne (include "installation.type" .) "multi-tenant" }}
       standalone:
         console:
           {{- if .Values.installation.standalone.console.urls }}
             {{- toYaml .Values.installation.standalone.console | nindent 10 }}
           {{ else }}
-          url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path }}
+          url: {{ include "ui.consoleUrl" . }}
           {{- end }}
         portal:
           {{- if .Values.installation.standalone.portal.urls }}
             {{- toYaml .Values.installation.standalone.portal | nindent 10 }}
           {{ else }}
-          url: https://{{ index .Values.portal.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.portal.ingress.path }}
+          url: {{ include "portal.portalUrl" . }}
           {{- end }}
         {{- if .Values.gamma.enabled }}
         gamma-console:
           {{- if index .Values.installation.standalone "gamma-console" "urls" }}
             {{- toYaml (index .Values.installation.standalone "gamma-console") | nindent 10 }}
           {{ else }}
-          url: https://{{ index .Values.gammaUi.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.gammaUi.ingress.path }}
+          url: {{ include "gammaUi.consoleUrl" . }}
           {{- end }}
         {{- end}}
       {{ else }}

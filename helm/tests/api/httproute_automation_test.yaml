@@ -1,0 +1,164 @@
+suite: Test API Automation HTTPRoute
+templates:
+  - "api/api-httproute-automation.yaml"
+tests:
+  - it: Does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Renders an HTTPRoute with explicit values
+    set:
+      api:
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+            path: /automation
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-apim-api-automation
+      - equal:
+          path: spec.parentRefs[0].name
+          value: traefik
+      - equal:
+          path: spec.hostnames[0]
+          value: api.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.type
+          value: PathPrefix
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /automation
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: RELEASE-NAME-apim-api
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 83
+
+  - it: Ignores api.ingress.automation values when both ingress and httpRoute are enabled
+    set:
+      api:
+        ingress:
+          automation:
+            enabled: true
+            hosts:
+              - ingress.example.com
+            pathType: Prefix
+            path: /ingress-automation
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+            path: /automation
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames[0]
+          value: api.example.com
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /automation
+
+  - it: Fails when api.httpRoute.automation.path is missing
+    set:
+      api:
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.automation.path is required when api.httpRoute.automation.enabled=true"
+
+  - it: Fails when api.httpRoute.automation.pathMatchType is missing
+    set:
+      api:
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            path: /automation
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.automation.pathMatchType is required when api.httpRoute.automation.enabled=true"
+
+  - it: Fails when api.httpRoute.automation.hostnames is empty
+    set:
+      api:
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+            pathMatchType: PathPrefix
+            path: /automation
+    asserts:
+      - failedTemplate:
+          errorMessage: "api.httpRoute.automation.hostnames must contain at least one hostname when api.httpRoute.automation.enabled=true"
+
+  - it: Renders with filters
+    set:
+      api:
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+            hostnames:
+              - api.example.com
+            pathMatchType: PathPrefix
+            path: /automation
+            filters:
+              - type: ExtensionRef
+                extensionRef:
+                  group: traefik.io
+                  kind: Middleware
+                  name: strip-prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].filters[0].extensionRef.name
+          value: strip-prefix
+
+  - it: Does not render in dbLess mode
+    set:
+      apim:
+        dbLess: true
+      api:
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Does not render when api is disabled
+    set:
+      api:
+        enabled: false
+        httpRoute:
+          automation:
+            enabled: true
+            gatewayName: traefik
+    asserts:
+      - hasDocuments:
+          count: 0

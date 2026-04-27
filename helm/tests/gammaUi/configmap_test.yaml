@@ -9,6 +9,11 @@ set:
 tests:
   - it: should set gammaBaseURL from default ingress path
     template: gammaUi/gammaUi-configmap.yaml
+    set:
+      api:
+        ingress:
+          gamma:
+            enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -27,6 +32,7 @@ tests:
       api:
         ingress:
           gamma:
+            enabled: true
             hosts:
               - gamma.example.com
             path: /custom-gamma
@@ -40,4 +46,57 @@ tests:
           value: |-
             {
               "gammaBaseURL": "https://gamma.example.com/custom-gamma"
+            }
+
+  - it: should set gammaBaseURL from gamma httpRoute when ingress is disabled
+    template: gammaUi/gammaUi-configmap.yaml
+    set:
+      api:
+        ingress:
+          gamma:
+            enabled: false
+            hosts:
+              - stale-ingress.example.com
+        httpRoute:
+          gamma:
+            enabled: true
+            hostnames:
+              - gamma-route.example.com
+            pathMatchType: PathPrefix
+            path: /gamma
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: data["constants.json"]
+          value: |-
+            {
+              "gammaBaseURL": "https://gamma-route.example.com/gamma"
+            }
+
+  - it: should keep gammaBaseURL override when gamma httpRoute is enabled
+    template: gammaUi/gammaUi-configmap.yaml
+    set:
+      gammaUi:
+        app:
+          gammaBaseURL: https://override.example.com/custom-gamma
+      api:
+        ingress:
+          gamma:
+            enabled: false
+        httpRoute:
+          gamma:
+            enabled: true
+            hostnames:
+              - gamma-route.example.com
+            pathMatchType: PathPrefix
+            path: /gamma
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: data["constants.json"]
+          value: |-
+            {
+              "gammaBaseURL": "https://override.example.com/custom-gamma"
             }

@@ -1,0 +1,65 @@
+{{- if and (.Values.portal.enabled) (not .Values.apim.dbLess) (default false ((.Values.portal).httpRoute).enabled) -}}
+{{- $serviceAPIName := include "gravitee.portal.fullname" . -}}
+{{- $serviceAPIPort := .Values.portal.service.externalPort -}}
+{{- $pathMatchType := include "portal.httpRoute.pathMatchType" . -}}
+{{- $path := include "portal.httpRoute.path" . -}}
+{{- $hostnames := fromYamlArray (include "portal.httpRoute.hostnames" .) -}}
+{{- $filters := default (list) .Values.portal.httpRoute.filters -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $serviceAPIName }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.portal.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.portal.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- $hasAnnotations := or .Values.portal.httpRoute.annotations (and .Values.common .Values.common.annotations) }}
+  {{- if $hasAnnotations }}
+  annotations:
+    {{- if .Values.portal.httpRoute.annotations }}
+    {{- range $key, $value := .Values.portal.httpRoute.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    - name: {{ required "portal.httpRoute.gatewayName is required when portal.httpRoute.enabled=true" .Values.portal.httpRoute.gatewayName }}
+      {{- if .Values.portal.httpRoute.gatewayNamespace }}
+      namespace: {{ .Values.portal.httpRoute.gatewayNamespace }}
+      {{- end }}
+      {{- if .Values.portal.httpRoute.sectionName }}
+      sectionName: {{ .Values.portal.httpRoute.sectionName }}
+      {{- end }}
+  {{- if gt (len $hostnames) 0 }}
+  hostnames:
+    {{- range $hostname := $hostnames }}
+    - {{ $hostname | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ $pathMatchType }}
+            value: {{ $path }}
+      {{- if gt (len $filters) 0 }}
+      filters:
+{{ toYaml $filters | indent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $serviceAPIName }}
+          port: {{ $serviceAPIPort }}
+{{- end }}

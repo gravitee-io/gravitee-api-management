@@ -437,3 +437,149 @@ tests:
           value:
             - name: portal.entrypoint
               value: https://my.custom.gateway.host/
+
+  - it: Auto configure portal entrypoint from top-level gateway httpRoute when ingress is disabled
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - gw.httpRoute.example.com
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://gw.httpRoute.example.com/
+
+  - it: Auto configure portal entrypoint with HTTP scheme from gateway server ingress
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            ingress:
+              enabled: true
+              scheme: http
+              pathType: Prefix
+              path: /
+              hosts:
+                - plain-http-gateway.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: http://plain-http-gateway.example.com/
+
+  - it: Auto configure portal entrypoint with HTTP scheme from top-level gateway httpRoute
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: false
+        httpRoute:
+          enabled: true
+          scheme: http
+          gatewayName: traefik
+          hostnames:
+            - gw-http.example.com
+          path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: http://gw-http.example.com/
+
+  - it: Auto configure portal entrypoint from server httpRoute when server ingress is disabled
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            httpRoute:
+              enabled: true
+              gatewayName: traefik
+              hostnames:
+                - gw-server.httpRoute.example.com
+              path: /
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://gw-server.httpRoute.example.com/
+
+  - it: Auto configure portal entrypoint from first eligible HTTP server when a TCP server appears first
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        servers:
+          - type: tcp
+            port: 9092
+            ingress:
+              enabled: true
+              path: /
+              hosts:
+                - tcp-only.example.com
+          - type: http
+            port: 8082
+            ingress:
+              enabled: true
+              pathType: Prefix
+              path: /
+              hosts:
+                - http-server.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://http-server.example.com/
+
+  - it: Does not fall back to top-level gateway routes when gateway.servers is defined but no HTTP server route resolves
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        ingress:
+          enabled: true
+          hosts:
+            - top-level.example.com
+          path: /
+        httpRoute:
+          enabled: true
+          gatewayName: traefik
+          hostnames:
+            - top-level-route.example.com
+          path: /
+        servers:
+          - type: tcp
+            port: 9092
+            ingress:
+              enabled: true
+              path: /
+              hosts:
+                - tcp-only.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isEmpty:
+          path: spec.template.spec.containers[0].env

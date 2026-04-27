@@ -1,0 +1,19 @@
+suite: Test portal configmap failures
+templates:
+  - "portal/portal-configmap.yaml"
+tests:
+  - it: Should fail portal configmap rendering when no portal baseURL can be resolved
+    template: portal/portal-configmap.yaml
+    set:
+      api:
+        ingress:
+          portal:
+            enabled: false
+        httpRoute:
+          portal:
+            enabled: false
+      portal:
+        baseURL:
+    asserts:
+      - failedTemplate:
+          errorMessage: "portal.baseURL must be set when no API portal route URL can be resolved"

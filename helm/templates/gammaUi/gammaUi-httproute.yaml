@@ -1,0 +1,65 @@
+{{- if and (.Values.gamma.enabled) (.Values.gammaUi.enabled) (not .Values.apim.dbLess) (.Values.gammaUi.httpRoute.enabled) -}}
+{{- $serviceAPIName := include "gravitee.gammaUi.fullname" . -}}
+{{- $serviceAPIPort := .Values.gammaUi.service.externalPort -}}
+{{- $pathMatchType := include "gammaUi.httpRoute.pathMatchType" . -}}
+{{- $path := include "gammaUi.httpRoute.path" . -}}
+{{- $hostnames := fromYamlArray (include "gammaUi.httpRoute.hostnames" .) -}}
+{{- $filters := default (list) .Values.gammaUi.httpRoute.filters -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $serviceAPIName }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gammaUi.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gammaUi.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- $hasAnnotations := or .Values.gammaUi.httpRoute.annotations (and .Values.common .Values.common.annotations) }}
+  {{- if $hasAnnotations }}
+  annotations:
+    {{- if .Values.gammaUi.httpRoute.annotations }}
+    {{- range $key, $value := .Values.gammaUi.httpRoute.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    - name: {{ required "gammaUi.httpRoute.gatewayName is required when gammaUi.httpRoute.enabled=true" .Values.gammaUi.httpRoute.gatewayName }}
+      {{- if .Values.gammaUi.httpRoute.gatewayNamespace }}
+      namespace: {{ .Values.gammaUi.httpRoute.gatewayNamespace }}
+      {{- end }}
+      {{- if .Values.gammaUi.httpRoute.sectionName }}
+      sectionName: {{ .Values.gammaUi.httpRoute.sectionName }}
+      {{- end }}
+  {{- if gt (len $hostnames) 0 }}
+  hostnames:
+    {{- range $hostname := $hostnames }}
+    - {{ $hostname | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ $pathMatchType }}
+            value: {{ $path }}
+      {{- if gt (len $filters) 0 }}
+      filters:
+{{ toYaml $filters | indent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $serviceAPIName }}
+          port: {{ $serviceAPIPort }}
+{{- end }}

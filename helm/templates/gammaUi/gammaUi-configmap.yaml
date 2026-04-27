@@ -30,7 +30,7 @@ data:
       {{- if and .Values.gammaUi.app .Values.gammaUi.app.gammaBaseURL }}
       "gammaBaseURL": "{{ .Values.gammaUi.app.gammaBaseURL }}"
       {{- else }}
-      "gammaBaseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.gamma.hosts 0 }}{{ .Values.api.ingress.gamma.path }}"
+      "gammaBaseURL": "{{ include "api.gamma.route.url" . }}"
       {{- end }}
     }
 {{- end -}}
