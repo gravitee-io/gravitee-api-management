@@ -58,6 +58,7 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -66,6 +67,7 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
@@ -912,6 +914,17 @@ public class ResourceContextConfiguration {
     @Bean
     public OAIDomainService oaiDomainService() {
         return mock(OAIDomainService.class);
+    }
+
+    @Bean
+    public WsdlParserDomainService wsdlParserDomainService() {
+        return mock(WsdlParserDomainService.class);
+    }
+
+    @Bean
+    @Primary
+    public WsdlToImportApiUseCase wsdlToImportApiUseCase() {
+        return mock(WsdlToImportApiUseCase.class);
     }
 
     @Bean

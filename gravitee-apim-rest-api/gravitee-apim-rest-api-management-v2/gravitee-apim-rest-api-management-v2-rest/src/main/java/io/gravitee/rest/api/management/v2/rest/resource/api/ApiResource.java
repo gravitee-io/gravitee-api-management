@@ -40,6 +40,7 @@ import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
+import io.gravitee.apim.core.api.use_case.WsdlToUpdateApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
@@ -71,6 +72,7 @@ import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
+import io.gravitee.rest.api.management.v2.rest.model.ImportWsdlDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIssuesInner;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
@@ -278,6 +280,9 @@ public class ApiResource extends AbstractResource {
     private OAIToUpdateApiUseCase oaiToUpdateApiUseCase;
 
     @Inject
+    private WsdlToUpdateApiUseCase wsdlToUpdateApiUseCase;
+
+    @Inject
     private UpdateApiGroupsUseCase updateApiGroupsUseCase;
 
     @Context
@@ -401,6 +406,31 @@ public class ApiResource extends AbstractResource {
                 .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
                 .auditInfo(audit)
                 .build()
+        );
+
+        boolean isSynchronized = apiStateService.isSynchronized(
+            GraviteeContext.getExecutionContext(),
+            getGenericApiEntityById(apiId, false)
+        );
+        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+    }
+
+    @PUT
+    @Path("/_import/wsdl")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiFromWsdl(@PathParam("apiId") String apiId, @Valid @NotNull ImportWsdlDescriptor descriptor) {
+        var audit = getAuditInfo();
+        var output = wsdlToUpdateApiUseCase.execute(
+            WsdlToUpdateApiUseCase.Input.of(
+                apiId,
+                descriptor.getPayload(),
+                ImportWsdlDescriptor.TypeEnum.URL.equals(descriptor.getType()),
+                Boolean.TRUE.equals(descriptor.getWithDocumentation()),
+                Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()),
+                audit
+            )
         );
 
         boolean isSynchronized = apiStateService.isSynchronized(
