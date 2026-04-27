@@ -23,7 +23,7 @@ export interface ApiImportV4FormDialogData {
   apiName: string;
 }
 
-export const API_IMPORT_V4_FORM_DIALOG_MAX_HEIGHT = '96dvh';
+export const API_IMPORT_V4_FORM_DIALOG_MAX_HEIGHT = '90dvh';
 
 @Component({
   selector: 'api-import-v4-form-dialog',

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Component, computed, DestroyRef, effect, inject, input, output, signal, Signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
@@ -28,7 +29,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { combineLatest, defer, EMPTY, merge, Observable, of, throwError } from 'rxjs';
-import { catchError, finalize, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, finalize, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { ApiImportFilePickerComponent } from '../../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV4, PolicyPlugin } from '../../../../entities/management-api-v2';
@@ -138,12 +139,28 @@ export class ApiImportV4FormComponent {
   protected readonly hasOasValidationPolicy = signal(false);
 
   protected readonly importFormat = toSignal(
-    this.selectApiFormatForm.controls.format.valueChanges.pipe(startWith(this.selectApiFormatForm.controls.format.value)),
+    this.selectApiFormatForm.controls.format.valueChanges.pipe(
+      startWith(this.selectApiFormatForm.controls.format.value),
+      distinctUntilChanged(),
+    ),
     { initialValue: this.selectApiFormatForm.controls.format.value },
   );
 
+  private readonly resetConfigureStepWhenApiFormatChanges = (() => {
+    let previous = this.selectApiFormatForm.controls.format.value;
+    return effect(() => {
+      const current = this.importFormat();
+      if (current === previous) return;
+      previous = current;
+      this.resetConfigureFileSourceAfterApiFormatChange();
+    });
+  })();
+
   private readonly importSourceMode = toSignal(
-    this.configureFileSourceForm.controls.source.valueChanges.pipe(startWith(this.configureFileSourceForm.controls.source.value)),
+    this.configureFileSourceForm.controls.source.valueChanges.pipe(
+      startWith(this.configureFileSourceForm.controls.source.value),
+      distinctUntilChanged(),
+    ),
     { initialValue: this.configureFileSourceForm.controls.source.value },
   );
 
@@ -207,7 +224,11 @@ export class ApiImportV4FormComponent {
 
   private readonly formatAndPolicies = toSignal(
     combineLatest([
-      this.selectApiFormatForm.controls.format.valueChanges.pipe(startWith(this.selectApiFormatForm.controls.format.value)),
+      this.selectApiFormatForm.valueChanges.pipe(
+        map(() => this.selectApiFormatForm.controls.format.value),
+        startWith(this.selectApiFormatForm.controls.format.value),
+        distinctUntilChanged(),
+      ),
       this.policyV2Service.list().pipe(
         catchError((err: unknown) => {
           this.snackBarService.error(this.readPolicyListErrorMessage(err));
@@ -280,6 +301,27 @@ export class ApiImportV4FormComponent {
     this.importStepper()?.previous();
   }
 
+  protected onImportStepSelectionChange(event: StepperSelectionEvent): void {
+    const selectedIndex = event.selectedIndex;
+    const previousIndex = event.previouslySelectedIndex;
+    if (selectedIndex < previousIndex) {
+      this.importInProgress.set(false);
+    }
+  }
+
+  /** Clears picked file and remote URL fields when the user selects a different API format on step 1 (stepper navigation alone does not reset). */
+  private resetConfigureFileSourceAfterApiFormatChange(): void {
+    this.importFileContent.set(undefined);
+    this.importType.set(undefined);
+    if (this.configureFileSourceForm.controls.source.value !== 'local') {
+      this.configureFileSourceForm.controls.source.setValue('local', { emitEvent: true });
+    }
+    this.configureFileSourceForm.patchValue({ remoteUrl: '', authorizationHeader: '' }, { emitEvent: false });
+    this.configureFileSourceForm.controls.remoteUrl.markAsUntouched();
+    this.configureFileSourceForm.controls.authorizationHeader.markAsUntouched();
+    this.configureFileSourceForm.updateValueAndValidity({ emitEvent: true });
+  }
+
   private applyFileSourceMode(source: string | null): void {
     const urlCtrl = this.configureFileSourceForm.controls.remoteUrl;
     const authCtrl = this.configureFileSourceForm.controls.authorizationHeader;
@@ -293,6 +335,7 @@ export class ApiImportV4FormComponent {
       urlCtrl.setValue('', { emitEvent: false });
       authCtrl.setValue('', { emitEvent: false });
       urlCtrl.markAsUntouched();
+      authCtrl.markAsUntouched();
     }
     urlCtrl.updateValueAndValidity({ emitEvent: true });
     authCtrl.updateValueAndValidity({ emitEvent: false });

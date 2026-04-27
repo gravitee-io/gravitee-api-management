@@ -18,7 +18,7 @@
 <gio-form-file-picker
   class="file-picker"
   [class.file-picker--filled]="filePickerControl.value?.length > 0"
-  [accept]="accept"
+  [accept]="acceptMask()"
   [formControl]="filePickerControl"
 >
   <gio-form-file-picker-add-button>

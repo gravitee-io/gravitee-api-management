@@ -83,6 +83,16 @@ export class ApiImportV4FormHarness extends ComponentHarness {
     return picker.dropFiles(files);
   }
 
+  public async getFilePickerInputAccept(): Promise<string | null> {
+    const picker = await this.getFilePicker();
+    return picker.getInputFileAccept();
+  }
+
+  public async getPickedFilesCount(): Promise<number> {
+    const picker = await this.getFilePicker();
+    return (await picker.getPreviews()).length;
+  }
+
   public async clickNext(): Promise<void> {
     for (const ancestor of ['.select-api-format__actions', '.configure-file-source__actions', '.options-step__actions']) {
       const btn = await this.locatorForOptional(MatButtonHarness.with({ ancestor, text: 'Next' }))();
