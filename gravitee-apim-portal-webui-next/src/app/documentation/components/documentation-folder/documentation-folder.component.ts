@@ -90,7 +90,7 @@ export class DocumentationFolderComponent {
     params: this.apiId,
     stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
   });
-  apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
+  apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp && this.api.value()?.type !== 'MCP_PROXY');
   mcpDrawerOpen = signal(false);
 
   constructor(

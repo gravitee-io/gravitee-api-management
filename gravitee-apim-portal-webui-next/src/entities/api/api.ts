@@ -76,4 +76,4 @@ export interface Api {
   _links?: ApiLinks;
 }
 
-export type ApiType = 'NATIVE' | 'MESSAGE' | 'PROXY';
+export type ApiType = 'NATIVE' | 'MESSAGE' | 'PROXY' | 'MCP_PROXY' | 'A2A_PROXY' | 'LLM_PROXY';

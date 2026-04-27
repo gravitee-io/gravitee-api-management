@@ -23,6 +23,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
+import { ApiType } from '../../../../entities/api/api';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
 import { ApiService } from '../../../../services/api.service';
@@ -58,6 +59,7 @@ describe('DocumentationFolderComponent', () => {
       content: string;
       isAuthenticated: boolean;
       apiHasMcp: boolean;
+      apiType: ApiType;
     }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
@@ -84,6 +86,7 @@ describe('DocumentationFolderComponent', () => {
         of({
           ...baseApiDetails,
           id,
+          ...(params.apiType ? { type: params.apiType } : {}),
           ...(apiHasMcp ? { mcp: { mcpPath: '/mcp', tools: [] as { toolDefinition: Record<string, unknown> }[] } } : {}),
         }),
       ),
@@ -414,6 +417,23 @@ describe('DocumentationFolderComponent', () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
       const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
       await init({ items: [apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
+
+      expect(await harness.getMcpButton()).toBeNull();
+    });
+
+    it('should not show MCP button for MCP_PROXY API type even when mcp field is present', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({
+        items: [apiItem, apiPage],
+        queryParams: { selectedId: 'p-api1' },
+        content: MOCK_CONTENT,
+        apiHasMcp: true,
+        apiType: 'MCP_PROXY',
+      });
+
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       expect(await harness.getMcpButton()).toBeNull();
     });
