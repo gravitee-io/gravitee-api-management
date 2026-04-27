@@ -43,9 +43,10 @@ class SearchMetricsQueryAdapterTest {
             {
               "from": 0,
               "size": 20,
-              "sort": {
-                "@timestamp": { "order": "desc" }
-              }
+              "sort": [
+                { "@timestamp": { "order": "desc" } },
+                { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+              ]
             }
             """
         );
@@ -68,9 +69,10 @@ class SearchMetricsQueryAdapterTest {
             {
               "from": 20,
               "size": 10,
-              "sort": {
-                "@timestamp": { "order": "desc" }
-              }
+              "sort": [
+                { "@timestamp": { "order": "desc" } },
+                { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+              ]
             }
             """
         );
@@ -108,11 +110,10 @@ class SearchMetricsQueryAdapterTest {
                             }]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -155,11 +156,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -183,11 +183,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -210,11 +209,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -237,11 +235,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -286,11 +283,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                 }
                 """
             ),
@@ -338,11 +334,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -405,11 +400,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -454,11 +448,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                 }
                 """
             ),
@@ -494,11 +487,10 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": {
-                        "@timestamp": {
-                            "order": "desc"
-                        }
-                    }
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
                  }
                 """
             ),
@@ -519,11 +511,10 @@ class SearchMetricsQueryAdapterTest {
                                                      ]
                                                  }
                                              },
-                                             "sort": {
-                                                 "@timestamp": {
-                                                     "order": "desc"
-                                                 }
-                                             }
+                                             "sort": [
+                                                 { "@timestamp": { "order": "desc" } },
+                                                 { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                                             ]
                                           }
                 """
             ),
@@ -574,11 +565,10 @@ class SearchMetricsQueryAdapterTest {
                                                      ]
                                                  }
                                              },
-                                             "sort": {
-                                                 "@timestamp": {
-                                                     "order": "desc"
-                                                 }
-                                             }
+                                             "sort": [
+                                                 { "@timestamp": { "order": "desc" } },
+                                                 { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                                             ]
                                           }
                 """
             ),
@@ -634,11 +624,10 @@ class SearchMetricsQueryAdapterTest {
                                                      ]
                                                  }
                                              },
-                                             "sort": {
-                                                 "@timestamp": {
-                                                     "order": "desc"
-                                                 }
-                                             }
+                                             "sort": [
+                                                 { "@timestamp": { "order": "desc" } },
+                                                 { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                                             ]
                                           }
                 """
             )
