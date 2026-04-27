@@ -78,4 +78,15 @@ describe('MembershipService', () => {
     expect(req.request.body).toEqual({ filters: { displayName: 'Ada' } });
     req.flush(response);
   });
+
+  it('should delete an application member', done => {
+    const memberId = 'member-1';
+
+    service.deleteApplicationMember(applicationId, memberId).subscribe(() => done());
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/${memberId}` && r.method === 'DELETE',
+    );
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });
