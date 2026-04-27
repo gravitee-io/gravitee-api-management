@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
-import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
+import jakarta.ws.rs.NotAllowedException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
+/**
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ */
 @Provider
-public class PreconditionFailedExceptionMapper extends AbstractExceptionMapper<PreconditionFailedException> {
+public class NotAllowedExceptionMapper extends AbstractExceptionMapper<NotAllowedException> {
 
     @Override
-    public Response toResponse(PreconditionFailedException e) {
-        return Response.status(e.getHttpStatusCode()).build();
+    public Response toResponse(final NotAllowedException e) {
+        final Response.Status error = Response.Status.METHOD_NOT_ALLOWED;
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
     }
 }

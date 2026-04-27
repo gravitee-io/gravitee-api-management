@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain;
 
-import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-public class NotAllowedDomainExceptionMapper extends AbstractDomainExceptionMapper<NotAllowedDomainException> {
+public class ValidationDomainExceptionMapper extends AbstractDomainExceptionMapper<ValidationDomainException> {
 
     @Override
-    public Response toResponse(NotAllowedDomainException notAllowedException) {
-        return Response.status(Response.Status.FORBIDDEN)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(toError(notAllowedException))
-            .build();
+    public Response toResponse(ValidationDomainException ve) {
+        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(validationDomainError(ve)).build();
     }
 
-    private Error toError(NotAllowedDomainException notAllowedException) {
-        return new Error().httpStatus(Response.Status.FORBIDDEN.getStatusCode()).message(notAllowedException.getMessage());
+    private Error validationDomainError(ValidationDomainException vde) {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message(vde.getMessage())
+            .technicalCode(vde.getTechnicalCode())
+            .parameters(vde.getParameters());
     }
 }

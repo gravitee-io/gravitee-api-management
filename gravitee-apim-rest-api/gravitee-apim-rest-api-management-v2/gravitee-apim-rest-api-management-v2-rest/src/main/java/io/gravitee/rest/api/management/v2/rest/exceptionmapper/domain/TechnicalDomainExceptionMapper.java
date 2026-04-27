@@ -13,32 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain;
 
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.ext.Provider;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
-@Provider
-public class UnrecognizedPropertyExceptionMapper extends AbstractExceptionMapper<UnrecognizedPropertyException> {
+public class TechnicalDomainExceptionMapper extends AbstractDomainExceptionMapper<TechnicalDomainException> {
 
     @Override
-    public Response toResponse(UnrecognizedPropertyException e) {
-        return Response.status(Response.Status.BAD_REQUEST)
+    public Response toResponse(TechnicalDomainException ve) {
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(
-                Entity.json(
-                    new Error()
-                        .message(String.format("Property [%s] is not recognized as a valid property", e.getPropertyName()))
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                )
-            )
+            .entity(technicalDomainError(ve))
             .build();
+    }
+
+    private Error technicalDomainError(TechnicalDomainException tde) {
+        return new Error().httpStatus(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).message(tde.getMessage());
     }
 }

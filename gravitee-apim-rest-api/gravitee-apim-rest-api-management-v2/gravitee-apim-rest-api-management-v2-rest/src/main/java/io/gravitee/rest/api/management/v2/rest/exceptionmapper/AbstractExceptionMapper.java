@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
+package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
