@@ -2309,7 +2309,7 @@ portal:
     # path: /
     # annotations:
     #   application: "apim"
-    # filters: []
+    # filters:
     # - type: RequestHeaderModifier
     #   requestHeaderModifier:
     #     add:
