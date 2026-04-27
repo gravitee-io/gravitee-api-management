@@ -71,7 +71,6 @@ public class PatchApiUseCase {
         "allowedInApiProducts",
         "allowMultiJwtOauth2Subscriptions",
         "disableMembershipNotifications",
-        "groups",
         "properties",
         "responseTemplates"
     );
@@ -144,7 +143,6 @@ public class PatchApiUseCase {
             httpV4.getAllowedInApiProducts(),
             api.isAllowMultiJwtOauth2Subscriptions(),
             api.isDisableMembershipNotifications(),
-            api.getGroups() != null ? new ArrayList<>(api.getGroups()) : null,
             httpV4.getProperties(),
             httpV4.getResponseTemplates()
         );
@@ -226,16 +224,6 @@ public class PatchApiUseCase {
             existingApi.isDisableMembershipNotifications()
         );
 
-        var groups = existingApi.getGroups();
-        if (rawPatchNode.has("groups")) {
-            if (rawPatchNode.get("groups").isNull()) {
-                groups = new HashSet<>();
-            } else {
-                var groupsList = readStringList(patchedNode, "groups", null);
-                groups = groupsList != null ? new HashSet<>(groupsList) : new HashSet<>();
-            }
-        }
-
         var properties = httpV4.getProperties();
         if (rawPatchNode.has("properties")) {
             if (rawPatchNode.get("properties").isNull()) {
@@ -283,7 +271,7 @@ public class PatchApiUseCase {
             .categories(categories)
             .allowMultiJwtOauth2Subscriptions(allowMultiJwt)
             .disableMembershipNotifications(disableMembershipNotifications)
-            .groups(groups)
+            .groups(existingApi.getGroups())
             .apiDefinitionValue(updatedDefinition)
             .build();
     }
@@ -445,7 +433,6 @@ public class PatchApiUseCase {
         Boolean allowedInApiProducts,
         boolean allowMultiJwtOauth2Subscriptions,
         boolean disableMembershipNotifications,
-        List<String> groups,
         List<Property> properties,
         Map<String, Map<String, ResponseTemplate>> responseTemplates
     ) {}
