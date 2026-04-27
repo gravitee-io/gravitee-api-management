@@ -205,6 +205,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       description: apiCreationPayload.description ?? '',
       listeners: listeners,
       type: apiCreationPayload.type,
+      allowedInApiProducts: false,
       endpointGroups: apiCreationPayload.selectedEndpoints.map(
         endpoint =>
           ({
