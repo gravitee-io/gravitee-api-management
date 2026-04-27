@@ -23,7 +23,6 @@ import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.GroupMember;
 import io.gravitee.apim.rest.api.automation.model.GroupSpec;
 import io.gravitee.apim.rest.api.automation.model.GroupState;
-import io.gravitee.apim.rest.api.automation.model.GroupStatus;
 import io.gravitee.definition.model.Origin;
 import java.util.List;
 import java.util.Map;
@@ -53,31 +52,28 @@ public interface GroupMapper {
     @Mapping(target = "roles", qualifiedByName = "roleScopeMapToStringMap")
     GroupMember memberToGroupMember(GroupCRDSpec.Member member);
 
-    GroupStatus toGroupStatus(GroupCRDStatus status);
-
     Errors toErrors(GroupCRDStatus.Errors errors);
 
     default GroupState groupSpecAndStatusToGroupState(GroupSpec spec, GroupCRDStatus status) {
         GroupState state = new GroupState();
-        state.setSpec(spec);
-        state.setStatus(toGroupStatus(status));
+        state.setHrid(spec.getHrid());
+        state.setName(spec.getName());
+        state.setMembers(spec.getMembers());
+        state.setNotifyMembers(spec.getNotifyMembers());
+        state.setId(status.getId());
+        state.setMemberCount(status.getMembers());
+        state.setErrors(toErrors(status.getErrors()));
         return state;
     }
 
     default GroupState groupToGroupState(Group group, Set<GroupCRDSpec.Member> members) {
-        GroupSpec spec = new GroupSpec();
-        spec.setHrid(group.getHrid());
-        spec.setName(group.getName());
-        spec.setNotifyMembers(!group.isDisableMembershipNotifications());
-        spec.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : List.of());
-
-        GroupStatus status = new GroupStatus();
-        status.setId(group.getId());
-        status.setMembers(members != null ? (long) members.size() : 0L);
-
         GroupState state = new GroupState();
-        state.setSpec(spec);
-        state.setStatus(status);
+        state.setHrid(group.getHrid());
+        state.setName(group.getName());
+        state.setNotifyMembers(!group.isDisableMembershipNotifications());
+        state.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : List.of());
+        state.setId(group.getId());
+        state.setMemberCount(members != null ? (long) members.size() : 0L);
         return state;
     }
 

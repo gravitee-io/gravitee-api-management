@@ -62,10 +62,10 @@ class GroupsResourceTest extends AbstractResourceTest {
         void should_return_state_from_name() {
             var state = expectEntity("group-with-name.json");
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getStatus().getId()).isEqualTo("group-id");
-                soft.assertThat(state.getSpec().getHrid()).isEqualTo("my-group");
-                soft.assertThat(state.getSpec().getName()).isEqualTo("my-group");
-                soft.assertThat(state.getSpec().getNotifyMembers()).isTrue();
+                soft.assertThat(state.getId()).isEqualTo("group-id");
+                soft.assertThat(state.getHrid()).isEqualTo("my-group");
+                soft.assertThat(state.getName()).isEqualTo("my-group");
+                soft.assertThat(state.getNotifyMembers()).isTrue();
             });
         }
 
@@ -77,9 +77,9 @@ class GroupsResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("group-with-members.json");
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getStatus().getId()).isEqualTo("group-id");
-                soft.assertThat(state.getStatus().getMembers()).isEqualTo(1L);
-                soft.assertThat(state.getSpec().getMembers()).hasSize(1);
+                soft.assertThat(state.getId()).isEqualTo("group-id");
+                soft.assertThat(state.getMemberCount()).isEqualTo(1L);
+                soft.assertThat(state.getMembers()).hasSize(1);
             });
         }
 
@@ -91,7 +91,7 @@ class GroupsResourceTest extends AbstractResourceTest {
             });
 
             var state = expectEntity("group-with-name.json", false, true);
-            assertThat(state.getStatus().getId()).isEqualTo("my-group");
+            assertThat(state.getId()).isEqualTo("my-group");
         }
     }
 
@@ -108,8 +108,8 @@ class GroupsResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("group-with-name.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getStatus().getId()).isEqualTo("generated-id");
-                soft.assertThat(state.getSpec().getName()).isEqualTo("my-group");
+                soft.assertThat(state.getId()).isEqualTo("generated-id");
+                soft.assertThat(state.getName()).isEqualTo("my-group");
             });
         }
 
@@ -127,9 +127,9 @@ class GroupsResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("group-with-name.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getStatus().getId()).isEqualTo("generated-id");
-                soft.assertThat(state.getStatus().getErrors()).isNotNull();
-                soft.assertThat(state.getStatus().getErrors().getWarning()).contains("unknown role");
+                soft.assertThat(state.getId()).isEqualTo("generated-id");
+                soft.assertThat(state.getErrors()).isNotNull();
+                soft.assertThat(state.getErrors().getWarning()).contains("unknown role");
             });
         }
     }
