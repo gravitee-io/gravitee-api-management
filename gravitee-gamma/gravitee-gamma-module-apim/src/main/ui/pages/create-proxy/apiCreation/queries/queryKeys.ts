@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppProviders } from './app/AppProviders';
-import { AppRoutes } from './app/AppRoutes';
+import type { ApimRuntimeConfig } from '../context/apimRuntimeContext';
 
-/** Module Federation entry: mounted under the host router; includes QueryClient + APIM runtime. */
-export default function FederatedAppRoutes() {
-    return (
-        <AppProviders>
-            <AppRoutes />
-        </AppProviders>
-    );
-}
+export const proxyCreationKeys = {
+    all: ['proxy-creation'] as const,
+    bootstrap: (runtime: ApimRuntimeConfig) =>
+        [...proxyCreationKeys.all, 'bootstrap', runtime.managementBaseURL, runtime.organizationId, runtime.environmentId] as const,
+    policySchema: (runtime: ApimRuntimeConfig, policyId: string) =>
+        [
+            ...proxyCreationKeys.all,
+            'policy-schema',
+            policyId,
+            runtime.managementBaseURL,
+            runtime.organizationId,
+            runtime.environmentId,
+        ] as const,
+};

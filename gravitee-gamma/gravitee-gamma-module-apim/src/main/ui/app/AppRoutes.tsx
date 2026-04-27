@@ -22,6 +22,8 @@ import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
+import { ApiCreatedPage } from '../pages/ApiCreatedPage';
+import { CreateProxyPage } from '../pages/CreateProxyPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DashboardPage } from '../pages/DashboardPage';
@@ -55,6 +57,8 @@ export function AppRoutes() {
                 <Route index element={<DashboardPage />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="apis" element={<ApisPage />} />
+                <Route path="apis/new" element={<CreateProxyPage />} />
+                <Route path="apis/:apiId" element={<ApiCreatedPage />} />
                 <Route path="api-products" element={<ApiProductsPage />} />
                 <Route path="applications" element={<ApplicationsPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />

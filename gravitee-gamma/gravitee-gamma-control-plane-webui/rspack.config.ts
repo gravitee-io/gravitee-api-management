@@ -41,18 +41,6 @@ export default {
     devServer: {
         port: 4200,
         allowedHosts: 'all',
-        proxy: [
-            {
-                context: ['/management'],
-                target: 'http://localhost:8083',
-                changeOrigin: true,
-            },
-            {
-                context: ['/gamma'],
-                target: 'http://localhost:8083',
-                changeOrigin: true,
-            },
-        ],
         historyApiFallback: {
             index: '/index.html',
             disableDotRule: true,

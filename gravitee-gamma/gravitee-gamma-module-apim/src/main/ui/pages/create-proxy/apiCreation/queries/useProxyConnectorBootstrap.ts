@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppProviders } from './app/AppProviders';
-import { AppRoutes } from './app/AppRoutes';
+import { useQuery } from '@tanstack/react-query';
 
-/** Module Federation entry: mounted under the host router; includes QueryClient + APIM runtime. */
-export default function FederatedAppRoutes() {
-    return (
-        <AppProviders>
-            <AppRoutes />
-        </AppProviders>
-    );
+import { useApimRuntime } from '../context/apimRuntimeContext';
+import { resolveProxyConnectorBootstrap } from '../services/connectors';
+import { proxyCreationKeys } from './queryKeys';
+
+export function useProxyConnectorBootstrap(enabled = true) {
+    const runtime = useApimRuntime();
+    return useQuery({
+        queryKey: proxyCreationKeys.bootstrap(runtime),
+        queryFn: () => resolveProxyConnectorBootstrap(runtime),
+        enabled: enabled && Boolean(runtime.managementBaseURL),
+        staleTime: 5 * 60_000,
+    });
 }

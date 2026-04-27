@@ -44,6 +44,7 @@
         "@ngx-formly/core": "6.3.12",
         "@ngx-formly/material": "6.3.12",
         "@scalar/openapi-parser": "0.11.1",
+        "@tanstack/react-query": "5.90.2",
         "@toast-ui/editor": "3.2.2",
         "@toast-ui/editor-plugin-code-syntax-highlight": "3.1.0",
         "@webcomponents/webcomponentsjs": "2.8.0",

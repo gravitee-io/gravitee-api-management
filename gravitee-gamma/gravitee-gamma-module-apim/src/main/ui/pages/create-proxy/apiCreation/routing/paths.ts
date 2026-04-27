@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppProviders } from './app/AppProviders';
-import { AppRoutes } from './app/AppRoutes';
+import { ROUTES } from '../../../../config/routes';
 
-/** Module Federation entry: mounted under the host router; includes QueryClient + APIM runtime. */
-export default function FederatedAppRoutes() {
-    return (
-        <AppProviders>
-            <AppRoutes />
-        </AppProviders>
-    );
+/** Relative path under module root for a created API (for `useNavigate`). */
+export function apiDetailRelativePath(apiId: string): string {
+    return `${ROUTES.apis.path}/${encodeURIComponent(apiId)}`;
 }

@@ -53,7 +53,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                     const constants = await constantsRes.json();
                     const gammaBaseURL = sanitizeBaseURL(constants.gammaBaseURL);
 
-                    const bootstrapRes = await fetch(`${gammaBaseURL}/ui/bootstrap`);
+                    const bootstrapRes = await fetch(`${gammaBaseURL}/ui/bootstrap`, { credentials: 'include' });
                     if (!bootstrapRes.ok) throw new Error(`Failed to fetch bootstrap config: ${bootstrapRes.status}`);
                     const bootstrap = await bootstrapRes.json();
 
@@ -62,7 +62,9 @@ export const useBootstrapStore = create<BootstrapState>()(
 
                     let identityProviders: SocialIdentityProvider[] = [];
                     try {
-                        const idpRes = await fetch(`${managementBaseURL}/organizations/${organizationId}/social-identities`);
+                        const idpRes = await fetch(`${managementBaseURL}/organizations/${organizationId}/social-identities`, {
+                            credentials: 'include',
+                        });
                         if (idpRes.ok) {
                             identityProviders = await idpRes.json();
                         }

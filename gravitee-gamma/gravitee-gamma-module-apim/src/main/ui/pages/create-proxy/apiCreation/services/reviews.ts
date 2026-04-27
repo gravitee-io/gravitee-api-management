@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppProviders } from './app/AppProviders';
-import { AppRoutes } from './app/AppRoutes';
+import { getEnvironmentV2BaseUrl, type ApimRuntimeConfig } from '../context/apimRuntimeContext';
+import { apimFetchJson } from './apimFetch';
 
-/** Module Federation entry: mounted under the host router; includes QueryClient + APIM runtime. */
-export default function FederatedAppRoutes() {
-    return (
-        <AppProviders>
-            <AppRoutes />
-        </AppProviders>
-    );
+export async function askForApiReview(runtime: ApimRuntimeConfig, apiId: string, message?: string): Promise<void> {
+    const base = getEnvironmentV2BaseUrl(runtime);
+    await apimFetchJson<void>(`${base}/apis/${encodeURIComponent(apiId)}/reviews/_ask`, {
+        method: 'POST',
+        body: JSON.stringify({ message: message ?? '' }),
+    });
 }

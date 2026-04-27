@@ -16,6 +16,7 @@
 import { LayoutSlotsProvider } from '@gravitee/graphene-core';
 import { BrowserRouter } from 'react-router-dom';
 
+import { AppProviders } from './AppProviders';
 import { AppRoutes } from './AppRoutes';
 import { LocalDevShell } from './LocalDevShell';
 
@@ -23,11 +24,13 @@ import { LocalDevShell } from './LocalDevShell';
 export default function LocalDevRoot() {
     return (
         <BrowserRouter>
-            <LayoutSlotsProvider>
-                <LocalDevShell>
-                    <AppRoutes />
-                </LocalDevShell>
-            </LayoutSlotsProvider>
+            <AppProviders>
+                <LayoutSlotsProvider>
+                    <LocalDevShell>
+                        <AppRoutes />
+                    </LocalDevShell>
+                </LayoutSlotsProvider>
+            </AppProviders>
         </BrowserRouter>
     );
 }
