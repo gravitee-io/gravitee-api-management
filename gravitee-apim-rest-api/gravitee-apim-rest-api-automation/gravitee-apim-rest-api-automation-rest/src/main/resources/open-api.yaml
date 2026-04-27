@@ -1000,7 +1000,7 @@ components:
           description: Group's uuid.
           examples:
             - 550e8400-e29b-41d4-a716-446655440000
-        members:
+        memberCount:
           type: integer
           format: int64
           description: Number of members in the group.
@@ -1010,12 +1010,9 @@ components:
           $ref: "#/components/schemas/Errors"
     GroupState:
       description: Group state combining spec and status after creation/update.
-      type: object
-      properties:
-        spec:
-          $ref: "#/components/schemas/GroupSpec"
-        status:
-          $ref: "#/components/schemas/GroupStatus"
+      allOf:
+        - $ref: "#/components/schemas/GroupSpec"
+        - $ref: "#/components/schemas/GroupStatus"
 
     SubscriptionSpec:
       description: Subscription specification

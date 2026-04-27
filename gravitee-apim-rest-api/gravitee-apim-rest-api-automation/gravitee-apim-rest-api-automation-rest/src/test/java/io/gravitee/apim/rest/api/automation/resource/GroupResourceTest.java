@@ -104,10 +104,10 @@ class GroupResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
                 SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(state.getStatus().getId()).isEqualTo(groupIdFromHrid(HRID));
-                    soft.assertThat(state.getSpec().getHrid()).isEqualTo(HRID);
-                    soft.assertThat(state.getSpec().getName()).isEqualTo("My Group");
-                    soft.assertThat(state.getSpec().getNotifyMembers()).isTrue();
+                    soft.assertThat(state.getId()).isEqualTo(groupIdFromHrid(HRID));
+                    soft.assertThat(state.getHrid()).isEqualTo(HRID);
+                    soft.assertThat(state.getName()).isEqualTo("My Group");
+                    soft.assertThat(state.getNotifyMembers()).isTrue();
                 });
             }
         }
@@ -120,7 +120,7 @@ class GroupResourceTest extends AbstractResourceTest {
             try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
-                assertThat(state.getStatus().getId()).isEqualTo(GUID);
+                assertThat(state.getId()).isEqualTo(GUID);
             }
         }
 
@@ -133,8 +133,8 @@ class GroupResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
                 SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(state.getSpec().getMembers()).hasSize(1);
-                    soft.assertThat(state.getStatus().getMembers()).isEqualTo(1L);
+                    soft.assertThat(state.getMembers()).hasSize(1);
+                    soft.assertThat(state.getMemberCount()).isEqualTo(1L);
                 });
             }
         }
@@ -148,8 +148,8 @@ class GroupResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
                 SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(state.getSpec().getMembers()).isEmpty();
-                    soft.assertThat(state.getStatus().getMembers()).isEqualTo(0L);
+                    soft.assertThat(state.getMembers()).isEmpty();
+                    soft.assertThat(state.getMemberCount()).isEqualTo(0L);
                 });
             }
         }
