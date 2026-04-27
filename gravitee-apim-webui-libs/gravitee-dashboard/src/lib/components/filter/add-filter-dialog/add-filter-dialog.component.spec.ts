@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { firstValueFrom, of } from 'rxjs';
@@ -81,7 +82,7 @@ describe('AddFilterDialogComponent', () => {
   let component: AddFilterDialogComponent;
   let dialogRefSpy: { close: jest.Mock };
 
-  async function setup(data: AddFilterDialogData = {}) {
+  async function setup(data: AddFilterDialogData = {}, filterValuesProvider: FilterValuesProvider = new MockValuesProvider()) {
     dialogRefSpy = { close: jest.fn() };
 
     await TestBed.configureTestingModule({
@@ -91,7 +92,7 @@ describe('AddFilterDialogComponent', () => {
         { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: FILTER_DEFINITION_PROVIDER, useClass: MockDefinitionProvider },
-        { provide: FILTER_VALUES_PROVIDER, useClass: MockValuesProvider },
+        { provide: FILTER_VALUES_PROVIDER, useValue: filterValuesProvider },
       ],
     }).compileComponents();
 
@@ -108,6 +109,22 @@ describe('AddFilterDialogComponent', () => {
     it('should expose all filter definitions on init', async () => {
       const filtered = await firstValueFrom(component['filteredDefinitions$']);
       expect(filtered.length).toBe(ALL_DEFINITIONS.length);
+    });
+
+    it('should sort filter definitions alphabetically by label', async () => {
+      const filtered = await firstValueFrom(component['filteredDefinitions$']);
+      const labels = filtered.map(d => d.label);
+      const sorted = [...labels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+      expect(labels).toEqual(sorted);
+    });
+
+    it('should map known apiTypes for display and keep unknown tokens raw', () => {
+      expect(component['formatApiTypeForDisplay']('HTTP_PROXY')).toBe('HTTP Proxy');
+      expect(component['formatApiTypeForDisplay']('HTTP PROXY')).toBe('HTTP Proxy');
+      expect(component['formatApiTypeForDisplay']('http_proxy')).toBe('HTTP Proxy');
+      expect(component['formatApiTypeForDisplay']('MESSAGE')).toBe('Message');
+      expect(component['formatApiTypeForDisplay']('LLM')).toBe('LLM');
+      expect(component['formatApiTypeForDisplay']('MCP')).toBe('MCP');
     });
 
     it('should filter definitions by label search term', async () => {
@@ -172,6 +189,90 @@ describe('AddFilterDialogComponent', () => {
     });
   });
 
+  describe('KEYWORD timeframe limit for value suggestions', () => {
+    it('should pass dashboard bounds to keywordValuesTimeFrom/To when KEYWORD and limit is on', async () => {
+      await setup({ timeFrom: 1000, timeTo: 2000 });
+      component['selectDefinition'](KEYWORD_DEF);
+      fixture.detectChanges();
+      expect(component['hasKeywordTimeframeBounds']()).toBe(true);
+      expect(component['limitKeywordValuesToTimeframe']()).toBe(true);
+      expect(component['keywordValuesTimeFrom']()).toBe(1000);
+      expect(component['keywordValuesTimeTo']()).toBe(2000);
+    });
+
+    it('should omit bounds from keywordValuesTimeFrom/To when limit is turned off', async () => {
+      await setup({ timeFrom: 1000, timeTo: 2000 });
+      component['selectDefinition'](KEYWORD_DEF);
+      component['onLimitKeywordValuesToTimeframeChange']({ checked: false } as MatCheckboxChange);
+      fixture.detectChanges();
+      expect(component['keywordValuesTimeFrom']()).toBeUndefined();
+      expect(component['keywordValuesTimeTo']()).toBeUndefined();
+    });
+
+    it('should show timeframe limit checkbox when KEYWORD is selected and dialog has bounds', async () => {
+      await setup({ timeFrom: 1, timeTo: 2 });
+      component['selectDefinition'](KEYWORD_DEF);
+      component['selectedOperator'].set('IN');
+      component['operatorControl'].setValue('IN', { emitEvent: false });
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      expect(root.querySelector('mat-checkbox')).toBeTruthy();
+      expect(root.textContent).toContain('Limit values');
+    });
+
+    it('should not show timeframe limit checkbox when dialog has no bounds', async () => {
+      await setup({});
+      component['selectDefinition'](KEYWORD_DEF);
+      fixture.detectChanges();
+      expect((fixture.nativeElement as HTMLElement).querySelector('mat-checkbox')).toBeFalsy();
+    });
+
+    it('should pass from/to to getValues after debounce when limit is on', fakeAsync(() => {
+      const getValuesSpy = jest.fn().mockReturnValue(of({ data: [], hasNextPage: false }));
+      dialogRefSpy = { close: jest.fn() };
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [AddFilterDialogComponent],
+        providers: [
+          provideNoopAnimations(),
+          { provide: MAT_DIALOG_DATA, useValue: { timeFrom: 111, timeTo: 222 } satisfies AddFilterDialogData },
+          { provide: MatDialogRef, useValue: dialogRefSpy },
+          { provide: FILTER_DEFINITION_PROVIDER, useClass: MockDefinitionProvider },
+          { provide: FILTER_VALUES_PROVIDER, useValue: { getValues: getValuesSpy } as FilterValuesProvider },
+        ],
+      });
+      const f = TestBed.createComponent(AddFilterDialogComponent);
+      const c = f.componentInstance;
+      f.detectChanges();
+      tick(0);
+      c['selectDefinition'](KEYWORD_DEF);
+      c['selectedOperator'].set('IN');
+      f.detectChanges();
+      tick(200);
+      f.detectChanges();
+      expect(getValuesSpy).toHaveBeenCalled();
+      expect(getValuesSpy).toHaveBeenCalledWith(expect.objectContaining({ from: 111, to: 222, filterName: 'API', page: 1 }));
+    }));
+  });
+
+  describe('KEYWORD filter value (chip-grid + CDK overlay for IN)', () => {
+    it('should render chip-grid without mat-autocomplete for KEYWORD when operator is IN', async () => {
+      await setup();
+      component['selectDefinition'](KEYWORD_DEF);
+      component['selectedOperator'].set('IN');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const root = fixture.nativeElement as HTMLElement;
+      expect(root.querySelectorAll('mat-select').length).toBe(1);
+      const keyword = root.querySelector('gd-keyword-value-input');
+      expect(keyword?.querySelector('mat-chip-grid')).toBeTruthy();
+      expect(keyword?.querySelector('mat-autocomplete')).toBeFalsy();
+      expect(keyword?.querySelector('input[matAutocomplete]')).toBeFalsy();
+    });
+  });
+
   describe('unknown type fallback', () => {
     beforeEach(async () => {
       await setup();
@@ -206,6 +307,7 @@ describe('AddFilterDialogComponent', () => {
       expect(component['selectedDefinition']()?.name).toBe('HTTP_METHOD');
       expect(component['selectedOperator']()).toBe('IN');
       expect(component['selectedValues']()).toEqual(['GET', 'POST']);
+      expect(component['selectedValueLabels']()).toEqual(['GET', 'POST']);
       expect(component['fieldControl'].value).toEqual(expect.objectContaining({ name: 'HTTP_METHOD' }));
       expect(component['operatorControl'].value).toBe('IN');
     });
@@ -247,6 +349,7 @@ describe('AddFilterDialogComponent', () => {
         label: 'HTTP Method',
         operator: 'EQ',
         values: ['GET'],
+        valueLabels: ['GET'],
       });
     });
 
@@ -264,6 +367,7 @@ describe('AddFilterDialogComponent', () => {
         label: 'HTTP Method',
         operator: 'IN',
         values: ['GET', 'POST'],
+        valueLabels: ['GET', 'POST'],
       });
     });
 

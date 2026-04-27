@@ -36,6 +36,8 @@ tags:
     description: Everything about Applications
   - name: Shared Policy Group
     description: Everything about Shared Policy Groups
+  - name: Groups
+    description: Everything about Groups
   - name: Subscriptions
     description: Everything about subscriptions
 paths:
@@ -204,6 +206,95 @@ paths:
       responses:
         "204":
           description: Application successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Groups
+  /organizations/{orgId}/environments/{envId}/groups:
+    put:
+      operationId: createOrUpdateGroup
+      tags:
+        - Groups
+      summary: Create or update a Group from an automation GroupSpec
+      description: Create/update a Group from an automation Group Spec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+      requestBody:
+        description: Group specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/GroupSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/groups/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getGroup
+      tags:
+        - Groups
+      summary: Get one Group
+      description: Get a Group using HRID
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+      responses:
+        "200":
+          description: Group successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteGroup
+      tags:
+        - Groups
+      summary: Delete one Group
+      description: Delete a Group using HRID
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+      responses:
+        "204":
+          description: Group successfully deleted
         "401":
           $ref: "#/components/responses/Unauthenticated"
         "403":
@@ -847,6 +938,85 @@ components:
               examples:
                 - DEFAULT
 
+    GroupSpec:
+      description: |
+        Defines the desired state of a Group.
+        Groups allow organizing users and managing their access to APIs and applications collectively.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        name:
+          type: string
+          description: Group's name.
+          examples:
+            - developers
+          minLength: 1
+          maxLength: 512
+        members:
+          type: array
+          description: Members of this group with their IDP source and role assignments.
+          items:
+            $ref: "#/components/schemas/GroupMember"
+          default: []
+        notifyMembers:
+          type: boolean
+          description: If true, members will be notified when the group is synced with APIM.
+          default: true
+      required:
+        - hrid
+        - name
+    GroupMember:
+      description: A member of a group, identified by an external IDP source.
+      type: object
+      properties:
+        source:
+          type: string
+          description: The identity provider source of the member.
+          examples:
+            - gravitee
+        sourceId:
+          type: string
+          description: The member's identifier in the identity provider.
+          examples:
+            - "john.doe@example.com"
+        roles:
+          type: object
+          description: Map of role scope to role name defining what the member can do.
+          additionalProperties:
+            type: string
+          examples:
+            - API: USER
+              APPLICATION: ADMIN
+      required:
+        - source
+        - sourceId
+    GroupStatus:
+      description: Status information for a group after import.
+      type: object
+      properties:
+        id:
+          type: string
+          description: Group's uuid.
+          examples:
+            - 550e8400-e29b-41d4-a716-446655440000
+        members:
+          type: integer
+          format: int64
+          description: Number of members in the group.
+          examples:
+            - 5
+        errors:
+          $ref: "#/components/schemas/Errors"
+    GroupState:
+      description: Group state combining spec and status after creation/update.
+      type: object
+      properties:
+        spec:
+          $ref: "#/components/schemas/GroupSpec"
+        status:
+          $ref: "#/components/schemas/GroupStatus"
+
     SubscriptionSpec:
       description: Subscription specification
       type: object
@@ -873,15 +1043,32 @@ components:
           examples:
             - key1: value1
               key2: value2
-        customApiKey:
-          type: string
+        apiKeys:
+          type: array
           writeOnly: true
-          description: Custom API key to assign when creating API-KEY plan subscription.
-          example: my-custom-api-key
+          description: List of custom API keys with optional expiry dates. Used for API-KEY plan subscriptions.
+          items:
+            $ref: "#/components/schemas/ApiKeySpec"
       required:
         - hrid
         - applicationHrid
         - planHrid
+
+    ApiKeySpec:
+      description: API key specification with optional expiry date
+      type: object
+      properties:
+        key:
+          type: string
+          description: The custom API key value.
+          example: my-custom-api-key
+        expireAt:
+          type: string
+          format: date-time
+          description: Optional expiry date for this API key.
+          example: "2040-12-25T09:12:28Z"
+      required:
+        - key
 
     SubscriptionState:
       description: State of subscription that has been created/update
@@ -2380,6 +2567,16 @@ components:
           - keyless_demo_plan
           - demo_subscription
           - demo_shared_policy_groups
+    hridContainsUUIDQueryParam:
+      name: hridContainsUUID
+      in: query
+      description: |
+        When true, the HRID path or spec value is treated as an existing UUID rather than
+        a human-readable identifier. This is to support backward compatibility for resources
+        created before migration to the automation API and should not be used for new resources.
+      schema:
+        type: boolean
+        default: false
     apiHridParam:
       name: apiHrid
       in: path

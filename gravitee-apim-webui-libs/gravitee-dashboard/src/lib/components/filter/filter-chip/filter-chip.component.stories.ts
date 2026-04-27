@@ -447,8 +447,8 @@ update in real time. Copy the values you like into your application's stylesheet
 
 | Token | Type | Default value |
 |---|---|---|
-| \`--gd-filter-chip-background\` | color | \`#fff3eb\` ← \`var(--mat-sys-primary-container)\` |
-| \`--gd-filter-chip-color\` | color | \`#f15115\` ← \`var(--mat-sys-on-primary-container)\` |
+| \`--gd-filter-chip-background\` | color | \`#fff3eb\` (when unset on this component) |
+| \`--gd-filter-chip-color\` | color | \`#f15115\` (when unset) |
 | \`--gd-filter-chip-height\` | dimension | \`24px\` |
 | \`--gd-filter-chip-radius\` | dimension | \`6px\` |
 | \`--gd-filter-chip-padding-h\` | dimension | \`8px\` |
@@ -456,11 +456,14 @@ update in real time. Copy the values you like into your application's stylesheet
 | \`--gd-filter-chip-font-size\` | dimension | \`12px\` |
 | \`--gd-filter-chip-font-weight\` | number | \`600\` |
 | \`--gd-filter-chip-operator-font-weight\` | number | \`400\` |
+| \`--gd-filter-chip-badge-background\` | color | \`#f15115\` (or derived from chip colors) |
+| \`--gd-filter-chip-badge-foreground\` | color | \`#fff3eb\` (or derived) |
 
-> **Color resolution order:** consumer \`--gd-filter-chip-*\` → M3 theme \`--mat-sys-*\` → hardcoded fallback.
-> Always set \`--gd-filter-chip-background\` and \`--gd-filter-chip-color\` together to guarantee WCAG contrast (min 4.5:1).
+> **Color resolution:** consumer \`--gd-filter-chip-*\` when set on an ancestor; otherwise lib hex defaults above.
+> Inside \`gd-dynamic-filter-bar\`, the bar also resolves shared tokens so chips inherit the same palette.
+> Always set \`--gd-filter-chip-background\` and \`--gd-filter-chip-color\` together for WCAG contrast (min 4.5:1).
 >
-> **Count badge colors** are automatically derived from the two color tokens above (inverted): no extra tokens needed.
+> **Add filter** chip: use \`--gd-filter-chip-add-background\` / \`--gd-filter-chip-add-background-hover\` on an ancestor of \`gd-dynamic-filter-bar\` (see Dynamic Filter Bar story docs).
 `;
 
 export const CustomTokens: StoryObj<StoryArgs> = {

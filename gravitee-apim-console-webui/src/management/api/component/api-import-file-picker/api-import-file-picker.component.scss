@@ -23,3 +23,56 @@
     align-items: flex-start;
   }
 }
+
+api-import-file-picker.api-import-file-picker--fill-drop-zone {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
+  gio-form-file-picker.file-picker {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    align-self: stretch !important;
+    min-width: 0 !important;
+  }
+
+  gio-form-file-picker.file-picker > .file-picker {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: 200px !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  gio-form-file-picker.file-picker > .file-picker .file-picker__add-button {
+    flex: 1 1 auto !important;
+    min-height: 200px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  gio-form-file-picker.file-picker > .file-picker .file-picker__preview {
+    flex: 1 1 auto !important;
+    flex-basis: auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    min-height: 200px !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    align-self: flex-start !important;
+    box-sizing: border-box !important;
+  }
+
+  gio-form-file-picker.file-picker > .file-picker .file-picker__preview__file {
+    flex: 1 !important;
+    min-height: 0 !important;
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+  }
+}

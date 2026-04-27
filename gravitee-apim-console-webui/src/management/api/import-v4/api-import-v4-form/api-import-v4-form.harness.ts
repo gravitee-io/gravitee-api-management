@@ -25,7 +25,8 @@ export class ApiImportV4FormHarness extends ComponentHarness {
   static hostSelector = 'api-import-v4-form';
 
   private readonly getRoot = this.locatorForOptional(DivHarness.with({ selector: '[data-testid="api-import-v4-form-root"]' }));
-  private readonly getOptionsStep = this.locatorForOptional(DivHarness.with({ selector: '.options-step' }));
+  private readonly getSupportedFileFormatsBanner = this.locatorForOptional('[data-testid="supported-file-formats"]');
+  private readonly getOptionsStep = this.locatorForOptional('.options-step');
 
   private readonly getFormatSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="format"]' }));
   private readonly getSourceSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="source"]' }));
@@ -47,6 +48,14 @@ export class ApiImportV4FormHarness extends ComponentHarness {
 
   public async hasOptionsStep(): Promise<boolean> {
     return (await this.getOptionsStep()) !== null;
+  }
+
+  public async getSupportedFileFormatsBannerText(): Promise<string> {
+    const el = await this.getSupportedFileFormatsBanner();
+    if (!el) {
+      return '';
+    }
+    return (await el.text()).trim();
   }
 
   public async selectFormat(format: string): Promise<void> {
@@ -74,7 +83,6 @@ export class ApiImportV4FormHarness extends ComponentHarness {
     return picker.dropFiles(files);
   }
 
-  /** Clicks the enabled primary "Next" in the active stepper footer (format → file source → options). */
   public async clickNext(): Promise<void> {
     for (const ancestor of ['.select-api-format__actions', '.configure-file-source__actions', '.options-step__actions']) {
       const btn = await this.locatorForOptional(MatButtonHarness.with({ ancestor, text: 'Next' }))();
@@ -102,7 +110,6 @@ export class ApiImportV4FormHarness extends ComponentHarness {
     throw new Error('No enabled Previous button found');
   }
 
-  /** Clicks the review step primary action ("Import API" or "Update API"). */
   public async clickImport(): Promise<void> {
     const btn = await this.locatorFor(
       MatButtonHarness.with({ ancestor: '.review-import-step__actions', text: /^(Import API|Update API)$/ }),

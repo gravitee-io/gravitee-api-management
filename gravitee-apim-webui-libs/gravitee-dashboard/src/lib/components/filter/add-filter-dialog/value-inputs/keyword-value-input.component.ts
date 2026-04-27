@@ -13,32 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { OverlayContainer } from '@angular/cdk/overlay';
+import { Overlay, OverlayContainer, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
+  Injector,
   input,
   output,
   signal,
+  TemplateRef,
   viewChild,
+  ViewContainerRef,
+  ViewEncapsulation,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger, MatOption } from '@angular/material/autocomplete';
+import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatChipGrid, MatChipInput, MatChipRemove, MatChipRow } from '@angular/material/chips';
+import { MatOption, MatPseudoCheckbox, MatPseudoCheckboxState } from '@angular/material/core';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { BehaviorSubject, combineLatest, fromEvent, Observable, of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, finalize, map, startWith, switchMap, tap } from 'rxjs/operators';
 
+import { isMultiSelectForFilter } from './filter-value-multi-select.util';
 import { FILTER_VALUES_PROVIDER, FilterValueItem } from '../../filter-providers';
-import { ID_BASED_FILTER_NAMES } from '../../filter.model';
+import { FilterDefinition, FilterValueSelection, ID_BASED_FILTER_NAMES } from '../../filter.model';
 
 interface KeywordOption {
   value: string;
@@ -48,9 +57,11 @@ interface KeywordOption {
 @Component({
   selector: 'gd-keyword-value-input',
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
+    OverlayModule,
     ReactiveFormsModule,
     MatFormField,
     MatLabel,
@@ -63,10 +74,11 @@ interface KeywordOption {
     MatChipInput,
     MatChipRemove,
     MatIcon,
+    MatPseudoCheckbox,
   ],
   styleUrl: './keyword-value-input.component.scss',
   template: `
-    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-value-input">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="gd-value-input gd-keyword-value-input">
       <mat-label>Filter value</mat-label>
       <mat-chip-grid #chipGrid aria-label="Selected values">
         @for (chip of selectedChips(); track chip.value) {
@@ -77,44 +89,86 @@ interface KeywordOption {
             </button>
           </mat-chip-row>
         }
-        <input
-          #valueInput
-          [placeholder]="chipInputPlaceholder()"
-          matAutocompletePosition="below"
-          [formControl]="searchControl"
-          [matAutocomplete]="auto"
-          [matChipInputFor]="chipGrid"
-          [matChipInputAddOnBlur]="false"
-        />
-      </mat-chip-grid>
-      <mat-autocomplete
-        #auto="matAutocomplete"
-        class="gd-value-input-autocomplete-panel"
-        [hideSingleSelectionIndicator]="true"
-        (opened)="onAutocompletePanelOpened()"
-        (closed)="onAutocompletePanelClosed()"
-        (optionSelected)="onAutocompleteOptionSelected($event)"
-      >
-        @if (panelState$ | async; as panel) {
-          @if (panel.loading) {
-            <mat-option disabled>Loading…</mat-option>
-          } @else {
-            @for (option of panel.options; track option.value) {
-              <mat-option [value]="option.value" [disabled]="isOptionSelected(option)">
-                <span class="gd-keyword-option">
-                  <span class="gd-keyword-option__label">{{ option.label }}</span>
-                  @if (isOptionSelected(option)) {
-                    <mat-icon class="gd-keyword-option__check">check</mat-icon>
-                  }
-                </span>
-              </mat-option>
+        @if (isMultiSelect()) {
+          <input
+            #valueInput
+            type="text"
+            [placeholder]="chipInputPlaceholder()"
+            matAutocompletePosition="below"
+            [formControl]="searchControl"
+            [matChipInputFor]="chipGrid"
+            [matChipInputAddOnBlur]="false"
+            [attr.aria-expanded]="valuesOverlayOpen()"
+            aria-haspopup="listbox"
+            [attr.aria-controls]="valuesOverlayOpen() ? valuesListboxId : null"
+            (focusin)="onMultiTriggerFocusIn()"
+            (input)="onMultiTriggerInput()"
+          />
+        } @else {
+          <input
+            #valueInput
+            #autoTrigger="matAutocompleteTrigger"
+            [placeholder]="chipInputPlaceholder()"
+            matAutocompletePosition="below"
+            [formControl]="searchControl"
+            [matAutocomplete]="keywordAuto"
+            [matChipInputFor]="chipGrid"
+            [matChipInputAddOnBlur]="false"
+          />
+          <mat-autocomplete
+            #keywordAuto="matAutocomplete"
+            class="gd-value-input-autocomplete-panel"
+            [hideSingleSelectionIndicator]="true"
+            (opened)="onAutocompletePanelOpened()"
+            (closed)="onAutocompletePanelClosed()"
+            (optionSelected)="onAutocompleteOptionSelected($event)"
+          >
+            @if (panelState$ | async; as panel) {
+              @if (panel.loading && panel.options.length === 0) {
+                <mat-option disabled>Loading…</mat-option>
+              } @else if (panel.options.length > 0) {
+                @for (option of panel.options; track option.value) {
+                  <mat-option [value]="option.value">
+                    <span class="gd-keyword-option">
+                      <mat-pseudo-checkbox [state]="pseudoCheckboxState(option)" [disabled]="false" />
+                      <span class="gd-keyword-option__label">{{ option.label }}</span>
+                    </span>
+                  </mat-option>
+                }
+              } @else if (!panel.loading) {
+                <mat-option disabled>No matching values</mat-option>
+              }
             }
-            @if (panel.options.length === 0) {
-              <mat-option disabled>No matching values</mat-option>
-            }
-          }
+          </mat-autocomplete>
         }
-      </mat-autocomplete>
+      </mat-chip-grid>
+      @if (isMultiSelect()) {
+        <ng-template #valuesOverlayTpl>
+          <div class="gd-keyword-values-overlay-panel" [attr.id]="valuesListboxId" role="presentation">
+            @let panel = panelState();
+            @if (panel.loading && panel.options.length === 0) {
+              <div class="gd-keyword-values-overlay__hint">Loading…</div>
+            } @else if (panel.options.length > 0) {
+              <div class="gd-keyword-values-overlay__scroll" role="listbox" [attr.aria-label]="searchLabel()" tabindex="-1">
+                @for (option of panel.options; track option.value) {
+                  <button
+                    type="button"
+                    class="gd-value-input-option-row"
+                    role="option"
+                    [attr.aria-selected]="selectedValues().includes(option.value)"
+                    (click)="onMultiOptionClicked(option)"
+                  >
+                    <mat-pseudo-checkbox [state]="pseudoCheckboxState(option)" [disabled]="false" />
+                    <span class="gd-value-input-option-row__label">{{ option.label }}</span>
+                  </button>
+                }
+              </div>
+            } @else if (!panel.loading) {
+              <div class="gd-keyword-values-overlay__hint gd-keyword-values-overlay__hint--muted">No matching values</div>
+            }
+          </div>
+        </ng-template>
+      }
     </mat-form-field>
   `,
 })
@@ -127,20 +181,24 @@ export class KeywordValueInputComponent {
   private readonly valuesProvider = inject(FILTER_VALUES_PROVIDER);
   private readonly destroyRef = inject(DestroyRef);
   private readonly overlayContainer = inject(OverlayContainer);
-  /** Material exposes `#panel` on the real scroll container; `querySelector` is unreliable because
-   * `panelClass` is not a MatAutocomplete @Input in MDC — only `class` applies to the inner panel. */
-  private readonly keywordAutocomplete = viewChild(MatAutocomplete);
+  private readonly overlay = inject(Overlay);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  filterName = input.required<string>();
+  definition = input.required<FilterDefinition>();
+  selectedOperator = input.required<string>();
   timeFrom = input<number | undefined>(undefined);
   timeTo = input<number | undefined>(undefined);
   selectedValues = input<string[]>([]);
-  valuesChange = output<string[]>();
+  /** When aligned with `selectedValues`, seeds chip labels in the dialog (e.g. edit mode). */
+  valueLabels = input<string[] | undefined>(undefined);
+  valuesChange = output<FilterValueSelection>();
 
   protected readonly searchControl = new FormControl<string>('', { nonNullable: true });
   protected readonly valueInput = viewChild<ElementRef<HTMLInputElement>>('valueInput');
-
-  protected readonly chipInputPlaceholder = computed(() => (this.selectedChips().length > 0 ? '' : this.searchLabel()));
+  private readonly autocompleteTrigger = viewChild(MatAutocompleteTrigger);
+  private readonly keywordAutocomplete = viewChild(MatAutocomplete);
+  private readonly valuesOverlayTpl = viewChild<TemplateRef<void>>('valuesOverlayTpl');
 
   private readonly loading$ = new BehaviorSubject<boolean>(false);
   private readonly hasNextPage$ = new BehaviorSubject<boolean>(false);
@@ -149,6 +207,24 @@ export class KeywordValueInputComponent {
   private readonly accumulatedOptions$ = new BehaviorSubject<KeywordOption[]>([]);
   private readonly labelByValue = signal<Map<string, string>>(new Map());
   private panelScrollSub?: Subscription;
+  private autocompletePanelOpen = false;
+  /** CDK overlay for multi-select value list (stable scroll, no mat-autocomplete close cycle). */
+  private multiOverlayRef?: OverlayRef;
+  private multiBackdropSub?: Subscription;
+  private multiEscapeSub?: Subscription;
+  /** Stable id for aria-controls on the chip input when the overlay listbox is open. */
+  protected readonly valuesListboxId = `gd-keyword-values-${Math.random().toString(36).slice(2, 11)}`;
+  protected readonly valuesOverlayOpen = signal(false);
+
+  /**
+   * Last debounced search term used for a page-1 fetch. Used with `canReuseAccumulatedOptionsForTerm`
+   * and for single-select autocomplete restore after Material assigns the option value.
+   */
+  private lastKeywordSearchTermForList = '';
+  /** Bounds key from the last completed page-1 fetch — must invalidate cache when `timeFrom`/`timeTo` inputs change. */
+  private lastKeywordFetchBoundsKey = '';
+
+  private readonly injector = inject(Injector);
 
   protected readonly panelState$ = combineLatest({
     loading: this.loading$,
@@ -156,10 +232,18 @@ export class KeywordValueInputComponent {
     hasNextPage: this.hasNextPage$,
   });
 
-  protected isIdBased = computed(() => ID_BASED_FILTER_NAMES.includes(this.filterName()));
-  protected searchLabel = computed(() => (this.isIdBased() ? 'Search by name' : 'Search (exact match)'));
+  protected readonly panelState = toSignal(this.panelState$, {
+    initialValue: { loading: false, options: [] as KeywordOption[], hasNextPage: false },
+  });
 
-  protected selectedChips = computed(() => {
+  protected readonly isMultiSelect = computed(() => isMultiSelectForFilter(this.definition(), this.selectedOperator()));
+
+  protected readonly isIdBased = computed(() => ID_BASED_FILTER_NAMES.includes(this.definition().name as string));
+  protected readonly searchLabel = computed(() => (this.isIdBased() ? 'Search by name' : 'Search (exact match)'));
+
+  protected readonly chipInputPlaceholder = computed(() => (this.selectedChips().length > 0 ? '' : this.searchLabel()));
+
+  protected readonly selectedChips = computed(() => {
     const labels = this.labelByValue();
     return this.selectedValues().map(value => ({
       value,
@@ -168,54 +252,115 @@ export class KeywordValueInputComponent {
   });
 
   constructor() {
-    const searchTerm$ = this.searchControl.valueChanges.pipe(
-      startWith(''),
-      debounceTime(200),
-      distinctUntilChanged(),
-      tap(() => {
-        this.accumulatedOptions$.next([]);
-        if (this.page$.getValue() !== 1) {
-          this.page$.next(1);
+    effect(
+      () => {
+        const ids = this.selectedValues();
+        const fromParent = this.valueLabels();
+        if (fromParent == null || fromParent.length !== ids.length) {
+          return;
         }
-      }),
+        const next = new Map<string, string>();
+        ids.forEach((id, i) => next.set(id, fromParent[i]!));
+        this.labelByValue.set(next);
+      },
+      { allowSignalWrites: true },
     );
 
-    searchTerm$
+    effect(() => {
+      if (!this.isMultiSelect() && this.multiOverlayRef?.hasAttached()) {
+        this.closeMultiValuesOverlay();
+      }
+    });
+
+    // Re-bind scroll when the list grows (first paint had no scroll surface / wrong height).
+    effect(() => {
+      if (!this.isMultiSelect() || !this.valuesOverlayOpen()) {
+        return;
+      }
+      const panel = this.panelState();
+      void panel.options.length;
+      void panel.loading;
+      void panel.hasNextPage;
+      queueMicrotask(() => {
+        requestAnimationFrame(() => this.attachValuesPanelScrollListener());
+      });
+    });
+
+    const debouncedTerm$ = this.searchControl.valueChanges.pipe(startWith(''), debounceTime(200), distinctUntilChanged());
+
+    const timeBoundsKey$ = toObservable(
+      computed(() => this.fetchTimeBoundsKey()),
+      { injector: this.injector },
+    );
+
+    combineLatest({ term: debouncedTerm$, boundsKey: timeBoundsKey$ })
       .pipe(
-        switchMap(term => this.page$.pipe(switchMap(page => this.fetchKeywordPage(term, page)))),
+        tap(({ term }) => {
+          if (this.canReuseAccumulatedOptionsForTerm(term)) {
+            return;
+          }
+          this.accumulatedOptions$.next([]);
+          if (this.page$.getValue() !== 1) {
+            this.page$.next(1);
+          }
+        }),
+        switchMap(({ term }) =>
+          this.page$.pipe(
+            switchMap(page => {
+              if (page === 1 && this.canReuseAccumulatedOptionsForTerm(term)) {
+                return of(undefined);
+              }
+              return this.fetchKeywordPage(term, page);
+            }),
+          ),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
-    this.destroyRef.onDestroy(() => this.detachPanelScrollListener());
-  }
-
-  protected onAutocompletePanelOpened(): void {
-    this.detachPanelScrollListener();
-    queueMicrotask(() => {
-      requestAnimationFrame(() => {
-        const panelRoot = this.getAutocompletePanelElement();
-        if (!panelRoot) {
-          return;
-        }
-        const scrollSurface = this.getAutocompleteScrollSurface(panelRoot);
-        this.panelScrollSub = fromEvent(scrollSurface, 'scroll', { passive: true })
-          .pipe(
-            debounceTime(80),
-            filter(() => !this.loading$.getValue() && this.hasNextPage$.getValue()),
-            filter(() => this.shouldPrefetchNextPage(scrollSurface)),
-          )
-          .subscribe(() => this.requestNextKeywordPage());
-      });
+    this.destroyRef.onDestroy(() => {
+      this.detachPanelScrollListener();
+      this.unsubscribeMultiOverlayUi();
+      this.multiOverlayRef?.dispose();
+      this.multiOverlayRef = undefined;
     });
   }
 
-  protected onAutocompletePanelClosed(): void {
-    this.detachPanelScrollListener();
+  /** Public for unit tests: attach scroll listener to the values panel (autocomplete or CDK overlay). */
+  attachAutocompletePanelScrollListener(): void {
+    this.attachValuesPanelScrollListener();
   }
 
-  protected isOptionSelected(option: KeywordOption): boolean {
-    return this.selectedValues().includes(option.value);
+  protected pseudoCheckboxState(option: KeywordOption): MatPseudoCheckboxState {
+    return this.selectedValues().includes(option.value) ? 'checked' : 'unchecked';
+  }
+
+  protected onMultiTriggerFocusIn(): void {
+    if (!this.isMultiSelect()) {
+      return;
+    }
+    this.ensureMultiValuesOverlay();
+  }
+
+  protected onMultiTriggerInput(): void {
+    if (!this.isMultiSelect()) {
+      return;
+    }
+    this.ensureMultiValuesOverlay();
+  }
+
+  protected onMultiOptionClicked(option: KeywordOption): void {
+    const value = option.value;
+    const current = [...this.selectedValues()];
+    const idx = current.indexOf(value);
+    if (idx >= 0) {
+      current.splice(idx, 1);
+    } else {
+      current.push(value);
+      this.updateLabels([{ value, label: option.label }]);
+    }
+    this.emitSelection(current);
+    this.changeDetectorRef.markForCheck();
   }
 
   protected onAutocompleteOptionSelected(event: MatAutocompleteSelectedEvent): void {
@@ -223,26 +368,59 @@ export class KeywordValueInputComponent {
     if (value == null || value === '') {
       return;
     }
-    const current = this.selectedValues();
-    if (current.includes(value)) {
+
+    if (this.isMultiSelect()) {
       return;
     }
     const label = this.accumulatedOptions$.getValue().find(o => o.value === value)?.label ?? this.labelByValue().get(value) ?? value;
     this.updateLabels([{ value, label }]);
-    this.valuesChange.emit([...current, value]);
+    this.emitSelection([value]);
     this.clearSearchInputAfterPick();
   }
 
   protected removeValue(value: string): void {
     const next = this.selectedValues().filter(v => v !== value);
-    this.valuesChange.emit(next);
+    this.emitSelection(next);
+  }
+
+  protected onAutocompletePanelOpened(): void {
+    this.autocompletePanelOpen = true;
+    this.attachValuesPanelScrollListener();
+  }
+
+  protected onAutocompletePanelClosed(): void {
+    this.autocompletePanelOpen = false;
+    this.detachPanelScrollListener();
+  }
+
+  private emitSelection(values: string[]): void {
+    const map = this.labelByValue();
+    const valueLabels = values.map(id => map.get(id) ?? id);
+    this.valuesChange.emit({ values, valueLabels });
+  }
+
+  private fetchTimeBoundsKey(): string {
+    return `${this.timeFrom() ?? ''}\u0000${this.timeTo() ?? ''}`;
+  }
+
+  private canReuseAccumulatedOptionsForTerm(term: string): boolean {
+    return (
+      term === this.lastKeywordSearchTermForList &&
+      this.fetchTimeBoundsKey() === this.lastKeywordFetchBoundsKey &&
+      this.accumulatedOptions$.getValue().length > 0 &&
+      !this.loading$.getValue()
+    );
   }
 
   private fetchKeywordPage(term: string, page: number): Observable<void> {
+    if (page === 1) {
+      this.lastKeywordSearchTermForList = term;
+      this.lastKeywordFetchBoundsKey = this.fetchTimeBoundsKey();
+    }
     this.loading$.next(true);
     return this.valuesProvider
       .getValues({
-        filterName: this.filterName(),
+        filterName: this.definition().name as string,
         query: term || undefined,
         from: this.timeFrom(),
         to: this.timeTo(),
@@ -263,7 +441,10 @@ export class KeywordValueInputComponent {
         tap(({ options, hasNextPage }) => {
           this.updateLabels(options);
           const current = this.accumulatedOptions$.getValue();
-          const merged = page === 1 ? options : this.mergeUnique(current, options);
+          let merged = page === 1 ? options : this.mergeUnique(current, options);
+          if (page === 1) {
+            merged = this.mergeSelectedIntoOptions(merged);
+          }
           this.accumulatedOptions$.next(merged);
           this.hasNextPage$.next(hasNextPage);
         }),
@@ -282,7 +463,9 @@ export class KeywordValueInputComponent {
       this.searchControl.setValue('', { emitEvent: false });
     }
     const input = this.valueInput()?.nativeElement;
-    if (input) input.value = '';
+    if (input) {
+      input.value = '';
+    }
   }
 
   private mergeUnique(current: KeywordOption[], incoming: KeywordOption[]): KeywordOption[] {
@@ -291,19 +474,156 @@ export class KeywordValueInputComponent {
     return [...current, ...additions];
   }
 
+  private mergeSelectedIntoOptions(options: KeywordOption[]): KeywordOption[] {
+    const map = this.labelByValue();
+    const have = new Set(options.map(o => o.value));
+    const extras: KeywordOption[] = [];
+    for (const v of this.selectedValues()) {
+      if (!have.has(v)) {
+        extras.push({ value: v, label: map.get(v) ?? v });
+      }
+    }
+    return extras.length > 0 ? this.mergeUnique(extras, options) : options;
+  }
+
   private updateLabels(options: KeywordOption[]): void {
     const next = new Map(this.labelByValue());
     options.forEach(o => next.set(o.value, o.label));
     this.labelByValue.set(next);
   }
 
-  private getAutocompletePanelElement(): HTMLElement | null {
-    const overlayHost = this.overlayContainer.getContainerElement();
-    const fromAutocomplete = this.keywordAutocomplete()?.panel?.nativeElement;
-    if (fromAutocomplete instanceof HTMLElement && overlayHost.contains(fromAutocomplete)) {
-      return fromAutocomplete;
+  private ensureMultiValuesOverlay(): void {
+    const tpl = this.valuesOverlayTpl();
+    const inputEl = this.valueInput()?.nativeElement;
+    if (!tpl || !inputEl || !this.isMultiSelect()) {
+      return;
     }
-    return overlayHost.querySelector<HTMLElement>('.mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel');
+    const originEl = (inputEl.closest('.mat-mdc-form-field') as HTMLElement | null) ?? inputEl;
+    if (this.multiOverlayRef?.hasAttached()) {
+      const width = originEl.getBoundingClientRect().width;
+      if (width > 0) {
+        this.multiOverlayRef.updateSize({ width });
+      }
+      this.multiOverlayRef.updatePosition();
+      return;
+    }
+    this.createAndAttachMultiOverlay(tpl, originEl);
+  }
+
+  private createAndAttachMultiOverlay(tpl: TemplateRef<void>, origin: HTMLElement): void {
+    if (this.multiOverlayRef) {
+      this.unsubscribeMultiOverlayUi();
+      this.multiOverlayRef.dispose();
+      this.multiOverlayRef = undefined;
+    }
+
+    const positionStrategy = this.overlay
+      .position()
+      .flexibleConnectedTo(origin)
+      .withViewportMargin(8)
+      .withLockedPosition(true)
+      .withPositions([
+        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
+        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
+      ])
+      .withPush(false);
+
+    const width = Math.max(origin.getBoundingClientRect().width, 1);
+
+    this.multiOverlayRef = this.overlay.create({
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      hasBackdrop: true,
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      minHeight: 120,
+      maxHeight: 280,
+      width,
+      disposeOnNavigation: true,
+      panelClass: ['gd-value-input-values-panel', 'gd-keyword-values-overlay'],
+    });
+
+    this.multiOverlayRef.attach(new TemplatePortal(tpl, this.viewContainerRef));
+
+    this.multiBackdropSub = this.multiOverlayRef.backdropClick().subscribe(() => this.closeMultiValuesOverlay());
+    this.multiEscapeSub = this.multiOverlayRef
+      .keydownEvents()
+      .pipe(filter(e => e.key === 'Escape'))
+      .subscribe(e => {
+        e.preventDefault();
+        this.closeMultiValuesOverlay();
+      });
+
+    this.valuesOverlayOpen.set(true);
+    this.changeDetectorRef.markForCheck();
+    queueMicrotask(() => this.attachValuesPanelScrollListener());
+  }
+
+  private closeMultiValuesOverlay(): void {
+    this.unsubscribeMultiOverlayUi();
+    if (this.multiOverlayRef?.hasAttached()) {
+      this.multiOverlayRef.detach();
+    }
+    this.valuesOverlayOpen.set(false);
+    this.detachPanelScrollListener();
+    this.changeDetectorRef.markForCheck();
+  }
+
+  private unsubscribeMultiOverlayUi(): void {
+    this.multiBackdropSub?.unsubscribe();
+    this.multiEscapeSub?.unsubscribe();
+    this.multiBackdropSub = undefined;
+    this.multiEscapeSub = undefined;
+  }
+
+  private attachValuesPanelScrollListener(): void {
+    this.detachPanelScrollListener();
+    queueMicrotask(() => {
+      requestAnimationFrame(() => {
+        const panelRoot = this.getValuesPanelScrollRoot();
+        if (!panelRoot) {
+          return;
+        }
+        const scrollSurface = this.getAutocompleteScrollSurface(panelRoot);
+        this.panelScrollSub = fromEvent(scrollSurface, 'scroll', { passive: true })
+          .pipe(
+            debounceTime(80),
+            filter(() => !this.loading$.getValue() && this.hasNextPage$.getValue()),
+            filter(() => this.shouldPrefetchNextPage(scrollSurface)),
+          )
+          .subscribe(() => this.requestNextKeywordPage());
+      });
+    });
+  }
+
+  private getValuesPanelScrollRoot(): HTMLElement | null {
+    if (this.isMultiSelect()) {
+      if (this.multiOverlayRef?.hasAttached()) {
+        const fromRef = this.multiOverlayRef.overlayElement.querySelector<HTMLElement>('.gd-keyword-values-overlay__scroll');
+        if (fromRef) {
+          return fromRef;
+        }
+      }
+      try {
+        const host = this.overlayContainer.getContainerElement();
+        return host.querySelector<HTMLElement>('.gd-keyword-values-overlay__scroll');
+      } catch {
+        return null;
+      }
+    }
+    return this.getAutocompletePanelElement();
+  }
+
+  private getAutocompletePanelElement(): HTMLElement | null {
+    try {
+      const overlayHost = this.overlayContainer.getContainerElement();
+      const fromAutocomplete = this.keywordAutocomplete()?.panel?.nativeElement;
+      if (fromAutocomplete instanceof HTMLElement && overlayHost.contains(fromAutocomplete)) {
+        return fromAutocomplete;
+      }
+      return overlayHost.querySelector<HTMLElement>('.mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel');
+    } catch {
+      return null;
+    }
   }
 
   private getAutocompleteScrollSurface(panelRoot: HTMLElement): HTMLElement {
@@ -348,7 +668,10 @@ export class KeywordValueInputComponent {
   }
 
   private tryLoadNextPageIfPanelStillAtBottom(): void {
-    const panelRoot = this.getAutocompletePanelElement();
+    if (!this.isValuesPanelOpen()) {
+      return;
+    }
+    const panelRoot = this.getValuesPanelScrollRoot();
     if (!panelRoot) {
       return;
     }
@@ -360,6 +683,10 @@ export class KeywordValueInputComponent {
       return;
     }
     this.requestNextKeywordPage();
+  }
+
+  private isValuesPanelOpen(): boolean {
+    return this.isMultiSelect() ? this.valuesOverlayOpen() : this.autocompletePanelOpen;
   }
 
   private detachPanelScrollListener(): void {

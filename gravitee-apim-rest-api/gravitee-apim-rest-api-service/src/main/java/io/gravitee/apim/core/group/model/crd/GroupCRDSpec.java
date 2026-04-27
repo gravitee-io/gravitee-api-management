@@ -38,6 +38,8 @@ public class GroupCRDSpec {
 
     private String id;
 
+    private String hrid;
+
     private String name;
 
     private Set<Member> members;
@@ -51,6 +53,7 @@ public class GroupCRDSpec {
         return Group.builder()
             .origin(origin)
             .id(id)
+            .hrid(hrid)
             .name(name)
             .environmentId(environmentId)
             .apiPrimaryOwner(null)

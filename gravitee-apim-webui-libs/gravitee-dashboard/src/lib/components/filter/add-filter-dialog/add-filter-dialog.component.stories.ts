@@ -372,7 +372,7 @@ Required DI tokens:
 | Token | Purpose |
 |---|---|
 | \`FILTER_DEFINITION_PROVIDER\` | Returns the list of filterable fields (\`FilterDefinition[]\`) |
-| \`FILTER_VALUES_PROVIDER\` | Provides autocomplete values for \`KEYWORD\` fields |
+| \`FILTER_VALUES_PROVIDER\` | Provides paged option lists for \`KEYWORD\` fields (chip input + CDK overlay list for IN) |
 
 ### Opening the dialog
 
@@ -496,10 +496,13 @@ export const AddModeKeywordScrollPagination: StoryObj = {
 Uses a **paginated** \`FILTER_VALUES_PROVIDER\` mock for the **API** field only (\`hasNextPage\` + 10 items per page, 42 values total).
 Other KEYWORD fields (**Application**, **Plan**) still behave like a **fixed single-page** list (\`hasNextPage: false\`).
 
+**Time range (console / dashboard hosts)**  
+When the dialog is opened with \`timeFrom\` / \`timeTo\`, a **Limit values** checkbox appears under the KEYWORD value field (tooltip: limit suggestions to the current time range; on by default). Turn it off to request value suggestions **without** scoping \`getValues\` to that range.
+
 **How to try scroll loading**
 1. Choose **Filter by → API**, operator **IN** (or **NOT IN**).
-2. Focus **Filter value** and open the autocomplete.
-3. Scroll the panel to the bottom: the next page should load automatically (no "Load more" button).
+2. Focus **Filter value**: chips show selected APIs; type in the chip input to filter; a **CDK overlay** lists rows with **pseudo-checkboxes** (same visual family as ENUM multi); toggling a row **does not close** the panel — scroll the list to load more pages; click outside or Escape to dismiss.
+3. Scroll the options list to the bottom: the next page should load automatically (no "Load more" button).
 
 **Fixed lists**
 Pick **Application** or **Plan** instead: every value is returned in one response; scrolling must not trigger extra network calls in the real app (here the mock simply returns \`hasNextPage: false\`).

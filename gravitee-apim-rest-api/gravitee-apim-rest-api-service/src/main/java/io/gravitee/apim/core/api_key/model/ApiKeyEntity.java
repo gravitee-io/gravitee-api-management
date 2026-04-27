@@ -106,12 +106,17 @@ public class ApiKeyEntity {
     }
 
     public ApiKeyEntity revoke() {
-        var now = ZonedDateTime.now();
+        var now = TimeProvider.now();
         return this.toBuilder().revoked(true).updatedAt(now).revokedAt(now).build();
     }
 
+    public ApiKeyEntity reactivate() {
+        var now = TimeProvider.now();
+        return this.toBuilder().revoked(false).updatedAt(now).revokedAt(null).build();
+    }
+
     public boolean isExpired() {
-        return this.expireAt != null && ZonedDateTime.now().isAfter(this.getExpireAt());
+        return this.expireAt != null && TimeProvider.now().isAfter(this.getExpireAt());
     }
 
     public boolean canBeRevoked() {

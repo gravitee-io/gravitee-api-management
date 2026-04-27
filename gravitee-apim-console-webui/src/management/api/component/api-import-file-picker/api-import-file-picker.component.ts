@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, effect, EventEmitter, inject, input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, effect, EventEmitter, inject, input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { GioFormFilePickerModule, NewFile } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged, skip, tap } from 'rxjs/operators';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
@@ -26,11 +27,16 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
   imports: [CommonModule, FormsModule, GioFormFilePickerModule, ReactiveFormsModule],
   templateUrl: './api-import-file-picker.component.html',
   styleUrls: ['./api-import-file-picker.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  host: {
+    '[class.api-import-file-picker--fill-drop-zone]': 'fillDropZoneLayout()',
+  },
 })
 export class ApiImportFilePickerComponent implements OnInit {
   private snackBarService = inject(SnackBarService);
   private destroyRef = inject(DestroyRef);
   allowedFileExtensions = input<string[]>(['yml', 'yaml', 'json', 'wsdl', 'xml', 'js']);
+  fillDropZoneLayout = input(false);
   filePickerControl = new FormControl();
   importType: string;
   accept: string;
@@ -42,6 +48,17 @@ export class ApiImportFilePickerComponent implements OnInit {
         .map(ext => '.' + ext)
         .join(',');
     });
+
+    toObservable(this.allowedFileExtensions)
+      .pipe(
+        skip(1),
+        distinctUntilChanged(
+          (a, b) => [...a].sort((x, y) => x.localeCompare(y)).join(',') === [...b].sort((x, y) => x.localeCompare(y)).join(','),
+        ),
+        tap(() => this.clearSelectionAfterExtensionsChanged()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   ngOnInit() {
@@ -65,7 +82,6 @@ export class ApiImportFilePickerComponent implements OnInit {
     }
     const fileContent = await this.getFileContent(file.file);
 
-    // Find import type with extension and file content for json format
     switch (extension) {
       case 'wsdl':
       case 'xml':
@@ -115,6 +131,12 @@ export class ApiImportFilePickerComponent implements OnInit {
     if (message) {
       this.snackBarService.error(message);
     }
+    this.onFilePicked.emit({ importType: undefined, importFile: undefined, importFileContent: undefined });
+  }
+
+  private clearSelectionAfterExtensionsChanged(): void {
+    this.importType = undefined;
+    this.filePickerControl.setValue(null, { emitEvent: false });
     this.onFilePicked.emit({ importType: undefined, importFile: undefined, importFileContent: undefined });
   }
 

@@ -20,6 +20,15 @@ import { of } from 'rxjs';
 
 import { KeywordValueInputComponent } from './keyword-value-input.component';
 import { FILTER_VALUES_PROVIDER, FilterValueItem, FilterValuesProvider, FilterValuesQuery } from '../../filter-providers';
+import { FilterDefinition } from '../../filter.model';
+
+const KEYWORD_DEFINITION: FilterDefinition = {
+  name: 'API',
+  label: 'API',
+  type: 'KEYWORD',
+  operators: ['EQ', 'IN'],
+  apiTypes: ['HTTP_PROXY'],
+};
 
 function makeItems(prefix: string, count: number): FilterValueItem[] {
   return Array.from({ length: count }, (_, i) => ({
@@ -29,22 +38,28 @@ function makeItems(prefix: string, count: number): FilterValueItem[] {
   }));
 }
 
-function appendFakeAutocompletePanel(overlay: OverlayContainer): HTMLElement {
-  const host = overlay.getContainerElement();
-  const panel = document.createElement('div');
-  panel.className = 'mat-mdc-autocomplete-panel gd-value-input-autocomplete-panel';
-  panel.style.height = '80px';
-  panel.style.overflow = 'auto';
+function appendFakeValuesScrollSurface(overlay: OverlayContainer): HTMLElement {
+  let host: HTMLElement;
+  try {
+    host = overlay.getContainerElement();
+  } catch {
+    host = document.body;
+  }
+  const shell = document.createElement('div');
+  shell.className = 'gd-keyword-values-overlay-panel';
+  const scroll = document.createElement('div');
+  scroll.className = 'gd-keyword-values-overlay__scroll';
+  scroll.style.height = '80px';
+  scroll.style.overflow = 'auto';
   const inner = document.createElement('div');
   inner.style.height = '400px';
   inner.appendChild(document.createTextNode('\u00a0'));
-  panel.appendChild(inner);
-  host.appendChild(panel);
-  // jsdom often reports scrollHeight === clientHeight without explicit layout; the scroll logic
-  // depends on these metrics.
-  Object.defineProperty(panel, 'scrollHeight', { configurable: true, value: 480 });
-  Object.defineProperty(panel, 'clientHeight', { configurable: true, value: 80 });
-  return panel;
+  scroll.appendChild(inner);
+  shell.appendChild(scroll);
+  host.appendChild(shell);
+  Object.defineProperty(scroll, 'scrollHeight', { configurable: true, value: 480 });
+  Object.defineProperty(scroll, 'clientHeight', { configurable: true, value: 80 });
+  return scroll;
 }
 
 function scrollPanelToBottom(panel: HTMLElement): void {
@@ -56,13 +71,14 @@ describe('KeywordValueInputComponent', () => {
   let fixture: ComponentFixture<KeywordValueInputComponent>;
   let getValuesSpy: jest.MockedFunction<FilterValuesProvider['getValues']>;
 
-  function asTestable(c: KeywordValueInputComponent): { onAutocompletePanelOpened(): void } {
-    return c as unknown as { onAutocompletePanelOpened(): void };
-  }
-
   afterEach(() => {
-    const host = TestBed.inject(OverlayContainer).getContainerElement();
-    host.querySelectorAll('.mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel').forEach(el => el.remove());
+    try {
+      const host = TestBed.inject(OverlayContainer).getContainerElement();
+      host.querySelectorAll('.gd-keyword-values-overlay-panel').forEach(el => el.remove());
+      host.querySelectorAll('.mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel').forEach(el => el.remove());
+    } catch {
+      document.body.querySelectorAll('.gd-keyword-values-overlay-panel').forEach(el => el.remove());
+    }
   });
 
   function configureBed(getValuesImpl: FilterValuesProvider['getValues']): void {
@@ -75,7 +91,8 @@ describe('KeywordValueInputComponent', () => {
       ],
     });
     fixture = TestBed.createComponent(KeywordValueInputComponent);
-    fixture.componentRef.setInput('filterName', 'API');
+    fixture.componentRef.setInput('definition', KEYWORD_DEFINITION);
+    fixture.componentRef.setInput('selectedOperator', 'IN');
     fixture.detectChanges();
   }
 
@@ -88,10 +105,9 @@ describe('KeywordValueInputComponent', () => {
     expect(getValuesSpy).toHaveBeenCalledTimes(1);
     expect(getValuesSpy).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, perPage: 10, filterName: 'API' }));
 
-    const panel = appendFakeAutocompletePanel(TestBed.inject(OverlayContainer));
-    asTestable(fixture.componentInstance).onAutocompletePanelOpened();
+    const panel = appendFakeValuesScrollSurface(TestBed.inject(OverlayContainer));
+    fixture.componentInstance.attachAutocompletePanelScrollListener();
     flushMicrotasks();
-    // requestAnimationFrame in onAutocompletePanelOpened is a macrotask in Zone.js fakeAsync
     tick(16);
 
     scrollPanelToBottom(panel);
@@ -118,10 +134,9 @@ describe('KeywordValueInputComponent', () => {
     expect(getValuesSpy).toHaveBeenCalledTimes(1);
     expect(getValuesSpy).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
 
-    const panel = appendFakeAutocompletePanel(TestBed.inject(OverlayContainer));
-    asTestable(fixture.componentInstance).onAutocompletePanelOpened();
+    const panel = appendFakeValuesScrollSurface(TestBed.inject(OverlayContainer));
+    fixture.componentInstance.attachAutocompletePanelScrollListener();
     flushMicrotasks();
-    // requestAnimationFrame in onAutocompletePanelOpened is a macrotask in Zone.js fakeAsync
     tick(16);
 
     scrollPanelToBottom(panel);

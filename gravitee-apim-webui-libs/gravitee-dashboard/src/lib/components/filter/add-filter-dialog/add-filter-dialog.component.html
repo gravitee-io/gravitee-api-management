@@ -48,7 +48,7 @@
               @if (def.apiTypes?.length) {
                 <span class="gd-add-filter__row-meta">
                   @for (apiType of def.apiTypes; track apiType) {
-                    <span class="gd-add-filter__api-badge">{{ apiType }}</span>
+                    <span class="gd-add-filter__api-badge">{{ formatApiTypeForDisplay(apiType) }}</span>
                   }
                 </span>
               }
@@ -85,13 +85,28 @@
             />
           }
           @case ('KEYWORD') {
-            <gd-keyword-value-input
-              [filterName]="def.name"
-              [timeFrom]="data.timeFrom"
-              [timeTo]="data.timeTo"
-              [selectedValues]="selectedValues()"
-              (valuesChange)="onValuesChange($event)"
-            />
+            <div class="gd-add-filter__keyword-value-stack">
+              <gd-keyword-value-input
+                [definition]="def"
+                [selectedOperator]="selectedOperator()!"
+                [timeFrom]="keywordValuesTimeFrom()"
+                [timeTo]="keywordValuesTimeTo()"
+                [selectedValues]="selectedValues()"
+                [valueLabels]="selectedValueLabels()"
+                (valuesChange)="onValuesChange($event)"
+              />
+              @if (hasKeywordTimeframeBounds()) {
+                <div class="gd-add-filter__keyword-timeframe-option">
+                  <mat-checkbox
+                    matTooltip="Limit suggested values to current time range"
+                    [checked]="limitKeywordValuesToTimeframe()"
+                    (change)="onLimitKeywordValuesToTimeframeChange($event)"
+                  >
+                    Limit values
+                  </mat-checkbox>
+                </div>
+              }
+            </div>
           }
           @case ('NUMBER') {
             <gd-number-value-input [definition]="def" [selectedValues]="selectedValues()" (valuesChange)="onValuesChange($event)" />

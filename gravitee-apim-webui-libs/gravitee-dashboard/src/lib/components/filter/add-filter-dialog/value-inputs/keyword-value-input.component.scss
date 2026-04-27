@@ -14,33 +14,61 @@
  * limitations under the License.
  */
 
-@use './value-input-autocomplete-overlay';
+@use './value-input-values-panel.shared';
 
-:host {
+// ViewEncapsulation.None — scope all host rules under the component tag to avoid leaking.
+gd-keyword-value-input {
   display: block;
+
+  .gd-value-input {
+    width: 100%;
+  }
+
+  // Chips — same contract as gd-filter-chip / dynamic-filter-bar (CHANGELOG): gd tokens first, then lib orange hex,
+  // not Material --mat-sys-primary (often blue in host apps).
+  .gd-keyword-value-input.mat-mdc-form-field {
+    --mat-chip-elevated-container-color: var(--gd-filter-chip-background, #fff3eb);
+    --mat-chip-label-text-color: var(--gd-filter-chip-color, #f15115);
+    --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, #f15115);
+    --mat-chip-outline-width: 0;
+    --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
+    --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
+  }
+
+  .gd-keyword-value-input mat-chip-row.mat-mdc-chip {
+    --mat-chip-elevated-container-color: var(--gd-filter-chip-background, #fff3eb);
+    --mat-chip-label-text-color: var(--gd-filter-chip-color, #f15115);
+    --mat-chip-with-trailing-icon-trailing-icon-color: var(--gd-filter-chip-color, #f15115);
+  }
+
+  .gd-keyword-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 24px;
+  }
+
+  .gd-keyword-option__label {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
-.gd-value-input {
-  width: 100%;
-}
+// Single-select (EQ): portaled autocomplete row hover — global overlay.
+@at-root {
+  // Pseudo-checkboxes in the portaled panel — match filter-chip orange (Material uses theme primary; hosts may differ).
+  .mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel {
+    --mat-pseudo-checkbox-minimal-selected-checkmark-color: var(--gd-filter-chip-color, #f15115);
+    --mat-pseudo-checkbox-full-selected-icon-color: var(--gd-filter-chip-color, #f15115);
+    --mat-pseudo-checkbox-full-selected-checkmark-color: var(--gd-filter-chip-badge-foreground, #ffffff);
+  }
 
-.gd-keyword-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
+  .mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+    background-color: color-mix(in srgb, var(--mat-sys-on-surface) 6%, var(--mat-sys-surface));
+  }
 
-.gd-keyword-option__label {
-  flex: 1;
-  min-width: 0;
-}
-
-.gd-keyword-option__check {
-  flex-shrink: 0;
-  font-size: 18px;
-  width: 20px;
-  height: 20px;
-  color: var(--mat-sys-primary);
+  .mat-mdc-autocomplete-panel.gd-value-input-autocomplete-panel.mat-autocomplete-panel-animations-enabled {
+    animation: none;
+  }
 }

@@ -22,6 +22,8 @@ import io.gravitee.apim.rest.api.automation.resource.ApisResource;
 import io.gravitee.apim.rest.api.automation.resource.ApplicationsResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
+import io.gravitee.apim.rest.api.automation.resource.GroupResource;
+import io.gravitee.apim.rest.api.automation.resource.GroupsResource;
 import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
@@ -52,6 +54,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(ApisResource.class);
         register(ApiSubscriptionsResource.class);
         register(ApplicationsResource.class);
+        register(GroupResource.class);
+        register(GroupsResource.class);
         register(SharedPolicyGroupsResource.class);
 
         register(ValidationDomainMapper.class);

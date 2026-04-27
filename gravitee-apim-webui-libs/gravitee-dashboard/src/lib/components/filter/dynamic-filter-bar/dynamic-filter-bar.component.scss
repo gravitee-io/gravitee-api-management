@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+// Token cascade on `.gd-dynamic-filter-bar`:
+//   1. `--gd-filter-chip-*` / `--gd-filter-chip-add-*` on any ancestor — integrator overrides.
+//   2. Resolved values below — each `var(--gd-…, #hex)` uses the inherited token from the parent
+//      when set, otherwise the lib default (Storybook palette).
+//
+// `--gd-filter-chip-add-background` / `--gd-filter-chip-add-background-hover` — "Add filter" chip.
+// Defaults: transparent at rest, peach hover (same as `--gd-filter-chip-background` fallback).
+
 // Full width of the parent so inner flex (chips `flex: 1`) can push Clear to the trailing edge.
 // Without this, a column parent with `align-items: flex-start` (e.g. add-filter-dialog trigger story)
 // shrink-wraps the host and Clear sits immediately after chips instead of at the viewport edge.
@@ -23,11 +31,19 @@ gd-dynamic-filter-bar {
   box-sizing: border-box;
 }
 
+// Chip tokens live on the inner bar so ancestors can set `--gd-filter-chip-*` once and children inherit.
 .gd-dynamic-filter-bar {
   display: flex;
   align-items: center;
   gap: 8px;
   line-height: 1;
+  --gd-filter-chip-background: var(--gd-filter-chip-background, #fff3eb);
+  --gd-filter-chip-color: var(--gd-filter-chip-color, #f15115);
+  --gd-filter-chip-badge-background: var(--gd-filter-chip-badge-background, #f15115);
+  --gd-filter-chip-badge-foreground: var(--gd-filter-chip-badge-foreground, #fff3eb);
+  --gd-filter-chip-font-weight: var(--gd-filter-chip-font-weight, 600);
+  --gd-filter-chip-badge-font-weight: var(--gd-filter-chip-badge-font-weight, 700);
+  --gd-filter-chip-operator-font-weight: var(--gd-filter-chip-operator-font-weight, 400);
 }
 
 .gd-dynamic-filter-bar__controls {
@@ -39,17 +55,18 @@ gd-dynamic-filter-bar {
 
 .gd-dynamic-filter-bar__label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--gd-filter-bar-label-font-weight, 600);
   color: var(--gd-filter-bar-label-color, rgba(0, 0, 0, 0.6));
   white-space: nowrap;
   user-select: none;
 }
 
-.gd-dynamic-filter-bar__add-btn {
+// Specificity: global `mat-chip { chips-overrides }` must not override Add chip tokens (see filter-chip).
+.gd-dynamic-filter-bar mat-chip.gd-dynamic-filter-bar__add-btn.mat-mdc-chip.mat-mdc-standard-chip {
   --mat-chip-container-shape-radius: var(--gd-filter-chip-radius, 6px);
   --mat-chip-container-height: var(--gd-filter-chip-height, 24px);
-  --mat-chip-elevated-container-color: transparent;
-  --mat-chip-label-text-color: var(--gd-filter-chip-color, var(--mat-sys-on-primary-container, #f15115));
+  --mat-chip-elevated-container-color: var(--gd-filter-chip-add-background, transparent);
+  --mat-chip-label-text-color: var(--gd-filter-chip-color, #f15115);
   --mat-chip-label-text-size: var(--gd-filter-chip-font-size, 12px);
   --mat-chip-label-text-weight: var(--gd-filter-chip-font-weight, 600);
   --mat-chip-outline-width: 0;
@@ -59,26 +76,28 @@ gd-dynamic-filter-bar {
 
   &:hover,
   &:focus-within {
-    --mat-chip-elevated-container-color: var(--gd-filter-chip-background, var(--mat-sys-primary-container, #fff3eb));
+    --mat-chip-elevated-container-color: var(--gd-filter-chip-add-background-hover, var(--gd-filter-chip-background, #fff3eb));
   }
 }
 
-.gd-dynamic-filter-bar__add-btn .mdc-evolution-chip__action--primary {
+.gd-dynamic-filter-bar mat-chip.gd-dynamic-filter-bar__add-btn.mat-mdc-chip.mat-mdc-standard-chip .mdc-evolution-chip__action--primary {
   padding-left: var(--gd-filter-chip-padding-h, 8px);
   padding-right: var(--gd-filter-chip-padding-h, 8px);
   cursor: pointer;
 }
 
-.gd-dynamic-filter-bar__add-btn .mdc-evolution-chip__text-label {
+.gd-dynamic-filter-bar mat-chip.gd-dynamic-filter-bar__add-btn.mat-mdc-chip.mat-mdc-standard-chip .mdc-evolution-chip__text-label,
+.gd-dynamic-filter-bar mat-chip.gd-dynamic-filter-bar__add-btn.mat-mdc-chip.mat-mdc-standard-chip .mat-mdc-chip-action-label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-family: var(--gd-filter-chip-font-family, inherit);
+  font-weight: var(--gd-filter-chip-font-weight, 600);
 }
 
 .gd-dynamic-filter-bar__add-btn-icon {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--gd-filter-chip-font-weight, 600);
   line-height: 1;
 }
 

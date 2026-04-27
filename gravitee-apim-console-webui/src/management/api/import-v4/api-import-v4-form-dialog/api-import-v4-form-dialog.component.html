@@ -16,14 +16,11 @@
 
 -->
 
-<h2 mat-dialog-title class="api-import-v4-form-dialog__title">
-  <span class="api-import-v4-form-dialog__title-label">Import API</span>
-  <span class="api-import-v4-form-dialog__title-api-name">{{ data.apiName }}</span>
-</h2>
 <mat-dialog-content class="api-import-v4-form-dialog__content">
   <api-import-v4-form
     [updateTargetApiId]="data.apiId"
     [embeddedInDialog]="true"
+    [embeddedDialogApiName]="data.apiName"
     (importCompleted)="onImportCompleted($event)"
     (dismissed)="onDismissed()"
   />

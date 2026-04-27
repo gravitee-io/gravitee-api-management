@@ -15,13 +15,16 @@
  */
 package io.gravitee.apim.infra.domain_service.subscription;
 
+import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -29,6 +32,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -53,6 +57,10 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
     private final AcceptSubscriptionDomainService acceptService;
 
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
+
+    private final ReconcileApiKeysDomainService reconcileApiKeysDomainService;
+
+    private final SubscriptionCrudService subscriptionCrudService;
 
     @Override
     public SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec) {
@@ -80,10 +88,12 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
         entity.setReasonMessage(ACCEPT_REASON);
         entity.setEndingAt(spec.getEndingAt());
 
+        String initialCustomKey = firstKeyOrNull(spec.getApiKeys());
+
         var subscription = subscriptionService.create(
             toExecutionContext(auditInfo),
             adapter.fromCoreForCreate(entity),
-            spec.getCustomApiKey(),
+            initialCustomKey,
             spec.getId()
         );
 
@@ -91,13 +101,18 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
             subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(entity));
         }
 
+        SubscriptionEntity accepted;
         if (subscription.getStatus() == SubscriptionStatus.ACCEPTED) {
             log.debug("Subscription [{}] already accepted, skipping auto accept", spec.getId());
-            return adapter.toCore(subscription);
+            accepted = adapter.toCore(subscription);
+        } else {
+            log.debug("Auto accepting subscription [{}]", spec.getId());
+            accepted = getAutoAccept(auditInfo, spec, subscription.getId());
         }
 
-        log.debug("Auto accepting subscription [{}]", spec.getId());
-        return getAutoAccept(auditInfo, spec, subscription.getId());
+        reconcileApiKeys(accepted, auditInfo, spec);
+
+        return accepted;
     }
 
     private SubscriptionEntity update(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
@@ -122,17 +137,35 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
 
         subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(update));
 
+        reconcileApiKeys(update, auditInfo, spec);
+
         return update;
     }
 
     private SubscriptionEntity restoreAsAccepted(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
         log.debug("Restoring closed subscription [{}]", spec.getId());
         subscriptionService.restore(toExecutionContext(auditInfo), existing.getId());
+        if (hasApiKeys(spec)) {
+            var pending = subscriptionCrudService.get(existing.getId());
+            var accepted = pending.acceptBy(auditInfo.actor().userId(), ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON);
+            return subscriptionCrudService.update(accepted);
+        }
         return getAutoAccept(auditInfo, spec, existing.getId());
     }
 
+    private static boolean hasApiKeys(SubscriptionCRDSpec spec) {
+        return spec.getApiKeys() != null && !spec.getApiKeys().isEmpty();
+    }
+
     private SubscriptionEntity getAutoAccept(AuditInfo auditInfo, SubscriptionCRDSpec spec, String id) {
-        return acceptService.autoAccept(id, ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON, "", auditInfo);
+        return acceptService.autoAccept(
+            id,
+            ZonedDateTime.now(),
+            spec.getEndingAt(),
+            ACCEPT_REASON,
+            firstKeyOrNull(spec.getApiKeys()),
+            auditInfo
+        );
     }
 
     private static void rejectImmutableFieldChanges(SubscriptionEntity existing, SubscriptionCRDSpec spec) {
@@ -151,6 +184,19 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
             log.debug("Subscription [{}] not found", id);
             return Optional.empty();
         }
+    }
+
+    private void reconcileApiKeys(SubscriptionEntity subscription, AuditInfo auditInfo, SubscriptionCRDSpec spec) {
+        if (spec.getApiKeys() != null && !spec.getApiKeys().isEmpty()) {
+            reconcileApiKeysDomainService.reconcile(subscription, spec.getApiKeys(), auditInfo);
+        }
+    }
+
+    private static String firstKeyOrNull(List<ApiKeyCRDSpec> apiKeys) {
+        if (apiKeys == null || apiKeys.isEmpty()) {
+            return null;
+        }
+        return apiKeys.getFirst().getKey();
     }
 
     private static ExecutionContext toExecutionContext(AuditInfo auditInfo) {

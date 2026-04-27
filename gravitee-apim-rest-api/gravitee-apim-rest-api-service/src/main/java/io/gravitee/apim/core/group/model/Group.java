@@ -28,6 +28,7 @@ import lombok.With;
 public class Group {
 
     private String id;
+    private String hrid;
     private String environmentId;
     private String name;
     private List<GroupEventRule> eventRules;

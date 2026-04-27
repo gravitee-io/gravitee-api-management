@@ -45,6 +45,7 @@ import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
+import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -58,6 +59,7 @@ import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmut
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -103,7 +105,7 @@ class SubscriptionCRDDomainServiceImplTest {
     private static final String APPLICATION_ID = "application-id";
     private static final String PLAN_ID = "plan-id";
     private static final String SUBSCRIPTION_ID = "subscription-id";
-    private static final String CUSTOM_API_KEY = "my-custom-api-key";
+    private static final String CUSTOM_API_KEY = "my-custom-api-key-with-32-chars!!";
 
     private static final SubscriptionCRDSpec SPEC = SubscriptionCRDSpec.builder()
         .id(SUBSCRIPTION_ID)
@@ -122,7 +124,7 @@ class SubscriptionCRDDomainServiceImplTest {
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
-    private final ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory();
+    private final ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService);
     private final SubscriptionAdapterImpl subscriptionAdapter = new SubscriptionAdapterImpl();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
@@ -161,7 +163,9 @@ class SubscriptionCRDDomainServiceImplTest {
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService(),
-            closeSubscriptionDomainService()
+            closeSubscriptionDomainService(),
+            reconcileApiKeysDomainService(),
+            subscriptionCrudService
         );
 
         membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
@@ -264,18 +268,19 @@ class SubscriptionCRDDomainServiceImplTest {
     }
 
     @Test
-    void should_create_with_custom_api_key() {
+    void should_create_with_api_keys() {
         givenExistingApiKeyPlan();
 
-        var specWithCustomApiKey = SPEC.toBuilder().customApiKey(CUSTOM_API_KEY).build();
+        var apiKeys = List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build());
+        var specWithApiKeys = SPEC.toBuilder().apiKeys(apiKeys).build();
         when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID))).thenReturn(
-            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithCustomApiKey))
+            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys))
         );
 
         subscriptionCrudService.initWith(
             List.of(
                 subscriptionAdapter
-                    .fromSpec(specWithCustomApiKey)
+                    .fromSpec(specWithApiKeys)
                     .toBuilder()
                     .status(SubscriptionEntity.Status.PENDING)
                     .subscribedBy(USER_ID)
@@ -283,9 +288,120 @@ class SubscriptionCRDDomainServiceImplTest {
             )
         );
 
-        cut.createOrUpdate(AUDIT_INFO, specWithCustomApiKey);
+        cut.createOrUpdate(AUDIT_INFO, specWithApiKeys);
 
         verify(subscriptionService).create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID));
+    }
+
+    @Test
+    void should_create_with_multiple_api_keys_and_reconcile() {
+        givenExistingApiKeyPlan();
+
+        var apiKeys = List.of(
+            ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build(),
+            ApiKeyCRDSpec.builder().key("second-api-key-with-32-chars!!!!").build()
+        );
+        var specWithApiKeys = SPEC.toBuilder().apiKeys(apiKeys).build();
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID))).thenReturn(
+            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys))
+        );
+
+        subscriptionCrudService.initWith(
+            List.of(
+                subscriptionAdapter
+                    .fromSpec(specWithApiKeys)
+                    .toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .subscribedBy(USER_ID)
+                    .build()
+            )
+        );
+
+        cut.createOrUpdate(AUDIT_INFO, specWithApiKeys);
+
+        verify(subscriptionService).create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID));
+
+        assertThat(apiKeyCrudService.storage()).extracting("key").contains("second-api-key-with-32-chars!!!!");
+    }
+
+    @Test
+    void should_reconcile_api_keys_on_update_revoking_removed_keys() {
+        givenExistingApiKeyPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        apiKeyCrudService.initWith(
+            List.of(
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
+                    .id("old-key-id")
+                    .key("old-api-key-value-with-32-chars!!")
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID))
+                    .environmentId(ENVIRONMENT_ID)
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .revoked(false)
+                    .build()
+            )
+        );
+
+        var specWithNewKeys = SPEC.toBuilder()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("new-api-key-value-with-32-chars!!").build()))
+            .build();
+
+        cut.createOrUpdate(AUDIT_INFO, specWithNewKeys);
+
+        var oldKey = apiKeyCrudService
+            .storage()
+            .stream()
+            .filter(k -> k.getKey().equals("old-api-key-value-with-32-chars!!"))
+            .findFirst()
+            .orElseThrow();
+        assertThat(oldKey.isRevoked()).isTrue();
+
+        var newKey = apiKeyCrudService
+            .storage()
+            .stream()
+            .filter(k -> k.getKey().equals("new-api-key-value-with-32-chars!!"))
+            .findFirst()
+            .orElseThrow();
+        assertThat(newKey.isRevoked()).isFalse();
+    }
+
+    @Test
+    void should_reconcile_api_keys_on_update_keeping_matching_keys() {
+        givenExistingApiKeyPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        apiKeyCrudService.initWith(
+            List.of(
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
+                    .id("key-id")
+                    .key(CUSTOM_API_KEY)
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID))
+                    .environmentId(ENVIRONMENT_ID)
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .revoked(false)
+                    .build()
+            )
+        );
+
+        var specWithSameKey = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build())).build();
+
+        cut.createOrUpdate(AUDIT_INFO, specWithSameKey);
+
+        assertThat(apiKeyCrudService.storage()).hasSize(1);
+        assertThat(apiKeyCrudService.storage().get(0).isRevoked()).isFalse();
+        assertThat(apiKeyCrudService.storage().get(0).getKey()).isEqualTo(CUSTOM_API_KEY);
     }
 
     @Test
@@ -344,6 +460,88 @@ class SubscriptionCRDDomainServiceImplTest {
             soft.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
         });
+    }
+
+    @Test
+    void should_restore_closed_subscription_with_custom_api_keys_reactivating_revoked_key() {
+        givenExistingApiKeyPlan();
+
+        var apiKeys = List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build());
+        var specWithApiKeys = SPEC.toBuilder().apiKeys(apiKeys).build();
+
+        var closedEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(specWithApiKeys).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
+
+        apiKeyCrudService.initWith(
+            List.of(
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
+                    .id("revoked-key-id")
+                    .key(CUSTOM_API_KEY)
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID))
+                    .environmentId(ENVIRONMENT_ID)
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .revoked(true)
+                    .revokedAt(ZonedDateTime.now())
+                    .build()
+            )
+        );
+
+        doAnswer(invocation -> {
+            subscriptionCrudService.update(
+                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
+            );
+            return closedEntity;
+        })
+            .when(subscriptionService)
+            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+
+        var result = cut.createOrUpdate(AUDIT_INFO, specWithApiKeys);
+
+        verify(subscriptionService).restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+        assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+
+        assertThat(apiKeyCrudService.storage())
+            .as("Only the custom key should exist, no transient UUID key")
+            .hasSize(1)
+            .first()
+            .satisfies(key -> {
+                assertThat(key.getKey()).isEqualTo(CUSTOM_API_KEY);
+                assertThat(key.isRevoked()).isFalse();
+            });
+    }
+
+    @Test
+    void should_restore_closed_subscription_on_api_key_plan_without_custom_keys() {
+        givenExistingApiKeyPlan();
+
+        var closedEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
+
+        doAnswer(invocation -> {
+            subscriptionCrudService.update(
+                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
+            );
+            return closedEntity;
+        })
+            .when(subscriptionService)
+            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+
+        var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
+
+        verify(subscriptionService).restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+        assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+
+        assertThat(apiKeyCrudService.storage())
+            .as("A UUID key should be generated when no custom keys are specified")
+            .hasSize(1)
+            .first()
+            .satisfies(key -> assertThat(key.isRevoked()).isFalse());
     }
 
     @Test
@@ -530,6 +728,15 @@ class SubscriptionCRDDomainServiceImplTest {
             new ApiKeyQueryServiceInMemory(apiKeyCrudService),
             applicationCrudService,
             auditDomainService()
+        );
+    }
+
+    private ReconcileApiKeysDomainService reconcileApiKeysDomainService() {
+        return new ReconcileApiKeysDomainService(
+            apiKeyQueryService,
+            apiKeyCrudService,
+            generateApiKeyDomainService(),
+            revokeApiKeyDomainService()
         );
     }
 }

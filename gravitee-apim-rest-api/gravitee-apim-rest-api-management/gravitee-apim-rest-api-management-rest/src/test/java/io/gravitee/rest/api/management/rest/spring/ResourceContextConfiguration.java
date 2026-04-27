@@ -62,6 +62,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
@@ -146,6 +147,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
@@ -964,17 +966,26 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ReconcileApiKeysDomainService reconcileApiKeysDomainService() {
+        return mock(ReconcileApiKeysDomainService.class);
+    }
+
+    @Bean
     public SubscriptionCRDDomainService subscriptionSpecDomainService(
         SubscriptionService subscriptionService,
         SubscriptionAdapter subscriptionAdapter,
         AcceptSubscriptionDomainService acceptSubscriptionDomainService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService
+        CloseSubscriptionDomainService closeSubscriptionDomainService,
+        ReconcileApiKeysDomainService reconcileApiKeysDomainService,
+        SubscriptionCrudService subscriptionCrudService
     ) {
         return new SubscriptionCRDDomainServiceImpl(
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService,
-            closeSubscriptionDomainService
+            closeSubscriptionDomainService,
+            reconcileApiKeysDomainService,
+            subscriptionCrudService
         );
     }
 

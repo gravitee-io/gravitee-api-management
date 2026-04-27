@@ -69,7 +69,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getApiHrid()).isEqualTo(API_HRID);
                 soft.assertThat(state.getApplicationHrid()).isEqualTo("application_hrid");
                 soft.assertThat(state.getPlanHrid()).isEqualTo("plan_hrid");
-                soft.assertThat(state.getCustomApiKey()).isEqualTo("custom-api-key");
+                soft.assertThat(state.getApiKeys()).hasSize(1);
+                soft.assertThat(state.getApiKeys().get(0).getKey()).isEqualTo("custom-api-key");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
