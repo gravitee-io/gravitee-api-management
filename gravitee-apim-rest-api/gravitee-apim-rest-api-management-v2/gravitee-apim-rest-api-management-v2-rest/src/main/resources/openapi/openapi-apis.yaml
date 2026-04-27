@@ -700,6 +700,36 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/_import/wsdl:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        put:
+            tags:
+                - APIs
+            summary: Update API from WSDL descriptor
+            description: |-
+                Update an existing API by importing a WSDL descriptor.<br>
+                The descriptor payload must be a valid WSDL 1.1 document, either as inline content or a remote URL.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: updateApiFromWsdl
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportWsdlDescriptor"
+                required: true
+            responses:
+                "200":
+                    description: API successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/_import/swagger:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
