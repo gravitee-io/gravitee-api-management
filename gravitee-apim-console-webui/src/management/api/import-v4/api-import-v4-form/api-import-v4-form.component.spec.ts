@@ -62,6 +62,59 @@ describe('ApiImportV4FormComponent', () => {
     expect(await harness.getSupportedFileFormatsBannerText()).toBe(expectedBanner);
   });
 
+  it('should align native file input accept with OpenAPI yaml extensions on the configure step', async () => {
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    fixture.detectChanges();
+    const accept = await harness.getFilePickerInputAccept();
+    expect(accept).toContain('.yml');
+    expect(accept).toContain('.yaml');
+  });
+
+  it('should keep picked file when going back from configure step to format step without changing API format', async () => {
+    const importDefinition = JSON.stringify({ api: fakeApiV4({ definitionVersion: 'V4' }) });
+
+    await harness.selectFormat('gravitee');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File([importDefinition], 'gravitee-api-definition.json', { type: 'application/json' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(await harness.isConfigureSourceNextDisabled()).toBe(false);
+    expect(await harness.getPickedFilesCount()).toBe(1);
+
+    await harness.clickBack();
+    fixture.detectChanges();
+
+    await harness.clickNext();
+    fixture.detectChanges();
+    expect(await harness.isConfigureSourceNextDisabled()).toBe(false);
+    expect(await harness.getPickedFilesCount()).toBe(1);
+  });
+
+  it('should clear picked file only when API format changes on step 1 (e.g. OpenAPI → Gravitee → OpenAPI)', async () => {
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File(['openapi: 3.1.0'], 'openapi.yml', { type: 'application/x-yaml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(await harness.isConfigureSourceNextDisabled()).toBe(false);
+
+    await harness.clickBack();
+    fixture.detectChanges();
+
+    await harness.selectFormat('gravitee');
+    fixture.detectChanges();
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+
+    await harness.clickNext();
+    fixture.detectChanges();
+    expect(await harness.isConfigureSourceNextDisabled()).toBe(true);
+  });
+
   it('should surface wsdl/xml in the supported-formats banner when format is wsdl', async () => {
     // WSDL is not yet selectable from the inline format cards (disabled in the template).
     fixture.componentInstance.selectApiFormatForm.patchValue({ format: 'wsdl' });
@@ -141,6 +194,26 @@ describe('ApiImportV4FormComponent', () => {
     await harness.selectFormat('openapi');
     fixture.detectChanges();
     expect(await harness.hasOptionsStep()).toBe(true);
+  });
+
+  it('should keep OpenAPI options when navigating back from options step to configure step', async () => {
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File(['openapi: 3.1.0'], 'openapi.yml', { type: 'application/x-yaml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await harness.clickNext();
+
+    await harness.toggleDocumentationImport();
+    expect(await harness.isDocumentationImportSelected()).toBe(false);
+
+    await harness.clickPrevious();
+    fixture.detectChanges();
+    await harness.clickNext();
+    fixture.detectChanges();
+
+    expect(await harness.isDocumentationImportSelected()).toBe(false);
   });
 
   it('should not start a second import while the first is in progress', async () => {
@@ -329,6 +402,27 @@ describe('ApiImportV4FormComponent (oas-validation policy installed)', () => {
 
     await harness.toggleDocumentationImport();
     expect(await harness.isDocumentationImportSelected()).toBe(true);
+  });
+
+  it('should keep picked file after toggling OpenAPI validation on options and returning to configure', async () => {
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.selectSource('local');
+    await harness.pickFiles([new File(['openapi: 3.1.0'], 'openapi.yml', { type: 'application/x-yaml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(await harness.getPickedFilesCount()).toBe(1);
+    await harness.clickNext();
+
+    await harness.toggleOasValidationPolicyImport();
+    expect(await harness.isOasValidationPolicyImportSelected()).toBe(false);
+
+    await harness.clickPrevious();
+    fixture.detectChanges();
+
+    expect(await harness.isConfigureSourceNextDisabled()).toBe(false);
+    expect(await harness.getPickedFilesCount()).toBe(1);
   });
 
   it('should still skip the options step for Gravitee definition when policy is installed', async () => {

@@ -125,30 +125,13 @@ describe('FilePickerComponent', () => {
     });
   });
 
-  it('should clear selection and emit when allowedFileExtensions changes after a file was picked', async () => {
+  it('should recompute acceptMask when allowedFileExtensions input changes', () => {
     fixture.componentRef.setInput('allowedFileExtensions', ['json']);
     fixture.detectChanges();
+    expect(component.acceptMask()).toBe('.json');
 
-    const eventEmitterSpy = jest.spyOn(component.onFilePicked, 'emit');
-    const newFile = new File([`{ "api": { "definitionVersion": "V4" }}`], 'file.json', { type: 'application/json' });
-
-    await harness.dropFiles([newFile]);
-
-    expect(eventEmitterSpy).toHaveBeenCalledWith({
-      importFile: newFile,
-      importFileContent: `{ "api": { "definitionVersion": "V4" }}`,
-      importType: 'MAPI_V2',
-    });
-
-    eventEmitterSpy.mockClear();
     fixture.componentRef.setInput('allowedFileExtensions', ['yml', 'yaml']);
     fixture.detectChanges();
-
-    expect(eventEmitterSpy).toHaveBeenCalledTimes(1);
-    expect(eventEmitterSpy).toHaveBeenCalledWith({
-      importType: undefined,
-      importFile: undefined,
-      importFileContent: undefined,
-    });
+    expect(component.acceptMask()).toBe('.yml,.yaml');
   });
 });

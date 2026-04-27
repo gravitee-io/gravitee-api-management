@@ -55,7 +55,7 @@
     <div class="import-api-v4-form__dialog-surface">
       @if (embeddedDialogApiName(); as dialogApiName) {
         <div class="import-api-v4-form__dialog-heading">
-          <h1 class="page-header__page-title">Update API</h1>
+          <h1 class="page-header__page-title">Update the API</h1>
           <span class="import-api-v4-form__dialog-heading-api-name">{{ dialogApiName }}</span>
         </div>
       }
@@ -70,7 +70,7 @@
   }
 
   <ng-template #importApiV4StepperTpl>
-    <mat-stepper linear color="accent" [disableRipple]="true">
+    <mat-stepper linear color="accent" [disableRipple]="true" (selectionChange)="onImportStepSelectionChange($event)">
       <!-- step 1-->
       <mat-step [stepControl]="selectApiFormatForm">
         <form [formGroup]="selectApiFormatForm" class="select-api-format">
@@ -130,19 +130,21 @@
                 @if (configureFileSourceForm.controls.source.value === 'local') {
                   <span class="configure-file-source__col-heading">File</span>
                   <div class="configure-file-source__detail-panel configure-file-source__detail-panel--file">
-                    <api-import-file-picker
-                      [allowedFileExtensions]="allowedImportFileExtensions()"
-                      [fillDropZoneLayout]="true"
-                      (onFilePicked)="onImportFile($event)"
-                    >
-                      <div class="configure-file-source__file-picker">
-                        <mat-icon svgIcon="gio:upload"></mat-icon>
-                        <p class="mat-body-strong">Drag and drop a file</p>
-                        <p class="mat-body" data-testid="supported-file-formats">
-                          Supported file formats: {{ allowedImportFileExtensionsLabel() }}
-                        </p>
-                      </div>
-                    </api-import-file-picker>
+                    @for (fmt of [importFormat() ?? 'gravitee']; track fmt) {
+                      <api-import-file-picker
+                        [allowedFileExtensions]="allowedImportFileExtensions()"
+                        [fillDropZoneLayout]="true"
+                        (onFilePicked)="onImportFile($event)"
+                      >
+                        <div class="configure-file-source__file-picker">
+                          <mat-icon svgIcon="gio:upload"></mat-icon>
+                          <p class="mat-body-strong">Drag and drop a file</p>
+                          <p class="mat-body" data-testid="supported-file-formats">
+                            Supported file formats: {{ allowedImportFileExtensionsLabel() }}
+                          </p>
+                        </div>
+                      </api-import-file-picker>
+                    }
                     @if (configureFileSourceForm.hasError('mismatchFileFormat')) {
                       <gio-banner-error>The file does not match the selected API format</gio-banner-error>
                     }
