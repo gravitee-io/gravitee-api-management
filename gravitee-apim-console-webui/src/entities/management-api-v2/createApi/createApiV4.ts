@@ -33,4 +33,5 @@ export interface CreateApiV4 extends CreateBaseApi {
   analytics?: Analytics;
   flowExecution?: FlowExecution;
   flows?: FlowV4[];
+  allowedInApiProducts?: boolean;
 }
