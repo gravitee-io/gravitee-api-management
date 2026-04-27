@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Component, computed, DestroyRef, effect, inject, input, output, signal, Signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, DestroyRef, effect, inject, input, output, signal, Signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
@@ -73,7 +73,7 @@ function formValidSignal(form: AbstractControl, initialValue = form.valid): Sign
   templateUrl: './api-import-v4-form.component.html',
   styleUrl: './api-import-v4-form.component.scss',
 })
-export class ApiImportV4FormComponent {
+export class ApiImportV4FormComponent implements AfterViewInit {
   private readonly apiV2Service = inject(ApiV2Service);
   private readonly http = inject(HttpClient);
   private readonly snackBarService = inject(SnackBarService);
@@ -91,6 +91,11 @@ export class ApiImportV4FormComponent {
   readonly dismissed = output<void>();
 
   protected readonly importStepper = viewChild(MatStepper);
+
+  /** Configure file source is always mat-step index 1 (between format and optional options / review). */
+  protected readonly CONFIGURE_FILE_SOURCE_STEP_INDEX = 1;
+
+  protected readonly activeImportStepIndex = signal(0);
 
   protected readonly primaryImportActionLabel = computed(() => (this.updateTargetApiId() ? 'Update API' : 'Import API'));
 
@@ -280,6 +285,30 @@ export class ApiImportV4FormComponent {
     this.importStepper()?.previous();
   }
 
+  ngAfterViewInit(): void {
+    const stepper = this.importStepper();
+    if (stepper) {
+      this.activeImportStepIndex.set(stepper.selectedIndex);
+    }
+  }
+
+  protected onImportStepSelectionChange(selectedIndex: number): void {
+    const previousIndex = this.activeImportStepIndex();
+    this.activeImportStepIndex.set(selectedIndex);
+    if (previousIndex === this.CONFIGURE_FILE_SOURCE_STEP_INDEX && selectedIndex === 0) {
+      this.resetConfigureFileStepAfterReturningToFormatStep();
+    }
+  }
+
+  /** Leaving “Configure file source” for “API format” clears picked files and remote URL fields so step 2 matches the next format choice. */
+  private resetConfigureFileStepAfterReturningToFormatStep(): void {
+    this.importFileContent.set(undefined);
+    this.importType.set(undefined);
+    this.configureFileSourceForm.patchValue({ remoteUrl: '', authorizationHeader: '' }, { emitEvent: false });
+    this.configureFileSourceForm.controls.remoteUrl.markAsUntouched();
+    this.configureFileSourceForm.updateValueAndValidity({ emitEvent: true });
+  }
+
   private applyFileSourceMode(source: string | null): void {
     const urlCtrl = this.configureFileSourceForm.controls.remoteUrl;
     const authCtrl = this.configureFileSourceForm.controls.authorizationHeader;
@@ -354,7 +383,7 @@ export class ApiImportV4FormComponent {
       if (!importType || fileContent == null || fileContent === '') {
         return { fileRequired: true };
       }
-      const format = this.selectApiFormatForm.controls.format.value;
+      const format = this.importFormat();
       if (
         (format === 'openapi' && importType !== 'SWAGGER') ||
         (format === 'gravitee' && importType !== 'MAPI_V2') ||
@@ -372,7 +401,7 @@ export class ApiImportV4FormComponent {
    */
   private importRequestContextOk(): boolean {
     const source = this.configureFileSourceForm.controls.source.value;
-    const format = this.selectApiFormatForm.controls.format.value;
+    const format = this.importFormat();
 
     if (source === 'remote') {
       const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim();
@@ -398,7 +427,7 @@ export class ApiImportV4FormComponent {
 
     const updateId = this.updateTargetApiId();
     const source = this.configureFileSourceForm.controls.source.value;
-    const format = this.selectApiFormatForm.controls.format.value;
+    const format = this.importFormat();
 
     if (source === 'remote') {
       const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim() as string;

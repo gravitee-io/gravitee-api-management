@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, effect, EventEmitter, inject, input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, computed, DestroyRef, EventEmitter, inject, input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { GioFormFilePickerModule, NewFile } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { distinctUntilChanged, skip, tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
@@ -39,27 +38,14 @@ export class ApiImportFilePickerComponent implements OnInit {
   fillDropZoneLayout = input(false);
   filePickerControl = new FormControl();
   importType: string;
-  accept: string;
+
+  readonly acceptMask = computed(() =>
+    this.allowedFileExtensions()
+      .map(ext => '.' + ext)
+      .join(','),
+  );
+
   @Output() onFilePicked = new EventEmitter<{ importFile: File; importFileContent: string; importType: string }>();
-
-  constructor() {
-    effect(() => {
-      this.accept = this.allowedFileExtensions()
-        .map(ext => '.' + ext)
-        .join(',');
-    });
-
-    toObservable(this.allowedFileExtensions)
-      .pipe(
-        skip(1),
-        distinctUntilChanged(
-          (a, b) => [...a].sort((x, y) => x.localeCompare(y)).join(',') === [...b].sort((x, y) => x.localeCompare(y)).join(','),
-        ),
-        tap(() => this.clearSelectionAfterExtensionsChanged()),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-  }
 
   ngOnInit() {
     this.filePickerControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onImportFile(value));
@@ -131,12 +117,6 @@ export class ApiImportFilePickerComponent implements OnInit {
     if (message) {
       this.snackBarService.error(message);
     }
-    this.onFilePicked.emit({ importType: undefined, importFile: undefined, importFileContent: undefined });
-  }
-
-  private clearSelectionAfterExtensionsChanged(): void {
-    this.importType = undefined;
-    this.filePickerControl.setValue(null, { emitEvent: false });
     this.onFilePicked.emit({ importType: undefined, importFile: undefined, importFileContent: undefined });
   }
 
