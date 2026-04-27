@@ -454,7 +454,9 @@ export class ApiImportV4FormComponent {
         return this.importGraviteeDefinitionFromRemoteUrl$(url, updateId);
       }
       if (format === 'wsdl') {
-        return this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(url, 'URL'));
+        return updateId
+          ? this.apiV2Service.updateApiFromWsdl(updateId, this.buildImportWsdlDescriptor(url, 'URL'))
+          : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(url, 'URL'));
       }
       return updateId
         ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(url))
@@ -479,7 +481,9 @@ export class ApiImportV4FormComponent {
         : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(fileContent as string));
     }
     if (format === 'wsdl' && pickedType === 'WSDL') {
-      return this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(fileContent as string, 'INLINE'));
+      return updateId
+        ? this.apiV2Service.updateApiFromWsdl(updateId, this.buildImportWsdlDescriptor(fileContent as string, 'INLINE'))
+        : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(fileContent as string, 'INLINE'));
     }
     return null;
   }

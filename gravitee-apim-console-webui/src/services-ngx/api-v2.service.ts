@@ -169,6 +169,14 @@ export class ApiV2Service {
     });
   }
 
+  updateApiFromWsdl(apiId: string, descriptor: ImportWsdlDescriptor): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/wsdl`, descriptor, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
   /**
    * Updates an existing v4 API from a Gravitee export document (same shape as {@link export}).
    */

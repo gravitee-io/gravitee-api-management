@@ -45,6 +45,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
+import io.gravitee.apim.core.api.use_case.WsdlToUpdateApiUseCase;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -138,6 +139,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected OAIToUpdateApiUseCase oaiToUpdateApiUseCase;
+
+    @Autowired
+    protected WsdlToUpdateApiUseCase wsdlToUpdateApiUseCase;
 
     @Autowired
     protected PermissionService permissionService;
