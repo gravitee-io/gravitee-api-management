@@ -2442,6 +2442,19 @@
                     </exclusions>
                 </dependency>
                 <dependency>
+                    <groupId>com.graviteesource.resource</groupId>
+                    <artifactId>gravitee-resource-schema-registry-embedded</artifactId>
+                    <version>${gravitee-resource-schema-registry-embedded.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>io.gravitee.resource</groupId>
                     <artifactId>gravitee-resource-storage-azure-blob</artifactId>
                     <version>${gravitee-resource-storage-azure-blob.version}</version>
