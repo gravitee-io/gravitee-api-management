@@ -21,6 +21,8 @@ import { DashboardsListComponent } from './dashboards/dashboards-list/dashboards
 import { DashboardDetailComponent } from './dashboards/dashboard-detail/dashboard-detail.component';
 import { EnvLogsComponent } from './env-logs/env-logs.component';
 import { EnvLogsDetailsComponent } from './env-logs/components/env-logs-details/env-logs-details.component';
+import { TracingListComponent } from './tracing/tracing-list.component';
+import { TraceDetailComponent } from './tracing/trace-detail/trace-detail.component';
 
 const routes: Routes = [
   {
@@ -62,6 +64,14 @@ const routes: Routes = [
         page: 'management-environment-logs-v4',
       },
     },
+  },
+  {
+    path: 'tracing',
+    component: TracingListComponent,
+  },
+  {
+    path: 'tracing/:traceId',
+    component: TraceDetailComponent,
   },
   {
     path: '',

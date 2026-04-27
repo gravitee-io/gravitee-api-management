@@ -81,7 +81,7 @@ import { GioDiffModule } from '../../../shared/components/gio-diff/gio-diff.modu
     DebugModeTimelineLegendComponent,
     DebugModeTimelineHoverComponent,
   ],
-  exports: [DebugModeComponent],
+  exports: [DebugModeComponent, DebugModeResponseComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [TitleCasePipe],
 })

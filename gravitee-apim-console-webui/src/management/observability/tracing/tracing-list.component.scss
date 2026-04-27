@@ -1,0 +1,122 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.tracing-section {
+  padding: 16px;
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+}
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.period-field {
+  width: 200px;
+}
+
+.api-field {
+  min-width: 240px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 60px;
+}
+
+.table-container {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tracing-table {
+  width: 100%;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f7f7f8;
+  }
+}
+
+.trace-id-cell {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: #da3b00;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.status-ok {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.status-error {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.status-unknown {
+  color: #5c5959;
+  background: transparent;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 60px 20px;
+  color: #5c5959;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+}

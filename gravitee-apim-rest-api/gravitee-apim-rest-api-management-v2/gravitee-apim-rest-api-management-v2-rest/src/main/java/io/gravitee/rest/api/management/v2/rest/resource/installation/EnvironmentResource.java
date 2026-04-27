@@ -35,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicy
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SubscriptionFormsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
+import io.gravitee.rest.api.management.v2.rest.resource.tracing.TracingResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -158,5 +159,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/kafka-explorer")
     public KafkaExplorerResource getKafkaExplorerResource() {
         return resourceContext.getResource(KafkaExplorerResource.class);
+    }
+
+    @Path("/tracing")
+    public TracingResource getTracingResource() {
+        return resourceContext.getResource(TracingResource.class);
     }
 }
