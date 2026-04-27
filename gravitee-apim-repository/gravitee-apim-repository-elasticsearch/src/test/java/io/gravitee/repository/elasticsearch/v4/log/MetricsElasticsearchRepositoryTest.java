@@ -158,7 +158,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .requestEnded(true)
                         .method(HttpMethod.DELETE)
                         .status(404)
-                        .timestamp(today + "T06:54:30.047Z")
+                        .timestamp(today + "T06:54:30.046Z")
                         .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                         .uri("/jgi-message-logs-kafka/")
                         .gatewayResponseTime(200L)
@@ -258,8 +258,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 .containsExactly(
                     "e71f2ae0-7673-4d7e-9f2a-e076730d7e69",
                     "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48",
-                    "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
                     "26c61cfc-a4cc-4272-861c-fca4cc2272ab",
+                    "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
                     "5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4",
                     "b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901"
                 );
@@ -314,10 +314,10 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 .containsExactly(
                     tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z"),
-                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", today + "T06:55:39.245Z"),
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", today + "T06:55:39.245Z"),
+                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", today + "T06:55:39.244Z"),
                     tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z"),
-                    tuple("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901", today + "T06:54:30.047Z")
+                    tuple("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901", today + "T06:54:30.046Z")
                 );
         }
 
@@ -338,8 +338,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 .extracting(Metrics::getRequestId, Metrics::getMethod)
                 .containsExactly(
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", HttpMethod.GET),
-                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", HttpMethod.POST),
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", HttpMethod.POST),
+                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", HttpMethod.POST),
                     tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", HttpMethod.POST),
                     tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", HttpMethod.GET),
                     tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", HttpMethod.GET)
@@ -458,7 +458,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .requestEnded(true)
                         .method(HttpMethod.DELETE)
                         .status(404)
-                        .timestamp(today + "T06:54:30.047Z")
+                        .timestamp(today + "T06:54:30.046Z")
                         .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                         .uri("/jgi-message-logs-kafka/")
                         .gatewayResponseTime(200L)
@@ -640,10 +640,10 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 .containsExactly(
                     tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z"),
-                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", today + "T06:55:39.245Z"),
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", today + "T06:55:39.245Z"),
+                    tuple("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", today + "T06:55:39.244Z"),
                     tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z"),
-                    tuple("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901", today + "T06:54:30.047Z")
+                    tuple("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901", today + "T06:54:30.046Z")
                 );
         }
 

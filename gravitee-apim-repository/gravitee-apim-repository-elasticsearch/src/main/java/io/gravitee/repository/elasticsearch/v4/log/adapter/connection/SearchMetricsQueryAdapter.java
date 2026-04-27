@@ -226,8 +226,11 @@ public class SearchMetricsQueryAdapter {
         }
     }
 
-    private static JsonObject buildSort() {
-        return JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc"));
+    private static JsonArray buildSort() {
+        return JsonArray.of(
+            JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")),
+            JsonObject.of(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(), JsonObject.of("order", "asc", "unmapped_type", "keyword"))
+        );
     }
 
     private static JsonObject buildV4Terms(RequestV2MetricsV4Fields.Field field, Collection<?> value) {
