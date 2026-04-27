@@ -20,6 +20,7 @@ import { devtools } from 'zustand/middleware';
 import type { CurrentUser, SocialIdentityProvider } from './auth.types';
 import { managementApi } from '../../shared/api/api-client';
 import { useBootstrapStore } from '../../shared/config/bootstrap.store';
+import { useEnvironmentStore } from '../environment/environment.store';
 
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
 
@@ -113,6 +114,8 @@ export const useAuthStore = create<AuthState>()(
                 });
                 const user = await managementApi.get<CurrentUser>('/user');
                 set({ user });
+                const config = useBootstrapStore.getState().config!;
+                void useEnvironmentStore.getState().initialize(config.organizationId);
             },
 
             loginWithProvider: async (providerId: string, redirectUrl: string) => {
@@ -139,6 +142,7 @@ export const useAuthStore = create<AuthState>()(
                 localStorage.removeItem(USER_PROVIDER_ID_SELECTED);
                 localStorage.removeItem('XSRF-TOKEN');
                 set({ user: null });
+                useEnvironmentStore.getState().reset();
             },
         }),
         { name: 'auth' },

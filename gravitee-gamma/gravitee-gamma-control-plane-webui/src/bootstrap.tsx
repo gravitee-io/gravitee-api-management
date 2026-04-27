@@ -19,30 +19,10 @@ import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import { AppRoutes } from './app/AppRoutes';
-import { useAuthStore } from './features/auth';
-import { useEnvironmentStore } from './features/environment';
-import { startPermissionSync } from './features/permissions/permission-sync';
+import { runApplicationBootstrap } from './bootstrap-initialize';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
-import { useBootstrapStore } from './shared/config/bootstrap.store';
 
-async function initialize() {
-    await useBootstrapStore.getState().initialize();
-
-    startPermissionSync();
-
-    const config = useBootstrapStore.getState().config!;
-
-    await useAuthStore.getState().initialize();
-    await useEnvironmentStore.getState().initialize(config.organizationId);
-
-    // If we just completed an OAuth callback, redirect to the intended URL
-    const oauthRedirectUrl = useAuthStore.getState().oauthRedirectUrl;
-    if (oauthRedirectUrl) {
-        window.history.replaceState({}, '', oauthRedirectUrl);
-    }
-}
-
-initialize().then(() => {
+runApplicationBootstrap().then(() => {
     const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
     root.render(
         <StrictMode>

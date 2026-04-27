@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { waitFor } from '@testing-library/react';
+
 import { useAuthStore } from './auth.store';
-import { TEST_MANAGEMENT_BASE, buildUser } from '../../testing/factories';
+import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, buildUser } from '../../testing/factories';
 import { respondWithError, trackHandler } from '../../testing/helpers';
+import { useEnvironmentStore } from '../environment/environment.store';
 
 describe('authStore', () => {
     it('should initialize with existing session', async () => {
@@ -52,13 +55,41 @@ describe('authStore', () => {
         expect(loginTracker.callCount).toBe(1);
         expect(userTracker.callCount).toBe(1);
         expect(useAuthStore.getState().user?.displayName).toBe('Bob');
+        await waitFor(() => {
+            expect(useEnvironmentStore.getState().initialized).toBe(true);
+        });
     });
 
-    it('should clear user on logout', async () => {
+    it('should load environments after login', async () => {
+        useEnvironmentStore.getState().reset();
+        const envTracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, TEST_ENVIRONMENTS);
+        trackHandler('post', `${TEST_MANAGEMENT_BASE}/user/login`, null, 200);
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser({ displayName: 'Bob' }));
+
+        await useAuthStore.getState().login('bob', 'password');
+
+        await waitFor(() => {
+            expect(envTracker.callCount).toBe(1);
+        });
+        expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
+    });
+
+    it('should clear user and reset environment state on logout', async () => {
         useAuthStore.setState({ user: buildUser() });
+        useEnvironmentStore.setState({
+            organizationId: 'test-org',
+            environmentId: 'e1',
+            environments: TEST_ENVIRONMENTS,
+            currentEnvironment: TEST_ENVIRONMENTS[0]!,
+            loading: false,
+            error: null,
+            initialized: true,
+        });
 
         await useAuthStore.getState().logout();
 
         expect(useAuthStore.getState().user).toBeNull();
+        expect(useEnvironmentStore.getState().environments).toEqual([]);
+        expect(useEnvironmentStore.getState().initialized).toBe(false);
     });
 });

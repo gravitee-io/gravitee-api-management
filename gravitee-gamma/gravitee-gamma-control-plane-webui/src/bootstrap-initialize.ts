@@ -1,0 +1,42 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { useAuthStore } from './features/auth';
+import { useEnvironmentStore } from './features/environment';
+import { startPermissionSync } from './features/permissions/permission-sync';
+import { useBootstrapStore } from './shared/config/bootstrap.store';
+
+/**
+ * Loads config, session, and (when the user is authenticated) the environment list
+ * before the React app mounts.
+ */
+export async function runApplicationBootstrap(): Promise<void> {
+    await useBootstrapStore.getState().initialize();
+
+    startPermissionSync();
+
+    const config = useBootstrapStore.getState().config!;
+
+    await useAuthStore.getState().initialize();
+    if (useAuthStore.getState().user) {
+        await useEnvironmentStore.getState().initialize(config.organizationId);
+    }
+
+    // If we just completed an OAuth callback, redirect to the intended URL
+    const oauthRedirectUrl = useAuthStore.getState().oauthRedirectUrl;
+    if (oauthRedirectUrl) {
+        window.history.replaceState({}, '', oauthRedirectUrl);
+    }
+}
