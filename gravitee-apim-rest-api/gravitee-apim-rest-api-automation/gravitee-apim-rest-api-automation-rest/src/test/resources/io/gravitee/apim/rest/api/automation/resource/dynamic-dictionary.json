@@ -1,0 +1,18 @@
+{
+  "hrid": "my-dynamic-dict",
+  "name": "My Dynamic Dictionary",
+  "type": "DYNAMIC",
+  "deployed": false,
+  "dynamic": {
+    "provider": {
+      "type": "HTTP",
+      "url": "http://example.com/data",
+      "method": "GET",
+      "specification": "[{\"operation\": \"default\"}]"
+    },
+    "trigger": {
+      "rate": 5,
+      "unit": "SECONDS"
+    }
+  }
+}

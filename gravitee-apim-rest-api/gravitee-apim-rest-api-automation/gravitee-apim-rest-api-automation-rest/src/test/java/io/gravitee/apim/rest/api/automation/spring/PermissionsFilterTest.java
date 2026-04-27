@@ -23,9 +23,11 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITI
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DICTIONARY;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -344,6 +346,137 @@ class PermissionsFilterTest {
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
 
             verify(permissionService, times(1)).hasPermission(any(), eq(ENVIRONMENT_SHARED_POLICY_GROUP), eq(ENVIRONMENT_ID), eq(CREATE));
+        }
+    }
+
+    @Nested
+    class Dictionaries {
+
+        @Nested
+        class CreateOrUpdate {
+
+            @BeforeEach
+            void initMocks() {
+                Permission perm = mock(Permission.class);
+                when(perm.value()).thenReturn(ENVIRONMENT_DICTIONARY);
+                when(perm.acls()).thenReturn(new RolePermissionAction[] { CREATE, UPDATE });
+                when(permissions.value()).thenReturn(new Permission[] { perm });
+                UriInfo uriInfo = mock(UriInfo.class);
+                when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+            }
+
+            @Test
+            void shouldThrowForbiddenExceptionWhenNoDictionaryPermissions() {
+                when(permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT_ID))).thenReturn(false);
+
+                ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+                assertThrows(
+                    ForbiddenAccessException.class,
+                    () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
+                    "You do not have sufficient rights to access this resource"
+                );
+            }
+
+            @Test
+            void shouldBeAuthorizedWhenDictionaryCreatePermissions() {
+                when(
+                    permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT_ID), eq(CREATE), eq(UPDATE))
+                ).thenReturn(true);
+
+                permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+                verify(permissionService, times(1)).hasPermission(
+                    any(),
+                    eq(ENVIRONMENT_DICTIONARY),
+                    eq(ENVIRONMENT_ID),
+                    eq(CREATE),
+                    eq(UPDATE)
+                );
+            }
+        }
+
+        @Nested
+        class Read {
+
+            @BeforeEach
+            void initMocks() {
+                Permission perm = mock(Permission.class);
+                when(perm.value()).thenReturn(ENVIRONMENT_DICTIONARY);
+                when(perm.acls()).thenReturn(new RolePermissionAction[] { RolePermissionAction.READ });
+                when(permissions.value()).thenReturn(new Permission[] { perm });
+                UriInfo uriInfo = mock(UriInfo.class);
+                when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+            }
+
+            @Test
+            void shouldThrowForbiddenExceptionWhenNoReadPermissions() {
+                when(permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT_ID))).thenReturn(false);
+
+                ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+                assertThrows(
+                    ForbiddenAccessException.class,
+                    () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
+                    "You do not have sufficient rights to access this resource"
+                );
+            }
+
+            @Test
+            void shouldBeAuthorizedWhenDictionaryReadPermissions() {
+                when(
+                    permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT_ID), eq(RolePermissionAction.READ))
+                ).thenReturn(true);
+
+                permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+                verify(permissionService, times(1)).hasPermission(
+                    any(),
+                    eq(ENVIRONMENT_DICTIONARY),
+                    eq(ENVIRONMENT_ID),
+                    eq(RolePermissionAction.READ)
+                );
+            }
+        }
+
+        @Nested
+        class Delete {
+
+            @BeforeEach
+            void initMocks() {
+                Permission perm = mock(Permission.class);
+                when(perm.value()).thenReturn(ENVIRONMENT_DICTIONARY);
+                when(perm.acls()).thenReturn(new RolePermissionAction[] { RolePermissionAction.DELETE });
+                when(permissions.value()).thenReturn(new Permission[] { perm });
+                UriInfo uriInfo = mock(UriInfo.class);
+                when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+            }
+
+            @Test
+            void shouldThrowForbiddenExceptionWhenNoDeletePermissions() {
+                when(permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT_ID))).thenReturn(false);
+
+                ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+                assertThrows(
+                    ForbiddenAccessException.class,
+                    () -> permissionFilter.filter(permissions, containerRequestContext, executionContext),
+                    "You do not have sufficient rights to access this resource"
+                );
+            }
+
+            @Test
+            void shouldBeAuthorizedWhenDictionaryDeletePermissions() {
+                when(
+                    permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT_ID), eq(RolePermissionAction.DELETE))
+                ).thenReturn(true);
+
+                permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+                verify(permissionService, times(1)).hasPermission(
+                    any(),
+                    eq(ENVIRONMENT_DICTIONARY),
+                    eq(ENVIRONMENT_ID),
+                    eq(RolePermissionAction.DELETE)
+                );
+            }
         }
     }
 }

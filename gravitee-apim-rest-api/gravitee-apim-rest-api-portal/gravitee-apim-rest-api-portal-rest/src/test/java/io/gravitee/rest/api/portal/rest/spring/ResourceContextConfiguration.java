@@ -102,6 +102,7 @@ import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUs
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.dashboard.use_case.GetDashboardUseCase;
 import io.gravitee.apim.core.dashboard.use_case.ListDashboardsUseCase;
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -1398,5 +1399,10 @@ public class ResourceContextConfiguration {
     @Bean
     SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator() {
         return new SubscriptionFormSchemaGeneratorImpl();
+    }
+
+    @Bean
+    public DictionaryAutomationDomainService dictionaryAutomationDomainService() {
+        return mock(DictionaryAutomationDomainService.class);
     }
 }

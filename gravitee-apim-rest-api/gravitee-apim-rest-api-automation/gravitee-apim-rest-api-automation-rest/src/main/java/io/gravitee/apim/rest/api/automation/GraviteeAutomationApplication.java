@@ -20,6 +20,8 @@ import io.gravitee.apim.rest.api.automation.exception.mapping.ValidationDomainMa
 import io.gravitee.apim.rest.api.automation.resource.ApiSubscriptionsResource;
 import io.gravitee.apim.rest.api.automation.resource.ApisResource;
 import io.gravitee.apim.rest.api.automation.resource.ApplicationsResource;
+import io.gravitee.apim.rest.api.automation.resource.DictionariesResource;
+import io.gravitee.apim.rest.api.automation.resource.DictionaryResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
 import io.gravitee.apim.rest.api.automation.resource.GroupResource;
@@ -57,6 +59,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(GroupResource.class);
         register(GroupsResource.class);
         register(SharedPolicyGroupsResource.class);
+        register(DictionariesResource.class);
+        register(DictionaryResource.class);
 
         register(ValidationDomainMapper.class);
         register(HRIDNotFoundMapper.class);

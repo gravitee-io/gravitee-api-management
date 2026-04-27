@@ -99,6 +99,10 @@ import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
+import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
+import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
+import io.gravitee.apim.core.dictionary.use_case.DeleteDictionaryUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
@@ -212,6 +216,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -1171,5 +1176,25 @@ public class ResourceContextConfiguration {
     @Bean
     public SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator() {
         return mock(SubscriptionFormSchemaGenerator.class);
+    }
+
+    @Bean
+    public ValidateDictionaryDomainService validateDictionaryDomainService() {
+        return mock(ValidateDictionaryDomainService.class);
+    }
+
+    @Bean
+    public CreateOrUpdateDictionaryUseCase createOrUpdateDictionaryUseCase() {
+        return mock(CreateOrUpdateDictionaryUseCase.class);
+    }
+
+    @Bean
+    public DeleteDictionaryUseCase deleteDictionaryUseCase() {
+        return mock(DeleteDictionaryUseCase.class);
+    }
+
+    @Bean
+    public DictionaryAutomationDomainService dictionaryAutomationDomainService() {
+        return mock(DictionaryAutomationDomainService.class);
     }
 }

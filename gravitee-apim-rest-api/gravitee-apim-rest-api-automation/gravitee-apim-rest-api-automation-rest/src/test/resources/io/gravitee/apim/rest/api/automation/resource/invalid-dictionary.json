@@ -1,0 +1,25 @@
+{
+  "hrid": "my-dict",
+  "name": "My Dictionary",
+  "description": "A test dictionary",
+  "type": "MANUAL",
+  "deployed": true,
+  "manual": {
+    "properties": {
+      "key1": "value1"
+    }
+  },
+  "dynamic": {
+    "provider": {
+      "type": "HTTP",
+      "configuration": {
+        "url": "http://example.com",
+        "method": "GET"
+      }
+    },
+    "trigger": {
+      "rate": 5,
+      "condition": "true"
+    }
+  }
+}

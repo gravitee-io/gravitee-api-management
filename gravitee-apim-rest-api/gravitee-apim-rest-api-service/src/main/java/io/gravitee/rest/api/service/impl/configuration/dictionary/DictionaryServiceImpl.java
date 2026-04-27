@@ -134,7 +134,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
-            dictionary.setDeployedAt(dictionary.getUpdatedAt());
+            dictionary.setDeployedAt(null);
 
             dictionary = dictionaryRepository.update(dictionary);
 
@@ -236,19 +236,40 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity newDictionaryEntity) {
         try {
             log.debug("Create dictionary {}", newDictionaryEntity);
+            final Dictionary dictionary;
+            if (newDictionaryEntity.getKey() == null) {
+                String key = IdGenerator.generate(newDictionaryEntity.getName());
 
-            String key = IdGenerator.generate(newDictionaryEntity.getName());
-            Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
-            if (idDictionary.isPresent() && idDictionary.get().getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())) {
-                throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
+                // Make sure the derived key does not already exist in the same environment
+                // That would mean that a legacy dictionary (prior to multi tenant management) was created with the same name.
+                Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
+                if (
+                    idDictionary.isPresent() && idDictionary.get().getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                ) {
+                    throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
+                }
+                // Make sure the derived key does not already exist in any environment using the key field which is how it is checked
+                // uniqueness after the multi tenant management is implemented.
+                Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
+                if (optDictionary.isPresent()) {
+                    throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
+                }
+                dictionary = convert(newDictionaryEntity, key, idDictionary.isEmpty());
+            } else {
+                String key = newDictionaryEntity.getKey();
+                // We shouldn't be here if the caller checked the key uniqueness
+                // But for to respect the contract, we check again
+                Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
+                if (optDictionary.isPresent()) {
+                    throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
+                }
+                dictionary = convert(newDictionaryEntity, key, false);
+                // if ID is already set, let's use it
+                if (newDictionaryEntity.getId() != null) {
+                    dictionary.setId(newDictionaryEntity.getId());
+                }
             }
-            Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
-            if (optDictionary.isPresent()) {
-                throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
-            }
-
-            //if dictionary with this name exists, we generate a UUID, otherwise we use the name as ID to be backward compatible
-            Dictionary dictionary = convert(newDictionaryEntity, dictionaryRepository.findById(key).isEmpty());
+            // Convert by setting a UUID as ID and key if not an id in the DB
 
             dictionary.setEnvironmentId(executionContext.getEnvironmentId());
 
@@ -359,13 +380,22 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             log.debug("Find dictionary by ID: {}", id);
             Optional<Dictionary> byId = dictionaryRepository.findById(id);
-            //FIXME filter should be always applied but DictionaryManager (sync service) does not handle environments for dictionaries
             if (executionContext.hasEnvironmentId()) {
                 byId = byId.filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
             }
             return byId.map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
+        }
+    }
+
+    @Override
+    public Optional<DictionaryEntity> findByKeyAndEnvironment(ExecutionContext executionContext, String key) {
+        try {
+            log.debug("Find dictionary by key: {} and environment: {}", key, executionContext.getEnvironmentId());
+            return dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId()).map(this::convert);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find a dictionary using its key " + key, ex);
         }
     }
 
@@ -459,12 +489,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         return dictionary;
     }
 
-    private Dictionary convert(NewDictionaryEntity newDictionaryEntity, boolean legacy) {
+    private Dictionary convert(NewDictionaryEntity newDictionaryEntity, String key, boolean keyIsUniqueAcrossAllEnvs) {
         Dictionary dictionary = new Dictionary();
-        String key = IdGenerator.generate(newDictionaryEntity.getName());
-        //create legacy dictionaries to be backward compatible
-        dictionary.setId(legacy ? key : UuidString.generateRandom());
-        dictionary.setKey(legacy ? null : key);
+        // This is for legacy dictionaries to be backward compatible
+        dictionary.setId(keyIsUniqueAcrossAllEnvs ? key : UuidString.generateRandom());
+        dictionary.setKey(keyIsUniqueAcrossAllEnvs ? null : key);
+
         dictionary.setName(newDictionaryEntity.getName());
         dictionary.setDescription(newDictionaryEntity.getDescription());
 

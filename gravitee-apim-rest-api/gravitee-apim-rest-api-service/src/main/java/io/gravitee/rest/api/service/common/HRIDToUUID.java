@@ -40,6 +40,10 @@ public final class HRIDToUUID {
         return new TopLevelBuilder();
     }
 
+    public static TopLevelBuilder dictionary() {
+        return new TopLevelBuilder();
+    }
+
     public static TopLevelBuilder application() {
         return new TopLevelBuilder();
     }
