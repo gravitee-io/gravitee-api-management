@@ -111,6 +111,7 @@ class UpdatePlanDomainServiceTest {
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
 
     UpdatePlanDomainService service;
 
@@ -130,7 +131,6 @@ class UpdatePlanDomainServiceTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
 
-        var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         service = new UpdatePlanDomainService(
             planQueryService,
             planCrudService,
@@ -158,7 +158,7 @@ class UpdatePlanDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService).forEach(
+        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService, kafkaPortRanges).forEach(
             InMemoryAlternative::reset
         );
         reset(policyValidationDomainService, planSynchronizationService);
@@ -229,6 +229,59 @@ class UpdatePlanDomainServiceTest {
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
+        }
+
+        @Test
+        void should_preserve_existing_createdAt_when_updating_port_range_row() {
+            // Given — a native plan with port routing already exists, and so does the matching
+            // kafka_port_ranges row created some time ago.
+            var existingCreatedAt = Instant.parse("2024-01-15T08:00:00Z");
+            var portModePlan = PlanFixtures.NativeV4.aKeyless()
+                .toBuilder()
+                .id("plan-with-ports")
+                .apiId(API_ID)
+                .planDefinitionNativeV4(
+                    io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                        .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
+                        .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
+                        .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                        .bootstrapPort(9092)
+                        .brokerRangeStart(9100)
+                        .brokerRangeEnd(9102)
+                        .build()
+                )
+                .build();
+            givenExistingPlan(portModePlan);
+            kafkaPortRanges.create(
+                io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
+                    .planId(portModePlan.getId())
+                    .apiId(API_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .bootstrapPort(9092)
+                    .rangeStart(9100)
+                    .rangeEnd(9102)
+                    .createdAt(existingCreatedAt.atZone(ZoneId.systemDefault()))
+                    .updatedAt(existingCreatedAt.atZone(ZoneId.systemDefault()))
+                    .build()
+            );
+
+            // When — the plan is updated with a new broker range (touching the port row again)
+            var updated = portModePlan
+                .toBuilder()
+                .planDefinitionNativeV4(
+                    portModePlan.getPlanDefinitionNativeV4().toBuilder().brokerRangeStart(9200).brokerRangeEnd(9205).build()
+                )
+                .build();
+            service.update(updated, List.of(), Map.of(), NATIVE_API, AUDIT_INFO);
+
+            // Then — the row was updated in place, but createdAt was preserved (regression: was being nulled).
+            Assertions.assertThat(kafkaPortRanges.findByPlanId(portModePlan.getId()))
+                .isPresent()
+                .hasValueSatisfying(pr -> {
+                    Assertions.assertThat(pr.getRangeStart()).isEqualTo(9200);
+                    Assertions.assertThat(pr.getRangeEnd()).isEqualTo(9205);
+                    Assertions.assertThat(pr.getCreatedAt()).isEqualTo(existingCreatedAt.atZone(ZoneId.systemDefault()));
+                });
         }
     }
 

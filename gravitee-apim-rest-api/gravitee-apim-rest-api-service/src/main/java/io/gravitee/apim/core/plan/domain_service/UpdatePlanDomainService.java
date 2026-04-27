@@ -263,6 +263,9 @@ public class UpdatePlanDomainService {
      * Upserts the {@code kafka_port_ranges} row after the plan has been updated. Creates the row
      * when the plan transitions from host to port mode, updates when it was already on port mode,
      * and deletes when the plan reverts to host mode (port fields cleared).
+     *
+     * <p>The JDBC ORM writes every declared column on update, so we must carry the existing
+     * {@code createdAt} forward — otherwise the column would be nulled on every plan update.</p>
      */
     private void persistPortRangeIfConfigured(Plan updated, Api api, AuditInfo auditInfo) {
         var nativeDefinition = updated.getPlanDefinitionNativeV4();
@@ -280,11 +283,12 @@ public class UpdatePlanDomainService {
             .rangeEnd(nativeDefinition.getBrokerRangeEnd())
             .updatedAt(TimeProvider.now())
             .build();
-        if (kafkaPortRangeCrudService.findByPlanId(updated.getId()).isPresent()) {
-            kafkaPortRangeCrudService.update(row);
-        } else {
-            kafkaPortRangeCrudService.create(row.toBuilder().createdAt(TimeProvider.now()).build());
-        }
+        kafkaPortRangeCrudService
+            .findByPlanId(updated.getId())
+            .ifPresentOrElse(
+                existing -> kafkaPortRangeCrudService.update(row.toBuilder().createdAt(existing.getCreatedAt()).build()),
+                () -> kafkaPortRangeCrudService.create(row.toBuilder().createdAt(TimeProvider.now()).build())
+            );
     }
 
     private static String firstShardingTag(Api api) {
