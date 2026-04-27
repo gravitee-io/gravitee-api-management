@@ -74,15 +74,37 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
         var sanitizedLifecycle = sanitized.getLifecycleState() != null
             ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
             : original.getApiLifecycleState();
+        var sanitizedVisibility = sanitized.getVisibility() != null
+            ? Api.Visibility.valueOf(sanitized.getVisibility().name())
+            : original.getVisibility();
         var sanitizedDefinition = originalDefinition
             .toBuilder()
             .tags(sanitized.getTags() != null ? sanitized.getTags() : originalDefinition.getTags())
             .analytics(sanitized.getAnalytics() != null ? sanitized.getAnalytics() : originalDefinition.getAnalytics())
+            .failover(sanitized.getFailover() != null ? sanitized.getFailover() : originalDefinition.getFailover())
+            .flowExecution(sanitized.getFlowExecution() != null ? sanitized.getFlowExecution() : originalDefinition.getFlowExecution())
+            .services(sanitized.getServices() != null ? sanitized.getServices() : originalDefinition.getServices())
+            .allowedInApiProducts(
+                sanitized.getAllowedInApiProducts() != null
+                    ? sanitized.getAllowedInApiProducts()
+                    : originalDefinition.getAllowedInApiProducts()
+            )
+            .responseTemplates(
+                sanitized.getResponseTemplates() != null ? sanitized.getResponseTemplates() : originalDefinition.getResponseTemplates()
+            )
             .build();
         return original
             .toBuilder()
+            .name(sanitized.getName() != null ? sanitized.getName() : original.getName())
+            .description(sanitized.getDescription() != null ? sanitized.getDescription() : original.getDescription())
+            .version(sanitized.getApiVersion() != null ? sanitized.getApiVersion() : original.getVersion())
+            .visibility(sanitizedVisibility)
             .apiLifecycleState(sanitizedLifecycle)
+            .labels(sanitized.getLabels() != null ? sanitized.getLabels() : original.getLabels())
+            .categories(sanitized.getCategories() != null ? sanitized.getCategories() : original.getCategories())
             .groups(sanitized.getGroups() != null ? sanitized.getGroups() : original.getGroups())
+            .allowMultiJwtOauth2Subscriptions(sanitized.isAllowMultiJwtOauth2Subscriptions())
+            .disableMembershipNotifications(sanitized.isDisableMembershipNotifications())
             .apiDefinitionValue(sanitizedDefinition)
             .build();
     }

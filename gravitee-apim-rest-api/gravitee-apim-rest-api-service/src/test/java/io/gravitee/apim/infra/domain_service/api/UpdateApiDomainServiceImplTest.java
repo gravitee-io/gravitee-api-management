@@ -24,11 +24,18 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -43,6 +50,7 @@ class UpdateApiDomainServiceImplTest {
 
     ApiService delegate = mock(ApiService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    AuditInfo auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     UpdateApiDomainServiceImpl cut;
 
@@ -51,76 +59,61 @@ class UpdateApiDomainServiceImplTest {
         cut = new UpdateApiDomainServiceImpl(delegate, apiCrudService);
     }
 
-    @Test
-    void validateV4_returns_sanitized_tags_from_mutated_update_api_entity() {
-        var api = ApiFixtures.aProxyApiV4();
+    private void stubValidate(Consumer<UpdateApiEntity> mutator) {
         doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setTags(Set.of("sanitized-tag"));
+            mutator.accept(inv.getArgument(2));
             return null;
         })
             .when(delegate)
             .validate(any(), any(), any(), any());
+    }
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+    @Test
+    void should_return_sanitized_tags_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        stubValidate(entity -> entity.setTags(Set.of("sanitized-tag")));
+
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getTags()).containsExactly("sanitized-tag");
     }
 
     @Test
-    void validateV4_returns_sanitized_groups_from_mutated_update_api_entity() {
+    void should_return_sanitized_groups_from_mutated_update_api_entity() {
         var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(Set.of("requested-group"))).build();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setGroups(Set.of("filtered-group"));
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setGroups(Set.of("filtered-group")));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getGroups()).containsExactly("filtered-group");
     }
 
     @Test
-    void validateV4_returns_sanitized_lifecycle_state() {
+    void should_return_sanitized_lifecycle_state() {
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiLifecycleState(Api.ApiLifecycleState.CREATED).build();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED);
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
     }
 
     @Test
-    void validateV4_returns_sanitized_analytics() {
+    void should_return_sanitized_analytics() {
         var api = ApiFixtures.aProxyApiV4();
         var sanitizedAnalytics = Analytics.builder().enabled(false).build();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setAnalytics(sanitizedAnalytics);
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setAnalytics(sanitizedAnalytics));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getAnalytics()).isEqualTo(sanitizedAnalytics);
     }
 
     @Test
-    void validateV4_preserves_non_mutated_fields() {
+    void should_preserve_non_mutated_fields() {
         var api = ApiFixtures.aProxyApiV4();
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getName()).isEqualTo(api.getName());
         assertThat(result.getDescription()).isEqualTo(api.getDescription());
@@ -130,69 +123,89 @@ class UpdateApiDomainServiceImplTest {
     }
 
     @Test
-    void validateV4_preserves_original_tags_when_validator_returns_null() {
+    void should_preserve_original_tags_when_validator_returns_null() {
         var api = ApiFixtures.aProxyApiV4();
         var originalTags = api.getApiDefinitionHttpV4().getTags();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setTags(null);
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setTags(null));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getTags()).isEqualTo(originalTags);
     }
 
     @Test
-    void validateV4_preserves_original_analytics_when_validator_returns_null() {
+    void should_preserve_original_analytics_when_validator_returns_null() {
         var api = ApiFixtures.aProxyApiV4();
         var originalAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setAnalytics(null);
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setAnalytics(null));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getAnalytics()).isEqualTo(originalAnalytics);
     }
 
     @Test
-    void validateV4_preserves_original_groups_when_validator_returns_null() {
+    void should_preserve_original_groups_when_validator_returns_null() {
         var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(Set.of("group-1"))).build();
         var originalGroups = api.getGroups();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setGroups(null);
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setGroups(null));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getGroups()).isEqualTo(originalGroups);
     }
 
     @Test
-    void validateV4_preserves_lifecycle_state_when_validator_does_not_set_one() {
+    void should_preserve_lifecycle_state_when_validator_does_not_set_one() {
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
-        doAnswer(inv -> {
-            UpdateApiEntity entity = inv.getArgument(2);
-            entity.setLifecycleState(null);
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+        stubValidate(entity -> entity.setLifecycleState(null));
 
-        var result = cut.validateV4(api, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+        var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
+    }
+
+    @Test
+    void should_return_sanitized_failover_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedFailover = Failover.builder().enabled(true).build();
+        stubValidate(entity -> entity.setFailover(sanitizedFailover));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getFailover()).isEqualTo(sanitizedFailover);
+    }
+
+    @Test
+    void should_return_sanitized_flow_execution_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedFlowExecution = new FlowExecution();
+        stubValidate(entity -> entity.setFlowExecution(sanitizedFlowExecution));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getFlowExecution()).isEqualTo(sanitizedFlowExecution);
+    }
+
+    @Test
+    void should_return_sanitized_services_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedServices = new ApiServices();
+        stubValidate(entity -> entity.setServices(sanitizedServices));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getServices()).isEqualTo(sanitizedServices);
+    }
+
+    @Test
+    void should_return_sanitized_response_templates_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        Map<String, Map<String, ResponseTemplate>> sanitizedResponseTemplates = Map.of("DEFAULT", Map.of());
+        stubValidate(entity -> entity.setResponseTemplates(sanitizedResponseTemplates));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getResponseTemplates()).isEqualTo(sanitizedResponseTemplates);
     }
 }
