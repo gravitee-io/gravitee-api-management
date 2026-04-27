@@ -478,22 +478,21 @@ class PatchApiUseCaseTest {
     }
 
     @Test
-    void merge_patch_null_clears_groups() {
+    void merge_patch_groups_field_is_rejected() {
         var existing = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(List.of("g-1"))).build();
         apiCrudService.initWith(List.of(existing));
-        when(updateApiDomainService.updateV4(any(), any())).thenAnswer(inv -> inv.getArgument(0));
 
-        var output = cut.execute(
-            PatchApiUseCase.Input.builder()
-                .apiId(API_ID)
-                .patchType(PatchApiUseCase.PatchType.MERGE_PATCH)
-                .patchBody("{\"groups\":null}")
-                .dryRun(false)
-                .auditInfo(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID))
-                .build()
-        );
-
-        assertThat(output.api().getGroups()).isEmpty();
+        assertThatThrownBy(() ->
+            cut.execute(
+                PatchApiUseCase.Input.builder()
+                    .apiId(API_ID)
+                    .patchType(PatchApiUseCase.PatchType.MERGE_PATCH)
+                    .patchBody("{\"groups\":[\"g-2\"]}")
+                    .dryRun(false)
+                    .auditInfo(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID))
+                    .build()
+            )
+        ).isInstanceOf(ValidationDomainException.class);
     }
 
     @Test

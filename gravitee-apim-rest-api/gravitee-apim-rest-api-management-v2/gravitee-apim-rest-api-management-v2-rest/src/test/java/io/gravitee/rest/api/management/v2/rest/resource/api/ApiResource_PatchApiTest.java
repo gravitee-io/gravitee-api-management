@@ -275,18 +275,6 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     }
 
     @Test
-    void should_return_200_when_merge_patch_updates_groups() {
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"groups\":[\"g-1\",\"g-2\"]}", MERGE_PATCH_TYPE));
-
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getGroups)
-            .asList()
-            .containsExactlyInAnyOrder("g-1", "g-2");
-    }
-
-    @Test
     void should_return_200_when_merge_patch_updates_properties() {
         var response = rootTarget(API)
             .request()
