@@ -813,14 +813,21 @@ api:
         #    secretName: api-custom-cert
       httpRoute:
         enabled: false
-        gatewayName: ""
-        gatewayNamespace: ""
-        sectionName: ""
-        hostnames: []
-        pathMatchType: ""
-        path: ""
-        annotations: {}
-        filters: []
+        # gatewayName: traefik-gateway
+        # gatewayNamespace: graviteeio
+        # sectionName: websecure
+        # hostnames:
+        #   - apim.example.com
+        # pathMatchType: PathPrefix
+        # path: /api/_bridge
+        # annotations:
+        #   application: "apim"
+        # filters:
+        #   - type: RequestHeaderModifier
+        #     requestHeaderModifier:
+        #       add:
+        #         - name: X-Forwarded-App
+        #           value: bridge
     subscription:
       enabled: false
 #      pre-expiration-notification-schedule: 15,10,5
@@ -855,14 +862,21 @@ api:
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
         httpRoute:
           enabled: false
-          gatewayName: ""
-          gatewayNamespace: ""
-          sectionName: ""
-          hostnames: []
-          pathMatchType: ""
-          path: ""
-          annotations: {}
-          filters: []
+          # gatewayName: traefik-gateway
+          # gatewayNamespace: graviteeio
+          # sectionName: websecure
+          # hostnames:
+          #   - apim.example.com
+          # pathMatchType: RegularExpression
+          # path: /management/_(.*)
+          # annotations:
+          #   application: "apim"
+          # filters:
+          #   - type: URLRewrite
+          #     urlRewrite:
+          #       path:
+          #         type: ReplaceFullPath
+          #         replaceFullPath: /_$1
         service:
 #       If you choose to enable this service, you'll need to expose the technical api
 #       on an accessible host outside of the pod: api.http.services.core.http.host
@@ -1025,47 +1039,55 @@ api:
   httpRoute:
     management:
       enabled: false
-      scheme: https
-      gatewayName: ""
-      gatewayNamespace: ""
-      sectionName: ""
-      hostnames: []
-      pathMatchType: ""
-      path: ""
-      annotations: {}
-      filters: []
+      # scheme: https
+      # gatewayName: traefik-gateway
+      # gatewayNamespace: graviteeio
+      # sectionName: websecure
+      # hostnames:
+      #   - apim.example.com
+      # pathMatchType: PathPrefix
+      # path: /management
+      # annotations:
+      #   application: "apim"
+      # filters: []
     portal:
       enabled: false
-      scheme: https
-      gatewayName: ""
-      gatewayNamespace: ""
-      sectionName: ""
-      hostnames: []
-      pathMatchType: ""
-      path: ""
-      annotations: {}
-      filters: []
+      # scheme: https
+      # gatewayName: traefik-gateway
+      # gatewayNamespace: graviteeio
+      # sectionName: websecure
+      # hostnames:
+      #   - apim.example.com
+      # pathMatchType: PathPrefix
+      # path: /portal
+      # annotations:
+      #   application: "apim"
+      # filters: []
     gamma:
       enabled: false
-      scheme: https
-      gatewayName: ""
-      gatewayNamespace: ""
-      sectionName: ""
-      hostnames: []
-      pathMatchType: ""
-      path: ""
-      annotations: {}
-      filters: []
+      # scheme: https
+      # gatewayName: traefik-gateway
+      # gatewayNamespace: graviteeio
+      # sectionName: websecure
+      # hostnames:
+      #   - apim.example.com
+      # pathMatchType: PathPrefix
+      # path: /gamma
+      # annotations:
+      #   application: "apim"
+      # filters: []
     automation:
       enabled: false
-      gatewayName: ""
-      gatewayNamespace: ""
-      sectionName: ""
-      hostnames: []
-      pathMatchType: ""
-      path: ""
-      annotations: {}
-      filters: []
+      # gatewayName: traefik-gateway
+      # gatewayNamespace: graviteeio
+      # sectionName: websecure
+      # hostnames:
+      #   - apim.example.com
+      # pathMatchType: PathPrefix
+      # path: /automation
+      # annotations:
+      #   application: "apim"
+      # filters: []
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -1133,14 +1155,21 @@ api:
 #          secretName: api-custom-cert
     httpRoute:
       enabled: false
-      gatewayName: ""
-      gatewayNamespace: ""
-      sectionName: ""
-      hostnames: []
-      pathMatchType: ""
-      path: ""
-      annotations: {}
-      filters: []
+      # gatewayName: traefik-gateway
+      # gatewayNamespace: graviteeio
+      # sectionName: websecure
+      # hostnames:
+      #   - apim.example.com
+      # pathMatchType: PathPrefix
+      # path: /integration-controller
+      # annotations:
+      #   application: "apim"
+      # filters:
+      #   - type: URLRewrite
+      #     urlRewrite:
+      #       path:
+      #         type: ReplacePrefixMatch
+      #         replacePrefixMatch: /
     service:
       externalPort: 72
 
@@ -1725,14 +1754,21 @@ gateway:
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
       httpRoute:
         enabled: false
-        gatewayName: ""
-        gatewayNamespace: ""
-        sectionName: ""
-        hostnames: []
-        pathMatchType: ""
-        path: ""
-        annotations: {}
-        filters: []
+        # gatewayName: traefik-gateway
+        # gatewayNamespace: graviteeio
+        # sectionName: websecure
+        # hostnames:
+        #   - apim.example.com
+        # pathMatchType: PathPrefix
+        # path: /_(.*)
+        # annotations:
+        #   application: "apim"
+        # filters:
+        #   - type: URLRewrite
+        #     urlRewrite:
+        #       path:
+        #         type: ReplaceFullPath
+        #         replaceFullPath: /_$1
       service:
 #       If you choose to enable this service, you'll need to expose the technical api
 #       on an accessible host outside of the pod: api.http.services.core.http.host
@@ -1814,14 +1850,21 @@ gateway:
       #        - chart-example.local
       httpRoute:
         enabled: false
-        gatewayName: ""
-        gatewayNamespace: ""
-        sectionName: ""
-        hostnames: []
-        pathMatchType: ""
-        path: ""
-        annotations: {}
-        filters: []
+        # gatewayName: traefik-gateway
+        # gatewayNamespace: graviteeio
+        # sectionName: websecure
+        # hostnames:
+        #   - apim.example.com
+        # pathMatchType: PathPrefix
+        # path: /_bridge
+        # annotations:
+        #   application: "apim"
+        # filters:
+        #   - type: RequestHeaderModifier
+        #     requestHeaderModifier:
+        #       add:
+        #         - name: X-Forwarded-App
+        #           value: bridge
     metrics:
       enabled: false
       prometheus:
@@ -2053,15 +2096,17 @@ gateway:
     #    secretName: api-custom-cert
   httpRoute:
     enabled: false
-    scheme: https
-    gatewayName: ""
-    gatewayNamespace: ""
-    sectionName: ""
-    hostnames: []
-    pathMatchType: ""
-    path: ""
-    annotations: {}
-    filters: []
+    # scheme: https
+    # gatewayName: traefik-gateway
+    # gatewayNamespace: graviteeio
+    # sectionName: websecure
+    # hostnames:
+    #   - apim.example.com
+    # pathMatchType: PathPrefix
+    # path: /
+    # annotations:
+    #   application: "apim"
+    # filters: []
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -2254,15 +2299,17 @@ portal:
     #    secretName: api-custom-cert
   httpRoute:
     enabled: false
-    scheme: https
-    gatewayName: ""
-    gatewayNamespace: ""
-    sectionName: ""
-    hostnames: []
-    pathMatchType: ""
-    path: ""
-    annotations: {}
-    filters: []
+    # scheme: https
+    # gatewayName: traefik-gateway
+    # gatewayNamespace: graviteeio
+    # sectionName: websecure
+    # hostnames:
+    #   - apim.example.com
+    # pathMatchType: PathPrefix
+    # path: /
+    # annotations:
+    #   application: "apim"
+    # filters: []
     # - type: RequestHeaderModifier
     #   requestHeaderModifier:
     #     add:
@@ -2474,15 +2521,17 @@ ui:
     #    secretName: api-custom-cert
   httpRoute:
     enabled: false
-    scheme: https
-    gatewayName: ""
-    gatewayNamespace: ""
-    sectionName: ""
-    hostnames: []
-    pathMatchType: ""
-    path: ""
-    annotations: {}
-    filters: []
+    # scheme: https
+    # gatewayName: traefik-gateway
+    # gatewayNamespace: graviteeio
+    # sectionName: websecure
+    # hostnames:
+    #   - apim.example.com
+    # pathMatchType: RegularExpression
+    # path: /console(/.*)?
+    # annotations:
+    #   application: "apim"
+    # filters: []
     # - type: RequestHeaderModifier
     #   requestHeaderModifier:
     #     add:
