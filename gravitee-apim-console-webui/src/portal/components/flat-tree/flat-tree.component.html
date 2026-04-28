@@ -35,6 +35,7 @@
       (cdkDragStarted)="onDragStarted($event)"
       (click)="onNodeClick(node)"
       (keydown.enter)="onNodeClick(node)"
+      (contextmenu)="onContextMenu($event, node)"
       [class.unpublished]="isUnpublished(node)"
       [class.selected]="isSelected(node)"
     >
@@ -59,6 +60,7 @@
       (cdkDragStarted)="onDragStarted($event)"
       (click)="onNodeClick(node)"
       (keydown.enter)="onNodeClick(node)"
+      (contextmenu)="onContextMenu($event, node)"
       [class.unpublished]="isUnpublished(node)"
       [class.selected]="isSelected(node)"
     >
@@ -110,81 +112,7 @@
     }
 
     <mat-menu #moreMenu="matMenu">
-      @if (node.type === 'FOLDER' || node.type === 'API') {
-        @if (canCreate) {
-          <button mat-menu-item (click)="onCreate(node, 'PAGE')">
-            <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
-            Add Page
-          </button>
-
-          @if (node.type != 'API') {
-            <button mat-menu-item (click)="onCreate(node, 'API')">
-              <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
-              Add API
-            </button>
-          }
-
-          <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
-            <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon>
-            Add Folder
-          </button>
-          <button mat-menu-item (click)="onCreate(node, 'LINK')">
-            <mat-icon [svgIcon]="'LINK' | portalNavigationItemIcon"></mat-icon>
-            Add Link
-          </button>
-          @if (canUpdate || canDelete) {
-            <mat-divider></mat-divider>
-          }
-        }
-      }
-      @if (canUpdate) {
-        <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-          Edit
-        </button>
-
-        @if (isUnpublished(node)) {
-          @let publishState = publishStateByNodeId().get(node.id) ?? publishActionEnabledState;
-          <span [matTooltip]="publishState.tooltip" [matTooltipDisabled]="!publishState.disabled" matTooltipPosition="right">
-            <button
-              mat-menu-item
-              [disabled]="publishState.disabled"
-              [attr.aria-disabled]="publishState.ariaDisabled"
-              [attr.tabindex]="publishState.tabIndex"
-              (click)="onPublish(node)"
-              data-testid="publish-node-button"
-            >
-              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-              Publish
-            </button>
-          </span>
-        } @else {
-          <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
-            <mat-icon svgIcon="gio:eye-off"></mat-icon>
-            Unpublish
-          </button>
-        }
-      }
-
-      @if (canDelete) {
-        <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren(node)" matTooltipPosition="right">
-          <button
-            mat-menu-item
-            [disabled]="hasChildren(node)"
-            [attr.aria-disabled]="hasChildren(node)"
-            [attr.tabindex]="hasChildren(node) ? -1 : null"
-            [class.tree__menu-item-delete]="!hasChildren(node)"
-            [class.tree__menu-item-delete--disabled]="hasChildren(node)"
-            (click)="onDelete(node)"
-            data-testid="delete-node-button"
-          >
-            <mat-icon [class.tree__menu-item-delete]="!hasChildren(node)" [class.tree__menu-item-delete--disabled]="hasChildren(node)"
-              >delete</mat-icon
-            >
-            Delete
-          </button>
-        </span>
-      }
+      <ng-container *ngTemplateOutlet="menuItems; context: { $implicit: node }"></ng-container>
     </mat-menu>
   </ng-template>
 } @else {
@@ -192,3 +120,99 @@
     <empty-state iconName="gio:page" title="Items" message="Start by adding your first page." />
   </div>
 }
+
+<ng-template #menuItems let-node>
+  @if (node.type === 'FOLDER' || node.type === 'API') {
+    @if (canCreate) {
+      <button mat-menu-item (click)="onCreate(node, 'PAGE')">
+        <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
+        Add Page
+      </button>
+
+      @if (node.type != 'API') {
+        <button mat-menu-item (click)="onCreate(node, 'API')">
+          <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
+          Add API
+        </button>
+      }
+
+      <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
+        <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon>
+        Add Folder
+      </button>
+      <button mat-menu-item (click)="onCreate(node, 'LINK')">
+        <mat-icon [svgIcon]="'LINK' | portalNavigationItemIcon"></mat-icon>
+        Add Link
+      </button>
+      @if (canUpdate || canDelete) {
+        <mat-divider></mat-divider>
+      }
+    }
+  }
+  @if (canUpdate) {
+    <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
+      <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+      Edit
+    </button>
+
+    @if (isUnpublished(node)) {
+      @let publishState = publishStateByNodeId().get(node.id) ?? publishActionEnabledState;
+      <span [matTooltip]="publishState.tooltip" [matTooltipDisabled]="!publishState.disabled" matTooltipPosition="right">
+        <button
+          mat-menu-item
+          [disabled]="publishState.disabled"
+          [attr.aria-disabled]="publishState.ariaDisabled"
+          [attr.tabindex]="publishState.tabIndex"
+          (click)="onPublish(node)"
+          data-testid="publish-node-button"
+        >
+          <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+          Publish
+        </button>
+      </span>
+    } @else {
+      <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+        <mat-icon svgIcon="gio:eye-off"></mat-icon>
+        Unpublish
+      </button>
+    }
+  }
+
+  @if (canDelete) {
+    <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren(node)" matTooltipPosition="right">
+      <button
+        mat-menu-item
+        [disabled]="hasChildren(node)"
+        [attr.aria-disabled]="hasChildren(node)"
+        [attr.tabindex]="hasChildren(node) ? -1 : null"
+        [class.tree__menu-item-delete]="!hasChildren(node)"
+        [class.tree__menu-item-delete--disabled]="hasChildren(node)"
+        (click)="onDelete(node)"
+        data-testid="delete-node-button"
+      >
+        <mat-icon [class.tree__menu-item-delete]="!hasChildren(node)" [class.tree__menu-item-delete--disabled]="hasChildren(node)"
+          >delete</mat-icon
+        >
+        Delete
+      </button>
+    </span>
+  }
+</ng-template>
+
+<!-- Hidden anchor positioned at the cursor; opened programmatically on right-click -->
+<button
+  #contextMenuTrigger="matMenuTrigger"
+  type="button"
+  class="context-menu-anchor"
+  aria-hidden="true"
+  tabindex="-1"
+  [matMenuTriggerFor]="contextMenu"
+></button>
+
+<mat-menu #contextMenu="matMenu">
+  <ng-template matMenuContent>
+    @if (contextMenuNode(); as node) {
+      <ng-container *ngTemplateOutlet="menuItems; context: { $implicit: node }"></ng-container>
+    }
+  </ng-template>
+</mat-menu>

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, inject, input, output, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
@@ -92,7 +92,7 @@ type ProcessingNode = SectionNode & {
   styleUrls: ['./flat-tree.component.scss'],
 })
 export class FlatTreeComponent {
-  private permissionService = inject(GioPermissionService);
+  private readonly permissionService = inject(GioPermissionService);
 
   links = input<PortalNavigationItem[] | null>(null);
   selectedId = input<string | null>(null);
@@ -187,6 +187,9 @@ export class FlatTreeComponent {
   }
 
   treeBase = viewChild(MatTree);
+  contextMenuTrigger = viewChild('contextMenuTrigger', { read: MatMenuTrigger });
+  contextMenuAnchor = viewChild('contextMenuTrigger', { read: ElementRef });
+  contextMenuNode = signal<FlatTreeNode | null>(null);
 
   canCreate: boolean;
   canUpdate: boolean;
@@ -307,6 +310,22 @@ export class FlatTreeComponent {
     }
 
     this.nodeMoved.emit({ node: nodeToMove, newParentId, newOrder });
+  }
+
+  onContextMenu(event: MouseEvent, node: FlatTreeNode): void {
+    event.preventDefault();
+    if (!this.canShowMoreActions(node)) {
+      return;
+    }
+    const trigger = this.contextMenuTrigger();
+    const anchor = this.contextMenuAnchor()?.nativeElement as HTMLElement | undefined;
+    if (!trigger || !anchor) {
+      return;
+    }
+    this.contextMenuNode.set(node);
+    anchor.style.left = `${event.clientX}px`;
+    anchor.style.top = `${event.clientY}px`;
+    trigger.openMenu();
   }
 
   onDragStarted(event: CdkDragStart<SectionNode>) {
