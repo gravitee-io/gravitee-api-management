@@ -861,6 +861,85 @@ describe('FlatTreeComponent', () => {
     });
   });
 
+  describe('Right-click context menu', () => {
+    const setupPermissions = (permissions: string[]) => {
+      (permissionService.hasAnyMatching as jest.Mock).mockImplementation((requestedPermissions: string[]) => {
+        return requestedPermissions.some(p => permissions.includes(p));
+      });
+    };
+
+    it('should preventDefault, update the active node, and position the anchor on right-click when actions are available', () => {
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const node = component.tree()[0] as any;
+      const event = new MouseEvent('contextmenu', { clientX: 123, clientY: 456 });
+      const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+      component.onContextMenu(event, node);
+
+      expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
+      expect(component.contextMenuNode()?.id).toBe('p1');
+      const anchor = fixture.nativeElement.querySelector('.context-menu-anchor') as HTMLElement;
+      expect(anchor.style.left).toBe('123px');
+      expect(anchor.style.top).toBe('456px');
+    });
+
+    it('should call openMenu on the trigger when actions are available', () => {
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const trigger = component.contextMenuTrigger();
+      expect(trigger).toBeTruthy();
+      const openMenuSpy = jest.spyOn(trigger!, 'openMenu');
+
+      const node = component.tree()[0] as any;
+      component.onContextMenu(new MouseEvent('contextmenu', { clientX: 1, clientY: 2 }), node);
+
+      expect(openMenuSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not open the custom one when the user has no actions on the node', () => {
+      setupPermissions([]);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const trigger = component.contextMenuTrigger();
+      const openMenuSpy = trigger ? jest.spyOn(trigger, 'openMenu') : null;
+
+      const node = component.tree()[0] as any;
+      const event = new MouseEvent('contextmenu', { clientX: 10, clientY: 20 });
+      const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+
+      component.onContextMenu(event, node);
+
+      expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
+      expect(component.contextMenuNode()).toBeNull();
+      expect(openMenuSpy).not.toHaveBeenCalled();
+    });
+
+    it('should be wired to the (contextmenu) event on tree rows', async () => {
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const onContextMenuSpy = jest.spyOn(component, 'onContextMenu');
+      const row = fixture.nativeElement.querySelector('mat-tree-node.tree__row') as HTMLElement;
+      expect(row).toBeTruthy();
+
+      row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 5, clientY: 6 }));
+
+      expect(onContextMenuSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {
     return {
       item: { data: itemData },
