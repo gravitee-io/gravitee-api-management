@@ -238,6 +238,64 @@ class SubscriptionAdapterTest {
 
             assertThat(entity.getMetadata()).isNull();
         }
+
+        @Test
+        void should_map_consumer_configuration_from_spec() {
+            var consumerConfiguration = new SubscriptionCRDSpec.ConsumerConfiguration();
+            consumerConfiguration.setEntrypointId("entrypoint-id");
+            consumerConfiguration.setChannel("my-channel");
+            consumerConfiguration.setEntrypointConfiguration(Map.of("callback", "http://webhook.site"));
+
+            var spec = SubscriptionCRDSpec.builder()
+                .id("sub-id")
+                .referenceId("api-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .applicationId("app-id")
+                .planId("plan-id")
+                .consumerConfiguration(consumerConfiguration)
+                .build();
+
+            SubscriptionEntity entity = subscriptionAdapter.fromSpec(spec);
+
+            SoftAssertions.assertSoftly(soft ->
+                soft
+                    .assertThat(entity.getConfiguration())
+                    .isEqualTo(
+                        SubscriptionConfiguration.builder()
+                            .entrypointId("entrypoint-id")
+                            .channel("my-channel")
+                            .entrypointConfiguration("{\"callback\":\"http://webhook.site\"}")
+                            .build()
+                    )
+            );
+        }
+
+        @Test
+        void should_map_consumer_configuration_with_null_entrypoint_configuration() {
+            var consumerConfiguration = new SubscriptionCRDSpec.ConsumerConfiguration();
+            consumerConfiguration.setEntrypointId("entrypoint-id");
+            consumerConfiguration.setChannel("my-channel");
+            consumerConfiguration.setEntrypointConfiguration(null);
+
+            var spec = SubscriptionCRDSpec.builder()
+                .id("sub-id")
+                .referenceId("api-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .applicationId("app-id")
+                .planId("plan-id")
+                .consumerConfiguration(consumerConfiguration)
+                .build();
+
+            SubscriptionEntity entity = subscriptionAdapter.fromSpec(spec);
+
+            assertThat(entity.getConfiguration()).isEqualTo(
+                SubscriptionConfiguration.builder()
+                    .entrypointId("entrypoint-id")
+                    .channel("my-channel")
+                    .entrypointConfiguration(null)
+                    .build()
+            );
+        }
     }
 
     private Subscription.SubscriptionBuilder aRepositorySubscription() {

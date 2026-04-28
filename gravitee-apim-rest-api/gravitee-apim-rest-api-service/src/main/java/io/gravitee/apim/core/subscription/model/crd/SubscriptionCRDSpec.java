@@ -60,4 +60,13 @@ public class SubscriptionCRDSpec {
     private ZonedDateTime endingAt;
     private Map<String, String> metadata;
     private List<ApiKeyCRDSpec> apiKeys;
+    private ConsumerConfiguration consumerConfiguration;
+
+    @Data
+    public static class ConsumerConfiguration {
+
+        private String entrypointId;
+        private String channel;
+        private Object entrypointConfiguration;
+    }
 }

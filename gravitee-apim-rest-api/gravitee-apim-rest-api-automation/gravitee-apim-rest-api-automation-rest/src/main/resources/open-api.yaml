@@ -1046,6 +1046,8 @@ components:
           description: List of custom API keys with optional expiry dates. Used for API-KEY plan subscriptions.
           items:
             $ref: "#/components/schemas/ApiKeySpec"
+        consumerConfiguration:
+          $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
       required:
         - hrid
         - applicationHrid
@@ -1066,6 +1068,37 @@ components:
           example: "2040-12-25T09:12:28Z"
       required:
         - key
+
+    SubscriptionConsumerConfiguration:
+      type: object
+      description: Consumer configuration associated to the subscription in case it is attached to a push plan.
+      properties:
+        entrypointId:
+          type: string
+          description: The id of the targeted entrypoint
+          example: webhook
+        channel:
+          type: string
+          description: The channel to consume
+          example: /channel1
+        entrypointConfiguration:
+          type: object
+          description: The configuration to use at subscription time to push to the target service.
+          example: |
+            {
+                "callbackUrl": "https://webhook.site/aaaaaaaa-ffff-ffff-ffff-aaaaaaaa",
+                "headers": [
+                    {
+                        "name": "demoHeader",
+                        "value": "my-value"
+                    },
+                    {
+                        "name": "anotherHeader",
+                        "value": "my-value2"
+                    }
+                ]
+            }
+      required: [entrypointId]
 
     SubscriptionState:
       description: State of subscription that has been created/update
