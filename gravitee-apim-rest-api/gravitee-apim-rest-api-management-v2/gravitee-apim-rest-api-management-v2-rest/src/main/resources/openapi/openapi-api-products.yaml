@@ -2021,6 +2021,15 @@ components:
           example:
             - "api-1"
             - "api-2"
+        groups:
+          type: array
+          description: |
+            When provided, replaces the API Product group assignments (same semantics as for APIs).
+            The Console Manage groups flow includes this field on PUT.
+          items:
+            type: string
+          example:
+            - "group-uuid-1"
       required:
         - name
         - version
@@ -2058,6 +2067,13 @@ components:
           example:
             - "api-1"
             - "api-2"
+        groups:
+          type: array
+          description: List of group IDs associated with the API Product
+          items:
+            type: string
+          example:
+            - "group-1"
         createdAt:
           type: string
           format: date-time

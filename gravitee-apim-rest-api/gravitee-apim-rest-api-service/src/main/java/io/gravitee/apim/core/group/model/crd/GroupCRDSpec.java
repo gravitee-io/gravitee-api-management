@@ -57,6 +57,7 @@ public class GroupCRDSpec {
             .name(name)
             .environmentId(environmentId)
             .apiPrimaryOwner(null)
+            .apiProductPrimaryOwner(null)
             .eventRules(List.of())
             .lockApiRole(false)
             .lockApplicationRole(false)

@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.NotifierNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.PortalHook;
@@ -159,6 +160,24 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             .hook(hook)
             .referenceType(referenceType)
             .referenceId(referenceId)
+            .params(params)
+            .build();
+        triggerPortalNotifications(executionContext, triggerNotificationsData);
+        triggerGenericNotifications(executionContext, triggerNotificationsData);
+    }
+
+    @Override
+    @Async
+    public void trigger(
+        final ExecutionContext executionContext,
+        final ApiProductHook hook,
+        final String apiProductId,
+        final Map<String, Object> params
+    ) {
+        var triggerNotificationsData = TriggerNotificationsData.builder()
+            .hook(hook)
+            .referenceType(NotificationReferenceType.API_PRODUCT)
+            .referenceId(apiProductId)
             .params(params)
             .build();
         triggerPortalNotifications(executionContext, triggerNotificationsData);

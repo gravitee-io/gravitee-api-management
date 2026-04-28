@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
+import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -324,7 +325,25 @@ public class GroupMembersResource extends AbstractResource {
                         GroupEntity::isLockApiProductRole,
                         hasPermission
                     );
-                    updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
+
+                    // Validate: prevent changing from PRIMARY_OWNER if a group owns API products
+                    if (
+                        previousApiProductRole != null &&
+                        previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
+                        !roleName.equals(SystemRole.PRIMARY_OWNER.name())
+                    ) {
+                        List<ApiProductEntity> groupApiProducts = groupService.getApiProducts(executionContext.getEnvironmentId(), group);
+                        if (!groupApiProducts.isEmpty()) {
+                            throw new StillApiProductPrimaryOwnerException(groupApiProducts.size());
+                        }
+                    }
+
+                    updatedMembership = updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
+                    if (previousApiProductRole != null && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
+                        groupService.updateApiProductPrimaryOwner(group, null);
+                    } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
+                        groupService.updateApiProductPrimaryOwner(group, updatedMembership.getId());
+                    }
                 }
 
                 RoleEntity integrationRoleEntity = roleEntities.get(RoleScope.INTEGRATION);

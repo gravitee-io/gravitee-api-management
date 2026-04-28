@@ -100,6 +100,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
+import io.gravitee.rest.api.service.v4.ApiProductGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.time.Instant;
@@ -181,6 +182,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private final ObjectMapper objectMapper;
     private final CommandRepository commandRepository;
 
+    private final ApiProductGroupService apiProductGroupService;
+
     private final ApiMetadataService apiMetadataService;
     private final SearchEngineService searchEngineService;
 
@@ -206,7 +209,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired ObjectMapper objectMapper,
         @Autowired @Lazy CommandRepository commandRepository,
         @Autowired @Lazy ApiMetadataService apiMetadataService,
-        @Autowired @Lazy SearchEngineService searchEngineService
+        @Autowired @Lazy SearchEngineService searchEngineService,
+        @Autowired @Lazy ApiProductGroupService apiProductGroupService
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -230,6 +234,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.commandRepository = commandRepository;
         this.apiMetadataService = apiMetadataService;
         this.searchEngineService = searchEngineService;
+        this.apiProductGroupService = apiProductGroupService;
     }
 
     @Override
@@ -782,6 +787,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 ) {
                     throw new NotAuthorizedMembershipException(roleEntity.getName());
                 }
+            } else if (roleEntity.getScope() == RoleScope.API_PRODUCT) {
+                if (
+                    !membershipRepository
+                        .findByReferenceAndRoleId(
+                            io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+                            reference.getId(),
+                            roleEntity.getId()
+                        )
+                        .isEmpty()
+                ) {
+                    throw new NotAuthorizedMembershipException(roleEntity.getName());
+                }
             }
         }
     }
@@ -905,6 +922,20 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         membership.getMemberId(),
                         executionContext
                     );
+
+                    //if the API Primary owner of a group has been deleted, we must update the apiPrimaryOwnerField of this group
+                    if (
+                        membership.getReferenceType() == io.gravitee.repository.management.model.MembershipReferenceType.GROUP &&
+                        membership.getRoleId().equals(apiPORole.getId())
+                    ) {
+                        groupService.updateApiPrimaryOwner(membership.getReferenceId(), null);
+                    }
+                    if (
+                        membership.getReferenceType() == io.gravitee.repository.management.model.MembershipReferenceType.GROUP &&
+                        membership.getRoleId().equals(apiProductPORole.getId())
+                    ) {
+                        groupService.updateApiProductPrimaryOwner(membership.getReferenceId(), null);
+                    }
                 }
 
                 if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
@@ -913,14 +944,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         new MembershipMember(memberId, null, memberType)
                     );
                     applicationAlertService.deleteMemberFromApplication(executionContext, referenceId, userEntity.getEmail());
-                }
-
-                //if the API Primary owner of a group has been deleted, we must update the apiPrimaryOwnerField of this group
-                if (
-                    membership.getReferenceType() == io.gravitee.repository.management.model.MembershipReferenceType.GROUP &&
-                    membership.getRoleId().equals(apiPORole.getId())
-                ) {
-                    groupService.updateApiPrimaryOwner(membership.getReferenceId(), null);
                 }
             }
         } catch (TechnicalException ex) {
@@ -1480,12 +1503,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipEntity primaryOwner = getPrimaryOwner(organizationId, referenceType, referenceId);
         String primaryOwnerId = primaryOwner.getMemberId();
         if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
+            Function<GroupEntity, String> poExtractor = referenceType == MembershipReferenceType.API_PRODUCT
+                ? GroupEntity::getApiProductPrimaryOwner
+                : GroupEntity::getApiPrimaryOwner;
             primaryOwnerId = groupService
                 .findByIds(Set.of(primaryOwnerId))
                 .stream()
                 .findFirst()
-                .map(GroupEntity::getApiPrimaryOwner)
-                .orElseThrow(() -> new NoSuchElementException("Can't find ApiPrimaryOwner for group " + primaryOwner.getMemberId()));
+                .map(poExtractor)
+                .orElseThrow(() ->
+                    new NoSuchElementException("Can't find PrimaryOwner for " + referenceType + " group " + primaryOwner.getMemberId())
+                );
         }
 
         return primaryOwnerId;
@@ -1945,9 +1973,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             new MembershipRole(roleScope, PRIMARY_OWNER.name())
         );
 
-        // If the new PO is a group and the reference is an API, add the group as a member of the API
-        if (membershipReferenceType == MembershipReferenceType.API && newOwnerMember.getMemberType() == MembershipMemberType.GROUP) {
-            apiGroupService.addGroup(executionContext, itemId, newOwnerMember.getMemberId());
+        if (newOwnerMember.getMemberType() == MembershipMemberType.GROUP) {
+            if (membershipReferenceType == MembershipReferenceType.API) {
+                apiGroupService.addGroup(executionContext, itemId, newOwnerMember.getMemberId());
+            } else if (membershipReferenceType == MembershipReferenceType.API_PRODUCT) {
+                apiProductGroupService.addGroup(executionContext, itemId, newOwnerMember.getMemberId());
+            }
         }
 
         RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), roleScope);
@@ -1993,9 +2024,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     }
                 }
             } else if (previousPrimaryOwner.getMemberType() == MembershipMemberType.GROUP) {
-                // remove this group from the api's group list (only relevant for API references)
                 if (membershipReferenceType == MembershipReferenceType.API) {
                     apiGroupService.removeGroup(executionContext, itemId, previousPrimaryOwner.getMemberId());
+                } else if (membershipReferenceType == MembershipReferenceType.API_PRODUCT) {
+                    apiProductGroupService.removeGroup(executionContext, itemId, previousPrimaryOwner.getMemberId());
                 }
             }
         }

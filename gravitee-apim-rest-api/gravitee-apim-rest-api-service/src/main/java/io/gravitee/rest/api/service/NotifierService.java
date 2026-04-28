@@ -20,6 +20,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import java.util.List;
@@ -41,6 +42,7 @@ public interface NotifierService {
         String referenceId,
         Map<String, Object> params
     );
+    void trigger(ExecutionContext executionContext, ApiProductHook hook, String apiProductId, Map<String, Object> params);
     void trigger(ExecutionContext executionContext, final ApplicationHook hook, final String applicationId, Map<String, Object> params);
     void trigger(
         ExecutionContext executionContext,
