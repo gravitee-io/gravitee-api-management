@@ -54,6 +54,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getEmailInvitation()).isEqualTo(groupEntity.isEmailInvitation());
         assertThat(group.getDisableMembershipNotifications()).isEqualTo(groupEntity.isDisableMembershipNotifications());
         assertThat(group.getApiPrimaryOwner()).isEqualTo(groupEntity.getApiPrimaryOwner());
+        assertThat(group.getApiProductPrimaryOwner()).isEqualTo(groupEntity.getApiProductPrimaryOwner());
         assertThat(group.getPrimaryOwner()).isEqualTo(groupEntity.isPrimaryOwner());
     }
 
@@ -73,15 +74,17 @@ public class GroupMapperTest extends AbstractMapperTest {
     void should_map_GroupEventRuleEntities_to_GroupEvents() {
         List<GroupEventRuleEntity> eventRules = Arrays.asList(
             createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()),
-            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE.name())
+            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE.name()),
+            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_PRODUCT_CREATE.name())
         );
 
         List<GroupEvent> groupEvents = groupMapper.mapGroupEventRuleEntities(eventRules);
 
         assertThat(groupEvents).isNotNull();
-        assertThat(groupEvents).hasSize(2);
+        assertThat(groupEvents).hasSize(3);
         assertThat(groupEvents.get(0)).isEqualTo(GroupEvent.API_CREATE);
         assertThat(groupEvents.get(1)).isEqualTo(GroupEvent.APPLICATION_CREATE);
+        assertThat(groupEvents.get(2)).isEqualTo(GroupEvent.API_PRODUCT_CREATE);
     }
 
     @Test
@@ -167,6 +170,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getEmailInvitation()).isEqualTo(coreGroup.isEmailInvitation());
         assertThat(group.getDisableMembershipNotifications()).isEqualTo(coreGroup.isDisableMembershipNotifications());
         assertThat(group.getApiPrimaryOwner()).isEqualTo(coreGroup.getApiPrimaryOwner());
+        assertThat(group.getApiProductPrimaryOwner()).isEqualTo(coreGroup.getApiProductPrimaryOwner());
     }
 
     @Test
@@ -185,15 +189,17 @@ public class GroupMapperTest extends AbstractMapperTest {
     void should_map_core_GroupEventRules_to_GroupEvents() {
         List<GroupEventRule> eventRules = Arrays.asList(
             new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE),
-            new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE)
+            new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE),
+            new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_PRODUCT_CREATE)
         );
 
         List<GroupEvent> groupEvents = groupMapper.mapCoreGroupEventRules(eventRules);
 
         assertThat(groupEvents).isNotNull();
-        assertThat(groupEvents).hasSize(2);
+        assertThat(groupEvents).hasSize(3);
         assertThat(groupEvents.get(0)).isEqualTo(GroupEvent.API_CREATE);
         assertThat(groupEvents.get(1)).isEqualTo(GroupEvent.APPLICATION_CREATE);
+        assertThat(groupEvents.get(2)).isEqualTo(GroupEvent.API_PRODUCT_CREATE);
     }
 
     @Test
@@ -224,6 +230,7 @@ public class GroupMapperTest extends AbstractMapperTest {
             .emailInvitation(true)
             .disableMembershipNotifications(false)
             .apiPrimaryOwner("user-id")
+            .apiProductPrimaryOwner("product-po-user-id")
             .primaryOwner(true)
             .build();
 
@@ -266,6 +273,7 @@ public class GroupMapperTest extends AbstractMapperTest {
             .emailInvitation(true)
             .disableMembershipNotifications(false)
             .apiPrimaryOwner("user-id")
+            .apiProductPrimaryOwner("product-po-user-id")
             .build();
     }
 }

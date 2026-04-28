@@ -15,12 +15,16 @@
  */
 package io.gravitee.apim.core.api_product.use_case.members;
 
+import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.MemberQueryServiceInMemory;
 import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,10 +42,24 @@ class DeleteApiProductMemberUseCaseTest {
 
     @Test
     void should_delete_member() {
-        assertThat(memberQueryService.storage()).hasSize(3);
+        assertThat(memberQueryService.storage()).hasSize(4);
         deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input("ap-1", "member-1"));
-        assertThat(memberQueryService.storage()).hasSize(2);
-        assertThat(memberQueryService.storage()).map(Member::getId).containsExactlyInAnyOrder("member-2", "member-3");
+        assertThat(memberQueryService.storage()).hasSize(3);
+        assertThat(memberQueryService.storage()).map(Member::getId).containsExactlyInAnyOrder("member-2", "member-3", "primary-owner");
+    }
+
+    @Test
+    void should_complete_without_error_when_member_unknown() {
+        deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input("ap-1", "member-unknown"));
+        assertThat(memberQueryService.storage()).hasSize(4);
+    }
+
+    @Test
+    void should_throw_exception_when_deleting_primary_owner() {
+        assertThatThrownBy(() ->
+            deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input("ap-1", "primary-owner"))
+        ).isInstanceOf(PrimaryOwnerRemovalException.class);
+        assertThat(memberQueryService.storage()).hasSize(4);
     }
 
     private void initMembers() {
@@ -67,6 +85,13 @@ class DeleteApiProductMemberUseCaseTest {
                     .referenceId("ap-1")
                     .type(MembershipMemberType.USER)
                     .roles(List.of())
+                    .build(),
+                Member.builder()
+                    .id("primary-owner")
+                    .referenceType(MembershipReferenceType.API_PRODUCT)
+                    .referenceId("ap-1")
+                    .type(MembershipMemberType.USER)
+                    .roles(List.of(Member.Role.builder().name(PRIMARY_OWNER.name()).scope(RoleScope.API_PRODUCT).build()))
                     .build()
             )
         );

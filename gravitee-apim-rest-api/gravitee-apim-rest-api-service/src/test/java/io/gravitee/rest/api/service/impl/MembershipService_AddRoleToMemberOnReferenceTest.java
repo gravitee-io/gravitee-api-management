@@ -137,6 +137,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             objectMapper,
             commandRepository,
             null,
+            null,
             null
         );
     }
@@ -493,6 +494,28 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
                 new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
+            )
+        ).isInstanceOf(NotAuthorizedMembershipException.class);
+    }
+
+    @Test
+    public void shouldDisallowAddApiProductPrimaryOwnerRoleOnGroupIfAlreadyOnePrimaryOwner() throws Exception {
+        RoleEntity role = RoleEntity.builder().id("API_PRODUCT_PRIMARY_OWNER").name("PRIMARY_OWNER").scope(RoleScope.API_PRODUCT).build();
+        when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
+        when(
+            membershipRepository.findByReferenceAndRoleId(
+                io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+                GROUP_ID,
+                "API_PRODUCT_PRIMARY_OWNER"
+            )
+        ).thenReturn(Collections.singleton(mock(Membership.class)));
+
+        assertThatThrownBy(() ->
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API_PRODUCT, "PRIMARY_OWNER")
             )
         ).isInstanceOf(NotAuthorizedMembershipException.class);
     }
