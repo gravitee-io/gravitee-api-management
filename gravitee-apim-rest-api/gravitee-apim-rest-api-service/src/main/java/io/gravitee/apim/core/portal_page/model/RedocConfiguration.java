@@ -15,17 +15,9 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public final class UpdatePortalPageContent {
-
-    private String content;
-    private OpenApiConfiguration configuration;
+public record RedocConfiguration() implements OpenApiConfiguration {
+    @Override
+    public Viewer viewer() {
+        return Viewer.REDOC;
+    }
 }

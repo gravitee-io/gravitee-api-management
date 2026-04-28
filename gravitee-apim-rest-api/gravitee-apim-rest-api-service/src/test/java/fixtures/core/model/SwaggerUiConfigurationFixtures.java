@@ -13,19 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package fixtures.core.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public final class UpdatePortalPageContent {
+public class SwaggerUiConfigurationFixtures {
 
-    private String content;
-    private OpenApiConfiguration configuration;
+    private SwaggerUiConfigurationFixtures() {}
+
+    public static SwaggerUiConfiguration aSwaggerUiConfiguration() {
+        return new SwaggerUiConfiguration(
+            true,
+            "full",
+            false,
+            12,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            "https://try-it.example.com",
+            true,
+            false,
+            true
+        );
+    }
 }

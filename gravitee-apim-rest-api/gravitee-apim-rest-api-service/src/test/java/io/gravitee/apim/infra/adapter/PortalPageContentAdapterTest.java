@@ -15,14 +15,19 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import static fixtures.core.model.SwaggerUiConfigurationFixtures.aSwaggerUiConfiguration;
+import static fixtures.repository.model.PortalPageContentRepositoryFixtures.anOpenApiPageContent;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalPageContentFixtures;
 import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.repository.management.model.PortalPageContent;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -96,6 +101,53 @@ class PortalPageContentAdapterTest {
             var openApiContent = (OpenApiPageContent) entity;
             assertThat(openApiContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440002"));
             assertThat(openApiContent.getContent().value()).isEqualTo("openapi: 3.0.0\ninfo:\n  title: Test API");
+            assertThat(openApiContent.getViewerSettings()).isInstanceOf(RedocConfiguration.class);
+        }
+
+        @Test
+        void should_map_openapi_content_with_redoc_configuration_to_entity() {
+            // Given
+            var repositoryContent = anOpenApiPageContent(
+                "550e8400-e29b-41d4-a716-446655440004",
+                "openapi: 3.0.0",
+                "{\"viewer\":\"REDOC\"}"
+            );
+
+            // When
+            var entity = adapter.toEntity(repositoryContent);
+
+            // Then
+            assertThat(entity).isInstanceOf(OpenApiPageContent.class);
+            var openApiContent = (OpenApiPageContent) entity;
+            assertThat(openApiContent.getViewerSettings()).isInstanceOf(RedocConfiguration.class);
+        }
+
+        @Test
+        void should_map_openapi_content_with_swagger_configuration_to_entity() {
+            // Given
+            var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
+                .id("550e8400-e29b-41d4-a716-446655440005")
+                .organizationId("ORG")
+                .environmentId("ENV")
+                .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
+                .content("openapi: 3.0.0")
+                .configuration(
+                    "{\"viewer\":\"SWAGGER\",\"displayOperationId\":true,\"docExpansion\":\"full\",\"maxDisplayedTags\":3,\"tryItUrl\":\"https://try-it.example.com\"}"
+                )
+                .build();
+
+            // When
+            var entity = adapter.toEntity(repositoryContent);
+
+            // Then
+            assertThat(entity).isInstanceOf(OpenApiPageContent.class);
+            var openApiContent = (OpenApiPageContent) entity;
+            assertThat(openApiContent.getViewerSettings()).isInstanceOfSatisfying(SwaggerUiConfiguration.class, configuration -> {
+                assertThat(configuration.displayOperationId()).isTrue();
+                assertThat(configuration.docExpansion()).isEqualTo("full");
+                assertThat(configuration.maxDisplayedTags()).isEqualTo(3);
+                assertThat(configuration.tryItUrl()).isEqualTo("https://try-it.example.com");
+            });
         }
 
         @Test
@@ -163,6 +215,27 @@ class PortalPageContentAdapterTest {
             assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
             assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent().value());
+        }
+
+        @Test
+        void should_map_openapi_content_with_viewer_configuration_to_repository() {
+            // Given
+            final var entityContent = PortalPageContentFixtures.anOpenApiPageContent(
+                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440004"),
+                "DEFAULT_ORG",
+                "DEFAULT_ENV",
+                "openapi: 3.0.0",
+                aSwaggerUiConfiguration()
+            );
+
+            // When
+            var repositoryContent = adapter.toRepository(entityContent);
+
+            // Then
+            assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.OPENAPI);
+            assertThat(repositoryContent.getConfiguration()).contains("\"viewer\":\"SWAGGER\"");
+            assertThat(repositoryContent.getConfiguration()).contains("\"docExpansion\":\"full\"");
+            assertThat(repositoryContent.getConfiguration()).contains("\"tryItUrl\":\"https://try-it.example.com\"");
         }
     }
 }

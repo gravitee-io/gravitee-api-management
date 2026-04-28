@@ -17,8 +17,11 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.open_api.OpenApi;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.List;
@@ -77,5 +80,15 @@ public class PortalPageContentFixtures {
         String content
     ) {
         return new AsyncApiPageContent(id, organizationId, environmentId, new AsyncApi(content));
+    }
+
+    public static OpenApiPageContent anOpenApiPageContent(
+        PortalPageContentId id,
+        String organizationId,
+        String environmentId,
+        String content,
+        OpenApiConfiguration viewerSettings
+    ) {
+        return new OpenApiPageContent(id, organizationId, environmentId, OpenApi.of(content), viewerSettings);
     }
 }
