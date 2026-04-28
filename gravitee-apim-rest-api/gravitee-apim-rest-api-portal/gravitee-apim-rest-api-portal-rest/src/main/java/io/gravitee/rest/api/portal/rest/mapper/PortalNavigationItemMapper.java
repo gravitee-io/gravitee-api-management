@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
+import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
@@ -73,7 +74,9 @@ public interface PortalNavigationItemMapper {
         };
     }
 
-    @Mapping(source = "value", target = "content")
+    @Mapping(target = "content", expression = "java(content.value())")
+    @Mapping(target = "configuration", ignore = true)
+    @Mapping(target = "_configuration", ignore = true)
     @Mapping(source = "type", target = "type")
     io.gravitee.rest.api.portal.rest.model.PortalPageContent map(RenderedPageContent content);
 

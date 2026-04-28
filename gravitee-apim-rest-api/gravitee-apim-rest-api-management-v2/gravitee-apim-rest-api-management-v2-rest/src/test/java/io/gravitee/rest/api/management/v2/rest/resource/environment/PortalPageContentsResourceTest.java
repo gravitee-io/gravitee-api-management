@@ -25,7 +25,9 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -38,6 +40,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -288,6 +291,99 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
 
             // When
             Response response = target.path(CONTENT_ID).request().put(Entity.json(updateRequest));
+
+            // Then
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class UpdatePortalPageContentConfiguration {
+
+        private static final String OPENAPI_CONTENT = "openapi: 3.0.3\ninfo:\n  title: Test";
+
+        @BeforeEach
+        void setUp() {
+            var content = PortalPageContentFixtures.anOpenApiPageContent(
+                PortalPageContentId.of(CONTENT_ID),
+                ORGANIZATION,
+                ENVIRONMENT,
+                OPENAPI_CONTENT,
+                new RedocConfiguration()
+            );
+
+            portalPageContentCrudService.initWith(List.of(content));
+            portalPageContentQueryService.initWith(List.of(content));
+        }
+
+        @Test
+        void should_update_portal_page_content_configuration_without_changing_content() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+
+            var configuration = Map.ofEntries(
+                Map.entry("viewer", "SWAGGER"),
+                Map.entry("displayOperationId", true),
+                Map.entry("docExpansion", "full"),
+                Map.entry("enableFiltering", true),
+                Map.entry("maxDisplayedTags", 10),
+                Map.entry("showCommonExtensions", true),
+                Map.entry("showExtensions", true),
+                Map.entry("showURL", true),
+                Map.entry("tryIt", true),
+                Map.entry("disableSyntaxHighlight", true),
+                Map.entry("tryItAnonymous", true),
+                Map.entry("tryItURL", "https://example.com"),
+                Map.entry("usePkce", true),
+                Map.entry("entrypointsAsServers", true),
+                Map.entry("entrypointAsBasePath", true)
+            );
+
+            // When
+            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
+
+            // Then
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                .satisfies(result -> {
+                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                    assertThat(result.getContent()).isEqualTo(OPENAPI_CONTENT);
+                    assertThat(result.getConfiguration().getActualInstance()).isInstanceOf(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageSwaggerConfiguration.class
+                    );
+                });
+
+            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            assertThat(storedContent.getContent().value()).isEqualTo(OPENAPI_CONTENT);
+            assertThat(storedContent.getViewerSettings().viewer()).isEqualTo(
+                io.gravitee.apim.core.portal_page.model.OpenApiConfiguration.Viewer.SWAGGER
+            );
+        }
+
+        @Test
+        void should_return_403_when_insufficient_permissions() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(false);
+
+            var configuration = Map.of("viewer", "REDOC");
+
+            // When
+            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
 
             // Then
             assertThat(response).hasStatus(FORBIDDEN_403);

@@ -201,6 +201,7 @@ import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
@@ -1399,6 +1400,14 @@ public class ResourceContextConfiguration {
         );
 
         return new UpdatePortalPageContentUseCase(portalPageContentQueryService, portalPageContentCrudService, validatorService);
+    }
+
+    @Bean
+    public UpdatePortalPageContentConfigurationUseCase updatePortalPageContentConfigurationUseCase(
+        PortalPageContentQueryService portalPageContentQueryService,
+        PortalPageContentCrudService portalPageContentCrudService
+    ) {
+        return new UpdatePortalPageContentConfigurationUseCase(portalPageContentQueryService, portalPageContentCrudService);
     }
 
     @Bean
