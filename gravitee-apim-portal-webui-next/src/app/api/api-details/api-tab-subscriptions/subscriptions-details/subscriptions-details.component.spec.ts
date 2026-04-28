@@ -19,9 +19,11 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { By } from '@angular/platform-browser';
 import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
+import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
 import { ApiAccessHarness } from '../../../../../components/api-access/api-access.harness';
 import { ConfirmDialogComponent } from '../../../../../components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogHarness } from '../../../../../components/confirm-dialog/confirm-dialog.harness';
@@ -211,6 +213,29 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(await apiAccess.getApiKey()).toStrictEqual(API_KEY);
       expect(await apiAccess.getBaseURL()).toStrictEqual('https://gw/entrypoint');
       expect(await apiAccess.getCommandLine()).toStrictEqual(`curl --header "X-My-Apikey: ${API_KEY}" https://gw/entrypoint`);
+    });
+
+    it('should reload subscription details when an API key is revoked', async () => {
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccessDebugElement = fixture.debugElement.query(By.directive(ApiAccessComponent));
+      const apiAccessComponent = apiAccessDebugElement.componentInstance as ApiAccessComponent;
+      apiAccessComponent.revokeApiKey.emit();
+
+      const refreshedApiKey = 'refreshed-api-key';
+      expectSubscriptionWithKeys({
+        ...fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID }),
+        keys: [{ key: refreshedApiKey, id: '2', application: { id: APP_ID, name: APP_NAME } }],
+      });
+      expectGetApiPermissions();
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+      expect(await apiAccess.getApiKey()).toStrictEqual(refreshedApiKey);
     });
 
     it('should show subscription details with Oauth2', async () => {

@@ -44,12 +44,14 @@
         <app-api-access
           [planSecurity]="detailsVM.result.planSecurity"
           [subscription]="detailsVM.result.subscription"
+          [canManageSubscription]="detailsVM.result.canManageSubscription"
           [entrypointUrls]="detailsVM.result.entrypointUrls"
-          [apiKey]="detailsVM.result.apiKey"
+          [apiKeys]="detailsVM.result.apiKeys"
           [clientId]="detailsVM.result.clientId"
           [clientSecret]="detailsVM.result.clientSecret"
           [apiType]="detailsVM.result.api.type"
           [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
+          (revokeApiKey)="reloadSubscriptionDetails()"
         />
       }
     </div>

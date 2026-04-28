@@ -17,12 +17,15 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { CopyCodeHarness } from '../copy-code/copy-code.harness';
+import { PaginatedTableHarness } from '../paginated-table/paginated-table.harness';
 
 export class ApiAccessHarness extends ComponentHarness {
   public static hostSelector = 'app-api-access';
 
   public async getApiKey(): Promise<string> {
-    return await this.locateCopyCodeByTitle('Active API key').then(res => res.getText());
+    const table = await this.locatorFor(PaginatedTableHarness)();
+    const firstKeyCell = await table.getCellElement(0, 'key');
+    return (await firstKeyCell?.text())?.trim() ?? '';
   }
 
   public async getBaseURL(): Promise<string> {

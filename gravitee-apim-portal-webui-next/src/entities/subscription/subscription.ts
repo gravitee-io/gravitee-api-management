@@ -53,6 +53,9 @@ export interface SubscriptionDataKeys {
   key?: string;
   id?: string;
   hash?: string;
+  created_at?: string;
+  revoked_at?: string;
+  expire_at?: string;
   application: {
     id: string;
     name: string;
