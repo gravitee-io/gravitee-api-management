@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static fixtures.core.model.RoleFixtures.apiProductPrimaryOwnerRoleId;
+import static fixtures.core.model.RoleFixtures.groupAdminRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,6 +52,7 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.LicenseManager;
@@ -92,6 +95,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        membershipQueryService.reset();
+        groupQueryService.reset();
         userCrudService.initWith(
             List.of(
                 io.gravitee.apim.core.user.model.BaseUserEntity.builder()
@@ -445,13 +450,13 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_not_attach_group_with_api_primary_owner_set() {
+    void should_not_attach_group_with_api_product_primary_owner_set() {
         groupQueryService.initWith(
             List.of(
                 Group.builder()
                     .id("group-with-po")
                     .environmentId(ENV_ID)
-                    .apiPrimaryOwner("some-user-id")
+                    .apiProductPrimaryOwner("some-user-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
                     .build(),
                 Group.builder()
@@ -467,6 +472,70 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
         assertThat(output.apiProduct().getGroups()).containsExactly("group-no-po");
+    }
+
+    @Test
+    void should_attach_primary_owner_group_when_api_product_primary_owner_mode_is_group() {
+        final String poGroupId = "po-group-id";
+        final String designatedPoUserId = "designated-po-user";
+
+        roleQueryService.resetSystemRoles(ORG_ID);
+        parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.GROUP.name()
+                )
+            )
+        );
+
+        userCrudService.initWith(
+            List.of(
+                io.gravitee.apim.core.user.model.BaseUserEntity.builder()
+                    .id(USER_ID)
+                    .email("user@example.com")
+                    .firstname("Test")
+                    .lastname("User")
+                    .build(),
+                io.gravitee.apim.core.user.model.BaseUserEntity.builder()
+                    .id(designatedPoUserId)
+                    .email("po@example.com")
+                    .firstname("Po")
+                    .lastname("User")
+                    .build()
+            )
+        );
+
+        groupQueryService.initWith(
+            List.of(Group.builder().id(poGroupId).environmentId(ENV_ID).name("PO Group").apiProductPrimaryOwner(designatedPoUserId).build())
+        );
+
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId(poGroupId)
+                    .memberType(Membership.Type.USER)
+                    .memberId(designatedPoUserId)
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                    .build(),
+                Membership.builder()
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId(poGroupId)
+                    .memberType(Membership.Type.USER)
+                    .memberId(USER_ID)
+                    .roleId(groupAdminRoleId(ORG_ID))
+                    .build()
+            )
+        );
+
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getGroups()).contains(poGroupId);
     }
 
     private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {

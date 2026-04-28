@@ -17,18 +17,30 @@ package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.MembershipDomainServiceInMemory;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.member.model.MembershipMemberType;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
 
@@ -37,10 +49,26 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
     private TransferApiProductOwnershipUseCase transferApiProductOwnershipUseCase;
     private final MembershipDomainServiceInMemory membershipDomainService = new MembershipDomainServiceInMemory();
 
+    @Mock
+    private ApiProductQueryService apiProductQueryService;
+
+    @Mock
+    private ApiProductIndexerDomainService apiProductIndexerDomainService;
+
+    @Mock
+    private ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
+
     @BeforeEach
     void setUp() {
-        transferApiProductOwnershipUseCase = new TransferApiProductOwnershipUseCase(membershipDomainService);
+        MockitoAnnotations.openMocks(this);
+        transferApiProductOwnershipUseCase = new TransferApiProductOwnershipUseCase(
+            membershipDomainService,
+            apiProductQueryService,
+            apiProductIndexerDomainService,
+            apiProductPrimaryOwnerDomainService
+        );
         initData();
+        stubApiProductInIndex();
     }
 
     @Test
@@ -53,7 +81,8 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
         transferApiProductOwnershipUseCase.execute(
             new TransferApiProductOwnershipUseCase.Input(
                 TransferOwnership.builder().currentPrimaryOwnerNewRole("USER").newPrimaryOwnerId("user-2").build(),
-                API_PRODUCT_ID
+                API_PRODUCT_ID,
+                AUDIT_INFO
             )
         );
 
@@ -61,6 +90,7 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(currentRoleOf("user-1")).isEqualTo("USER"),
             () -> assertThat(currentRoleOf("user-2")).isEqualTo("PRIMARY_OWNER")
         );
+        verify(apiProductIndexerDomainService).index(any(ApiProductIndexerDomainService.Context.class), any(ApiProduct.class), any());
     }
 
     @Test
@@ -70,7 +100,8 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
         transferApiProductOwnershipUseCase.execute(
             new TransferApiProductOwnershipUseCase.Input(
                 TransferOwnership.builder().currentPrimaryOwnerNewRole("OWNER").newPrimaryOwnerId("user-new").build(),
-                API_PRODUCT_ID
+                API_PRODUCT_ID,
+                AUDIT_INFO
             )
         );
 
@@ -78,6 +109,7 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(currentRoleOf("user-1")).isEqualTo("OWNER"),
             () -> assertThat(currentRoleOf("user-new")).isEqualTo("PRIMARY_OWNER")
         );
+        verify(apiProductIndexerDomainService).index(any(ApiProductIndexerDomainService.Context.class), any(ApiProduct.class), any());
     }
 
     @Test
@@ -91,7 +123,8 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
                     .newPrimaryOwnerId("group-1")
                     .memberType(MembershipMemberType.GROUP)
                     .build(),
-                API_PRODUCT_ID
+                API_PRODUCT_ID,
+                AUDIT_INFO
             )
         );
 
@@ -100,9 +133,43 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(currentRoleOf("group-1")).isEqualTo("PRIMARY_OWNER"),
             () -> assertThat(memberTypeOf("group-1")).isEqualTo(io.gravitee.rest.api.model.MembershipMemberType.GROUP)
         );
+        verify(apiProductIndexerDomainService).index(any(ApiProductIndexerDomainService.Context.class), any(ApiProduct.class), any());
+    }
+
+    @Test
+    void should_reindex_with_resolved_primary_owner_after_transfer() {
+        var newPo = PrimaryOwnerEntity.builder()
+            .id("user-2")
+            .displayName("User Two")
+            .email("u2@example.com")
+            .type(PrimaryOwnerEntity.Type.USER)
+            .build();
+        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(ORG_ID, API_PRODUCT_ID)).thenReturn(newPo);
+
+        transferApiProductOwnershipUseCase.execute(
+            new TransferApiProductOwnershipUseCase.Input(
+                TransferOwnership.builder().currentPrimaryOwnerNewRole("USER").newPrimaryOwnerId("user-2").build(),
+                API_PRODUCT_ID,
+                AUDIT_INFO
+            )
+        );
+
+        verify(apiProductIndexerDomainService).index(
+            any(ApiProductIndexerDomainService.Context.class),
+            eq(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("product-under-test").build()),
+            eq(newPo)
+        );
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
+
+    private void stubApiProductInIndex() {
+        var product = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("product-under-test").build();
+        when(apiProductQueryService.findById(API_PRODUCT_ID)).thenReturn(Optional.of(product));
+        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(ORG_ID, API_PRODUCT_ID)).thenReturn(
+            PrimaryOwnerEntity.builder().id("user-1").displayName("User One").type(PrimaryOwnerEntity.Type.USER).build()
+        );
+    }
 
     private String currentRoleOf(String userId) {
         var member = membershipDomainService

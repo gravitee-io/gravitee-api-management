@@ -81,6 +81,7 @@ class GroupQueryServiceImplTest {
                     .emailInvitation(true)
                     .disableMembershipNotifications(true)
                     .apiPrimaryOwner("api-po-id")
+                    .apiProductPrimaryOwner("api-product-po-id")
                     .build()
             );
         }
@@ -153,6 +154,7 @@ class GroupQueryServiceImplTest {
                         .emailInvitation(true)
                         .disableMembershipNotifications(true)
                         .apiPrimaryOwner("api-po-id")
+                        .apiProductPrimaryOwner("api-product-po-id")
                         .build()
                 );
         }
@@ -222,6 +224,7 @@ class GroupQueryServiceImplTest {
                         .emailInvitation(true)
                         .disableMembershipNotifications(true)
                         .apiPrimaryOwner("api-po-id")
+                        .apiProductPrimaryOwner("api-product-po-id")
                         .build()
                 );
         }
@@ -271,6 +274,7 @@ class GroupQueryServiceImplTest {
                         .emailInvitation(true)
                         .disableMembershipNotifications(true)
                         .apiPrimaryOwner("api-po-id")
+                        .apiProductPrimaryOwner("api-product-po-id")
                         .origin("MANAGEMENT")
                         .build()
                 );
@@ -292,6 +296,7 @@ class GroupQueryServiceImplTest {
             .emailInvitation(true)
             .disableMembershipNotifications(true)
             .apiPrimaryOwner("api-po-id")
+            .apiProductPrimaryOwner("api-product-po-id")
             .origin("MANAGEMENT");
     }
 
