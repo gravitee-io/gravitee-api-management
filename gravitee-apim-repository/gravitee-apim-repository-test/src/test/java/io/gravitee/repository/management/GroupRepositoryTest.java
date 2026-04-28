@@ -91,6 +91,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(99, group.get().getMaxInvitation().intValue());
         assertEquals(2, group.get().getEventRules().size());
         assertEquals("api-primary-owner-id", group.get().getApiPrimaryOwner());
+        assertEquals("api-product-primary-owner-id", group.get().getApiProductPrimaryOwner());
     }
 
     @Test
@@ -115,6 +116,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         group.setDisableMembershipNotifications(false);
         group.setMaxInvitation(99);
         group.setApiPrimaryOwner("new-po-user-id");
+        group.setApiProductPrimaryOwner("new-product-po-user-id");
 
         Group update = groupRepository.update(group);
 
@@ -129,6 +131,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(update.isDisableMembershipNotifications());
         assertEquals(99, update.getMaxInvitation().intValue());
         assertEquals(group.getApiPrimaryOwner(), update.getApiPrimaryOwner());
+        assertEquals(group.getApiProductPrimaryOwner(), update.getApiProductPrimaryOwner());
     }
 
     @Test
