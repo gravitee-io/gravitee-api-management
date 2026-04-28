@@ -13,3 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../scss/theme' as app-theme;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  max-width: app-theme.$inner-content-width;
+  overflow: hidden;
+  gap: 32px;
+  padding-top: 24px;
+  width: 100%;
+}
+
+.analytics-list {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    &__title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  &__grid {
+    overflow-y: auto;
+  }
+
+  &__loader {
+    position: absolute;
+    inset: 0;
+    background: app-theme.$background-overlay-color;
+  }
+
+  &__pagination {
+    margin-top: 16px;
+  }
+
+  &__error {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: app-theme.$banner-error-background-color;
+    color: app-theme.$banner-error-text-color;
+    border-radius: 4px;
+  }
+}
