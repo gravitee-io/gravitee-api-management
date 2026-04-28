@@ -56,7 +56,7 @@ Gamma UI helpers split:
 {{- else if and .Values.gammaUi.httpRoute.enabled .Values.gammaUi.httpRoute.hostnames -}}
 {{ toYaml .Values.gammaUi.httpRoute.hostnames }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 

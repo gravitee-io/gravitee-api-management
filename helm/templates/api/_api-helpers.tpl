@@ -174,7 +174,7 @@ ingress.pathType -> HTTPRoute pathMatchType translation (effective helpers only)
 {{- else if default false (get $httpRoute "enabled") -}}
 {{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 
@@ -221,7 +221,7 @@ https
 {{- else if default false (get $httpRoute "enabled") -}}
 {{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 
@@ -268,7 +268,7 @@ https
 {{- else if default false (get $httpRoute "enabled") -}}
 {{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 
