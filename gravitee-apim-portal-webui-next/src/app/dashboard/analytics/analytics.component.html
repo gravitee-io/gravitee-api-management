@@ -15,3 +15,45 @@
     limitations under the License.
 
 -->
+
+<div class="analytics-list__header">
+  <div class="analytics-list__header__title">
+    <div class="title next-gen-h3" i18n="@@analyticsTitle">Analytics</div>
+    <p class="next-gen-body" i18n="@@analyticsDescription">Browse analytics dashboards to monitor and analyze your API traffic</p>
+  </div>
+</div>
+
+<div class="analytics-list__content">
+  @if (dashboardsResource.isLoading()) {
+    <app-loader class="analytics-list__loader" />
+  } @else if (dashboardsResource.error()) {
+    <div class="analytics-list__error next-gen-body" role="alert" data-testid="analytics-list-error" i18n="@@analyticsListError">
+      An error occurred while loading analytics dashboards. Try again later or contact your Portal administrator.
+    </div>
+  } @else {
+    <app-cards-grid
+      class="analytics-list__grid"
+      [cards]="dashboardPaginator().data"
+      [showEmptyState]="dashboardPaginator().data.length === 0"
+    >
+      <ng-template #cardTemplate let-dashboard>
+        <app-analytics-dashboard-card [dashboard]="dashboard" (cardSelect)="navigateToDashboard($event)" />
+      </ng-template>
+
+      <ng-container slot="empty-state">
+        <span class="material-icons icon-with-background" aria-hidden="true">bar_chart</span>
+        <h2 class="next-gen-h5" i18n="@@noAnalyticsDashboards">No analytics dashboards available yet</h2>
+        <p class="next-gen-body" i18n="@@noAnalyticsDashboardsDescription">No dashboards have been configured for this environment.</p>
+      </ng-container>
+    </app-cards-grid>
+  }
+  @if (dashboardPaginator().totalResults > 0) {
+    <app-pagination
+      class="analytics-list__pagination"
+      [totalResults]="dashboardPaginator().totalResults"
+      [currentPage]="dashboardPaginator().page"
+      [pageSize]="pageSize"
+      (selectPage)="onPageChange($event)"
+    />
+  }
+</div>
