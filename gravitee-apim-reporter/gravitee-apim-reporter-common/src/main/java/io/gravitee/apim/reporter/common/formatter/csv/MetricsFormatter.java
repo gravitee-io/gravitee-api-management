@@ -63,11 +63,7 @@ public final class MetricsFormatter extends SingleValueFormatter<Metrics> {
         appendLong(buffer, metrics.getProxyResponseTimeMs());
         appendLong(buffer, metrics.getProxyLatencyMs());
         appendString(buffer, metrics.getSecurityType() != null ? metrics.getSecurityType().name() : null);
-        appendString(
-            buffer,
-            metrics.getSecurityToken() != null ? metrics.getApi() : null,
-            customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty()
-        );
+        appendString(buffer, metrics.getSecurityToken(), customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty());
         appendAdditional(metrics, buffer);
 
         if (!customMetrics.isEmpty()) {
