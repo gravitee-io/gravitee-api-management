@@ -15,17 +15,11 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public sealed interface OpenApiConfiguration permits SwaggerUiConfiguration, RedocConfiguration {
+    Viewer viewer();
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public final class UpdatePortalPageContent {
-
-    private String content;
-    private OpenApiConfiguration configuration;
+    enum Viewer {
+        SWAGGER,
+        REDOC,
+    }
 }

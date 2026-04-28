@@ -15,20 +15,27 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.open_api.OpenApi;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
+import java.util.LinkedHashMap;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface PortalPageContentAdapter {
     PortalPageContentAdapter INSTANCE = Mappers.getMapper(PortalPageContentAdapter.class);
+    ObjectMapper JSON = new ObjectMapper();
 
     default PortalPageContent<?> toEntity(io.gravitee.repository.management.model.PortalPageContent portalPageContent) {
         return switch (portalPageContent.getType()) {
@@ -52,11 +59,27 @@ public interface PortalPageContentAdapter {
     default OpenApiPageContent openApiPageContentFromRepository(
         io.gravitee.repository.management.model.PortalPageContent portalPageContent
     ) {
+        OpenApiConfiguration configuration = null;
+        if (portalPageContent.getConfiguration() != null && !portalPageContent.getConfiguration().isBlank()) {
+            try {
+                configuration = deserializeOpenApiConfiguration(portalPageContent.getConfiguration());
+            } catch (Exception e) {
+                throw new IllegalArgumentException(
+                    String.format(
+                        "Failed to deserialize OpenAPI configuration for page content %s: %s",
+                        portalPageContent.getId(),
+                        e.getMessage()
+                    ),
+                    e.getCause()
+                );
+            }
+        }
         return new OpenApiPageContent(
             PortalPageContentId.of(portalPageContent.getId()),
             portalPageContent.getOrganizationId(),
             portalPageContent.getEnvironmentId(),
-            OpenApi.of(portalPageContent.getContent())
+            OpenApi.of(portalPageContent.getContent()),
+            Optional.ofNullable(configuration).orElseGet(RedocConfiguration::new)
         );
     }
 
@@ -77,12 +100,28 @@ public interface PortalPageContentAdapter {
             case OpenApiPageContent oapi -> oapi.getContent().value();
             case AsyncApiPageContent aapi -> aapi.getContent().value();
         };
+        String rawConfiguration = null;
+        if (portalPageContent instanceof OpenApiPageContent oapi) {
+            try {
+                rawConfiguration = serializeOpenApiConfiguration(oapi.getViewerSettings());
+            } catch (Exception e) {
+                throw new IllegalArgumentException(
+                    String.format(
+                        "Failed to serialize OpenAPI configuration for page content %s: %s",
+                        portalPageContent.getId(),
+                        e.getMessage()
+                    ),
+                    e
+                );
+            }
+        }
         return io.gravitee.repository.management.model.PortalPageContent.builder()
             .id(portalPageContent.getId().toString())
             .organizationId(portalPageContent.getOrganizationId())
             .environmentId(portalPageContent.getEnvironmentId())
             .type(toRepositoryType(portalPageContent.getType()))
             .content(rawContent)
+            .configuration(rawConfiguration)
             .build();
     }
 
@@ -94,5 +133,73 @@ public interface PortalPageContentAdapter {
             case OPENAPI -> io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI;
             case ASYNCAPI -> io.gravitee.repository.management.model.PortalPageContent.Type.ASYNCAPI;
         };
+    }
+
+    default OpenApiConfiguration deserializeOpenApiConfiguration(String configuration) {
+        try {
+            var node = JSON.readTree(configuration);
+            var viewer = Optional.ofNullable(node.get("viewer")).map(viewerNode ->
+                OpenApiConfiguration.Viewer.valueOf(viewerNode.asText())
+            );
+            return switch (viewer.orElse(OpenApiConfiguration.Viewer.REDOC)) {
+                case REDOC -> new RedocConfiguration();
+                case SWAGGER -> new SwaggerUiConfiguration(
+                    optionalBoolean(node, "displayOperationId", false),
+                    optionalText(node, "docExpansion", "none"),
+                    optionalBoolean(node, "enableFiltering", false),
+                    optionalInt(node, "maxDisplayedTags", -1),
+                    optionalBoolean(node, "showCommonExtensions", false),
+                    optionalBoolean(node, "showExtensions", false),
+                    optionalBoolean(node, "showUrl", optionalBoolean(node, "showURL", false)),
+                    optionalBoolean(node, "tryIt", false),
+                    optionalBoolean(node, "disableSyntaxHighlight", false),
+                    optionalBoolean(node, "tryItAnonymous", false),
+                    optionalText(node, "tryItUrl", optionalText(node, "tryItURL", "")),
+                    optionalBoolean(node, "usePkce", false),
+                    optionalBoolean(node, "entrypointsAsServers", false),
+                    optionalBoolean(node, "entrypointAsBasePath", false)
+                );
+            };
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid OpenAPI configuration", e);
+        }
+    }
+
+    default String serializeOpenApiConfiguration(OpenApiConfiguration configuration)
+        throws com.fasterxml.jackson.core.JsonProcessingException {
+        var values = new LinkedHashMap<String, Object>();
+        switch (configuration) {
+            case RedocConfiguration ignored -> values.put("viewer", OpenApiConfiguration.Viewer.REDOC);
+            case SwaggerUiConfiguration swagger -> {
+                values.put("viewer", OpenApiConfiguration.Viewer.SWAGGER);
+                values.put("displayOperationId", swagger.displayOperationId());
+                values.put("docExpansion", swagger.docExpansion());
+                values.put("enableFiltering", swagger.enableFiltering());
+                values.put("maxDisplayedTags", swagger.maxDisplayedTags());
+                values.put("showCommonExtensions", swagger.showCommonExtensions());
+                values.put("showExtensions", swagger.showExtensions());
+                values.put("showUrl", swagger.showUrl());
+                values.put("tryIt", swagger.tryIt());
+                values.put("disableSyntaxHighlight", swagger.disableSyntaxHighlight());
+                values.put("tryItAnonymous", swagger.tryItAnonymous());
+                values.put("tryItUrl", swagger.tryItUrl());
+                values.put("usePkce", swagger.usePkce());
+                values.put("entrypointsAsServers", swagger.entrypointsAsServers());
+                values.put("entrypointAsBasePath", swagger.entrypointAsBasePath());
+            }
+        }
+        return JSON.writeValueAsString(values);
+    }
+
+    private static boolean optionalBoolean(com.fasterxml.jackson.databind.JsonNode node, String field, boolean defaultValue) {
+        return Optional.ofNullable(node.get(field)).map(com.fasterxml.jackson.databind.JsonNode::asBoolean).orElse(defaultValue);
+    }
+
+    private static int optionalInt(com.fasterxml.jackson.databind.JsonNode node, String field, int defaultValue) {
+        return Optional.ofNullable(node.get(field)).map(com.fasterxml.jackson.databind.JsonNode::asInt).orElse(defaultValue);
+    }
+
+    private static String optionalText(com.fasterxml.jackson.databind.JsonNode node, String field, String defaultValue) {
+        return Optional.ofNullable(node.get(field)).map(com.fasterxml.jackson.databind.JsonNode::asText).orElse(defaultValue);
     }
 }

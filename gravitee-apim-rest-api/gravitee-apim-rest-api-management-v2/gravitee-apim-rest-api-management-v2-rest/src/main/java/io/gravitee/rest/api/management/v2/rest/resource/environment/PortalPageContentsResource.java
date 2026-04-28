@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionCo
 
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPageContentMapper;
@@ -30,8 +31,9 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -47,6 +49,9 @@ public class PortalPageContentsResource extends AbstractResource {
 
     @Inject
     private UpdatePortalPageContentUseCase updatePortalPageContentUseCase;
+
+    @Inject
+    private UpdatePortalPageContentConfigurationUseCase updatePortalPageContentConfigurationUseCase;
 
     @GET
     @Path("/{portalPageContentId}")
@@ -68,6 +73,7 @@ public class PortalPageContentsResource extends AbstractResource {
 
     @PUT
     @Path("/{portalPageContentId}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent updatePortalPageContent(
@@ -81,6 +87,28 @@ public class PortalPageContentsResource extends AbstractResource {
                 executionContext.getEnvironmentId(),
                 portalPageContentId,
                 PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
+            )
+        );
+
+        return PortalPageContentMapper.INSTANCE.map(result.portalPageContent());
+    }
+
+    @PATCH
+    @Path("/{portalPageContentId}/configuration")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent updatePortalPageContentConfiguration(
+        @PathParam("portalPageContentId") String portalPageContentId,
+        @Valid io.gravitee.rest.api.management.v2.rest.model.PortalPageOpenApiConfiguration configuration
+    ) {
+        final var executionContext = getExecutionContext();
+        var result = updatePortalPageContentConfigurationUseCase.execute(
+            new UpdatePortalPageContentConfigurationUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                portalPageContentId,
+                PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration)
             )
         );
 

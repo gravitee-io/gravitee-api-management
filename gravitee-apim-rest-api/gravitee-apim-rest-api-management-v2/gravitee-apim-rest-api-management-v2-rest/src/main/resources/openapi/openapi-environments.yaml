@@ -908,6 +908,31 @@ paths:
           $ref: "#/components/responses/PortalPageContentResponse"
         default:
           $ref: "#/components/responses/Error"
+  /portal-page-contents/{portalPageContentId}/configuration:
+    patch:
+      tags:
+        - Portal Pages
+      summary: Update portal page content OpenAPI viewer configuration
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalPageContentConfiguration
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        default:
+          $ref: "#/components/responses/Error"
 
   /portal-navigation-items:
     get:
@@ -2374,6 +2399,117 @@ components:
         - OPENAPI
         - ASYNCAPI
 
+    PortalPageOpenApiConfiguration:
+      oneOf:
+        - $ref: "#/components/schemas/PortalPageSwaggerConfiguration"
+        - $ref: "#/components/schemas/PortalPageRedocConfiguration"
+      discriminator:
+        propertyName: viewer
+        mapping:
+          SWAGGER: "#/components/schemas/PortalPageSwaggerConfiguration"
+          REDOC: "#/components/schemas/PortalPageRedocConfiguration"
+
+    BasePortalPageOpenApiConfiguration:
+      type: object
+      description: OpenAPI viewer configuration for a portal page content
+      properties:
+        viewer:
+          type: string
+          description: The type of viewer for OpenAPI specification. Default is 'SWAGGER'
+          enum:
+            - SWAGGER
+            - REDOC
+          default: SWAGGER
+      required: [ viewer ]
+      discriminator:
+        propertyName: viewer
+        mapping:
+          SWAGGER: "#/components/schemas/PortalPageSwaggerConfiguration"
+          REDOC: "#/components/schemas/PortalPageRedocConfiguration"
+
+    PortalPageSwaggerConfiguration:
+      type: object
+      title: "PortalPageSwaggerConfiguration"
+      description: Swagger UI viewer configuration for a portal page content
+      allOf:
+        - $ref: "#/components/schemas/BasePortalPageOpenApiConfiguration"
+        - properties:
+            displayOperationId:
+              type: boolean
+              description: Display the operationId in the operations list.
+              default: false
+            docExpansion:
+              type: string
+              description: |
+                Default expansion setting for the operations and tags.
+                Possible values are:
+                  - list: Expands only the tags
+                  - full: Expands the tags and operations
+                  - none: Expands nothing. Default.
+              enum:
+                - list
+                - full
+                - none
+              default: none
+            enableFiltering:
+              type: boolean
+              description: Add a top bar to filter content.
+              default: false
+            maxDisplayedTags:
+              type: integer
+              description: |
+                Number of max tagged operations displayed.
+                Limits the number of tagged operations displayed to at most this many (negative means show all operations).
+                No limit by default.
+              default: -1
+            showCommonExtensions:
+              type: boolean
+              description: Display common extension fields and values for parameters.
+              default: false
+            showExtensions:
+              type: boolean
+              description: Display vendor extension (X-) fields and values for operations, parameters, and schema.
+              default: false
+            showURL:
+              type: boolean
+              description: Show the URL to download the content.
+              default: false
+            tryIt:
+              type: boolean
+              description: Enable "Try It!" mode in documentation page.
+              default: false
+            disableSyntaxHighlight:
+              type: boolean
+              description: Disable response body styling for large JSON payloads.
+              default: false
+            tryItAnonymous:
+              type: boolean
+              description: Enable "Try It!" mode in documentation page for anonymous users.
+              default: false
+            tryItURL:
+              type: string
+              description: Base URL used to try the API.
+              default: ""
+            usePkce:
+              type: boolean
+              description: Enable use of PKCE with authorization code flows in documentation page.
+              default: false
+            entrypointsAsServers:
+              type: boolean
+              description: Use API entrypoints as OpenAPI servers.
+              default: false
+            entrypointAsBasePath:
+              type: boolean
+              description: Use API entrypoint as OpenAPI base path.
+              default: false
+
+    PortalPageRedocConfiguration:
+      type: object
+      title: "PortalPageRedocConfiguration"
+      description: Redoc viewer configuration for a portal page content
+      allOf:
+        - $ref: "#/components/schemas/BasePortalPageOpenApiConfiguration"
+
     PortalPageContent:
       type: object
       description: Portal page content
@@ -2386,6 +2522,8 @@ components:
         content:
           type: string
           description: The content of the page
+        configuration:
+          $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
       required: [ id, type, content ]
 
     UpdatePortalPageContent:
@@ -2395,6 +2533,8 @@ components:
         content:
           type: string
           description: The updated content for the page
+        configuration:
+          $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
       required: [ content ]
 
     # Subscription Forms
