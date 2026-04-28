@@ -29,14 +29,29 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
     @Nonnull
     private OpenApi content;
 
+    @Setter
+    @Nonnull
+    private OpenApiConfiguration viewerSettings;
+
     public OpenApiPageContent(
         @Nonnull PortalPageContentId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull OpenApi content
     ) {
+        this(id, organizationId, environmentId, content, new RedocConfiguration());
+    }
+
+    public OpenApiPageContent(
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull OpenApi content,
+        @Nonnull OpenApiConfiguration viewerSettings
+    ) {
         super(id, organizationId, environmentId);
         this.content = content;
+        this.viewerSettings = viewerSettings;
     }
 
     public static OpenApiPageContent create(@Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
@@ -50,6 +65,13 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
     @Override
     public void update(@Nonnull UpdatePortalPageContent updatePortalPageContent) {
         this.content = OpenApi.of(updatePortalPageContent.getContent());
+        this.viewerSettings = updatePortalPageContent.getConfiguration() != null
+            ? updatePortalPageContent.getConfiguration()
+            : new RedocConfiguration();
+    }
+
+    public void updateViewerSettings(@Nonnull OpenApiConfiguration viewerSettings) {
+        this.viewerSettings = viewerSettings;
     }
 
     @Override

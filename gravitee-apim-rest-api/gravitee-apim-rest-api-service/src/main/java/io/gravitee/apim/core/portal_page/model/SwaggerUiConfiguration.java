@@ -15,17 +15,26 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public final class UpdatePortalPageContent {
-
-    private String content;
-    private OpenApiConfiguration configuration;
+public record SwaggerUiConfiguration(
+    boolean displayOperationId,
+    @NotNull String docExpansion,
+    boolean enableFiltering,
+    int maxDisplayedTags,
+    boolean showCommonExtensions,
+    boolean showExtensions,
+    boolean showUrl,
+    boolean tryIt,
+    boolean disableSyntaxHighlight,
+    boolean tryItAnonymous,
+    @NotNull String tryItUrl,
+    boolean usePkce,
+    boolean entrypointsAsServers,
+    boolean entrypointAsBasePath
+) implements OpenApiConfiguration {
+    @Override
+    public Viewer viewer() {
+        return Viewer.SWAGGER;
+    }
 }

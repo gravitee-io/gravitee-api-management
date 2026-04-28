@@ -7720,21 +7720,27 @@ components:
                 try_it:
                     type: boolean
                     description: Enable "Try It!" mode in documentation page.
+                    default: false
                 disable_syntax_highlight:
                     type: boolean
                     description: Disable response body styling for large JSON payloads
+                    default: false
                 try_it_anonymous:
                     type: boolean
                     description: Enable "Try It!" mode in documentation page for anonymous users.
+                    default: false
                 try_it_url:
                     type: string
                     description: Base URL used to try the API.
+                    default: ""
                 show_url:
                     type: boolean
                     description: Show the URL to download the content.
+                    default: false
                 display_operation_id:
                     type: boolean
                     description: Display the operationId in the operations list.
+                    default: false
                 doc_expansion:
                     type: string
                     description: |
@@ -7747,30 +7753,37 @@ components:
                         - list
                         - full
                         - none
+                    default: none
                 enable_filtering:
                     type: boolean
                     description: Add a top bar to filter content.
+                    default: false
                 show_extensions:
                     type: boolean
                     description: Display vendor extension (X-) fields and values for Operations, Parameters, and Schema.
+                    default: false
                 show_common_extensions:
                     type: boolean
                     description: Display extensions (pattern, maxLength, minLength, maximum, minimum) fields and values for Parameters.
+                    default: false
                 max_displayed_tags:
                     type: number
                     description: |
                         Number of max tagged operations displayed. \
                         Limits the number of tagged operations displayed to at most this many (negative means show all operations).\
                         No limit by default.
+                    default: -1
                 use_pkce:
                     type: boolean
                     description: Enable use of PKCE with authorization code flows in documentation page.
+                    default: false
                 viewer:
                     type: string
                     description: The type of viewer for OpenAPI specification. Default is 'Swagger'
                     enum:
                         - Swagger
                         - Redoc
+                    default: Swagger
         RatingAnswer:
             required:
                 - id
@@ -8188,6 +8201,8 @@ components:
                 content:
                     type: string
                     description: The content of the page
+                configuration:
+                    $ref: "#/components/schemas/PageConfiguration"
             required: [type, content]
         PortalPageContentType:
             type: string
