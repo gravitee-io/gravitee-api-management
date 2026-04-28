@@ -168,6 +168,17 @@ mat-icon {
   justify-content: center;
 }
 
+.context-menu-anchor {
+  position: fixed;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /**
  * Drag and drop animation handling
  */
