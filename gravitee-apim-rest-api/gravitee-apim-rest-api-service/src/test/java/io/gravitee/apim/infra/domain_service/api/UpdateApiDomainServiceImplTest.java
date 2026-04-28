@@ -208,4 +208,15 @@ class UpdateApiDomainServiceImplTest {
 
         assertThat(result.getApiDefinitionHttpV4().getResponseTemplates()).isEqualTo(sanitizedResponseTemplates);
     }
+
+    @Test
+    void should_preserve_original_allowed_in_api_products_when_validator_returns_null() {
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(true).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        stubValidate(entity -> entity.setAllowedInApiProducts(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getAllowedInApiProducts()).isTrue();
+    }
 }
