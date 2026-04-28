@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUse
 import io.gravitee.apim.core.api_product.use_case.members.DeleteApiProductMemberUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.GetApiProductMembersUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.UpdateApiProductMemberUseCase;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MembershipMapper;
@@ -159,8 +160,9 @@ public class ApiProductMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response transferApiProductOwnership(@Valid @NotNull ApiProductTransferOwnership transferOwnership) {
+        AuditInfo audit = getAuditInfo();
         transferApiProductOwnershipUseCase.execute(
-            new TransferApiProductOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), apiProductId)
+            new TransferApiProductOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), apiProductId, audit)
         );
         return Response.noContent().build();
     }

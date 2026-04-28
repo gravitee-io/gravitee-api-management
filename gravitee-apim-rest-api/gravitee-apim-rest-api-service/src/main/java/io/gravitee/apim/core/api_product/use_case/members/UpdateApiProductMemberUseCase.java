@@ -26,6 +26,7 @@ import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.model.MembershipRole;
 import io.gravitee.apim.core.member.query_service.MemberQueryService;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import lombok.AllArgsConstructor;
 
@@ -44,11 +45,22 @@ public class UpdateApiProductMemberUseCase {
             throw new SinglePrimaryOwnerException(RoleScope.API_PRODUCT);
         }
 
+        Member userMember = memberQueryService.getUserMember(MembershipReferenceType.API_PRODUCT, input.apiProductId, input.memberId);
+        if (userMember == null || userMember.getRoles() == null || userMember.getRoles().isEmpty()) {
+            return new Output(null);
+        }
+        boolean isPrimaryOwner = userMember
+            .getRoles()
+            .stream()
+            .anyMatch(r -> RoleScope.API_PRODUCT.equals(r.getScope()) && PRIMARY_OWNER.name().equals(r.getName()));
+        if (isPrimaryOwner && !PRIMARY_OWNER.name().equals(input.newRole)) {
+            throw new PrimaryOwnerRemovalException();
+        }
+
         var reference = new MembershipReference(MembershipReferenceType.API_PRODUCT, input.apiProductId);
         var member = MembershipMember.builder().memberId(input.memberId).memberType(MembershipMemberType.USER).build();
         var role = MembershipRole.builder().scope(io.gravitee.apim.core.member.model.RoleScope.API_PRODUCT).name(input.newRole).build();
         Member updatedMember = memberQueryService.updateRoleToMemberOnReference(reference, member, role);
-
         return new Output(updatedMember);
     }
 }

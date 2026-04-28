@@ -15,24 +15,55 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
+
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
+import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import lombok.AllArgsConstructor;
+import lombok.CustomLog;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
 @UseCase
+@RequiredArgsConstructor
+@CustomLog
 public class TransferApiProductOwnershipUseCase {
 
     private final MembershipDomainService membershipDomainService;
+    private final ApiProductQueryService apiProductQueryService;
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService;
+    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
 
-    public record Input(TransferOwnership transferOwnership, String apiProductId) {}
+    public record Input(TransferOwnership transferOwnership, String apiProductId, AuditInfo auditInfo) {}
 
     public record Output() {}
 
     public Output execute(Input input) {
         membershipDomainService.transferOwnership(input.transferOwnership(), RoleScope.API_PRODUCT, input.apiProductId());
+
+        ApiProduct apiProduct = apiProductQueryService
+            .findById(input.apiProductId())
+            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+
+        PrimaryOwnerEntity primaryOwner = null;
+        try {
+            primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
+                input.auditInfo().organizationId(),
+                apiProduct.getId()
+            );
+        } catch (ApiProductPrimaryOwnerNotFoundException ex) {
+            log.debug("Failed to retrieve API Product primary owner, will index without primary owner", ex);
+        }
+        apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), apiProduct, primaryOwner);
+
         return new Output();
     }
 }

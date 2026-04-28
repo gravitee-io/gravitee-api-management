@@ -107,25 +107,29 @@ public class CreateApiProductUseCase {
                 );
             });
 
-        Set<String> defaultGroups = groupQueryService
-            .findByEvent(auditInfo.environmentId(), Group.GroupEvent.API_PRODUCT_CREATE)
-            .stream()
-            .filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()))
-            .map(Group::getId)
-            .collect(toSet());
-        if (!defaultGroups.isEmpty()) {
-            Set<String> sanitizedGroups = new HashSet<>(apiProduct.getGroups() != null ? apiProduct.getGroups() : Set.of());
-            sanitizedGroups.addAll(defaultGroups);
-            apiProduct.setGroups(sanitizedGroups);
-        }
-
-        ApiProduct created = apiProductCrudService.create(apiProduct);
-
         PrimaryOwnerEntity primaryOwner = apiProductPrimaryOwnerFactory.createForNewApiProduct(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             auditInfo.actor().userId()
         );
+
+        Set<String> defaultGroups = groupQueryService
+            .findByEvent(auditInfo.environmentId(), Group.GroupEvent.API_PRODUCT_CREATE)
+            .stream()
+            .filter(group -> StringUtils.isEmpty(group.getApiProductPrimaryOwner()))
+            .map(Group::getId)
+            .collect(toSet());
+        Set<String> sanitizedGroups = new HashSet<>(apiProduct.getGroups() != null ? apiProduct.getGroups() : Set.of());
+        sanitizedGroups.addAll(defaultGroups);
+        if (PrimaryOwnerEntity.Type.GROUP.equals(primaryOwner.type())) {
+            sanitizedGroups.add(primaryOwner.id());
+        }
+        if (!sanitizedGroups.isEmpty()) {
+            apiProduct.setGroups(sanitizedGroups);
+        }
+
+        ApiProduct created = apiProductCrudService.create(apiProduct);
+
         apiProductPrimaryOwnerDomainService.createApiProductPrimaryOwnerMembership(created.getId(), primaryOwner, auditInfo);
 
         apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
