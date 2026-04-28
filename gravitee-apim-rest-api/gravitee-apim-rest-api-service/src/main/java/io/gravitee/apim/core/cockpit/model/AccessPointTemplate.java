@@ -50,6 +50,8 @@ public class AccessPointTemplate {
     public enum Target {
         CONSOLE("console"),
         CONSOLE_API("console-api"),
+        GAMMA_CONSOLE("gamma-console"),
+        GAMMA_API("gamma-api"),
         PORTAL("portal"),
         PORTAL_API("portal-api"),
         GATEWAY("gateway"),
