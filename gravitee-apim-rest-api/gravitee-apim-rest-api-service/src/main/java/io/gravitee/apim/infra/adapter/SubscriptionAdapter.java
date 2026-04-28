@@ -25,6 +25,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec.ConsumerConfiguration;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import lombok.CustomLog;
@@ -123,12 +124,15 @@ public abstract class SubscriptionAdapter {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "consumerStatus", ignore = true)
     @Mapping(target = "consumerPausedAt", ignore = true)
-    @Mapping(target = "configuration", ignore = true)
     @Mapping(target = "closedAt", ignore = true)
     @Mapping(target = "clientId", ignore = true)
     @Mapping(target = "clientCertificate", ignore = true)
     @Mapping(target = "origin", constant = "KUBERNETES")
+    @Mapping(target = "configuration", source = "consumerConfiguration")
     public abstract SubscriptionEntity fromSpec(SubscriptionCRDSpec spec);
+
+    @Mapping(target = "entrypointConfiguration", expression = "java(serializeConsumerConfiguration(consumerConfiguration))")
+    public abstract SubscriptionConfiguration map(ConsumerConfiguration consumerConfiguration);
 
     @Mapping(target = "request", ignore = true)
     @Mapping(target = "apiKeyMode", ignore = true)
@@ -138,6 +142,20 @@ public abstract class SubscriptionAdapter {
     public abstract io.gravitee.rest.api.model.NewSubscriptionEntity fromCoreForCreate(SubscriptionEntity entity);
 
     public abstract io.gravitee.rest.api.model.UpdateSubscriptionEntity fromCoreForUpdate(SubscriptionEntity entity);
+
+    @Named("serializeConsumerConfiguration")
+    public String serializeConsumerConfiguration(ConsumerConfiguration configuration) {
+        if (configuration == null || configuration.getEntrypointConfiguration() == null) {
+            return null;
+        }
+
+        try {
+            return jsonSerializer.serialize(configuration.getEntrypointConfiguration());
+        } catch (JsonProcessingException e) {
+            log.error("Unexpected error while serializing SubscriptionConsumerConfiguration", e);
+            return null;
+        }
+    }
 
     @Named("deserializeConfiguration")
     public SubscriptionConfiguration deserializeConfiguration(String configuration) {

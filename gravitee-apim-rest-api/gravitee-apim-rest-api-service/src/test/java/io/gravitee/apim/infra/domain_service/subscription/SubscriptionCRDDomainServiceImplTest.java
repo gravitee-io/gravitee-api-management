@@ -57,13 +57,16 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
+import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -150,6 +153,9 @@ class SubscriptionCRDDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        subscriptionAdapter.setJsonSerializer(new JacksonJsonSerializer());
+        subscriptionAdapter.setJsonDeserializer(new JacksonJsonDeserializer());
+
         when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID))).thenReturn(
             subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC))
         );
@@ -432,6 +438,32 @@ class SubscriptionCRDDomainServiceImplTest {
 
         verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
         assertThat(result.getMetadata()).isEqualTo(metadata);
+    }
+
+    @Test
+    void should_update_consumer_configuration() {
+        givenExistingJWTPlan();
+
+        var existingEntity = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
+
+        var consumerConfiguration = new SubscriptionCRDSpec.ConsumerConfiguration();
+        consumerConfiguration.setEntrypointId("entrypoint-id");
+        consumerConfiguration.setChannel("my-channel");
+        consumerConfiguration.setEntrypointConfiguration(Map.of("callback", "http://webhook.site"));
+
+        var result = cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().consumerConfiguration(consumerConfiguration).build());
+
+        verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
+        assertThat(result.getConfiguration()).isEqualTo(
+            SubscriptionConfiguration.builder()
+                .entrypointId("entrypoint-id")
+                .channel("my-channel")
+                .entrypointConfiguration("{\"callback\":\"http://webhook.site\"}")
+                .build()
+        );
     }
 
     @Test

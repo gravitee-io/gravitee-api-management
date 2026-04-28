@@ -23,6 +23,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
+import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
@@ -133,6 +134,12 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
         if (!Objects.equals(spec.getMetadata(), existing.getMetadata())) {
             log.debug("Updating metadata for subscription [{}]", spec.getId());
             update.setMetadata(spec.getMetadata());
+        }
+
+        SubscriptionConfiguration subscriptionConfiguration = adapter.map(spec.getConsumerConfiguration());
+        if (!Objects.equals(subscriptionConfiguration, existing.getConfiguration())) {
+            log.debug("Updating consumer configuration for subscription [{}]", spec.getId());
+            update.setConfiguration(subscriptionConfiguration);
         }
 
         subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(update));

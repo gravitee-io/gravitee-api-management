@@ -100,6 +100,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
             .metadata(spec.getMetadata())
             .apiKeys(toApiKeyCRDSpecs(spec.getApiKeys()))
+            .consumerConfiguration(SubscriptionMapper.INSTANCE.toConsumerConfiguration(spec.getConsumerConfiguration()))
             .build();
 
         SubscriptionCRDStatus status = importSubscriptionCRDUseCase

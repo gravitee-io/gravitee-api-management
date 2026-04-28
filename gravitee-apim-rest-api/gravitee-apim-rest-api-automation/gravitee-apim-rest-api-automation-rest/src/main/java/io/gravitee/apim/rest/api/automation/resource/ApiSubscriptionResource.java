@@ -16,14 +16,15 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
+import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
+import io.gravitee.apim.rest.api.automation.model.SubscriptionConsumerConfiguration;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -31,7 +32,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -107,6 +107,9 @@ public class ApiSubscriptionResource extends AbstractResource {
                 subscriptionEntity.getEndingAt() != null ? subscriptionEntity.getEndingAt().toOffsetDateTime() : null
             );
             subscriptionState.setMetadata(subscriptionEntity.getMetadata());
+            subscriptionState.setConsumerConfiguration(
+                SubscriptionMapper.INSTANCE.toSubscriptionConsumerConfiguration(subscriptionEntity.getConfiguration())
+            );
             return Response.ok(subscriptionState).build();
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: get", hrid, apiHrid);

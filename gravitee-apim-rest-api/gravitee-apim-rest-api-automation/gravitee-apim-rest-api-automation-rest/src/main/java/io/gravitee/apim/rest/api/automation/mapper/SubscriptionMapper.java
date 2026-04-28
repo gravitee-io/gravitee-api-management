@@ -15,10 +15,14 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec.ConsumerConfiguration;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.Errors;
+import io.gravitee.apim.rest.api.automation.model.SubscriptionConsumerConfiguration;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
+import io.gravitee.rest.api.management.v2.rest.mapper.ConfigurationSerializationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import org.mapstruct.Mapper;
@@ -29,7 +33,7 @@ import org.mapstruct.factory.Mappers;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class })
+@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class, ConfigurationSerializationMapper.class })
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
@@ -40,6 +44,11 @@ public interface SubscriptionMapper {
     @Mapping(target = "startingAt", source = "status.startingAt")
     @Mapping(target = "endingAt", source = "status.endingAt")
     SubscriptionState subscriptionSpecAndStatusToSubscriptionState(String apiHrid, SubscriptionSpec spec, SubscriptionCRDStatus status);
+
+    @Mapping(target = "entrypointConfiguration", qualifiedByName = "deserializeConfiguration")
+    SubscriptionConsumerConfiguration toSubscriptionConsumerConfiguration(SubscriptionConfiguration configuration);
+
+    ConsumerConfiguration toConsumerConfiguration(SubscriptionConsumerConfiguration consumerConfiguration);
 
     Errors toErrors(SubscriptionCRDStatus.Errors errors);
 }

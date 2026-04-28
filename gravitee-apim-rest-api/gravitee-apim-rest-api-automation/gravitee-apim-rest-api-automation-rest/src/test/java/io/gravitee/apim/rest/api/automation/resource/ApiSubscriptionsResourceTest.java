@@ -18,7 +18,10 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
@@ -29,6 +32,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -74,6 +79,26 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
+
+            verify(importSubscriptionCRDUseCase, atMostOnce()).execute(
+                argThat(input -> {
+                    var consumerConfiguration = input.spec().getConsumerConfiguration();
+                    return (
+                        consumerConfiguration != null &&
+                        "webhook".equals(consumerConfiguration.getEntrypointId()) &&
+                        "/notifications".equals(consumerConfiguration.getChannel()) &&
+                        Map.of(
+                            "callbackUrl",
+                            "https://exmaple.com/callback",
+                            "headers",
+                            List.of(
+                                Map.of("name", "demoHeader", "value", "my-value"),
+                                Map.of("name", "anotherHeader", "value", "my-value2")
+                            )
+                        ).equals(consumerConfiguration.getEntrypointConfiguration())
+                    );
+                })
+            );
         }
 
         @Test
