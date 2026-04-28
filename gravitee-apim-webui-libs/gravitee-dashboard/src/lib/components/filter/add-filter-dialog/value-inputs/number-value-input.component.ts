@@ -32,8 +32,8 @@ import { FilterDefinition } from '../../filter.model';
         matInput
         type="number"
         placeholder="Enter a number"
-        [min]="rangeMin()"
-        [max]="rangeMax()"
+        [min]="rangeMin() ?? null"
+        [max]="rangeMax() ?? null"
         [ngModel]="numberValue()"
         (ngModelChange)="onInput($event)"
       />
