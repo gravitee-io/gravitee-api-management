@@ -31,9 +31,9 @@ sed -i.bak "1,30 s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalytics|Coun
 sed -i.bak "1,30 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsFromJSON,|GroupByAnalyticsFromJSON, CountAnalyticsFromJSON,|" lib/portal-webclient-sdk/src/lib/apis/AnalyticsApi.ts
 sed -i.bak "1,30 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsToJSON,|GroupByAnalyticsToJSON,|" lib/portal-webclient-sdk/src/lib/apis/AnalyticsApi.ts
 sed -i.bak "s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalyticsFromJSON(|CountAnalyticsFromJSON(|" lib/portal-webclient-sdk/src/lib/apis/AnalyticsApi.ts
-sed -i.bak "1,50 s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalytics|CountAnalytics, DateHistoAnalytics, GroupByAnalytics|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
-sed -i.bak "1,50 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsFromJSON,|GroupByAnalyticsFromJSON, CountAnalyticsFromJSON,|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
-sed -i.bak "1,50 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsToJSON,|GroupByAnalyticsToJSON,|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
+sed -i.bak "1,100 s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalytics|CountAnalytics, DateHistoAnalytics, GroupByAnalytics|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
+sed -i.bak "1,100 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsFromJSON,|GroupByAnalyticsFromJSON, CountAnalyticsFromJSON,|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
+sed -i.bak "1,100 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsToJSON,|GroupByAnalyticsToJSON,|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
 sed -i.bak "s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalyticsFromJSON(|CountAnalyticsFromJSON(|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
 #sed -i.bak "/export...from....AnalyticsApi.service';/d" lib/portal-webclient-sdk/src/lib/apis/ApiApi.ts
 find lib/portal-webclient-sdk/src -name "*.ts" -exec sed -i.bak "/* The version of the OpenAPI document/d" {} \;
