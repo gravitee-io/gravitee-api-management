@@ -28,6 +28,9 @@
               @case ('date') {
                 {{ element[column.id] | date: 'yyyy-MM-dd' }}
               }
+              @case ('date-time') {
+                {{ element[column.id] | date: 'MMM d, y, h:mm:ss a' }}
+              }
               @default {
                 {{ element[column.id] }}
               }

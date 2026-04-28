@@ -33,10 +33,12 @@ import { LoaderComponent } from '../../../../../components/loader/loader.compone
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../../entities/api/api';
 import { Application } from '../../../../../entities/application/application';
+import { UserApiPermissions } from '../../../../../entities/permission/permission';
 import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import {
   SubscriptionConsumerStatusEnum,
   SubscriptionConsumerConfiguration,
+  SubscriptionDataKeys,
   SubscriptionsResponse,
   Subscription,
 } from '../../../../../entities/subscription';
@@ -63,7 +65,7 @@ interface SubscriptionDetailsData {
   failureCause?: string;
   createdAt?: string;
   updatedAt?: string;
-  apiKey?: string;
+  apiKeys?: SubscriptionDataKeys[];
   apiKeyConfigUsername?: string;
   entrypointUrls?: string[];
   clientId?: string;
@@ -71,6 +73,7 @@ interface SubscriptionDetailsData {
   api?: Api;
   apiName?: string;
   hasDocumentationAccess: boolean;
+  canManageSubscription: boolean;
   documentationNavigationTarget?: ApiDocumentationNavigationTarget;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
@@ -163,12 +166,16 @@ export class SubscriptionsDetailsComponent implements OnInit {
       });
   }
 
-  private getDocumentationAccess$(): Observable<boolean> {
+  reloadSubscriptionDetails() {
+    this._subscriptionDetails.next(true);
+  }
+
+  private getApiPermissions$(): Observable<UserApiPermissions | undefined> {
     return this.permissionsService.getApiPermissions(this.apiId).pipe(
-      map(() => true),
+      map(permissions => permissions),
       catchError(error => {
         if (error instanceof HttpErrorResponse && error.status === 404) {
-          return of(false);
+          return of(undefined);
         }
 
         return throwError(() => error);
@@ -181,17 +188,18 @@ export class SubscriptionsDetailsComponent implements OnInit {
       switchMap(() =>
         forkJoin({
           subscription: this.subscriptionService.get(this.subscriptionId),
-          hasDocumentationAccess: this.getDocumentationAccess$(),
+          apiPermissions: this.getApiPermissions$(),
         }),
       ),
-      switchMap(({ subscription, hasDocumentationAccess }) =>
+      switchMap(({ subscription, apiPermissions }) =>
         forkJoin({
           subscription: of(subscription),
           plan: this.getPlanData$(subscription.plan),
-          api: hasDocumentationAccess ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
+          api: apiPermissions ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
           application: this.applicationService.get(subscription.application),
-          hasDocumentationAccess: of(hasDocumentationAccess),
-          documentationNavigationTarget: hasDocumentationAccess
+          hasDocumentationAccess: of(!!apiPermissions),
+          canManageSubscription: of(!!(apiPermissions?.SUBSCRIPTION?.includes('U') || apiPermissions?.SUBSCRIPTION?.includes('D'))),
+          documentationNavigationTarget: apiPermissions
             ? this.portalNavigationItemsService.searchNavigationItemsWithApis(1, this.apiId, 10).pipe(
                 map(res => {
                   const item = res.data.find(i => i.id === this.apiId);
@@ -202,7 +210,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
             : of(null),
         }),
       ),
-      map(({ subscription, plan, api, application, hasDocumentationAccess, documentationNavigationTarget }) => {
+      map(({ subscription, plan, api, application, hasDocumentationAccess, canManageSubscription, documentationNavigationTarget }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
           application,
           subscription,
@@ -217,19 +225,19 @@ export class SubscriptionsDetailsComponent implements OnInit {
           updatedAt: subscription.updated_at,
           entrypointUrls: api?.entrypoints ?? [],
           hasDocumentationAccess,
+          canManageSubscription,
           documentationNavigationTarget: documentationNavigationTarget ?? undefined,
         };
 
         if (subscription.status === 'ACCEPTED') {
           if (plan.securityType === 'API_KEY' && subscription.api) {
             const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
-            const apiKey = apiKeyItem?.key ?? '';
             const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
 
             return {
               result: {
                 ...subscriptionDetails,
-                apiKey,
+                apiKeys: subscription.keys ?? [],
                 apiKeyConfigUsername,
               },
             };

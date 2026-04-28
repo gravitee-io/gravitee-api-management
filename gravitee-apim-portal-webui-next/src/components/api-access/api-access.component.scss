@@ -21,6 +21,14 @@
   height: 100%;
 
   &__header {
+    margin: 5px 0;
+  }
+
+  &__header-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
     padding: 8px 0 20px;
   }
 
@@ -40,6 +48,12 @@
     display: flex;
     flex-flow: column;
     gap: 32px;
+
+    &__api-keys-list {
+      display: flex;
+      flex-flow: column;
+      gap: 8px;
+    }
 
     &__calling-api {
       display: flex;

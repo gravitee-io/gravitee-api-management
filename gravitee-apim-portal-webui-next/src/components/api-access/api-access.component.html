@@ -18,7 +18,9 @@
 <mat-card appearance="outlined" class="api-access">
   @if (subscription?.status === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
     <mat-card-header>
-      <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+      <div class="api-access__header-row">
+        <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+      </div>
     </mat-card-header>
     <mat-card-content class="api-access__copy-code-content">
       @if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
@@ -32,38 +34,82 @@
         <app-native-kafka-api-access
           [entrypointUrls]="entrypointUrls ?? []"
           [planSecurity]="planSecurity"
-          [apiKey]="apiKey ?? ''"
-          [apiKeyConfigUsername]="apiKeyConfigUsername ?? ''"
+          [apiKey]="primaryApiKey"
+          [apiKeyConfigUsername]="resolvedApiKeyConfigUsername"
           [clientId]="clientId ?? ''"
         />
       } @else {
         @if (planSecurity === 'API_KEY') {
-          <app-copy-code id="api-key" title="Active API key" [text]="apiKey ?? ''" />
+          <div class="api-access__copy-code-content__api-keys-list">
+            <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
+            @if (apiKeyRows.length > 0) {
+              <app-paginated-table
+                [columns]="apiKeysColumns"
+                [rows]="displayedApiKeyRows"
+                [totalElements]="totalApiKeyElements"
+                [currentPage]="apiKeysCurrentPage"
+                [pageSize]="apiKeysPageSize"
+                [pageSizeOptions]="apiKeysPageSizeOptions"
+                [navigable]="false"
+                (pageChange)="onApiKeysPageChange($event)"
+                (pageSizeChange)="onApiKeysPageSizeChange($event)"
+              >
+                <ng-template appTableCell="status" let-apiKey>
+                  <mat-icon
+                    [svgIcon]="apiKey.statusIcon"
+                    [attr.aria-label]="apiKey.statusLabel"
+                    [attr.data-status-icon]="apiKey.statusIcon"
+                    data-testid="api-key-status-icon"
+                  />
+                </ng-template>
+                <ng-template appTableCell="revoke" let-apiKey>
+                  @if (canManageSubscription && apiKey.isActive) {
+                    <button
+                      mat-icon-button
+                      type="button"
+                      color="warn"
+                      [disabled]="isRevokingApiKey"
+                      matTooltip="Revoke"
+                      [attr.aria-label]="'Revoke API key ' + apiKey.key"
+                      [attr.data-api-key]="apiKey.key"
+                      data-testid="api-key-revoke-button"
+                      (click)="revokeApiKeyRow(apiKey)"
+                    >
+                      <mat-icon svgIcon="gio:x-circle" />
+                    </button>
+                  }
+                </ng-template>
+              </app-paginated-table>
+            } @else {
+              <div class="next-gen-body" i18n="@@subscriptionDetailsApiAccessApiKeysEmpty">No API keys available.</div>
+            }
+          </div>
         }
+        @if (shouldShowApiAccessContent) {
+          <div class="api-access__copy-code-content__calling-api">
+            <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
+            @if (entrypointUrls?.length === 1) {
+              <app-copy-code id="base-url" title="Base URL" [text]="(entrypointUrls ?? [''])[0]" />
+            } @else if (entrypointUrls && entrypointUrls.length > 1) {
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label class="next-gen-body" i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
+                <mat-select [(value)]="selectedEntrypointUrl" id="select-entrypoints">
+                  @for (entrypointUrl of entrypointUrls; track entrypointUrl) {
+                    <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
+                  }
+                </mat-select>
+                <app-copy-code-icon
+                  matSuffix
+                  (click)="$event.stopPropagation()"
+                  [contentToCopy]="selectedEntrypointUrl()"
+                  [label]="selectedEntrypointUrl()"
+                />
+              </mat-form-field>
+            }
 
-        <div class="api-access__copy-code-content__calling-api">
-          <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
-          @if (entrypointUrls?.length === 1) {
-            <app-copy-code id="base-url" title="Base URL" [text]="(entrypointUrls ?? [''])[0]" />
-          } @else if (entrypointUrls && entrypointUrls.length > 1) {
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label class="next-gen-body" i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
-              <mat-select [(value)]="selectedEntrypointUrl" id="select-entrypoints">
-                @for (entrypointUrl of entrypointUrls; track entrypointUrl) {
-                  <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
-                }
-              </mat-select>
-              <app-copy-code-icon
-                matSuffix
-                (click)="$event.stopPropagation()"
-                [contentToCopy]="selectedEntrypointUrl()"
-                [label]="selectedEntrypointUrl()"
-              />
-            </mat-form-field>
-          }
-
-          <app-copy-code id="command-line" [text]="curlCmd()" />
-        </div>
+            <app-copy-code id="command-line" [text]="curlCmd()" />
+          </div>
+        }
       }
     </mat-card-content>
   } @else {

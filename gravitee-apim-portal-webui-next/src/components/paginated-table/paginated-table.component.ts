@@ -26,7 +26,7 @@ import { DEFAULT_PAGE_SIZE_OPTIONS, PaginationComponent } from '../pagination/pa
 export interface TableColumn {
   id: string;
   label: string;
-  type?: 'text' | 'date';
+  type?: 'text' | 'date' | 'date-time';
 }
 
 export interface TableAction<T> {
