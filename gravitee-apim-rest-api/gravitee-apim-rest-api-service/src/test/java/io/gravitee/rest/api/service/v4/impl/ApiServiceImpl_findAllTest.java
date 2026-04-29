@@ -29,12 +29,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-<<<<<<< HEAD
-=======
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
-import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
->>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -215,15 +211,9 @@ public class ApiServiceImpl_findAllTest {
     private ApiCategoryService apiCategoryService;
 
     @Mock
-<<<<<<< HEAD
-=======
-    private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
-
-    @Mock
     private ApiMetadataQueryService apiMetadataQueryService;
 
     @Mock
->>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
     private CategoryMapper categoryMapper;
 
     private ApiService apiService;
@@ -295,13 +285,8 @@ public class ApiServiceImpl_findAllTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
-<<<<<<< HEAD
-            apiCategoryService
-=======
             apiCategoryService,
-            removeApiFromApiProductsDomainService,
             apiMetadataQueryService
->>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
         );
     }
 

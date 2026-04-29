@@ -28,12 +28,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.function.Function;
-<<<<<<< HEAD
-import lombok.extern.slf4j.Slf4j;
-=======
 import java.util.stream.Collectors;
-import lombok.CustomLog;
->>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
