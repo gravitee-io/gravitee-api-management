@@ -1636,6 +1636,7 @@ gateway:
   ratelimit:
     # hazelcast:
     #   configPath: ${gravitee.home}/config/hazelcast-ratelimit.xml
+    #   port: 5901
     # redis:
     #   host: redis
     #   port: 6379
