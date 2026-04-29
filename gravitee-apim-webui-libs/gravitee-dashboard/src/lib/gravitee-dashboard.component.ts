@@ -20,8 +20,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import moment from 'moment';
 import { combineLatest, EMPTY, map, of, startWith, Subject, switchMap, take } from 'rxjs';
 import { catchError, debounceTime, tap } from 'rxjs/operators';
 
@@ -30,10 +28,7 @@ import {
   DashboardMetadataDialogData,
   DashboardMetadataDialogResult,
 } from './components/dashboard-metadata-dialog/dashboard-metadata-dialog.component';
-import { Filter, GenericFilterBarComponent, SelectedFilter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
-import { timeFrames, timeFrameRangesParams, calculateCustomInterval } from './components/filter/timeframe-selector/utils/timeframe-ranges';
 import { GridComponent } from './components/grid/grid.component';
-import { FilterName } from './components/widget/model/request/enum/filter-name';
 import { RequestFilter, TimeRange } from './components/widget/model/request/request';
 import { TimeSeriesRequest } from './components/widget/model/request/time-series-request';
 import { Widget, isTimeSeriesWidget } from './components/widget/model/widget/widget.model';
@@ -49,23 +44,23 @@ const METADATA_DIALOG_WIDTH = '500px';
 @Component({
   selector: 'gd-dashboard',
   encapsulation: ViewEncapsulation.None,
-  imports: [GridComponent, GenericFilterBarComponent, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
+  imports: [GridComponent, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
   templateUrl: './gravitee-dashboard.component.html',
   styleUrl: './gravitee-dashboard.component.scss',
 })
 export class GraviteeDashboardComponent {
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly dashboardService = inject(GraviteeDashboardService);
   private readonly matDialog = inject(MatDialog);
   private readonly persistence = inject(DASHBOARD_PERSISTENCE, { optional: true });
 
   dashboard = input.required<Dashboard>();
-  filters = input.required<Filter[]>();
   baseURL = input.required<string>();
   capabilities = input<DashboardCapabilities>(DEFAULT_CAPABILITIES);
-  defaultPeriod = input<string>('5m');
   showTitle = input<boolean>(true);
+  requestFilters = input<RequestFilter[]>([]);
+  timeRange = input.required<TimeRange>();
+  interval = input<number | undefined>(undefined);
+  refreshToken = input<number>(0);
 
   readonly deleteRequested = output<void>();
   readonly nameChanged = output<string>();
@@ -84,24 +79,32 @@ export class GraviteeDashboardComponent {
     return caps.canEditMetadata || caps.canDeleteDashboard;
   });
 
-  currentSelectedFilters = toSignal(
-    this.activatedRoute.queryParams.pipe(
-      map(params => {
-        const filters = this.getSelectedFiltersFromQueryParams(params);
-        if (!filters.some(f => f.parentKey === 'period')) {
-          return [{ parentKey: 'period', value: this.defaultPeriod() }, ...filters];
-        }
-        return filters;
-      }),
-    ),
-    { initialValue: [{ parentKey: 'period', value: '5m' }] as SelectedFilter[] },
-  );
-
-  private readonly refreshTrigger = signal(0);
-
   readonly widgetsWithFilters = computed(() => {
-    this.refreshTrigger();
-    return this.getUpdatedWidgetsWithFilters(this.localWidgets(), this.currentSelectedFilters());
+    this.refreshToken();
+    const widgets = this.localWidgets();
+    const externalFilters = this.requestFilters();
+    const tr = this.timeRange();
+    const intv = this.interval();
+
+    return widgets.map(widget => {
+      if (!widget.request) return widget;
+
+      const finalFilters = [...(widget.request.filters ?? []), ...externalFilters];
+
+      if (isTimeSeriesWidget(widget) && intv !== undefined) {
+        return {
+          ...widget,
+          request: { ...widget.request, timeRange: tr, interval: intv, filters: finalFilters } as TimeSeriesRequest,
+          response: undefined,
+        };
+      }
+
+      return {
+        ...widget,
+        request: { ...widget.request, timeRange: tr, filters: finalFilters },
+        response: undefined,
+      };
+    });
   });
 
   private readonly loadedWidgets = toSignal(
@@ -126,7 +129,6 @@ export class GraviteeDashboardComponent {
   });
 
   constructor() {
-    // Initialise local state whenever a new dashboard is passed in
     effect(() => {
       const d = this.dashboard();
       this.localWidgets.set(d.widgets);
@@ -136,7 +138,6 @@ export class GraviteeDashboardComponent {
       this.localLabels.set(d.labels ?? {});
     });
 
-    // Auto-save pipeline
     this.saveSubject
       .pipe(
         debounceTime(700),
@@ -207,150 +208,11 @@ export class GraviteeDashboardComponent {
     });
   }
 
-  onSelectedFilters($event: SelectedFilter[]) {
-    const queryParams: Record<string, string> = {};
-
-    const periodFilter = $event.find(f => f.parentKey === 'period');
-    const fromFilter = $event.find(f => f.parentKey === 'from');
-    const toFilter = $event.find(f => f.parentKey === 'to');
-
-    if (periodFilter) {
-      queryParams['period'] = periodFilter.value;
-
-      if (periodFilter.value === 'custom' && fromFilter && toFilter) {
-        queryParams['from'] = fromFilter.value;
-        queryParams['to'] = toFilter.value;
-      }
-    }
-
-    const otherFilters = $event.filter(f => !['period', 'from', 'to'].includes(f.parentKey));
-    const groupedFilters = this.groupFilters(otherFilters);
-
-    groupedFilters.forEach((values, key) => {
-      queryParams[key] = values.join(',');
-    });
-
-    this.router.navigate(['.'], {
-      relativeTo: this.activatedRoute,
-      queryParams,
-    });
-  }
-
-  onRefresh(): void {
-    this.refreshTrigger.update(value => value + 1);
-  }
-
   private loadWidgetData(widget: Widget) {
     if (!widget.request) return of(widget);
 
     return this.dashboardService
       .getMetrics(this.baseURL(), widget.request.type, widget.request)
       .pipe(map(response => ({ ...widget, response }) satisfies Widget));
-  }
-
-  private getUpdatedWidgetsWithFilters(widgets: Widget[], selectedFilters: SelectedFilter[]): Widget[] {
-    const periodFilter = selectedFilters.find(f => f.parentKey === 'period');
-    const fromFilter = selectedFilters.find(f => f.parentKey === 'from');
-    const toFilter = selectedFilters.find(f => f.parentKey === 'to');
-
-    const { timeRange, interval } = this.getTimeRangeAndInterval(periodFilter?.value, fromFilter?.value, toFilter?.value);
-
-    const otherFilters = selectedFilters.filter(f => !['period', 'from', 'to'].includes(f.parentKey));
-    const groupedFilters = this.groupFilters(otherFilters);
-    const newFilters: RequestFilter[] = [];
-
-    groupedFilters.forEach((values, key) => {
-      if (values.length > 0) {
-        newFilters.push({ name: key, operator: 'IN', value: values });
-      }
-    });
-
-    return widgets.map(widget => {
-      if (!widget.request) return widget;
-
-      const finalFilters = [...(widget.request.filters ?? []), ...newFilters];
-
-      if (isTimeSeriesWidget(widget) && interval !== undefined) {
-        return {
-          ...widget,
-          request: { ...widget.request, timeRange, interval, filters: finalFilters } as TimeSeriesRequest,
-          response: undefined,
-        };
-      }
-
-      return {
-        ...widget,
-        request: { ...widget.request, timeRange, filters: finalFilters },
-        response: undefined,
-      };
-    });
-  }
-
-  private getTimeRangeAndInterval(period?: string, from?: string, to?: string): { timeRange: TimeRange; interval?: number } {
-    const normalizedPeriod = period || '5m';
-
-    if (normalizedPeriod === 'custom' && from && to) {
-      const fromTimestamp = Number.parseInt(from, 10);
-      const toTimestamp = Number.parseInt(to, 10);
-      const interval = calculateCustomInterval(fromTimestamp, toTimestamp);
-
-      return {
-        timeRange: {
-          from: moment(fromTimestamp).toISOString(),
-          to: moment(toTimestamp).toISOString(),
-        },
-        interval,
-      };
-    }
-
-    const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) || timeFrames.find(tf => tf.id === '5m');
-    const timeRangeParams = timeFrameRangesParams(timeFrame!.id);
-
-    return {
-      timeRange: {
-        from: moment(timeRangeParams.from).toISOString(),
-        to: moment(timeRangeParams.to).toISOString(),
-      },
-      interval: timeRangeParams.interval,
-    };
-  }
-
-  private groupFilters(selectedFilters: SelectedFilter[]) {
-    const groupedFilters = new Map<FilterName, string[]>();
-    selectedFilters.forEach(selectedFilter => {
-      const key = selectedFilter.parentKey as FilterName;
-      const value = selectedFilter.value;
-      groupedFilters.has(key) ? groupedFilters.get(key)!.push(value) : groupedFilters.set(key, [value]);
-    });
-    return groupedFilters;
-  }
-
-  private getSelectedFiltersFromQueryParams(params: Params) {
-    const selectedFilters: SelectedFilter[] = [];
-
-    Object.keys(params).forEach(key => {
-      const paramValue = params[key];
-
-      if (paramValue == null) return;
-
-      if (key === 'period') {
-        selectedFilters.push({ parentKey: 'period', value: String(paramValue) });
-      } else if (key === 'from') {
-        selectedFilters.push({ parentKey: 'from', value: String(paramValue) });
-      } else if (key === 'to') {
-        selectedFilters.push({ parentKey: 'to', value: String(paramValue) });
-      } else {
-        const paramString = Array.isArray(paramValue) ? paramValue.join(',') : String(paramValue);
-        const values: string[] = paramString.split(',');
-        values.forEach(value => {
-          const trimmedValue = value.trim();
-          if (trimmedValue) {
-            selectedFilters.push({ parentKey: key, value: trimmedValue });
-          }
-        });
-      }
-    });
-
-    return selectedFilters;
   }
 }

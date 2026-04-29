@@ -24,9 +24,9 @@ import { of } from 'rxjs';
 import { DashboardViewerComponent } from './dashboard-viewer.component';
 
 import { Constants } from '../../../../../entities/Constants';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 
-// Mock ResizeObserver to avoid errors in tests using canvas (Chartjs)
 globalThis.ResizeObserver =
   globalThis.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -48,6 +48,7 @@ const MOCK_DASHBOARD: Dashboard = {
 describe('DashboardViewerComponent', () => {
   let component: DashboardViewerComponent;
   let fixture: ComponentFixture<DashboardViewerComponent>;
+
   const mockGraviteeDashboardService = {
     getWidgets: jest.fn().mockReturnValue([]),
     getMetrics: jest.fn().mockReturnValue(of({ metrics: [] })),
@@ -59,25 +60,23 @@ describe('DashboardViewerComponent', () => {
     }),
   };
 
+  const permissionMock = {
+    hasAnyMatching: jest.fn().mockReturnValue(true),
+  };
+
   beforeEach(async () => {
     matDialogMock.open.mockReturnValue({
       afterClosed: () => of(undefined),
     });
+    permissionMock.hasAnyMatching.mockReturnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [DashboardViewerComponent, GioTestingModule],
       providers: [
-        {
-          provide: GraviteeDashboardService,
-          useValue: mockGraviteeDashboardService,
-        },
-        {
-          provide: Constants,
-          useValue: CONSTANTS_TESTING,
-        },
-        {
-          provide: MatDialog,
-          useValue: matDialogMock,
-        },
+        { provide: GraviteeDashboardService, useValue: mockGraviteeDashboardService },
+        { provide: Constants, useValue: CONSTANTS_TESTING },
+        { provide: MatDialog, useValue: matDialogMock },
+        { provide: GioPermissionService, useValue: permissionMock },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -105,6 +104,20 @@ describe('DashboardViewerComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render the timeframe selector row', () => {
+    const timeRow = fixture.debugElement.query(By.css('.observability-dashboard-viewer__time-row'));
+    expect(timeRow).toBeTruthy();
+    const timeframeSelector = timeRow.query(By.css('gd-timeframe-selector'));
+    expect(timeframeSelector).toBeTruthy();
+  });
+
+  it('should render the filters row', () => {
+    const filtersRow = fixture.debugElement.query(By.css('.observability-dashboard-viewer__filters-row'));
+    expect(filtersRow).toBeTruthy();
+    const filterBar = filtersRow.query(By.css('gd-dynamic-filter-bar'));
+    expect(filterBar).toBeTruthy();
+  });
+
   it('should open add filter dialog when Add filter is clicked', () => {
     const addBtn = fixture.debugElement.query(By.css('.gd-dynamic-filter-bar__add-btn'));
     expect(addBtn).toBeTruthy();
@@ -116,7 +129,6 @@ describe('DashboardViewerComponent', () => {
           timeFrom: expect.any(Number),
           timeTo: expect.any(Number),
         }),
-        injector: expect.any(Object),
       }),
     );
   });
@@ -129,5 +141,24 @@ describe('DashboardViewerComponent', () => {
     const addBtn = fixture.debugElement.query(By.css('.gd-dynamic-filter-bar__add-btn'));
     addBtn.nativeElement.click();
     expect(component.filtersStore.conditions()).toEqual([condition]);
+  });
+
+  it('should not open dialog when user lacks edit permission', () => {
+    matDialogMock.open.mockClear();
+    permissionMock.hasAnyMatching.mockReturnValue(false);
+    const freshFixture = TestBed.createComponent(DashboardViewerComponent);
+    freshFixture.componentRef.setInput('dashboard', MOCK_DASHBOARD);
+    freshFixture.detectChanges();
+    freshFixture.componentInstance.openAddFilter();
+    expect(matDialogMock.open).not.toHaveBeenCalled();
+  });
+
+  it('should hide add button when editable is false', async () => {
+    permissionMock.hasAnyMatching.mockReturnValue(false);
+    fixture = TestBed.createComponent(DashboardViewerComponent);
+    fixture.componentRef.setInput('dashboard', MOCK_DASHBOARD);
+    fixture.detectChanges();
+    const addBtn = fixture.debugElement.query(By.css('.gd-dynamic-filter-bar__add-btn'));
+    expect(addBtn).toBeNull();
   });
 });

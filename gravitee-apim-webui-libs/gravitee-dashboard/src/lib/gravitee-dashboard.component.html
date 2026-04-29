@@ -58,14 +58,13 @@
     </div>
   </div>
 
-  <gd-generic-filter-bar
-    [filters]="filters()"
-    [currentSelectedFilters]="currentSelectedFilters()"
-    [defaultPeriod]="'5m'"
-    (selectedFilters)="onSelectedFilters($event)"
-    (refresh)="onRefresh()"
-    class="filterBar"
-  />
+  <!--
+    Optional slot for consumer-provided controls (datepicker, dynamic filter bar, banners, etc.).
+    Rendered between the title toolbar and the widget grid so the visual order stays
+    "title -> consumer controls -> grid" without coupling this lib to any specific filtering
+    or analytics concept. Consumers project elements with the [gdToolbarBelow] attribute.
+  -->
+  <ng-content select="[gdToolbarBelow]" />
 
   <gd-grid
     [items]="dashboardWidgets()"

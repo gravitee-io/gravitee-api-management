@@ -33,4 +33,9 @@ public class ObservabilityResource {
     public ObservabilityFilterValuesResource getFilterValuesResource() {
         return resourceContext.getResource(ObservabilityFilterValuesResource.class);
     }
+
+    @Path("/filters/resolve")
+    public ObservabilityFilterLabelsResource getFilterLabelsResource() {
+        return resourceContext.getResource(ObservabilityFilterLabelsResource.class);
+    }
 }

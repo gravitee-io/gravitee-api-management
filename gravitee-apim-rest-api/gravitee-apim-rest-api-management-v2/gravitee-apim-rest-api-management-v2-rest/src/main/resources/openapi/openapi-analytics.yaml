@@ -283,6 +283,51 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
+    /environments/{envId}/observability/filters/resolve:
+        post:
+            operationId: resolveObservabilityFilterLabels
+            summary: Resolve display labels for observability filter values
+            description: |
+                Resolves stable filter value identifiers (for example API, APPLICATION, or PLAN ids) into display labels.
+                This endpoint is used when hydrating dashboard filters from the URL, where labels are intentionally not stored.
+            tags:
+                - definition
+            parameters:
+                - $ref: "#/components/parameters/EnvId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResolveFilterLabelsRequest"
+            responses:
+                "200":
+                    description: Resolved display labels grouped by filter name.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResolveFilterLabelsResponse"
+                            examples:
+                                resolved-labels:
+                                    summary: API labels
+                                    value:
+                                        entries:
+                                            - filterName: "API"
+                                              labels:
+                                                  "67e246cb-ab02-4da4-8f47-f9fa3e061d6b": "Public API"
+                "400":
+                    description: The request exceeds the maximum number of entries or identifiers.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "500":
+                    description: Internal server error while resolving filter labels.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
     /environments/{envId}/observability/filters/{filterName}/values:
         get:
             operationId: getObservabilityFilterValues
@@ -1686,6 +1731,63 @@ components:
                     pageCount: 1
                     pageItemsCount: 3
                     totalCount: 3
+
+        ResolveFilterLabelsRequestEntry:
+            type: object
+            required:
+                - filterName
+                - ids
+            properties:
+                filterName:
+                    $ref: "#/components/schemas/FilterName"
+                ids:
+                    type: array
+                    description: Stable identifiers to resolve for the filter.
+                    maxItems: 100
+                    items:
+                        type: string
+            example:
+                filterName: "API"
+                ids:
+                    - "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+
+        ResolveFilterLabelsRequest:
+            type: object
+            required:
+                - entries
+            properties:
+                entries:
+                    type: array
+                    description: Filter identifiers grouped by filter name.
+                    maxItems: 10
+                    items:
+                        $ref: "#/components/schemas/ResolveFilterLabelsRequestEntry"
+
+        ResolveFilterLabelsResponseEntry:
+            type: object
+            required:
+                - filterName
+                - labels
+            properties:
+                filterName:
+                    $ref: "#/components/schemas/FilterName"
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: Map of id to display label.
+            example:
+                filterName: "API"
+                labels:
+                    "67e246cb-ab02-4da4-8f47-f9fa3e061d6b": "Public API"
+
+        ResolveFilterLabelsResponse:
+            type: object
+            properties:
+                entries:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ResolveFilterLabelsResponseEntry"
 
         MetricSpecsResponse:
             type: object
