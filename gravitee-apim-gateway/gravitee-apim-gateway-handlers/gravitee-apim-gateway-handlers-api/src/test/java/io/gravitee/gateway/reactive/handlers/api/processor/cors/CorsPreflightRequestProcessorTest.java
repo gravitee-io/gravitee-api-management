@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.cors;
 
+import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ORIGIN;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
@@ -316,6 +318,35 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
 
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
+    }
+
+    @Test
+    public void shouldSetAllowPrivateNetworkHeaderWhenEnabledAndRequestHasPnaHeader() {
+        api.getProxy().getCors().setAllowPrivateNetwork(true);
+        spyRequestHeaders.set(ORIGIN, "origin");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK, "true");
+        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
+        assertThat(spyResponseHeaders.get(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK)).isEqualTo("true");
+    }
+
+    @Test
+    public void shouldNotSetAllowPrivateNetworkHeaderWhenEnabledButRequestMissingPnaHeader() {
+        api.getProxy().getCors().setAllowPrivateNetwork(true);
+        spyRequestHeaders.set(ORIGIN, "origin");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
+        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
+        assertThat(spyResponseHeaders.get(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK)).isNull();
+    }
+
+    @Test
+    public void shouldNotSetAllowPrivateNetworkHeaderWhenDisabledAndRequestHasPnaHeader() {
+        api.getProxy().getCors().setAllowPrivateNetwork(false);
+        spyRequestHeaders.set(ORIGIN, "origin");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK, "true");
+        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
+        assertThat(spyResponseHeaders.get(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK)).isNull();
     }
 
     @Test
