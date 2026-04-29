@@ -31,13 +31,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-<<<<<<< HEAD
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-=======
-import java.util.stream.Stream;
-import lombok.CustomLog;
->>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -224,7 +220,7 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
     @Override
     public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds)
         throws TechnicalException {
-        log.debug("JdbcMetadataRepository.findByReferenceTypeAndReferenceIdIn({}, {})", referenceType, referenceIds);
+        LOGGER.debug("JdbcMetadataRepository.findByReferenceTypeAndReferenceIdIn({}, {})", referenceType, referenceIds);
         if (referenceIds == null || referenceIds.isEmpty()) {
             return Collections.emptyList();
         }
