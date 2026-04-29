@@ -1,0 +1,44 @@
+{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast")) -}}
+{{- if $hzActive }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "gravitee.gateway.fullname" . }}-hz
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gateway.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  type: "ClusterIP"
+  ports:
+    {{- if eq .Values.ratelimit.type "hazelcast" }}
+    - port: 5901
+      targetPort: 5901
+      protocol: TCP
+      name: {{ printf "%s-%s" (.Values.gateway.name | trunc 56 | trimSuffix "-") "hz-rl" }}
+    {{- end }}
+    {{- if and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast") }}
+    - port: 5701
+      targetPort: 5701
+      protocol: TCP
+      name: {{ printf "%s-%s" (.Values.gateway.name | trunc 56 | trimSuffix "-") "hz-cl" }}
+    {{- end }}
+  selector:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+{{- end -}}

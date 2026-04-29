@@ -29,4 +29,11 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: added
+      description: 'Support Hazelcast as a distributed rate-limit backend (ratelimit.type=hazelcast) with auto-rendered hazelcast-ratelimit.xml, ClusterIP -hz Service, and Kubernetes discovery RBAC'
+      links:
+        - name: Jira
+          url: https://gravitee.atlassian.net/browse/APIM-13749
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/16606

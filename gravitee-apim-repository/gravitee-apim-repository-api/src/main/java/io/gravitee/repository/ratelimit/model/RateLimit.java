@@ -24,6 +24,8 @@ import java.util.Objects;
  */
 public class RateLimit implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private String key;
 
     private long counter = 0;
@@ -49,6 +51,7 @@ public class RateLimit implements Serializable {
         this.setCounter(rateLimit.getCounter());
         this.setLimit(rateLimit.getLimit());
         this.setResetTime(rateLimit.getResetTime());
+        this.setSubscription(rateLimit.getSubscription());
     }
 
     public long getCounter() {

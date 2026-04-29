@@ -1,0 +1,87 @@
+suite: am - Gateway - Hazelcast rate-limit ConfigMap + volume mount
+templates:
+  - "gateway/gateway-configmap.yaml"
+  - "gateway/gateway-deployment.yaml"
+tests:
+  - it: configmap omits hazelcast-ratelimit.xml under default ratelimit type
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: mongodb
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - notExists:
+          path: data["hazelcast-ratelimit.xml"]
+
+  - it: configmap renders hazelcast-ratelimit.xml when ratelimit type is hazelcast
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - exists:
+          path: data["hazelcast-ratelimit.xml"]
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<cluster-name>graviteeio-apim-ratelimit</cluster-name>"
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<service-name>my-apim-gateway-hz</service-name>"
+
+  - it: deployment omits hazelcast-ratelimit.xml volumeMount under default ratelimit type
+    template: gateway/gateway-deployment.yaml
+    set:
+      ratelimit:
+        type: mongodb
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/hazelcast-ratelimit.xml
+            subPath: hazelcast-ratelimit.xml
+
+  - it: deployment mounts hazelcast-ratelimit.xml when ratelimit type is hazelcast
+    template: gateway/gateway-deployment.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/hazelcast-ratelimit.xml
+            subPath: hazelcast-ratelimit.xml
+
+  - it: deployment skips hazelcast-ratelimit.xml mount when externalConfig is in use
+    template: gateway/gateway-deployment.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+      gateway:
+        extraVolumes: |
+          - name: config
+            configMap:
+              name: my-config
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/hazelcast-ratelimit.xml
+            subPath: hazelcast-ratelimit.xml

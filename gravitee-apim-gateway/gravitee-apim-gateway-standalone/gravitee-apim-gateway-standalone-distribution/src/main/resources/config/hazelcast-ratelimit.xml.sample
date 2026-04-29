@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Sample Hazelcast configuration for the rate-limit repository plugin.
+    Used when ratelimit.type: hazelcast is set in gravitee.yml.
+
+    The rate-limit Hazelcast instance is independent of any cache.type or cluster.type Hazelcast
+    instance: each forms its own logical Hazelcast cluster, identified by a distinct cluster-name.
+    Each instance also picks its own port: <port auto-increment="true"> grabs 5901 on the first
+    member and the next free port for any subsequent member, so multiple Hazelcast instances in
+    the same JVM (cluster + cache + rate-limit) do not collide.
+
+    For advanced configuration, see: https://docs.hazelcast.com/hazelcast/5.5/configuration
+-->
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.hazelcast.com/schema/config
+           http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+
+    <cluster-name>graviteeio-apim-ratelimit</cluster-name>
+    <network>
+        <port auto-increment="true" port-count="100">5901</port>
+        <join>
+            <auto-detection enabled="false"/>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="true">
+                <interface>127.0.0.1</interface>
+            </tcp-ip>
+        </join>
+    </network>
+</hazelcast>

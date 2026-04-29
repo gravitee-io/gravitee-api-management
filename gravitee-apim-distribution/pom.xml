@@ -1073,6 +1073,19 @@
             </exclusions>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-hazelcast</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+            <type>zip</type>
+        </dependency>
 
         <!-- Resources -->
         <dependency>

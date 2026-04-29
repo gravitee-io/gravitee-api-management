@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.11.5
+- Support Hazelcast as a distributed rate-limit backend (`ratelimit.type=hazelcast`). Renders `config/hazelcast-ratelimit.xml` with Kubernetes discovery, exposes a ClusterIP `-hz` Service for peer discovery, and creates a ClusterRole/Binding granting the gateway ServiceAccount `get`/`list` on `endpoints`/`pods`/`nodes`/`services`.
+
 ### 4.11.3
 - Fix API upgrader job rendering when additional plugins are configured.
 
