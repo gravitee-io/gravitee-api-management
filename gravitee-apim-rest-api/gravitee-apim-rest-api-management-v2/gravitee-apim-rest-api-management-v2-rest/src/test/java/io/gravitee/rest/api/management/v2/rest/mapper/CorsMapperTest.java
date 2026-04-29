@@ -39,6 +39,7 @@ public class CorsMapperTest {
         assertThat(corsEntity.getAccessControlExposeHeaders()).isEqualTo(cors.getExposeHeaders());
         assertThat(corsEntity.getAccessControlMaxAge()).isEqualTo(cors.getMaxAge());
         assertThat(corsEntity.isRunPolicies()).isEqualTo(cors.getRunPolicies());
+        assertThat(corsEntity.isAllowPrivateNetwork()).isEqualTo(cors.getAllowPrivateNetwork());
     }
 
     @Test
@@ -55,5 +56,6 @@ public class CorsMapperTest {
         assertThat(cors.getExposeHeaders()).isEqualTo(corsEntity.getAccessControlExposeHeaders());
         assertThat(cors.getMaxAge()).isEqualTo(corsEntity.getAccessControlMaxAge());
         assertThat(cors.getRunPolicies()).isEqualTo(corsEntity.isRunPolicies());
+        assertThat(cors.getAllowPrivateNetwork()).isEqualTo(corsEntity.isAllowPrivateNetwork());
     }
 }
