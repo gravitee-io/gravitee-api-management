@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,16 +45,20 @@ class FreemarkerTemplateResolverTest {
     FreemarkerTemplateResolver resolver = new FreemarkerTemplateResolver();
 
     private static Locale defaultLocale;
+    private static TimeZone defaultTimeZone;
 
     @BeforeAll
     static void beforeAll() {
         defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
+        defaultTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
     @AfterAll
     static void afterAll() {
         Locale.setDefault(defaultLocale);
+        TimeZone.setDefault(defaultTimeZone);
     }
 
     @Test
