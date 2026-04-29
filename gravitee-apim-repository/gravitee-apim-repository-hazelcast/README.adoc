@@ -1,0 +1,36 @@
+= Gravitee.io APIM - Repository - Hazelcast
+
+Hazelcast-backed implementation of `RateLimitRepository`. Provides distributed rate-limit counters via an embedded Hazelcast cluster.
+
+== Configuration
+
+In `gravitee.yml`:
+
+[source,yaml]
+----
+ratelimit:
+  type: hazelcast
+  hazelcast:
+    config-path: ${gravitee.home}/config/hazelcast-ratelimit.xml  # optional, default shown
+    instance-name: gio-apim-ratelimit-hz                          # optional, default shown
+----
+
+A sample Hazelcast XML config ships at `config/hazelcast-ratelimit.xml.sample` in the gateway distribution.
+
+== Independence from cluster / cache plugins
+
+This plugin owns its own embedded `HazelcastInstance`, scoped to rate-limit storage only. It is independent of `cluster.type=hazelcast` and `cache.type=hazelcast`. Use a distinct `<cluster-name>` and `<port>` range in each XML config when more than one Hazelcast subsystem runs in the same JVM.
+
+== Implementation
+
+Counters are stored in a Hazelcast `IMap<String, RateLimit>` named `rate-limits`. Each `incrementAndGet` is one async `IMap.submitToKey` call that runs an `EntryProcessor` on the partition owner: read current entry (or copy the supplied default if missing/expired), add the request weight, write back via `ExtendedMapEntry.setValue(value, ttlMs, MILLISECONDS)`.
+
+Atomicity comes from the partition lock — no distributed `IMap.lock`, one round-trip per increment. Hazelcast evicts each entry when its window TTL closes. `now` is captured by the caller before submitting the processor so backup replicas converge on the same final value as the primary.
+
+== Testing locally
+
+Plugin is bundled in the default distribution. After `mvn install -DskipTests`:
+
+. Set `ratelimit.type: hazelcast` in `gravitee.yml`.
+. Copy `config/hazelcast-ratelimit.xml.sample` to `config/hazelcast-ratelimit.xml`.
+. Start the gateway and apply a rate-limit policy.

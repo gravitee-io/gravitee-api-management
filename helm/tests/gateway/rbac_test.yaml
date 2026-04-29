@@ -1,0 +1,85 @@
+suite: am - Gateway - Hazelcast RBAC
+templates:
+  - "gateway/gateway-rbac.yaml"
+tests:
+  - it: should generate nothing when ratelimit type is mongodb (default)
+    template: gateway/gateway-rbac.yaml
+    set:
+      ratelimit:
+        type: mongodb
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate nothing when managedServiceAccount is disabled even if ratelimit is hazelcast
+    template: gateway/gateway-rbac.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+      apim:
+        managedServiceAccount: false
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate Role + RoleBinding when ratelimit type is hazelcast
+    template: gateway/gateway-rbac.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        isKind:
+          of: Role
+      - documentIndex: 0
+        equal:
+          path: metadata.namespace
+          value: unittest
+      - documentIndex: 0
+        equal:
+          path: rules[0].resources
+          value:
+            - endpoints
+            - pods
+            - nodes
+            - services
+      - documentIndex: 0
+        equal:
+          path: rules[0].verbs
+          value:
+            - get
+            - list
+      - documentIndex: 1
+        isKind:
+          of: RoleBinding
+      - documentIndex: 1
+        equal:
+          path: metadata.namespace
+          value: unittest
+
+  - it: should generate Role when gateway cluster type is hazelcast
+    template: gateway/gateway-rbac.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        isKind:
+          of: Role
