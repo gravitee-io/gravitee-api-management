@@ -16,39 +16,41 @@
 import {
   AddFilterDialogComponent,
   AddFilterDialogData,
+  customTimeFrames,
   Dashboard,
   DashboardCapabilities,
   DEFAULT_CAPABILITIES,
   DynamicFilterBarComponent,
-  epochMsRangeFromDashboardQueryParams,
-  Filter,
   FilterCondition,
   GraviteeDashboardComponent,
   provideFilterDefinitions,
   provideFilterValues,
   SaveState,
+  TimeframeSelectorComponent,
+  timeFrames,
 } from '@gravitee/gravitee-dashboard';
 
 import { Component, computed, DestroyRef, inject, Injector, input, output } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
 
-import { ApiFilterService } from './filters/api-filter.service';
-import { ApplicationFilterService } from './filters/application-filter.service';
 import { DashboardFiltersStore } from './dashboard-filters.store';
+import { FilterLabelResolver } from './filter-label.resolver';
 
 import { ObservabilityFiltersApiService } from '../../../data-access/observability-filters-api.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   selector: 'dashboard-viewer',
-  imports: [GraviteeDashboardComponent, DynamicFilterBarComponent],
+  imports: [GraviteeDashboardComponent, DynamicFilterBarComponent, TimeframeSelectorComponent, ReactiveFormsModule],
   templateUrl: './dashboard-viewer.component.html',
   styleUrl: './dashboard-viewer.component.scss',
   providers: [
     DashboardFiltersStore,
     ObservabilityFiltersApiService,
+    FilterLabelResolver,
     provideFilterDefinitions(ObservabilityFiltersApiService),
     provideFilterValues(ObservabilityFiltersApiService),
   ],
@@ -66,32 +68,17 @@ export class DashboardViewerComponent {
 
   readonly filtersStore = inject(DashboardFiltersStore);
   private readonly dialog = inject(MatDialog);
-  /** Dialog content must use this injector so `FILTER_*_PROVIDER` from `providers` above are visible. */
   private readonly injector = inject(Injector);
-  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly permissionService = inject(GioPermissionService);
 
-  private readonly queryParams = toSignal(this.route.queryParams, { initialValue: {} });
-  private readonly timeRangeEpoch = computed(() => epochMsRangeFromDashboardQueryParams(this.queryParams()));
+  readonly canEditFilters = computed(() => this.permissionService.hasAnyMatching(['environment-dashboard-u']));
 
-  private readonly apisResultsLoader = inject(ApiFilterService).resultsLoader;
-  private readonly applicationsResultsLoader = inject(ApplicationFilterService).resultsLoader;
-
-  filters: Filter[] = [
-    {
-      key: 'API',
-      label: 'API',
-      dataLoader: this.apisResultsLoader,
-    },
-    {
-      key: 'APPLICATION',
-      label: 'Application',
-      dataLoader: this.applicationsResultsLoader,
-    },
-  ];
+  protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
 
   openAddFilter(): void {
-    const { from, to } = this.timeRangeEpoch();
+    if (!this.canEditFilters()) return;
+    const { from, to } = this.filtersStore.timeRangeEpoch();
     this.dialog
       .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
         data: { timeFrom: from, timeTo: to },
@@ -108,7 +95,8 @@ export class DashboardViewerComponent {
   }
 
   openEditFilter(index: number, condition: FilterCondition): void {
-    const { from, to } = this.timeRangeEpoch();
+    if (!this.canEditFilters()) return;
+    const { from, to } = this.filtersStore.timeRangeEpoch();
     this.dialog
       .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
         data: { existingCondition: condition, timeFrom: from, timeTo: to },

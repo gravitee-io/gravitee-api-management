@@ -41,7 +41,6 @@ import { MatChipGrid, MatChipInput, MatChipRemove, MatChipRow } from '@angular/m
 import { MatOption, MatPseudoCheckbox, MatPseudoCheckboxState } from '@angular/material/core';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { BehaviorSubject, combineLatest, fromEvent, Observable, of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, finalize, map, startWith, switchMap, tap } from 'rxjs/operators';
 
@@ -65,7 +64,6 @@ interface KeywordOption {
     ReactiveFormsModule,
     MatFormField,
     MatLabel,
-    MatInput,
     MatAutocomplete,
     MatAutocompleteTrigger,
     MatOption,
@@ -252,19 +250,16 @@ export class KeywordValueInputComponent {
   });
 
   constructor() {
-    effect(
-      () => {
-        const ids = this.selectedValues();
-        const fromParent = this.valueLabels();
-        if (fromParent == null || fromParent.length !== ids.length) {
-          return;
-        }
-        const next = new Map<string, string>();
-        ids.forEach((id, i) => next.set(id, fromParent[i]!));
-        this.labelByValue.set(next);
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      const ids = this.selectedValues();
+      const fromParent = this.valueLabels();
+      if (fromParent == null || fromParent.length !== ids.length) {
+        return;
+      }
+      const next = new Map<string, string>();
+      ids.forEach((id, i) => next.set(id, fromParent[i]!));
+      this.labelByValue.set(next);
+    });
 
     effect(() => {
       if (!this.isMultiSelect() && this.multiOverlayRef?.hasAttached()) {
@@ -517,13 +512,18 @@ export class KeywordValueInputComponent {
       this.multiOverlayRef = undefined;
     }
 
+    // Prefer opening downwards. Allow the panel to shrink (flexible dimensions) so it does NOT flip
+    // upwards when the form-field is near the bottom of the viewport (typical inside a MatDialog).
+    // Only flip above as a last resort when the available space below is below the absolute floor.
     const positionStrategy = this.overlay
       .position()
       .flexibleConnectedTo(origin)
       .withViewportMargin(8)
-      .withLockedPosition(true)
+      .withFlexibleDimensions(true)
+      .withGrowAfterOpen(true)
       .withPositions([
         { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
+        { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
         { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
       ])
       .withPush(false);
@@ -535,7 +535,7 @@ export class KeywordValueInputComponent {
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
       hasBackdrop: true,
       backdropClass: 'cdk-overlay-transparent-backdrop',
-      minHeight: 120,
+      minHeight: 80,
       maxHeight: 280,
       width,
       disposeOnNavigation: true,

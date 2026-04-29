@@ -16,24 +16,40 @@
 
 -->
 <div class="observability-dashboard-viewer">
-  <div class="observability-dashboard-viewer__filters-shell">
-    <gd-dynamic-filter-bar
-      [conditions]="filtersStore.conditions()"
-      [editable]="true"
-      (addRequested)="openAddFilter()"
-      (editRequested)="openEditFilter($event.index, $event.condition)"
-      (removeRequested)="filtersStore.remove($event)"
-      (clearRequested)="filtersStore.clear()"
-    />
-  </div>
   <gd-dashboard
     [dashboard]="dashboard()"
     [baseURL]="baseURL"
-    [filters]="filters"
+    [requestFilters]="filtersStore.requestFilters()"
+    [timeRange]="filtersStore.timeRange()"
+    [interval]="filtersStore.interval()"
+    [refreshToken]="filtersStore.refreshToken()"
     [capabilities]="capabilities()"
     [showTitle]="showTitle()"
     (deleteRequested)="deleteRequested.emit()"
     (nameChanged)="nameChanged.emit($event)"
     (saveStateChange)="saveStateChange.emit($event)"
-  />
+  >
+    <div gdToolbarBelow class="observability-dashboard-viewer__controls">
+      <div class="observability-dashboard-viewer__time-row">
+        <gd-timeframe-selector
+          [formControl]="filtersStore.periodControl"
+          [timeFrames]="timeFrames"
+          [customPeriod]="'custom'"
+          (apply)="filtersStore.applyCustomTimeframe()"
+          (refresh)="filtersStore.refresh()"
+        />
+      </div>
+
+      <div class="observability-dashboard-viewer__filters-row">
+        <gd-dynamic-filter-bar
+          [conditions]="filtersStore.conditions()"
+          [editable]="canEditFilters()"
+          (addRequested)="openAddFilter()"
+          (editRequested)="openEditFilter($event.index, $event.condition)"
+          (removeRequested)="filtersStore.remove($event)"
+          (clearRequested)="filtersStore.clear()"
+        />
+      </div>
+    </div>
+  </gd-dashboard>
 </div>

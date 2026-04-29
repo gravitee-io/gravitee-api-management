@@ -55,6 +55,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
@@ -1341,6 +1342,11 @@ public class ResourceContextConfiguration {
             applicationQueryService,
             planQueryService
         );
+    }
+
+    @Bean
+    public ResolveFilterLabelsUseCase resolveFilterLabelsUseCase(FilterValueNameResolver filterValueNameResolver) {
+        return new ResolveFilterLabelsUseCase(filterValueNameResolver);
     }
 
     @Bean

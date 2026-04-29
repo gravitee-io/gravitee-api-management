@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-04-27
+
+### Added
+
+- **`[gdToolbarBelow]` content slot** on `gd-dashboard`: optional projection slot rendered between the title toolbar and the widget grid. Lets consumers compose page-level controls (datepicker, dynamic filter bar, banners, etc.) inside the dashboard frame so the natural visual order is "title → consumer controls → grid", without coupling the lib to any specific filtering or analytics concept.
+
+### Removed
+
+- **Deleted `GenericFilterBarComponent` source files** (`components/filter/generic-filter-bar/*`). The component had been removed from `public-api.ts` in `0.2.0` and is now physically gone from the bundle.
+- **Removed orphaned `.filterBar` class** in `gravitee-dashboard.component.scss` (left behind by the removal of the legacy filter bar).
+
+## [0.2.0] - 2026-04-27
+
+### Breaking
+
+- **`gd-dashboard` is now input-driven**: removed internal `ActivatedRoute` / `Router` usage and `gd-generic-filter-bar`. The component no longer reads/writes query params. New required/optional inputs: `requestFilters` (`RequestFilter[]`), `timeRange` (`TimeRange`, required), `interval` (`number | undefined`), `refreshToken` (`number`). Removed inputs: `filters` (`Filter[]`), `defaultPeriod`.
+- **Removed `GenericFilterBarComponent`** and related exports (`Filter`, `SelectedFilter`) from `public-api.ts`. Use `DynamicFilterBarComponent` and `TimeframeSelectorComponent` separately.
+
+### Added
+
+- **`TimeframeSelectorComponent`** exported from `public-api.ts` (standalone, was previously internal only).
+- **`filter-url.codec`** (`encodeFilters`, `decodeFilters`): pure utility for Kong-style `q` + `v=1` URL encoding of `FilterCondition[]`.
+- **`RequestFilter`, `TimeRange`** types re-exported from `public-api.ts`.
+
 ## [0.1.0] - 2026-04-24
 
 ### Breaking

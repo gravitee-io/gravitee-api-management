@@ -16,17 +16,19 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
 
-import { Filter, SelectedFilter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
 import { MeasuresRequest } from './components/widget/model/request/measures-request';
-import { RequestFilter } from './components/widget/model/request/request';
+import { RequestFilter, TimeRange } from './components/widget/model/request/request';
 import { FacetsResponse } from './components/widget/model/response/facets-response';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { Widget } from './components/widget/model/widget/widget.model';
 import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
 import { Dashboard } from './models/dashboard.model';
+
+const DEFAULT_TIME_RANGE: TimeRange = {
+  from: '2025-01-01T00:00:00.000Z',
+  to: '2025-01-01T01:00:00.000Z',
+};
 
 const EMPTY_DASHBOARD: Dashboard = {
   id: 'test-id',
@@ -44,41 +46,20 @@ describe('GraviteeDashboardComponent', () => {
   let component: GraviteeDashboardComponent;
   let fixture: ComponentFixture<GraviteeDashboardComponent>;
   let httpTestingController: HttpTestingController;
-  let router: Router;
-  let activatedRoute: ActivatedRoute;
   const mockBaseURL = 'http://customURL';
-  const mockFilters: Filter[] = [];
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of({}),
-            snapshot: { params: {}, queryParams: {} },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(GraviteeDashboardComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
-    router = TestBed.inject(Router);
-    activatedRoute = TestBed.inject(ActivatedRoute);
 
     fixture.componentRef.setInput('baseURL', mockBaseURL);
-    fixture.componentRef.setInput('filters', mockFilters);
+    fixture.componentRef.setInput('timeRange', DEFAULT_TIME_RANGE);
     fixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
     fixture.detectChanges();
   });
@@ -312,46 +293,7 @@ describe('GraviteeDashboardComponent', () => {
     expect(updatedWidgets[1].response).toEqual(mockFacetsResponse);
   }));
 
-  it('should navigate with query params when filters are selected', () => {
-    const selectedFilters: SelectedFilter[] = [
-      { parentKey: 'period', value: '1d' },
-      { parentKey: 'API', value: 'api-1' },
-      { parentKey: 'API', value: 'api-2' },
-    ];
-
-    component.onSelectedFilters(selectedFilters);
-
-    expect(router.navigate).toHaveBeenCalledWith(['.'], {
-      relativeTo: activatedRoute,
-      queryParams: {
-        period: '1d',
-        API: 'api-1,api-2',
-      },
-    });
-  });
-
-  it('should navigate with custom period and from/to params', () => {
-    const selectedFilters: SelectedFilter[] = [
-      { parentKey: 'period', value: 'custom' },
-      { parentKey: 'from', value: '1704067200000' },
-      { parentKey: 'to', value: '1704153600000' },
-      { parentKey: 'API', value: 'api-1' },
-    ];
-
-    component.onSelectedFilters(selectedFilters);
-
-    expect(router.navigate).toHaveBeenCalledWith(['.'], {
-      relativeTo: activatedRoute,
-      queryParams: {
-        period: 'custom',
-        from: '1704067200000',
-        to: '1704153600000',
-        API: 'api-1',
-      },
-    });
-  });
-
-  it('should trigger refresh when onRefresh is called', fakeAsync(() => {
+  it('should trigger refresh when refreshToken input changes', fakeAsync(() => {
     const mockResponse: MeasuresResponse = {
       metrics: [
         {
@@ -387,7 +329,7 @@ describe('GraviteeDashboardComponent', () => {
     req1.flush(mockResponse);
     tick();
 
-    component.onRefresh();
+    fixture.componentRef.setInput('refreshToken', 1);
     fixture.detectChanges();
     tick();
 
@@ -397,117 +339,8 @@ describe('GraviteeDashboardComponent', () => {
     tick();
   }));
 
-  it('should parse query params and initialize selected filters', () => {
-    const queryParams = {
-      period: '1d',
-      from: '1704067200000',
-      to: '1704153600000',
-      API: 'api-1,api-2',
-      APPLICATION: 'app-1',
-    };
-
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of(queryParams),
-            snapshot: { params: {}, queryParams },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
-    });
-
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
-    newFixture.detectChanges();
-
-    const component = newFixture.componentInstance;
-    const selectedFilters = component.currentSelectedFilters();
-
-    expect(selectedFilters.length).toBe(6);
-    expect(selectedFilters.find(f => f.parentKey === 'period')?.value).toBe('1d');
-    expect(selectedFilters.find(f => f.parentKey === 'from')?.value).toBe('1704067200000');
-    expect(selectedFilters.find(f => f.parentKey === 'to')?.value).toBe('1704153600000');
-    expect(selectedFilters.filter(f => f.parentKey === 'API').length).toBe(2);
-    expect(selectedFilters.filter(f => f.parentKey === 'APPLICATION').length).toBe(1);
-  });
-
-  it('should handle empty query params', () => {
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of({}),
-            snapshot: { params: {}, queryParams: {} },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
-    });
-
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
-    newFixture.detectChanges();
-
-    const component = newFixture.componentInstance;
-    const selectedFilters = component.currentSelectedFilters();
-
-    expect(selectedFilters.length).toBe(1);
-    expect(selectedFilters[0]).toEqual({ parentKey: 'period', value: '5m' });
-  });
-
-  it('should apply filters to widget requests', fakeAsync(() => {
-    const queryParams = {
-      period: '1d',
-      API: 'api-1,api-2',
-    };
-
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of(queryParams),
-            snapshot: { params: {}, queryParams },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
-    });
+  it('should apply requestFilters to widget requests', fakeAsync(() => {
+    const externalFilters: RequestFilter[] = [{ name: 'API', operator: 'IN', value: ['api-1', 'api-2'] }];
 
     const widgets: Widget[] = [
       {
@@ -526,15 +359,12 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    const newHttpTestingController = TestBed.inject(HttpTestingController);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('dashboard', buildDashboard(widgets));
-    newFixture.detectChanges();
+    fixture.componentRef.setInput('requestFilters', externalFilters);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
+    fixture.detectChanges();
     tick();
 
-    const req = newHttpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
     expect(req.request.method).toBe('POST');
     const requestBody = req.request.body as MeasuresRequest;
     expect(requestBody.filters).toBeDefined();
@@ -555,121 +385,9 @@ describe('GraviteeDashboardComponent', () => {
     tick();
   }));
 
-  it('should handle null or undefined query param values', () => {
-    const queryParams = {
-      period: '1d',
-      API: null,
-      APPLICATION: undefined,
-      EMPTY: '',
-    };
-
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of(queryParams),
-            snapshot: { params: {}, queryParams },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
-    });
-
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
-    newFixture.detectChanges();
-
-    const component = newFixture.componentInstance;
-    const selectedFilters = component.currentSelectedFilters();
-
-    expect(selectedFilters.find(f => f.parentKey === 'API')).toBeUndefined();
-    expect(selectedFilters.find(f => f.parentKey === 'APPLICATION')).toBeUndefined();
-    expect(selectedFilters.find(f => f.parentKey === 'period')?.value).toBe('1d');
-  });
-
-  it('should handle array query param values', () => {
-    const queryParams = {
-      period: '1d',
-      API: ['api-1', 'api-2'],
-    };
-
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of(queryParams),
-            snapshot: { params: {}, queryParams },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
-    });
-
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('dashboard', EMPTY_DASHBOARD);
-    newFixture.detectChanges();
-
-    const component = newFixture.componentInstance;
-    const selectedFilters = component.currentSelectedFilters();
-
-    expect(selectedFilters.filter(f => f.parentKey === 'API').length).toBe(2);
-    expect(selectedFilters.find(f => f.parentKey === 'API' && f.value === 'api-1')).toBeDefined();
-    expect(selectedFilters.find(f => f.parentKey === 'API' && f.value === 'api-2')).toBeDefined();
-  });
-
-  it('should merge dashboard filters with widget-level filters at request time', fakeAsync(() => {
+  it('should merge requestFilters with widget-level filters at request time', fakeAsync(() => {
     const widgetLevelFilter: RequestFilter = { name: 'HTTP_STATUS', operator: 'IN', value: ['2xx'] };
-
-    const queryParams = {
-      period: '1d',
-      API: 'api-1',
-    };
-
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [GraviteeDashboardComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of(queryParams),
-            snapshot: { params: {}, queryParams },
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            navigate: jest.fn().mockResolvedValue(true),
-          },
-        },
-      ],
-    });
+    const externalFilters: RequestFilter[] = [{ name: 'API', operator: 'IN', value: ['api-1'] }];
 
     const widgets: Widget[] = [
       {
@@ -685,15 +403,12 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    const newHttpTestingController = TestBed.inject(HttpTestingController);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
-    newFixture.componentRef.setInput('filters', mockFilters);
-    newFixture.componentRef.setInput('dashboard', buildDashboard(widgets));
-    newFixture.detectChanges();
+    fixture.componentRef.setInput('requestFilters', externalFilters);
+    fixture.componentRef.setInput('dashboard', buildDashboard(widgets));
+    fixture.detectChanges();
     tick();
 
-    const req = newHttpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
     const requestBody = req.request.body as MeasuresRequest;
 
     expect(requestBody.filters).toBeDefined();

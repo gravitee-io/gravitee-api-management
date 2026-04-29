@@ -30,10 +30,19 @@ export * from './lib/components/chart/pie-chart/pie-chart.component';
 export * from './lib/components/chart/time-series-chart/time-series-chart.component';
 export * from './lib/components/chart/category-chart/category-chart.component';
 export * from './lib/components/filter/dropdown-search/dropdown-search.component';
-export * from './lib/components/filter/generic-filter-bar/generic-filter-bar.component';
 export * from './lib/components/filter/filter.model';
 export * from './lib/components/filter/filter-chip/filter-chip.component';
 export * from './lib/components/filter/dynamic-filter-bar/dynamic-filter-bar.component';
 export * from './lib/components/filter/add-filter-dialog/add-filter-dialog.component';
 export * from './lib/components/filter/filter-providers';
+export * from './lib/components/filter/timeframe-selector/timeframe-selector.component';
 export * from './lib/components/filter/timeframe-selector/utils/timeframe-ranges';
+export {
+  DEFAULT_VIEW_STATE_PERIOD,
+  encodeViewState,
+  decodeViewState,
+  ViewStatePayload,
+  ViewStateTimeframe,
+  TimeRangeUrlEntry,
+} from './lib/components/filter/utils/filter-url.codec';
+export * from './lib/components/widget/model/request/request';
