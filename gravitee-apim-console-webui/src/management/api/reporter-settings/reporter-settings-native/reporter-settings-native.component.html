@@ -15,16 +15,37 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <mat-card-content>
-    @if (reporterSettingsForm) {
-      <form [formGroup]="reporterSettingsForm">
+@if (reporterSettingsForm) {
+  <form [formGroup]="reporterSettingsForm">
+    <mat-card>
+      <mat-card-content>
         <gio-form-slide-toggle>
           <gio-form-label>Enable metrics reporting</gio-form-label>
           <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Report event metrics"></mat-slide-toggle>
           <mat-hint>Enabling it will report event metrics in ElasticSearch or OpenSearch</mat-hint>
         </gio-form-slide-toggle>
-      </form>
-    }
-  </mat-card-content>
-</mat-card>
+
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">OpenTelemetry</div>
+          <div class="settings__form-control__subtitle">OpenTelemetry settings.</div>
+          <gio-form-slide-toggle>
+            <gio-form-label>Enabled</gio-form-label>
+            Enable OpenTelemetry tracing. Per-request spans are generated only for Kafka operations listed in the gateway-level
+            <code>services.opentelemetry.kafka.tracedApiKeys</code> configuration.
+            <mat-slide-toggle gioFormSlideToggle formControlName="tracingEnabled"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+          <gio-form-slide-toggle>
+            <gio-form-label>Verbose</gio-form-label>
+            Adds per-phase, per-flow, and per-policy spans within each traced Kafka request. Standard mode already captures connection
+            lifecycle, authentication, and per-request spans with protocol details.
+            <br />
+            <mat-icon svgIcon="gio:alert-circle" class="verbose-warning-icon"></mat-icon>
+            Enable only for deep debugging - increases trace volume significantly on high-throughput Kafka APIs.
+            <mat-slide-toggle gioFormSlideToggle formControlName="tracingVerbose"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <gio-save-bar [form]="reporterSettingsForm" [formInitialValues]="defaultConfiguration" (submitted)="submit()"></gio-save-bar>
+  </form>
+}
