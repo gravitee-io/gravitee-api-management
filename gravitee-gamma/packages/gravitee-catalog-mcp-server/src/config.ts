@@ -2,14 +2,14 @@ export interface Config {
   graviteeGammaBaseUrl: string;
   graviteeAppId: string;
   graviteeApiKey: string;
-  openaiApiKey: string;
+  geminiApiKey: string;
 }
 
 const REQUIRED_VARS = [
   ["GRAVITEE_GAMMA_BASE_URL", "graviteeGammaBaseUrl"],
   ["GRAVITEE_APP_ID", "graviteeAppId"],
   ["GRAVITEE_API_KEY", "graviteeApiKey"],
-  ["OPENAI_API_KEY", "openaiApiKey"],
+  ["GEMINI_API_KEY", "geminiApiKey"],
 ] as const;
 
 export function loadConfig(): Config {

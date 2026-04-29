@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { Config } from "../config.js";
+
+const GEMINI_MODEL = "gemini-2.0-flash";
 
 interface CatalogAsset {
   id: string;
@@ -30,21 +32,7 @@ function loadCatalog(): CatalogAsset[] {
   return JSON.parse(raw);
 }
 
-export async function searchCatalog(
-  args: { intent: string },
-  config: Config,
-): Promise<{ content: Array<{ type: "text"; text: string }> }> {
-  const catalog = loadCatalog();
-  const openai = new OpenAI({ apiKey: config.openaiApiKey });
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `You are an API catalog routing assistant for the Gravitee platform.
+const SYSTEM_INSTRUCTION = `You are an API catalog routing assistant for the Gravitee platform.
 Given a catalog of assets and a user intent, return the top 2 assets that best match the intent.
 
 Respond with valid JSON in this exact format:
@@ -61,16 +49,27 @@ Respond with valid JSON in this exact format:
   ]
 }
 
-Only return assets that are genuinely relevant. If fewer than 2 match, return fewer.`,
-      },
-      {
-        role: "user",
-        content: `## Available Assets\n\n${JSON.stringify(catalog, null, 2)}\n\n## Intent\n\n${args.intent}`,
-      },
-    ],
+Only return assets that are genuinely relevant. If fewer than 2 match, return fewer.`;
+
+export async function searchCatalog(
+  args: { intent: string },
+  config: Config,
+): Promise<{ content: Array<{ type: "text"; text: string }> }> {
+  const catalog = loadCatalog();
+  const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+  const model = genAI.getGenerativeModel({
+    model: GEMINI_MODEL,
+    systemInstruction: SYSTEM_INSTRUCTION,
+    generationConfig: {
+      temperature: 0,
+      responseMimeType: "application/json",
+    },
   });
 
-  const raw = completion.choices[0]?.message?.content ?? '{"matches":[]}';
+  const result = await model.generateContent(
+    `## Available Assets\n\n${JSON.stringify(catalog, null, 2)}\n\n## Intent\n\n${args.intent}`,
+  );
+  const raw = result.response.text() ?? '{"matches":[]}';
   let matches: MatchResult[];
   try {
     matches = JSON.parse(raw).matches;
@@ -85,6 +84,7 @@ Only return assets that are genuinely relevant. If fewer than 2 match, return fe
         text: JSON.stringify(
           {
             intent: args.intent,
+            model: GEMINI_MODEL,
             results: matches,
             total_catalog_size: catalog.length,
           },

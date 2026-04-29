@@ -8,8 +8,8 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "openai": "^4.96.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
