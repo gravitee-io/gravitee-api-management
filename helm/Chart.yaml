@@ -31,6 +31,7 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+<<<<<<< HEAD
       description: 'Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal). Compatible with any provider; Ingress Nginx takes priority if enabled.'
     - kind: changed
       description: 'Migrate repository configuration (management, analytics, ratelimit) under repositories.* prefix in configmaps. Legacy keys are deprecated and will be removed in a future release.'
@@ -44,3 +45,11 @@ annotations:
       description: 'Improve JDBC driver delivery options with auto, image, download and preinstalled modes.'
     - kind: added
       description: 'Validate jdbc.driverSource values during chart rendering and fail on unsupported values.'
+=======
+      description: 'Support Hazelcast as a distributed rate-limit backend (ratelimit.type=hazelcast) with auto-rendered hazelcast-ratelimit.xml, ClusterIP -hz Service, and Kubernetes discovery RBAC'
+      links:
+        - name: Jira
+          url: https://gravitee.atlassian.net/browse/APIM-13749
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/16606
+>>>>>>> 47f7f1da4a (feat(ratelimit): add Hazelcast rate-limit repository with K8s helm chart)

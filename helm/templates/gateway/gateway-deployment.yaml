@@ -263,6 +263,11 @@ spec:
             - name: config
               mountPath: /opt/graviteeio-gateway/config/gravitee.yml
               subPath: gravitee.yml
+          {{- if and (eq .Values.ratelimit.type "hazelcast") (not (include "gateway.externalConfig" .)) }}
+            - name: config
+              mountPath: /opt/graviteeio-gateway/config/hazelcast-ratelimit.xml
+              subPath: hazelcast-ratelimit.xml
+          {{- end }}
           {{- if or .Values.gateway.logging.debug .Values.gateway.logback.override }}
             - name: {{ $logbackVolumeName }}
               mountPath: /opt/graviteeio-gateway/config/logback.xml

@@ -600,6 +600,33 @@ data:
             idleTimeout: {{ .Values.gateway.ratelimit.redis.tcp.idleTimeout | default "0" }}
           {{- end }}
         {{- end }}
+<<<<<<< HEAD
+=======
+        {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
+        sentinel:
+          master: {{ .Values.gateway.ratelimit.redis.sentinel.master }}
+          nodes:
+            {{- range .Values.gateway.ratelimit.redis.sentinel.nodes }}
+            - host: {{ .host }}
+              port: {{ .port }}
+            {{- end }}
+        {{- end }}
+        {{- if (not (empty (.Values.gateway.ratelimit.redis.operation))) }}
+        operation:
+          timeout: {{ .Values.gateway.ratelimit.redis.operation.timeout | default "10" }}
+        {{- end }}
+        {{- if (not (empty (.Values.gateway.ratelimit.redis.tcp))) }}
+        tcp:
+          connectTimeout: {{ .Values.gateway.ratelimit.redis.tcp.connectTimeout | default "5000" }}
+          idleTimeout: {{ .Values.gateway.ratelimit.redis.tcp.idleTimeout | default "0" }}
+        {{- end }}
+      {{- else if (eq .Values.ratelimit.type "hazelcast") }}
+      {{- $hzCfg := dict }}
+      {{- if and .Values.gateway.ratelimit (kindIs "map" .Values.gateway.ratelimit) }}{{ $hzCfg = (.Values.gateway.ratelimit.hazelcast | default dict) }}{{ end }}
+      hazelcast:
+        config-path: {{ $hzCfg.configPath | default "${gravitee.home}/config/hazelcast-ratelimit.xml" }}
+      {{- end }}
+>>>>>>> 47f7f1da4a (feat(ratelimit): add Hazelcast rate-limit repository with K8s helm chart)
 
     # Sharding tags configuration
     # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
@@ -890,6 +917,31 @@ data:
     {{- end}}
 
   {{- end }}
+{{- if eq .Values.ratelimit.type "hazelcast" }}
+  hazelcast-ratelimit.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+        <cluster-name>graviteeio-apim-ratelimit</cluster-name>
+        <properties>
+            <property name="hazelcast.discovery.enabled">true</property>
+            <property name="hazelcast.logging.type">slf4j</property>
+        </properties>
+        <network>
+            <port auto-increment="true" port-count="100">5901</port>
+            <join>
+                <multicast enabled="false"/>
+                <tcp-ip enabled="false"/>
+                <kubernetes enabled="true">
+                    <namespace>{{ .Release.Namespace }}</namespace>
+                    <service-name>{{ template "gravitee.gateway.fullname" . }}-hz</service-name>
+                </kubernetes>
+            </join>
+        </network>
+    </hazelcast>
+{{- end }}
     {{- if .Values.gateway.logback.override }}
   logback.xml: |
 {{ .Values.gateway.logback.content | indent 4 }}
