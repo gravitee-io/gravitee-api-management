@@ -315,7 +315,7 @@ https
 {{- else if default false (get $httpRoute "enabled") -}}
 {{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 
@@ -341,7 +341,7 @@ https
 {{- else if default false (get $httpRoute "enabled") -}}
 {{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 
@@ -367,6 +367,6 @@ https
 {{- else if default false (get $httpRoute "enabled") -}}
 {{ toYaml (default (list) (get $httpRoute "hostnames")) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}

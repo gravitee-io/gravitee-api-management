@@ -152,7 +152,7 @@ tests:
           path: data["constants.json"]
           pattern: '"baseURL": "http://api-http\.example\.com/management"'
 
-  - it: should keep management API baseURL empty when ingress is disabled and no effective route resolves
+  - it: should fall back to default apim.example.com baseURL when ingress is disabled and no effective route resolves
     template: ui/ui-configmap.yaml
     set:
       api:
@@ -164,7 +164,7 @@ tests:
     asserts:
       - matchRegex:
           path: data["constants.json"]
-          pattern: '"baseURL": ""'
+          pattern: '"baseURL": "https://apim\.example\.com/management"'
 
   - it: should derive portal entrypoint from top-level gateway httpRoute when ingress is disabled
     template: ui/ui-configmap.yaml
