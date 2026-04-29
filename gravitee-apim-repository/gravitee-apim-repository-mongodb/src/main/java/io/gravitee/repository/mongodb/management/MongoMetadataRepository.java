@@ -158,12 +158,12 @@ public class MongoMetadataRepository implements MetadataRepository {
 
     @Override
     public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds) {
-        log.debug("Find metadata by ref type '{}' and ref ids '{}'", referenceType, referenceIds);
+        LOGGER.debug("Find metadata by ref type '{}' and ref ids '{}'", referenceType, referenceIds);
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceIdIn(
             referenceType,
             referenceIds
         );
-        log.debug("Find metadata by ref type '{}' and ref ids '{}' done", referenceType, referenceIds);
+        LOGGER.debug("Find metadata by ref type '{}' and ref ids '{}' done", referenceType, referenceIds);
         return metadata.stream().map(this::map).collect(Collectors.toList());
     }
 

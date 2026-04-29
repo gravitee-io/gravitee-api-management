@@ -16,11 +16,7 @@
 package io.gravitee.apim.core.api.query_service;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
-<<<<<<< HEAD
-import io.gravitee.rest.api.service.common.ExecutionContext;
-=======
 import java.util.List;
->>>>>>> c17dfe8c6d (feat: add expands=metadata support on GET /apis list endpoint)
 import java.util.Map;
 
 public interface ApiMetadataQueryService {
