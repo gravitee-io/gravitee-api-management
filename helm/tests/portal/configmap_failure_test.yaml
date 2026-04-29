@@ -2,7 +2,7 @@ suite: Test portal configmap failures
 templates:
   - "portal/portal-configmap.yaml"
 tests:
-  - it: Should fail portal configmap rendering when no portal baseURL can be resolved
+  - it: Should fall back to the default apim.example.com portal baseURL when ingress and httpRoute are disabled and no portal.baseURL is set
     template: portal/portal-configmap.yaml
     set:
       api:
@@ -15,5 +15,6 @@ tests:
       portal:
         baseURL:
     asserts:
-      - failedTemplate:
-          errorMessage: "portal.baseURL must be set when no API portal route URL can be resolved"
+      - matchRegex:
+          path: data["config.json"]
+          pattern: '"baseURL": "https://apim\.example\.com/portal"'

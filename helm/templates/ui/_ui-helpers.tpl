@@ -56,7 +56,7 @@ UI helpers split:
 {{- else if and .Values.ui.httpRoute.enabled .Values.ui.httpRoute.hostnames -}}
 {{ toYaml .Values.ui.httpRoute.hostnames }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 

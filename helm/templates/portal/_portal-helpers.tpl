@@ -56,7 +56,7 @@ Portal helpers split:
 {{- else if (default false ((.Values.portal).httpRoute).enabled) -}}
 {{ toYaml (default (list) .Values.portal.httpRoute.hostnames) }}
 {{- else -}}
-[]
+{{ toYaml (list "apim.example.com") }}
 {{- end -}}
 {{- end -}}
 
