@@ -60,6 +60,8 @@ public class PlanHelper {
     public static final String APPLICATION_ID = "application-id";
     public static final String SUBSCRIPTION_ID = "subscription-id";
 
+    public static final String PLAN_JWT_NESTED_ID = "plan-jwt-nested-id";
+
     public static final String JWT_CLIENT_ID = "jwt-client-id";
     public static final String JWT_SECRET;
 
@@ -103,7 +105,7 @@ public class PlanHelper {
         return generateJWT(secondsToAdd, Map.of());
     }
 
-    public static String generateJWT(long secondsToAdd, Map<String, String> customClaims) throws Exception {
+    public static String generateJWT(long secondsToAdd, Map<String, Object> customClaims) throws Exception {
         JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder()
             .claim("client_id", JWT_CLIENT_ID)
             .expirationTime(Date.from(Instant.now().plusSeconds(secondsToAdd)));
@@ -147,6 +149,25 @@ public class PlanHelper {
             configuration.setSignature(HMAC_HS256);
             configuration.setResolverParameter(JWT_SECRET);
             configuration.setPublicKeyResolver(GIVEN_KEY);
+            try {
+                jwtPlan.setSecurityDefinition(new ObjectMapper().writeValueAsString(configuration));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to set JWT policy configuration", e);
+            }
+            plans.add(jwtPlan);
+        }
+
+        if (planIds.contains("jwt-nested")) {
+            io.gravitee.definition.model.Plan jwtPlan = new Plan();
+            jwtPlan.setId(PLAN_JWT_NESTED_ID);
+            jwtPlan.setApi(api.getId());
+            jwtPlan.setSecurity("JWT");
+            jwtPlan.setStatus("PUBLISHED");
+            JWTPolicyConfiguration configuration = new JWTPolicyConfiguration();
+            configuration.setSignature(HMAC_HS256);
+            configuration.setResolverParameter(JWT_SECRET);
+            configuration.setPublicKeyResolver(GIVEN_KEY);
+            configuration.setClientIdClaim("act.repository");
             try {
                 jwtPlan.setSecurityDefinition(new ObjectMapper().writeValueAsString(configuration));
             } catch (JsonProcessingException e) {
@@ -215,6 +236,29 @@ public class PlanHelper {
                 io.gravitee.definition.model.v4.plan.Plan jwtPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
                     .id(PLAN_JWT_ID)
                     .name("plan-jwt-name")
+                    .security(
+                        PlanSecurity.builder().type("jwt").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
+                    )
+                    .status(PlanStatus.PUBLISHED)
+                    .mode(PlanMode.STANDARD)
+                    .build();
+                plans.add(jwtPlan);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to set JWT policy configuration", e);
+            }
+        }
+
+        if (planIds.contains("jwt-nested")) {
+            try {
+                JWTPolicyConfiguration configuration = new JWTPolicyConfiguration();
+                configuration.setSignature(HMAC_HS256);
+                configuration.setResolverParameter(JWT_SECRET);
+                configuration.setPublicKeyResolver(GIVEN_KEY);
+                configuration.setClientIdClaim("act.repository");
+
+                io.gravitee.definition.model.v4.plan.Plan jwtPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
+                    .id(PLAN_JWT_NESTED_ID)
+                    .name("plan-jwt-nested-name")
                     .security(
                         PlanSecurity.builder().type("jwt").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
                     )
