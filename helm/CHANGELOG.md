@@ -3,7 +3,6 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
-<<<<<<< HEAD
 ### 4.12.0
 - Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal).
     - HTTPRoute is compatible alongside Nginx Ingress.
@@ -16,12 +15,9 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
     - Disabled by default (`gamma.enabled: false`)
     - Service port: 8005
     - Ingress path: `/gamma-console(/.*)?`
-=======
-### 4.11.5
-- Support Hazelcast as a distributed rate-limit backend (`ratelimit.type=hazelcast`). Renders `config/hazelcast-ratelimit.xml` with Kubernetes discovery, exposes a ClusterIP `-hz` Service for peer discovery, and creates a ClusterRole/Binding granting the gateway ServiceAccount `get`/`list` on `endpoints`/`pods`/`nodes`/`services`.
+- Support Hazelcast as a distributed rate-limit backend (`ratelimit.type=hazelcast`). Renders `config/hazelcast-ratelimit.xml` with Kubernetes discovery, exposes a ClusterIP `-hz` Service for peer discovery, allows configuring the rate-limit Hazelcast port with `gateway.ratelimit.hazelcast.port`, and creates a ClusterRole/Binding granting the gateway ServiceAccount `get`/`list` on `endpoints`/`pods`/`nodes`/`services`.
 
 ### 4.11.3
->>>>>>> 47f7f1da4a (feat(ratelimit): add Hazelcast rate-limit repository with K8s helm chart)
 - Fix API upgrader job rendering when additional plugins are configured.
 - Improve JDBC driver delivery options in the Helm chart:
   - `auto` uses bundled PostgreSQL, MariaDB, and SQL Server drivers, and uses startup download for MySQL and other custom JDBC families

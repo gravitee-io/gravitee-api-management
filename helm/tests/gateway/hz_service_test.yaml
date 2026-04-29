@@ -58,6 +58,27 @@ tests:
               protocol: TCP
               name: gateway-hz-cl
 
+  - it: should generate Service with configured ratelimit hazelcast port
+    template: gateway/gateway-hz-service.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+      gateway:
+        ratelimit:
+          hazelcast:
+            port: 5902
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - port: 5902
+              targetPort: 5902
+              protocol: TCP
+              name: gateway-hz-rl
+
   - it: should expose both ports when ratelimit and cluster are both hazelcast
     template: gateway/gateway-hz-service.yaml
     set:
