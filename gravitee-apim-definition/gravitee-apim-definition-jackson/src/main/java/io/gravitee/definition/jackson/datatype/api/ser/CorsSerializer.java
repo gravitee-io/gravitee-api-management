@@ -115,6 +115,10 @@ public class CorsSerializer extends StdScalarSerializer<Cors> {
             jgen.writeBooleanField("runPolicies", cors.isRunPolicies());
         }
 
+        if (cors.isAllowPrivateNetwork()) {
+            jgen.writeBooleanField("allowPrivateNetwork", cors.isAllowPrivateNetwork());
+        }
+
         jgen.writeEndObject();
     }
 }

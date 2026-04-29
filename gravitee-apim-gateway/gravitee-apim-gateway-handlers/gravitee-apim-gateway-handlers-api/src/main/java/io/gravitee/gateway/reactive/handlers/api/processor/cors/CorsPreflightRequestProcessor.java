@@ -177,6 +177,16 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
                 .headers()
                 .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
         }
+
+        // 11. Private Network Access: if enabled and request includes Access-Control-Request-Private-Network,
+        // respond with Access-Control-Allow-Private-Network: true
+        if (cors.isAllowPrivateNetwork()) {
+            String pnaRequest = request.headers().get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK);
+            if ("true".equalsIgnoreCase(pnaRequest)) {
+                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK, "true");
+            }
+        }
+
         return true;
     }
 
