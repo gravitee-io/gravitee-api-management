@@ -47,7 +47,9 @@ public class PlanJwtNestedV4IntegrationTest extends PlanJwtNestedV4EmulationInte
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (isV4Api(definitionClass)) {
             final Api apiDefinition = (Api) api.getDefinition();
-            configurePlans(apiDefinition, Set.of("jwt-nested"));
+            // Deploy both the nested-claim plan and the standard JWT plan so that the
+            // flat-claim regression test (inherited from the emulation base class) can run.
+            configurePlans(apiDefinition, Set.of("jwt", "jwt-nested"));
         }
     }
 
