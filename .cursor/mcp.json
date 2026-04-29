@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "gravitee-catalog": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "tsx",
+        "${workspaceFolder}/gravitee-gamma/packages/gravitee-catalog-mcp-server/src/index.ts"
+      ],
+      "cwd": "${workspaceFolder}/gravitee-gamma/packages/gravitee-catalog-mcp-server",
+      "envFile": "${workspaceFolder}/.env.mcp"
+    }
+  }
+}

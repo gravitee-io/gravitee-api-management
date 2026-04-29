@@ -41,6 +41,11 @@ docker/quick-setup/**/.driver
 # used by helm charts
 helm/**/*.tgz
 
+# Local MCP catalog server secrets (see .cursor/mcp.json envFile)
+.env.mcp
+**/*/.yarn
+**/*/yarn.lock
+
 # secrets (password to artifactory)
 gpg.script.snippet.sh
 # -- Cicd : The [graviteebot.gpg.priv.key] file contains secrets
