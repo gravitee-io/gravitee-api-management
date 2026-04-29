@@ -22,5 +22,6 @@ export interface Cors {
   enabled?: boolean;
   exposeHeaders?: string[];
   maxAge?: number;
+  allowPrivateNetwork?: boolean;
   runPolicies?: boolean;
 }
