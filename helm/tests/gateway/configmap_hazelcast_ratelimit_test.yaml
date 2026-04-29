@@ -32,6 +32,53 @@ tests:
       - matchRegex:
           path: data["hazelcast-ratelimit.xml"]
           pattern: "<service-name>my-apim-gateway-hz</service-name>"
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<service-port>5901</service-port>"
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<port auto-increment=\"true\" port-count=\"100\">5901</port>"
+
+  - it: configmap renders explicit rate-limit service port when gateway cluster is also hazelcast
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+      gateway:
+        cluster:
+          type: hazelcast
+          hazelcast:
+            configPath: /opt/graviteeio-gateway/config/hazelcast.xml
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<service-name>my-apim-gateway-hz</service-name>"
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<service-port>5901</service-port>"
+
+  - it: configmap uses configured rate-limit hazelcast port
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+      gateway:
+        ratelimit:
+          hazelcast:
+            port: 5902
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<port auto-increment=\"true\" port-count=\"100\">5902</port>"
+      - matchRegex:
+          path: data["hazelcast-ratelimit.xml"]
+          pattern: "<service-port>5902</service-port>"
 
   - it: deployment omits hazelcast-ratelimit.xml volumeMount under default ratelimit type
     template: gateway/gateway-deployment.yaml

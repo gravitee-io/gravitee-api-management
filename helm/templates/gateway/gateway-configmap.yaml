@@ -895,6 +895,9 @@ data:
 
   {{- end }}
 {{- if eq .Values.ratelimit.type "hazelcast" }}
+{{- $hzCfg := dict }}
+{{- if and .Values.gateway.ratelimit (kindIs "map" .Values.gateway.ratelimit) }}{{ $hzCfg = (.Values.gateway.ratelimit.hazelcast | default dict) }}{{ end }}
+{{- $hzPort := $hzCfg.port | default 5901 }}
   hazelcast-ratelimit.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
     <hazelcast xmlns="http://www.hazelcast.com/schema/config"
@@ -907,13 +910,14 @@ data:
             <property name="hazelcast.logging.type">slf4j</property>
         </properties>
         <network>
-            <port auto-increment="true" port-count="100">5901</port>
+            <port auto-increment="true" port-count="100">{{ $hzPort }}</port>
             <join>
                 <multicast enabled="false"/>
                 <tcp-ip enabled="false"/>
                 <kubernetes enabled="true">
                     <namespace>{{ .Release.Namespace }}</namespace>
                     <service-name>{{ template "gravitee.gateway.fullname" . }}-hz</service-name>
+                    <service-port>{{ $hzPort }}</service-port>
                 </kubernetes>
             </join>
         </network>

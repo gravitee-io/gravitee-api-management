@@ -495,6 +495,18 @@ gateway:
             port: 26379
 ----
 
+To use Hazelcast for rate limit policy, set `ratelimit.type` to `hazelcast`. The chart renders `config/hazelcast-ratelimit.xml` and exposes a `-hz` ClusterIP Service for Kubernetes discovery. The rate-limit Hazelcast port defaults to `5901` and can be changed with `gateway.ratelimit.hazelcast.port`.
+
+----
+ratelimit:
+  type: hazelcast
+gateway:
+  ratelimit:
+    hazelcast:
+      configPath: ${gravitee.home}/config/hazelcast-ratelimit.xml
+      port: 5901
+----
+
 ===== Other Keys
 
 [cols=",,",options="header",]
@@ -502,6 +514,8 @@ gateway:
 |Parameter |Description |Default
 |`+gateway.ratelimit.redis.ssl+` |Enable SSL connection to Redis |`+false+`
 |`+gateway.ratelimit.redis.password+` |Redis password |`+false+`
+|`+gateway.ratelimit.hazelcast.configPath+` |Hazelcast rate-limit configuration file path |`+${gravitee.home}/config/hazelcast-ratelimit.xml+`
+|`+gateway.ratelimit.hazelcast.port+` |Hazelcast rate-limit member and Kubernetes discovery service port |`+5901+`
 |===
 
 
