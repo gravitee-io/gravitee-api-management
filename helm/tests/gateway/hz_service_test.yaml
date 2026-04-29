@@ -1,0 +1,91 @@
+suite: am - Gateway - Hazelcast Service
+templates:
+  - "gateway/gateway-hz-service.yaml"
+tests:
+  - it: should generate nothing under default ratelimit/cluster
+    template: gateway/gateway-hz-service.yaml
+    set:
+      ratelimit:
+        type: mongodb
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate Service with ratelimit port only when ratelimit type is hazelcast
+    template: gateway/gateway-hz-service.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports
+          value:
+            - port: 5901
+              targetPort: 5901
+              protocol: TCP
+              name: gateway-hz-rl
+
+  - it: should generate Service with cluster port only when gateway cluster type is hazelcast
+    template: gateway/gateway-hz-service.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.ports
+          value:
+            - port: 5701
+              targetPort: 5701
+              protocol: TCP
+              name: gateway-hz-cl
+
+  - it: should expose both ports when ratelimit and cluster are both hazelcast
+    template: gateway/gateway-hz-service.yaml
+    set:
+      ratelimit:
+        type: hazelcast
+      gateway:
+        cluster:
+          type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 1
+      - lengthEqual:
+          path: spec.ports
+          count: 2
+      - contains:
+          path: spec.ports
+          content:
+            port: 5901
+            targetPort: 5901
+            protocol: TCP
+            name: gateway-hz-rl
+      - contains:
+          path: spec.ports
+          content:
+            port: 5701
+            targetPort: 5701
+            protocol: TCP
+            name: gateway-hz-cl

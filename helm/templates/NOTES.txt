@@ -1,2 +1,13 @@
 1. Watch all containers come up.
   $ kubectl get pods --namespace={{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }} -w
+
+{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast")) }}
+{{- if and $hzActive (not .Values.apim.managedServiceAccount) }}
+
+WARNING: Hazelcast is enabled (ratelimit.type=hazelcast or gateway.cluster.type=hazelcast)
+but apim.managedServiceAccount is false, so the chart did NOT create the Role / RoleBinding
+that Hazelcast Kubernetes discovery needs. Each gateway pod will fall back to a single-member
+cluster (rate-limit budgets multiplied by replica count). Either set
+apim.managedServiceAccount=true, or grant the gateway ServiceAccount get/list permissions
+on endpoints/pods/nodes/services in namespace {{ .Release.Namespace }} out-of-band.
+{{- end }}

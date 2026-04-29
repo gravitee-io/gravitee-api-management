@@ -1,0 +1,35 @@
+{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast")) -}}
+{{ if and $hzActive .Values.apim.managedServiceAccount }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "apim.serviceAccount" . }}-gateway-hazelcast
+  namespace: {{ .Release.Namespace | quote }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+      - nodes
+      - services
+    verbs:
+      - get
+      - list
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "apim.serviceAccount" . }}-gateway-hazelcast
+  namespace: {{ .Release.Namespace | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "apim.serviceAccount" . }}-gateway-hazelcast
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "apim.serviceAccount" . }}
+    namespace: {{ .Release.Namespace | quote }}
+{{ end }}
