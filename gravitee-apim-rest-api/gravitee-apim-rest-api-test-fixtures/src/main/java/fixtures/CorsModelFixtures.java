@@ -29,7 +29,8 @@ public class CorsModelFixtures {
         .enabled(true)
         .accessControlExposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
         .accessControlMaxAge(10)
-        .runPolicies(true);
+        .runPolicies(true)
+        .allowPrivateNetwork(true);
 
     public static io.gravitee.definition.model.Cors aModelCors() {
         return BASE_MODEL_CORS.build();
