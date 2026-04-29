@@ -22,6 +22,7 @@ import { ActivatedRoute } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatCardHarness } from '@angular/material/card/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -72,10 +73,11 @@ describe('ReporterSettingsComponent', () => {
       expectGetAPI('V4', 'NATIVE', API_ID, {
         enabled: true,
       });
-      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const enabledToggle = toggles[0];
 
-      expect(await toggle.isDisabled()).toEqual(true);
-      expect(await toggle.isChecked()).toEqual(true);
+      expect(await enabledToggle.isDisabled()).toEqual(true);
+      expect(await enabledToggle.isChecked()).toEqual(true);
     });
 
     it('should disable toggle when not V4 API', async () => {
@@ -93,10 +95,11 @@ describe('ReporterSettingsComponent', () => {
       await init(['api-definition-r', 'api-definition-u']);
       fixture.detectChanges();
       expectGetAPI('V4', 'NATIVE', API_ID, null);
-      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const enabledToggle = toggles[0];
 
-      expect(await toggle.isDisabled()).toEqual(false);
-      expect(await toggle.isChecked()).toEqual(false);
+      expect(await enabledToggle.isDisabled()).toEqual(false);
+      expect(await enabledToggle.isChecked()).toEqual(false);
     });
 
     it('should enable toggle when analytics is enabled', async () => {
@@ -105,16 +108,149 @@ describe('ReporterSettingsComponent', () => {
       expectGetAPI('V4', 'NATIVE', API_ID, {
         enabled: true,
       });
-      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const enabledToggle = toggles[0];
 
-      expect(await toggle.isDisabled()).toEqual(false);
-      expect(await toggle.isChecked()).toEqual(true);
+      expect(await enabledToggle.isDisabled()).toEqual(false);
+      expect(await enabledToggle.isChecked()).toEqual(true);
     });
   });
 
-  function expectGetAPI(definitionVersion: string, type: string, apiId: string, analytics: any) {
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`)
-      .flush({ definitionVersion: definitionVersion, type: type, analytics: analytics });
+  describe('OpenTelemetry tracing toggles', () => {
+    it('should disable tracing toggles when analytics is disabled', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: false });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const tracingEnabledToggle = toggles[1];
+      const tracingVerboseToggle = toggles[2];
+
+      expect(await tracingEnabledToggle.isDisabled()).toEqual(true);
+      expect(await tracingVerboseToggle.isDisabled()).toEqual(true);
+    });
+
+    it('should enable tracing-enabled toggle when analytics is enabled', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const tracingEnabledToggle = toggles[1];
+
+      expect(await tracingEnabledToggle.isDisabled()).toEqual(false);
+      expect(await tracingEnabledToggle.isChecked()).toEqual(false);
+    });
+
+    it('should disable verbose when tracing is not enabled', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const tracingVerboseToggle = toggles[2];
+
+      expect(await tracingVerboseToggle.isDisabled()).toEqual(true);
+    });
+
+    it('should enable verbose when tracing is enabled', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: true, verbose: false } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const tracingVerboseToggle = toggles[2];
+
+      expect(await tracingVerboseToggle.isDisabled()).toEqual(false);
+      expect(await tracingVerboseToggle.isChecked()).toEqual(false);
+    });
+
+    it('should reflect tracing verbose checked state', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: true, verbose: true } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const tracingVerboseToggle = toggles[2];
+
+      expect(await tracingVerboseToggle.isChecked()).toEqual(true);
+    });
+
+    it('should disable tracing toggles when read-only', async () => {
+      await init(['api-definition-r']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: true, verbose: true } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+      const tracingEnabledToggle = toggles[1];
+      const tracingVerboseToggle = toggles[2];
+
+      expect(await tracingEnabledToggle.isDisabled()).toEqual(true);
+      expect(await tracingVerboseToggle.isDisabled()).toEqual(true);
+    });
+
+    it('should disable tracing toggles when analytics enabled is toggled off', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: true, verbose: true } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[0].uncheck();
+
+      expect(await toggles[1].isDisabled()).toEqual(true);
+      expect(await toggles[2].isDisabled()).toEqual(true);
+    });
+
+    it('should enable tracing-enabled toggle when analytics enabled is toggled on', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: false });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[0].check();
+
+      expect(await toggles[1].isDisabled()).toEqual(false);
+    });
+
+    it('should disable verbose when tracing-enabled is toggled off', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: true, verbose: true } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[1].uncheck();
+
+      expect(await toggles[2].isDisabled()).toEqual(true);
+    });
+
+    it('should enable verbose when tracing-enabled is toggled on', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } });
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[1].check();
+
+      expect(await toggles[2].isDisabled()).toEqual(false);
+    });
+
+    it('should submit tracing settings via API update', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[1].check();
+      await toggles[2].check();
+
+      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      expect(req.request.body.analytics.tracing).toEqual({ enabled: true, verbose: true });
+      req.flush(req.request.body);
+    });
+  });
+
+  function expectGetAPI(definitionVersion: string, type: string, apiId: string, analytics: any, includeId = false) {
+    const body: any = { definitionVersion, type, analytics };
+    if (includeId) {
+      body.id = apiId;
+    }
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`).flush(body);
   }
 });

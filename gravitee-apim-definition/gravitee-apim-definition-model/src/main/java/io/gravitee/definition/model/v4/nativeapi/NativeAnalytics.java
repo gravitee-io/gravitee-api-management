@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4.nativeapi;
 
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +35,7 @@ public class NativeAnalytics {
     /** Gates the connection-metrics reporter on the gateway. Independent of analytics.enabled. */
     @Builder.Default
     protected boolean reporterMetricsEnabled = true;
+
+    /** Per-API OpenTelemetry tracing toggle (enabled + verbose). */
+    private Tracing tracing;
 }
