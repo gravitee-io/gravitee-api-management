@@ -8,7 +8,7 @@ In this proof-of-concept, the “catalog” is a local `src/catalog.json` file. 
 
 - Node.js **^22.12** (same as the APIM monorepo)
 - Yarn (this package uses **Yarn 4** with its own `yarn.lock` so it is installable standalone under `gravitee-gamma/packages/`)
-- A **Google Gemini API key** (`GEMINI_API_KEY` — from [Google AI Studio](https://aistudio.google.com/apikey) or Google Cloud) for semantic search (`gemini-2.0-flash`)
+- **[Ollama](https://ollama.com)** running locally (or reachable over HTTP) for semantic search. The default model is **`llama3.2:1b`** — pull it with `ollama pull llama3.2:1b` (use the exact name shown by `ollama list` if yours differs).
 - For Cursor: the [`tsx`](https://github.com/privatenumber/tsx) runner on your `PATH` (the repo’s MCP config uses `npx tsx` from the monorepo root; after `yarn install` in this package, `npx` can also resolve the local `tsx` when run from this directory)
 
 ## Install
@@ -27,9 +27,14 @@ yarn install
 | `GRAVITEE_GAMMA_BASE_URL` | Yes | Base URL of the Gravitee Gamma control plane (used in subscription responses, e.g. for console links) |
 | `GRAVITEE_APP_ID` | Yes | Application identifier (reserved for real integrations) |
 | `GRAVITEE_API_KEY` | Yes | API key (reserved for real integrations) |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key for `search_gravitee_catalog` (semantic routing) |
+| `OLLAMA_BASE_URL` | No | Ollama HTTP API base (default: `http://127.0.0.1:11434`) |
+| `OLLAMA_MODEL` | No | Model tag for `search_gravitee_catalog` (default: `llama3.2:1b`) |
 
-The server **exits immediately** with a clear error if any of these is missing.
+The first three are **required**. Ollama settings default for a standard local install; set `OLLAMA_BASE_URL` if Ollama runs on another host or port, and `OLLAMA_MODEL` to swap models (e.g. `llama3.1:8b`).
+
+**Replacing the default model:** set `OLLAMA_MODEL` to any model you have pulled in Ollama. No code changes are required.
+
+The process **exits** with a clear error if any of the three required Gravitee variables is missing.
 
 ### Example (local shell)
 
@@ -37,19 +42,27 @@ The server **exits immediately** with a clear error if any of these is missing.
 export GRAVITEE_GAMMA_BASE_URL="https://gamma.example.com"
 export GRAVITEE_APP_ID="my-app"
 export GRAVITEE_API_KEY="dev-placeholder"
-export GEMINI_API_KEY="AIza..."
+# Optional (defaults shown):
+export OLLAMA_BASE_URL="http://127.0.0.1:11434"
+export OLLAMA_MODEL="llama3.2:1b"
+```
+
+Start Ollama, then ensure the model exists:
+
+```bash
+ollama pull llama3.2:1b
 ```
 
 ## Tools
 
 | Tool | What it does |
 | ---- | ------------ |
-| `search_gravitee_catalog` | **Input:** `{ "intent": "<natural language>" }` — loads `src/catalog.json`, calls **Gemini** to pick the top **2** best matches, returns JSON with `id`, `name`, `type`, `description`, `relevance_score`, `reason`. |
+| `search_gravitee_catalog` | **Input:** `{ "intent": "<natural language>" }` — loads `src/catalog.json`, calls **Ollama** (`/api/chat` with JSON `format`) to pick the top **2** best matches, returns JSON with `id`, `name`, `type`, `description`, `relevance_score`, `reason`. |
 | `request_asset_subscription` | **Input:** `{ "asset_id": "<id>", "justification": "<text>" }` — validates the asset exists, returns a mock **202 Accepted** with a `request_id` and a message describing human-in-the-loop approval via Gravitee Access Management. |
 
 ## Use with Cursor
 
-1. **Configure MCP** (monorepo root) — a starter file lives at [`.cursor/mcp.json`](../../../.cursor/mcp.json) in this repository. It can load env from a **gitignored** [`.env.mcp`](../../../.env.mcp) at the repo root; keep `GEMINI_API_KEY` and other secrets only in that file or in your environment — never commit API keys.
+1. **Configure MCP** (monorepo root) — a starter file lives at [`.cursor/mcp.json`](../../../.cursor/mcp.json) in this repository. It can load env from a **gitignored** [`.env.mcp`](../../../.env.mcp) at the repo root; do not commit secrets.
 2. **Paths:** The sample config uses paths **relative to the monorepo root** (`gravitee-gamma/packages/gravitee-catalog-mcp-server/...`). Open the repo at that root in Cursor so `npx tsx` resolves the entry file.
 3. **Reload** MCP: Command Palette → **MCP: List Servers** (or restart Cursor) so the `gravitee-catalog` server and its two tools appear.
 4. In chat, ask the agent to use the tools, e.g. *“Use search_gravitee_catalog to find something for taking payments, then request access with a one-line business justification.”*

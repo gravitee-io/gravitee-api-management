@@ -1,10 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { Config } from "../config.js";
-
-const GEMINI_MODEL = "gemini-2.0-flash";
 
 interface CatalogAsset {
   id: string;
@@ -51,30 +48,96 @@ Respond with valid JSON in this exact format:
 
 Only return assets that are genuinely relevant. If fewer than 2 match, return fewer.`;
 
+function ollamaChatUrl(baseUrl: string): string {
+  return `${baseUrl}/api/chat`;
+}
+
 export async function searchCatalog(
   args: { intent: string },
   config: Config,
 ): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   const catalog = loadCatalog();
-  const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-  const model = genAI.getGenerativeModel({
-    model: GEMINI_MODEL,
-    systemInstruction: SYSTEM_INSTRUCTION,
-    generationConfig: {
-      temperature: 0,
-      responseMimeType: "application/json",
-    },
-  });
+  const url = ollamaChatUrl(config.ollamaBaseUrl);
+  const userContent = `## Available Assets\n\n${JSON.stringify(catalog, null, 2)}\n\n## Intent\n\n${args.intent}`;
 
-  const result = await model.generateContent(
-    `## Available Assets\n\n${JSON.stringify(catalog, null, 2)}\n\n## Intent\n\n${args.intent}`,
-  );
-  const raw = result.response.text() ?? '{"matches":[]}';
-  let matches: MatchResult[];
+  let raw: string;
   try {
-    matches = JSON.parse(raw).matches;
-  } catch {
-    matches = [];
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: config.ollamaModel,
+        stream: false,
+        format: "json",
+        messages: [
+          { role: "system", content: SYSTEM_INSTRUCTION },
+          { role: "user", content: userContent },
+        ],
+        options: { temperature: 0 },
+      }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                error: "Ollama request failed",
+                ollama_status: res.status,
+                ollama_url: url,
+                ollama_model: config.ollamaModel,
+                details: errBody.slice(0, 2000),
+                hint: "Is Ollama running? Run `ollama serve` and `ollama pull " + config.ollamaModel + "`.",
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    }
+
+    const data = (await res.json()) as { message?: { content?: string } };
+    raw = data.message?.content?.trim() ?? "";
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              error: "Could not reach Ollama",
+              ollama_url: url,
+              ollama_model: config.ollamaModel,
+              message,
+              hint: `Start Ollama, then: ollama pull ${config.ollamaModel}`,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  }
+
+  let matches: MatchResult[] = [];
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as { matches?: MatchResult[] };
+      matches = Array.isArray(parsed.matches) ? parsed.matches : [];
+    } catch {
+      try {
+        const unwrapped = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+        const parsed = JSON.parse(unwrapped) as { matches?: MatchResult[] };
+        matches = Array.isArray(parsed.matches) ? parsed.matches : [];
+      } catch {
+        matches = [];
+      }
+    }
   }
 
   return {
@@ -84,7 +147,8 @@ export async function searchCatalog(
         text: JSON.stringify(
           {
             intent: args.intent,
-            model: GEMINI_MODEL,
+            model: config.ollamaModel,
+            ollama_base_url: config.ollamaBaseUrl,
             results: matches,
             total_catalog_size: catalog.length,
           },

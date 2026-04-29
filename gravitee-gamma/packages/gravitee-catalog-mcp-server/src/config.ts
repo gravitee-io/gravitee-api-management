@@ -2,15 +2,20 @@ export interface Config {
   graviteeGammaBaseUrl: string;
   graviteeAppId: string;
   graviteeApiKey: string;
-  geminiApiKey: string;
+  /** e.g. http://127.0.0.1:11434 — no trailing path */
+  ollamaBaseUrl: string;
+  /** e.g. llama3.2:1b */
+  ollamaModel: string;
 }
 
 const REQUIRED_VARS = [
   ["GRAVITEE_GAMMA_BASE_URL", "graviteeGammaBaseUrl"],
   ["GRAVITEE_APP_ID", "graviteeAppId"],
   ["GRAVITEE_API_KEY", "graviteeApiKey"],
-  ["GEMINI_API_KEY", "geminiApiKey"],
 ] as const;
+
+const DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+const DEFAULT_OLLAMA_MODEL = "llama3.2:1b";
 
 export function loadConfig(): Config {
   const missing = REQUIRED_VARS.filter(([env]) => !process.env[env]).map(([env]) => env);
@@ -22,7 +27,18 @@ export function loadConfig(): Config {
     process.exit(1);
   }
 
-  return Object.fromEntries(
+  const base: Record<string, string> = Object.fromEntries(
     REQUIRED_VARS.map(([env, key]) => [key, process.env[env]!]),
-  ) as unknown as Config;
+  ) as unknown as Record<string, string>;
+
+  return {
+    graviteeGammaBaseUrl: base["graviteeGammaBaseUrl"]!,
+    graviteeAppId: base["graviteeAppId"]!,
+    graviteeApiKey: base["graviteeApiKey"]!,
+    ollamaBaseUrl: (process.env["OLLAMA_BASE_URL"]?.trim() || DEFAULT_OLLAMA_BASE_URL).replace(
+      /\/+$/,
+      "",
+    ),
+    ollamaModel: (process.env["OLLAMA_MODEL"]?.trim() || DEFAULT_OLLAMA_MODEL),
+  };
 }
