@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.query_service;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import java.util.List;
 import java.util.Map;
 
 public interface ApiMetadataQueryService {
@@ -26,4 +27,12 @@ public interface ApiMetadataQueryService {
      * @return A map of metadata key to metadata (API value takes precedence over env default).
      */
     Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId);
+
+    /**
+     * Batch-find all metadata for a list of APIs, merging environment-level defaults with API-level overrides.
+     * @param environmentId The environment id.
+     * @param apiIds The list of API ids.
+     * @return A map of apiId to (map of metadata key to metadata).
+     */
+    Map<String, Map<String, ApiMetadata>> findApiMetadataForApis(String environmentId, List<String> apiIds);
 }
