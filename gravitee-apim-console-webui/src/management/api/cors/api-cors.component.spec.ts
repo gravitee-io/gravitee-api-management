@@ -127,6 +127,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         exposeHeaders: [],
         maxAge: -1,
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });
@@ -143,6 +144,7 @@ describe('ApiCorsComponent', () => {
             allowCredentials: true,
             maxAge: 10,
             exposeHeaders: ['exposeHeaders'],
+            allowPrivateNetwork: true,
             runPolicies: true,
           },
         },
@@ -179,6 +181,12 @@ describe('ApiCorsComponent', () => {
       expect(await exposeHeadersInput.getTags()).toEqual(['exposeHeaders']);
       await exposeHeadersInput.addTag('exposeHeaders2');
 
+      const allowPrivateNetworkInput = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowPrivateNetwork"]' }),
+      );
+      expect(await allowPrivateNetworkInput.isChecked()).toEqual(true);
+      await allowPrivateNetworkInput.toggle();
+
       const runPoliciesInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="runPolicies"]' }));
       expect(await runPoliciesInput.isChecked()).toEqual(true);
       await runPoliciesInput.toggle();
@@ -197,6 +205,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         maxAge: 20,
         exposeHeaders: ['exposeHeaders', 'exposeHeaders2'],
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });
@@ -238,6 +247,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         exposeHeaders: [],
         maxAge: -1,
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });
@@ -310,6 +320,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         exposeHeaders: [],
         maxAge: -1,
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });
@@ -361,6 +372,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         exposeHeaders: [],
         maxAge: -1,
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });
@@ -382,6 +394,7 @@ describe('ApiCorsComponent', () => {
               allowCredentials: true,
               maxAge: 10,
               exposeHeaders: ['exposeHeaders'],
+              allowPrivateNetwork: true,
               runPolicies: true,
             },
           },
@@ -419,6 +432,12 @@ describe('ApiCorsComponent', () => {
       expect(await exposeHeadersInput.getTags()).toEqual(['exposeHeaders']);
       await exposeHeadersInput.addTag('exposeHeaders2');
 
+      const allowPrivateNetworkInput = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowPrivateNetwork"]' }),
+      );
+      expect(await allowPrivateNetworkInput.isChecked()).toEqual(true);
+      await allowPrivateNetworkInput.toggle();
+
       const runPoliciesInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="runPolicies"]' }));
       expect(await runPoliciesInput.isChecked()).toEqual(true);
       await runPoliciesInput.toggle();
@@ -437,6 +456,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         maxAge: 20,
         exposeHeaders: ['exposeHeaders', 'exposeHeaders2'],
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });
@@ -475,6 +495,7 @@ describe('ApiCorsComponent', () => {
         allowCredentials: false,
         exposeHeaders: [],
         maxAge: -1,
+        allowPrivateNetwork: false,
         runPolicies: false,
       });
     });

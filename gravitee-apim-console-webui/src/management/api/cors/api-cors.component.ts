@@ -123,6 +123,10 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
               value: cors.exposeHeaders ?? [],
               disabled: isCorsDisabled,
             }),
+            allowPrivateNetwork: new UntypedFormControl({
+              value: cors.allowPrivateNetwork ?? false,
+              disabled: isCorsDisabled,
+            }),
             runPolicies: new UntypedFormControl({
               value: cors.runPolicies ?? false,
               disabled: isCorsDisabled,
@@ -131,7 +135,16 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
           this.initialCorsFormValue = this.corsForm.getRawValue();
 
           // Disable all Control if enabled is not checked
-          const controlKeys = ['allowOrigin', 'allowMethods', 'allowHeaders', 'allowCredentials', 'maxAge', 'exposeHeaders', 'runPolicies'];
+          const controlKeys = [
+            'allowOrigin',
+            'allowMethods',
+            'allowHeaders',
+            'allowCredentials',
+            'maxAge',
+            'exposeHeaders',
+            'allowPrivateNetwork',
+            'runPolicies',
+          ];
           this.corsForm.get('enabled').valueChanges.subscribe(checked => {
             controlKeys.forEach(k => {
               return checked ? this.corsForm.get(k).enable() : this.corsForm.get(k).disable();
@@ -203,6 +216,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
                   allowCredentials: corsFormValue.allowCredentials,
                   maxAge: corsFormValue.maxAge,
                   exposeHeaders: corsFormValue.exposeHeaders,
+                  allowPrivateNetwork: corsFormValue.allowPrivateNetwork,
                   runPolicies: corsFormValue.runPolicies,
                 },
               },
@@ -221,6 +235,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
                   allowCredentials: corsFormValue.allowCredentials,
                   maxAge: corsFormValue.maxAge,
                   exposeHeaders: corsFormValue.exposeHeaders,
+                  allowPrivateNetwork: corsFormValue.allowPrivateNetwork,
                   runPolicies: corsFormValue.runPolicies,
                 };
               });
