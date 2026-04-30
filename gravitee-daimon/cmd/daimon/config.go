@@ -15,9 +15,11 @@ type Config struct {
 }
 
 type GatewayConfig struct {
-	URL           string `yaml:"url"`
-	ManagementURL string `yaml:"management_url"`
-	AIAPIPath     string `yaml:"ai_api_path"`
+	URL                string `yaml:"url"`
+	ManagementURL      string `yaml:"management_url"`
+	ManagementUsername string `yaml:"management_username"`
+	ManagementPassword string `yaml:"management_password"`
+	AIAPIPath          string `yaml:"ai_api_path"`
 }
 
 type ProxyConfig struct {

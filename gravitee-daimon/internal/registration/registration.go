@@ -21,6 +21,8 @@ type Client struct {
 	gatewayURL   string
 	heartbeatSec int
 	deviceID     string
+	username     string
+	password     string
 	httpClient   *http.Client
 }
 
@@ -46,11 +48,13 @@ type heartbeatStats struct {
 	TokensTotal     int `json:"tokensTotal"`
 }
 
-func NewClient(gatewayURL string, heartbeatSec int) *Client {
+func NewClient(gatewayURL string, heartbeatSec int, username string, password string) *Client {
 	return &Client{
 		gatewayURL:   gatewayURL,
 		heartbeatSec: heartbeatSec,
 		deviceID:     generateDeviceID(),
+		username:     username,
+		password:     password,
 		httpClient:   &http.Client{Timeout: 10 * time.Second},
 	}
 }
@@ -124,7 +128,16 @@ func (c *Client) post(path string, body any) error {
 		return err
 	}
 
-	resp, err := c.httpClient.Post(c.gatewayURL+path, "application/json", bytes.NewReader(data))
+	req, err := http.NewRequest("POST", c.gatewayURL+path, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if c.username != "" {
+		req.SetBasicAuth(c.username, c.password)
+	}
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
