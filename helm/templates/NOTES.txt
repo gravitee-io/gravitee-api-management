@@ -1,7 +1,7 @@
 1. Watch all containers come up.
   $ kubectl get pods --namespace={{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }} -w
 
-{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast")) }}
+{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (eq (dig "cluster" "type" "" .Values.gateway) "hazelcast") }}
 {{- if and $hzActive (not .Values.apim.managedServiceAccount) }}
 
 WARNING: Hazelcast is enabled (ratelimit.type=hazelcast or gateway.cluster.type=hazelcast)
