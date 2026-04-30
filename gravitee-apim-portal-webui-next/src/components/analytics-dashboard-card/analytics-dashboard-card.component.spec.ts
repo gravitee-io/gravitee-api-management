@@ -50,8 +50,21 @@ describe('AnalyticsDashboardCardComponent', () => {
     expect(await harness.getTitle()).toContain('HTTP Overview');
   });
 
-  it('should_render_labels_as_badges', async () => {
+  it('should_render_all_labels_when_count_is_within_visible_limit', async () => {
     expect(await harness.getLabelCount()).toBe(2);
+    expect(await harness.getOverflowCounter()).toBeNull();
+  });
+
+  it('should_render_overflow_counter_when_labels_exceed_visible_limit', async () => {
+    fixture.componentRef.setInput(
+      'dashboard',
+      fakeDashboard({
+        labels: { type: 'http', scope: 'proxy', env: 'dev', team: 'core' },
+      }),
+    );
+    fixture.detectChanges();
+    expect(await harness.getLabelCount()).toBe(3);
+    expect(await harness.getOverflowCounter()).toContain('+2');
   });
 
   it('should_render_widget_count', async () => {

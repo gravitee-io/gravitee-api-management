@@ -33,14 +33,15 @@
       <span aria-hidden="true">·</span>
       <span data-testid="last-modified">{{ lastModified() | date: 'medium' }}</span>
     </div>
-    @if (labels() | keyvalue; as labelEntries) {
-      @if (labelEntries.length > 0) {
-        <div class="dashboard-card__labels">
-          @for (label of labelEntries; track label.key) {
-            <app-badge [label]="label.key + ':' + label.value" />
-          }
-        </div>
-      }
+    @if (visibleLabels().length > 0) {
+      <div class="dashboard-card__labels">
+        @for (label of visibleLabels(); track label) {
+          <app-badge [label]="label" />
+        }
+        @if (hiddenLabelsCount() > 0) {
+          <app-badge data-testid="hidden-labels-count" [matTooltip]="hiddenLabelsTooltip()" [label]="'+' + hiddenLabelsCount()" />
+        }
+      </div>
     }
   </mat-card-content>
 </mat-card>

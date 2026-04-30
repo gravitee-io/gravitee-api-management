@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { DatePipe, KeyValuePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -25,19 +25,39 @@ import { BadgeComponent } from '../badge/badge.component';
 
 @Component({
   selector: 'app-analytics-dashboard-card',
-  imports: [MatCardModule, MatTooltip, KeyValuePipe, DatePipe, BadgeComponent],
+  imports: [MatCardModule, MatTooltip, DatePipe, BadgeComponent],
   templateUrl: './analytics-dashboard-card.component.html',
   styleUrl: './analytics-dashboard-card.component.scss',
 })
 export class AnalyticsDashboardCardComponent {
+  private static readonly MAX_VISIBLE_LABELS = 2;
+
   readonly dashboard = input.required<Dashboard>();
 
   readonly cardSelect = output<string>();
 
   protected readonly name = computed(() => this.dashboard().name);
   protected readonly dashboardId = computed(() => this.dashboard().id);
-  protected readonly labels = computed(() => this.dashboard().labels ?? {});
   protected readonly widgetCount = computed(() => this.dashboard().widgets?.length ?? 0);
   protected readonly lastModified = computed(() => this.dashboard().lastModified);
   protected readonly ariaLabel = computed(() => $localize`:@@analyticsDashboardCardAriaLabel:Open dashboard ${this.name()}:name:`);
+
+  private readonly labelEntries = computed(() => Object.entries(this.dashboard().labels ?? {}));
+
+  protected readonly visibleLabels = computed(() =>
+    this.labelEntries()
+      .slice(0, AnalyticsDashboardCardComponent.MAX_VISIBLE_LABELS)
+      .map(([k, v]) => `${k}:${v}`),
+  );
+
+  protected readonly hiddenLabelsCount = computed(() =>
+    Math.max(0, this.labelEntries().length - AnalyticsDashboardCardComponent.MAX_VISIBLE_LABELS),
+  );
+
+  protected readonly hiddenLabelsTooltip = computed(() =>
+    this.labelEntries()
+      .slice(AnalyticsDashboardCardComponent.MAX_VISIBLE_LABELS)
+      .map(([k, v]) => `${k}:${v}`)
+      .join(', '),
+  );
 }
