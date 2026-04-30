@@ -36,41 +36,37 @@ public class HeartbeatHandler implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext ctx) {
-        ctx
-            .request()
-            .bodyHandler(body -> {
-                try {
-                    JsonObject json = new JsonObject(body);
-                    String deviceId = json.getString("deviceId");
+        try {
+            JsonObject json = ctx.body().asJsonObject();
+            String deviceId = json.getString("deviceId");
 
-                    HeartbeatStats stats = null;
-                    if (json.containsKey("stats")) {
-                        stats = MAPPER.readValue(json.getJsonObject("stats").encode(), HeartbeatStats.class);
-                    }
+            HeartbeatStats stats = null;
+            if (json.containsKey("stats")) {
+                stats = MAPPER.readValue(json.getJsonObject("stats").encode(), HeartbeatStats.class);
+            }
 
-                    boolean found = registry.heartbeat(deviceId, stats);
+            boolean found = registry.heartbeat(deviceId, stats);
 
-                    if (found) {
-                        ctx
-                            .response()
-                            .setStatusCode(HttpStatusCode.OK_200)
-                            .putHeader("Content-Type", MediaType.APPLICATION_JSON)
-                            .end(new JsonObject().put("status", "ok").encode());
-                    } else {
-                        ctx
-                            .response()
-                            .setStatusCode(HttpStatusCode.NOT_FOUND_404)
-                            .putHeader("Content-Type", MediaType.APPLICATION_JSON)
-                            .end(new JsonObject().put("error", "device not registered").encode());
-                    }
-                } catch (Exception e) {
-                    log.error("Failed to parse heartbeat request", e);
-                    ctx
-                        .response()
-                        .setStatusCode(HttpStatusCode.BAD_REQUEST_400)
-                        .putHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .end(new JsonObject().put("error", e.getMessage()).encode());
-                }
-            });
+            if (found) {
+                ctx
+                    .response()
+                    .setStatusCode(HttpStatusCode.OK_200)
+                    .putHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .end(new JsonObject().put("status", "ok").encode());
+            } else {
+                ctx
+                    .response()
+                    .setStatusCode(HttpStatusCode.NOT_FOUND_404)
+                    .putHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .end(new JsonObject().put("error", "device not registered").encode());
+            }
+        } catch (Exception e) {
+            log.error("Failed to parse heartbeat request", e);
+            ctx
+                .response()
+                .setStatusCode(HttpStatusCode.BAD_REQUEST_400)
+                .putHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .end(new JsonObject().put("error", e.getMessage()).encode());
+        }
     }
 }

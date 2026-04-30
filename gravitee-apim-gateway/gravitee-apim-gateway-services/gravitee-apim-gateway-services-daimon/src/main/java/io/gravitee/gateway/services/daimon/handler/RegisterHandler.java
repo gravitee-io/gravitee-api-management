@@ -36,33 +36,27 @@ public class RegisterHandler implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext ctx) {
-        ctx
-            .request()
-            .bodyHandler(body -> {
-                try {
-                    DeviceInfo device = MAPPER.readValue(body.getBytes(), DeviceInfo.class);
-                    registry.register(device);
+        try {
+            String bodyStr = ctx.body().asString();
+            DeviceInfo device = MAPPER.readValue(bodyStr, DeviceInfo.class);
+            registry.register(device);
 
-                    log.info("DAImon registered: {} ({}) from {}", device.getDeviceId(), device.getHostname(), device.getUser());
+            log.info("DAImon registered: {} ({}) from {}", device.getDeviceId(), device.getHostname(), device.getUser());
 
-                    JsonObject response = new JsonObject()
-                        .put("status", "registered")
-                        .put("configVersion", 1)
-                        .put("heartbeatIntervalSec", 30);
+            JsonObject response = new JsonObject().put("status", "registered").put("configVersion", 1).put("heartbeatIntervalSec", 30);
 
-                    ctx
-                        .response()
-                        .setStatusCode(HttpStatusCode.OK_200)
-                        .putHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .end(response.encodePrettily());
-                } catch (Exception e) {
-                    log.error("Failed to parse register request", e);
-                    ctx
-                        .response()
-                        .setStatusCode(HttpStatusCode.BAD_REQUEST_400)
-                        .putHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .end(new JsonObject().put("error", e.getMessage()).encode());
-                }
-            });
+            ctx
+                .response()
+                .setStatusCode(HttpStatusCode.OK_200)
+                .putHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .end(response.encodePrettily());
+        } catch (Exception e) {
+            log.error("Failed to parse register request", e);
+            ctx
+                .response()
+                .setStatusCode(HttpStatusCode.BAD_REQUEST_400)
+                .putHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .end(new JsonObject().put("error", e.getMessage()).encode());
+        }
     }
 }

@@ -21,6 +21,7 @@ import io.gravitee.gateway.services.daimon.handler.DevicesHandler;
 import io.gravitee.gateway.services.daimon.handler.HeartbeatHandler;
 import io.gravitee.gateway.services.daimon.handler.RegisterHandler;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -40,12 +41,14 @@ public class DaimonService extends AbstractService<DaimonService> {
         super.doStart();
         log.info("Starting DAImon control service");
 
+        router.post(REGISTER_PATH).handler(BodyHandler.create());
         router
             .post(REGISTER_PATH)
             .consumes(MediaType.APPLICATION_JSON)
             .produces(MediaType.APPLICATION_JSON)
             .handler(new RegisterHandler(registry));
 
+        router.post(HEARTBEAT_PATH).handler(BodyHandler.create());
         router
             .post(HEARTBEAT_PATH)
             .consumes(MediaType.APPLICATION_JSON)
