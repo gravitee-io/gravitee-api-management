@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.application.Applications
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentCatalogQualityResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
@@ -103,6 +104,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/scoring")
     public EnvironmentScoringResource getEnvironmentScoringResource() {
         return resourceContext.getResource(EnvironmentScoringResource.class);
+    }
+
+    @Path("/catalog-quality")
+    public EnvironmentCatalogQualityResource getEnvironmentCatalogQualityResource() {
+        return resourceContext.getResource(EnvironmentCatalogQualityResource.class);
     }
 
     @Path("/analytics")

@@ -42,6 +42,8 @@ tags:
     description: Everything about Newt Ai
   - name: Subscription Forms
     description: Everything about subscription forms for API consumers
+  - name: Catalog Quality
+    description: Title and description quality for catalog discovery
 
 paths:
   # Environment Analytics
@@ -477,6 +479,50 @@ paths:
       responses:
         "204":
           description: Scoring function deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  /catalog-quality/apis:
+    get:
+      tags:
+        - Catalog Quality
+      summary: List catalog quality scores for published APIs in the environment
+      description: >-
+        Returns heuristic quality scores (title and description) for each published API to improve catalog discovery.
+      operationId: getCatalogQualityScores
+      responses:
+        "200":
+          description: List of per-API quality scores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogQualityApiScore"
+        default:
+          $ref: "#/components/responses/Error"
+  /catalog-quality/apis/{apiId}/suggestions:
+    post:
+      tags:
+        - Catalog Quality
+      summary: Generate AI suggestions to improve API title and description
+      description: >-
+        Calls the configured LLM (e.g. Ollama) to propose improved title and description for catalog discovery.
+      operationId: generateCatalogQualitySuggestions
+      parameters:
+        - name: apiId
+          in: path
+          required: true
+          description: Identifier of the API
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Suggested metadata and reasoning
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogQualitySuggestion"
         default:
           $ref: "#/components/responses/Error"
 
@@ -1179,6 +1225,62 @@ paths:
 
 components:
   schemas:
+    CatalogQualityApiScore:
+      type: object
+      description: Heuristic quality score for an API title and description (catalog discovery).
+      properties:
+        apiId:
+          type: string
+          description: API identifier
+        name:
+          type: string
+          description: Current API name (title)
+        description:
+          type: string
+          description: Current API description
+        definitionVersion:
+          type: string
+          nullable: true
+          description: Definition version when known (e.g. V4, V2)
+        apiType:
+          type: string
+          nullable: true
+          description: API type when known (e.g. PROXY, NATIVE)
+        titleScore:
+          type: integer
+          format: int32
+          description: Title score from 0 to 50
+        descriptionScore:
+          type: integer
+          format: int32
+          description: Description score from 0 to 50
+        totalScore:
+          type: integer
+          format: int32
+          description: Total score from 0 to 100
+        titleIssues:
+          type: array
+          items:
+            type: string
+          description: Human-readable title issues
+        descriptionIssues:
+          type: array
+          items:
+            type: string
+          description: Human-readable description issues
+    CatalogQualitySuggestion:
+      type: object
+      description: LLM-generated suggestion for catalog-friendly metadata.
+      properties:
+        apiId:
+          type: string
+        suggestedTitle:
+          type: string
+        suggestedDescription:
+          type: string
+        reasoning:
+          type: string
+
     # Analytics
     TopHitApi:
       type: object

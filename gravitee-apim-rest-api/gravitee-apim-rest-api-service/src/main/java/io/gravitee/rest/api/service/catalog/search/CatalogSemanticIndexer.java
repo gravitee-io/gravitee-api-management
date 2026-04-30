@@ -107,7 +107,6 @@ public class CatalogSemanticIndexer implements Closeable {
         doc.add(new TextField(FIELD_TITLE, item.getTitle(), Field.Store.YES));
         doc.add(new TextField(FIELD_DESCRIPTION, item.getDescription(), Field.Store.YES));
 
-
         String textToEmbed = buildEmbeddingText(item);
         float[] vector = embeddingService.embedText(textToEmbed);
         doc.add(new KnnFloatVectorField(FIELD_EMBEDDING, vector, VectorSimilarityFunction.COSINE));

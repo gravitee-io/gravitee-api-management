@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.apim;
+package io.gravitee.rest.api.service.catalog.quality;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
+import java.util.List;
 
-public class HttpApiManagementModule implements GammaModule {}
+public record CatalogQualityScoringResult(int score, List<String> issues) {}

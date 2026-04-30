@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
+import org.openapitools.jackson.nullable.JsonNullableModule;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,6 +41,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.registerModule(new JsonNullableModule());
         mapper.registerModule(
             new SimpleModule()
                 // Ser & Deser for ErrorDetailsInner. Avoid to have JsonNullable "present" parameter in the response.

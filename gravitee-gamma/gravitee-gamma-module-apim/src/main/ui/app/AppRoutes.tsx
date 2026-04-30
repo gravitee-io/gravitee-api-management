@@ -23,6 +23,7 @@ import { APIM_ROUTE_CONFIG } from '../config/routes';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { CatalogQualityPage } from '../pages/CatalogQualityPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
 function ModuleLayout() {
@@ -52,6 +53,7 @@ export function AppRoutes() {
             <Route element={<ModuleLayout />}>
                 <Route index element={<ApisPage />} />
                 <Route path="apis" element={<ApisPage />} />
+                <Route path="catalog-quality" element={<CatalogQualityPage />} />
                 <Route path="applications" element={<ApplicationsPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="settings" element={<SettingsPage />} />

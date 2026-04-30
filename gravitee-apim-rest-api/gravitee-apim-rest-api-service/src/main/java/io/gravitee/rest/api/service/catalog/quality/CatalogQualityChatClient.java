@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.apim;
+package io.gravitee.rest.api.service.catalog.quality;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
+import java.util.List;
 
-public class HttpApiManagementModule implements GammaModule {}
+public interface CatalogQualityChatClient {
+    record ChatMessage(String role, String content) {}
+
+    String chat(List<ChatMessage> messages);
+}

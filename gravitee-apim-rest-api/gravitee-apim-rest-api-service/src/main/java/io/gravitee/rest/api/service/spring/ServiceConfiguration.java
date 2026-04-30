@@ -34,6 +34,7 @@ import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.rest.api.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.PasswordValidator;
+import io.gravitee.rest.api.service.catalog.configuration.CatalogQualityConfiguration;
 import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfiguration;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
@@ -66,6 +67,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     {
         FetcherConfigurationConfiguration.class,
         SearchEngineConfiguration.class,
+        CatalogQualityConfiguration.class,
         UpgraderConfiguration.class,
         InitializerConfiguration.class,
         InfraServiceSpringConfiguration.class,
