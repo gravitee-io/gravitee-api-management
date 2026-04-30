@@ -22,6 +22,7 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
   private readonly locateWidgetCount = this.locatorForOptional('[data-testid="widget-count"]');
   private readonly locateLastModified = this.locatorForOptional('[data-testid="last-modified"]');
   private readonly locateLabels = this.locatorForAll('app-badge');
+  private readonly locateOverflowCounter = this.locatorForOptional('[data-testid="hidden-labels-count"]');
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<AnalyticsDashboardCardHarness> {
     return new HarnessPredicate(AnalyticsDashboardCardHarness, options);
@@ -43,6 +44,11 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
 
   public async getLabelCount(): Promise<number> {
     return (await this.locateLabels()).length;
+  }
+
+  public async getOverflowCounter(): Promise<string | null> {
+    const element = await this.locateOverflowCounter();
+    return element ? element.text() : null;
   }
 
   public async click(): Promise<void> {
