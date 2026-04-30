@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -22,14 +23,25 @@ type DirectConnection struct {
 
 type Detector struct {
 	providers   []string
+	resolvedIPs map[string][]string
 	intervalSec int
 	collector   *metrics.Collector
 	events      chan<- tui.Event
 }
 
 func New(providers []string, intervalSec int, collector *metrics.Collector, events chan<- tui.Event) *Detector {
+	resolved := make(map[string][]string)
+	for _, provider := range providers {
+		ips, err := net.LookupHost(provider)
+		if err == nil {
+			resolved[provider] = ips
+			log.Printf("resolved %s → %v", provider, ips)
+		}
+	}
+
 	return &Detector{
 		providers:   providers,
+		resolvedIPs: resolved,
 		intervalSec: intervalSec,
 		collector:   collector,
 		events:      events,
@@ -68,7 +80,7 @@ func (d *Detector) Start(ctx context.Context) {
 }
 
 func (d *Detector) scan() []DirectConnection {
-	cmd := exec.Command("lsof", "-i", "-n", "-P")
+	cmd := exec.Command("lsof", "-i", "-P")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Printf("lsof scan failed: %v", err)
@@ -94,7 +106,16 @@ func (d *Detector) scan() []DirectConnection {
 	return connections
 }
 
-func (d *Detector) matchesResolvedIP(_ string, _ string) bool {
+func (d *Detector) matchesResolvedIP(line string, provider string) bool {
+	ips, ok := d.resolvedIPs[provider]
+	if !ok {
+		return false
+	}
+	for _, ip := range ips {
+		if strings.Contains(line, ip) {
+			return true
+		}
+	}
 	return false
 }
 
