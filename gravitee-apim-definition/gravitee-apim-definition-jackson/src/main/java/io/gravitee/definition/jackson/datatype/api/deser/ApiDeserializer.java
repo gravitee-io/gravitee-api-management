@@ -217,15 +217,6 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
     }
 
     private static DefinitionVersion foundDefinitionVersion(JsonNode node) {
-        if (node.hasNonNull("definitionVersion")) {
-            JsonNode definitionVersion = node.get("definitionVersion");
-            try {
-                return DefinitionVersion.valueOf(definitionVersion.asText());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Unsupported API definition version: " + definitionVersion.asText());
-            }
-        }
-
         if (node.hasNonNull("gravitee")) {
             JsonNode gravitee = node.get("gravitee");
             DefinitionVersion version = DefinitionVersion.valueOfLabel(gravitee.asText());

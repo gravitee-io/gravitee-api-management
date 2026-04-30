@@ -33,12 +33,15 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.ApiModel;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -84,6 +87,9 @@ public class GroupService_AssociateTest extends TestCase {
     @Mock
     private MembershipService membershipService;
 
+    @Mock
+    private ApiTemplateService apiTemplateService;
+
     @Test(expected = GroupNotFoundException.class)
     public void shouldThrowGroupNotFoundException() throws TechnicalException {
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
@@ -107,9 +113,8 @@ public class GroupService_AssociateTest extends TestCase {
                 ApiFieldFilter.allFields()
             )
         ).thenReturn(Stream.of(api1, api2));
-        ApiEntity apiEntity1 = new ApiEntity();
-        apiEntity1.setId("api1");
-        when(apiConverter.toApiEntity(api1, null, false)).thenReturn(apiEntity1);
+        GenericApiModel apiModel = ApiModel.builder().id("api1").build();
+        when(apiTemplateService.findByIdForTemplates(executionContext, api1.getId(), true)).thenReturn(apiModel);
 
         UserEntity fakeUserEntity = new UserEntity();
         fakeUserEntity.setFirstname("firstName");

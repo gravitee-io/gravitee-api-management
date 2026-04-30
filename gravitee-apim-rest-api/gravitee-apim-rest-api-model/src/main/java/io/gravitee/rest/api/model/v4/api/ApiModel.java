@@ -36,6 +36,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,10 +49,12 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
+@Builder
 public class ApiModel implements GenericApiModel {
 
     private String id;
@@ -62,12 +66,22 @@ public class ApiModel implements GenericApiModel {
     private Date createdAt;
     private Date updatedAt;
     private String description;
+
+    @Builder.Default
     private Set<String> tags = new HashSet<>();
+
     private List<Listener> listeners;
     private List<EndpointGroup> endpointGroups;
+
+    @Builder.Default
     private List<Property> properties = new ArrayList<>();
+
+    @Builder.Default
     private List<Resource> resources = new ArrayList<>();
+
+    @Builder.Default
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
+
     private ApiServices services;
     private Set<String> groups;
     private Visibility visibility;
@@ -75,7 +89,10 @@ public class ApiModel implements GenericApiModel {
     private PrimaryOwnerEntity primaryOwner;
     private String picture;
     private Set<String> categories;
+
+    @Builder.Default
     private Map<String, String> metadata = new HashMap<>();
+
     private ApiLifecycleState lifecycleState;
     private boolean disableMembershipNotifications;
     private Failover failover;

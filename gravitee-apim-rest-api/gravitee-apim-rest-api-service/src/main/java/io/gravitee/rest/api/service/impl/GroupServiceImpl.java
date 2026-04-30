@@ -96,6 +96,7 @@ import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.reactivex.rxjava3.functions.Action;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -197,6 +198,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Lazy
     @Autowired
     private SearchEngineService searchEngineService;
+
+    @Autowired
+    private ApiTemplateService apiTemplateService;
 
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
@@ -1358,12 +1362,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, null, false);
+        var apiModel = apiTemplateService.findByIdForTemplates(executionContext, api.getId(), true);
         notifierService.trigger(
             executionContext,
             ApiHook.API_UPDATED,
             api.getId(),
-            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, getAuthenticatedUsername())).build()
+            new NotificationParamsBuilder().api(apiModel).user(userService.findById(executionContext, getAuthenticatedUsername())).build()
         );
     }
 

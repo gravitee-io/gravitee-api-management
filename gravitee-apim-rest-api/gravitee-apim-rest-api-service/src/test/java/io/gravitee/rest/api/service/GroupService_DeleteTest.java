@@ -51,6 +51,7 @@ import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -117,6 +118,9 @@ public class GroupService_DeleteTest {
 
     @Mock
     private ApiProductsRepository apiProductsRepository;
+
+    @Mock
+    private ApiTemplateService apiTemplateService;
 
     @Test(expected = GroupNotFoundException.class)
     public void throwGroupNotFoundException() throws Exception {
