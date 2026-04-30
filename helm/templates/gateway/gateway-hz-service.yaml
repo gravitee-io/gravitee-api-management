@@ -1,4 +1,4 @@
-{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast")) -}}
+{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (eq (dig "cluster" "type" "" .Values.gateway) "hazelcast") -}}
 {{- $hzCfg := dict }}
 {{- if and .Values.gateway.ratelimit (kindIs "map" .Values.gateway.ratelimit) }}{{ $hzCfg = (.Values.gateway.ratelimit.hazelcast | default dict) }}{{ end }}
 {{- $hzRateLimitPort := $hzCfg.port | default 5901 }}
@@ -34,7 +34,7 @@ spec:
       protocol: TCP
       name: {{ printf "%s-%s" (.Values.gateway.name | trunc 56 | trimSuffix "-") "hz-rl" }}
     {{- end }}
-    {{- if and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast") }}
+    {{- if eq (dig "cluster" "type" "" .Values.gateway) "hazelcast" }}
     - port: 5701
       targetPort: 5701
       protocol: TCP
