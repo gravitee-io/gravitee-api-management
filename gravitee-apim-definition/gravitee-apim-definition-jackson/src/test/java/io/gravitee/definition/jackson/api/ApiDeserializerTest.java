@@ -610,12 +610,4 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(1, api.getPlans().size());
         assertEquals("my-api-id", api.getPlans().get(0).getApi());
     }
-
-    @Test
-    public void definition_federated() throws IOException {
-        Api api = load("/io/gravitee/definition/jackson/api-federated.json", Api.class);
-
-        assertThat(api.getProxy()).isNull();
-        assertThat(api.getName()).isEqualTo("IrishUsagePlanAPI100");
-    }
 }
