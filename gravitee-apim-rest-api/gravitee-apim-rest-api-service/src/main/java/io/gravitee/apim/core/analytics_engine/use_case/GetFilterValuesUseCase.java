@@ -24,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -51,7 +52,8 @@ public class GetFilterValuesUseCase {
     private static final Set<FilterSpec.Name> ID_BASED_FILTERS = Set.of(
         FilterSpec.Name.API,
         FilterSpec.Name.APPLICATION,
-        FilterSpec.Name.PLAN
+        FilterSpec.Name.PLAN,
+        FilterSpec.Name.API_PRODUCT
     );
 
     private final AnalyticsDefinitionQueryService definitionQueryService;
@@ -60,6 +62,7 @@ public class GetFilterValuesUseCase {
     private final AnalyticsQueryContextLoader contextLoader;
     private final ApplicationQueryService applicationQueryService;
     private final PlanQueryService planQueryService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public record Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {}
 
@@ -137,6 +140,9 @@ public class GetFilterValuesUseCase {
         if (filterSpecName == FilterSpec.Name.PLAN) {
             return searchPlansByNameFromAuthorizedApis(input, analyticsContext);
         }
+        if (filterSpecName == FilterSpec.Name.API_PRODUCT) {
+            return searchApiProductsByNameFromEnvironment(input);
+        }
         return new Output(new FilterValuesPage(Collections.emptyList(), null, 0L));
     }
 
@@ -188,6 +194,33 @@ public class GetFilterValuesUseCase {
         var values = pageApps
             .stream()
             .map(app -> new FilterValue(app.getName(), app.getId()))
+            .toList();
+
+        return new Output(new FilterValuesPage(values, null, totalFiltered));
+    }
+
+    private Output searchApiProductsByNameFromEnvironment(Input input) {
+        var environmentId = input.auditInfo().environmentId();
+        var lowerQuery = input.query().toLowerCase();
+        var matching = apiProductQueryService
+            .findByEnvironmentId(environmentId)
+            .stream()
+            .filter(ap -> ap.getName() != null && ap.getName().toLowerCase().contains(lowerQuery))
+            .sorted(
+                Comparator.comparing(
+                    io.gravitee.apim.core.api_product.model.ApiProduct::getName,
+                    String.CASE_INSENSITIVE_ORDER
+                ).thenComparing(io.gravitee.apim.core.api_product.model.ApiProduct::getId)
+            )
+            .toList();
+
+        var totalFiltered = (long) matching.size();
+        var fromIndex = Math.min((input.page() - 1) * input.perPage(), matching.size());
+        var toIndex = Math.min(fromIndex + input.perPage(), matching.size());
+        var pageProducts = matching.subList(fromIndex, toIndex);
+        var values = pageProducts
+            .stream()
+            .map(ap -> new FilterValue(ap.getName(), ap.getId()))
             .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));

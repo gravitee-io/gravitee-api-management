@@ -27,12 +27,14 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,13 +62,22 @@ class FilterValueNameResolverImplTest {
     @Mock
     private PlanCrudService planCrudService;
 
+    @Mock
+    private io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService;
+
     private FilterValueNameResolverImpl resolver;
     private AutoCloseable closeable;
 
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        resolver = new FilterValueNameResolverImpl(apiCrudService, apiQueryService, applicationCrudService, planCrudService);
+        resolver = new FilterValueNameResolverImpl(
+            apiCrudService,
+            apiQueryService,
+            applicationCrudService,
+            planCrudService,
+            apiProductQueryService
+        );
     }
 
     @AfterEach
@@ -134,6 +145,21 @@ class FilterValueNameResolverImplTest {
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.PLAN, ids);
 
             assertThat(result).containsEntry("plan-1", "Gold Plan").containsEntry("plan-2", "Silver Plan").hasSize(2);
+        }
+
+        @Test
+        void should_resolve_api_product_names() {
+            var ids = List.of("prod-1", "prod-2");
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENVIRONMENT_ID, Set.copyOf(ids))).thenReturn(
+                Set.of(
+                    ApiProduct.builder().id("prod-1").name("Product 1").build(),
+                    ApiProduct.builder().id("prod-2").name("Product 2").build()
+                )
+            );
+
+            var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.API_PRODUCT, ids);
+
+            assertThat(result).containsEntry("prod-1", "Product 1").containsEntry("prod-2", "Product 2").hasSize(2);
         }
 
         @Test

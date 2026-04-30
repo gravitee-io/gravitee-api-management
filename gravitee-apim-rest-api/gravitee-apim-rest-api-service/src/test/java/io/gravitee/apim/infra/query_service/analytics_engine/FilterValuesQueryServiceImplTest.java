@@ -176,6 +176,16 @@ class FilterValuesQueryServiceImplTest {
     }
 
     @Test
+    void should_resolve_es_field_name_for_api_product_filter() {
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("product-1"), null, 1));
+
+        service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.API_PRODUCT, null, null, 1, 10, null, null, null);
+
+        verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().esFieldName()).isEqualTo("api-product-id");
+    }
+
+    @Test
     void should_pass_authorized_api_ids_to_es_query() {
         when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
 

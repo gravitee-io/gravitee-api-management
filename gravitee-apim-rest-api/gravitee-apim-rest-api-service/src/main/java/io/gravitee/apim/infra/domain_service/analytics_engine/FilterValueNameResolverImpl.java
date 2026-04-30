@@ -22,10 +22,13 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,6 +46,7 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
     private final ApiQueryService apiQueryService;
     private final ApplicationCrudService applicationCrudService;
     private final PlanCrudService planCrudService;
+    private final ApiProductQueryService apiProductQueryService;
 
     @Override
     public Map<String, String> resolveNames(String environmentId, FilterSpec.Name filterName, List<String> ids) {
@@ -63,6 +67,10 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
                 yield names;
             }
             case PLAN -> planCrudService.findByIds(ids).stream().collect(Collectors.toMap(plan -> plan.getId(), plan -> plan.getName()));
+            case API_PRODUCT -> apiProductQueryService
+                .findByEnvironmentIdAndIdIn(environmentId, new HashSet<>(ids))
+                .stream()
+                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
             default -> Collections.emptyMap();
         };
     }

@@ -302,6 +302,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService() {
+        return mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class);
+    }
+
+    @Bean
     public CustomDashboardRepository customDashboardRepository() {
         return mock(CustomDashboardRepository.class);
     }
@@ -1332,7 +1337,8 @@ public class ResourceContextConfiguration {
         FilterValueNameResolver filterValueNameResolver,
         AnalyticsQueryContextLoader analyticsQueryContextLoader,
         io.gravitee.apim.core.application.query_service.ApplicationQueryService applicationQueryService,
-        io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService
+        io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService,
+        io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService
     ) {
         return new GetFilterValuesUseCase(
             analyticsDefinitionQueryService,
@@ -1340,7 +1346,8 @@ public class ResourceContextConfiguration {
             filterValueNameResolver,
             analyticsQueryContextLoader,
             applicationQueryService,
-            planQueryService
+            planQueryService,
+            apiProductQueryService
         );
     }
 

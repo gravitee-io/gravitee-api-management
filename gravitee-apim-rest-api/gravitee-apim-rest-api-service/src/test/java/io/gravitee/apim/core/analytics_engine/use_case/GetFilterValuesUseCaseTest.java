@@ -33,6 +33,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -89,6 +90,9 @@ class GetFilterValuesUseCaseTest {
     @Mock
     private PlanQueryService planQueryService;
 
+    @Mock
+    private io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService;
+
     private GetFilterValuesUseCase useCase;
     private AutoCloseable closeable;
 
@@ -102,7 +106,8 @@ class GetFilterValuesUseCaseTest {
             filterValueNameResolver,
             contextLoader,
             applicationQueryService,
-            planQueryService
+            planQueryService,
+            apiProductQueryService
         );
     }
 
@@ -1115,6 +1120,98 @@ class GetFilterValuesUseCaseTest {
                 eq(null),
                 eq(Set.of("plan-scope-a", "plan-scope-b"))
             );
+        }
+    }
+
+    @Nested
+    class ApiProductIdBasedFilters {
+
+        @BeforeEach
+        void setUp() {
+            when(definitionQueryService.getAllFilters()).thenReturn(
+                List.of(
+                    new FilterSpec(
+                        FilterSpec.Name.API_PRODUCT,
+                        "API Product",
+                        FilterType.KEYWORD,
+                        null,
+                        null,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null
+                    )
+                )
+            );
+        }
+
+        @Test
+        void should_resolve_names_for_api_product_filter() {
+            var esPage = new FilterValuesPage(List.of(new FilterValue("prod-id-1")), null);
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    eq(FilterSpec.Name.API_PRODUCT),
+                    any(),
+                    any(),
+                    anyInt(),
+                    eq(10),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(esPage);
+            when(filterValueNameResolver.resolveNames(any(), eq(FilterSpec.Name.API_PRODUCT), any())).thenReturn(
+                Map.of("prod-id-1", "My API Product")
+            );
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, null));
+
+            assertThat(output.valuesPage().data())
+                .hasSize(1)
+                .first()
+                .satisfies(v -> {
+                    assertThat(v.value()).isEqualTo("My API Product");
+                    assertThat(v.id()).isEqualTo("prod-id-1");
+                });
+        }
+
+        @Test
+        void should_search_api_product_by_name_when_query_provided() {
+            var prod1 = ApiProduct.builder().id("prod-id-1").name("My Product 1").build();
+            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1));
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, "My Prod"));
+
+            assertThat(output.valuesPage().data())
+                .hasSize(1)
+                .first()
+                .satisfies(v -> {
+                    assertThat(v.value()).isEqualTo("My Product 1");
+                    assertThat(v.id()).isEqualTo("prod-id-1");
+                });
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
+            verifyNoInteractions(filterValuesQueryService);
+            verifyNoInteractions(filterValueNameResolver);
+            verify(apiProductQueryService).findByEnvironmentId("env-id");
+        }
+
+        @Test
+        void should_paginate_api_product_search_by_name() {
+            var prod1 = ApiProduct.builder().id("p-1").name("My Product A").build();
+            var prod2 = ApiProduct.builder().id("p-2").name("My Product B").build();
+            var prod3 = ApiProduct.builder().id("p-3").name("My Product C").build();
+            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1, prod2, prod3));
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 2, 2, "My Prod"));
+
+            assertThat(output.valuesPage().data())
+                .hasSize(1)
+                .first()
+                .satisfies(v -> {
+                    assertThat(v.value()).isEqualTo("My Product C");
+                    assertThat(v.id()).isEqualTo("p-3");
+                });
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(3L);
         }
     }
 
