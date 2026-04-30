@@ -17,6 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.model.CatalogQualityApiScore;
+import io.gravitee.rest.api.management.v2.rest.model.CatalogQualityScoreRequest;
+import io.gravitee.rest.api.management.v2.rest.model.CatalogQualityScoreResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CatalogQualitySuggestion;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -26,6 +28,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.catalog.quality.CatalogQualityService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -66,6 +69,24 @@ public class EnvironmentCatalogQualityResource extends AbstractResource {
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"message\":\"" + msg + "\"}").build();
         }
+    }
+
+    @POST
+    @Path("/score")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    public CatalogQualityScoreResponse scoreCatalogQualityText(CatalogQualityScoreRequest request) {
+        var result = catalogQualityService.score(
+            request.getTitle() != null ? request.getTitle() : "",
+            request.getDescription() != null ? request.getDescription() : ""
+        );
+        return new CatalogQualityScoreResponse()
+            .titleScore(result.titleScore())
+            .descriptionScore(result.descriptionScore())
+            .totalScore(result.totalScore())
+            .titleIssues(result.titleIssues())
+            .descriptionIssues(result.descriptionIssues());
     }
 
     private CatalogQualityApiScore toApiScore(CatalogQualityService.CatalogQualityScoreRow row) {

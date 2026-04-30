@@ -86,6 +86,28 @@ public class CatalogQualityService {
 
     public record CatalogQualitySuggestionRow(String apiId, String suggestedTitle, String suggestedDescription, String reasoning) {}
 
+    public record ScoreResult(
+        int titleScore,
+        int descriptionScore,
+        int totalScore,
+        List<String> titleIssues,
+        List<String> descriptionIssues
+    ) {}
+
+    public ScoreResult score(String title, String description) {
+        var safeTitle = title != null ? title : "";
+        var safeDesc = description != null ? description : "";
+        var titleResult = scoringService.scoreTitle(safeTitle);
+        var descResult = scoringService.scoreDescription(safeDesc, safeTitle);
+        return new ScoreResult(
+            titleResult.score(),
+            descResult.score(),
+            titleResult.score() + descResult.score(),
+            titleResult.issues(),
+            descResult.issues()
+        );
+    }
+
     public List<CatalogQualityScoreRow> listScores(String environmentId) {
         var criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).environmentId(environmentId).build();
 

@@ -525,6 +525,30 @@ paths:
                 $ref: "#/components/schemas/CatalogQualitySuggestion"
         default:
           $ref: "#/components/responses/Error"
+  /catalog-quality/score:
+    post:
+      tags:
+        - Catalog Quality
+      summary: Score arbitrary title and description text
+      description: >-
+        Returns heuristic quality scores for the given title and description without persisting anything.
+        Useful for live scoring as the user types.
+      operationId: scoreCatalogQualityText
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogQualityScoreRequest"
+      responses:
+        "200":
+          description: Scoring result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogQualityScoreResponse"
+        default:
+          $ref: "#/components/responses/Error"
 
   # Cluster
   /clusters:
@@ -1280,6 +1304,42 @@ components:
           type: string
         reasoning:
           type: string
+    CatalogQualityScoreRequest:
+      type: object
+      description: Request body for scoring arbitrary title and description text.
+      properties:
+        title:
+          type: string
+          description: The title text to score
+        description:
+          type: string
+          description: The description text to score
+    CatalogQualityScoreResponse:
+      type: object
+      description: Heuristic scoring result for title and description text.
+      properties:
+        titleScore:
+          type: integer
+          format: int32
+          description: Title score from 0 to 50
+        descriptionScore:
+          type: integer
+          format: int32
+          description: Description score from 0 to 50
+        totalScore:
+          type: integer
+          format: int32
+          description: Total score from 0 to 100
+        titleIssues:
+          type: array
+          items:
+            type: string
+          description: Human-readable title issues
+        descriptionIssues:
+          type: array
+          items:
+            type: string
+          description: Human-readable description issues
 
     # Analytics
     TopHitApi:

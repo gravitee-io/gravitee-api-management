@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { Button } from '@gravitee/graphene-core';
-import { AlertCircle, ArrowRight, Check, Loader2, Sparkles, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { AlertCircle, Check, ChevronDown, ChevronUp, Copy, Loader2, Save, Sparkles, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ApiQualityScore, ApiSuggestion } from '../../api/catalog-quality-api';
-import { applyApiSuggestion, fetchApiSuggestions } from '../../api/catalog-quality-api';
+import type { ApiQualityScore, ApiSuggestion, ScoreResult } from '../../api/catalog-quality-api';
+import { applyApiSuggestion, fetchApiSuggestions, fetchScore } from '../../api/catalog-quality-api';
 import { ScoreBadge } from './ScoreBadge';
 
 interface AnalysisPanelProps {
@@ -28,21 +28,131 @@ interface AnalysisPanelProps {
     readonly onApplied: () => void;
 }
 
+const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    border: '1px solid var(--border, #e5e7eb)',
+    fontSize: '14px',
+    fontFamily: 'inherit',
+    backgroundColor: 'var(--background, #fff)',
+    color: 'var(--foreground, #111827)',
+    outline: 'none',
+    boxSizing: 'border-box',
+};
+
+const textareaStyle: React.CSSProperties = {
+    ...inputStyle,
+    minHeight: '100px',
+    resize: 'vertical',
+    lineHeight: 1.5,
+};
+
+const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: 'var(--muted-foreground, #6b7280)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: '6px',
+};
+
 export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelProps) {
-    const [suggestion, setSuggestion] = useState<ApiSuggestion | null>(null);
+    const [editTitle, setEditTitle] = useState(api.name || '');
+    const [editDescription, setEditDescription] = useState(api.description || '');
+
+    const [liveScore, setLiveScore] = useState<ScoreResult>({
+        titleScore: api.titleScore,
+        descriptionScore: api.descriptionScore,
+        totalScore: api.totalScore,
+        titleIssues: api.titleIssues,
+        descriptionIssues: api.descriptionIssues,
+    });
+    const [scoring, setScoring] = useState(false);
+
     const [loading, setLoading] = useState(false);
-    const [applying, setApplying] = useState(false);
-    const [applied, setApplied] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [suggestion, setSuggestion] = useState<ApiSuggestion | null>(null);
+    const [reasoningOpen, setReasoningOpen] = useState(false);
 
-    const canApply = api.definitionVersion === 'V4' && api.apiType === 'PROXY';
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const abortRef = useRef<AbortController | null>(null);
 
-    const handleAnalyze = useCallback(async () => {
+    const originalTitle = api.name || '';
+    const originalDescription = api.description || '';
+    const hasChanges = editTitle !== originalTitle || editDescription !== originalDescription;
+    const canSave = api.definitionVersion === 'V4' && api.apiType === 'PROXY';
+    const scoreDelta = liveScore.totalScore - api.totalScore;
+
+    useEffect(() => {
+        setEditTitle(api.name || '');
+        setEditDescription(api.description || '');
+        setLiveScore({
+            titleScore: api.titleScore,
+            descriptionScore: api.descriptionScore,
+            totalScore: api.totalScore,
+            titleIssues: api.titleIssues,
+            descriptionIssues: api.descriptionIssues,
+        });
+        setSaved(false);
+        setSuggestion(null);
+        setError(null);
+    }, [api.apiId, api.name, api.description, api.titleScore, api.descriptionScore, api.totalScore, api.titleIssues, api.descriptionIssues]);
+
+    const runScore = useCallback(
+        (title: string, description: string) => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            if (abortRef.current) abortRef.current.abort();
+
+            debounceRef.current = setTimeout(async () => {
+                const controller = new AbortController();
+                abortRef.current = controller;
+                setScoring(true);
+                try {
+                    const result = await fetchScore(envId, title, description);
+                    if (!controller.signal.aborted) {
+                        setLiveScore(result);
+                    }
+                } catch {
+                    // Silently ignore scoring errors — the user can still type
+                } finally {
+                    if (!controller.signal.aborted) {
+                        setScoring(false);
+                    }
+                }
+            }, 300);
+        },
+        [envId],
+    );
+
+    const handleTitleChange = useCallback(
+        (value: string) => {
+            setEditTitle(value);
+            setSaved(false);
+            runScore(value, editDescription);
+        },
+        [editDescription, runScore],
+    );
+
+    const handleDescriptionChange = useCallback(
+        (value: string) => {
+            setEditDescription(value);
+            setSaved(false);
+            runScore(editTitle, value);
+        },
+        [editTitle, runScore],
+    );
+
+    const handleGenerateAI = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const result = await fetchApiSuggestions(api.apiId, envId);
             setSuggestion(result);
+            setReasoningOpen(false);
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Failed to generate suggestions');
         } finally {
@@ -50,20 +160,34 @@ export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelP
         }
     }, [api.apiId, envId]);
 
-    const handleApply = useCallback(async () => {
+    const handleApplySuggestion = useCallback(() => {
         if (!suggestion) return;
-        setApplying(true);
+        if (suggestion.suggestedTitle) setEditTitle(suggestion.suggestedTitle);
+        if (suggestion.suggestedDescription) setEditDescription(suggestion.suggestedDescription);
+        setSaved(false);
+        runScore(suggestion.suggestedTitle || editTitle, suggestion.suggestedDescription || editDescription);
+    }, [suggestion, editTitle, editDescription, runScore]);
+
+    const handleSave = useCallback(async () => {
+        setSaving(true);
         setError(null);
         try {
-            await applyApiSuggestion(api.apiId, envId, suggestion.suggestedTitle, suggestion.suggestedDescription);
-            setApplied(true);
+            await applyApiSuggestion(api.apiId, envId, editTitle, editDescription);
+            setSaved(true);
             onApplied();
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Failed to apply suggestion');
+            setError(e instanceof Error ? e.message : 'Failed to save changes');
         } finally {
-            setApplying(false);
+            setSaving(false);
         }
-    }, [api.apiId, envId, suggestion, onApplied]);
+    }, [api.apiId, envId, editTitle, editDescription, onApplied]);
+
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            if (abortRef.current) abortRef.current.abort();
+        };
+    }, []);
 
     return (
         <div
@@ -82,6 +206,7 @@ export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelP
                 overflow: 'hidden',
             }}
         >
+            {/* Header */}
             <div
                 style={{
                     display: 'flex',
@@ -91,7 +216,13 @@ export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelP
                     borderBottom: '1px solid var(--border, #e5e7eb)',
                 }}
             >
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>Quality Analysis</h3>
+                <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>Quality Analysis</h3>
+                    <span style={{ fontSize: '12px', color: 'var(--muted-foreground, #6b7280)' }}>
+                        {api.definitionVersion && `${api.definitionVersion}`}
+                        {api.apiType && ` · ${api.apiType}`}
+                    </span>
+                </div>
                 <button
                     onClick={onClose}
                     style={{
@@ -107,23 +238,79 @@ export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelP
                 </button>
             </div>
 
+            {/* Scrollable content */}
             <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+                {/* Title field */}
                 <div style={{ marginBottom: '20px' }}>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 600 }}>{api.name || '(no title)'}</h4>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--muted-foreground, #6b7280)' }}>
-                        {api.description ? api.description.substring(0, 150) + (api.description.length > 150 ? '...' : '') : '(no description)'}
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <label style={labelStyle}>Title</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <ScoreBadge score={liveScore.titleScore} max={50} />
+                            <span style={{ fontSize: '11px', color: 'var(--muted-foreground, #6b7280)' }}>/50</span>
+                        </div>
+                    </div>
+                    <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => handleTitleChange(e.target.value)}
+                        placeholder="Enter API title…"
+                        style={inputStyle}
+                    />
+                    {liveScore.titleIssues.length > 0 && <IssueList issues={liveScore.titleIssues} />}
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                    <ScoreCard label="Overall" score={api.totalScore} max={100} />
-                    <ScoreCard label="Title" score={api.titleScore} max={50} />
-                    <ScoreCard label="Description" score={api.descriptionScore} max={50} />
+                {/* Description field */}
+                <div style={{ marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <label style={labelStyle}>Description</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <ScoreBadge score={liveScore.descriptionScore} max={50} />
+                            <span style={{ fontSize: '11px', color: 'var(--muted-foreground, #6b7280)' }}>/50</span>
+                        </div>
+                    </div>
+                    <textarea
+                        value={editDescription}
+                        onChange={(e) => handleDescriptionChange(e.target.value)}
+                        placeholder="Enter API description…"
+                        style={textareaStyle}
+                    />
+                    {liveScore.descriptionIssues.length > 0 && <IssueList issues={liveScore.descriptionIssues} />}
                 </div>
 
-                {api.titleIssues.length > 0 && <IssueList label="Title Issues" issues={api.titleIssues} />}
-                {api.descriptionIssues.length > 0 && <IssueList label="Description Issues" issues={api.descriptionIssues} />}
-                {api.titleIssues.length === 0 && api.descriptionIssues.length === 0 && (
+                {/* Overall score with delta */}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border, #e5e7eb)',
+                        marginBottom: '20px',
+                    }}
+                >
+                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Overall Score</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {scoring && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: 'var(--muted-foreground, #6b7280)' }} />}
+                        <ScoreBadge score={liveScore.totalScore} />
+                        <span style={{ fontSize: '11px', color: 'var(--muted-foreground, #6b7280)' }}>/100</span>
+                        {scoreDelta !== 0 && (
+                            <span
+                                style={{
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    color: scoreDelta > 0 ? 'hsl(142 71% 35%)' : 'hsl(0 84% 50%)',
+                                }}
+                            >
+                                {scoreDelta > 0 ? '+' : ''}
+                                {scoreDelta}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* No issues banner */}
+                {liveScore.titleIssues.length === 0 && liveScore.descriptionIssues.length === 0 && (
                     <div
                         style={{
                             padding: '12px 16px',
@@ -139,20 +326,100 @@ export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelP
                     </div>
                 )}
 
-                {!suggestion && !loading && (
-                    <Button type="button" size="sm" onClick={handleAnalyze} style={{ marginBottom: '20px' }}>
-                        <Sparkles size={14} style={{ marginRight: '6px' }} />
-                        Generate AI Suggestions
+                {/* AI Suggestions section */}
+                <div style={{ marginBottom: '20px' }}>
+                    <Button type="button" variant="outline" size="sm" onClick={handleGenerateAI} disabled={loading}>
+                        {loading ? (
+                            <Loader2 size={14} style={{ marginRight: '6px', animation: 'spin 1s linear infinite' }} />
+                        ) : (
+                            <Sparkles size={14} style={{ marginRight: '6px' }} />
+                        )}
+                        {loading ? 'Generating…' : 'Generate AI Suggestions'}
                     </Button>
-                )}
+                </div>
 
-                {loading && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 0', color: 'var(--muted-foreground, #6b7280)' }}>
-                        <Loader2 size={16} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
-                        <span style={{ fontSize: '13px' }}>Generating suggestions with Ollama llama3.2:1b...</span>
+                {/* AI Suggestion results card */}
+                {suggestion && (
+                    <div
+                        style={{
+                            marginBottom: '20px',
+                            border: '1px solid hsl(262 80% 60% / 0.2)',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <div
+                            style={{
+                                padding: '10px 14px',
+                                backgroundColor: 'hsl(262 80% 60% / 0.06)',
+                                borderBottom: '1px solid hsl(262 80% 60% / 0.12)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                            }}
+                        >
+                            <Sparkles size={14} style={{ color: 'hsl(262 80% 50%)' }} />
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(262 80% 40%)' }}>AI Suggestions</span>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleApplySuggestion}
+                                style={{ marginLeft: 'auto', fontSize: '11px', padding: '2px 10px', height: 'auto' }}
+                            >
+                                <Check size={12} style={{ marginRight: '4px' }} />
+                                Apply to fields
+                            </Button>
+                        </div>
+                        <div style={{ padding: '14px' }}>
+                            {suggestion.suggestedTitle && (
+                                <CopyableField label="Suggested Title" value={suggestion.suggestedTitle} />
+                            )}
+                            {suggestion.suggestedDescription && (
+                                <CopyableField label="Suggested Description" value={suggestion.suggestedDescription} />
+                            )}
+                            {suggestion.reasoning && (
+                                <div style={{ marginTop: suggestion.suggestedTitle || suggestion.suggestedDescription ? '12px' : 0 }}>
+                                    <button
+                                        onClick={() => setReasoningOpen(!reasoningOpen)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            border: 'none',
+                                            background: 'none',
+                                            cursor: 'pointer',
+                                            padding: '4px 0',
+                                            fontSize: '12px',
+                                            fontWeight: 500,
+                                            color: 'var(--muted-foreground, #6b7280)',
+                                        }}
+                                    >
+                                        {reasoningOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                        Why these suggestions?
+                                    </button>
+                                    {reasoningOpen && (
+                                        <p
+                                            style={{
+                                                margin: '8px 0 0',
+                                                padding: '10px 12px',
+                                                borderRadius: '6px',
+                                                backgroundColor: 'var(--accent, #f3f4f6)',
+                                                fontSize: '13px',
+                                                lineHeight: 1.6,
+                                                color: 'var(--muted-foreground, #6b7280)',
+                                            }}
+                                        >
+                                            {suggestion.reasoning}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
+                {/* Error */}
                 {error && (
                     <div
                         style={{
@@ -169,177 +436,121 @@ export function AnalysisPanel({ api, envId, onClose, onApplied }: AnalysisPanelP
                     </div>
                 )}
 
-                {suggestion && (
-                    <div style={{ marginTop: '8px' }}>
-                        <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 600 }}>AI Suggestions</h4>
-
-                        {suggestion.suggestedTitle && (
-                            <SuggestionField label="Suggested Title" current={api.name} suggested={suggestion.suggestedTitle} />
-                        )}
-                        {suggestion.suggestedDescription && (
-                            <SuggestionField label="Suggested Description" current={api.description} suggested={suggestion.suggestedDescription} />
-                        )}
-                        {suggestion.reasoning && (
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted-foreground, #6b7280)' }}>Reasoning</label>
-                                <p style={{ margin: '4px 0', fontSize: '13px', lineHeight: 1.5 }}>{suggestion.reasoning}</p>
-                            </div>
-                        )}
-
-                        {!applied && (
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={handleApply}
-                                    disabled={applying || !canApply}
-                                    title={!canApply ? 'One-click apply is only supported for V4 Proxy APIs' : undefined}
-                                >
-                                    {applying ? (
-                                        <Loader2 size={14} style={{ marginRight: '6px', animation: 'spin 1s linear infinite' }} />
-                                    ) : (
-                                        <Check size={14} style={{ marginRight: '6px' }} />
-                                    )}
-                                    Apply Suggestions
-                                </Button>
-                                {!canApply && (
-                                    <span style={{ fontSize: '12px', color: 'var(--muted-foreground, #6b7280)', alignSelf: 'center' }}>
-                                        Only V4 Proxy APIs support one-click apply
-                                    </span>
-                                )}
-                            </div>
-                        )}
-
-                        {applied && (
-                            <div
-                                style={{
-                                    padding: '12px 16px',
-                                    borderRadius: '8px',
-                                    backgroundColor: 'hsl(142 71% 45% / 0.1)',
-                                    color: 'hsl(142 71% 30%)',
-                                    fontSize: '13px',
-                                    marginTop: '16px',
-                                }}
-                            >
-                                <Check size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
-                                Suggestions applied successfully. Scores will update after re-indexing.
-                            </div>
-                        )}
+                {/* Saved confirmation */}
+                {saved && (
+                    <div
+                        style={{
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                            backgroundColor: 'hsl(142 71% 45% / 0.1)',
+                            color: 'hsl(142 71% 30%)',
+                            fontSize: '13px',
+                            marginBottom: '16px',
+                        }}
+                    >
+                        <Check size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                        Changes saved successfully. Scores will update after re-indexing.
                     </div>
+                )}
+            </div>
+
+            {/* Sticky bottom action bar */}
+            <div
+                style={{
+                    padding: '12px 20px',
+                    borderTop: '1px solid var(--border, #e5e7eb)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                }}
+            >
+                <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={!hasChanges || saving || !canSave}
+                    title={!canSave ? 'Saving is only supported for V4 Proxy APIs' : !hasChanges ? 'No changes to save' : undefined}
+                >
+                    {saving ? (
+                        <Loader2 size={14} style={{ marginRight: '6px', animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                        <Save size={14} style={{ marginRight: '6px' }} />
+                    )}
+                    Save Changes
+                </Button>
+                {!canSave && hasChanges && (
+                    <span style={{ fontSize: '12px', color: 'var(--muted-foreground, #6b7280)' }}>Only V4 Proxy APIs support saving</span>
                 )}
             </div>
         </div>
     );
 }
 
-function ScoreCard({ label, score, max }: { readonly label: string; readonly score: number; readonly max: number }) {
-    const pct = Math.round((score / max) * 100);
-    return (
-        <div
-            style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border, #e5e7eb)',
-                textAlign: 'center',
-            }}
-        >
-            <div style={{ fontSize: '11px', color: 'var(--muted-foreground, #6b7280)', marginBottom: '4px' }}>{label}</div>
-            <div style={{ fontSize: '20px', fontWeight: 700 }}>
-                {score}
-                <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--muted-foreground, #6b7280)' }}>/{max}</span>
-            </div>
-            <div
-                style={{
-                    height: '4px',
-                    borderRadius: '2px',
-                    backgroundColor: 'var(--border, #e5e7eb)',
-                    marginTop: '8px',
-                    overflow: 'hidden',
-                }}
-            >
-                <div
-                    style={{
-                        height: '100%',
-                        width: `${pct}%`,
-                        borderRadius: '2px',
-                        backgroundColor: pct >= 70 ? 'hsl(142 71% 45%)' : pct >= 40 ? 'hsl(38 92% 50%)' : 'hsl(0 84% 60%)',
-                        transition: 'width 300ms ease',
-                    }}
-                />
-            </div>
-        </div>
-    );
-}
+function CopyableField({ label, value }: { readonly label: string; readonly value: string }) {
+    const [copied, setCopied] = useState(false);
 
-function IssueList({ label, issues }: { readonly label: string; readonly issues: string[] }) {
-    return (
-        <div style={{ marginBottom: '16px' }}>
-            <h5 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>{label}</h5>
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                {issues.map((issue, i) => (
-                    <li
-                        key={i}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '8px',
-                            padding: '6px 0',
-                            fontSize: '13px',
-                            color: 'var(--muted-foreground, #6b7280)',
-                        }}
-                    >
-                        <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px', color: 'hsl(38 92% 50%)' }} />
-                        {issue}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-}
+    const handleCopy = useCallback(() => {
+        navigator.clipboard.writeText(value).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    }, [value]);
 
-function SuggestionField({ label, current, suggested }: { readonly label: string; readonly current: string; readonly suggested: string }) {
     return (
-        <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted-foreground, #6b7280)' }}>{label}</label>
+        <div style={{ marginBottom: '10px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted-foreground, #6b7280)', marginBottom: '4px' }}>{label}</div>
             <div
                 style={{
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: '8px',
-                    marginTop: '4px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    backgroundColor: 'var(--accent, #f9fafb)',
+                    border: '1px solid var(--border, #e5e7eb)',
                 }}
             >
-                <div
+                <span style={{ flex: 1, fontSize: '13px', lineHeight: 1.5, wordBreak: 'break-word' }}>{value}</span>
+                <button
+                    onClick={handleCopy}
+                    title="Copy to clipboard"
                     style={{
-                        flex: 1,
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        backgroundColor: 'hsl(0 84% 60% / 0.05)',
-                        border: '1px solid hsl(0 84% 60% / 0.2)',
-                        fontSize: '13px',
-                        lineHeight: 1.5,
-                        textDecoration: 'line-through',
+                        flexShrink: 0,
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        color: copied ? 'hsl(142 71% 40%)' : 'var(--muted-foreground, #6b7280)',
+                    }}
+                >
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function IssueList({ issues }: { readonly issues: string[] }) {
+    return (
+        <ul style={{ margin: '8px 0 0', padding: 0, listStyle: 'none' }}>
+            {issues.map((issue, i) => (
+                <li
+                    key={i}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '6px',
+                        padding: '4px 0',
+                        fontSize: '12px',
                         color: 'var(--muted-foreground, #6b7280)',
                     }}
                 >
-                    {current || '(empty)'}
-                </div>
-                <ArrowRight size={16} style={{ flexShrink: 0, marginTop: '10px', color: 'var(--muted-foreground, #6b7280)' }} />
-                <div
-                    style={{
-                        flex: 1,
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        backgroundColor: 'hsl(142 71% 45% / 0.05)',
-                        border: '1px solid hsl(142 71% 45% / 0.2)',
-                        fontSize: '13px',
-                        lineHeight: 1.5,
-                    }}
-                >
-                    {suggested}
-                </div>
-            </div>
-        </div>
+                    <AlertCircle size={12} style={{ flexShrink: 0, marginTop: '2px', color: 'hsl(38 92% 50%)' }} />
+                    {issue}
+                </li>
+            ))}
+        </ul>
     );
 }

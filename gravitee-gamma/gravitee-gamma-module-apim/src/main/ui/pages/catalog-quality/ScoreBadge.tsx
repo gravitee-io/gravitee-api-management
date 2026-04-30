@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-function getScoreColor(score: number): string {
-    if (score >= 70) return 'hsl(142 71% 45%)';
-    if (score >= 40) return 'hsl(38 92% 50%)';
+function getScoreColor(pct: number): string {
+    if (pct >= 70) return 'hsl(142 71% 45%)';
+    if (pct >= 40) return 'hsl(38 92% 50%)';
     return 'hsl(0 84% 60%)';
 }
 
-function getScoreLabel(score: number): string {
-    if (score >= 70) return 'Good';
-    if (score >= 40) return 'Fair';
+function getScoreLabel(pct: number): string {
+    if (pct >= 70) return 'Good';
+    if (pct >= 40) return 'Fair';
     return 'Poor';
 }
 
-export function ScoreBadge({ score }: { readonly score: number }) {
-    const color = getScoreColor(score);
+export function ScoreBadge({ score, max = 100 }: { readonly score: number; readonly max?: number }) {
+    const pct = max > 0 ? Math.round((score / max) * 100) : 0;
+    const color = getScoreColor(pct);
     return (
         <span
             style={{
@@ -43,7 +44,7 @@ export function ScoreBadge({ score }: { readonly score: number }) {
             }}
         >
             {score}
-            <span style={{ fontWeight: 400, fontSize: '11px', opacity: 0.9 }}>{getScoreLabel(score)}</span>
+            <span style={{ fontWeight: 400, fontSize: '11px', opacity: 0.9 }}>{getScoreLabel(pct)}</span>
         </span>
     );
 }

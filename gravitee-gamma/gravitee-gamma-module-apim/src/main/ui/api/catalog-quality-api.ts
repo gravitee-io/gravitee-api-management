@@ -34,6 +34,14 @@ export interface ApiSuggestion {
     reasoning: string;
 }
 
+export interface ScoreResult {
+    titleScore: number;
+    descriptionScore: number;
+    totalScore: number;
+    titleIssues: string[];
+    descriptionIssues: string[];
+}
+
 interface Environment {
     id: string;
     hrids?: string[];
@@ -140,6 +148,19 @@ export async function fetchApiSuggestions(apiId: string, envId: string): Promise
         `${base}/organizations/${orgId}/environments/${encodeURIComponent(envId)}/catalog-quality/apis/${encodeURIComponent(apiId)}/suggestions`,
         {
             method: 'POST',
+        },
+    );
+}
+
+export async function fetchScore(envId: string, title: string, description: string): Promise<ScoreResult> {
+    const { orgId } = getBaseUrls();
+    const base = managementV2Base();
+    return apiFetch<ScoreResult>(
+        `${base}/organizations/${orgId}/environments/${encodeURIComponent(envId)}/catalog-quality/score`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, description }),
         },
     );
 }
