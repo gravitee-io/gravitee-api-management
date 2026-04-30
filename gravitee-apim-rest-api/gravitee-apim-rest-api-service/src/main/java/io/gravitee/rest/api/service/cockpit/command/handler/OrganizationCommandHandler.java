@@ -26,6 +26,7 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
@@ -58,13 +59,29 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         OrganizationCommandPayload organizationPayload = command.getPayload();
 
         try {
-            final OrganizationEntity organization = createOrUpdateOrganization(organizationPayload);
+            final String organizationId = getOrganizationId(organizationPayload);
 
-            handleLicense(organization, command.getPayload().license());
+            // This handler runs outside any user-bound execution context, so the calling thread
+            // carries the platform default GraviteeContext on entry. Bind currentOrganization to
+            // the organization being modified so audit log entries written along the call chain
+            // (organization update, flow update, access point update, license update) are
+            // attributed to the real organization, and restore the previous value in finally so
+            // we don't wipe state any other caller on the dispatcher thread might rely on.
+            // currentEnvironment is intentionally left untouched: this is an organization-level
+            // command and downstream consumers expect the previously-bound environment scope.
+            final String previousOrganization = GraviteeContext.getCurrentOrganization();
+            GraviteeContext.setCurrentOrganization(organizationId);
+            try {
+                final OrganizationEntity organization = createOrUpdateOrganization(organizationId, organizationPayload);
 
-            handleAccessPoints(organizationPayload, organization);
-            log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
-            return Single.just(new OrganizationReply(command.getId()));
+                handleLicense(organization, command.getPayload().license());
+
+                handleAccessPoints(organizationPayload, organization);
+                log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
+                return Single.just(new OrganizationReply(command.getId()));
+            } finally {
+                GraviteeContext.setCurrentOrganization(previousOrganization);
+            }
         } catch (Exception e) {
             String errorDetails = "Error occurred when handling organization [%s] with id [%s].".formatted(
                 organizationPayload.name(),
@@ -106,9 +123,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         organizationLicenseService.createOrUpdateOrganizationLicense(organization.getId(), license);
     }
 
-    private OrganizationEntity createOrUpdateOrganization(OrganizationCommandPayload organizationPayload) {
-        String organizationId = this.getOrganizationId(organizationPayload);
-
+    private OrganizationEntity createOrUpdateOrganization(String organizationId, OrganizationCommandPayload organizationPayload) {
         UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
         newOrganization.setCockpitId(organizationPayload.cockpitId());
         newOrganization.setHrids(organizationPayload.hrids());
