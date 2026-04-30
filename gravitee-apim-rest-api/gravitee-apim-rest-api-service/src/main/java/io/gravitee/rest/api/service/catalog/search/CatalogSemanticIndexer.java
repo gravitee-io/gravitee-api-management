@@ -107,24 +107,6 @@ public class CatalogSemanticIndexer implements Closeable {
         doc.add(new TextField(FIELD_TITLE, item.getTitle(), Field.Store.YES));
         doc.add(new TextField(FIELD_DESCRIPTION, item.getDescription(), Field.Store.YES));
 
-        if (item.getType() != null) {
-            doc.add(new StoredField(FIELD_TYPE, item.getType()));
-        }
-        if (item.getOwner() != null) {
-            doc.add(new StoredField(FIELD_OWNER, item.getOwner()));
-        }
-        if (item.getTags() != null && !item.getTags().isEmpty()) {
-            doc.add(new StoredField(FIELD_TAGS, String.join(",", item.getTags())));
-        }
-
-        addJoinedTextField(doc, FIELD_PATHS, item.getPaths());
-        addJoinedTextField(doc, FIELD_ENTRYPOINT_TYPES, item.getEntrypointTypes());
-        addJoinedTextField(doc, FIELD_ENDPOINT_TYPES, item.getEndpointTypes());
-        if (item.getCategories() != null && !item.getCategories().isEmpty()) {
-            addJoinedTextField(doc, FIELD_CATEGORIES, item.getCategories());
-            doc.add(new StoredField(FIELD_CATEGORIES_STORED, String.join(String.valueOf(CATEGORY_NAME_DELIMITER), item.getCategories())));
-        }
-        addJoinedTextField(doc, FIELD_LISTENER_TYPES, item.getListenerTypes());
 
         String textToEmbed = buildEmbeddingText(item);
         float[] vector = embeddingService.embedText(textToEmbed);
