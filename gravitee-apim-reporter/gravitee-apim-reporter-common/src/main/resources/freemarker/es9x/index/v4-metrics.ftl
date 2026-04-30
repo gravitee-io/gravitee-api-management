@@ -24,7 +24,9 @@
   <#if metrics.getClientIdentifier()??>
   ,"client-identifier":"${metrics.getClientIdentifier()}"
   </#if>
+  <#if metrics.getTransactionId()??>
   ,"transaction-id":"${metrics.getTransactionId()}"
+  </#if>
   <#if metrics.getApiId()??>
   ,"api-id":"${metrics.getApiId()}"
   </#if>
