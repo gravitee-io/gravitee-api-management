@@ -1,0 +1,110 @@
+{
+    "api": {
+        "name": "DAImon - Anthropic Proxy",
+        "apiVersion": "1.0.0",
+        "definitionVersion": "V4",
+        "type": "PROXY",
+        "description": "Proxies AI traffic from DAImon to api.anthropic.com. Part of the Gravitee DAImon POC.",
+        "listeners": [
+            {
+                "type": "HTTP",
+                "paths": [
+                    {
+                        "path": "/ai/v1/",
+                        "overrideAccess": false
+                    }
+                ],
+                "entrypoints": [
+                    {
+                        "type": "http-proxy",
+                        "qos": "AUTO",
+                        "configuration": {}
+                    }
+                ]
+            }
+        ],
+        "endpointGroups": [
+            {
+                "name": "Anthropic",
+                "type": "http-proxy",
+                "loadBalancer": {
+                    "type": "ROUND_ROBIN"
+                },
+                "sharedConfiguration": {
+                    "proxy": {
+                        "useSystemProxy": false,
+                        "enabled": false
+                    },
+                    "http": {
+                        "keepAlive": true,
+                        "followRedirects": false,
+                        "readTimeout": 120000,
+                        "idleTimeout": 60000,
+                        "connectTimeout": 5000,
+                        "useCompression": false,
+                        "maxConcurrentConnections": 20,
+                        "version": "HTTP_1_1",
+                        "pipelining": false
+                    },
+                    "ssl": {
+                        "hostnameVerifier": true,
+                        "trustAll": false,
+                        "truststore": {
+                            "type": ""
+                        },
+                        "keystore": {
+                            "type": ""
+                        }
+                    }
+                },
+                "endpoints": [
+                    {
+                        "name": "Anthropic API",
+                        "type": "http-proxy",
+                        "weight": 1,
+                        "inheritConfiguration": true,
+                        "configuration": {
+                            "target": "https://api.anthropic.com/v1/"
+                        },
+                        "services": {},
+                        "secondary": false
+                    }
+                ],
+                "services": {}
+            }
+        ],
+        "analytics": {
+            "enabled": true,
+            "logging": {
+                "content": {
+                    "headers": true,
+                    "messageHeaders": false,
+                    "payload": false,
+                    "messagePayload": false,
+                    "condition": ""
+                },
+                "phase": {
+                    "request": true,
+                    "response": true
+                },
+                "mode": {
+                    "entrypoint": true,
+                    "endpoint": true
+                }
+            }
+        },
+        "flows": [],
+        "plans": {
+            "KeylessPlan": {
+                "name": "Keyless",
+                "description": "No authentication required — API key passthrough to Anthropic via headers",
+                "security": {
+                    "type": "KEY_LESS",
+                    "configuration": {}
+                },
+                "status": "PUBLISHED",
+                "flows": []
+            }
+        }
+    }
+}
