@@ -1,0 +1,35 @@
+policies:
+  - name: secret-detection
+    enabled: true
+    type: content-filter
+    action: block
+    config:
+      patterns:
+        - name: aws-access-key
+          regex: "AKIA[0-9A-Z]{16}"
+        - name: openai-api-key
+          regex: "sk-[a-zA-Z0-9]{48}"
+        - name: github-token
+          regex: "ghp_[a-zA-Z0-9]{36}"
+        - name: generic-secret
+          regex: "(?i)(password|secret|token)\\s*[:=]\\s*['\"][^'\"]{8,}"
+      message: "Blocked: sensitive content detected ({{.MatchName}})"
+
+  - name: token-budget
+    enabled: true
+    type: token-limit
+    action: block
+    config:
+      max_tokens_per_request: 100000
+      estimation_method: whitespace
+      message: "Blocked: estimated {{.EstimatedTokens}} tokens exceeds limit of {{.MaxTokens}}"
+
+  - name: allowed-models
+    enabled: true
+    type: model-allowlist
+    action: block
+    config:
+      models:
+        - claude-sonnet-4-20250514
+        - claude-haiku-4-5-20251001
+      message: "Blocked: model {{.RequestedModel}} is not in the allowlist"

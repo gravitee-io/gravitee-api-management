@@ -1,0 +1,20 @@
+gateway:
+  url: http://localhost:8082
+  ai_api_path: /ai/v1
+
+proxy:
+  listen_port: 8990
+
+registration:
+  heartbeat_interval_sec: 30
+
+metrics:
+  output_file: ~/.daimon/metrics.jsonl
+
+detector:
+  enabled: true
+  scan_interval_sec: 10
+  providers:
+    - api.anthropic.com
+    - api.openai.com
+    - generativelanguage.googleapis.com
