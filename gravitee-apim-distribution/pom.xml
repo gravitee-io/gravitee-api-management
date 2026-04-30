@@ -1129,6 +1129,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-oauth2-provider-auth0</artifactId>
+            <version>${gravitee-resource-oauth2-provider-auth0.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-content-provider-inline</artifactId>
             <version>${gravitee-resource-content-provider-inline.version}</version>
             <type>zip</type>
