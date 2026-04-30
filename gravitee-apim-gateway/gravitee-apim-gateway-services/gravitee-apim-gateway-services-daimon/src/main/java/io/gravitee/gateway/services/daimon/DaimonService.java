@@ -23,18 +23,22 @@ import io.gravitee.gateway.services.daimon.handler.RegisterHandler;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.CustomLog;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @CustomLog
-@RequiredArgsConstructor
 public class DaimonService extends AbstractService<DaimonService> {
 
     private static final String REGISTER_PATH = "/daimon/register";
     private static final String HEARTBEAT_PATH = "/daimon/heartbeat";
     private static final String DEVICES_PATH = "/daimon/devices";
 
-    private final Router router;
-    private final DaimonRegistry registry;
+    @Autowired
+    @Qualifier("managementRouter")
+    private Router router;
+
+    @Autowired
+    private DaimonRegistry registry;
 
     @Override
     protected void doStart() throws Exception {

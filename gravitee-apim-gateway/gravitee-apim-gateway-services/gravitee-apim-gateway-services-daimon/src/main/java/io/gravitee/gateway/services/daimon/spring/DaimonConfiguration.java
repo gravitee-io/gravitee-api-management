@@ -16,9 +16,6 @@
 package io.gravitee.gateway.services.daimon.spring;
 
 import io.gravitee.gateway.services.daimon.DaimonRegistry;
-import io.gravitee.gateway.services.daimon.DaimonService;
-import io.vertx.ext.web.Router;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,10 +25,5 @@ public class DaimonConfiguration {
     @Bean
     public DaimonRegistry daimonRegistry() {
         return new DaimonRegistry();
-    }
-
-    @Bean
-    public DaimonService daimonService(@Qualifier("managementRouter") Router router, DaimonRegistry registry) {
-        return new DaimonService(router, registry);
     }
 }
