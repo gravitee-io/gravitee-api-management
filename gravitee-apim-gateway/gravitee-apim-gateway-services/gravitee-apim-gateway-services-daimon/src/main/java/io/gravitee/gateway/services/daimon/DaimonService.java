@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.daimon;
 
-import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.services.daimon.handler.DevicesHandler;
 import io.gravitee.gateway.services.daimon.handler.HeartbeatHandler;
@@ -45,21 +44,11 @@ public class DaimonService extends AbstractService<DaimonService> {
         super.doStart();
         log.info("Starting DAImon control service");
 
-        router.post(REGISTER_PATH).handler(BodyHandler.create());
-        router
-            .post(REGISTER_PATH)
-            .consumes(MediaType.APPLICATION_JSON)
-            .produces(MediaType.APPLICATION_JSON)
-            .handler(new RegisterHandler(registry));
+        router.post(REGISTER_PATH).handler(BodyHandler.create()).handler(new RegisterHandler(registry));
 
-        router.post(HEARTBEAT_PATH).handler(BodyHandler.create());
-        router
-            .post(HEARTBEAT_PATH)
-            .consumes(MediaType.APPLICATION_JSON)
-            .produces(MediaType.APPLICATION_JSON)
-            .handler(new HeartbeatHandler(registry));
+        router.post(HEARTBEAT_PATH).handler(BodyHandler.create()).handler(new HeartbeatHandler(registry));
 
-        router.get(DEVICES_PATH).produces(MediaType.APPLICATION_JSON).handler(new DevicesHandler(registry));
+        router.get(DEVICES_PATH).handler(new DevicesHandler(registry));
 
         log.info("DAImon control service started on {}, {}, {}", REGISTER_PATH, HEARTBEAT_PATH, DEVICES_PATH);
     }
