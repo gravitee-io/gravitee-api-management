@@ -16,7 +16,7 @@
 
 gateway:
   url: http://localhost:8082
-  management_url: http://localhost:18082
+  management_url: http://localhost:18082/_node
   management_username: admin
   management_password: adminadmin
   ai_api_path: /ai/v1
