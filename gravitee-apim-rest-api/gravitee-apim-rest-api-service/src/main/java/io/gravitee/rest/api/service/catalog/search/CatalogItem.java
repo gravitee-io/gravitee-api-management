@@ -33,4 +33,9 @@ public class CatalogItem {
     private String type;
     private String owner;
     private List<String> tags;
+    private List<String> paths;
+    private List<String> entrypointTypes;
+    private List<String> endpointTypes;
+    private List<String> categories;
+    private List<String> listenerTypes;
 }

@@ -4724,6 +4724,31 @@ components:
                     items:
                         type: string
                     description: Tags associated with the catalog asset
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: API context paths (from the API definition, e.g. V4 HTTP listener paths)
+                entrypointTypes:
+                    type: array
+                    items:
+                        type: string
+                    description: Entrypoint connector types from the API definition
+                endpointTypes:
+                    type: array
+                    items:
+                        type: string
+                    description: Backend endpoint group connector types from the API definition
+                categories:
+                    type: array
+                    items:
+                        type: string
+                    description: Category display names associated with the API
+                listenerTypes:
+                    type: array
+                    items:
+                        type: string
+                    description: Listener types from the API definition (e.g. http, kafka)
                 score:
                     type: number
                     format: float

@@ -27,6 +27,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.List;
 
 public class CatalogSearchResource extends AbstractResource {
 
@@ -55,16 +56,22 @@ public class CatalogSearchResource extends AbstractResource {
                 .results(
                     results
                         .stream()
-                        .map(scored ->
-                            new CatalogSearchResult()
-                                .id(scored.item().getId())
-                                .title(scored.item().getTitle())
-                                .description(scored.item().getDescription())
-                                .type(scored.item().getType())
-                                .owner(scored.item().getOwner())
-                                .tags(scored.item().getTags())
-                                .score(scored.score())
-                        )
+                        .map(scored -> {
+                            var item = scored.item();
+                            return new CatalogSearchResult()
+                                .id(item.getId())
+                                .title(item.getTitle())
+                                .description(item.getDescription())
+                                .type(item.getType())
+                                .owner(item.getOwner())
+                                .tags(item.getTags())
+                                .paths(nullToEmpty(item.getPaths()))
+                                .entrypointTypes(nullToEmpty(item.getEntrypointTypes()))
+                                .endpointTypes(nullToEmpty(item.getEndpointTypes()))
+                                .categories(nullToEmpty(item.getCategories()))
+                                .listenerTypes(nullToEmpty(item.getListenerTypes()))
+                                .score(scored.score());
+                        })
                         .toList()
                 );
 
@@ -74,5 +81,9 @@ public class CatalogSearchResource extends AbstractResource {
                 .entity("{\"error\":\"Search failed: " + e.getMessage() + "\"}")
                 .build();
         }
+    }
+
+    private static List<String> nullToEmpty(List<String> list) {
+        return list != null ? list : List.of();
     }
 }

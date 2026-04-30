@@ -49,6 +49,15 @@ public class CatalogSemanticIndexer implements Closeable {
     static final String FIELD_TYPE = "type";
     static final String FIELD_OWNER = "owner";
     static final String FIELD_TAGS = "tags";
+    static final String FIELD_PATHS = "paths";
+    static final String FIELD_ENTRYPOINT_TYPES = "entrypoint_types";
+    static final String FIELD_ENDPOINT_TYPES = "endpoint_types";
+    static final String FIELD_CATEGORIES = "categories";
+    /** Round-trip storage for category display names (may contain spaces); see {@link #CATEGORY_NAME_DELIMITER}. */
+    static final String FIELD_CATEGORIES_STORED = "categories_stored";
+
+    static final char CATEGORY_NAME_DELIMITER = '\u001f';
+    static final String FIELD_LISTENER_TYPES = "listener_types";
     static final String FIELD_EMBEDDING = "embedding";
 
     private final IndexWriter indexWriter;
@@ -108,13 +117,44 @@ public class CatalogSemanticIndexer implements Closeable {
             doc.add(new StoredField(FIELD_TAGS, String.join(",", item.getTags())));
         }
 
-        // Embed the combined title + description text.
-        // Vector dimensions must match EmbeddingService.dimensions()
-        // (768 for Ollama nomic-embed-text, 1536 for OpenAI text-embedding-ada-002).
-        String textToEmbed = item.getTitle() + " " + item.getDescription();
+        addJoinedTextField(doc, FIELD_PATHS, item.getPaths());
+        addJoinedTextField(doc, FIELD_ENTRYPOINT_TYPES, item.getEntrypointTypes());
+        addJoinedTextField(doc, FIELD_ENDPOINT_TYPES, item.getEndpointTypes());
+        if (item.getCategories() != null && !item.getCategories().isEmpty()) {
+            addJoinedTextField(doc, FIELD_CATEGORIES, item.getCategories());
+            doc.add(new StoredField(FIELD_CATEGORIES_STORED, String.join(String.valueOf(CATEGORY_NAME_DELIMITER), item.getCategories())));
+        }
+        addJoinedTextField(doc, FIELD_LISTENER_TYPES, item.getListenerTypes());
+
+        String textToEmbed = buildEmbeddingText(item);
         float[] vector = embeddingService.embedText(textToEmbed);
         doc.add(new KnnFloatVectorField(FIELD_EMBEDDING, vector, VectorSimilarityFunction.COSINE));
 
         return doc;
+    }
+
+    private void addJoinedTextField(Document doc, String field, List<String> values) {
+        if (values != null && !values.isEmpty()) {
+            doc.add(new TextField(field, String.join(" ", values), Field.Store.YES));
+        }
+    }
+
+    private String buildEmbeddingText(CatalogItem item) {
+        var sb = new StringBuilder();
+        sb.append(item.getTitle()).append(". ");
+        sb.append(item.getDescription()).append(". ");
+        appendIfPresent(sb, "Paths: ", item.getPaths());
+        appendIfPresent(sb, "Entrypoints: ", item.getEntrypointTypes());
+        appendIfPresent(sb, "Backend: ", item.getEndpointTypes());
+        appendIfPresent(sb, "Labels: ", item.getTags());
+        appendIfPresent(sb, "Categories: ", item.getCategories());
+        appendIfPresent(sb, "Listeners: ", item.getListenerTypes());
+        return sb.toString();
+    }
+
+    private void appendIfPresent(StringBuilder sb, String prefix, List<String> values) {
+        if (values != null && !values.isEmpty()) {
+            sb.append(prefix).append(String.join(", ", values)).append(". ");
+        }
     }
 }
