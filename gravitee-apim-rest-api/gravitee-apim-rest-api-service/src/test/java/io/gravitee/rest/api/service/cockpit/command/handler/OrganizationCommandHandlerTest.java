@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,10 +34,12 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -172,5 +176,65 @@ public class OrganizationCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
+    @Test
+    public void handle_must_set_organization_context_during_processing() throws InterruptedException {
+        OrganizationCommandPayload payload = OrganizationCommandPayload.builder()
+            .id("orga#1")
+            .cockpitId("org#cockpit-1")
+            .hrids(Collections.singletonList("orga-1"))
+            .description("Organization description")
+            .name("Organization name")
+            .build();
+
+        OrganizationEntity existing = mock(OrganizationEntity.class);
+        when(existing.getId()).thenReturn("ACME");
+        when(organizationService.findByCockpitId("org#cockpit-1")).thenReturn(existing);
+
+        AtomicReference<String> orgIdSeenInsideService = new AtomicReference<>();
+        when(organizationService.createOrUpdate(eq("ACME"), any(UpdateOrganizationEntity.class))).thenAnswer(invocation -> {
+            orgIdSeenInsideService.set(GraviteeContext.getCurrentOrganization());
+            return new OrganizationEntity();
+        });
+
+        cut
+            .handle(new OrganizationCommand(payload))
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        assertThat(orgIdSeenInsideService.get())
+            .as("createOrUpdate must run with GraviteeContext bound to the resolved organization")
+            .isEqualTo("ACME");
+        assertThat(GraviteeContext.getCurrentOrganization())
+            .as("GraviteeContext must be cleaned up after handle()")
+            .isEqualTo(GraviteeContext.getDefaultOrganization());
+    }
+
+    @Test
+    public void handle_must_clean_organization_context_when_service_throws() throws InterruptedException {
+        OrganizationCommandPayload payload = OrganizationCommandPayload.builder()
+            .id("orga#1")
+            .cockpitId("org#cockpit-1")
+            .hrids(Collections.singletonList("orga-1"))
+            .description("Organization description")
+            .name("Organization name")
+            .build();
+
+        OrganizationEntity existing = mock(OrganizationEntity.class);
+        when(existing.getId()).thenReturn("ACME");
+        when(organizationService.findByCockpitId("org#cockpit-1")).thenReturn(existing);
+        when(organizationService.createOrUpdate(eq("ACME"), any(UpdateOrganizationEntity.class))).thenThrow(new RuntimeException("boom"));
+
+        cut
+            .handle(new OrganizationCommand(payload))
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));
+
+        assertThat(GraviteeContext.getCurrentOrganization())
+            .as("GraviteeContext must be cleaned up even when the downstream service fails")
+            .isEqualTo(GraviteeContext.getDefaultOrganization());
     }
 }
