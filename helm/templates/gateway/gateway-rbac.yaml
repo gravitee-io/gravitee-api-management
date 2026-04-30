@@ -1,4 +1,4 @@
-{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (and .Values.gateway.cluster (eq (.Values.gateway.cluster.type | default "") "hazelcast")) -}}
+{{- $hzActive := or (eq .Values.ratelimit.type "hazelcast") (eq (dig "cluster" "type" "" .Values.gateway) "hazelcast") -}}
 {{ if and $hzActive .Values.apim.managedServiceAccount }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
