@@ -1,24 +1,19 @@
 export interface Config {
-  graviteeGammaBaseUrl: string;
-  graviteeAppId: string;
-  graviteeApiKey: string;
-  /** e.g. http://127.0.0.1:11434 — no trailing path */
-  ollamaBaseUrl: string;
-  /** e.g. llama3.2:1b */
-  ollamaModel: string;
+  /** e.g. http://localhost:8083/portal/environments/DEFAULT */
+  portalApiBaseUrl: string;
+  portalApiUsername: string;
+  portalApiPassword: string;
 }
 
-const REQUIRED_VARS = [
-  ["GRAVITEE_GAMMA_BASE_URL", "graviteeGammaBaseUrl"],
-  ["GRAVITEE_APP_ID", "graviteeAppId"],
-  ["GRAVITEE_API_KEY", "graviteeApiKey"],
-] as const;
-
-const DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434";
-const DEFAULT_OLLAMA_MODEL = "llama3.2:1b";
-
 export function loadConfig(): Config {
-  const missing = REQUIRED_VARS.filter(([env]) => !process.env[env]).map(([env]) => env);
+  const portalApiBaseUrl = process.env["PORTAL_API_BASE_URL"]?.trim().replace(/\/+$/, "");
+  const portalApiUsername = process.env["PORTAL_API_USERNAME"]?.trim();
+  const portalApiPassword = process.env["PORTAL_API_PASSWORD"]?.trim();
+
+  const missing: string[] = [];
+  if (!portalApiBaseUrl) missing.push("PORTAL_API_BASE_URL");
+  if (!portalApiUsername) missing.push("PORTAL_API_USERNAME");
+  if (!portalApiPassword) missing.push("PORTAL_API_PASSWORD");
 
   if (missing.length > 0) {
     console.error(
@@ -27,18 +22,9 @@ export function loadConfig(): Config {
     process.exit(1);
   }
 
-  const base: Record<string, string> = Object.fromEntries(
-    REQUIRED_VARS.map(([env, key]) => [key, process.env[env]!]),
-  ) as unknown as Record<string, string>;
-
   return {
-    graviteeGammaBaseUrl: base["graviteeGammaBaseUrl"]!,
-    graviteeAppId: base["graviteeAppId"]!,
-    graviteeApiKey: base["graviteeApiKey"]!,
-    ollamaBaseUrl: (process.env["OLLAMA_BASE_URL"]?.trim() || DEFAULT_OLLAMA_BASE_URL).replace(
-      /\/+$/,
-      "",
-    ),
-    ollamaModel: (process.env["OLLAMA_MODEL"]?.trim() || DEFAULT_OLLAMA_MODEL),
+    portalApiBaseUrl: portalApiBaseUrl!,
+    portalApiUsername: portalApiUsername!,
+    portalApiPassword: portalApiPassword!,
   };
 }
