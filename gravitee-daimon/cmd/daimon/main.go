@@ -39,7 +39,7 @@ func main() {
 
 	events := make(chan tui.Event, 100)
 
-	reg := registration.NewClient(cfg.Gateway.URL, cfg.Registration.HeartbeatIntervalSec)
+	reg := registration.NewClient(cfg.Gateway.ManagementURL, cfg.Registration.HeartbeatIntervalSec)
 	go reg.Start(ctx, events)
 
 	det := detector.New(cfg.Detector.Providers, cfg.Detector.ScanIntervalSec, collector, events)
