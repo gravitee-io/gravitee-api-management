@@ -110,15 +110,24 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         }
     }
 
+    /**
+     * Create the organization with the given id when it does not exist yet, or update its metadata
+     * when it does. This method is intentionally flow-agnostic: it never reads, writes, or deletes
+     * the organization's platform flows, and any {@code flows} value carried on the supplied
+     * {@link UpdateOrganizationEntity} is ignored. Callers that need to persist organization flows
+     * alongside the organization metadata must use
+     * {@link #updateOrganizationAndFlows(String, UpdateOrganizationEntity)} instead — it is the only
+     * path on this service that touches organization flows, and treats a missing flow list as
+     * "delete all flows for this reference".
+     */
     @Override
     public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
             try {
-                return this.updateOrganizationAndFlows(organizationId, organizationEntity);
+                return this.updateOrganization(organizationId, organizationEntity);
             } catch (OrganizationNotFoundException e) {
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
-                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
                 OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
 
                 //create Default role for organization
