@@ -35,7 +35,7 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/organizations/{orgId}/modules")
+@Path("/organizations/{orgId}/environments/{envId}/modules")
 public class GammaModulesResource {
 
     @Inject
