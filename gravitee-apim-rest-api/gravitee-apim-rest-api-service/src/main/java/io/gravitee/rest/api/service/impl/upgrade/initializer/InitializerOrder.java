@@ -38,4 +38,10 @@ public class InitializerOrder {
     public static final int IDENTITY_PROVIDER_INITIALIZER = 350;
     public static final int SEARCH_INDEX_INITIALIZER = 250;
     public static final int INTEGRATION_CONTROLLER_INITIALIZER = 100;
+
+    /**
+     * After {@link #SEARCH_INDEX_INITIALIZER} so the management {@link io.gravitee.repository.management.api.ApiRepository}
+     * and storage plugin are available (see {@code CatalogSemanticIndexInitializer}).
+     */
+    public static final int CATALOG_SEMANTIC_INDEX_INITIALIZER = 260;
 }

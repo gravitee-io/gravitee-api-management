@@ -37,6 +37,8 @@ tags:
       description: All about the portal users
     - name: Entrypoints
       description: All about entrypoints
+    - name: Catalog
+      description: Semantic search over the API catalog
 
 security:
     - BasicAuth: []
@@ -4009,6 +4011,59 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /catalog/search:
+        get:
+            tags:
+                - Catalog
+            summary: Semantic search over the API catalog
+            operationId: searchCatalog
+            description: |
+                Search the API catalog using a natural language intent.
+                Returns matching catalog assets ranked by semantic similarity, with an optional hybrid mode that combines vector search with keyword matching (BM25).
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: intent
+                  in: query
+                  required: true
+                  description: Natural language description of what the caller is looking for.
+                  schema:
+                      type: string
+                - name: mode
+                  in: query
+                  required: false
+                  description: Search mode. "hybrid" combines semantic and keyword search; "semantic" uses vector similarity only.
+                  schema:
+                      type: string
+                      enum:
+                          - hybrid
+                          - semantic
+                      default: hybrid
+                - name: limit
+                  in: query
+                  required: false
+                  description: Maximum number of results to return.
+                  schema:
+                      type: integer
+                      default: 5
+            responses:
+                200:
+                    description: Catalog search results ranked by relevance
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CatalogSearchResponse"
+                400:
+                    description: Missing or invalid intent parameter
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
 components:
     requestBodies:
         pictureUpdateInputBody:
@@ -4627,6 +4682,52 @@ components:
             enum:
                 - PENDING
                 - EXPIRED
+        #####################
+        # Catalog Search    #
+        #####################
+        CatalogSearchResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/CatalogSearchResult"
+                totalResults:
+                    type: integer
+                    description: Number of results returned
+                mode:
+                    type: string
+                    description: Search mode used (semantic or hybrid)
+                    enum:
+                        - hybrid
+                        - semantic
+        CatalogSearchResult:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier of the catalog asset
+                title:
+                    type: string
+                    description: Title of the catalog asset
+                description:
+                    type: string
+                    description: Description of the catalog asset
+                type:
+                    type: string
+                    description: Asset type (e.g. mcp-proxy, llm-proxy, rest-api, async-api)
+                owner:
+                    type: string
+                    description: Owner of the catalog asset
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    description: Tags associated with the catalog asset
+                score:
+                    type: number
+                    format: float
+                    description: Relevance score (higher is more relevant)
         #####################
         # Responses Objects #
         #####################

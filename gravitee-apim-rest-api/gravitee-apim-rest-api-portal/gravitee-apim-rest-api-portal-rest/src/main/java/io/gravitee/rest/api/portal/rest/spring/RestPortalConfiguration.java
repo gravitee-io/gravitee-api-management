@@ -47,6 +47,7 @@ import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.catalog.configuration.CatalogSearchConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -90,7 +91,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
         }
     )
 )
-@Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class })
+@Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class, CatalogSearchConfiguration.class })
 @EnableAsync
 public class RestPortalConfiguration {
 

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.portal.rest.resource.analytics.PortalAnalyticsResource;
+import io.gravitee.rest.api.portal.rest.resource.catalog.CatalogSearchResource;
 import io.gravitee.rest.api.portal.rest.resource.v4.endpoint.EndpointsResource;
 import io.gravitee.rest.api.portal.rest.resource.v4.entrypoint.EntrypointsResource;
 import jakarta.ws.rs.Path;
@@ -141,5 +142,10 @@ public class EnvironmentsResource extends AbstractResource {
     @Path("portal-navigation-items")
     public PortalNavigationItemsResource getPortalNavigationItemsResource() {
         return resourceContext.getResource(PortalNavigationItemsResource.class);
+    }
+
+    @Path("catalog/search")
+    public CatalogSearchResource getCatalogSearchResource() {
+        return resourceContext.getResource(CatalogSearchResource.class);
     }
 }
