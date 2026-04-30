@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.apim;
+package io.gravitee.gamma.module.apim.core.tracing.model;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
-import io.gravitee.gamma.module.apim.rest.resource.HttpApiManagementResource;
-
-public class HttpApiManagementModule implements GammaModule {
-
-    @Override
-    public Class<?> restResource() {
-        return HttpApiManagementResource.class;
-    }
-}
+public record EdgeSpan(String operation, long durationNanos, String status, String tool, Integer tokens) {}

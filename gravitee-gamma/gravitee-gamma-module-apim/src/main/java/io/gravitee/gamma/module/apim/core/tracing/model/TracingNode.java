@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.apim;
+package io.gravitee.gamma.module.apim.core.tracing.model;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
-import io.gravitee.gamma.module.apim.rest.resource.HttpApiManagementResource;
+import java.util.Map;
 
-public class HttpApiManagementModule implements GammaModule {
+public record TracingNode(String id, String type, String label, String subtitle, String status, Map<String, String> metadata) {
+    public TracingNode(String id, String type, String label) {
+        this(id, type, label, null, null, Map.of());
+    }
 
-    @Override
-    public Class<?> restResource() {
-        return HttpApiManagementResource.class;
+    public TracingNode(String id, String type, String label, String subtitle) {
+        this(id, type, label, subtitle, null, Map.of());
     }
 }
