@@ -29,6 +29,7 @@ import io.gravitee.reporter.api.http.Metrics;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import net.minidev.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,6 +120,66 @@ public class JwtPlanBasedAuthenticationHandlerTest {
     @Test
     public void getClientId_should_return_null_cause_no_clientId_found() {
         Map<String, Object> claims = Map.of("another", "value1", "my-custom-claim", "value2", "anotheragain", "value3");
+
+        assertNull(authenticationHandler.getClientId(claims));
+    }
+
+    @Test
+    public void getClientId_should_resolve_nested_claim_via_dot_notation() {
+        when(plan.getSecurityDefinition()).thenReturn("{\"clientIdClaim\": \"act.repository\"}");
+
+        JSONObject act = new JSONObject();
+        act.put("repository", "my-nested-client-id");
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("act", act);
+
+        assertEquals("my-nested-client-id", authenticationHandler.getClientId(claims));
+    }
+
+    @Test
+    public void getClientId_should_prefer_flat_claim_over_nested_walk_for_backward_compat() {
+        // A claim whose key literally contains a dot must be found by flat lookup
+        // even when a matching nested structure also exists.
+        when(plan.getSecurityDefinition()).thenReturn("{\"clientIdClaim\": \"act.repository\"}");
+
+        JSONObject act = new JSONObject();
+        act.put("repository", "nested-value");
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("act.repository", "flat-literal-value"); // flat key with dot
+        claims.put("act", act);
+
+        // Flat key wins
+        assertEquals("flat-literal-value", authenticationHandler.getClientId(claims));
+    }
+
+    @Test
+    public void getClientId_should_return_null_when_nested_segment_is_missing() {
+        when(plan.getSecurityDefinition()).thenReturn("{\"clientIdClaim\": \"act.missing\"}");
+
+        JSONObject act = new JSONObject();
+        act.put("repository", "my-nested-client-id");
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("act", act);
+
+        assertNull(authenticationHandler.getClientId(claims));
+    }
+
+    @Test
+    public void getClientId_should_return_null_when_intermediate_is_not_a_map() {
+        when(plan.getSecurityDefinition()).thenReturn("{\"clientIdClaim\": \"sub.nested\"}");
+
+        // "sub" is a String, not a nested object — walk must abort gracefully
+        Map<String, Object> claims = Map.of("sub", "plain-string-value");
+
+        assertNull(authenticationHandler.getClientId(claims));
+    }
+
+    @Test
+    public void getClientId_should_return_null_when_clientIdClaim_is_empty_string() {
+        // empty string is non-null so it enters the custom-claim branch;
+        // resolveNestedClaim returns null and the azp/aud/client_id fallback is bypassed
+        when(plan.getSecurityDefinition()).thenReturn("{\"clientIdClaim\": \"\"}");
+        Map<String, Object> claims = Map.of("azp", "should-not-be-returned", "client_id", "also-not-returned");
 
         assertNull(authenticationHandler.getClientId(claims));
     }
