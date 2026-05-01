@@ -108,6 +108,19 @@
         </gio-form-slide-toggle>
       </div>
     </mat-card-content>
+
+    @if (form.get('tracingEnabled').value && form.get('tracingVerbose').value) {
+      <api-redaction-rules
+        [api]="effectiveApi()"
+        [resetTrigger]="resetTriggerCounter()"
+        (rulesChange)="onRedactionRulesChange($event)"
+      ></api-redaction-rules>
+    }
   </mat-card>
-  <gio-save-bar [form]="form" [formInitialValues]="defaultConfiguration" (submitted)="submit()"></gio-save-bar>
+  <gio-save-bar
+    [form]="form"
+    [formInitialValues]="defaultConfiguration"
+    (submitted)="submit()"
+    (resetClicked)="onDiscardRedactionRules()"
+  ></gio-save-bar>
 </form>

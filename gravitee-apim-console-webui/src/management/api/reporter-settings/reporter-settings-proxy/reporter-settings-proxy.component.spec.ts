@@ -20,8 +20,10 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
+import { By } from '@angular/platform-browser';
 
 import { ReporterSettingsProxyHarness } from './reporter-settings-proxy.harness';
+import { ReporterSettingsProxyComponent } from './reporter-settings-proxy.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
@@ -367,6 +369,59 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       });
     });
 
+    it('should include pending redaction rules when saving', async () => {
+      const apiWithRules = fakeProxyApiV4({
+        id: API_ID,
+        analytics: {
+          enabled: true,
+          tracing: {
+            enabled: true,
+            verbose: true,
+            redaction: {
+              rules: [{ attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } }],
+            },
+          },
+        },
+      });
+      await initComponent(apiWithRules);
+
+      // Simulate the child component emitting new rules
+      const proxyInstance = fixture.debugElement.query(By.directive(ReporterSettingsProxyComponent))
+        .componentInstance as ReporterSettingsProxyComponent;
+      proxyInstance.onRedactionRulesChange([
+        { attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } },
+        { attributeNamePattern: 'authorization', maskingStrategy: { type: 'FULL' } },
+      ]);
+      fixture.detectChanges();
+
+      await componentHarness.clickOnSaveButton();
+
+      expectApiGetRequest(apiWithRules);
+      expectApiPutRequest({
+        ...apiWithRules,
+        analytics: {
+          ...apiWithRules.analytics,
+          logging: {
+            condition: undefined,
+            mode: { entrypoint: undefined, endpoint: undefined },
+            phase: { request: undefined, response: undefined },
+            content: { headers: undefined, payload: undefined },
+          },
+          tracing: {
+            enabled: true,
+            verbose: true,
+            redaction: {
+              defaultReplacement: undefined,
+              rules: [
+                { attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } },
+                { attributeNamePattern: 'authorization', maskingStrategy: { type: 'FULL' } },
+              ],
+            },
+          },
+        },
+      });
+    });
+
     it('should discard changes in OpenTelemetry controls', async () => {
       await componentHarness.toggleTracingEnabled();
       await componentHarness.toggleTracingVerbose();
@@ -378,6 +433,132 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
 
       expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
       expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+    });
+
+    it('should preserve existing redaction block verbatim when tracing is disabled', async () => {
+      const apiWithRulesAndTracingEnabled = fakeProxyApiV4({
+        id: API_ID,
+        analytics: {
+          enabled: true,
+          tracing: {
+            enabled: true,
+            verbose: false,
+            redaction: {
+              rules: [{ attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } }],
+            },
+          },
+        },
+      });
+      await initComponent(apiWithRulesAndTracingEnabled);
+
+      await componentHarness.toggleTracingEnabled();
+      await componentHarness.clickOnSaveButton();
+
+      expectApiGetRequest(apiWithRulesAndTracingEnabled);
+      expectApiPutRequest({
+        ...apiWithRulesAndTracingEnabled,
+        analytics: {
+          ...apiWithRulesAndTracingEnabled.analytics,
+          logging: {
+            condition: undefined,
+            mode: { entrypoint: undefined, endpoint: undefined },
+            phase: { request: undefined, response: undefined },
+            content: { headers: undefined, payload: undefined },
+          },
+          tracing: {
+            enabled: false,
+            verbose: false,
+            redaction: {
+              rules: [{ attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } }],
+            },
+          },
+        },
+      });
+    });
+
+    it('should not include a redaction key when tracing is enabled but no rules exist and none are pending', async () => {
+      const apiTracingEnabledNoRedaction = fakeProxyApiV4({
+        id: API_ID,
+        analytics: {
+          enabled: true,
+          tracing: {
+            enabled: true,
+            verbose: false,
+          },
+        },
+      });
+      await initComponent(apiTracingEnabledNoRedaction);
+
+      await componentHarness.toggleTracingVerbose();
+      await componentHarness.clickOnSaveButton();
+
+      expectApiGetRequest(apiTracingEnabledNoRedaction);
+      expectApiPutRequest({
+        ...apiTracingEnabledNoRedaction,
+        analytics: {
+          ...apiTracingEnabledNoRedaction.analytics,
+          logging: {
+            condition: undefined,
+            mode: { entrypoint: undefined, endpoint: undefined },
+            phase: { request: undefined, response: undefined },
+            content: { headers: undefined, payload: undefined },
+          },
+          tracing: {
+            enabled: true,
+            verbose: true,
+          },
+        },
+      });
+    });
+
+    describe('Span Attribute Redaction section visibility', () => {
+      it('should hide redaction section when verbose is false (even if tracing is enabled)', async () => {
+        await initComponent(apiWithTracingEnabledAndVerboseFalse);
+        expect(fixture.debugElement.query(By.css('api-redaction-rules'))).toBeNull();
+      });
+
+      it('should show redaction section when both tracing and verbose are enabled', async () => {
+        await initComponent(apiWithTracingEnabled);
+        expect(fixture.debugElement.query(By.css('api-redaction-rules'))).not.toBeNull();
+      });
+
+      it('should hide redaction section after toggling verbose off', async () => {
+        await initComponent(apiWithTracingEnabled);
+        expect(fixture.debugElement.query(By.css('api-redaction-rules'))).not.toBeNull();
+
+        await componentHarness.toggleTracingVerbose();
+        fixture.detectChanges();
+
+        expect(fixture.debugElement.query(By.css('api-redaction-rules'))).toBeNull();
+      });
+
+      it('should hide redaction section after toggling tracing off (verbose value is still true)', async () => {
+        await initComponent(apiWithTracingEnabled);
+        expect(fixture.debugElement.query(By.css('api-redaction-rules'))).not.toBeNull();
+
+        await componentHarness.toggleTracingEnabled();
+        fixture.detectChanges();
+
+        expect(fixture.debugElement.query(By.css('api-redaction-rules'))).toBeNull();
+      });
+    });
+
+    it('should clear pending redaction rules and increment reset counter on discard', async () => {
+      const proxyInstance = fixture.debugElement.query(By.directive(ReporterSettingsProxyComponent))
+        .componentInstance as ReporterSettingsProxyComponent;
+
+      proxyInstance.onRedactionRulesChange([{ attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } }]);
+      fixture.detectChanges();
+
+      expect((proxyInstance as any).pendingRedactionRules()).toEqual([
+        { attributeNamePattern: 'api-key', maskingStrategy: { type: 'FULL' } },
+      ]);
+      const counterBefore = (proxyInstance as any).resetTriggerCounter();
+
+      await componentHarness.clickOnResetButton();
+
+      expect((proxyInstance as any).pendingRedactionRules()).toBeNull();
+      expect((proxyInstance as any).resetTriggerCounter()).toBe(counterBefore + 1);
     });
   });
 });

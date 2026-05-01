@@ -1,0 +1,95 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  display: block;
+}
+
+.redactionRules {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 16px 0;
+
+    &__title {
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    }
+
+    &__btn {
+      flex: 0 0 auto;
+    }
+  }
+
+  &__banner {
+    padding: 16px 16px 0;
+  }
+
+  &__table {
+    width: 100%;
+
+    .mat-column-index {
+      width: 48px;
+      padding-left: 24px;
+      padding-right: 8px;
+    }
+
+    .mat-column-pattern {
+      padding-right: 16px;
+    }
+
+    .mat-column-masking {
+      padding-right: 16px;
+    }
+
+    .mat-column-valueFilter {
+      padding-right: 16px;
+    }
+
+    .mat-column-actions {
+      width: 56px;
+      text-align: end;
+    }
+  }
+
+  &__actionsCell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  &__code {
+    font-family: monospace;
+    font-size: 13px;
+    background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter60');
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  &__detail {
+    margin-left: 8px;
+    font-size: 12px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+  }
+
+  &__empty {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter70');
+  }
+
+  &__emptyState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+
+    mat-icon {
+      opacity: 0.4;
+    }
+  }
+}

@@ -16,8 +16,6 @@
 package io.gravitee.definition.model.v4.analytics.tracing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,22 +23,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
-@Schema(name = "TracingV4")
-public class Tracing implements Serializable {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class TracingMaskingStrategy implements Serializable {
 
-    private boolean enabled;
-    private boolean verbose;
-
-    @Valid
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private TracingRedactionConfig redaction;
+    private MaskingType type;
+    private String replacement;
+    private Integer prefixLength;
+    private Integer suffixLength;
 }

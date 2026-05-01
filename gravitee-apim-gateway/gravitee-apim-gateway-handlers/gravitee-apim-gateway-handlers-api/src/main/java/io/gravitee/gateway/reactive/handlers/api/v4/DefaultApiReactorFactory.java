@@ -420,18 +420,19 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     }
 
     protected TracingContext createTracingContext(final Api api, final String serviceNameSpace) {
-        if (isApiTracingEnabled(api)) {
+        boolean tracingEnabled = isApiTracingEnabled(api);
+        if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
                 api.getId(),
                 api.getName(),
                 serviceNameSpace,
                 api.getApiVersion(),
-                instrumenterTracerFactories
+                instrumenterTracerFactories,
+                TracingRedactionMapper.toRedactionConfig(api)
             );
-            return new TracingContext(tracer, isApiTracingEnabled(api), isApiTracingVerboseEnabled(api));
-        } else {
-            return TracingContext.noop();
+            return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
         }
+        return TracingContext.noop();
     }
 
     protected boolean isApiTracingEnabled(final Api api) {

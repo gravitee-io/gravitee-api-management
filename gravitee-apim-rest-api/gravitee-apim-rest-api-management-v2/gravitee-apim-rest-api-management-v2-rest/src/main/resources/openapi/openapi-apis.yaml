@@ -4938,6 +4938,67 @@ components:
                 verbose:
                     type: boolean
                     description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
+                redaction:
+                    $ref: "#/components/schemas/TracingRedactionConfig"
+        TracingRedactionConfig:
+            type: object
+            properties:
+                defaultReplacement:
+                    type: string
+                    description: >
+                        Fallback replacement text for FULL masking rules with no per-rule
+                        replacement. Defaults to [REDACTED].
+                    example: "[REDACTED]"
+                rules:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TracingRedactionRule"
+        TracingRedactionRule:
+            type: object
+            required:
+                - attributeNamePattern
+            properties:
+                attributeNamePattern:
+                    type: string
+                    description: >
+                        Glob pattern, short name (no dots — matches anywhere in key hierarchy),
+                        or regex:-prefixed Java regex matching the span attribute key.
+                    example: "http.request.header.authorization"
+                maskingStrategy:
+                    $ref: "#/components/schemas/TracingMaskingStrategy"
+                valuePattern:
+                    type: string
+                    description: >
+                        Optional Java regex (partial match). Rule only fires when the attribute
+                        value matches.
+                    example: "^Bearer "
+        TracingMaskingStrategy:
+            type: object
+            required:
+                - type
+            properties:
+                type:
+                    type: string
+                    enum: [FULL, PARTIAL]
+                    description: >
+                        FULL replaces the entire value; PARTIAL keeps a visible prefix and/or suffix.
+                    example: "FULL"
+                replacement:
+                    type: string
+                    description: >
+                        For FULL: replacement text (default [REDACTED]).
+                        For PARTIAL: single mask character (default *).
+                    example: "[REDACTED]"
+                prefixLength:
+                    type: integer
+                    description: PARTIAL only — number of leading characters to keep visible.
+                    default: 0
+                    minimum: 0
+                suffixLength:
+                    type: integer
+                    description: PARTIAL only — number of trailing characters to keep visible.
+                    default: 0
+                    minimum: 0
         ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
