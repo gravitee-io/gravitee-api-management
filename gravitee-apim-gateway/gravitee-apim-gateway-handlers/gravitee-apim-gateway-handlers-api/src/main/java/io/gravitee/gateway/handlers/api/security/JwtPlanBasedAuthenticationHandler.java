@@ -110,7 +110,7 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     protected String getClientId(Map<String, Object> claims) {
         final String customClientIdClaimName = getCustomClientIdClaimName();
         if (customClientIdClaimName != null) {
-            Object clientIdClaim = claims.get(customClientIdClaimName);
+            Object clientIdClaim = resolveNestedClaim(claims, customClientIdClaimName);
             return extractClientId(clientIdClaim);
         }
 
@@ -154,6 +154,41 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
             }
         }
         return null;
+    }
+
+    /**
+     * Resolves a claim value from a raw JWT claims map, supporting dot-notation nested paths.
+     *
+     * Tries a flat lookup first (preserves backward compat for claim names that literally
+     * contain a dot). If that misses and the name contains a dot, splits on '.' and walks
+     * successive Map values. Returns null if any segment is missing or not a Map.
+     */
+    private static Object resolveNestedClaim(Map<String, Object> claims, String name) {
+        // 1. Flat lookup — covers common case and preserves backward compatibility.
+        Object flatValue = claims.get(name);
+        if (flatValue != null) {
+            return flatValue;
+        }
+
+        // 2. Nested walk — only when the name contains a dot.
+        if (!name.contains(".")) {
+            return null;
+        }
+
+        String[] segments = name.split("\\.", -1);
+        Object current = claims.get(segments[0]);
+
+        for (int i = 1; i < segments.length; i++) {
+            if (!(current instanceof Map<?, ?> map)) {
+                return null;
+            }
+            current = map.get(segments[i]);
+            if (current == null) {
+                return null;
+            }
+        }
+
+        return current;
     }
 
     /**
