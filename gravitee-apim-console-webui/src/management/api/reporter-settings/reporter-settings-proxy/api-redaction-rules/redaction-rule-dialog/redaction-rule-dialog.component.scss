@@ -1,0 +1,44 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 8px;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.field {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.partialMask {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+
+  &__field {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  &__preview {
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+  }
+}
+
+.redactionRules__code {
+  font-family: monospace;
+  background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter60');
+  padding: 2px 6px;
+  border-radius: 4px;
+}

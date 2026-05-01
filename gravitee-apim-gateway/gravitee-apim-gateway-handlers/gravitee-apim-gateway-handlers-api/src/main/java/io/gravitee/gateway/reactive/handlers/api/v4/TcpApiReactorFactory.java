@@ -93,18 +93,19 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
     }
 
     protected TracingContext createTracingContext(final Api api) {
-        if (isApiTracingEnabled(api)) {
+        boolean tracingEnabled = isApiTracingEnabled(api);
+        if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
                 api.getId(),
                 api.getName(),
                 "API_V4_TCP",
                 api.getApiVersion(),
-                instrumenterTracerFactories
+                instrumenterTracerFactories,
+                TracingRedactionMapper.toRedactionConfig(api)
             );
-            return new TracingContext(tracer, isApiTracingEnabled(api), isApiTracingVerboseEnabled(api));
-        } else {
-            return TracingContext.noop();
+            return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
         }
+        return TracingContext.noop();
     }
 
     protected boolean isApiTracingEnabled(final Api api) {

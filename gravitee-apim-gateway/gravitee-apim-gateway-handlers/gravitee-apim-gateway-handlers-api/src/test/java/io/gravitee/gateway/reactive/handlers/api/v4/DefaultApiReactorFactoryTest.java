@@ -23,11 +23,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingMaskingStrategy;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionConfig;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionRule;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -60,6 +67,9 @@ import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.api.opentelemetry.redaction.FullMaskingStrategy;
+import io.gravitee.node.api.opentelemetry.redaction.RedactionConfig;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
@@ -76,6 +86,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -396,6 +407,48 @@ class DefaultApiReactorFactoryTest {
                 .thenReturn(new String[] { "policyPluginManager" });
             lenient().when(applicationContext.getBean("policyPluginManager")).thenReturn(policyPluginManager);
             return policyPluginManager;
+        }
+    }
+
+    @Nested
+    class CreateTracingContext {
+
+        @Test
+        void should_pass_redaction_config_to_createTracer() {
+            var strategy = new TracingMaskingStrategy();
+            strategy.setType(MaskingType.FULL);
+            strategy.setReplacement("[HIDDEN]");
+            var rule = new TracingRedactionRule();
+            rule.setAttributeNamePattern("enduser.id");
+            rule.setMaskingStrategy(strategy);
+            var redaction = new TracingRedactionConfig();
+            redaction.setRules(List.of(rule));
+            var tracing = new Tracing();
+            tracing.setEnabled(true);
+            tracing.setRedaction(redaction);
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            analytics.setTracing(tracing);
+            var def = new io.gravitee.definition.model.v4.Api();
+            def.setAnalytics(analytics);
+
+            Api api = mock(Api.class);
+            when(api.getDefinition()).thenReturn(def);
+            when(api.getId()).thenReturn("api-id");
+            when(api.getName()).thenReturn("api-name");
+            when(api.getApiVersion()).thenReturn("1.0");
+            when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
+            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), any(RedactionConfig.class))).thenReturn(
+                mock(Tracer.class)
+            );
+
+            cut.createTracingContext(api, "test-namespace");
+
+            ArgumentCaptor<RedactionConfig> captor = ArgumentCaptor.forClass(RedactionConfig.class);
+            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), captor.capture());
+            assertThat(captor.getValue().rules()).hasSize(1);
+            assertThat(captor.getValue().rules().get(0).attributeNamePattern()).isEqualTo("enduser.id");
+            assertThat(captor.getValue().rules().get(0).maskingStrategy()).isInstanceOf(FullMaskingStrategy.class);
         }
     }
 

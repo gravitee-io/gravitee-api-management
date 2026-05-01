@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, input, InputSignal, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, InputSignal, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { EMPTY, merge } from 'rxjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,8 +29,10 @@ import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarMo
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import { ApiRedactionRulesComponent } from './api-redaction-rules/api-redaction-rules.component';
+
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4, RedactionRule } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 type DefaultConfiguration = {
@@ -65,6 +67,7 @@ type DefaultConfiguration = {
     GioSaveBarModule,
     GioFormSlideToggleModule,
     MatSlideToggle,
+    ApiRedactionRulesComponent,
   ],
 })
 export class ReporterSettingsProxyComponent implements OnInit {
@@ -72,6 +75,11 @@ export class ReporterSettingsProxyComponent implements OnInit {
   form: UntypedFormGroup;
   defaultConfiguration: DefaultConfiguration;
   private destroyRef = inject(DestroyRef);
+
+  protected pendingRedactionRules = signal<RedactionRule[] | null>(null);
+  protected resetTriggerCounter = signal(0);
+  protected savedApiState = signal<ApiV4 | null>(null);
+  protected effectiveApi = computed(() => this.savedApiState() ?? this.api());
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -84,11 +92,13 @@ export class ReporterSettingsProxyComponent implements OnInit {
   }
 
   submit() {
+    const pendingRules = this.pendingRedactionRules();
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
           const configurationValues = this.form.getRawValue();
+          const existingTracing = api.analytics?.tracing;
           const updatedApi = {
             ...api,
             analytics: {
@@ -110,16 +120,27 @@ export class ReporterSettingsProxyComponent implements OnInit {
                 },
               },
               tracing: {
+                ...existingTracing,
                 enabled: configurationValues.tracingEnabled,
                 verbose: configurationValues.tracingVerbose,
+                ...(configurationValues.tracingEnabled && (pendingRules !== null || existingTracing?.redaction != null)
+                  ? {
+                      redaction: {
+                        defaultReplacement: existingTracing?.redaction?.defaultReplacement,
+                        rules: pendingRules ?? existingTracing?.redaction?.rules ?? [],
+                      },
+                    }
+                  : {}),
               },
             },
           };
 
-          return this.apiService.update(api.id, updatedApi);
+          return this.apiService.update(api.id, updatedApi).pipe(map(serverApi => serverApi as ApiV4));
         }),
-        tap(() => {
+        tap((savedApi: ApiV4) => {
           this.snackBarService.success('Configuration successfully saved!');
+          this.pendingRedactionRules.set(null);
+          this.savedApiState.set(savedApi);
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -132,6 +153,16 @@ export class ReporterSettingsProxyComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  onRedactionRulesChange(rules: RedactionRule[]): void {
+    this.pendingRedactionRules.set(rules);
+    this.form.markAsDirty();
+  }
+
+  onDiscardRedactionRules(): void {
+    this.pendingRedactionRules.set(null);
+    this.resetTriggerCounter.update(counter => counter + 1);
   }
 
   private initForm(api: ApiV4) {
@@ -191,6 +222,9 @@ export class ReporterSettingsProxyComponent implements OnInit {
             this.form.get('entrypoint').enable();
             this.form.get('endpoint').enable();
             this.form.get('tracingEnabled').enable();
+            if (this.form.get('tracingEnabled').value) {
+              this.form.get('tracingVerbose').enable();
+            }
           } else {
             this.form.get('entrypoint').disable();
             this.form.get('endpoint').disable();
@@ -200,6 +234,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
             this.form.get('payload').disable();
             this.form.get('condition').disable();
             this.form.get('tracingEnabled').disable();
+            this.form.get('tracingVerbose').disable();
           }
         }),
         takeUntilDestroyed(this.destroyRef),
