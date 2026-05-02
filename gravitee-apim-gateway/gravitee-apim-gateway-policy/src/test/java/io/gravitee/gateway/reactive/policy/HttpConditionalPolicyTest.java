@@ -112,24 +112,26 @@ class HttpConditionalPolicyTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void shouldExecuteConditionOnMessageRequestWhenNoCondition(String condition) {
+    void shouldDelegateToUnderlyingPolicyOnMessageRequestWhenNoCondition(String condition) {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onMessageRequest(ctx).test().assertComplete();
 
-        verify(policy, never()).onMessageRequest(ctx);
+        verify(policy).onMessageRequest(ctx);
+        verify(spyCompletable).subscribe(any(CompletableObserver.class));
         verifyNoMoreInteractions(policy);
         verifyNoInteractions(conditionFilter);
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void shouldExecuteConditionOnMessageResponseWhenNoCondition(String condition) {
+    void shouldDelegateToUnderlyingPolicyOnMessageResponseWhenNoCondition(String condition) {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onMessageResponse(ctx).test().assertComplete();
 
-        verify(policy, never()).onMessageResponse(ctx);
+        verify(policy).onMessageResponse(ctx);
+        verify(spyCompletable).subscribe(any(CompletableObserver.class));
         verifyNoMoreInteractions(policy);
         verifyNoInteractions(conditionFilter);
     }
@@ -200,4 +202,128 @@ class HttpConditionalPolicyTest {
 
         assertEquals(CONDITION, cut.getCondition());
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+
+        cut.onRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+
+        cut.onResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnMessageRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onMessageRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnMessageResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onMessageResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldNotStoreTriggerConditionWhenNoCondition() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, null, conditionFilter);
+        lenient().when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx, never()).setInternalAttribute(
+            eq("gravitee.policy.trigger.condition." + POLICY_ID),
+            any()
+        );
+    }
+
+    @Test
+    void shouldStoreExecutedTrueWhenConditionMetOnRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+
+        cut.onRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, true);
+    }
+
+    @Test
+    void shouldStoreExecutedFalseWhenConditionNotMetOnRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
+
+        cut.onRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+    }
+
+    @Test
+    void shouldStoreExecutedTrueWhenConditionMetOnResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+
+        cut.onResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, true);
+    }
+
+    @Test
+    void shouldStoreExecutedFalseWhenConditionNotMetOnResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
+
+        cut.onResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+    }
+
+    @Test
+    void shouldStoreExecutedFalseWhenConditionDefinedOnMessageRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onMessageRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+        verify(policy, never()).onMessageRequest(ctx);
+    }
+
+    @Test
+    void shouldStoreExecutedFalseWhenConditionDefinedOnMessageResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onMessageResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+        verify(policy, never()).onMessageResponse(ctx);
+    }
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
 }
