@@ -38,6 +38,7 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
     private static final String ATTR_SPAN_POLICY_TRIGGER_EXECUTED = "gravitee.policy.trigger.executed";
     private static final String ATTR_SPAN_POLICY_TRIGGER_CONDITION = "gravitee.policy.trigger.condition";
     public static final String ATTR_POLICY_TRIGGER_CONDITION_PREFIX = "gravitee.policy.trigger.condition.";
+    public static final String ATTR_POLICY_TRIGGER_EXECUTED_PREFIX = "gravitee.policy.trigger.executed.";
     private static final String EVENT_POLICY_PRE = "gravitee.policy.pre";
     private static final String EVENT_POLICY_POST = "gravitee.policy.post";
     private static final String ATTR_HTTP_REQUEST_HEADER_PREFIX = "http.request.header.";
@@ -71,11 +72,6 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
         });
     }
 
-    /**
-     * Add policy.trigger.condition and policy.trigger.executed attributes to the span.
-     * These must be added in post() because HttpConditionalPolicy stores the condition
-     * in the context during policy execution, after the span is created.
-     */
     private void addTriggerAttributes(final String id, final HttpExecutionContext ctx) {
         Span span = getSpan(ctx, id);
         if (span != null) {
@@ -83,7 +79,8 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
             if (triggerCondition != null && !triggerCondition.isBlank()) {
                 span.withAttribute(ATTR_SPAN_POLICY_TRIGGER_CONDITION, triggerCondition);
             }
-            span.withAttribute(ATTR_SPAN_POLICY_TRIGGER_EXECUTED, "true");
+            Boolean executed = ctx.getInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + id);
+            span.withAttribute(ATTR_SPAN_POLICY_TRIGGER_EXECUTED, executed != null ? String.valueOf(executed) : "true");
         }
     }
 
