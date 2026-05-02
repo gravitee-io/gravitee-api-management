@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.policy;
 
 import static io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook.ATTR_POLICY_TRIGGER_CONDITION_PREFIX;
+import static io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook.ATTR_POLICY_TRIGGER_EXECUTED_PREFIX;
 
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -61,8 +62,13 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onRequest(ctx);
         }
-        storeTriggerCondition(ctx);
-        return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        return conditionFilter
+            .filter(ctx, this)
+            .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
+            .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
+            .flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
     }
 
     @Override
@@ -70,19 +76,34 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onResponse(ctx);
         }
-        storeTriggerCondition(ctx);
-        return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        return conditionFilter
+            .filter(ctx, this)
+            .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
+            .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
+            .flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
     }
 
     @Override
     public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
-        storeTriggerCondition(ctx);
+        if (!conditionDefined) {
+            return policy.onMessageRequest(ctx);
+        }
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false);
         return Completable.complete();
     }
 
     @Override
     public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
-        storeTriggerCondition(ctx);
+        if (!conditionDefined) {
+            return policy.onMessageResponse(ctx);
+        }
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false);
         return Completable.complete();
     }
 
@@ -91,9 +112,9 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         return condition;
     }
 
-    private void storeTriggerCondition(final BaseExecutionContext ctx) {
+    private void storeTriggerCondition(final BaseExecutionContext ctx, final String policyId) {
         if (conditionDefined) {
-            ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policy.id(), condition);
+            ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policyId, condition);
         }
     }
 }
