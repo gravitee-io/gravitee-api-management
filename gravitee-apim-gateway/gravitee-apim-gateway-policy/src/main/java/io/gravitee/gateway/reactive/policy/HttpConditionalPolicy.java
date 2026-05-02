@@ -15,6 +15,12 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
+<<<<<<< HEAD
+=======
+import static io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook.ATTR_POLICY_TRIGGER_CONDITION_PREFIX;
+import static io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook.ATTR_POLICY_TRIGGER_EXECUTED_PREFIX;
+
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpMessageExecutionContext;
@@ -59,8 +65,18 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onRequest(ctx);
         }
+<<<<<<< HEAD
 
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
+=======
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        return conditionFilter
+            .filter(ctx, this)
+            .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
+            .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
+            .flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
     }
 
     @Override
@@ -68,17 +84,45 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onResponse(ctx);
         }
+<<<<<<< HEAD
 
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
+=======
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        return conditionFilter
+            .filter(ctx, this)
+            .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
+            .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
+            .flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
     }
 
     @Override
     public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
+<<<<<<< HEAD
+=======
+        if (!conditionDefined) {
+            return policy.onMessageRequest(ctx);
+        }
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false);
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
         return Completable.complete();
     }
 
     @Override
     public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
+<<<<<<< HEAD
+=======
+        if (!conditionDefined) {
+            return policy.onMessageResponse(ctx);
+        }
+        String policyId = policy.id();
+        storeTriggerCondition(ctx, policyId);
+        ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false);
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
         return Completable.complete();
     }
 
@@ -86,4 +130,13 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
     public String getCondition() {
         return condition;
     }
+<<<<<<< HEAD
+=======
+
+    private void storeTriggerCondition(final BaseExecutionContext ctx, final String policyId) {
+        if (conditionDefined) {
+            ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policyId, condition);
+        }
+    }
+>>>>>>> 77f56fd870 (fix(tracing): report correct trigger.executed flag for policies in OTEL)
 }
