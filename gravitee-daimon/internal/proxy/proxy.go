@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gravitee-io/gravitee-api-management/gravitee-daimon/internal/metrics"
@@ -46,6 +47,8 @@ func New(targetURL string, engine *policy.Engine, collector *metrics.Collector, 
 			req.URL.Scheme = target.Scheme
 			req.URL.Host = target.Host
 			req.Host = target.Host
+			// SDK sends /v1/..., rewrite to gateway API path /ai/v1/...
+			req.URL.Path = target.Path + strings.TrimPrefix(req.URL.Path, "/v1")
 		},
 	}
 

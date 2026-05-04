@@ -46,6 +46,8 @@ policies:
     action: block
     config:
       models:
+        - claude-opus-4-6
+        - claude-sonnet-4-6
         - claude-sonnet-4-20250514
         - claude-haiku-4-5-20251001
       message: "Blocked: model {{.RequestedModel}} is not in the allowlist"
