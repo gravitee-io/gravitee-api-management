@@ -37,6 +37,13 @@ type Event struct {
 	Provider      string    `json:"provider,omitempty"`
 }
 
+type DeviceState struct {
+	Hostname  string    `json:"hostname"`
+	LastSeen  time.Time `json:"last_seen"`
+	ProxyPort int       `json:"proxy_port,omitempty"`
+	Version   string    `json:"version"`
+}
+
 type Stats struct {
 	RequestsTotal   int
 	RequestsBlocked int
@@ -46,29 +53,53 @@ type Stats struct {
 }
 
 type Collector struct {
-	mu    sync.Mutex
-	file  *os.File
-	stats Stats
+	hostname  string
+	deviceDir string
+	mu        sync.Mutex
+	file      *os.File
+	stats     Stats
 }
 
-func NewCollector(outputPath string) *Collector {
-	expanded := expandHome(outputPath)
-	if err := os.MkdirAll(filepath.Dir(expanded), 0o755); err != nil {
+func NewCollector(hostname, baseDir string) *Collector {
+	base := expandHome(baseDir)
+	deviceDir := filepath.Join(base, hostname)
+
+	if err := os.MkdirAll(deviceDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create metrics dir: %v\n", err)
 	}
 
-	f, err := os.OpenFile(expanded, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	eventsPath := filepath.Join(deviceDir, "events.jsonl")
+	f, err := os.OpenFile(eventsPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to open metrics file: %v\n", err)
-		return &Collector{}
+		return &Collector{hostname: hostname, deviceDir: deviceDir}
 	}
 
-	return &Collector{file: f}
+	c := &Collector{hostname: hostname, deviceDir: deviceDir, file: f}
+	c.writeDeviceState()
+	return c
+}
+
+func (c *Collector) writeDeviceState() {
+	state := DeviceState{
+		Hostname: c.hostname,
+		LastSeen: time.Now().UTC(),
+		Version:  "1.0.0",
+	}
+	data, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return
+	}
+	statePath := filepath.Join(c.deviceDir, "device.json")
+	os.WriteFile(statePath, data, 0o644)
 }
 
 func (c *Collector) Record(event Event) {
 	if event.Timestamp.IsZero() {
 		event.Timestamp = time.Now().UTC()
+	}
+	if event.DeviceID == "" {
+		event.DeviceID = c.hostname
 	}
 
 	c.mu.Lock()

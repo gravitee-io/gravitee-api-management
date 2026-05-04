@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -17,6 +18,9 @@ import (
 )
 
 func main() {
+	asHost := flag.String("as", "", "simulate a different hostname (for demo)")
+	flag.Parse()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -28,7 +32,12 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	collector := metrics.NewCollector(cfg.Metrics.OutputFile)
+	hostname := *asHost
+	if hostname == "" {
+		hostname, _ = os.Hostname()
+	}
+
+	collector := metrics.NewCollector(hostname, cfg.Metrics.BaseDir)
 	defer collector.Close()
 
 	engine, err := policy.NewEngine("policies.yaml")

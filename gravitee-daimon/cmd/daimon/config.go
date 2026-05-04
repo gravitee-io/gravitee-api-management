@@ -31,7 +31,7 @@ type RegistrationConfig struct {
 }
 
 type MetricsConfig struct {
-	OutputFile string `yaml:"output_file"`
+	BaseDir string `yaml:"base_dir"`
 }
 
 type DetectorConfig struct {

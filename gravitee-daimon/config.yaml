@@ -28,7 +28,7 @@ registration:
   heartbeat_interval_sec: 30
 
 metrics:
-  output_file: ~/.daimon/metrics.jsonl
+  base_dir: ~/.daimon
 
 detector:
   enabled: true
