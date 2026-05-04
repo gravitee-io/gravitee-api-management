@@ -7,6 +7,7 @@ import { NAV_GROUPS } from '../config/navigation';
 import { AI_FLEET_ROUTE_CONFIG } from '../config/routes';
 import { FleetPage } from '../pages/FleetPage';
 import { EventsPage } from '../pages/EventsPage';
+import { PoliciesPage } from '../pages/PoliciesPage';
 
 function ModuleLayout() {
     const navigate = useNavigate();
@@ -39,6 +40,7 @@ export function AppRoutes() {
                 <Route index element={<FleetPage />} />
                 <Route path="fleet" element={<FleetPage />} />
                 <Route path="events" element={<EventsPage />} />
+                <Route path="policies" element={<PoliciesPage />} />
             </Route>
         </Routes>
     );

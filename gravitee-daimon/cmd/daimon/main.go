@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/gravitee-io/gravitee-api-management/gravitee-daimon/internal/detector"
@@ -40,6 +41,9 @@ func main() {
 
 	collector := metrics.NewCollector(hostname, cfg.Metrics.BaseDir)
 	defer collector.Close()
+	if absPath, err := filepath.Abs("policies.yaml"); err == nil {
+		collector.SetPoliciesPath(absPath)
+	}
 
 	engine, err := policy.NewEngine("policies.yaml")
 	if err != nil {

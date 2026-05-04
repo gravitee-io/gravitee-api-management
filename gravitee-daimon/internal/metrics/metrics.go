@@ -41,10 +41,11 @@ type Event struct {
 }
 
 type DeviceState struct {
-	Hostname  string    `json:"hostname"`
-	LastSeen  time.Time `json:"last_seen"`
-	ProxyPort int       `json:"proxy_port,omitempty"`
-	Version   string    `json:"version"`
+	Hostname     string    `json:"hostname"`
+	LastSeen     time.Time `json:"last_seen"`
+	ProxyPort    int       `json:"proxy_port,omitempty"`
+	Version      string    `json:"version"`
+	PoliciesPath string    `json:"policies_path,omitempty"`
 }
 
 type Stats struct {
@@ -56,11 +57,12 @@ type Stats struct {
 }
 
 type Collector struct {
-	hostname  string
-	deviceDir string
-	mu        sync.Mutex
-	file      *os.File
-	stats     Stats
+	hostname     string
+	deviceDir    string
+	policiesPath string
+	mu           sync.Mutex
+	file         *os.File
+	stats        Stats
 }
 
 func NewCollector(hostname, baseDir string) *Collector {
@@ -94,11 +96,19 @@ func (c *Collector) heartbeat() {
 	}
 }
 
+func (c *Collector) SetPoliciesPath(path string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.policiesPath = path
+	c.writeDeviceState()
+}
+
 func (c *Collector) writeDeviceState() {
 	state := DeviceState{
-		Hostname: c.hostname,
-		LastSeen: time.Now().UTC(),
-		Version:  "1.0.0",
+		Hostname:     c.hostname,
+		LastSeen:     time.Now().UTC(),
+		Version:      "1.0.0",
+		PoliciesPath: c.policiesPath,
 	}
 	data, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {

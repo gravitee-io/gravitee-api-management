@@ -15,12 +15,13 @@
  */
 import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
-export const ROUTE_KEYS = ['fleet', 'events'] as const;
+export const ROUTE_KEYS = ['fleet', 'events', 'policies'] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     fleet: { path: 'fleet', label: 'Fleet' },
     events: { path: 'events', label: 'Live Events' },
+    policies: { path: 'policies', label: 'Policies' },
 };
 
 export const AI_FLEET_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {

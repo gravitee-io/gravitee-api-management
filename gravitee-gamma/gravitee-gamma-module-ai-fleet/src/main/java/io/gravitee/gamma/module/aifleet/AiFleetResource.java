@@ -18,7 +18,9 @@ package io.gravitee.gamma.module.aifleet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -29,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -158,5 +161,48 @@ public class AiFleetResource {
         stats.put("tokens_in_user", tokensInUser);
         stats.put("tokens_out", tokensOut);
         return Response.ok(stats).build();
+    }
+
+    @GET
+    @Path("/policies/{hostname}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getPolicies(@PathParam("hostname") String hostname) {
+        java.nio.file.Path deviceFile = Paths.get(BASE_DIR, hostname, "device.json");
+        if (!deviceFile.toFile().exists()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        try {
+            JsonNode device = MAPPER.readTree(deviceFile.toFile());
+            String policiesPath = device.path("policies_path").asText();
+            if (policiesPath.isBlank()) {
+                return Response.status(Response.Status.NOT_FOUND).entity("policies_path not registered").build();
+            }
+            return Response.ok(Files.readString(Paths.get(policiesPath))).build();
+        } catch (IOException e) {
+            log.warn("Failed to read policies for {}: {}", hostname, e.getMessage());
+            return Response.serverError().entity(e.getMessage()).build();
+        }
+    }
+
+    @PUT
+    @Path("/policies/{hostname}")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response putPolicies(@PathParam("hostname") String hostname, String body) {
+        java.nio.file.Path deviceFile = Paths.get(BASE_DIR, hostname, "device.json");
+        if (!deviceFile.toFile().exists()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        try {
+            JsonNode device = MAPPER.readTree(deviceFile.toFile());
+            String policiesPath = device.path("policies_path").asText();
+            if (policiesPath.isBlank()) {
+                return Response.status(Response.Status.NOT_FOUND).entity("policies_path not registered").build();
+            }
+            Files.writeString(Paths.get(policiesPath), body);
+            return Response.noContent().build();
+        } catch (IOException e) {
+            log.warn("Failed to write policies for {}: {}", hostname, e.getMessage());
+            return Response.serverError().entity(e.getMessage()).build();
+        }
     }
 }

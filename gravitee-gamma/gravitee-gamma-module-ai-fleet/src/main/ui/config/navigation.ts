@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { Activity, Monitor } from 'lucide-react';
+import { Activity, Monitor, Shield } from 'lucide-react';
 
 import { ROUTES } from './routes';
 
@@ -24,6 +24,7 @@ export const NAV_GROUPS: NavGroup[] = [
         items: [
             { key: 'fleet', title: ROUTES.fleet.label, icon: Monitor },
             { key: 'events', title: ROUTES.events.label, icon: Activity },
+            { key: 'policies', title: ROUTES.policies.label, icon: Shield },
         ],
     },
 ];
