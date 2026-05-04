@@ -46,7 +46,7 @@ export function FleetPage() {
         };
 
         fetchDevices();
-        const interval = setInterval(fetchDevices, 10000);
+        const interval = setInterval(fetchDevices, 5000);
         return () => clearInterval(interval);
     }, []);
 
