@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { UseEnvironmentFn } from '@gravitee/gamma-modules-sdk/types';
+import { useSyncExternalStore } from 'react';
 
-/**
- * Host barrel for `@gravitee/gamma-modules-sdk` — replaces the package stubs
- * with the real implementation via rspack alias + MF singleton.
- *
- * Only domains that need host override belong here (e.g. permissions, environment).
- * Standalone domains like routing live on their own subpath
- * (`@gravitee/gamma-modules-sdk/routing`) and are NOT re-exported here.
- */
-export * from './permissions/index';
-export * from './environment/index';
+import { environmentService } from './environment-service';
+
+export const useEnvironment: UseEnvironmentFn = () => {
+    return useSyncExternalStore(
+        cb => environmentService.subscribe(cb),
+        () => environmentService.getSnapshot(),
+        () => environmentService.getSnapshot(),
+    );
+};
