@@ -32,6 +32,16 @@
     box-shadow: 0 2px 8px app-theme.$shadow-color;
   }
 
+  &--accented {
+    box-shadow: inset 3px 0 0 0 app-theme.$primary-main-color;
+
+    &:hover {
+      box-shadow:
+        inset 3px 0 0 0 app-theme.$primary-main-color,
+        0 2px 8px app-theme.$shadow-color;
+    }
+  }
+
   &__content {
     display: flex;
     flex: 1 1 auto;
@@ -63,6 +73,27 @@
 
     > span {
       white-space: nowrap;
+    }
+  }
+
+  &__pin-button {
+    flex-shrink: 0;
+    margin: -8px -8px 0 0;
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+
+    &--pinned {
+      opacity: 1;
+      color: app-theme.$primary-main-color;
+    }
+
+    &--disabled {
+      opacity: 0.2;
+      cursor: default;
+    }
+
+    &:hover:not(.dashboard-card__pin-button--disabled) {
+      opacity: 1;
     }
   }
 
