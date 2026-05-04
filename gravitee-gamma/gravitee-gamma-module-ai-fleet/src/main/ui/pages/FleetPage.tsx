@@ -8,6 +8,24 @@ interface DeviceState {
     version: string;
 }
 
+function LaptopIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="3" width="20" height="13" rx="2" />
+            <path d="M0 20h24" />
+            <path d="M8 20l1.5-4h5L16 20" />
+        </svg>
+    );
+}
+
+function HeartbeatIcon({ color }: { readonly color: string }) {
+    return (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
+        </svg>
+    );
+}
+
 export function FleetPage() {
     const [devices, setDevices] = useState<DeviceState[]>([]);
     const [loading, setLoading] = useState(true);
@@ -60,6 +78,9 @@ function DeviceCard({ device }: { readonly device: DeviceState }) {
     const ageMs = Date.now() - lastSeen.getTime();
     const isOnline = ageMs < 2 * 60 * 1000;
 
+    const statusColor = isOnline ? '#22c55e' : '#f97316';
+    const statusLabel = isOnline ? 'Actif' : `Inactif depuis plus de 2 min`;
+
     return (
         <div
             style={{
@@ -70,19 +91,17 @@ function DeviceCard({ device }: { readonly device: DeviceState }) {
                 cursor: 'pointer',
             }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span
-                    style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: isOnline ? '#22c55e' : '#ef4444',
-                        flexShrink: 0,
-                    }}
-                />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: 'var(--color-muted-foreground)', display: 'flex' }}>
+                    <LaptopIcon />
+                </span>
                 <span style={{ fontWeight: 600 }}>{device.hostname}</span>
             </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--color-muted-foreground)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--color-muted-foreground)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: statusColor }}>
+                    <HeartbeatIcon color={statusColor} />
+                    <span style={{ fontWeight: 500 }}>{statusLabel}</span>
+                </div>
                 <div>Version: {device.version}</div>
                 {device.proxy_port ? <div>Proxy port: {device.proxy_port}</div> : null}
                 <div>Last seen: {lastSeen.toLocaleString()}</div>
