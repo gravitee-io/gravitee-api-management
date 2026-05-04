@@ -268,13 +268,26 @@ function TrafficRow({ event }: { readonly event: FleetEvent }) {
     );
 }
 
+function formatProvider(provider: string): string {
+    const parts = provider.split(' → ');
+    return parts.length === 2 ? `${parts[0]}(${parts[1]})` : provider;
+}
+
+function processLabel(processName: string): string {
+    if (processName === 'java') return '(GATEWAY)';
+    if (/^\d+\.\d+\.\d+/.test(processName)) return '(Claude Code CLI)';
+    return '';
+}
+
 function DirectRow({ event }: { readonly event: FleetEvent }) {
     const ts = new Date(event.timestamp).toLocaleTimeString();
+    const label = processLabel(event.process_name ?? '');
     return (
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.2rem', color: '#f97316' }}>
             <span style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}>{ts}</span>
             <span>
-                {event.process_name} → {event.provider}
+                {event.process_name} → {formatProvider(event.provider ?? '')}
+                {label && <span style={{ color: 'var(--color-muted-foreground)', marginLeft: '0.4rem' }}>{label}</span>}
             </span>
         </div>
     );
