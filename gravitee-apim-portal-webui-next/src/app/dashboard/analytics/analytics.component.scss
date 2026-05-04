@@ -53,6 +53,10 @@
     }
   }
 
+  &__pinned-row {
+    display: block;
+  }
+
   &__content {
     display: flex;
     flex-direction: column;
