@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { environmentService } from '@gravitee/gamma-modules-sdk';
+
+import { useEnvironmentStore } from './environment.store';
 
 /**
- * Host barrel for `@gravitee/gamma-modules-sdk` — replaces the package stubs
- * with the real implementation via rspack alias + MF singleton.
- *
- * Only domains that need host override belong here (e.g. permissions, environment).
- * Standalone domains like routing live on their own subpath
- * (`@gravitee/gamma-modules-sdk/routing`) and are NOT re-exported here.
+ * Subscribes to the Zustand environment store and pushes changes to the
+ * SDK environmentService singleton so federated modules can access the
+ * current environment via useEnvironment().
  */
-export * from './permissions/index';
-export * from './environment/index';
+export function startEnvironmentSync(): () => void {
+    return useEnvironmentStore.subscribe((state, prev) => {
+        if (state.currentEnvironment !== prev.currentEnvironment) {
+            environmentService.setEnvironment(state.currentEnvironment);
+        }
+    });
+}
