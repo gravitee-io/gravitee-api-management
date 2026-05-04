@@ -15,20 +15,20 @@ interface FleetEvent {
     policy_applied?: string;
 }
 
-const EVENT_COLORS: Record<string, string> = {
+const TRAFFIC_COLORS: Record<string, string> = {
     request: '#22c55e',
     policy_block: '#ef4444',
     policy_warn: '#f59e0b',
-    direct_connection: '#f97316',
 };
 
 export function EventsPage() {
     const [searchParams] = useSearchParams();
     const [hostname, setHostname] = useState(searchParams.get('host') ?? '');
     const [devices, setDevices] = useState<string[]>([]);
-    const [events, setEvents] = useState<FleetEvent[]>([]);
+    const [trafficEvents, setTrafficEvents] = useState<FleetEvent[]>([]);
+    const [directEvents, setDirectEvents] = useState<FleetEvent[]>([]);
     const lastTimestampRef = useRef<string | null>(null);
-    const bottomRef = useRef<HTMLDivElement>(null);
+    const trafficBottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
@@ -43,7 +43,8 @@ export function EventsPage() {
 
     useEffect(() => {
         if (!hostname) return;
-        setEvents([]);
+        setTrafficEvents([]);
+        setDirectEvents([]);
         lastTimestampRef.current = null;
 
         const poll = () => {
@@ -56,7 +57,10 @@ export function EventsPage() {
                 .then((data: FleetEvent[]) => {
                     if (data.length > 0) {
                         lastTimestampRef.current = data[data.length - 1].timestamp;
-                        setEvents(prev => [...prev, ...data].slice(-200));
+                        const traffic = data.filter(e => e.type !== 'direct_connection');
+                        const direct = data.filter(e => e.type === 'direct_connection');
+                        if (traffic.length > 0) setTrafficEvents(prev => [...prev, ...traffic].slice(-200));
+                        if (direct.length > 0) setDirectEvents(prev => [...prev, ...direct].slice(-50));
                     }
                 })
                 .catch(() => {});
@@ -68,12 +72,12 @@ export function EventsPage() {
     }, [hostname]);
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [events]);
+        trafficBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [trafficEvents]);
 
     return (
-        <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+        <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <h1 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Live Events</h1>
                 {devices.length > 0 && (
                     <select
@@ -89,53 +93,118 @@ export function EventsPage() {
                     </select>
                 )}
             </div>
-            <div
-                style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    fontFamily: 'monospace',
-                    fontSize: '0.8rem',
-                    background: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '0.5rem',
-                    padding: '0.75rem',
-                }}
-            >
-                {events.length === 0 ? (
-                    <span style={{ color: 'var(--color-muted-foreground)' }}>Waiting for events from {hostname || '…'}…</span>
-                ) : (
-                    events.map((event, i) => <EventRow key={i} event={event} />)
-                )}
-                <div ref={bottomRef} />
+
+            {/* Intercepted traffic */}
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <h2 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-foreground)' }}>
+                    Intercepted traffic
+                </h2>
+                <div
+                    style={{
+                        flex: 1,
+                        overflowY: 'auto',
+                        fontFamily: 'monospace',
+                        fontSize: '0.8rem',
+                        background: 'var(--color-card)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '0.5rem',
+                        padding: '0.75rem',
+                    }}
+                >
+                    {trafficEvents.length === 0 ? (
+                        <span style={{ color: 'var(--color-muted-foreground)' }}>
+                            No intercepted traffic yet. Make sure Claude uses{' '}
+                            <code>ANTHROPIC_BASE_URL=http://localhost:8990</code>.
+                        </span>
+                    ) : (
+                        trafficEvents.map((event, i) => <TrafficRow key={i} event={event} />)
+                    )}
+                    <div ref={trafficBottomRef} />
+                </div>
+            </div>
+
+            {/* Direct connections */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <h2
+                    style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        marginBottom: '0.5rem',
+                        color: 'var(--color-muted-foreground)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                    }}
+                >
+                    <span
+                        style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: directEvents.length > 0 ? '#f97316' : '#94a3b8',
+                            display: 'inline-block',
+                        }}
+                    />
+                    Direct connections detected ({directEvents.length})
+                </h2>
+                <div
+                    style={{
+                        flex: 1,
+                        overflowY: 'auto',
+                        fontFamily: 'monospace',
+                        fontSize: '0.75rem',
+                        background: 'var(--color-card)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '0.5rem',
+                        padding: '0.75rem',
+                        opacity: 0.85,
+                    }}
+                >
+                    {directEvents.length === 0 ? (
+                        <span style={{ color: 'var(--color-muted-foreground)' }}>No direct connections detected.</span>
+                    ) : (
+                        directEvents.map((event, i) => <DirectRow key={i} event={event} />)
+                    )}
+                </div>
             </div>
         </div>
     );
 }
 
-function EventRow({ event }: { readonly event: FleetEvent }) {
-    const color = EVENT_COLORS[event.type] ?? '#94a3b8';
+function TrafficRow({ event }: { readonly event: FleetEvent }) {
+    const color = TRAFFIC_COLORS[event.type] ?? '#94a3b8';
     const ts = new Date(event.timestamp).toLocaleTimeString();
 
     const detail = (() => {
         switch (event.type) {
             case 'request':
-                return `${event.model} ${event.tokens_in ?? 0}→${event.tokens_out ?? 0} tok`;
+                return `${event.model}  ${event.tokens_in ?? 0} → ${event.tokens_out ?? 0} tok`;
             case 'policy_block':
                 return `BLOCKED by ${event.policy_applied}: ${event.reason}`;
             case 'policy_warn':
                 return `WARN by ${event.policy_applied}: ${event.reason}`;
-            case 'direct_connection':
-                return `${event.process_name} → ${event.provider}`;
             default:
                 return event.action ?? '';
         }
     })();
 
     return (
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.3rem' }}>
             <span style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}>{ts}</span>
-            <span style={{ color, flexShrink: 0, minWidth: 120 }}>{event.type}</span>
+            <span style={{ color, flexShrink: 0, minWidth: 100 }}>{event.type}</span>
             <span>{detail}</span>
+        </div>
+    );
+}
+
+function DirectRow({ event }: { readonly event: FleetEvent }) {
+    const ts = new Date(event.timestamp).toLocaleTimeString();
+    return (
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.2rem', color: '#f97316' }}>
+            <span style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}>{ts}</span>
+            <span>
+                {event.process_name} (PID {event.device_id}) → {event.provider}
+            </span>
         </div>
     );
 }
