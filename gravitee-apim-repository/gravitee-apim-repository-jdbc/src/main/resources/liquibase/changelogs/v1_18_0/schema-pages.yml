@@ -2,6 +2,7 @@ databaseChangeLog:
     - changeSet:
         id: 1.18.0-pageconfiguration
         author: GraviteeSource Team
+        validCheckSum: ANY
         preConditions:
             onFail: MARK_RAN
             not:
@@ -15,14 +16,9 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}page_configuration
             columns:
-                - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: k, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: v, type: nvarchar(200), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}page_configuration
-            columnNames: page_id, k, v
-            tableName: ${gravitee_prefix}page_configuration
+                - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}page_configuration" } }
+                - column: {name: k, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+                - column: {name: v, type: nvarchar(200), constraints: { nullable: false, primaryKey: true } }
 
         - sql:
             comment: Move tryIt to a the dedicated table

@@ -2,6 +2,7 @@ databaseChangeLog:
     - changeSet:
         id: 1.21.0
         author: GraviteeSource Team
+        validCheckSum: ANY
         changes:
         - dropColumn:
             tableName: ${gravitee_prefix}users
@@ -29,7 +30,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}identity_providers
             columns:
-                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}identity_providers" } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
                 - column: {name: enabled, type: boolean, constraints: { nullable: false } }
@@ -41,15 +42,10 @@ databaseChangeLog:
                 - column: {name: role_mappings, type: nvarchar(4000), constraints: { nullable: true } }
                 - column: {name: user_profile_mapping, type: nvarchar(4000), constraints: { nullable: true } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}identity_providers
-            columnNames: id
-            tableName: ${gravitee_prefix}identity_providers
-
         - createTable:
             tableName: ${gravitee_prefix}alerts
             columns:
-                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}alerts" } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: description, type: nvarchar(256), constraints: { nullable: true } }
                 - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
@@ -64,7 +60,3 @@ databaseChangeLog:
                 - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}alerts
-            columnNames: id
-            tableName: ${gravitee_prefix}alerts

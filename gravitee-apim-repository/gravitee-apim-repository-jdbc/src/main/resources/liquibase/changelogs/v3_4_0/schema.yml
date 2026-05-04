@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.4.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - sql:
             - sql: update ${gravitee_prefix}audits set reference_type = 'ORGANIZATION' where reference_type = 'PORTAL' and (event like 'IDENTITY_PROVIDER%' or event like 'ROLE%' or event like 'USER%' or (event like 'MEMBERSHIP%' and patch like '%organization%'));
@@ -11,18 +12,14 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}identity_provider_activations
             columns:
-              - column: {name: identity_provider_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: {name: identity_provider_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}identity_provider_activations" } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+              - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false, primaryKey: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}identity_provider_activations
-            columnNames: identity_provider_id, reference_id, reference_type
-            tableName: ${gravitee_prefix}identity_provider_activations
         - createTable:
             tableName: ${gravitee_prefix}notification_templates
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}notification_templates" } }
               - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -36,25 +33,16 @@ databaseChangeLog:
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: enabled, type: boolean, constraints: { nullable: false } }
 
-              - addPrimaryKey:
-                  constraintName: pk_${gravitee_prefix}notification_templates
-                  columnNames: id
-
         - createTable:
             tableName: ${gravitee_prefix}tickets
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}tickets" } }
               - column: {name: from_user, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
               - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: application, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: subject, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: content, type: nclob, constraints: { nullable: true } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}tickets
-            columnNames: id
-            tableName: ${gravitee_prefix}tickets
 
         - sql:
             sql: delete from ${gravitee_prefix}role_permissions where role_id = (select id from ${gravitee_prefix}roles r where r.scope = 'API' and r.name='REVIEWER') and permission like '30%';

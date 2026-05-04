@@ -1,61 +1,215 @@
+# Retrofits primary keys onto tables that were originally created without
+# one. Each table gets its own changeSet with a `not primaryKeyExists`
+# precondition: on fresh deploys the originating createTable now embeds the
+# PK inline (so the precondition fails and Liquibase marks the changeSet as
+# RAN), while on older deploys upgrading through 3.15.20 the precondition
+# passes and the addPrimaryKey runs as before.
 databaseChangeLog:
   - changeSet:
-      id: 3.15.20
+      id: 3.15.20-alert_event_rules
       author: GraviteeSource Team
       validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}alert_event_rules
       changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}alert_event_rules
             columnNames: alert_id, alert_event
             tableName: ${gravitee_prefix}alert_event_rules
+
+  - changeSet:
+      id: 3.15.20-api_groups
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}api_groups
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}api_groups
             columnNames: api_id, group_id
             tableName: ${gravitee_prefix}api_groups
+
+  - changeSet:
+      id: 3.15.20-application_groups
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}application_groups
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}application_groups
             columnNames: application_id, group_id
             tableName: ${gravitee_prefix}application_groups
+
+  - changeSet:
+      id: 3.15.20-client_registration_provider_scopes
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}client_registration_provider_scopes
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}client_registration_provider_scopes
             columnNames: client_registration_provider_id, scope
             tableName: ${gravitee_prefix}client_registration_provider_scopes
+
+  - changeSet:
+      id: 3.15.20-custom_user_fields_values
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}custom_user_fields_values
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}custom_user_fields_values
             columnNames: key, reference_id, reference_type
             tableName: ${gravitee_prefix}custom_user_fields_values
+
+  - changeSet:
+      id: 3.15.20-databasechangelog
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}databasechangelog
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}databasechangelog
-            columnNames: ID
+            columnNames: ID, AUTHOR, FILENAME
             tableName: ${gravitee_prefix}databasechangelog
+
+  - changeSet:
+      id: 3.15.20-event_environments
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}event_environments
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}event_environments
             columnNames: event_id, environment_id
             tableName: ${gravitee_prefix}event_environments
+
+  - changeSet:
+      id: 3.15.20-group_event_rules
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}group_event_rules
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}group_event_rules
             columnNames: group_id, group_event
             tableName: ${gravitee_prefix}group_event_rules
+
+  - changeSet:
+      id: 3.15.20-installation
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}installation
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}installation
             columnNames: id
             tableName: ${gravitee_prefix}installation
+
+  - changeSet:
+      id: 3.15.20-installation_informations
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}installation_informations
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}installation_informations
             columnNames: installation_id, information_key
             tableName: ${gravitee_prefix}installation_informations
+
+  - changeSet:
+      id: 3.15.20-node_monitoring
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}node_monitoring
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}node_monitoring
             columnNames: id
             tableName: ${gravitee_prefix}node_monitoring
+
+  - changeSet:
+      id: 3.15.20-notification_templates
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}notification_templates
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}notification_templates
             columnNames: id
             tableName: ${gravitee_prefix}notification_templates
+
+  - changeSet:
+      id: 3.15.20-promotions
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}promotions
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}promotions
             columnNames: id
             tableName: ${gravitee_prefix}promotions
+
+  - changeSet:
+      id: 3.15.20-tag_groups
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}tag_groups
+      changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}tag_groups
             columnNames: tag_id, group_id

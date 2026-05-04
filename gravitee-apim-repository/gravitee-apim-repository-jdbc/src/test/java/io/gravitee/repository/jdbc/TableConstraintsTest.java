@@ -16,6 +16,7 @@
 package io.gravitee.repository.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -45,17 +46,44 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldCheckEveryTableHasAPrimaryKey() {
-        // Skip test if db is not MySql as the following query is specific to MySql
-        // FIXME: Use JUnit assumptions instead when we upgrade to JUnit 5
-        if (!jdbcDatabaseContainer.getDockerImageName().contains(DatabaseConfigurationEnum.MYSQL.getDockerImageName())) {
-            return;
-        }
+        // The information_schema query below is specific to MySQL/MariaDB. Use assumeTrue so the
+        // test reports as SKIPPED on other engines rather than vacuously passing.
+        String image = jdbcDatabaseContainer.getDockerImageName();
+        assumeTrue(
+            "TableConstraintsTest only runs on MySQL / MariaDB",
+            image.contains(DatabaseConfigurationEnum.MYSQL.getDockerImageName()) ||
+                image.contains(DatabaseConfigurationEnum.MARIADB.getDockerImageName())
+        );
 
         String prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
 
         List<String> tables = new ArrayList<>();
         final JdbcTemplate jt = new JdbcTemplate(dataSource);
 
+        // Sanity precondition: the schema bootstrap actually created the core APIM tables. A
+        // failed Liquibase setup that left only the databasechangelog + lock tables would have
+        // tableCount > 0 but be missing every meaningful table — checking for representative
+        // core tables (apis, subscriptions, plans, users) closes that loophole, since each is
+        // created in v1_14_0 / v1_15_0 within the first dozen changesets.
+        Integer coreTableCount = jt.queryForObject(
+            "select count(*) from information_schema.tables " +
+                " where table_schema = (select database())" +
+                "   and table_type = 'BASE TABLE'" +
+                "   and table_name in (?, ?, ?, ?)",
+            Integer.class,
+            prefix + "apis",
+            prefix + "subscriptions",
+            prefix + "plans",
+            prefix + "users"
+        );
+        assertEquals(
+            "Bootstrap is missing one or more core tables (apis, subscriptions, plans, users) — Liquibase setup likely failed",
+            Integer.valueOf(4),
+            coreTableCount
+        );
+
+        // (select database()) reads the connection's current database so the test does not depend
+        // on the testcontainer's schema name being literally 'test'.
         jt.query(
             "select tab.table_schema as database_name,\n" +
                 "       tab.table_name\n" +
@@ -68,7 +96,7 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
                 "  and tab.table_schema not in ('mysql', 'information_schema',\n" +
                 "                               'performance_schema', 'sys')\n" +
                 "  and tab.table_type = 'BASE TABLE'\n" +
-                "  and tab.table_schema = 'test' -- <-- database name\n" +
+                "  and tab.table_schema = (select database())\n" +
                 "order by tab.table_schema,\n" +
                 "         tab.table_name;",
             rs -> {

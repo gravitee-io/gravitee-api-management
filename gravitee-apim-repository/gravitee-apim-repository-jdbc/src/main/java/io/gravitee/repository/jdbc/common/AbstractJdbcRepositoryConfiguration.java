@@ -205,6 +205,11 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         System.setProperty("gravitee_rate_limit_prefix", rateLimitPrefix);
 
         try (Connection conn = dataSource.getConnection()) {
+            // The DATABASECHANGELOG bootstrap on MySQL/MariaDB is patched at SQL generation time
+            // by io.gravitee.repository.jdbc.liquibase.MySqlChangeLogTableWithPrimaryKeyGenerator
+            // (registered through META-INF/services/liquibase.sqlgenerator.SqlGenerator), which
+            // injects a primary key into Liquibase's own CREATE TABLE so it satisfies
+            // sql_require_primary_key=ON.
             final Liquibase liquibase = new Liquibase(
                 "liquibase/master.yml",
                 new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),

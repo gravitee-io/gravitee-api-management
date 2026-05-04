@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.9.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addColumn:
             tableName: ${gravitee_prefix}tags
@@ -68,8 +69,8 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}event_environments
             columns:
-              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}event_environments" } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
         - sql:
             sql: insert into ${gravitee_prefix}event_environments (event_id, environment_id) select id, environment_id from ${gravitee_prefix}events;
@@ -82,7 +83,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}flows
             columns:
-              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}flows" } }
               - column: { name: condition, type: nvarchar(64), constraints: { nullable: true } }
               - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
               - column: { name: enabled, type: boolean, constraints: { nullable: false } }
@@ -94,14 +95,16 @@ databaseChangeLog:
               - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
               - column: { name: order, type: integer, constraints: { nullable: true } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}flows
-            columnNames: id
-            tableName: ${gravitee_prefix}flows
-
         - createTable:
             tableName: ${gravitee_prefix}flow_steps
             columns:
+              # The synthetic auto-increment id PK is normally added later by
+              # the v3.15.21 changeset. We add it inline here so that on a
+              # fresh deploy against MySQL with sql_require_primary_key=ON the
+              # initial CREATE TABLE has a primary key. The v3.15.21 changesets
+              # are guarded by preconditions that skip them when this column
+              # already exists.
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false, primaryKeyName: "pk_${gravitee_prefix}flow_steps" } }
               - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: configuration, type: nclob, constraints: { nullable: true } }
               - column: { name: description, type: nvarchar(256), constraints: { nullable: true } }
@@ -114,25 +117,15 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}flow_methods
             columns:
-              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: method, type: nvarchar(32), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}flow_methods
-            columnNames: flow_id, method
-            tableName: ${gravitee_prefix}flow_methods
+              - column: {name: flow_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}flow_methods" } }
+              - column: {name: method, type: nvarchar(32), constraints: { nullable: false, primaryKey: true } }
 
         - createTable:
             tableName: ${gravitee_prefix}flow_consumers
             columns:
-              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: consumer_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: consumer_type, type: nvarchar(32), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}flow_consumers
-            columnNames: flow_id, consumer_id, consumer_type
-            tableName: ${gravitee_prefix}flow_consumers
+              - column: {name: flow_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}flow_consumers" } }
+              - column: {name: consumer_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+              - column: {name: consumer_type, type: nvarchar(32), constraints: { nullable: false, primaryKey: true } }
 
         - addColumn:
             tableName: ${gravitee_prefix}organizations

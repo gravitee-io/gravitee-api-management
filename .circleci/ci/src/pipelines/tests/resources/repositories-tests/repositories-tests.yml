@@ -117,6 +117,13 @@ jobs:
         type: string
         default: ""
         description: "Type and version of the database to test. Example: mariadb:10.5"
+      strictPrimaryKey:
+        type: enum
+        default: "false"
+        description: Run MySQL/MariaDB containers with sql_require_primary_key=ON to exercise strict primary key migrations.
+        enum:
+          - "true"
+          - "false"
     machine:
       image: ubuntu-2204:2024.08.1
       docker_layer_caching: true
@@ -131,10 +138,10 @@ jobs:
           keys:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
-          name: Run Management repository tests with database << parameters.jdbcType >>
+          name: Run Management repository tests with database << parameters.jdbcType >> (strictPrimaryKey=<< parameters.strictPrimaryKey >>)
           command: |-
             cd gravitee-apim-repository
-            mvn -pl 'gravitee-apim-repository-jdbc' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -DjdbcType=<< parameters.jdbcType>> -T 2C
+            mvn -pl 'gravitee-apim-repository-jdbc' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -DjdbcType=<< parameters.jdbcType>> -DstrictPrimaryKey=<< parameters.strictPrimaryKey >> -T 2C
       - run:
           name: Save test results
           command: |-
@@ -296,6 +303,15 @@ workflows:
                 - sqlserver~2019-latest
                 - sqlserver~2022-latest
                 - sqlserver~2025-latest
+      - job-jdbc-test-container:
+          name: Management repository tests - JDBC - mysql~8.4 (strict-PK)
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build
+          parameters:
+            jdbcType: mysql~8.4
+            strictPrimaryKey: "true"
       - job-mongo-test-container:
           name: Management repository tests - Mongo << matrix.mongoVersion >>
           context:

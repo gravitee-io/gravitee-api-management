@@ -2,6 +2,7 @@ databaseChangeLog:
     - changeSet:
         id: 1.22.0
         author: GraviteeSource Team
+        validCheckSum: ANY
         changes:
 
         - addColumn:
@@ -21,11 +22,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}entrypoints
             columns:
-                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}entrypoints" } }
                 - column: {name: value, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: tags, type: nvarchar(64), constraints: { nullable: false } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}entrypoints
-            columnNames: id
-            tableName: ${gravitee_prefix}entrypoints
