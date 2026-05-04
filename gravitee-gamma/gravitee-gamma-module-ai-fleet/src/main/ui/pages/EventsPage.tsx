@@ -129,14 +129,14 @@ export function EventsPage() {
             <div style={{ flex: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <h2 style={{ fontSize: '0.875rem', fontWeight: 600 }}>Intercepted traffic</h2>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--color-muted-foreground)', letterSpacing: '0.02em' }}>↓ recent first</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-muted-foreground)', letterSpacing: '0.02em' }}>↓ recent first</span>
                 </div>
                 <div
                     style={{
                         flex: 1,
                         overflowY: 'auto',
                         fontFamily: 'monospace',
-                        fontSize: '0.8rem',
+                        fontSize: '0.85rem',
                         background: 'var(--color-card)',
                         border: '1px solid var(--color-border)',
                         borderRadius: '0.5rem',
@@ -163,7 +163,7 @@ export function EventsPage() {
                         borderRadius: '0.375rem',
                         background: 'rgba(249, 115, 22, 0.08)',
                         border: '1px solid rgba(249, 115, 22, 0.3)',
-                        fontSize: '0.75rem',
+                        fontSize: '0.85rem',
                         color: 'var(--color-muted-foreground)',
                         lineHeight: 1.5,
                     }}
@@ -204,7 +204,7 @@ export function EventsPage() {
                         flex: 1,
                         overflowY: 'auto',
                         fontFamily: 'monospace',
-                        fontSize: '0.75rem',
+                        fontSize: '0.85rem',
                         background: 'var(--color-card)',
                         border: '1px solid var(--color-border)',
                         borderRadius: '0.5rem',
@@ -236,7 +236,7 @@ function MetricCard({ label, value, color }: { readonly label: string; readonly 
                 gap: '0.25rem',
             }}
         >
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)' }}>{label}</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-muted-foreground)' }}>{label}</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 700, color }}>{value.toLocaleString()}</span>
         </div>
     );
@@ -259,7 +259,7 @@ function TokensInCard({ stats }: { readonly stats: Stats }) {
             }}
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)' }}>Tokens in</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-muted-foreground)' }}>Tokens in</span>
                 <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#60a5fa' }}>{stats.tokens_in.toLocaleString()}</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
@@ -269,7 +269,7 @@ function TokensInCard({ stats }: { readonly stats: Stats }) {
                             <span style={{ fontSize: '1rem', fontWeight: 600, color }}>{label}</span>
                             <span style={{ fontSize: '1rem', fontWeight: 700, color }}>{stats[key].toLocaleString()}</span>
                         </div>
-                        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--color-muted-foreground)', lineHeight: 1.4 }}>{desc}</p>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-muted-foreground)', lineHeight: 1.4 }}>{desc}</p>
                     </div>
                 ))}
             </div>
