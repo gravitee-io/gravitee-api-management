@@ -54,7 +54,8 @@ public class SearchApisForPortalUseCase {
                 input.query(),
                 allowedIds,
                 input.pageable(),
-                input.sortable()
+                input.sortable(),
+                input.typoTolerance()
             )
         );
     }
@@ -65,7 +66,8 @@ public class SearchApisForPortalUseCase {
         @Nullable String userId,
         @Nullable String query,
         Pageable pageable,
-        Sortable sortable
+        Sortable sortable,
+        boolean typoTolerance
     ) {}
 
     public record Output(Page<Api> apis) {}

@@ -48,6 +48,10 @@ import static io.gravitee.rest.api.model.parameters.Key.PORTAL_AUTHENTICATION_FO
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_INVITATIONS_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_SEARCH_FUZZY;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
 import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENABLED;
@@ -153,6 +157,7 @@ class ConfigServiceTest {
         params.put(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), singletonList("0.5"));
         params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), singletonList("0.01"));
         params.put(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), singletonList("PT1S"));
+        params.put(PORTAL_NEXT_SEARCH_FUZZY.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -195,6 +200,7 @@ class ConfigServiceTest {
             .as("sampling probabilistic")
             .isEqualTo(0.01);
         assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit()).as("sampling temporal").isEqualTo("PT1S");
+        assertThat(portalSettings.getPortalNext().getSearch().getFuzzy()).as("portal next catalog fuzzy search").isTrue();
     }
 
     @Test

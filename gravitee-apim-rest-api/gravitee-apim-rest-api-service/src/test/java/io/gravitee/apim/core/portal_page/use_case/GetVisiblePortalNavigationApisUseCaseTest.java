@@ -88,7 +88,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.empty(),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 
@@ -113,7 +114,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.of(USER_ID),
                 new PageableImpl(1, 10),
                 Optional.empty(),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 
@@ -140,7 +142,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 2),
                 Optional.empty(),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 
@@ -165,7 +168,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(2, 2),
                 Optional.empty(),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 
@@ -190,7 +194,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.empty(),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 
@@ -212,7 +217,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.of("auth"),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 
@@ -238,7 +244,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.of("Catalog"),
-                Set.of()
+                Set.of(),
+                false
             )
         );
 

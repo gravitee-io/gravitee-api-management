@@ -507,22 +507,14 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final ExecutionContext executionContext,
         final String query,
         final Map<String, Object> filters,
-        final Sortable sortable
-    ) {
-        return searchIds(executionContext, query, filters, sortable, EnumSet.noneOf(DefinitionVersion.class));
-    }
-
-    @Override
-    public Collection<String> searchIds(
-        final ExecutionContext executionContext,
-        final String query,
-        final Map<String, Object> filters,
         final Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions
+        Collection<DefinitionVersion> excludeDefinitionVersions,
+        boolean typoTolerance
     ) {
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
             .setSort(sortable)
-            .setFilters(filters);
+            .setFilters(filters)
+            .setTypoTolerance(typoTolerance);
         if (isNotEmpty(excludeDefinitionVersions)) {
             searchEngineQueryBuilder.addExcludedFilter(
                 FIELD_DEFINITION_VERSION,

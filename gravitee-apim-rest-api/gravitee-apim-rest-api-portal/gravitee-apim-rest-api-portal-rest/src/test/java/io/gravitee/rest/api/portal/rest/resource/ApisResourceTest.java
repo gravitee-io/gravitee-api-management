@@ -203,6 +203,13 @@ public class ApisResourceTest extends AbstractResourceTest {
                 ParameterReferenceType.ENVIRONMENT
             )
         ).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PORTAL_NEXT_SEARCH_FUZZY,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(false);
     }
 
     private void prepareInMemoryServices() {

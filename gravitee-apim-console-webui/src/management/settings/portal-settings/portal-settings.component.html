@@ -520,6 +520,15 @@
                 </gio-form-slide-toggle>
               </div>
             </div>
+            <gio-form-slide-toggle formGroupName="search" class="portal__form__card__form-field">
+              <gio-form-label>Approximate spelling for API search</gio-form-label>
+              <mat-slide-toggle
+                id="portal-next-search-fuzzy"
+                formControlName="fuzzy"
+                gioFormSlideToggle
+                aria-label="Approximate spelling for API search enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
             @if (!!settings.portalNext?.access?.enabled) {
               <div class="new-developer-portal-actions">
                 @if (portalUrl) {

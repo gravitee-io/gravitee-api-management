@@ -49,10 +49,13 @@ public class PortalNext {
 
     private Catalog catalog;
 
+    private Search search;
+
     public PortalNext() {
         this.applications = new Applications();
         this.banner = new Banner();
         this.catalog = new Catalog();
+        this.search = new Search();
     }
 
     @Data
@@ -154,5 +157,13 @@ public class PortalNext {
 
         @ParameterKey(Key.PORTAL_NEXT_CATALOG_VIEW_MODE)
         private String viewMode;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Search {
+
+        @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
+        private Boolean fuzzy;
     }
 }
