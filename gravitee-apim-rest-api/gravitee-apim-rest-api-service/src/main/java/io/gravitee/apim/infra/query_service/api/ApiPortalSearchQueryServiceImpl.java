@@ -89,16 +89,19 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
         }
 
         final List<String> pageSubset;
+        final int resultPageNumber;
         if (pageable.isEmpty()) {
             pageSubset = intersected;
+            resultPageNumber = 1;
         } else {
+            resultPageNumber = pageNumber;
             int pageSize = Math.min(pageable.get().getPageSize(), 100);
             if (pageSize <= 0) {
-                return new Page<>(List.of(), pageNumber, 0, total);
+                return new Page<>(List.of(), resultPageNumber, 0, total);
             }
-            int start = (pageNumber - 1) * pageSize;
+            int start = (resultPageNumber - 1) * pageSize;
             if (start >= total) {
-                return new Page<>(List.of(), pageNumber, 0, total);
+                return new Page<>(List.of(), resultPageNumber, 0, total);
             }
             pageSubset = intersected.subList(start, Math.min(start + pageSize, total));
         }
@@ -117,7 +120,7 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
 
         List<Api> pageContent = pageSubset.stream().map(apiById::get).filter(Objects::nonNull).toList();
 
-        return new Page<>(pageContent, pageNumber, pageContent.size(), total);
+        return new Page<>(pageContent, resultPageNumber, pageContent.size(), total);
     }
 
     private io.gravitee.apim.core.api.model.Sortable toCoreSortable(Sortable sortable) {
