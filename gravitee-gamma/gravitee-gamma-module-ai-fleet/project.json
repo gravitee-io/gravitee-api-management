@@ -1,0 +1,14 @@
+{
+    "name": "gravitee-gamma-module-ai-fleet",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-gamma/gravitee-gamma-module-ai-fleet/src/main/ui",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "lint": {},
+        "lint-eslint": {
+            "options": {}
+        },
+        "lint-license": {}
+    }
+}
