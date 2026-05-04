@@ -13,40 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model;
+package io.gravitee.gamma.core.domain.resource.exception;
 
-public enum AuditProperties {
-    PLAN,
-    PAGE,
-    API_KEY,
-    METADATA,
-    GROUP,
-    USER,
-    ROLE,
-    API,
-    APPLICATION,
-    TAG,
-    TENANT,
-    CATEGORY,
-    PARAMETER,
-    DICTIONARY,
-    API_HEADER,
-    IDENTITY_PROVIDER,
-    ENTRYPOINT,
-    REQUEST_ID,
-    CLIENT_REGISTRATION_PROVIDER,
-    QUALITY_RULE,
-    API_QUALITY_RULE,
-    DASHBOARD,
-    THEME,
-    TOKEN,
-    USER_FIELD,
-    NOTIFICATION_TEMPLATE,
-    SHARED_POLICY_GROUP,
-    CLUSTER,
-    API_PRODUCT,
-    CLIENT_CERTIFICATE,
-    AUTHORIZATION_POLICY,
-    AUTHORIZATION_ENTITY,
-    RESOURCE,
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+
+public class ResourceNotFoundException extends NotFoundDomainException {
+
+    public ResourceNotFoundException(String id) {
+        super("Resource [" + id + "] cannot be found.", id);
+    }
 }

@@ -13,40 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model;
+package io.gravitee.gamma.core.port.service_provider.gravitee_plugin;
 
-public enum AuditProperties {
-    PLAN,
-    PAGE,
-    API_KEY,
-    METADATA,
-    GROUP,
-    USER,
-    ROLE,
-    API,
-    APPLICATION,
-    TAG,
-    TENANT,
-    CATEGORY,
-    PARAMETER,
-    DICTIONARY,
-    API_HEADER,
-    IDENTITY_PROVIDER,
-    ENTRYPOINT,
-    REQUEST_ID,
-    CLIENT_REGISTRATION_PROVIDER,
-    QUALITY_RULE,
-    API_QUALITY_RULE,
-    DASHBOARD,
-    THEME,
-    TOKEN,
-    USER_FIELD,
-    NOTIFICATION_TEMPLATE,
-    SHARED_POLICY_GROUP,
-    CLUSTER,
-    API_PRODUCT,
-    CLIENT_CERTIFICATE,
-    AUTHORIZATION_POLICY,
-    AUTHORIZATION_ENTITY,
-    RESOURCE,
+import io.gravitee.gamma.core.domain.gravitee_plugin.model.PlatformPlugin;
+import io.gravitee.gamma.core.domain.gravitee_plugin.model.PluginMoreInformation;
+import java.util.Set;
+
+public interface PluginProvider<E extends PlatformPlugin> {
+    Set<E> findAll();
+    E findById(String id);
+    String getSchema(String id);
+    String getIcon(String id);
+    String getDocumentation(String id);
+    PluginMoreInformation getMoreInformation(String id);
 }

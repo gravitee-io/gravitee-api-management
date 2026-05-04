@@ -290,7 +290,12 @@ class ApiMigration {
     }
 
     private Resource toV4Resource(io.gravitee.definition.model.plugins.resources.Resource resource) {
-        return new Resource(resource.getName(), resource.getType(), resource.getConfiguration(), resource.isEnabled());
+        return Resource.builder()
+            .name(resource.getName())
+            .type(resource.getType())
+            .configuration(resource.getConfiguration())
+            .enabled(resource.isEnabled())
+            .build();
     }
 
     private FlowExecution mapFlowExecution(FlowMode flowMode) {

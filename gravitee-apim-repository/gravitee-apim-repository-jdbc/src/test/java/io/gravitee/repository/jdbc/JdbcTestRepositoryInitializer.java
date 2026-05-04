@@ -166,7 +166,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "kafka_port_ranges",
         "am_connections",
         "portals",
-        "portal_listings"
+        "portal_listings",
+        "resources"
     );
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate, List.of("databasechangelog", "databasechangeloglock"));
     private final DataSource dataSource;

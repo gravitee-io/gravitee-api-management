@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.fetcher.api.*;
+import io.gravitee.fetcher.api.Resource;
 import io.gravitee.fetcher.api.ResourceNotFoundException;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;

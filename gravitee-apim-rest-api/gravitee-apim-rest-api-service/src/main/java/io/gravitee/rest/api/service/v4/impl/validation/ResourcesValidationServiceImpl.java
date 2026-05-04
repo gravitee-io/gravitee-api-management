@@ -38,7 +38,11 @@ public class ResourcesValidationServiceImpl extends TransactionalService impleme
     @Override
     public List<Resource> validateAndSanitize(List<Resource> resources) {
         if (resources != null) {
-            resources.stream().filter(Resource::isEnabled).forEach(resourceService::validateResourceConfiguration);
+            resources
+                .stream()
+                .filter(Resource::isEnabled)
+                .filter(resource -> !resource.isReference())
+                .forEach(resourceService::validateResourceConfiguration);
         }
         return resources;
     }

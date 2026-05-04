@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.AssertTrue;
 import java.io.Serializable;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -47,15 +47,22 @@ import lombok.ToString;
 @Builder
 public class Resource implements Serializable {
 
-    @JsonProperty(required = true)
-    @NotBlank
+    /**
+     * Optional reference to an environment-level resource. When set, {@link #name}, {@link #type} and
+     * {@link #configuration} may be omitted and are resolved at deploy-time against the environment resource registry.
+     */
+    @Schema(
+        description = "Optional reference to an environment-level resource. When set, name/type/configuration may be omitted and will be resolved at deploy-time."
+    )
+    private String id;
+
+    @JsonProperty
     private String name;
 
-    @JsonProperty(required = true)
-    @NotBlank
+    @JsonProperty
     private String type;
 
-    @Schema(implementation = Object.class, required = true)
+    @Schema(implementation = Object.class)
     @JsonRawValue
     private String configuration;
 
@@ -75,6 +82,23 @@ public class Resource implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
+        if (type == null) {
+            return List.of();
+        }
         return List.of(new Plugin("resource", type));
+    }
+
+    @JsonIgnore
+    public boolean isReference() {
+        return id != null && !id.isBlank();
+    }
+
+    @AssertTrue(message = "Resource must either reference an environment resource by id, or declare name, type and configuration inline.")
+    @JsonIgnore
+    public boolean isValidReferenceOrInline() {
+        boolean hasReference = isReference();
+        boolean hasInline =
+            name != null && !name.isBlank() && type != null && !type.isBlank() && configuration != null && !configuration.isBlank();
+        return hasReference || hasInline;
     }
 }

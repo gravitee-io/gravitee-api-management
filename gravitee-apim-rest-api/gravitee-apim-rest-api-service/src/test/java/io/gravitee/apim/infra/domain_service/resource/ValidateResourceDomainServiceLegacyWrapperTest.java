@@ -44,7 +44,12 @@ class ValidateResourceDomainServiceLegacyWrapperTest {
 
     @Test
     void should_call_legacy_service_for_validate_and_sanitizing() {
-        Resource resource = new Resource("oauth2-am-resource", "oauth2-am-resource", "configuration", true);
+        Resource resource = Resource.builder()
+            .name("oauth2-am-resource")
+            .type("oauth2-am-resource")
+            .configuration("configuration")
+            .enabled(true)
+            .build();
         service.validateAndSanitize(new ValidateResourceDomainService.Input(ENVIRONMENT_ID, List.of(resource)));
 
         verify(resourcesValidationService).validateAndSanitize(List.of(resource));
