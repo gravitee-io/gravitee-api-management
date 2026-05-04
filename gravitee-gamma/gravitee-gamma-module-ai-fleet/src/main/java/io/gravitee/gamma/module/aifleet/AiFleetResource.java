@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -164,45 +164,54 @@ public class AiFleetResource {
     }
 
     @GET
-    @Path("/policies/{hostname}")
+    @Path("/policies")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getPolicies(@PathParam("hostname") String hostname) {
-        java.nio.file.Path deviceFile = Paths.get(BASE_DIR, hostname, "device.json");
-        if (!deviceFile.toFile().exists()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+    public Response getPolicies() {
+        String policiesPath = findPoliciesPath();
+        if (policiesPath == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("No DAImon device with policies_path registered").build();
         }
         try {
-            JsonNode device = MAPPER.readTree(deviceFile.toFile());
-            String policiesPath = device.path("policies_path").asText();
-            if (policiesPath.isBlank()) {
-                return Response.status(Response.Status.NOT_FOUND).entity("policies_path not registered").build();
-            }
             return Response.ok(Files.readString(Paths.get(policiesPath))).build();
         } catch (IOException e) {
-            log.warn("Failed to read policies for {}: {}", hostname, e.getMessage());
+            log.warn("Failed to read policies: {}", e.getMessage());
             return Response.serverError().entity(e.getMessage()).build();
         }
     }
 
-    @PUT
-    @Path("/policies/{hostname}")
+    @POST
+    @Path("/policies")
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response putPolicies(@PathParam("hostname") String hostname, String body) {
-        java.nio.file.Path deviceFile = Paths.get(BASE_DIR, hostname, "device.json");
-        if (!deviceFile.toFile().exists()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+    public Response savePolicies(String body) {
+        String policiesPath = findPoliciesPath();
+        if (policiesPath == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("No DAImon device with policies_path registered").build();
         }
         try {
-            JsonNode device = MAPPER.readTree(deviceFile.toFile());
-            String policiesPath = device.path("policies_path").asText();
-            if (policiesPath.isBlank()) {
-                return Response.status(Response.Status.NOT_FOUND).entity("policies_path not registered").build();
-            }
             Files.writeString(Paths.get(policiesPath), body);
             return Response.noContent().build();
         } catch (IOException e) {
-            log.warn("Failed to write policies for {}: {}", hostname, e.getMessage());
+            log.warn("Failed to write policies: {}", e.getMessage());
             return Response.serverError().entity(e.getMessage()).build();
         }
+    }
+
+    private String findPoliciesPath() {
+        File base = new File(BASE_DIR);
+        if (!base.exists() || !base.isDirectory()) return null;
+        File[] dirs = base.listFiles(File::isDirectory);
+        if (dirs == null) return null;
+        for (File dir : dirs) {
+            File deviceFile = new File(dir, "device.json");
+            if (!deviceFile.exists()) continue;
+            try {
+                JsonNode device = MAPPER.readTree(deviceFile);
+                String path = device.path("policies_path").asText();
+                if (!path.isBlank()) return path;
+            } catch (IOException e) {
+                log.debug("Skipping {}: {}", deviceFile, e.getMessage());
+            }
+        }
+        return null;
     }
 }

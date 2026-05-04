@@ -52,7 +52,7 @@ function YamlEditor({ value, onChange }: { readonly value: string; readonly onCh
     };
 
     return (
-        <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+        <div style={{ position: 'relative', flex: 1, minHeight: 1200 }}>
             <pre
                 ref={preRef}
                 aria-hidden
@@ -91,8 +91,6 @@ function YamlEditor({ value, onChange }: { readonly value: string; readonly onCh
 }
 
 export function PoliciesPage() {
-    const [devices, setDevices] = useState<string[]>([]);
-    const [hostname, setHostname] = useState('');
     const [content, setContent] = useState('');
     const [saveState, setSaveState] = useState<SaveState>('idle');
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -100,34 +98,19 @@ export function PoliciesPage() {
     useEffect(() => { injectStyle(); }, []);
 
     useEffect(() => {
-        fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
-            .then(res => res.json())
-            .then((data: { hostname: string }[]) => {
-                const hostnames = data.map(d => d.hostname);
-                setDevices(hostnames);
-                if (hostnames.length > 0) setHostname(hostnames[0]);
-            })
-            .catch(() => {});
-    }, []);
-
-    useEffect(() => {
-        if (!hostname) return;
-        setContent('');
-        setLoadError(null);
-        setSaveState('idle');
-        fetch(`/gamma/organizations/DEFAULT/modules/ai-fleet/policies/${hostname}`)
+        fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/policies')
             .then(res => {
                 if (!res.ok) return res.text().then(t => { throw new Error(t); });
                 return res.text();
             })
             .then(setContent)
             .catch(err => setLoadError(err.message));
-    }, [hostname]);
+    }, []);
 
     const save = () => {
         setSaveState('saving');
-        fetch(`/gamma/organizations/DEFAULT/modules/ai-fleet/policies/${hostname}`, {
-            method: 'PUT',
+        fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/policies', {
+            method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: content,
         })
@@ -160,15 +143,6 @@ export function PoliciesPage() {
         <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <h1 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Policies</h1>
-                {devices.length > 0 && (
-                    <select
-                        value={hostname}
-                        onChange={e => setHostname(e.target.value)}
-                        style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--color-border)' }}
-                    >
-                        {devices.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                )}
                 <button
                     onClick={save}
                     disabled={saveState === 'saving' || !content}
