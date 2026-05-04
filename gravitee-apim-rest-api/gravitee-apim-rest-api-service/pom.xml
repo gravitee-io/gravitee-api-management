@@ -487,6 +487,7 @@
 				<executions>
 					<execution>
 						<id>bundle-kafka-cluster-connection-schema</id>
+						<phase>compile</phase>
 						<goals>
 							<goal>common-schema-form-bundle</goal>
 						</goals>
@@ -497,6 +498,7 @@
 					</execution>
 					<execution>
 						<id>bundle-kafka-cluster-schema</id>
+						<phase>compile</phase>
 						<goals>
 							<goal>common-schema-form-bundle</goal>
 						</goals>

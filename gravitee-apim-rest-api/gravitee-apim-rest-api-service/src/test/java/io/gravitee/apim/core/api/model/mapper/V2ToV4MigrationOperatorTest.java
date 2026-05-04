@@ -455,7 +455,7 @@ class V2ToV4MigrationOperatorTest {
             // Check Endpoint Group
             var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
+                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertSoftly(softly -> {
                 softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
                 softly.assertThat(group.getName()).isEqualTo("default-group");
@@ -554,7 +554,7 @@ class V2ToV4MigrationOperatorTest {
 
             // Check Endpoint Group
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
+                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
                 .singleElement()
                 .satisfies(group -> {
