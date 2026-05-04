@@ -748,6 +748,16 @@ jobs:
                 done
             }  
             waitForPipelineCompletion
+  job-trigger-apim-api-docs-pipeline:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - run:
+          name: Trigger gravitee-apim-api-docs ingestion pipeline
+          command: |-
+            curl --fail --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/gravitee-apim-api-docs/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"version":"4.2.0-alpha.1", "dry_run":false}}'
+            echo "Docs ingestion pipeline triggered for APIM 4.2.0-alpha.1."
 workflows:
   full_release:
     jobs:
@@ -850,6 +860,13 @@ workflows:
           name: Nexus staging
           requires:
             - Trigger SaaS Docker images creation
+      - job-trigger-apim-api-docs-pipeline:
+          context:
+            - cicd-orchestrator
+            - keeper-orb-publishing
+          name: Trigger APIM API docs ingestion
+          requires:
+            - Nexus staging
       - job-release-helm:
           context:
             - cicd-orchestrator
@@ -871,6 +888,7 @@ workflows:
           requires:
             - Nexus staging
             - Release Helm Chart
+            - Trigger APIM API docs ingestion
             - Build and push RPM packages for APIM 4.2.0-alpha.1
 orbs:
   keeper: gravitee-io/keeper@0.7.0
