@@ -85,7 +85,7 @@ function DeviceCard({ device }: { readonly device: DeviceState }) {
     const isOnline = ageMs < 2 * 60 * 1000;
 
     const statusColor = isOnline ? '#22c55e' : '#f97316';
-    const statusLabel = isOnline ? 'Actif' : `Inactif depuis plus de 2 min`;
+    const statusLabel = isOnline ? 'Active' : 'Inactive for more than 2 min';
 
     return (
         <div
