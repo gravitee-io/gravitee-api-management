@@ -66,6 +66,21 @@
     }
   }
 
+  &__pin-button {
+    flex-shrink: 0;
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+
+    &--pinned {
+      opacity: 1;
+      color: app-theme.$primary-main-color;
+    }
+
+    &:hover:not(:disabled) {
+      opacity: 1;
+    }
+  }
+
   &__labels {
     display: flex;
     flex-wrap: wrap;

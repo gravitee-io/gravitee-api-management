@@ -17,6 +17,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, forkJoin, map, of } from 'rxjs';
 
 import { Dashboard } from '@gravitee/gravitee-dashboard';
 
@@ -47,6 +48,9 @@ export interface DashboardPaginatorVM {
   styleUrl: './analytics.component.scss',
 })
 export default class AnalyticsComponent {
+  private static readonly MAX_PINNED = 4;
+  private static readonly PINNED_KEY = 'analytics-pinned-dashboards';
+
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly dashboardService = inject(AnalyticsDashboardService);
   private readonly router = inject(Router);
@@ -54,6 +58,10 @@ export default class AnalyticsComponent {
 
   readonly pageSize = 20;
   private readonly currentPage = signal(1);
+
+  readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
+  readonly pinnedIdsSet = computed(() => new Set(this.pinnedIds()));
+  readonly canPinMore = computed(() => this.pinnedIds().length < AnalyticsComponent.MAX_PINNED);
 
   protected readonly dashboardsResource = rxResource<AnalyticsDashboardsResponse | undefined, DashboardsListParams>({
     params: () => ({ page: this.currentPage(), pageSize: this.pageSize }),
@@ -71,6 +79,18 @@ export default class AnalyticsComponent {
     return { data, page, totalResults };
   });
 
+  protected readonly pinnedResource = rxResource<Dashboard[], string[]>({
+    params: () => this.pinnedIds(),
+    stream: ({ params: ids }) => {
+      if (ids.length === 0) return of([]);
+      return forkJoin(ids.map(id => this.dashboardService.getById(id).pipe(catchError(() => of(null))))).pipe(
+        map(results => results.filter((dashboard): dashboard is Dashboard => dashboard !== null)),
+      );
+    },
+  });
+
+  readonly pinnedDashboards = computed(() => this.pinnedResource.value() ?? []);
+
   constructor() {
     this.breadcrumbService.set([analyticsListBreadcrumb()]);
   }
@@ -81,5 +101,26 @@ export default class AnalyticsComponent {
 
   navigateToDashboard(dashboardId: string): void {
     this.router.navigate([dashboardId], { relativeTo: this.activatedRoute });
+  }
+
+  togglePin(dashboardId: string): void {
+    const current = this.pinnedIds();
+    const isPinned = current.includes(dashboardId);
+    if (!isPinned && current.length >= AnalyticsComponent.MAX_PINNED) return;
+    const updated = isPinned ? current.filter(id => id !== dashboardId) : [...current, dashboardId];
+    this.pinnedIds.set(updated);
+    localStorage.setItem(AnalyticsComponent.PINNED_KEY, JSON.stringify(updated));
+  }
+
+  private loadPinnedIds(): string[] {
+    try {
+      const stored = localStorage.getItem(AnalyticsComponent.PINNED_KEY);
+      if (!stored) return [];
+      const parsed: unknown = JSON.parse(stored);
+      return Array.isArray(parsed) && parsed.every(value => typeof value === 'string') ? parsed : [];
+    } catch (error) {
+      console.warn('Failed to read pinned analytics dashboards from localStorage', error);
+      return [];
+    }
   }
 }
