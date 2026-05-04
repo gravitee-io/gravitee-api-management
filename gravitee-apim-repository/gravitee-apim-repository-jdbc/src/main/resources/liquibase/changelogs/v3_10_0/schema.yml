@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.10.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addColumn:
             tableName: ${gravitee_prefix}keys
@@ -18,7 +19,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}promotions
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}promotions" } }
               - column: {name: api_definition, type: nclob, constraints: { nullable: false } }
               - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: status, type: nvarchar(64), constraints: { nullable: false } }

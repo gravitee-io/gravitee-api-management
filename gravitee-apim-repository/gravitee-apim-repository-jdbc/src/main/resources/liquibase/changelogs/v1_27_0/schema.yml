@@ -2,17 +2,13 @@ databaseChangeLog:
     - changeSet:
         id: 1.27.0
         author: GraviteeSource Team
+        validCheckSum: ANY
         changes:
           - createTable:
               tableName: ${gravitee_prefix}plan_tags
               columns:
-                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: tag, type: nvarchar(64), constraints: { nullable: false } }
-
-          - addPrimaryKey:
-              constraintName: pk_${gravitee_prefix}plan_tags
-              columnNames: plan_id, tag
-              tableName: ${gravitee_prefix}plan_tags
+                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}plan_tags" } }
+                - column: {name: tag, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
           - addColumn:
               tableName: ${gravitee_prefix}plans
