@@ -257,7 +257,7 @@
       "gioConfig": {
         "displayIf": {
           "$eq": {
-            "value.security.protocol": ["SASL_PLAINTEXT", "SASL_SSL"]
+            "../protocol": ["SASL_PLAINTEXT", "SASL_SSL"]
           }
         }
       }
@@ -295,7 +295,7 @@
               "gioConfig": {
                 "displayIf": {
                   "$eq": {
-                    "value.security.protocol": ["SASL_SSL", "SSL"]
+                    "../protocol": ["SASL_SSL", "SSL"]
                   }
                 }
               }
