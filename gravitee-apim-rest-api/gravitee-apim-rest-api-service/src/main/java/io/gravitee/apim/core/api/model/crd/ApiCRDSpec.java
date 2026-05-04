@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -49,12 +50,10 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -288,6 +287,10 @@ public class ApiCRDSpec {
                     LinkedHashMap::new
                 )
             );
+    }
+
+    public boolean isOnlySubscription() {
+        return this.listeners.size() == this.listeners.stream().filter(SubscriptionListener.class::isInstance).count();
     }
 
     public static class ApiCRDSpecBuilder {
