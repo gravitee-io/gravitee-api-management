@@ -20,21 +20,19 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.sse.Sse;
-import jakarta.ws.rs.sse.SseEventSink;
+import jakarta.ws.rs.core.StreamingOutput;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +42,6 @@ public class AiFleetResource {
     private static final Logger log = LoggerFactory.getLogger(AiFleetResource.class);
     private static final String BASE_DIR = System.getProperty("user.home") + "/.daimon";
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final ExecutorService SSE_EXECUTOR = Executors.newCachedThreadPool();
 
     @GET
     @Path("/devices")
@@ -76,31 +73,40 @@ public class AiFleetResource {
 
     @GET
     @Path("/events/{hostname}")
-    @Produces(MediaType.SERVER_SENT_EVENTS)
-    public void events(@PathParam("hostname") String hostname, @Context SseEventSink sink, @Context Sse sse) {
+    public Response events(@PathParam("hostname") String hostname) {
         java.nio.file.Path eventsFile = Paths.get(BASE_DIR, hostname, "events.jsonl");
+        if (!eventsFile.toFile().exists()) {
+            return Response.status(Response.Status.NOT_FOUND).entity("No events file for " + hostname).build();
+        }
 
-        SSE_EXECUTOR.submit(() -> {
+        StreamingOutput stream = output -> {
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8));
             try (BufferedReader reader = new BufferedReader(new FileReader(eventsFile.toFile()))) {
-                // stream existing lines first
                 String line;
-                while ((line = reader.readLine()) != null && !sink.isClosed()) {
-                    sink.send(sse.newEvent(line));
+                while ((line = reader.readLine()) != null) {
+                    writer.write("data: " + line + "\n\n");
+                    writer.flush();
                 }
-                // then tail new lines
-                while (!sink.isClosed()) {
+                while (true) {
                     line = reader.readLine();
                     if (line != null) {
-                        sink.send(sse.newEvent(line));
+                        writer.write("data: " + line + "\n\n");
+                        writer.flush();
                     } else {
                         Thread.sleep(500);
                     }
                 }
-            } catch (Exception e) {
-                log.warn("SSE stream closed for {}: {}", hostname, e.getMessage());
-            } finally {
-                sink.close();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (IOException e) {
+                log.warn("SSE stream ended for {}: {}", hostname, e.getMessage());
             }
-        });
+        };
+
+        return Response.ok(stream)
+            .header("Content-Type", "text/event-stream; charset=UTF-8")
+            .header("Cache-Control", "no-cache")
+            .header("X-Accel-Buffering", "no")
+            .build();
     }
 }

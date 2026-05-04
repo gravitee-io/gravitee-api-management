@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 interface FleetEvent {
     timestamp: string;
@@ -22,7 +23,8 @@ const EVENT_COLORS: Record<string, string> = {
 };
 
 export function EventsPage() {
-    const [hostname, setHostname] = useState('');
+    const [searchParams] = useSearchParams();
+    const [hostname, setHostname] = useState(searchParams.get('host') ?? '');
     const [devices, setDevices] = useState<string[]>([]);
     const [events, setEvents] = useState<FleetEvent[]>([]);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -33,7 +35,7 @@ export function EventsPage() {
             .then((data: { hostname: string }[]) => {
                 const hostnames = data.map(d => d.hostname);
                 setDevices(hostnames);
-                if (hostnames.length > 0) setHostname(hostnames[0]);
+                if (!hostname && hostnames.length > 0) setHostname(hostnames[0]);
             })
             .catch(() => {});
     }, []);
