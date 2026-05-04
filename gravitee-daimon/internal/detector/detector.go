@@ -80,7 +80,7 @@ func (d *Detector) Start(ctx context.Context) {
 }
 
 func (d *Detector) scan() []DirectConnection {
-	cmd := exec.Command("lsof", "-i", "-P")
+	cmd := exec.Command("lsof", "-i", "-P", "-sTCP:ESTABLISHED", "-F", "pcn")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Printf("lsof scan failed: %v", err)
@@ -88,17 +88,32 @@ func (d *Detector) scan() []DirectConnection {
 	}
 
 	var connections []DirectConnection
+	var curPID int
+	var curCmd string
 	scanner := bufio.NewScanner(strings.NewReader(string(out)))
 	for scanner.Scan() {
 		line := scanner.Text()
-		if !strings.Contains(line, "ESTABLISHED") {
+		if len(line) == 0 {
 			continue
 		}
-		for _, provider := range d.providers {
-			if strings.Contains(line, provider) || d.matchesResolvedIP(line, provider) {
-				conn := parseLsofLine(line, provider)
-				if conn != nil {
-					connections = append(connections, *conn)
+		switch line[0] {
+		case 'p':
+			curPID, _ = strconv.Atoi(line[1:])
+		case 'c':
+			curCmd = line[1:]
+		case 'n':
+			connName := line[1:]
+			if !strings.Contains(connName, "->") {
+				continue
+			}
+			for _, provider := range d.providers {
+				if strings.Contains(connName, provider) || d.matchesResolvedIP(connName, provider) {
+					remote := connName[strings.Index(connName, "->")+2:]
+					connections = append(connections, DirectConnection{
+						ProcessName: curCmd,
+						PID:         curPID,
+						Provider:    fmt.Sprintf("%s → %s", provider, remote),
+					})
 				}
 			}
 		}
@@ -119,15 +134,3 @@ func (d *Detector) matchesResolvedIP(line string, provider string) bool {
 	return false
 }
 
-func parseLsofLine(line string, provider string) *DirectConnection {
-	fields := strings.Fields(line)
-	if len(fields) < 2 {
-		return nil
-	}
-	pid, _ := strconv.Atoi(fields[1])
-	return &DirectConnection{
-		ProcessName: fields[0],
-		PID:         pid,
-		Provider:    fmt.Sprintf("direct connection to %s", provider),
-	}
-}
