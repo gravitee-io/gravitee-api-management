@@ -1,0 +1,42 @@
+{
+  "id": "my-api-blocking",
+  "name": "my-api-blocking",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test-blocking",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "Blocking Policy",
+          "description": "Simulates a long-running/infinite-loop V3 policy (PEN-88)",
+          "enabled": true,
+          "policy": "blocking-policy",
+          "configuration": {}
+        }
+      ],
+      "post": []
+    }
+  ],
+  "resources": []
+}
