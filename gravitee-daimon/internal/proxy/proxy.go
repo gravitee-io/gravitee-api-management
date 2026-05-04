@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -57,13 +58,16 @@ func New(targetURL string, sessionTag string, engine *policy.Engine, collector *
 	return p
 }
 
-func (p *Proxy) Start(port int) {
+func (p *Proxy) Listen(port int) (net.Listener, error) {
+	return net.Listen("tcp", fmt.Sprintf(":%d", port))
+}
+
+func (p *Proxy) Serve(ln net.Listener) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", p.handleRequest)
-	addr := fmt.Sprintf(":%d", port)
-	log.Printf("proxy listening on %s", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		log.Fatalf("proxy server failed: %v", err)
+	log.Printf("proxy listening on %s", ln.Addr())
+	if err := http.Serve(ln, mux); err != nil {
+		log.Printf("proxy server stopped: %v", err)
 	}
 }
 

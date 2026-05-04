@@ -19,6 +19,7 @@ import (
 
 func main() {
 	asHost := flag.String("as", "", "simulate a different hostname (for demo)")
+	port := flag.Int("port", 0, "proxy listen port (overrides config)")
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -54,14 +55,24 @@ func main() {
 	det := detector.New(cfg.Detector.Providers, cfg.Detector.ScanIntervalSec, collector, events)
 	go det.Start(ctx)
 
+	listenPort := cfg.Proxy.ListenPort
+	if *port != 0 {
+		listenPort = *port
+	}
+
 	var sessionTag string
 	if *asHost != "" {
 		sessionTag = "as " + *asHost + " daimon"
 	}
 	p := proxy.New(cfg.Gateway.URL+cfg.Gateway.AIAPIPath, sessionTag, engine, collector, events)
-	go p.Start(cfg.Proxy.ListenPort)
+	ln, err := p.Listen(listenPort)
+	if err != nil {
+		log.Fatalf("cannot bind proxy on :%d — %v\n(tip: use -port=<N> to pick a different port)", listenPort, err)
+	}
 
-	fmt.Printf("DAImon listening on :%d → %s\n", cfg.Proxy.ListenPort, cfg.Gateway.URL)
+	fmt.Printf("DAImon listening on :%d → %s\n", listenPort, cfg.Gateway.URL)
+
+	go p.Serve(ln)
 
 	go func() {
 		<-sig
