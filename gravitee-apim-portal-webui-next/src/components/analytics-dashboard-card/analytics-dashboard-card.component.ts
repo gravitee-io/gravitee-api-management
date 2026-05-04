@@ -37,6 +37,7 @@ export class AnalyticsDashboardCardComponent {
   readonly dashboard = input.required<Dashboard>();
   readonly isPinned = input<boolean>(false);
   readonly canPin = input<boolean>(true);
+  readonly showAccent = input<boolean>(false);
 
   readonly cardSelect = output<string>();
   readonly pinToggle = output<string>();

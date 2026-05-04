@@ -32,6 +32,16 @@
     box-shadow: 0 2px 8px app-theme.$shadow-color;
   }
 
+  &--accented {
+    box-shadow: inset 3px 0 0 0 app-theme.$primary-main-color;
+
+    &:hover {
+      box-shadow:
+        inset 3px 0 0 0 app-theme.$primary-main-color,
+        0 2px 8px app-theme.$shadow-color;
+    }
+  }
+
   &__content {
     display: flex;
     flex: 1 1 auto;
