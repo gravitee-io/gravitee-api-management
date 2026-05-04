@@ -790,7 +790,11 @@ public class ApiManagerImplTest {
 
                 when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
                     List.of(
-                        new ApiProductRegistry.ApiProductPlanEntry("product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())
+                        new ApiProductRegistry.ApiProductPlanEntry(
+                            "product-1",
+                            (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan(),
+                            null
+                        )
                     )
                 );
 
@@ -836,7 +840,11 @@ public class ApiManagerImplTest {
 
                 when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
                     List.of(
-                        new ApiProductRegistry.ApiProductPlanEntry("product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())
+                        new ApiProductRegistry.ApiProductPlanEntry(
+                            "product-1",
+                            (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan(),
+                            null
+                        )
                     )
                 );
 

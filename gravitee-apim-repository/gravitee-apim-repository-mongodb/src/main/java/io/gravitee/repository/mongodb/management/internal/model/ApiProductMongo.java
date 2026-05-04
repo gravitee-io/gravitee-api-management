@@ -15,11 +15,14 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
@@ -46,7 +49,17 @@ public class ApiProductMongo {
     private String description;
     private String version;
     private List<String> apiIds;
+    private Map<String, List<ApiProductOperationMongo>> apiOperations;
     private List<String> groups;
     private Date createdAt;
     private Date updatedAt;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ApiProductOperationMongo {
+
+        private String path;
+        private String method;
+    }
 }

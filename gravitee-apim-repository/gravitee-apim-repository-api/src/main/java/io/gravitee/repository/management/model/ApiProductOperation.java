@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api_product.model;
+package io.gravitee.repository.management.model;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a single allowed HTTP operation (path + method) within an API Product's per-API filter.
+ * When an API Product has an entry in {@code ApiProduct.apiOperations} for a given API,
+ * only the listed operations are accessible through the product. Use {@code method = "*"}
+ * to match all HTTP methods for a given path. Use {@code :param} notation for path parameters.
+ */
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateApiProduct {
+@Builder
+public class ApiProductOperation {
 
-    private String environmentId;
-    private String name;
-    private String description;
-    private String version;
-    private Set<String> apiIds;
-    private Map<String, List<ApiProductOperation>> apiOperations;
-    private Set<String> groups;
-    private ZonedDateTime updatedAt;
+    private String path;
+    private String method;
 }

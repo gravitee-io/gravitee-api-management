@@ -92,6 +92,7 @@ public class CreateApiProductUseCase {
             .description(payload.getDescription())
             .version(payload.getVersion())
             .apiIds(apiIds)
+            .apiOperations(payload.getApiOperations())
             .createdAt(now)
             .updatedAt(now)
             .build();

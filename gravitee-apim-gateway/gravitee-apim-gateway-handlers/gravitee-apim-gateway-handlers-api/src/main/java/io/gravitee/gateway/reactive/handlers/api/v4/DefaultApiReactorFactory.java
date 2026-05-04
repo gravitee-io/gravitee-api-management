@@ -395,7 +395,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         CompositeComponentProvider componentProvider,
         ApiProductRegistry apiProductRegistry
     ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+        String[] beanNamesForType = getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
         );
         ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<

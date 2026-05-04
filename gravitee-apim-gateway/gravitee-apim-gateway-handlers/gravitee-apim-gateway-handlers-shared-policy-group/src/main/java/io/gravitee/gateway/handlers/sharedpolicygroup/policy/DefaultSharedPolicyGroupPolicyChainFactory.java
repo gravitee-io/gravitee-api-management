@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.CustomLog;
 
 @CustomLog
@@ -94,6 +95,43 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
         if (!descriptions.isEmpty()) {
             policyChain.setPolicyDescriptions(descriptions);
         }
+        return policyChain;
+    }
+
+    @Override
+    public HttpPolicyChain create(
+        final String sharedPolicyGroupPolicyId,
+        String environmentId,
+        List<Step> steps,
+        ExecutionPhase phase,
+        List<HttpHook> additionalHooks
+    ) {
+        if (additionalHooks == null || additionalHooks.isEmpty()) {
+            return create(sharedPolicyGroupPolicyId, environmentId, steps, phase);
+        }
+        // Build a fresh chain (not cached) — only used for debug requests
+        return buildChain(sharedPolicyGroupPolicyId, steps, phase, additionalHooks);
+    }
+
+    private HttpPolicyChain buildChain(String id, List<Step> steps, ExecutionPhase phase, List<HttpHook> additionalHooks) {
+        final List<HttpPolicy> policies = steps
+            .stream()
+            .filter(Step::isEnabled)
+            .filter(step -> {
+                final boolean hasNestedSharedPolicyGroup = step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID);
+                if (hasNestedSharedPolicyGroup) {
+                    log.warn("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored", step.getName());
+                }
+                return !hasNestedSharedPolicyGroup;
+            })
+            .map(this::buildPolicyMetadata)
+            .map(policyMetadata -> (HttpPolicy) policyManager.create(phase, policyMetadata))
+            .filter(Objects::nonNull)
+            .toList();
+
+        final HttpPolicyChain policyChain = new HttpPolicyChain(id, policies, phase);
+        policyChain.addHooks(policyHooks);
+        policyChain.addHooks(additionalHooks);
         return policyChain;
     }
 

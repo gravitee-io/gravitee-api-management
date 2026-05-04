@@ -20,9 +20,11 @@ import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,6 +51,7 @@ public class ReactableApiProduct implements Reactable, Serializable {
     private String description;
     private String version;
     private Set<String> apiIds;
+    private Map<String, List<ApiProductOperation>> apiOperations;
 
     private String environmentId;
     private String environmentHrid;
@@ -69,5 +72,15 @@ public class ReactableApiProduct implements Reactable, Serializable {
     public <D> Set<D> dependencies(Class<D> type) {
         // API Products don't have policy dependencies (no flows/policies at product level)
         return Set.of();
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ApiProductOperation implements Serializable {
+
+        private String path;
+        private String method;
     }
 }

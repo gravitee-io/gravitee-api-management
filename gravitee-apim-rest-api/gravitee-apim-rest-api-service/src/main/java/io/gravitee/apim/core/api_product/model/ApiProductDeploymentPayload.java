@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api_product.model;
 
 import io.gravitee.definition.model.v4.plan.Plan;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +36,7 @@ public class ApiProductDeploymentPayload {
     private String description;
     private String version;
     private Set<String> apiIds;
+    private Map<String, List<ApiProductOperation>> apiOperations;
     private String environmentId;
     private List<Plan> plans;
 }

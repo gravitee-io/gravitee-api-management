@@ -21,9 +21,11 @@ import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.CustomLog;
@@ -107,13 +109,19 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
         };
     }
 
+    // Internal attribute key set by the debug infrastructure to inject DebugPolicyHook into SPG inner chains.
+    // Kept as a package-visible constant so DebugInitProcessor can reference it without introducing
+    // a compile-time dependency on the debug module from this module.
+    static final String ATTR_INTERNAL_SPG_DEBUG_HOOKS = "gravitee.internal.spg.debugHooks";
+
     private Optional<HttpPolicyChain> getPolicyChain(BaseExecutionContext ctx) {
         final SharedPolicyGroupRegistry sharedPolicyGroupRegistry = ctx.getComponent(SharedPolicyGroupRegistry.class);
+        final List<HttpHook> debugHooks = ctx.getInternalAttribute(ATTR_INTERNAL_SPG_DEBUG_HOOKS);
         return Optional.ofNullable(
             sharedPolicyGroupRegistry.get(
                 policyConfiguration.getSharedPolicyGroupId(),
                 ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
             )
-        ).map(SharedPolicyGroupReactor::policyChain);
+        ).map(reactor -> debugHooks != null && !debugHooks.isEmpty() ? reactor.policyChain(debugHooks) : reactor.policyChain());
     }
 }

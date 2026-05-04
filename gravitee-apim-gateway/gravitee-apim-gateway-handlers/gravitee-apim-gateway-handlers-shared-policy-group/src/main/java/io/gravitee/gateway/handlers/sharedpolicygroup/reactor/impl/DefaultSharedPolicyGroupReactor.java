@@ -21,7 +21,9 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.SharedPolicyGroupPolicyMan
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.SharedPolicyGroupPolicyChainFactory;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
+import java.util.List;
 import lombok.CustomLog;
 
 @CustomLog
@@ -57,6 +59,21 @@ public class DefaultSharedPolicyGroupReactor
     @Override
     public HttpPolicyChain policyChain() {
         return policyChain;
+    }
+
+    @Override
+    public HttpPolicyChain policyChain(List<HttpHook> additionalHooks) {
+        if (additionalHooks == null || additionalHooks.isEmpty()) {
+            return policyChain;
+        }
+        final ReactableSharedPolicyGroup spg = reactableSharedPolicyGroup;
+        return policyChainFactory.create(
+            spg.getId(),
+            spg.getEnvironmentId(),
+            spg.getDefinition().getPolicies(),
+            ExecutionPhase.valueOf(spg.getDefinition().getPhase().name()),
+            additionalHooks
+        );
     }
 
     @Override

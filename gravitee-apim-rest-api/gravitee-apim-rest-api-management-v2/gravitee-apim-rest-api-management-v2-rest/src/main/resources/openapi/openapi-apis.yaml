@@ -8676,9 +8676,35 @@ components:
               format: date-time
               description: API Product last update date
               example: "2025-01-01T10:15:30Z"
+            apiOperations:
+              type: object
+              description: |
+                Per-API operation filter. Maps each API ID to the list of allowed path+method combinations.
+                Absent key or null map means all operations for that API are accessible.
+              additionalProperties:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiProductOperation"
             primaryOwner:
               $ref: "#/components/schemas/PrimaryOwner"
               description: The primary owner of the API Product
+
+        ApiProductOperation:
+          type: object
+          title: "ApiProductOperation"
+          description: A single allowed HTTP operation (path + method combination)
+          required:
+            - path
+            - method
+          properties:
+            path:
+              type: string
+              description: The allowed path (supports {param} placeholders)
+              example: "/users/{id}"
+            method:
+              type: string
+              description: The allowed HTTP method (* for any)
+              example: "GET"
 
         ApiProductInfo:
           type: object

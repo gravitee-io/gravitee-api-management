@@ -1959,6 +1959,23 @@ components:
           example:
             - "api-product-1"
             - "api-product-2"
+    ApiProductOperation:
+      type: object
+      title: "ApiProductOperation"
+      description: A single allowed HTTP operation (path + method) in an API Product's per-API filter.
+      properties:
+        path:
+          type: string
+          description: The URL path pattern (e.g. "/users/{id}")
+          example: "/users/{id}"
+        method:
+          type: string
+          description: HTTP method (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, CONNECT, TRACE, OTHER) or "*" for all methods
+          example: "GET"
+      required:
+        - path
+        - method
+
     CreateApiProduct:
       type: object
       title: "CreateApiProduct"
@@ -1986,6 +2003,21 @@ components:
           example:
             - "api-1"
             - "api-2"
+        apiOperations:
+          type: object
+          description: |
+            Optional per-API operation filter. Maps each API ID to the list of allowed path+method combinations.
+            When a key is absent or the map is null, all operations for that API are accessible.
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/ApiProductOperation"
+          example:
+            "api-1":
+              - path: "/users"
+                method: "GET"
+              - path: "/users/{id}"
+                method: "GET"
       required:
         - name
         - version
@@ -2012,7 +2044,7 @@ components:
         apiIds:
           type: array
           description: |
-            List of API IDs included in the product. 
+            List of API IDs included in the product.
             When provided in PUT request, this will REPLACE the entire list of APIs (not merge).
             APIs are managed as part of the API Product payload, similar to how groups are managed in APIs.
             To add or remove APIs, update the entire list via PUT.
@@ -2021,6 +2053,20 @@ components:
           example:
             - "api-1"
             - "api-2"
+        apiOperations:
+          type: object
+          description: |
+            Optional per-API operation filter. Maps each API ID to the list of allowed path+method combinations.
+            When a key is absent or the map is null, all operations for that API are accessible.
+            Replaces the entire filter map on PUT.
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/ApiProductOperation"
+          example:
+            "api-1":
+              - path: "/users"
+                method: "GET"
         groups:
           type: array
           description: |
@@ -2067,6 +2113,15 @@ components:
           example:
             - "api-1"
             - "api-2"
+        apiOperations:
+          type: object
+          description: |
+            Per-API operation filter. Maps each API ID to the list of allowed path+method combinations.
+            Absent key or null map means all operations for that API are accessible.
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/ApiProductOperation"
         groups:
           type: array
           description: List of group IDs associated with the API Product

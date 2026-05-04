@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4;
+package io.gravitee.apim.core.api_product.model;
 
-import io.gravitee.gateway.reactive.policy.PolicyManager;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Factory for creating ApiProductPlanPolicyManager instances.
- * Used by DefaultApiReactor to create fresh policy managers when API Products change.
- *
- * @author GraviteeSource Team
+ * A single allowed HTTP operation (path + method) in an API Product's per-API filter.
+ * Null apiOperations map for an API means full access to all its operations.
  */
-@FunctionalInterface
-public interface ApiProductPlanPolicyManagerFactory {
-    /**
-     * Create a new ApiProductPlanPolicyManager for the given API.
-     *
-     * @param api the API
-     * @return new PolicyManager instance, or null if not applicable
-     */
-    PolicyManager create(Api api);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ApiProductOperation {
+
+    private String path;
+    private String method;
 }

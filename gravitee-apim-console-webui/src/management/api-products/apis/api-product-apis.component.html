@@ -66,6 +66,20 @@
           }
         </td>
       </ng-container>
+      <ng-container matColumnDef="operations">
+        <th mat-header-cell *matHeaderCellDef>Operations</th>
+        <td mat-cell *matCellDef="let element">
+          <button
+            mat-button
+            [matTooltip]="element.operationsCount !== null ? element.operationsCount + ' operation(s) allowed' : 'All operations allowed'"
+            (click)="onManageOperations(element)"
+            [attr.data-testid]="'manage-operations-button-' + element.id"
+          >
+            <mat-icon svgIcon="gio:filter"></mat-icon>
+            {{ element.operationsCount !== null ? element.operationsCount : 'All' }}
+          </button>
+        </td>
+      </ng-container>
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element">

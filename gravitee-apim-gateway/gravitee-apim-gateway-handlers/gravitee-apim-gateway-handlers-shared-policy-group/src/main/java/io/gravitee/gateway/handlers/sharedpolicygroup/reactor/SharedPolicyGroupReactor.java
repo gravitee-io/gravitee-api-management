@@ -17,10 +17,16 @@ package io.gravitee.gateway.handlers.sharedpolicygroup.reactor;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
+import java.util.List;
 
 public interface SharedPolicyGroupReactor extends LifecycleComponent<SharedPolicyGroupReactor> {
     String id();
     ReactableSharedPolicyGroup reactableSharedPolicyGroup();
     HttpPolicyChain policyChain();
+
+    default HttpPolicyChain policyChain(List<HttpHook> additionalHooks) {
+        return policyChain();
+    }
 }

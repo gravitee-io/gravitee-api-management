@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { ApiProductOperation } from './apiProduct';
+
 export interface UpdateApiProduct {
   /**
    * API Product's name. Must be unique within the environment.
@@ -35,4 +37,9 @@ export interface UpdateApiProduct {
    * Groups attached to this API Product.
    */
   groups?: string[];
+  /**
+   * Per-API operation filter. Key = apiId, value = list of allowed path+method pairs.
+   * Absent key means all operations are accessible for that API.
+   */
+  apiOperations?: Record<string, ApiProductOperation[]>;
 }

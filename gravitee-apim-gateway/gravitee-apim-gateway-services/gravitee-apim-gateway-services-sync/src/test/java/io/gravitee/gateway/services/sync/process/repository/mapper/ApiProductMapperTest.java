@@ -240,6 +240,50 @@ class ApiProductMapperTest {
 
         @SneakyThrows
         @Test
+        void should_map_api_product_with_api_operations() {
+            Organization organization = new Organization();
+            organization.setId("org-id");
+            organization.setHrids(List.of("org-hrid"));
+            when(organizationRepository.findById(organization.getId())).thenReturn(Optional.of(organization));
+
+            Environment environment = new Environment();
+            environment.setId("env-id");
+            environment.setHrids(List.of("env-hrid"));
+            environment.setOrganizationId(organization.getId());
+            when(environmentRepository.findById("env-id")).thenReturn(Optional.of(environment));
+
+            Event event = new Event();
+            event.setCreatedAt(new Date());
+
+            // Paths are relative to the API context path (e.g. "/posts", not "/my-api/posts")
+            String payload =
+                "{\"id\":\"api-product-ops\",\"name\":\"Ops Product\",\"version\":\"1.0\"," +
+                "\"apiIds\":[\"api-1\"]," +
+                "\"environmentId\":\"env-id\"," +
+                "\"organizationId\":\"org-id\"," +
+                "\"apiOperations\":{\"api-1\":[{\"path\":\"/posts\",\"method\":\"POST\"},{\"path\":\"/posts/{id}\",\"method\":\"GET\"}]}}";
+            event.setPayload(payload);
+
+            cut
+                .to(event)
+                .test()
+                .assertValue(reactableApiProduct -> {
+                    assertThat(reactableApiProduct.getId()).isEqualTo("api-product-ops");
+                    assertThat(reactableApiProduct.getApiOperations()).isNotNull();
+                    assertThat(reactableApiProduct.getApiOperations()).containsKey("api-1");
+                    var ops = reactableApiProduct.getApiOperations().get("api-1");
+                    assertThat(ops).hasSize(2);
+                    assertThat(ops.get(0).getPath()).isEqualTo("/posts");
+                    assertThat(ops.get(0).getMethod()).isEqualTo("POST");
+                    assertThat(ops.get(1).getPath()).isEqualTo("/posts/{id}");
+                    assertThat(ops.get(1).getMethod()).isEqualTo("GET");
+                    return true;
+                })
+                .assertComplete();
+        }
+
+        @SneakyThrows
+        @Test
         void should_handle_empty_api_ids() {
             Organization organization = new Organization();
             organization.setId("org-id");

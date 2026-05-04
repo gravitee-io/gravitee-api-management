@@ -16,11 +16,11 @@
 package io.gravitee.apim.core.api_product.model;
 
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 @Data
 @Builder
@@ -32,4 +32,5 @@ public class CreateApiProduct {
     private String description;
     private String version;
     private List<String> apiIds;
+    private Map<String, List<ApiProductOperation>> apiOperations;
 }

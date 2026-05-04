@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.mongodb.management.internal.model.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.mapstruct.*;
 
@@ -373,8 +374,30 @@ public interface GraviteeMapper {
     PortalPageContentMongo map(PortalPageContent toMap);
 
     // ApiProduct mapping
+    @Mapping(target = "apiOperations", qualifiedByName = "mongoOpMapToRepo")
     ApiProduct map(ApiProductMongo toMap);
+
+    @Mapping(target = "apiOperations", qualifiedByName = "repoOpMapToMongo")
     ApiProductMongo map(ApiProduct toMap);
+
+    ApiProductOperation map(ApiProductMongo.ApiProductOperationMongo toMap);
+    ApiProductMongo.ApiProductOperationMongo map(ApiProductOperation toMap);
+
+    @Named("mongoOpMapToRepo")
+    default Map<String, List<ApiProductOperation>> mongoOpMapToRepo(Map<String, List<ApiProductMongo.ApiProductOperationMongo>> source) {
+        if (source == null) return null;
+        Map<String, List<ApiProductOperation>> result = new java.util.HashMap<>();
+        source.forEach((k, v) -> result.put(k, v == null ? null : v.stream().map(this::map).toList()));
+        return result;
+    }
+
+    @Named("repoOpMapToMongo")
+    default Map<String, List<ApiProductMongo.ApiProductOperationMongo>> repoOpMapToMongo(Map<String, List<ApiProductOperation>> source) {
+        if (source == null) return null;
+        Map<String, List<ApiProductMongo.ApiProductOperationMongo>> result = new java.util.HashMap<>();
+        source.forEach((k, v) -> result.put(k, v == null ? null : v.stream().map(this::map).toList()));
+        return result;
+    }
 
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);

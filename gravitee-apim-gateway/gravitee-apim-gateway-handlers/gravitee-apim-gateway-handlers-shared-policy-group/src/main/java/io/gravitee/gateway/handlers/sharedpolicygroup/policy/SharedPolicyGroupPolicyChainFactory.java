@@ -18,8 +18,10 @@ package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
+import java.util.Collections;
 import java.util.List;
 
 public interface SharedPolicyGroupPolicyChainFactory extends PolicyChainFactory {
@@ -29,4 +31,14 @@ public interface SharedPolicyGroupPolicyChainFactory extends PolicyChainFactory 
     }
 
     HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase);
+
+    default HttpPolicyChain create(
+        final String sharedPolicyGroupPolicyId,
+        String environmentId,
+        List<Step> steps,
+        ExecutionPhase phase,
+        List<HttpHook> additionalHooks
+    ) {
+        return create(sharedPolicyGroupPolicyId, environmentId, steps, phase);
+    }
 }

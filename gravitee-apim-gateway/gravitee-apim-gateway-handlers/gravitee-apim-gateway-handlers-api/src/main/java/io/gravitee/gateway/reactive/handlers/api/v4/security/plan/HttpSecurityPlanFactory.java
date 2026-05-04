@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.security.plan;
 
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct.ApiProductOperation;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
@@ -24,6 +25,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPoli
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import lombok.CustomLog;
 
 /**
@@ -60,5 +62,43 @@ public class HttpSecurityPlanFactory {
             plan.getSecurity()
         );
         return null;
+    }
+
+    /**
+     * Creates a security plan for an API Product plan entry. When {@code allowedOperations} is non-null
+     * the returned plan will reject any request whose path+method is not in the list.
+     */
+    @Nullable
+    public static HttpSecurityPlan forProductPlan(
+        @Nonnull final String apiId,
+        @Nonnull AbstractPlan plan,
+        @Nonnull PolicyManager policyManager,
+        @Nonnull ExecutionPhase executionPhase,
+        @Nullable List<ApiProductOperation> allowedOperations
+    ) {
+        if (plan.usePushMode()) {
+            log.debug("The plan [{}] (api [{}]) is using the {} mode, it has no security policy.", plan.getName(), apiId, plan.getMode());
+            return null;
+        }
+
+        final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
+
+        if (policy == null) {
+            log.warn(
+                "No policy has been found for the plan [{}] (api [{}]) with security [{}]. This plan will remain unreachable",
+                plan.getName(),
+                apiId,
+                plan.getSecurity()
+            );
+            return null;
+        }
+
+        SecurityPlanContext planContext = SecurityPlanContext.builder().fromV4(plan).build();
+
+        if (allowedOperations != null && !allowedOperations.isEmpty()) {
+            return new OperationFilteringSecurityPlan(planContext, policy, allowedOperations);
+        }
+
+        return new HttpSecurityPlan(planContext, policy);
     }
 }

@@ -32,8 +32,10 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupR
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -62,6 +64,9 @@ class SharedPolicyGroupPolicyTest {
 
     @Mock
     private HttpPolicyChain policyChain;
+
+    @Mock
+    private HttpPolicyChain debugPolicyChain;
 
     private ListAppender<ILoggingEvent> listAppender;
     private SharedPolicyGroupPolicy cut;
@@ -117,6 +122,32 @@ class SharedPolicyGroupPolicyTest {
     }
 
     @Test
+    void should_use_debug_chain_when_debug_hooks_present_on_request() {
+        final HttpHook hook = () -> "test-debug-hook";
+        final List<HttpHook> hooks = List.of(hook);
+        final FakeSharedPolicyGroupReactorWithDebug reactor = new FakeSharedPolicyGroupReactorWithDebug(policyChain, debugPolicyChain);
+        when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any())).thenReturn(reactor);
+        when(executionContext.getInternalAttribute(SharedPolicyGroupPolicy.ATTR_INTERNAL_SPG_DEBUG_HOOKS)).thenReturn(hooks);
+        when(debugPolicyChain.execute(executionContext)).thenReturn(Completable.complete());
+
+        cut.onRequest(executionContext).test().assertComplete();
+
+        verify(debugPolicyChain).execute(executionContext);
+        verify(policyChain, never()).execute(executionContext);
+    }
+
+    @Test
+    void should_use_regular_chain_when_no_debug_hooks_on_request() {
+        when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any())).thenReturn(new FakeSharedPolicyGroupReactor(policyChain));
+        when(executionContext.getInternalAttribute(SharedPolicyGroupPolicy.ATTR_INTERNAL_SPG_DEBUG_HOOKS)).thenReturn(null);
+        when(policyChain.execute(executionContext)).thenReturn(Completable.complete());
+
+        cut.onRequest(executionContext).test().assertComplete();
+
+        verify(policyChain).execute(executionContext);
+    }
+
+    @Test
     void should_complete_directly_if_no_shared_policy_group_on_response() {
         when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any())).thenReturn(null);
         cut.onResponse(executionContext).test().assertComplete();
@@ -125,6 +156,21 @@ class SharedPolicyGroupPolicyTest {
             .hasSize(1)
             .extracting(ILoggingEvent::getFormattedMessage)
             .containsExactly("No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
+    }
+
+    static class FakeSharedPolicyGroupReactorWithDebug extends FakeSharedPolicyGroupReactor {
+
+        private final HttpPolicyChain debugChain;
+
+        public FakeSharedPolicyGroupReactorWithDebug(HttpPolicyChain chain, HttpPolicyChain debugChain) {
+            super(chain);
+            this.debugChain = debugChain;
+        }
+
+        @Override
+        public HttpPolicyChain policyChain(List<HttpHook> additionalHooks) {
+            return (additionalHooks != null && !additionalHooks.isEmpty()) ? debugChain : policyChain();
+        }
     }
 
     static class FakeSharedPolicyGroupReactor implements SharedPolicyGroupReactor {

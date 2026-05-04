@@ -734,12 +734,12 @@ services:
 #    unit: MILLISECONDS
 #    storeSystemProperties: true
 
-#  opentelemetry:
-#    enabled: false
-#    verbose: false
-#    exporter:
-#      endpoint: http://localhost:4317
-#      protocol: grpc
+  opentelemetry:
+    enabled: true
+    verbose: true
+    exporter:
+      endpoint: http://localhost:4317
+      protocol: grpc
 #    # Kafka Native API tracing configuration
 #    # tracedApiKeys restricts per-request spans to specific Kafka protocol types.
 #    # When omitted or empty, all protocol types are traced.

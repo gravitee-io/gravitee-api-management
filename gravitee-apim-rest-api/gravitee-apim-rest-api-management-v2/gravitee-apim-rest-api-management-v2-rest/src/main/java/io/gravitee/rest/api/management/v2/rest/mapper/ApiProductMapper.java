@@ -15,16 +15,43 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api_product.model.ApiProductOperation;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductInfo;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = { DateMapper.class })
 public interface ApiProductMapper {
     ApiProductMapper INSTANCE = Mappers.getMapper(ApiProductMapper.class);
 
+    @Mapping(target = "apiOperations", qualifiedByName = "coreOpMapToRest")
     ApiProduct map(io.gravitee.apim.core.api_product.model.ApiProduct coreApiProduct);
 
     ApiProductInfo map(io.gravitee.apim.core.api_product.model.ApiProductInfo coreApiProductInfo);
+
+    io.gravitee.rest.api.management.v2.rest.model.ApiProductOperation map(ApiProductOperation coreOp);
+
+    @Named("coreOpMapToRest")
+    default Map<String, List<io.gravitee.rest.api.management.v2.rest.model.ApiProductOperation>> coreOpMapToRest(
+        Map<String, List<ApiProductOperation>> source
+    ) {
+        if (source == null) {
+            return null;
+        }
+        Map<String, List<io.gravitee.rest.api.management.v2.rest.model.ApiProductOperation>> result = new HashMap<>();
+        for (Map.Entry<String, List<ApiProductOperation>> entry : source.entrySet()) {
+            List<io.gravitee.rest.api.management.v2.rest.model.ApiProductOperation> ops = entry.getValue() == null
+                ? null
+                : entry.getValue().stream().map(this::map).collect(Collectors.toList());
+            result.put(entry.getKey(), ops);
+        }
+        return result;
+    }
 }

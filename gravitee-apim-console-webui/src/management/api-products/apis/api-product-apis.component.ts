@@ -17,6 +17,7 @@
 import { Component, DestroyRef, inject, Injector, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSortModule } from '@angular/material/sort';
@@ -40,8 +41,14 @@ import {
   ApiProductAddApiDialogData,
   ApiProductAddApiDialogResult,
 } from './add-api-dialog/api-product-add-api-dialog.component';
+import {
+  ApiProductApiOperationsDialogComponent,
+  ApiProductApiOperationsDialogData,
+  ApiProductApiOperationsDialogResult,
+} from './operations-dialog/api-product-api-operations-dialog.component';
 
 import { Api } from '../../../entities/management-api-v2';
+import { ApiProduct, ApiProductOperation } from '../../../entities/management-api-v2/api-product';
 import { getApiContextPath } from '../../../shared/utils/api-access.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -56,6 +63,8 @@ export type ApiProductApiTableDS = {
   definition: string;
   version: string;
   lifecycleState?: string;
+  /** Number of allowed operations when a filter is configured; null means all operations are accessible */
+  operationsCount: number | null;
 }[];
 
 interface ApiProductApisTableWrapperFilters extends GioTableWrapperFilters {}
@@ -78,6 +87,7 @@ const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
   templateUrl: './api-product-apis.component.html',
   styleUrls: ['./api-product-apis.component.scss'],
   imports: [
+    MatBadgeModule,
     MatButtonModule,
     MatIconModule,
     MatSortModule,
@@ -98,7 +108,7 @@ export class ApiProductApisComponent implements OnInit {
   private readonly snackBarService = inject(SnackBarService);
   private readonly matDialog = inject(MatDialog);
 
-  readonly displayedColumns = ['picture', 'name', 'contextPath', 'definition', 'version', 'actions'] as const;
+  readonly displayedColumns = ['picture', 'name', 'contextPath', 'definition', 'version', 'operations', 'actions'] as const;
   apisTableDS: ApiProductApiTableDS = [];
   apisTableDSUnpaginatedLength = 0;
   searchLabel = 'Search APIs...';
@@ -181,46 +191,54 @@ export class ApiProductApisComponent implements OnInit {
   private loadApisForProduct(
     apiProductId: string,
     filters: ApiProductApisTableWrapperFilters,
-  ): Observable<{ data: Api[]; totalCount: number }> {
+  ): Observable<{ data: Api[]; totalCount: number; apiProduct: ApiProduct }> {
     this.isLoadingData = true;
     const page = filters.pagination?.index ?? DEFAULT_PAGINATION.page;
     const perPage = filters.pagination?.size ?? DEFAULT_PAGINATION.perPage;
     const query = filters.searchTerm?.trim() ?? '';
     const sortBy = this.toApiSortBy(filters);
-    return this.apiProductV2Service.getApis(apiProductId, page, perPage, query, sortBy).pipe(
-      catchError((err: unknown) => {
-        // 404 can occur when the product was deleted elsewhere, user opened a bookmark with a removed id, or the id in the URL is invalid.
-        if (err instanceof HttpErrorResponse && err.status === 404) {
-          this.snackBarService.error((err.error as { message?: string })?.message ?? 'API Product not found.');
-          this.isLoadingData = false;
-          this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
-          return EMPTY;
-        }
-        return this.handleError('An error occurred while loading APIs', of({ data: [], pagination: { totalCount: 0 } }))(err);
-      }),
-      map(res => ({
-        data: res.data ?? [],
-        totalCount: res.pagination?.totalCount ?? 0,
+    return combineLatest([
+      this.apiProductV2Service.getApis(apiProductId, page, perPage, query, sortBy).pipe(
+        catchError((err: unknown) => {
+          if (err instanceof HttpErrorResponse && err.status === 404) {
+            this.snackBarService.error((err.error as { message?: string })?.message ?? 'API Product not found.');
+            this.isLoadingData = false;
+            this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
+            return EMPTY;
+          }
+          return this.handleError('An error occurred while loading APIs', of({ data: [], pagination: { totalCount: 0 } }))(err);
+        }),
+      ),
+      this.apiProductV2Service.get(apiProductId).pipe(catchError(() => of({} as ApiProduct))),
+    ]).pipe(
+      map(([apisRes, apiProduct]) => ({
+        data: apisRes.data ?? [],
+        totalCount: apisRes.pagination?.totalCount ?? 0,
+        apiProduct,
       })),
     );
   }
 
-  private displayApis(response: { data: Api[]; totalCount: number }): void {
-    this.apisTableDS = this.toApisTableDS(response.data);
+  private displayApis(response: { data: Api[]; totalCount: number; apiProduct: ApiProduct }): void {
+    this.apisTableDS = this.toApisTableDS(response.data, response.apiProduct);
     this.apisTableDSUnpaginatedLength = response.totalCount;
     this.isLoadingData = false;
   }
 
-  private toApisTableDS(data: Api[]): ApiProductApiTableDS {
-    return data.map(api => ({
-      id: api.id,
-      name: api.name,
-      picture: api._links?.['pictureUrl'] ?? (api as { links?: { pictureUrl?: string } }).links?.pictureUrl,
-      contextPath: getApiContextPath(api) || '-',
-      definition: 'HTTP Proxy Gravitee',
-      version: api.apiVersion || '-',
-      lifecycleState: api.lifecycleState,
-    }));
+  private toApisTableDS(data: Api[], apiProduct?: ApiProduct): ApiProductApiTableDS {
+    return data.map(api => {
+      const ops = apiProduct?.apiOperations?.[api.id];
+      return {
+        id: api.id,
+        name: api.name,
+        picture: api._links?.['pictureUrl'] ?? (api as { links?: { pictureUrl?: string } }).links?.pictureUrl,
+        contextPath: getApiContextPath(api) || '-',
+        definition: 'HTTP Proxy Gravitee',
+        version: api.apiVersion || '-',
+        lifecycleState: api.lifecycleState,
+        operationsCount: Array.isArray(ops) ? ops.length : null,
+      };
+    });
   }
 
   onFiltersChanged(filters: ApiProductApisTableWrapperFilters): void {
@@ -282,6 +300,41 @@ export class ApiProductApisComponent implements OnInit {
       map(() => selectedApis),
       catchError(this.handleError('An error occurred while adding the APIs', EMPTY)),
     );
+  }
+
+  onManageOperations(api: ApiProductApiTableDS[0]): void {
+    const apiProductId = this.apiProductId();
+    this.apiProductV2Service
+      .get(apiProductId)
+      .pipe(
+        catchError(this.handleError(ApiProductApisComponent.LOAD_API_PRODUCT_ERROR, EMPTY)),
+        switchMap(apiProduct => {
+          const currentOps = apiProduct.apiOperations?.[api.id] ?? null;
+          return this.matDialog
+            .open<ApiProductApiOperationsDialogComponent, ApiProductApiOperationsDialogData, ApiProductApiOperationsDialogResult>(
+              ApiProductApiOperationsDialogComponent,
+              {
+                width: '640px',
+                data: { apiName: api.name, apiContextPath: api.contextPath || '', operations: currentOps },
+                role: 'dialog',
+                id: 'manageOperationsDialog',
+              },
+            )
+            .afterClosed()
+            .pipe(map(result => ({ apiProduct, result })));
+        }),
+        filter(({ result }) => result?.action === 'save'),
+        switchMap(({ apiProduct, result }) => {
+          const ops = (result as { action: 'save'; operations: ApiProductOperation[] | null }).operations;
+          return this.apiProductV2Service.updateApiOperationsForApi(apiProductId, apiProduct, api.id, ops).pipe(
+            tap(() => this.apiProductV2Service.notifyApiProductChanged()),
+            catchError(this.handleError('An error occurred while updating operations', EMPTY)),
+          );
+        }),
+        tap(() => this.reloadTable()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   onDeleteApi(api: ApiProductApiTableDS[0]): void {

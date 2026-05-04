@@ -18,6 +18,13 @@ import { PrimaryOwner } from '../api';
 
 export type ApiProductDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
 
+export interface ApiProductOperation {
+  /** URL path pattern, e.g. "/users/{id}" */
+  path: string;
+  /** HTTP method (GET, POST, …) or "*" to match all methods */
+  method: string;
+}
+
 export interface ApiProduct {
   /**
    * API Product's unique identifier.
@@ -39,6 +46,11 @@ export interface ApiProduct {
    * List of API IDs included in the product.
    */
   apiIds?: string[];
+  /**
+   * Per-API operation filter. Key = apiId, value = list of allowed path+method pairs.
+   * Absent key means all operations are accessible for that API.
+   */
+  apiOperations?: Record<string, ApiProductOperation[]>;
   /**
    * Groups attached to this API Product (membership access through the console).
    */

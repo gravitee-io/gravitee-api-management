@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.registry;
 
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct.ApiProductOperation;
 import java.util.Collection;
 import java.util.List;
 
@@ -73,5 +74,5 @@ public interface ApiProductRegistry {
      * @param apiProductId the API Product ID that owns this plan
      * @param plan the plan definition
      */
-    record ApiProductPlanEntry(String apiProductId, AbstractPlan plan) {}
+    record ApiProductPlanEntry(String apiProductId, AbstractPlan plan, List<ApiProductOperation> allowedOperations) {}
 }

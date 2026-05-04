@@ -102,9 +102,12 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
                 product.getApiIds().contains(apiId) &&
                 product.getPlans() != null
             ) {
+                List<ReactableApiProduct.ApiProductOperation> allowedOps = product.getApiOperations() != null
+                    ? product.getApiOperations().get(apiId)
+                    : null;
                 for (Plan plan : product.getPlans()) {
                     if (plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED) {
-                        entries.add(new ApiProductPlanEntry(product.getId(), plan));
+                        entries.add(new ApiProductPlanEntry(product.getId(), plan, allowedOps));
                     }
                 }
             }

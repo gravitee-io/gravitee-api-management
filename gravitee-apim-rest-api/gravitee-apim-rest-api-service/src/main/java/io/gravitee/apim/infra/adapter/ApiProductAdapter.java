@@ -15,9 +15,14 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.api_product.model.ApiProductOperation;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -30,11 +35,52 @@ public interface ApiProductAdapter {
     @Mapping(target = "createdAt", qualifiedByName = "dateToZonedDateTime")
     @Mapping(target = "updatedAt", qualifiedByName = "dateToZonedDateTime")
     @Mapping(target = "primaryOwner", ignore = true)
+    @Mapping(target = "deploymentState", ignore = true)
+    @Mapping(target = "apiOperations", qualifiedByName = "repoOpMapToModel")
     io.gravitee.apim.core.api_product.model.ApiProduct toModel(ApiProduct repositoryApiProduct);
 
     @Mapping(target = "createdAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "updatedAt", qualifiedByName = "zonedDateTimeToDate")
+    @Mapping(target = "apiOperations", qualifiedByName = "modelOpMapToRepo")
     io.gravitee.repository.management.model.ApiProduct toRepository(io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
+
+    ApiProductOperation toModel(io.gravitee.repository.management.model.ApiProductOperation repositoryOp);
+
+    io.gravitee.repository.management.model.ApiProductOperation toRepository(ApiProductOperation domainOp);
+
+    @Named("repoOpMapToModel")
+    default Map<String, List<ApiProductOperation>> repoOpMapToModel(
+        Map<String, List<io.gravitee.repository.management.model.ApiProductOperation>> source
+    ) {
+        if (source == null) {
+            return null;
+        }
+        Map<String, List<ApiProductOperation>> result = new HashMap<>();
+        for (Map.Entry<String, List<io.gravitee.repository.management.model.ApiProductOperation>> entry : source.entrySet()) {
+            List<ApiProductOperation> ops = entry.getValue() == null
+                ? null
+                : entry.getValue().stream().map(this::toModel).collect(Collectors.toList());
+            result.put(entry.getKey(), ops);
+        }
+        return result;
+    }
+
+    @Named("modelOpMapToRepo")
+    default Map<String, List<io.gravitee.repository.management.model.ApiProductOperation>> modelOpMapToRepo(
+        Map<String, List<ApiProductOperation>> source
+    ) {
+        if (source == null) {
+            return null;
+        }
+        Map<String, List<io.gravitee.repository.management.model.ApiProductOperation>> result = new HashMap<>();
+        for (Map.Entry<String, List<ApiProductOperation>> entry : source.entrySet()) {
+            List<io.gravitee.repository.management.model.ApiProductOperation> ops = entry.getValue() == null
+                ? null
+                : entry.getValue().stream().map(this::toRepository).collect(Collectors.toList());
+            result.put(entry.getKey(), ops);
+        }
+        return result;
+    }
 
     @Named("dateToZonedDateTime")
     default ZonedDateTime dateToZonedDateTime(Date date) {

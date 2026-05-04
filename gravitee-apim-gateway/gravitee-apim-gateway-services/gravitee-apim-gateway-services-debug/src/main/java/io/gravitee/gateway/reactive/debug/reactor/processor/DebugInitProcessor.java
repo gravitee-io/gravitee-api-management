@@ -19,7 +19,9 @@ import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
+import io.gravitee.gateway.reactive.debug.policy.DebugPolicyHook;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.List;
 import lombok.CustomLog;
 
 /**
@@ -45,6 +47,11 @@ public class DebugInitProcessor implements Processor {
             ctx.withLogger(log).debug("Original URL: {}", originalUrl);
 
             ctx.setAttribute(ContextAttributes.ATTR_REQUEST_ORIGINAL_URL, originalUrl);
+
+            // Inject DebugPolicyHook so SharedPolicyGroupPolicy can build a debug-aware
+            // inner chain instead of reusing the cached production chain.
+            // The key must match SharedPolicyGroupPolicy.ATTR_INTERNAL_SPG_DEBUG_HOOKS.
+            ctx.setInternalAttribute("gravitee.internal.spg.debugHooks", List.of(new DebugPolicyHook()));
         });
     }
 }

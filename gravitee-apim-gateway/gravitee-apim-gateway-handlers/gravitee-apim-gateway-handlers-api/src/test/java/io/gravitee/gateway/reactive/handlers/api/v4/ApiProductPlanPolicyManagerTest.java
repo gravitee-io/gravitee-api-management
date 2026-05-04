@@ -121,7 +121,7 @@ class ApiProductPlanPolicyManagerTest {
         plan1.setSecurity(new PlanSecurity("API_KEY", "{}"));
 
         when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1))
+            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1, null))
         );
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
@@ -154,8 +154,8 @@ class ApiProductPlanPolicyManagerTest {
 
         when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
             List.of(
-                new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1),
-                new ApiProductRegistry.ApiProductPlanEntry("product-2", plan2)
+                new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1, null),
+                new ApiProductRegistry.ApiProductPlanEntry("product-2", plan2, null)
             )
         );
 
@@ -184,7 +184,7 @@ class ApiProductPlanPolicyManagerTest {
         plan.setSecurity(new PlanSecurity("OAUTH2", "{}"));
 
         when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan))
+            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan, null))
         );
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(

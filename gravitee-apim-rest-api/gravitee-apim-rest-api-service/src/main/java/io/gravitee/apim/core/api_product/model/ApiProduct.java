@@ -19,7 +19,10 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,6 +45,7 @@ public class ApiProduct {
     private String description;
     private String version;
     private Set<String> apiIds;
+    private Map<String, List<ApiProductOperation>> apiOperations;
     private Set<String> groups;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
@@ -61,6 +65,18 @@ public class ApiProduct {
         }
         if (updateApiProduct.getApiIds() != null) {
             this.apiIds = updateApiProduct.getApiIds();
+        }
+        if (updateApiProduct.getApiOperations() != null) {
+            this.apiOperations = updateApiProduct.getApiOperations().isEmpty() ? null : updateApiProduct.getApiOperations();
+        } else if (updateApiProduct.getApiIds() != null && this.apiOperations != null) {
+            Set<String> updatedApiIds = updateApiProduct.getApiIds();
+            this.apiOperations = this.apiOperations.entrySet()
+                .stream()
+                .filter(e -> updatedApiIds.contains(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            if (this.apiOperations.isEmpty()) {
+                this.apiOperations = null;
+            }
         }
         if (updateApiProduct.getGroups() != null) {
             this.groups = updateApiProduct.getGroups();

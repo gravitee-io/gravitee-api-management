@@ -54,6 +54,7 @@ public class DeployApiProductDomainService {
             .description(apiProduct.getDescription())
             .version(apiProduct.getVersion())
             .apiIds(apiProduct.getApiIds())
+            .apiOperations(apiProduct.getApiOperations())
             .environmentId(apiProduct.getEnvironmentId())
             .plans(plans)
             .build();

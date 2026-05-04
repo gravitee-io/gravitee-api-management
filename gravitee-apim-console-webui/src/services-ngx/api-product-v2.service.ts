@@ -23,6 +23,7 @@ import { Constants } from '../entities/Constants';
 import { ApisResponse } from '../entities/management-api-v2/apisResponse';
 import {
   ApiProduct,
+  ApiProductOperation,
   ApiProductSearchQuery,
   ApiProductsResponse,
   CreateApiProduct,
@@ -202,6 +203,35 @@ export class ApiProductV2Service {
         apiIds,
       })
       .pipe(tap(api => this.lastApiProductFetch$.next(api)));
+  }
+
+  /**
+   * Update the allowed operations for one API within the product.
+   * Pass `null` to remove all filtering for that API (allow all operations).
+   */
+  updateApiOperationsForApi(
+    apiProductId: string,
+    apiProduct: ApiProduct,
+    apiId: string,
+    operations: ApiProductOperation[] | null,
+  ): Observable<ApiProduct> {
+    const currentOps: Record<string, ApiProductOperation[]> = { ...(apiProduct.apiOperations ?? {}) };
+    if (operations === null) {
+      delete currentOps[apiId];
+    } else {
+      currentOps[apiId] = operations;
+    }
+    const payload: UpdateApiProduct = {
+      name: apiProduct.name,
+      version: apiProduct.version,
+      description: apiProduct.description,
+      apiIds: apiProduct.apiIds,
+      groups: apiProduct.groups,
+      apiOperations: Object.keys(currentOps).length > 0 ? currentOps : {},
+    };
+    return this.http
+      .put<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`, payload)
+      .pipe(tap(updated => this.lastApiProductFetch$.next(updated)));
   }
 
   /**

@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -79,8 +80,9 @@ public class ApiProductMapper {
                     .description(payload.getDescription())
                     .version(payload.getVersion())
                     .apiIds(payload.getApiIds())
+                    .apiOperations(payload.getApiOperations())
                     .environmentId(payload.getEnvironmentId())
-                    .deployedAt(new Date(event.getCreatedAt().getTime()))
+                    .deployedAt(new Date(event.getUpdatedAt().getTime()))
                     .plans(filteredPlans(payload.getPlans()))
                     .build();
 
@@ -118,6 +120,7 @@ public class ApiProductMapper {
         private String description;
         private String version;
         private Set<String> apiIds;
+        private Map<String, List<ReactableApiProduct.ApiProductOperation>> apiOperations;
         private String environmentId;
         private String environmentHrid;
         private String organizationId;

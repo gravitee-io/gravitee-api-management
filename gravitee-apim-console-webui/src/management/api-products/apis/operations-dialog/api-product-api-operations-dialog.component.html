@@ -1,0 +1,86 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>Allowed Operations — {{ data.apiName }}</h2>
+
+<mat-dialog-content class="operations-dialog">
+  <p class="operations-dialog__hint">
+    Paths are relative to the API context path ({{ data.apiContextPath }}), e.g. /resource/&#123;id&#125;. Leave the list empty to allow all
+    operations.
+  </p>
+
+  @if (!isFiltered) {
+    <div class="operations-dialog__all-access">
+      <mat-icon svgIcon="gio:check-circled-outline" class="operations-dialog__all-access-icon"></mat-icon>
+      <span>All operations are currently accessible for this API.</span>
+    </div>
+  }
+
+  <form [formGroup]="form">
+    <div formArrayName="operations">
+      @for (op of operationsArray.controls; track op) {
+        <div class="operations-dialog__row" [formGroupName]="$index">
+          <mat-form-field class="operations-dialog__method" appearance="outline">
+            <mat-label>Method</mat-label>
+            <mat-select formControlName="method">
+              @for (m of httpMethods; track m) {
+                <mat-option [value]="m">{{ m }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="operations-dialog__path" appearance="outline">
+            <mat-label>Path</mat-label>
+            <input matInput formControlName="path" placeholder="/resource/{id}" />
+            @if (op.get('path')?.errors?.['required'] && op.get('path')?.touched) {
+              <mat-error>Path is required</mat-error>
+            }
+            @if (op.get('path')?.errors?.['pattern'] && op.get('path')?.touched) {
+              <mat-error>Path must start with /</mat-error>
+            }
+          </mat-form-field>
+
+          <button
+            mat-icon-button
+            type="button"
+            color="warn"
+            [matTooltip]="'Remove operation'"
+            (click)="removeOperation($index)"
+            [attr.aria-label]="'Remove operation ' + $index"
+          >
+            <mat-icon svgIcon="gio:trash"></mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  </form>
+
+  <div class="operations-dialog__actions-row">
+    <button mat-stroked-button type="button" (click)="addOperation()">
+      <mat-icon svgIcon="gio:plus"></mat-icon>
+      Add operation
+    </button>
+    @if (isFiltered) {
+      <button mat-stroked-button type="button" (click)="allowAll()" class="operations-dialog__allow-all-btn">Allow all operations</button>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()">Save</button>
+</mat-dialog-actions>
