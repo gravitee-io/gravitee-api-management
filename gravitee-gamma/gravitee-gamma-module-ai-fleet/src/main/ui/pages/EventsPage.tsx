@@ -125,6 +125,24 @@ export function EventsPage() {
 
             {/* Direct connections */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <div
+                    style={{
+                        marginBottom: '0.5rem',
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.375rem',
+                        background: 'rgba(249, 115, 22, 0.08)',
+                        border: '1px solid rgba(249, 115, 22, 0.3)',
+                        fontSize: '0.75rem',
+                        color: 'var(--color-muted-foreground)',
+                        lineHeight: 1.5,
+                    }}
+                >
+                    <strong style={{ color: '#f97316' }}>POC note</strong> — In this demo, Claude Code is redirected via{' '}
+                    <code>ANTHROPIC_BASE_URL</code>. However, Claude Code makes additional direct calls that bypass this setting:{' '}
+                    <strong>authentication</strong> (login, token refresh), <strong>telemetry</strong> (usage analytics sent by the CLI),
+                    and <strong>internal infrastructure</strong> calls (MCP servers, auto-updates). These cannot be intercepted via the proxy
+                    and are captured here by passive network detection.
+                </div>
                 <h2
                     style={{
                         fontSize: '0.875rem',
