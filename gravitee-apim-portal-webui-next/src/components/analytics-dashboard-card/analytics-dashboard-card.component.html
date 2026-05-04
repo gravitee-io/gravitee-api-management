@@ -17,6 +17,7 @@
 -->
 <mat-card
   class="dashboard-card"
+  [class.dashboard-card--accented]="showAccent()"
   appearance="outlined"
   role="button"
   tabindex="0"
@@ -26,9 +27,22 @@
 >
   <mat-card-content class="dashboard-card__content">
     <div class="dashboard-card__header">
-      <div class="dashboard-card__title next-gen-h5" [matTooltip]="name()">{{ name() }}</div>
+      <div class="dashboard-card__title next-gen-body-strong" [matTooltip]="name()">{{ name() }}</div>
+      <button
+        mat-icon-button
+        class="dashboard-card__pin-button"
+        [class.dashboard-card__pin-button--pinned]="isPinned()"
+        [class.dashboard-card__pin-button--disabled]="isPinDisabled()"
+        [attr.aria-label]="isPinned() ? unpinLabel : pinLabel"
+        [attr.aria-disabled]="isPinDisabled()"
+        [matTooltip]="maxPinnedTooltip"
+        [matTooltipDisabled]="!isPinDisabled()"
+        (click)="onPinClick($event)"
+      >
+        <mat-icon aria-hidden="true">push_pin</mat-icon>
+      </button>
     </div>
-    <div class="dashboard-card__meta next-gen-body">
+    <div class="dashboard-card__meta next-gen-caption">
       <span data-testid="widget-count" i18n="@@dashboardCardWidgets">{{ widgetCount() }} widgets</span>
       <span aria-hidden="true">·</span>
       <span data-testid="last-modified">{{ lastModified() | date: 'medium' }}</span>

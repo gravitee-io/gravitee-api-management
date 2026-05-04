@@ -86,4 +86,44 @@ describe('AnalyticsDashboardCardComponent', () => {
     await harness.click();
     expect(emitSpy).toHaveBeenCalledWith('dashboard-1');
   });
+
+  it('should_show_pin_button', async () => {
+    expect(await harness.getPinButton()).toBeTruthy();
+  });
+
+  it('should_emit_pin_toggle_on_pin_click', async () => {
+    const emitSpy = jest.spyOn(component.pinToggle, 'emit');
+    const pinButton = await harness.getPinButton();
+    await pinButton!.click();
+    expect(emitSpy).toHaveBeenCalledWith('dashboard-1');
+  });
+
+  it('should_not_emit_pin_toggle_when_not_pinned_and_cannot_pin', async () => {
+    fixture.componentRef.setInput('isPinned', false);
+    fixture.componentRef.setInput('canPin', false);
+    fixture.detectChanges();
+    const emitSpy = jest.spyOn(component.pinToggle, 'emit');
+    const pinButton = await harness.getPinButton();
+    await pinButton!.click();
+    expect(emitSpy).not.toHaveBeenCalled();
+  });
+
+  it('should_mark_pin_button_as_aria_disabled_when_cannot_pin', async () => {
+    fixture.componentRef.setInput('isPinned', false);
+    fixture.componentRef.setInput('canPin', false);
+    fixture.detectChanges();
+    const pinButton = await harness.getPinButton();
+    const host = await pinButton!.host();
+    expect(await host.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('should_allow_unpin_even_when_cannot_pin_more', async () => {
+    fixture.componentRef.setInput('isPinned', true);
+    fixture.componentRef.setInput('canPin', false);
+    fixture.detectChanges();
+    const emitSpy = jest.spyOn(component.pinToggle, 'emit');
+    const pinButton = await harness.getPinButton();
+    await pinButton!.click();
+    expect(emitSpy).toHaveBeenCalledWith('dashboard-1');
+  });
 });
