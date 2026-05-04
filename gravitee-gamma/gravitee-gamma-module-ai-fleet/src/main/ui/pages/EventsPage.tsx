@@ -118,27 +118,12 @@ export function EventsPage() {
             </div>
 
             {/* Metrics */}
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: '0.75rem',
-                }}
-            >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
                 <MetricCard label="Requests" value={stats.requests} color="#22c55e" />
                 <MetricCard label="Blocked" value={stats.blocked} color="#ef4444" />
-                <MetricCard
-                    label="Tokens in"
-                    value={stats.tokens_in}
-                    color="#60a5fa"
-                    breakdown={stats.tokens_in > 0 ? [
-                        { label: 'sys', value: stats.tokens_in_system, color: '#f97316' },
-                        { label: 'hist', value: stats.tokens_in_history, color: '#94a3b8' },
-                        { label: 'user', value: stats.tokens_in_user, color: '#60a5fa' },
-                    ] : undefined}
-                />
                 <MetricCard label="Tokens out" value={stats.tokens_out} color="#a78bfa" />
             </div>
+            <TokensInCard stats={stats} />
 
             {/* Intercepted traffic */}
             <div style={{ flex: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -238,9 +223,7 @@ export function EventsPage() {
     );
 }
 
-interface Breakdown { label: string; value: number; color: string }
-
-function MetricCard({ label, value, color, breakdown }: { readonly label: string; readonly value: number; readonly color: string; readonly breakdown?: Breakdown[] }) {
+function MetricCard({ label, value, color }: { readonly label: string; readonly value: number; readonly color: string }) {
     return (
         <div
             style={{
@@ -255,13 +238,41 @@ function MetricCard({ label, value, color, breakdown }: { readonly label: string
         >
             <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)' }}>{label}</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 700, color }}>{value.toLocaleString()}</span>
-            {breakdown && (
-                <span style={{ fontSize: '0.65rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {breakdown.map(b => (
-                        <span key={b.label} style={{ color: b.color }}>{b.label} {b.value.toLocaleString()}</span>
-                    ))}
-                </span>
-            )}
+        </div>
+    );
+}
+
+const TOKEN_BREAKDOWN = [
+    { key: 'tokens_in_system' as const, label: 'System', color: '#f97316', desc: 'System prompt injected by Claude Code — tool definitions, CLAUDE.md rules, context compaction' },
+    { key: 'tokens_in_history' as const, label: 'History', color: '#94a3b8', desc: 'Conversation history sent on each request (stateless API — full context every time)' },
+    { key: 'tokens_in_user' as const, label: 'User', color: '#60a5fa', desc: 'Your current message' },
+] as const;
+
+function TokensInCard({ stats }: { readonly stats: Stats }) {
+    return (
+        <div
+            style={{
+                padding: '0.75rem 1rem',
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '0.5rem',
+            }}
+        >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)' }}>Tokens in</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#60a5fa' }}>{stats.tokens_in.toLocaleString()}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                {TOKEN_BREAKDOWN.map(({ key, label, color, desc }) => (
+                    <div key={key} style={{ borderLeft: `3px solid ${color}`, paddingLeft: '0.6rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.2rem' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 600, color }}>{label}</span>
+                            <span style={{ fontSize: '1rem', fontWeight: 700, color }}>{stats[key].toLocaleString()}</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--color-muted-foreground)', lineHeight: 1.4 }}>{desc}</p>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
