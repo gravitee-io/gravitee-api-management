@@ -90,6 +90,12 @@ func (p *Proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 	var ar anthropicRequest
 	json.Unmarshal(body, &ar)
 
+	// not a messages request — forward silently
+	if ar.Model == "" {
+		p.reverse.ServeHTTP(w, r)
+		return
+	}
+
 	req := &policy.InterceptedRequest{
 		Model: ar.Model,
 		Body:  body,

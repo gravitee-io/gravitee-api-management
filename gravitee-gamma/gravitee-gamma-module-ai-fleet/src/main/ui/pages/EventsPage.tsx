@@ -249,7 +249,7 @@ function TrafficRow({ event }: { readonly event: FleetEvent }) {
     const detail = (() => {
         switch (event.type) {
             case 'request':
-                return `${event.model}  ${event.tokens_in ?? 0} → ${event.tokens_out ?? 0} tok`;
+                return `${event.model ?? '(unknown)'}  ${event.tokens_in ?? 0} → ${event.tokens_out ?? 0} tok`;
             case 'policy_block':
                 return `BLOCKED by ${event.policy_applied}: ${event.reason}`;
             case 'policy_warn':
