@@ -166,7 +166,31 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             );
         }
 
-        return apiEntrypoints;
+        return deduplicateByTarget(apiEntrypoints);
+    }
+
+    /**
+     * Removes duplicate entrypoints sharing the same target URL.
+     * Duplicates appear whenever the resolved {@code target} does not depend on the matched
+     * organization entrypoint mapping, so iterating over multiple matching mappings produces
+     * identical entries. This is the case for:
+     * <ul>
+     *   <li>V4 HTTP listener paths with {@code overrideAccess=true} (target is built from the virtual host)</li>
+     *   <li>V2 {@code VirtualHost} with {@code overrideEntrypoint=true} (same as above for legacy APIs)</li>
+     *   <li>V4 TCP listeners (target is always {@code tcpHost:tcpPort}, where the port is the env-level
+     *       {@code PORTAL_TCP_PORT} parameter, independent of the matched mapping)</li>
+     * </ul>
+     * Insertion order is preserved so the UI keeps a deterministic display.
+     * <p>
+     * The dedupe key is the raw {@code target} string; we assume host casing has been normalized
+     * upstream (paths are intentionally not lower-cased because they are case-sensitive).
+     */
+    private List<ApiEntrypointEntity> deduplicateByTarget(final List<ApiEntrypointEntity> apiEntrypoints) {
+        Map<String, ApiEntrypointEntity> deduplicated = new LinkedHashMap<>();
+        for (ApiEntrypointEntity entrypoint : apiEntrypoints) {
+            deduplicated.putIfAbsent(entrypoint.getTarget(), entrypoint);
+        }
+        return new ArrayList<>(deduplicated.values());
     }
 
     private List<ApiEntrypointEntity> getEntrypoints(
