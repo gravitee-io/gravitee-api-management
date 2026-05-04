@@ -21,6 +21,8 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
+import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
@@ -46,8 +48,10 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -128,6 +132,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
+import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
@@ -171,6 +176,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
 
 /**
  * Defines the REST resources to manage API v4.
@@ -467,6 +473,19 @@ public class ApiResource extends AbstractResource {
         @Context HttpHeaders headers,
         String body
     ) {
+        final var currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
+
+        if (!DefinitionVersion.V4.equals(currentEntity.getDefinitionVersion())) {
+            throw new ApiInvalidDefinitionVersionException(apiId);
+        }
+        if (!(currentEntity instanceof ApiEntity httpApi) || !ApiType.PROXY.equals(httpApi.getType())) {
+            throw new ApiInvalidTypeException(apiId, ApiType.PROXY);
+        }
+
+        if (currentEntity.getUpdatedAt() != null) {
+            evaluateIfMatchStrictly(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
+        }
+
         var contentType = headers.getMediaType();
         var patchType = contentType != null && JSON_PATCH_MEDIA_TYPE.isCompatible(contentType)
             ? PatchApiUseCase.PatchType.JSON_PATCH
@@ -1245,6 +1264,22 @@ public class ApiResource extends AbstractResource {
         baos.write(image.getContent(), 0, image.getContent().length);
 
         return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+    }
+
+    private void evaluateIfMatchStrictly(final HttpHeaders headers, final String etagValue) {
+        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
+
+        if (Objects.nonNull(ifMatch) && !ifMatch.isEmpty()) {
+            if ("*".equals(ifMatch)) {
+                return;
+            }
+            try {
+                HttpHeaderReader.readMatchingEntityTag(ifMatch.replace("-gzip", ""));
+            } catch (java.text.ParseException e) {
+                throw new PreconditionFailedException();
+            }
+            evaluateIfMatch(headers, etagValue);
+        }
     }
 
     private Response apiResponse(GenericApiEntity apiEntity) {

@@ -545,6 +545,20 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     }
 
     @Test
+    public void should_emit_ETag_and_Last_Modified_headers_on_GET() {
+        var apiEntity = this.fakeApiEntityV4();
+        apiEntity.setUpdatedAt(new Date(1000L));
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        assertEquals("\"1000\"", response.getHeaderString("ETag"));
+        assertNotNull(response.getHeaderString("Last-Modified"));
+        assertEquals(1000L, response.getLastModified().getTime());
+    }
+
+    @Test
     public void should_not_get_api_because_not_found() {
         final String UNKNOWN_API = "unknown";
 
