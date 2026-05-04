@@ -101,6 +101,71 @@ describe('AnalyticsComponent', () => {
     });
   });
 
+  describe('pin/unpin', () => {
+    beforeEach(async () => {
+      localStorage.clear();
+      await setup(
+        fakeAnalyticsDashboardsResponse({
+          data: [
+            fakeDashboard({ id: 'dash-1', name: 'Dashboard 1' }),
+            fakeDashboard({ id: 'dash-2', name: 'Dashboard 2' }),
+            fakeDashboard({ id: 'dash-3', name: 'Dashboard 3' }),
+            fakeDashboard({ id: 'dash-4', name: 'Dashboard 4' }),
+            fakeDashboard({ id: 'dash-5', name: 'Dashboard 5' }),
+          ],
+        }),
+      );
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('should_toggle_pin_and_persist_to_local_storage', () => {
+      fixture.componentInstance.togglePin('dash-1');
+      expect(fixture.componentInstance.pinnedIds()).toEqual(['dash-1']);
+      expect(JSON.parse(localStorage.getItem('analytics-pinned-dashboards')!)).toEqual(['dash-1']);
+      // Flush the pinnedResource getById call triggered by signal change
+      httpTestingController.match(r => r.url.includes('/analytics/dashboards/dash-1'));
+    });
+
+    it('should_unpin_when_already_pinned', () => {
+      fixture.componentInstance.togglePin('dash-1');
+      httpTestingController.match(r => r.url.includes('/analytics/dashboards/'));
+      fixture.componentInstance.togglePin('dash-1');
+      expect(fixture.componentInstance.pinnedIds()).toEqual([]);
+    });
+
+    it('should_show_pinned_dashboards_in_pinned_row', async () => {
+      fixture.componentInstance.togglePin('dash-1');
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/analytics/dashboards/dash-1`)
+        .flush(fakeDashboard({ id: 'dash-1', name: 'Dashboard 1' }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const pinnedRow = await harness.getPinnedRow();
+      expect(pinnedRow).toBeTruthy();
+    });
+
+    it('should_not_allow_pinning_more_than_4', () => {
+      fixture.componentInstance.togglePin('dash-1');
+      fixture.componentInstance.togglePin('dash-2');
+      fixture.componentInstance.togglePin('dash-3');
+      fixture.componentInstance.togglePin('dash-4');
+      expect(fixture.componentInstance.canPinMore()).toBe(false);
+      httpTestingController.match(r => r.url.includes('/analytics/dashboards/'));
+    });
+
+    it('should_allow_pinning_when_under_limit', () => {
+      fixture.componentInstance.togglePin('dash-1');
+      fixture.componentInstance.togglePin('dash-2');
+      fixture.componentInstance.togglePin('dash-3');
+      expect(fixture.componentInstance.canPinMore()).toBe(true);
+      httpTestingController.match(r => r.url.includes('/analytics/dashboards/'));
+    });
+  });
+
   describe('empty dashboard list', () => {
     it('should_show_empty_state', async () => {
       await setup(fakeAnalyticsDashboardsResponse({ data: [] }));

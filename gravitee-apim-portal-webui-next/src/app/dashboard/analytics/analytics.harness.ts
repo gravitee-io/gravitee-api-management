@@ -26,6 +26,7 @@ export class AnalyticsComponentHarness extends ComponentHarness {
   private readonly locateEmptyState = this.locatorForOptional('.cards-grid__empty-state');
   private readonly locateCards = this.locatorForAll(AnalyticsDashboardCardHarness);
   private readonly locateTitle = this.locatorForOptional('.next-gen-h3');
+  private readonly locatePinnedRow = this.locatorForOptional('.analytics-list__pinned-row');
 
   public async getLoader(): Promise<LoaderHarness | null> {
     return this.locateLoader();
@@ -47,5 +48,9 @@ export class AnalyticsComponentHarness extends ComponentHarness {
   public async getTitle(): Promise<string | null> {
     const element = await this.locateTitle();
     return element ? element.text() : null;
+  }
+
+  public async getPinnedRow(): Promise<unknown> {
+    return this.locatePinnedRow();
   }
 }

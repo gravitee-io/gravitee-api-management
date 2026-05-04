@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-analytics-dashboard-card';
@@ -23,6 +24,7 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
   private readonly locateLastModified = this.locatorForOptional('[data-testid="last-modified"]');
   private readonly locateLabels = this.locatorForAll('app-badge');
   private readonly locateOverflowCounter = this.locatorForOptional('[data-testid="hidden-labels-count"]');
+  private readonly locatePinButton = this.locatorForOptional(MatButtonHarness.with({ selector: '.dashboard-card__pin-button' }));
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<AnalyticsDashboardCardHarness> {
     return new HarnessPredicate(AnalyticsDashboardCardHarness, options);
@@ -49,6 +51,10 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
   public async getOverflowCounter(): Promise<string | null> {
     const element = await this.locateOverflowCounter();
     return element ? element.text() : null;
+  }
+
+  public async getPinButton(): Promise<MatButtonHarness | null> {
+    return this.locatePinButton();
   }
 
   public async click(): Promise<void> {

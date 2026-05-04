@@ -17,6 +17,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 
 import { Dashboard } from '@gravitee/gravitee-dashboard';
 
@@ -47,6 +48,8 @@ export interface DashboardPaginatorVM {
   styleUrl: './analytics.component.scss',
 })
 export default class AnalyticsComponent {
+  private static readonly MAX_PINNED = 4;
+
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly dashboardService = inject(AnalyticsDashboardService);
   private readonly router = inject(Router);
@@ -54,6 +57,11 @@ export default class AnalyticsComponent {
 
   readonly pageSize = 20;
   private readonly currentPage = signal(1);
+
+  private readonly PINNED_KEY = 'analytics-pinned-dashboards';
+  readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
+  readonly pinnedIdsSet = computed(() => new Set(this.pinnedIds()));
+  readonly canPinMore = computed(() => this.pinnedIds().length < AnalyticsComponent.MAX_PINNED);
 
   protected readonly dashboardsResource = rxResource<AnalyticsDashboardsResponse | undefined, DashboardsListParams>({
     params: () => ({ page: this.currentPage(), pageSize: this.pageSize }),
@@ -71,6 +79,16 @@ export default class AnalyticsComponent {
     return { data, page, totalResults };
   });
 
+  protected readonly pinnedResource = rxResource<Dashboard[], string[]>({
+    params: () => this.pinnedIds(),
+    stream: ({ params: ids }) => {
+      if (ids.length === 0) return of([]);
+      return forkJoin(ids.map(id => this.dashboardService.getById(id)));
+    },
+  });
+
+  readonly pinnedDashboards = computed(() => this.pinnedResource.value() ?? []);
+
   constructor() {
     this.breadcrumbService.set([analyticsListBreadcrumb()]);
   }
@@ -81,5 +99,23 @@ export default class AnalyticsComponent {
 
   navigateToDashboard(dashboardId: string): void {
     this.router.navigate([dashboardId], { relativeTo: this.activatedRoute });
+  }
+
+  togglePin(dashboardId: string): void {
+    const current = this.pinnedIds();
+    if (!current.includes(dashboardId) && current.length >= AnalyticsComponent.MAX_PINNED) return;
+    const updated = current.includes(dashboardId) ? current.filter(id => id !== dashboardId) : [...current, dashboardId];
+    this.pinnedIds.set(updated);
+    localStorage.setItem(this.PINNED_KEY, JSON.stringify(updated));
+  }
+
+  private loadPinnedIds(): string[] {
+    try {
+      const stored = localStorage.getItem(this.PINNED_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Failed to read pinned analytics dashboards from localStorage', error);
+      return [];
+    }
   }
 }

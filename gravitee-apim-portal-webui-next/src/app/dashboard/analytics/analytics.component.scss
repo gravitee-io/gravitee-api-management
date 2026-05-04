@@ -16,6 +16,8 @@
 @use '../../../scss/theme' as app-theme;
 
 :host {
+  --cards-grid-row-height: 120px;
+
   display: flex;
   flex-direction: column;
   max-width: app-theme.$inner-content-width;
@@ -41,6 +43,20 @@
         margin: 0;
       }
     }
+  }
+
+  &__pinned {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    h2 {
+      margin: 0;
+    }
+  }
+
+  &__pinned-row {
+    display: block;
   }
 
   &__content {
