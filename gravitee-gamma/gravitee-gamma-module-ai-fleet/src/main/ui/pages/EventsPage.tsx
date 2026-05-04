@@ -27,6 +27,7 @@ export function EventsPage() {
     const [hostname, setHostname] = useState(searchParams.get('host') ?? '');
     const [devices, setDevices] = useState<string[]>([]);
     const [events, setEvents] = useState<FleetEvent[]>([]);
+    const lastTimestampRef = useRef<string | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -43,17 +44,27 @@ export function EventsPage() {
     useEffect(() => {
         if (!hostname) return;
         setEvents([]);
+        lastTimestampRef.current = null;
 
-        const source = new EventSource(`/gamma/organizations/DEFAULT/modules/ai-fleet/events/${hostname}`);
-        source.onmessage = e => {
-            try {
-                const event: FleetEvent = JSON.parse(e.data);
-                setEvents(prev => [...prev.slice(-199), event]);
-            } catch {
-                // ignore malformed lines
-            }
+        const poll = () => {
+            const url = lastTimestampRef.current
+                ? `/gamma/organizations/DEFAULT/modules/ai-fleet/events/${hostname}?since=${encodeURIComponent(lastTimestampRef.current)}`
+                : `/gamma/organizations/DEFAULT/modules/ai-fleet/events/${hostname}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then((data: FleetEvent[]) => {
+                    if (data.length > 0) {
+                        lastTimestampRef.current = data[data.length - 1].timestamp;
+                        setEvents(prev => [...prev, ...data].slice(-200));
+                    }
+                })
+                .catch(() => {});
         };
-        return () => source.close();
+
+        poll();
+        const interval = setInterval(poll, 5000);
+        return () => clearInterval(interval);
     }, [hostname]);
 
     useEffect(() => {

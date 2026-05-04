@@ -20,16 +20,13 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.StreamingOutput;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,40 +70,37 @@ public class AiFleetResource {
 
     @GET
     @Path("/events/{hostname}")
-    public Response events(@PathParam("hostname") String hostname) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response events(@PathParam("hostname") String hostname, @QueryParam("since") String since) {
         java.nio.file.Path eventsFile = Paths.get(BASE_DIR, hostname, "events.jsonl");
         if (!eventsFile.toFile().exists()) {
-            return Response.status(Response.Status.NOT_FOUND).entity("No events file for " + hostname).build();
+            return Response.ok(new ArrayList<>()).build();
         }
 
-        StreamingOutput stream = output -> {
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8));
-            try (BufferedReader reader = new BufferedReader(new FileReader(eventsFile.toFile()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    writer.write("data: " + line + "\n\n");
-                    writer.flush();
-                }
-                while (true) {
-                    line = reader.readLine();
-                    if (line != null) {
-                        writer.write("data: " + line + "\n\n");
-                        writer.flush();
-                    } else {
-                        Thread.sleep(500);
+        List<Object> events = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(eventsFile.toFile()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+                if (since != null && !since.isBlank() && line.contains("\"timestamp\"")) {
+                    // keep only lines with timestamp > since (lexicographic ISO comparison)
+                    int tsStart = line.indexOf("\"timestamp\":\"") + 13;
+                    int tsEnd = line.indexOf("\"", tsStart);
+                    if (tsStart > 12 && tsEnd > tsStart) {
+                        String ts = line.substring(tsStart, tsEnd);
+                        if (ts.compareTo(since) <= 0) continue;
                     }
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (IOException e) {
-                log.warn("SSE stream ended for {}: {}", hostname, e.getMessage());
+                try {
+                    events.add(MAPPER.readValue(line, Object.class));
+                } catch (IOException e) {
+                    log.debug("Skipping malformed event line: {}", e.getMessage());
+                }
             }
-        };
+        } catch (IOException e) {
+            log.warn("Failed to read events for {}: {}", hostname, e.getMessage());
+        }
 
-        return Response.ok(stream)
-            .header("Content-Type", "text/event-stream; charset=UTF-8")
-            .header("Cache-Control", "no-cache")
-            .header("X-Accel-Buffering", "no")
-            .build();
+        return Response.ok(events).build();
     }
 }
