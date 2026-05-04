@@ -27,11 +27,17 @@ export class JdbcTestContainerJob extends AbstractTestContainerJob {
       'job-jdbc-test-container',
       new parameters.CustomParametersList([
         new parameters.CustomParameter('jdbcType', 'string', '', 'Type and version of the database to test. Example: mariadb:10.5'),
+        new parameters.CustomEnumParameter(
+          'strictPrimaryKey',
+          ['true', 'false'],
+          'false',
+          'Run MySQL/MariaDB containers with sql_require_primary_key=ON to exercise strict primary key migrations.',
+        ),
       ]),
       new commands.Run({
-        name: 'Run Management repository tests with database << parameters.jdbcType >>',
+        name: 'Run Management repository tests with database << parameters.jdbcType >> (strictPrimaryKey=<< parameters.strictPrimaryKey >>)',
         command: `cd gravitee-apim-repository
-mvn -pl 'gravitee-apim-repository-jdbc' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -DjdbcType=<< parameters.jdbcType>> -T 2C`,
+mvn -pl 'gravitee-apim-repository-jdbc' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -DjdbcType=<< parameters.jdbcType>> -DstrictPrimaryKey=<< parameters.strictPrimaryKey >> -T 2C`,
       }),
       UbuntuExecutor.create('medium', true, '2024.08.1'),
     );

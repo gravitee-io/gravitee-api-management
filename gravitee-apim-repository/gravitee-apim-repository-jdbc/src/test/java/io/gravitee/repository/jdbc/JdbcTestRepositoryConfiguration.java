@@ -45,6 +45,9 @@ public class JdbcTestRepositoryConfiguration {
     @Value("${maxPoolSize:20}")
     private int maxPoolSize;
 
+    @Value("${strictPrimaryKey:false}")
+    private boolean strictPrimaryKey;
+
     @Bean
     public DataSource graviteeDataSource(JdbcDatabaseContainer container) {
         final HikariConfig dsConfig = getHikariConfig(container);
@@ -77,12 +80,25 @@ public class JdbcTestRepositoryConfiguration {
                 // I let this configuration for documentation purpose, but it does not solve our performance issue.
                 // See --> https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html
                 containerBean = new MySQLContainer<>(dockerImageName);
+                if (strictPrimaryKey) {
+                    // Reproduce MySQL HeatWave / Group Replication behaviour by forcing every
+                    // CREATE/ALTER TABLE to declare a primary key in a single statement.
+                    containerBean.withCommand("--sql-require-primary-key=ON");
+                }
                 break;
             case MARIADB:
                 // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
                 // I let this configuration for documentation purpose, but it does not solve our performance issue.
                 // See --> https://mariadb.com/kb/en/innodb-system-variables/
                 containerBean = new MariaDBContainer<>(dockerImageName);
+                if (strictPrimaryKey) {
+                    // MariaDB honours sql_require_primary_key the same way MySQL does. Note: the
+                    // mariadb:12.1 testcontainer refuses to start with this flag (container exits
+                    // with code 1) so the strict-PK CI matrix is scoped to MySQL only — see
+                    // workflow-repositories-tests.ts. Kept here so manual local runs can still
+                    // attempt MariaDB strict-PK once a future image fixes the startup issue.
+                    containerBean.withCommand("--sql-require-primary-key=ON");
+                }
                 break;
             case SQLSERVER:
                 containerBean = new MSSQLServerContainer<>(dockerImageName);

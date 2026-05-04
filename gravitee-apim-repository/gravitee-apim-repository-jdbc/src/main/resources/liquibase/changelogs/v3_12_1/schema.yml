@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.12.1
       author: GraviteeSource Team
+      validCheckSum: ANY
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -28,13 +29,24 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}keys
             columnDataType: nvarchar(64)
             columnName: id
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}keys
-            tableName: ${gravitee_prefix}keys
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}keys
-            columnNames: id
-            tableName: ${gravitee_prefix}keys
+        # Move PK from `key` to `id`. Combined ALTER for MySQL/MariaDB so
+        # strict-PK mode does not reject the drop. The table name is `keys`
+        # which is a MySQL reserved word, so the identifier MUST be backticked
+        # here — typed dropPrimaryKey / addPrimaryKey actions auto-quote, but
+        # raw <sql> does not, and an empty gravitee_prefix would otherwise
+        # resolve to "ALTER TABLE keys …" and fail with a syntax error.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE `${gravitee_prefix}keys`
+                    DROP PRIMARY KEY,
+                    ADD CONSTRAINT `pk_${gravitee_prefix}keys` PRIMARY KEY (id);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}keys DROP CONSTRAINT pk_${gravitee_prefix}keys
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}keys ADD CONSTRAINT pk_${gravitee_prefix}keys PRIMARY KEY (id)
 
         - addColumn:
             tableName: ${gravitee_prefix}keys

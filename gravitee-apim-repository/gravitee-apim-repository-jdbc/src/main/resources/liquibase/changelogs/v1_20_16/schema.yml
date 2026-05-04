@@ -2,11 +2,12 @@ databaseChangeLog:
   - changeSet:
       id: 1.20.16
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - createTable:
             tableName: ${gravitee_prefix}commands
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}commands" } }
               - column: {name: from, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: to, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: content, type: nclob, constraints: { nullable: true } }
@@ -14,29 +15,15 @@ databaseChangeLog:
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}commands
-            columnNames: id
-            tableName: ${gravitee_prefix}commands
-
         - createTable:
             tableName: ${gravitee_prefix}command_acknowledgments
             columns:
-              - column: {name: command_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: acknowledgment, type: nvarchar(64), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}command_acknowledgments
-            columnNames: command_id, acknowledgment
-            tableName: ${gravitee_prefix}command_acknowledgments
+              - column: {name: command_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}command_acknowledgments" } }
+              - column: {name: acknowledgment, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
         - createTable:
             tableName: ${gravitee_prefix}command_tags
             columns:
-              - column: {name: command_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: tag, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: command_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}command_tags" } }
+              - column: {name: tag, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}command_tags
-            columnNames: command_id, tag
-            tableName: ${gravitee_prefix}command_tags

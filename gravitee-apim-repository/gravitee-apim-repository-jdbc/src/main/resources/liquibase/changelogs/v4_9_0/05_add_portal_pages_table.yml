@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 4.9.0_05_add_portal_pages_table
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         # ################
         # Portal Pages Table
@@ -9,13 +10,9 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}portal_pages
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}portal_pages" } }
               - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: content, type: nclob, constraints: { nullable: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}portal_pages
-            columnNames: id
-            tableName: ${gravitee_prefix}portal_pages

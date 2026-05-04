@@ -25,7 +25,9 @@ databaseChangeLog:
   - changeSet:
       id: 3.0.0
       author: GraviteeSource Team
-      validCheckSum: 1:any
+      validCheckSum:
+        - 1:any
+        - ANY
       changes:
         ## roles, permissions & memberships migration ##
         # roles_permissions
@@ -73,13 +75,21 @@ databaseChangeLog:
             columnDataType: nvarchar(64)
             columnName: role_id
             tableName: ${gravitee_prefix}role_permissions
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}role_permissions
-            tableName: ${gravitee_prefix}role_permissions
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}role_permissions
-            columnNames: role_id, permission
-            tableName: ${gravitee_prefix}role_permissions
+        # Rebuild PK (role_scope, role_name, permission) → (role_id, permission).
+        # Combined ALTER for MySQL/MariaDB to satisfy sql_require_primary_key=ON
+        # which forbids dropping the PK without an in-statement replacement.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}role_permissions
+                    DROP PRIMARY KEY,
+                    ADD CONSTRAINT pk_${gravitee_prefix}role_permissions PRIMARY KEY (role_id, permission);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}role_permissions DROP CONSTRAINT pk_${gravitee_prefix}role_permissions
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}role_permissions ADD CONSTRAINT pk_${gravitee_prefix}role_permissions PRIMARY KEY (role_id, permission)
         - dropColumn:
             columnName: role_scope
             tableName: ${gravitee_prefix}role_permissions
@@ -119,18 +129,36 @@ databaseChangeLog:
             columnDataType: nvarchar(64)
             columnName: id
             tableName: ${gravitee_prefix}roles
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}roles
-            tableName: ${gravitee_prefix}roles
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}roles
-            columnNames: id
-            tableName: ${gravitee_prefix}roles
+        # Rebuild PK (scope, name) → (id). Combined ALTER for MySQL/MariaDB.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}roles
+                    DROP PRIMARY KEY,
+                    ADD CONSTRAINT pk_${gravitee_prefix}roles PRIMARY KEY (id);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}roles DROP CONSTRAINT pk_${gravitee_prefix}roles
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}roles ADD CONSTRAINT pk_${gravitee_prefix}roles PRIMARY KEY (id)
 
-        # membership_roles
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}membership_roles
-            tableName: ${gravitee_prefix}membership_roles
+        # membership_roles — original PK is on (user_id, reference_type,
+        # reference_id, role_scope). role_scope is being widened from int to
+        # nvarchar, so the PK has to be dropped first. The table itself is
+        # dropped further down. On MySQL with strict PK mode the drop+modify
+        # has to be combined into one ALTER that re-installs a PK; the
+        # placeholder is short-lived (it goes away with the dropTable).
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}membership_roles
+                    DROP PRIMARY KEY,
+                    MODIFY COLUMN role_scope NVARCHAR(64) NOT NULL,
+                    ADD PRIMARY KEY (user_id, reference_type, reference_id, role_scope);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}membership_roles DROP CONSTRAINT pk_${gravitee_prefix}membership_roles
         - modifyDataType:
             columnName: role_scope
             newDataType: nvarchar(64)
@@ -154,10 +182,22 @@ databaseChangeLog:
         - sql:
             sql: delete from ${gravitee_prefix}membership_roles where reference_type = 'MANAGEMENT' and role_scope = 'MANAGEMENT'
 
-        # memberships
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}memberships
-            tableName: ${gravitee_prefix}memberships
+        # memberships — the migration drops the (user_id, reference_type,
+        # reference_id) PK, runs many data ops while user_id is still
+        # populated, drops user_id, then installs a new PK on id. Strict-PK
+        # MySQL does not allow the table to live without a PK between those
+        # steps, so we add a temporary auto-increment surrogate PK that
+        # holds the table together until the final id PK is installed.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}memberships
+                    ADD COLUMN tmp_pk BIGINT NOT NULL AUTO_INCREMENT,
+                    DROP PRIMARY KEY,
+                    ADD CONSTRAINT pk_${gravitee_prefix}memberships_tmp PRIMARY KEY (tmp_pk);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}memberships DROP CONSTRAINT pk_${gravitee_prefix}memberships
         - sql:
             sql: update ${gravitee_prefix}memberships set reference_type = 'ENVIRONMENT' WHERE reference_type = 'PORTAL'
         - sql:
@@ -209,18 +249,37 @@ databaseChangeLog:
             columnDataType: nvarchar(64)
             columnName: id
             tableName: ${gravitee_prefix}memberships
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}memberships
-            columnNames: id
-            tableName: ${gravitee_prefix}memberships
+        # Install the final id PK. On MySQL this also drops the temporary
+        # surrogate column added at the start; the operation has to be a
+        # single combined ALTER so the table never lives without a PK.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}memberships
+                    DROP PRIMARY KEY,
+                    DROP COLUMN tmp_pk,
+                    ADD CONSTRAINT pk_${gravitee_prefix}memberships PRIMARY KEY (id);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}memberships ADD CONSTRAINT pk_${gravitee_prefix}memberships PRIMARY KEY (id)
 
         - dropTable:
             tableName: ${gravitee_prefix}membership_roles
             
         ## group, group_roles & memberships ##
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}group_roles
-            tableName: ${gravitee_prefix}group_roles
+        # group_roles — same shape as membership_roles above: rebuild PK
+        # while widening role_scope, with a placeholder PK on MySQL/MariaDB
+        # that disappears with the dropTable later in this changeSet.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}group_roles
+                    DROP PRIMARY KEY,
+                    MODIFY COLUMN role_scope NVARCHAR(64) NOT NULL,
+                    ADD PRIMARY KEY (group_id, role_scope);
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}group_roles DROP CONSTRAINT pk_${gravitee_prefix}group_roles
         - modifyDataType:
             columnName: role_scope
             newDataType: nvarchar(64)
@@ -271,9 +330,14 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}plan_apis
             indexName: idx_${gravitee_prefix}planapis_api
 
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}plan_apis
-            tableName: ${gravitee_prefix}plan_apis
+        # plan_apis — the table is dropped right after, so dropping the PK
+        # first is only needed by DBMSes whose dropTable would otherwise
+        # leave dangling constraints. Skip the explicit dropPK on MySQL
+        # where it is rejected by sql_require_primary_key=ON without an
+        # in-statement replacement.
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}plan_apis DROP CONSTRAINT pk_${gravitee_prefix}plan_apis
 
         - dropTable:
             tableName: ${gravitee_prefix}plan_apis
@@ -591,56 +655,38 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}environments
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}environments" } }
               - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}environments
-            columnNames: id
-            tableName: ${gravitee_prefix}environments
         - sql:
             sql: insert into ${gravitee_prefix}environments (id, name, description, organization_id) values ('DEFAULT', 'Default environment', 'Default environment', 'DEFAULT')
 
         - createTable:
             tableName: ${gravitee_prefix}environment_domain_restrictions
             columns:
-              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}environment_domain_restrictions
-            columnNames: environment_id, domain_restriction
-            tableName: ${gravitee_prefix}environment_domain_restrictions
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}environment_domain_restrictions" } }
+              - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
         - createTable:
             tableName: ${gravitee_prefix}organizations
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}organizations" } }
               - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}organizations
-            columnNames: id
-            tableName: ${gravitee_prefix}organizations
         - sql:
             sql: insert into ${gravitee_prefix}organizations (id, name, description) values ('DEFAULT', 'Default organization', 'Default organization')
 
         - createTable:
             tableName: ${gravitee_prefix}organization_domain_restrictions
             columns:
-              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}organization_domain_restrictions
-            columnNames: organization_id, domain_restriction
-            tableName: ${gravitee_prefix}organization_domain_restrictions
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}organization_domain_restrictions" } }
+              - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
         - createTable:
             tableName: ${gravitee_prefix}themes
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}themes" } }
               - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
@@ -651,11 +697,6 @@ databaseChangeLog:
               - column: {name: logo, type: nclob, constraints: { nullable: true } }
               - column: {name: optional_logo, type: nclob, constraints: { nullable: true } }
               - column: {name: background_image, type: nclob, constraints: { nullable: true } }
-        - addPrimaryKey:
-              constraintName: pk_${gravitee_prefix}themes
-              columnNames: id
-              tableName: ${gravitee_prefix}themes
-
         ## others
         - addColumn:
             tableName: ${gravitee_prefix}users

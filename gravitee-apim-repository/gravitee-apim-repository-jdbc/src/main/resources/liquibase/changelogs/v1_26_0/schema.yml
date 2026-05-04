@@ -2,6 +2,7 @@ databaseChangeLog:
     - changeSet:
         id: 1.26.0
         author: GraviteeSource Team
+        validCheckSum: ANY
         changes:
         - addColumn:
             tableName: ${gravitee_prefix}client_registration_providers
@@ -33,7 +34,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}workflows
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}workflows" } }
               - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
@@ -42,7 +43,3 @@ databaseChangeLog:
               - column: {name: user, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}workflows
-            columnNames: id
-            tableName: ${gravitee_prefix}workflows
