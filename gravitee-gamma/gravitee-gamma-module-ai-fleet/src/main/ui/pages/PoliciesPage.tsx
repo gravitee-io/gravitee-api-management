@@ -1,6 +1,94 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-yaml';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+// Injected once — Prism dark theme scoped to .yaml-editor
+const PRISM_STYLE = `
+.yaml-editor { background: var(--color-card); color: #abb2bf; }
+.yaml-editor .token.comment    { color: #5c6370; font-style: italic; }
+.yaml-editor .token.key        { color: #e06c75; }
+.yaml-editor .token.string     { color: #98c379; }
+.yaml-editor .token.boolean    { color: #56b6c2; }
+.yaml-editor .token.number     { color: #d19a66; }
+.yaml-editor .token.null       { color: #56b6c2; }
+.yaml-editor .token.punctuation { color: #abb2bf; }
+.yaml-editor .token.tag        { color: #e5c07b; }
+.yaml-editor .token.important  { color: #e5c07b; font-weight: bold; }
+`;
+
+function injectStyle() {
+    if (document.getElementById('prism-yaml-style')) return;
+    const el = document.createElement('style');
+    el.id = 'prism-yaml-style';
+    el.textContent = PRISM_STYLE;
+    document.head.appendChild(el);
+}
+
+const SHARED_STYLE: React.CSSProperties = {
+    fontFamily: "'Fira Code', 'Cascadia Code', 'Menlo', monospace",
+    fontSize: '0.85rem',
+    lineHeight: '1.6',
+    padding: '0.75rem',
+    margin: 0,
+    tabSize: 2,
+    whiteSpace: 'pre',
+    overflowWrap: 'normal',
+    wordBreak: 'normal',
+    borderRadius: '0.5rem',
+    border: '1px solid var(--color-border)',
+};
+
+function YamlEditor({ value, onChange }: { readonly value: string; readonly onChange: (v: string) => void }) {
+    const preRef = useRef<HTMLPreElement>(null);
+    const highlighted = Prism.highlight(value || ' ', Prism.languages['yaml'], 'yaml');
+
+    const syncScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+        if (preRef.current) {
+            preRef.current.scrollTop = e.currentTarget.scrollTop;
+            preRef.current.scrollLeft = e.currentTarget.scrollLeft;
+        }
+    };
+
+    return (
+        <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+            <pre
+                ref={preRef}
+                aria-hidden
+                className="yaml-editor"
+                style={{
+                    ...SHARED_STYLE,
+                    position: 'absolute',
+                    inset: 0,
+                    overflow: 'hidden',
+                    pointerEvents: 'none',
+                }}
+                dangerouslySetInnerHTML={{ __html: highlighted + '\n' }}
+            />
+            <textarea
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                onScroll={syncScroll}
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                style={{
+                    ...SHARED_STYLE,
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'transparent',
+                    color: 'transparent',
+                    caretColor: '#abb2bf',
+                    outline: 'none',
+                    resize: 'none',
+                    overflow: 'auto',
+                    zIndex: 1,
+                }}
+            />
+        </div>
+    );
+}
 
 export function PoliciesPage() {
     const [devices, setDevices] = useState<string[]>([]);
@@ -8,6 +96,8 @@ export function PoliciesPage() {
     const [content, setContent] = useState('');
     const [saveState, setSaveState] = useState<SaveState>('idle');
     const [loadError, setLoadError] = useState<string | null>(null);
+
+    useEffect(() => { injectStyle(); }, []);
 
     useEffect(() => {
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
@@ -107,6 +197,7 @@ export function PoliciesPage() {
                     fontSize: '0.85rem',
                     color: 'var(--color-muted-foreground)',
                     lineHeight: 1.5,
+                    flexShrink: 0,
                 }}
             >
                 <strong style={{ color: '#60a5fa' }}>ℹ︎ Live reload</strong> — Changes are written directly to the DAImon's{' '}
@@ -121,24 +212,7 @@ export function PoliciesPage() {
                     )}
                 </div>
             ) : (
-                <textarea
-                    value={content}
-                    onChange={e => { setContent(e.target.value); setSaveState('idle'); }}
-                    spellCheck={false}
-                    style={{
-                        flex: 1,
-                        fontFamily: 'monospace',
-                        fontSize: '0.85rem',
-                        padding: '0.75rem',
-                        background: 'var(--color-card)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '0.5rem',
-                        color: 'inherit',
-                        resize: 'none',
-                        lineHeight: 1.6,
-                        outline: 'none',
-                    }}
-                />
+                <YamlEditor value={content} onChange={v => { setContent(v); setSaveState('idle'); }} />
             )}
         </div>
     );
