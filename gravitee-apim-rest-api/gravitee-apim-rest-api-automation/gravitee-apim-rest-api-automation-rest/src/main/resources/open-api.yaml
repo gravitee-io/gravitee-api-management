@@ -1524,7 +1524,6 @@ components:
         - type
         - mode
         - validation
-        - security
 
     Member:
       description: Users that can manage an object (API, Application, etc.)
