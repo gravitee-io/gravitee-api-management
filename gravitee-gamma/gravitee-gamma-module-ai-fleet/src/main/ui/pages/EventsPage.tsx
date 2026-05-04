@@ -28,7 +28,7 @@ export function EventsPage() {
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        fetch('/gamma/modules/ai-fleet/devices')
+        fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
             .then(res => res.json())
             .then((data: { hostname: string }[]) => {
                 const hostnames = data.map(d => d.hostname);
@@ -42,7 +42,7 @@ export function EventsPage() {
         if (!hostname) return;
         setEvents([]);
 
-        const source = new EventSource(`/gamma/modules/ai-fleet/events/${hostname}`);
+        const source = new EventSource(`/gamma/organizations/DEFAULT/modules/ai-fleet/events/${hostname}`);
         source.onmessage = e => {
             try {
                 const event: FleetEvent = JSON.parse(e.data);

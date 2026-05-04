@@ -13,7 +13,7 @@ export function FleetPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch('/gamma/modules/ai-fleet/devices')
+        fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
             .then(res => res.json())
             .then(data => {
                 setDevices(data);
