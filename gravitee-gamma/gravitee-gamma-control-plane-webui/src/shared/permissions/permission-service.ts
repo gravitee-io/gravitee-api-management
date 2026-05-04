@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { IPermissionService } from '@gravitee/gamma-modules-sdk/types';
+
 import type { PermissionScope } from './types';
 
 type Listener = () => void;
@@ -21,7 +23,7 @@ type Listener = () => void;
  * Vanilla permission store shared across Gamma host and federated modules.
  * Not tied to Zustand/Redux; consumers can subscribe for custom integrations.
  */
-export class PermissionService {
+export class PermissionService implements IPermissionService {
     private readonly scopes = new Map<PermissionScope, string[]>();
     private version = 0;
     private readonly listeners = new Set<Listener>();
