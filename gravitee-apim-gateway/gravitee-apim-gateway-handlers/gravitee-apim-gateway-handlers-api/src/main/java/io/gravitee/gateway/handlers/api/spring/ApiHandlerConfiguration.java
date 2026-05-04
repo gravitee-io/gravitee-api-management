@@ -141,8 +141,16 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public PolicyFactory policyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new HttpPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+    public PolicyFactory policyFactory(
+        final PolicyPluginFactory policyPluginFactory,
+        final RequestTimeoutConfiguration requestTimeoutConfiguration
+    ) {
+        return new HttpPolicyFactory(
+            configuration,
+            policyPluginFactory,
+            new ExpressionLanguageConditionFilter<>(),
+            requestTimeoutConfiguration.getPolicyTimeoutMs()
+        );
     }
 
     @Bean
