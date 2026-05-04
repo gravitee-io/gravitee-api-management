@@ -77,7 +77,18 @@ func NewCollector(hostname, baseDir string) *Collector {
 
 	c := &Collector{hostname: hostname, deviceDir: deviceDir, file: f}
 	c.writeDeviceState()
+	go c.heartbeat()
 	return c
+}
+
+func (c *Collector) heartbeat() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		c.mu.Lock()
+		c.writeDeviceState()
+		c.mu.Unlock()
+	}
 }
 
 func (c *Collector) writeDeviceState() {
@@ -105,6 +116,7 @@ func (c *Collector) Record(event Event) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	c.writeDeviceState()
 	c.stats.RequestsTotal++
 	if event.Action == "blocked" {
 		c.stats.RequestsBlocked++
