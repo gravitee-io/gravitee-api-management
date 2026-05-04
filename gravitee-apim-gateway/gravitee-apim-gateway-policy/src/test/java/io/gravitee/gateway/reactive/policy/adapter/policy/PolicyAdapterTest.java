@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.policy.adapter.policy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doAnswer;
@@ -39,6 +40,10 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -296,6 +301,163 @@ class PolicyAdapterTest {
 
         obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
         verify(adaptedExecutionContext).restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // PEN-88: Reproduce DoS — V3 policy blocks the subscriber (event loop) thread
+    // -------------------------------------------------------------------------
+
+    /**
+     * Demonstrates the root cause of PEN-88:
+     * policyExecute() runs policy.execute() synchronously on whatever thread
+     * calls subscribe() — in production that is the Vert.x event loop thread.
+     *
+     * A blocking script (while(true){}) will pin the thread, preventing any
+     * other I/O from being processed on that core.
+     */
+    @Test
+    void pen88_shouldRunPolicyOnCallerThread_demonstratesEventLoopBlock() throws PolicyException {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        final AtomicReference<String> policyThread = new AtomicReference<>();
+
+        when(policy.isRunnable()).thenReturn(true);
+        doAnswer(invocation -> {
+            policyThread.set(Thread.currentThread().getName());
+            PolicyChainAdapter chain = invocation.getArgument(0);
+            chain.doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
+            .when(policy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        final PolicyAdapter cut = new PolicyAdapter(policy);
+        final String callerThread = Thread.currentThread().getName();
+
+        // Subscribe synchronously — no subscribeOn(), just like the event loop does
+        cut.onRequest(ctx).blockingAwait();
+
+        // BUG: policy ran on the exact same thread that called subscribe().
+        // In production this is the Vert.x I/O event loop thread.
+        assertThat(policyThread.get())
+            .as("PEN-88 root cause: policy.execute() blocks the caller (event loop) thread")
+            .isEqualTo(callerThread);
+    }
+
+    /**
+     * Demonstrates event loop starvation:
+     * while the blocking V3 policy occupies the single-threaded scheduler,
+     * no other task submitted to that scheduler can run.
+     */
+    @Test
+    void pen88_shouldStarveEventLoopWhilePolicyBlocks() throws Exception {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+
+        final CountDownLatch policyStarted = new CountDownLatch(1);
+        final CountDownLatch releasePolicy = new CountDownLatch(1);
+
+        when(policy.isRunnable()).thenReturn(true);
+        doAnswer(invocation -> {
+            policyStarted.countDown();
+            // Simulate an infinite / very long blocking script
+            releasePolicy.await(10, TimeUnit.SECONDS);
+            PolicyChainAdapter chain = invocation.getArgument(0);
+            chain.doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
+            .when(policy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        final PolicyAdapter cut = new PolicyAdapter(policy);
+
+        // Use a single-threaded scheduler to simulate the Vert.x event loop
+        var eventLoopSimulator = Schedulers.single();
+        cut.onRequest(ctx).subscribeOn(eventLoopSimulator).subscribe();
+
+        // Wait for the policy to start occupying the "event loop" thread
+        assertThat(policyStarted.await(2, TimeUnit.SECONDS)).as("Policy should have started").isTrue();
+
+        // BUG: try to submit another task to the same "event loop" — it is blocked
+        CountDownLatch otherTaskLatch = new CountDownLatch(1);
+        eventLoopSimulator.scheduleDirect(otherTaskLatch::countDown);
+
+        assertThat(otherTaskLatch.await(200, TimeUnit.MILLISECONDS))
+            .as("PEN-88: event loop is blocked — no other task can run while policy spins")
+            .isFalse();
+
+        // Cleanup: release the policy so the test thread can exit cleanly
+        releasePolicy.countDown();
+    }
+
+    // -------------------------------------------------------------------------
+    // PEN-88: Verify the fix — policy runs on worker thread, event loop is free
+    // -------------------------------------------------------------------------
+
+    @Test
+    void pen88_shouldRunPolicyOnWorkerThread_whenWorkerSchedulerConfigured() throws PolicyException, InterruptedException {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        final AtomicReference<String> policyThread = new AtomicReference<>();
+
+        when(policy.isRunnable()).thenReturn(true);
+        doAnswer(invocation -> {
+            policyThread.set(Thread.currentThread().getName());
+            PolicyChainAdapter chain = invocation.getArgument(0);
+            chain.doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
+            .when(policy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        // Use the production 3-arg constructor with a worker scheduler
+        final PolicyAdapter cut = new PolicyAdapter(policy, Schedulers.io());
+        final String callerThread = Thread.currentThread().getName();
+
+        cut.onRequest(ctx).blockingAwait();
+
+        // FIX: policy no longer runs on the event loop (caller) thread
+        assertThat(policyThread.get())
+            .as("PEN-88 fix: policy.execute() should run on a worker thread, not the event loop")
+            .isNotEqualTo(callerThread);
+    }
+
+    @Test
+    void pen88_shouldNotBlockEventLoop_whenWorkerSchedulerConfigured() throws Exception {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+
+        final CountDownLatch policyStarted = new CountDownLatch(1);
+        final CountDownLatch releasePolicy = new CountDownLatch(1);
+
+        when(policy.isRunnable()).thenReturn(true);
+        doAnswer(invocation -> {
+            policyStarted.countDown();
+            releasePolicy.await(10, TimeUnit.SECONDS);
+            PolicyChainAdapter chain = invocation.getArgument(0);
+            chain.doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
+            .when(policy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        var eventLoopSimulator = Schedulers.single();
+
+        // FIX: PolicyAdapter uses its own worker scheduler — event loop is not blocked
+        final PolicyAdapter cut = new PolicyAdapter(policy, Schedulers.io());
+        cut.onRequest(ctx).subscribeOn(eventLoopSimulator).subscribe();
+
+        assertThat(policyStarted.await(2, TimeUnit.SECONDS)).as("Policy should have started on worker thread").isTrue();
+
+        // The event loop thread is now FREE — another task can run immediately
+        CountDownLatch otherTaskLatch = new CountDownLatch(1);
+        eventLoopSimulator.scheduleDirect(otherTaskLatch::countDown);
+
+        assertThat(otherTaskLatch.await(2, TimeUnit.SECONDS))
+            .as("PEN-88 fix: event loop is free while V3 policy runs on worker thread")
+            .isTrue();
+
+        releasePolicy.countDown();
     }
 
     private void mockPolicyExecution(Policy policy) throws PolicyException {

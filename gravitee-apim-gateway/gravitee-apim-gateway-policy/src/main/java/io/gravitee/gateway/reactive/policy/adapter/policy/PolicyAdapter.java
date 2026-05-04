@@ -24,6 +24,8 @@ import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -36,8 +38,16 @@ public class PolicyAdapter implements HttpPolicy {
 
     private final io.gravitee.gateway.policy.Policy policy;
 
+    /** {@code null} disables offloading (backward-compat / unit-test mode). */
+    private final Scheduler workerScheduler;
+
     public PolicyAdapter(io.gravitee.gateway.policy.Policy policy) {
+        this(policy, null);
+    }
+
+    public PolicyAdapter(io.gravitee.gateway.policy.Policy policy, Scheduler workerScheduler) {
         this.policy = policy;
+        this.workerScheduler = workerScheduler;
     }
 
     @Override
@@ -97,13 +107,24 @@ public class PolicyAdapter implements HttpPolicy {
     }
 
     private Completable policyExecute(ExecutionContextAdapter adaptedCtx) {
-        return Completable.create(emitter -> {
+        Completable exec = Completable.create(emitter -> {
             try {
                 policy.execute(new PolicyChainAdapter(adaptedCtx.getDelegate(), emitter), adaptedCtx);
             } catch (Throwable t) {
                 emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
             }
         });
+
+        if (workerScheduler != null) {
+            // PEN-88: offload to worker thread, then return to event loop so downstream
+            // Vert.x operations (backend HTTP request, etc.) execute in the correct context.
+            // In production, Schedulers.io() → vertx.executeBlocking() and
+            // Schedulers.computation() → RxHelper.scheduler(vertx) (event loop), both
+            // overridden by HttpProtocolVerticle.
+            exec = exec.subscribeOn(workerScheduler).observeOn(Schedulers.computation());
+        }
+
+        return exec;
     }
 
     private Completable policyStream(ExecutionContextAdapter adaptedCtx, ExecutionPhase phase) {
