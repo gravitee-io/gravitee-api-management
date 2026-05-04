@@ -60,15 +60,19 @@ class RequestConfigurationTest {
 
     @Test
     void should_configure_timeout_when_greater_than_0() {
-        assertThat(cut.httpRequestTimeoutConfiguration(30L, 10))
-            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
-            .containsExactly(30L, 10L);
+        assertThat(cut.httpRequestTimeoutConfiguration(30L, 10, 10_000L))
+            .extracting(
+                RequestTimeoutConfiguration::getRequestTimeout,
+                RequestTimeoutConfiguration::getRequestTimeoutGraceDelay,
+                RequestTimeoutConfiguration::getPolicyTimeoutMs
+            )
+            .containsExactly(30L, 10L, 10_000L);
     }
 
     @ParameterizedTest(name = "Timeout: {0}")
     @ValueSource(longs = { -10L, 0, 30L })
     void should_use_configured_timeout(long timeout) {
-        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10);
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, 10_000L);
 
         assertThat(result)
             .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
@@ -90,7 +94,7 @@ class RequestConfigurationTest {
     @ParameterizedTest(name = "Timeout: {0}")
     @NullSource
     void should_use_default_timeout_when_unset(Long timeout) {
-        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10);
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, 10_000L);
 
         assertThat(result)
             .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
