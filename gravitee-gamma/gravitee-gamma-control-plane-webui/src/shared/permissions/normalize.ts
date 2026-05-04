@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PermissionScope, UserRole } from './types';
+import type { NormalizeCrudMapRecordFn, NormalizeOrgPermissionsFn } from '@gravitee/gamma-modules-sdk/types';
 
 /**
  * Normalizes management API permission maps to lowercase tokens:
  * `<scope>-<featureKey>-<c|r|u|d>` (aligned with Console GioPermissionService).
  */
-export function normalizeCrudMapRecord(scope: PermissionScope, record: Record<string, string[] | string>): string[] {
+export const normalizeCrudMapRecord: NormalizeCrudMapRecordFn = (scope, record) => {
     return Object.entries(record).flatMap(([key, crudValues]) => {
         const keyPart = key.toLowerCase();
         if (Array.isArray(crudValues)) {
@@ -27,12 +27,12 @@ export function normalizeCrudMapRecord(scope: PermissionScope, record: Record<st
         }
         return crudValues.split('').map(letter => `${scope}-${keyPart}-${letter.toLowerCase()}`);
     });
-}
+};
 
 /**
  * Organization-scoped permissions from current user roles (same rules as Console).
  */
-export function normalizeOrganizationPermissionsFromRoles(roles: UserRole[] | undefined): string[] {
+export const normalizeOrganizationPermissionsFromRoles: NormalizeOrgPermissionsFn = roles => {
     if (!roles?.length) {
         return [];
     }
@@ -42,4 +42,4 @@ export function normalizeOrganizationPermissionsFromRoles(roles: UserRole[] | un
         .flatMap(([key, crudValues]) =>
             (crudValues ?? []).map(crudValue => `organization-${key.toLowerCase()}-${crudValue.toLowerCase()}`),
         );
-}
+};

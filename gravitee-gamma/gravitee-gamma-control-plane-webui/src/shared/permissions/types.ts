@@ -13,15 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/** Re-exported via `index.ts`; same-folder code imports `./types` to avoid a cycle through the barrel. */
-export type PermissionScope = 'organization' | 'environment' | 'api' | 'application';
-
-export type PermissionCheck = { readonly anyOf: string[]; readonly allOf?: never } | { readonly allOf: string[]; readonly anyOf?: never };
-
-export interface UserRole {
-    id?: string;
-    name?: string;
-    scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
-    permissions?: Record<string, string[]>;
-}
+export type { PermissionScope, PermissionCheck, UserRole } from '@gravitee/gamma-modules-sdk/types';

@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 export { PermissionGate } from './PermissionGate';
-export type { PermissionGateProps } from './PermissionGate';
 export { normalizeCrudMapRecord, normalizeOrganizationPermissionsFromRoles } from './normalize';
 export { PermissionService, permissionService } from './permission-service';
-export type { PermissionCheck, PermissionScope, UserRole } from './types';
 export { useHasPermission } from './useHasPermission';
-export type { UseHasPermissionOptions } from './useHasPermission';
+export type {
+    IPermissionService,
+    PermissionCheck,
+    PermissionGateProps,
+    PermissionScope,
+    UseHasPermissionOptions,
+    UserRole,
+} from '@gravitee/gamma-modules-sdk/types';

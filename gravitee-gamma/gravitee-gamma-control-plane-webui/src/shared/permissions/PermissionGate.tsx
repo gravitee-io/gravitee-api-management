@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ReactElement, ReactNode } from 'react';
+import type { PermissionGateFn, PermissionGateProps } from '@gravitee/gamma-modules-sdk/types';
 
-import type { PermissionCheck } from './types';
 import { useHasPermission } from './useHasPermission';
 
-export type PermissionGateProps = PermissionCheck & {
-    readonly children: ReactNode;
-    readonly fallback?: ReactNode;
-};
+export type { PermissionGateProps } from '@gravitee/gamma-modules-sdk/types';
 
-export function PermissionGate(props: PermissionGateProps): ReactElement | null {
+export const PermissionGate: PermissionGateFn = (props: PermissionGateProps) => {
     const allowed = useHasPermission(props.anyOf ? { anyOf: props.anyOf } : { allOf: props.allOf ?? [] });
 
     if (!allowed) {
@@ -31,4 +27,4 @@ export function PermissionGate(props: PermissionGateProps): ReactElement | null 
     }
 
     return <>{props.children}</>;
-}
+};
