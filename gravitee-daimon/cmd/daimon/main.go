@@ -54,7 +54,11 @@ func main() {
 	det := detector.New(cfg.Detector.Providers, cfg.Detector.ScanIntervalSec, collector, events)
 	go det.Start(ctx)
 
-	p := proxy.New(cfg.Gateway.URL+cfg.Gateway.AIAPIPath, engine, collector, events)
+	var sessionTag string
+	if *asHost != "" {
+		sessionTag = "as " + *asHost + " daimon"
+	}
+	p := proxy.New(cfg.Gateway.URL+cfg.Gateway.AIAPIPath, sessionTag, engine, collector, events)
 	go p.Start(cfg.Proxy.ListenPort)
 
 	fmt.Printf("DAImon listening on :%d → %s\n", cfg.Proxy.ListenPort, cfg.Gateway.URL)

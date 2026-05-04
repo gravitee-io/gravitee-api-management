@@ -18,28 +18,30 @@ import (
 )
 
 type Proxy struct {
-	target    *url.URL
-	engine    *policy.Engine
-	collector *metrics.Collector
-	events    chan<- tui.Event
-	reverse   *httputil.ReverseProxy
+	target     *url.URL
+	sessionTag string
+	engine     *policy.Engine
+	collector  *metrics.Collector
+	events     chan<- tui.Event
+	reverse    *httputil.ReverseProxy
 }
 
 type anthropicRequest struct {
 	Model string `json:"model"`
 }
 
-func New(targetURL string, engine *policy.Engine, collector *metrics.Collector, events chan<- tui.Event) *Proxy {
+func New(targetURL string, sessionTag string, engine *policy.Engine, collector *metrics.Collector, events chan<- tui.Event) *Proxy {
 	target, err := url.Parse(targetURL)
 	if err != nil {
 		log.Fatalf("invalid target URL: %v", err)
 	}
 
 	p := &Proxy{
-		target:    target,
-		engine:    engine,
-		collector: collector,
-		events:    events,
+		target:     target,
+		sessionTag: sessionTag,
+		engine:     engine,
+		collector:  collector,
+		events:     events,
 	}
 
 	p.reverse = &httputil.ReverseProxy{
@@ -74,6 +76,12 @@ func (p *Proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r.Body = io.NopCloser(bytes.NewReader(body))
+
+	// if a session tag is set, forward silently requests that don't contain it
+	if p.sessionTag != "" && !strings.Contains(string(body), p.sessionTag) {
+		p.reverse.ServeHTTP(w, r)
+		return
+	}
 
 	var ar anthropicRequest
 	json.Unmarshal(body, &ar)
