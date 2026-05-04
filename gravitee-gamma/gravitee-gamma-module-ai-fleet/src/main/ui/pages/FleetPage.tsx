@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface DeviceState {
     hostname: string;
@@ -12,7 +12,6 @@ export function FleetPage() {
     const [devices, setDevices] = useState<DeviceState[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
@@ -40,11 +39,15 @@ export function FleetPage() {
             ) : (
                 <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
                     {devices.map(device => (
-                        <DeviceCard
+                        <Link
                             key={device.hostname}
-                            device={device}
-                            onClick={() => navigate('../events', { state: { host: device.hostname }, relative: 'route' })}
-                        />
+                            to="../events"
+                            state={{ host: device.hostname }}
+                            relative="route"
+                            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                        >
+                            <DeviceCard device={device} />
+                        </Link>
                     ))}
                 </div>
             )}
@@ -52,14 +55,13 @@ export function FleetPage() {
     );
 }
 
-function DeviceCard({ device, onClick }: { readonly device: DeviceState; readonly onClick: () => void }) {
+function DeviceCard({ device }: { readonly device: DeviceState }) {
     const lastSeen = new Date(device.last_seen);
     const ageMs = Date.now() - lastSeen.getTime();
     const isOnline = ageMs < 2 * 60 * 1000;
 
     return (
         <div
-            onClick={onClick}
             style={{
                 border: '1px solid var(--color-border)',
                 borderRadius: '0.5rem',
