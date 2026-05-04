@@ -27,8 +27,49 @@ type Proxy struct {
 	reverse    *httputil.ReverseProxy
 }
 
+type anthropicContent struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+type anthropicMessage struct {
+	Role    string          `json:"role"`
+	Content json.RawMessage `json:"content"`
+}
+
 type anthropicRequest struct {
-	Model string `json:"model"`
+	Model    string             `json:"model"`
+	System   string             `json:"system"`
+	Messages []anthropicMessage `json:"messages"`
+}
+
+func contentTokens(raw json.RawMessage) int {
+	var s string
+	if json.Unmarshal(raw, &s) == nil {
+		return len(s) / 4
+	}
+	var blocks []anthropicContent
+	if json.Unmarshal(raw, &blocks) == nil {
+		total := 0
+		for _, b := range blocks {
+			total += len(b.Text) / 4
+		}
+		return total
+	}
+	return len(raw) / 4
+}
+
+func tokenSplit(ar anthropicRequest) (systemTok, historyTok, userTok int) {
+	systemTok = len(ar.System) / 4
+	n := len(ar.Messages)
+	if n == 0 {
+		return
+	}
+	userTok = contentTokens(ar.Messages[n-1].Content)
+	for _, msg := range ar.Messages[:n-1] {
+		historyTok += contentTokens(msg.Content)
+	}
+	return
 }
 
 func New(targetURL string, sessionTag string, engine *policy.Engine, collector *metrics.Collector, events chan<- tui.Event) *Proxy {
@@ -144,24 +185,28 @@ func (p *Proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 	p.reverse.ServeHTTP(rec, r)
 
 	latency := time.Since(start).Milliseconds()
+	systemTok, historyTok, userTok := tokenSplit(ar)
+	tokensOut := estimateOutputTokens(rec.body.Bytes())
 
 	p.collector.Record(metrics.Event{
-		Type:      metrics.EventRequest,
-		Model:     ar.Model,
-		TokensIn:  estimateInputTokens(body),
-		TokensOut: estimateOutputTokens(rec.body.Bytes()),
-		CostUSD:   0, // TODO: calculate from model pricing
-		LatencyMs: latency,
-		Action:    "allowed",
-		Tool:      tool,
+		Type:            metrics.EventRequest,
+		Model:           ar.Model,
+		TokensIn:        systemTok + historyTok + userTok,
+		TokensInSystem:  systemTok,
+		TokensInHistory: historyTok,
+		TokensInUser:    userTok,
+		TokensOut:       tokensOut,
+		LatencyMs:       latency,
+		Action:          "allowed",
+		Tool:            tool,
 	})
 
 	p.events <- tui.Event{
 		Type:     tui.EventRequest,
 		Time:     time.Now(),
 		Model:    ar.Model,
-		TokensIn: estimateInputTokens(body),
-		TokenOut: estimateOutputTokens(rec.body.Bytes()),
+		TokensIn: systemTok + historyTok + userTok,
+		TokenOut: tokensOut,
 		Latency:  time.Duration(latency) * time.Millisecond,
 		Tool:     tool,
 	}
@@ -205,10 +250,6 @@ func containsLower(s, substr string) bool {
 		}
 	}
 	return false
-}
-
-func estimateInputTokens(body []byte) int {
-	return len(body) / 4
 }
 
 func estimateOutputTokens(body []byte) int {

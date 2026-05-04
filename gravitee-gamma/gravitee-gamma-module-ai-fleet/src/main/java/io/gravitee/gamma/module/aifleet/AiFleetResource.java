@@ -115,13 +115,16 @@ public class AiFleetResource {
         stats.put("requests", 0);
         stats.put("blocked", 0);
         stats.put("tokens_in", 0);
+        stats.put("tokens_in_system", 0);
+        stats.put("tokens_in_history", 0);
+        stats.put("tokens_in_user", 0);
         stats.put("tokens_out", 0);
 
         if (!eventsFile.toFile().exists()) {
             return Response.ok(stats).build();
         }
 
-        int requests = 0, blocked = 0, tokensIn = 0, tokensOut = 0;
+        int requests = 0, blocked = 0, tokensIn = 0, tokensInSystem = 0, tokensInHistory = 0, tokensInUser = 0, tokensOut = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(eventsFile.toFile()))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -132,6 +135,9 @@ public class AiFleetResource {
                     if ("request".equals(type)) {
                         requests++;
                         tokensIn += node.path("tokens_in").asInt(0);
+                        tokensInSystem += node.path("tokens_in_system").asInt(0);
+                        tokensInHistory += node.path("tokens_in_history").asInt(0);
+                        tokensInUser += node.path("tokens_in_user").asInt(0);
                         tokensOut += node.path("tokens_out").asInt(0);
                     } else if ("policy_block".equals(type)) {
                         blocked++;
@@ -147,6 +153,9 @@ public class AiFleetResource {
         stats.put("requests", requests);
         stats.put("blocked", blocked);
         stats.put("tokens_in", tokensIn);
+        stats.put("tokens_in_system", tokensInSystem);
+        stats.put("tokens_in_history", tokensInHistory);
+        stats.put("tokens_in_user", tokensInUser);
         stats.put("tokens_out", tokensOut);
         return Response.ok(stats).build();
     }

@@ -7,6 +7,9 @@ interface FleetEvent {
     device_id: string;
     model?: string;
     tokens_in?: number;
+    tokens_in_system?: number;
+    tokens_in_history?: number;
+    tokens_in_user?: number;
     tokens_out?: number;
     action?: string;
     reason?: string;
@@ -19,6 +22,9 @@ interface Stats {
     requests: number;
     blocked: number;
     tokens_in: number;
+    tokens_in_system: number;
+    tokens_in_history: number;
+    tokens_in_user: number;
     tokens_out: number;
 }
 
@@ -34,7 +40,7 @@ export function EventsPage() {
     const initialHost = (location.state as { host?: string } | null)?.host ?? searchParams.get('host') ?? '';
     const [hostname, setHostname] = useState(initialHost);
     const [devices, setDevices] = useState<string[]>([]);
-    const [stats, setStats] = useState<Stats>({ requests: 0, blocked: 0, tokens_in: 0, tokens_out: 0 });
+    const [stats, setStats] = useState<Stats>({ requests: 0, blocked: 0, tokens_in: 0, tokens_in_system: 0, tokens_in_history: 0, tokens_in_user: 0, tokens_out: 0 });
     const [trafficEvents, setTrafficEvents] = useState<FleetEvent[]>([]);
     const [directEvents, setDirectEvents] = useState<FleetEvent[]>([]);
     const lastTimestampRef = useRef<string | null>(null);
@@ -54,7 +60,7 @@ export function EventsPage() {
         if (!hostname) return;
         setTrafficEvents([]);
         setDirectEvents([]);
-        setStats({ requests: 0, blocked: 0, tokens_in: 0, tokens_out: 0 });
+        setStats({ requests: 0, blocked: 0, tokens_in: 0, tokens_in_system: 0, tokens_in_history: 0, tokens_in_user: 0, tokens_out: 0 });
         lastTimestampRef.current = null;
 
         const fetchStats = () => {
@@ -121,7 +127,16 @@ export function EventsPage() {
             >
                 <MetricCard label="Requests" value={stats.requests} color="#22c55e" />
                 <MetricCard label="Blocked" value={stats.blocked} color="#ef4444" />
-                <MetricCard label="Tokens in" value={stats.tokens_in} color="#60a5fa" />
+                <MetricCard
+                    label="Tokens in"
+                    value={stats.tokens_in}
+                    color="#60a5fa"
+                    breakdown={stats.tokens_in > 0 ? [
+                        { label: 'sys', value: stats.tokens_in_system, color: '#f97316' },
+                        { label: 'hist', value: stats.tokens_in_history, color: '#94a3b8' },
+                        { label: 'user', value: stats.tokens_in_user, color: '#60a5fa' },
+                    ] : undefined}
+                />
                 <MetricCard label="Tokens out" value={stats.tokens_out} color="#a78bfa" />
             </div>
 
@@ -223,7 +238,9 @@ export function EventsPage() {
     );
 }
 
-function MetricCard({ label, value, color }: { readonly label: string; readonly value: number; readonly color: string }) {
+interface Breakdown { label: string; value: number; color: string }
+
+function MetricCard({ label, value, color, breakdown }: { readonly label: string; readonly value: number; readonly color: string; readonly breakdown?: Breakdown[] }) {
     return (
         <div
             style={{
@@ -238,6 +255,13 @@ function MetricCard({ label, value, color }: { readonly label: string; readonly 
         >
             <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)' }}>{label}</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 700, color }}>{value.toLocaleString()}</span>
+            {breakdown && (
+                <span style={{ fontSize: '0.65rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {breakdown.map(b => (
+                        <span key={b.label} style={{ color: b.color }}>{b.label} {b.value.toLocaleString()}</span>
+                    ))}
+                </span>
+            )}
         </div>
     );
 }
@@ -248,8 +272,13 @@ function TrafficRow({ event }: { readonly event: FleetEvent }) {
 
     const detail = (() => {
         switch (event.type) {
-            case 'request':
-                return `${event.model ?? '(unknown)'}  ${event.tokens_in ?? 0} → ${event.tokens_out ?? 0} tok`;
+            case 'request': {
+                const hasSplit = (event.tokens_in_system ?? 0) + (event.tokens_in_history ?? 0) + (event.tokens_in_user ?? 0) > 0;
+                const inDetail = hasSplit
+                    ? `sys ${event.tokens_in_system ?? 0} · hist ${event.tokens_in_history ?? 0} · user ${event.tokens_in_user ?? 0}`
+                    : `${event.tokens_in ?? 0}`;
+                return `${event.model ?? '(unknown)'}  ${inDetail} → ${event.tokens_out ?? 0} tok`;
+            }
             case 'policy_block':
                 return `BLOCKED by ${event.policy_applied}: ${event.reason}`;
             case 'policy_warn':

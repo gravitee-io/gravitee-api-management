@@ -20,21 +20,24 @@ const (
 )
 
 type Event struct {
-	Timestamp     time.Time `json:"timestamp"`
-	Type          EventType `json:"type"`
-	DeviceID      string    `json:"device_id"`
-	Model         string    `json:"model,omitempty"`
-	TokensIn      int       `json:"tokens_in,omitempty"`
-	TokensOut     int       `json:"tokens_out,omitempty"`
-	CostUSD       float64   `json:"cost_usd,omitempty"`
-	LatencyMs     int64     `json:"latency_ms,omitempty"`
-	PolicyApplied string    `json:"policy_applied,omitempty"`
-	Action        string    `json:"action,omitempty"`
-	Reason        string    `json:"reason,omitempty"`
-	Tool          string    `json:"tool,omitempty"`
-	ProcessName   string    `json:"process_name,omitempty"`
-	ProcessPID    int       `json:"process_pid,omitempty"`
-	Provider      string    `json:"provider,omitempty"`
+	Timestamp       time.Time `json:"timestamp"`
+	Type            EventType `json:"type"`
+	DeviceID        string    `json:"device_id"`
+	Model           string    `json:"model,omitempty"`
+	TokensIn        int       `json:"tokens_in,omitempty"`
+	TokensInSystem  int       `json:"tokens_in_system,omitempty"`
+	TokensInHistory int       `json:"tokens_in_history,omitempty"`
+	TokensInUser    int       `json:"tokens_in_user,omitempty"`
+	TokensOut       int       `json:"tokens_out,omitempty"`
+	CostUSD         float64   `json:"cost_usd,omitempty"`
+	LatencyMs       int64     `json:"latency_ms,omitempty"`
+	PolicyApplied   string    `json:"policy_applied,omitempty"`
+	Action          string    `json:"action,omitempty"`
+	Reason          string    `json:"reason,omitempty"`
+	Tool            string    `json:"tool,omitempty"`
+	ProcessName     string    `json:"process_name,omitempty"`
+	ProcessPID      int       `json:"process_pid,omitempty"`
+	Provider        string    `json:"provider,omitempty"`
 }
 
 type DeviceState struct {
