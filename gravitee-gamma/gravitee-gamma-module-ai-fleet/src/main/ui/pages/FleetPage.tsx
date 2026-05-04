@@ -32,16 +32,22 @@ export function FleetPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
-            .then(res => res.json())
-            .then(data => {
-                setDevices(data);
-                setLoading(false);
-            })
-            .catch(err => {
-                setError(err.message);
-                setLoading(false);
-            });
+        const fetchDevices = () => {
+            fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
+                .then(res => res.json())
+                .then(data => {
+                    setDevices(data);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    setError(err.message);
+                    setLoading(false);
+                });
+        };
+
+        fetchDevices();
+        const interval = setInterval(fetchDevices, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     if (loading) return <p>Loading fleet...</p>;
