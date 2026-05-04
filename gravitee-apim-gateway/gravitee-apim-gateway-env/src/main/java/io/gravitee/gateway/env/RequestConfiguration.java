@@ -33,7 +33,10 @@ public class RequestConfiguration {
     @Bean
     public RequestTimeoutConfiguration httpRequestTimeoutConfiguration(
         @Value("${http.requestTimeout:#{null}}") Long httpRequestTimeout,
-        @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay
+        @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay,
+        @Value(
+            "${gateway.policy.v3.timeoutMs:#{T(io.gravitee.gateway.env.RequestTimeoutConfiguration).DEFAULT_POLICY_TIMEOUT_MS}}"
+        ) long policyTimeoutMs
     ) {
         if (httpRequestTimeout == null) {
             log.warn("Http request timeout cannot be unset. Setting it to default value: 30_000 ms");
@@ -41,7 +44,7 @@ public class RequestConfiguration {
         } else if (httpRequestTimeout <= 0) {
             log.warn("A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms");
         }
-        return new RequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay);
+        return new RequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay, policyTimeoutMs);
     }
 
     @Bean

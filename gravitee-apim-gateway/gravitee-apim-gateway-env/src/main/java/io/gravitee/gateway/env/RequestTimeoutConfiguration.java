@@ -21,13 +21,21 @@ package io.gravitee.gateway.env;
  */
 public class RequestTimeoutConfiguration {
 
+    public static final long DEFAULT_POLICY_TIMEOUT_MS = 10_000L;
+
     public RequestTimeoutConfiguration(long requestTimeout, Long requestTimeoutGraceDelay) {
+        this(requestTimeout, requestTimeoutGraceDelay, DEFAULT_POLICY_TIMEOUT_MS);
+    }
+
+    public RequestTimeoutConfiguration(long requestTimeout, Long requestTimeoutGraceDelay, long policyTimeoutMs) {
         this.requestTimeout = requestTimeout;
         this.requestTimeoutGraceDelay = requestTimeoutGraceDelay;
+        this.policyTimeoutMs = policyTimeoutMs;
     }
 
     private long requestTimeout;
     private long requestTimeoutGraceDelay;
+    private long policyTimeoutMs;
 
     public long getRequestTimeout() {
         return requestTimeout;
@@ -43,5 +51,13 @@ public class RequestTimeoutConfiguration {
 
     public void setRequestTimeoutGraceDelay(long requestTimeoutGraceDelay) {
         this.requestTimeoutGraceDelay = requestTimeoutGraceDelay;
+    }
+
+    public long getPolicyTimeoutMs() {
+        return policyTimeoutMs;
+    }
+
+    public void setPolicyTimeoutMs(long policyTimeoutMs) {
+        this.policyTimeoutMs = policyTimeoutMs;
     }
 }
