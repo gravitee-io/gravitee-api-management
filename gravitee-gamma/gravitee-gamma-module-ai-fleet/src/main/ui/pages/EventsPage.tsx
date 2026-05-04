@@ -133,6 +133,26 @@ export function EventsPage() {
                 </div>
                 <div
                     style={{
+                        marginBottom: '0.5rem',
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.375rem',
+                        background: 'rgba(96, 165, 250, 0.08)',
+                        border: '1px solid rgba(96, 165, 250, 0.25)',
+                        fontSize: '0.85rem',
+                        color: 'var(--color-muted-foreground)',
+                        lineHeight: 1.5,
+                    }}
+                >
+                    <strong style={{ color: '#60a5fa' }}>ℹ︎ Note</strong> — You may see calls to <strong>claude-haiku</strong> even when your active model is Sonnet.
+                    Claude Code uses Haiku internally for background tasks:
+                    <ul style={{ margin: '0.4rem 0 0 1.2rem', padding: 0, lineHeight: 1.6 }}>
+                        <li><strong>Context compaction</strong> — summarizing long conversations to stay within the context window</li>
+                        <li><strong>Background processing</strong> — lightweight tool calls and internal orchestration</li>
+                    </ul>
+                    These are automatic and not directly triggered by your messages.
+                </div>
+                <div
+                    style={{
                         flex: 1,
                         overflowY: 'auto',
                         fontFamily: 'monospace',
@@ -156,6 +176,30 @@ export function EventsPage() {
 
             {/* Direct connections */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <h2
+                        style={{
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            color: 'var(--color-muted-foreground)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                        }}
+                    >
+                        <span
+                            style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                background: directEvents.length > 0 ? '#f97316' : '#94a3b8',
+                                display: 'inline-block',
+                            }}
+                        />
+                        Direct connections detected ({directEvents.length})
+                    </h2>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-muted-foreground)', letterSpacing: '0.02em' }}>↓ recent first</span>
+                </div>
                 <div
                     style={{
                         marginBottom: '0.5rem',
@@ -177,28 +221,6 @@ export function EventsPage() {
                     </ul>
                     These cannot be intercepted via the proxy and are captured here by passive network detection.
                 </div>
-                <h2
-                    style={{
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        marginBottom: '0.5rem',
-                        color: 'var(--color-muted-foreground)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                    }}
-                >
-                    <span
-                        style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            background: directEvents.length > 0 ? '#f97316' : '#94a3b8',
-                            display: 'inline-block',
-                        }}
-                    />
-                    Direct connections detected ({directEvents.length})
-                </h2>
                 <div
                     style={{
                         flex: 1,
@@ -215,7 +237,7 @@ export function EventsPage() {
                     {directEvents.length === 0 ? (
                         <span style={{ color: 'var(--color-muted-foreground)' }}>No direct connections detected.</span>
                     ) : (
-                        directEvents.map((event, i) => <DirectRow key={i} event={event} />)
+                        [...directEvents].reverse().map((event, i) => <DirectRow key={i} event={event} />)
                     )}
                 </div>
             </div>
