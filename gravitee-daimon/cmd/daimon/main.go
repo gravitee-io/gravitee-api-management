@@ -60,8 +60,9 @@ func main() {
 		listenPort = *port
 	}
 
+	// session tag only needed when sharing the default port with another instance
 	var sessionTag string
-	if *asHost != "" {
+	if *asHost != "" && *port == 0 {
 		sessionTag = "as " + *asHost + " daimon"
 	}
 	p := proxy.New(cfg.Gateway.URL+cfg.Gateway.AIAPIPath, sessionTag, engine, collector, events)
