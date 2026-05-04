@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 interface FleetEvent {
     timestamp: string;
@@ -15,6 +15,13 @@ interface FleetEvent {
     policy_applied?: string;
 }
 
+interface Stats {
+    requests: number;
+    blocked: number;
+    tokens_in: number;
+    tokens_out: number;
+}
+
 const TRAFFIC_COLORS: Record<string, string> = {
     request: '#22c55e',
     policy_block: '#ef4444',
@@ -22,13 +29,15 @@ const TRAFFIC_COLORS: Record<string, string> = {
 };
 
 export function EventsPage() {
+    const location = useLocation();
     const [searchParams] = useSearchParams();
-    const [hostname, setHostname] = useState(searchParams.get('host') ?? '');
+    const initialHost = (location.state as { host?: string } | null)?.host ?? searchParams.get('host') ?? '';
+    const [hostname, setHostname] = useState(initialHost);
     const [devices, setDevices] = useState<string[]>([]);
+    const [stats, setStats] = useState<Stats>({ requests: 0, blocked: 0, tokens_in: 0, tokens_out: 0 });
     const [trafficEvents, setTrafficEvents] = useState<FleetEvent[]>([]);
     const [directEvents, setDirectEvents] = useState<FleetEvent[]>([]);
     const lastTimestampRef = useRef<string | null>(null);
-    const trafficBottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
@@ -45,7 +54,15 @@ export function EventsPage() {
         if (!hostname) return;
         setTrafficEvents([]);
         setDirectEvents([]);
+        setStats({ requests: 0, blocked: 0, tokens_in: 0, tokens_out: 0 });
         lastTimestampRef.current = null;
+
+        const fetchStats = () => {
+            fetch(`/gamma/organizations/DEFAULT/modules/ai-fleet/stats/${hostname}`)
+                .then(res => res.json())
+                .then(setStats)
+                .catch(() => {});
+        };
 
         const poll = () => {
             const url = lastTimestampRef.current
@@ -59,21 +76,21 @@ export function EventsPage() {
                         lastTimestampRef.current = data[data.length - 1].timestamp;
                         const traffic = data.filter(e => e.type !== 'direct_connection');
                         const direct = data.filter(e => e.type === 'direct_connection');
-                        if (traffic.length > 0) setTrafficEvents(prev => [...prev, ...traffic].slice(-200));
+                        if (traffic.length > 0) {
+                            setTrafficEvents(prev => [...prev, ...traffic].slice(-200));
+                            fetchStats();
+                        }
                         if (direct.length > 0) setDirectEvents(prev => [...prev, ...direct].slice(-50));
                     }
                 })
                 .catch(() => {});
         };
 
+        fetchStats();
         poll();
         const interval = setInterval(poll, 5000);
         return () => clearInterval(interval);
     }, [hostname]);
-
-    useEffect(() => {
-        trafficBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [trafficEvents]);
 
     return (
         <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
@@ -94,11 +111,26 @@ export function EventsPage() {
                 )}
             </div>
 
+            {/* Metrics */}
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '0.75rem',
+                }}
+            >
+                <MetricCard label="Requests" value={stats.requests} color="#22c55e" />
+                <MetricCard label="Blocked" value={stats.blocked} color="#ef4444" />
+                <MetricCard label="Tokens in" value={stats.tokens_in} color="#60a5fa" />
+                <MetricCard label="Tokens out" value={stats.tokens_out} color="#a78bfa" />
+            </div>
+
             {/* Intercepted traffic */}
             <div style={{ flex: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                <h2 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-foreground)' }}>
-                    Intercepted traffic
-                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <h2 style={{ fontSize: '0.875rem', fontWeight: 600 }}>Intercepted traffic</h2>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--color-muted-foreground)', letterSpacing: '0.02em' }}>↓ recent first</span>
+                </div>
                 <div
                     style={{
                         flex: 1,
@@ -117,9 +149,8 @@ export function EventsPage() {
                             <code>ANTHROPIC_BASE_URL=http://localhost:8990</code>.
                         </span>
                     ) : (
-                        trafficEvents.map((event, i) => <TrafficRow key={i} event={event} />)
+                        [...trafficEvents].reverse().map((event, i) => <TrafficRow key={i} event={event} />)
                     )}
-                    <div ref={trafficBottomRef} />
                 </div>
             </div>
 
@@ -138,10 +169,13 @@ export function EventsPage() {
                     }}
                 >
                     <strong style={{ color: '#f97316' }}>POC note</strong> — In this demo, Claude Code is redirected via{' '}
-                    <code>ANTHROPIC_BASE_URL</code>. However, Claude Code makes additional direct calls that bypass this setting:{' '}
-                    <strong>authentication</strong> (login, token refresh), <strong>telemetry</strong> (usage analytics sent by the CLI),
-                    and <strong>internal infrastructure</strong> calls (MCP servers, auto-updates). These cannot be intercepted via the proxy
-                    and are captured here by passive network detection.
+                    <code>ANTHROPIC_BASE_URL</code>. However, Claude Code makes additional direct calls that bypass this setting:
+                    <ul style={{ margin: '0.4rem 0 0 1.2rem', padding: 0, lineHeight: 1.6 }}>
+                        <li><strong>Authentication</strong> — login, token refresh</li>
+                        <li><strong>Telemetry</strong> — usage analytics sent by the CLI</li>
+                        <li><strong>Internal infrastructure</strong> — MCP servers, auto-updates</li>
+                    </ul>
+                    These cannot be intercepted via the proxy and are captured here by passive network detection.
                 </div>
                 <h2
                     style={{
@@ -189,6 +223,25 @@ export function EventsPage() {
     );
 }
 
+function MetricCard({ label, value, color }: { readonly label: string; readonly value: number; readonly color: string }) {
+    return (
+        <div
+            style={{
+                padding: '0.75rem 1rem',
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem',
+            }}
+        >
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)' }}>{label}</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color }}>{value.toLocaleString()}</span>
+        </div>
+    );
+}
+
 function TrafficRow({ event }: { readonly event: FleetEvent }) {
     const color = TRAFFIC_COLORS[event.type] ?? '#94a3b8';
     const ts = new Date(event.timestamp).toLocaleTimeString();
@@ -221,7 +274,7 @@ function DirectRow({ event }: { readonly event: FleetEvent }) {
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.2rem', color: '#f97316' }}>
             <span style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}>{ts}</span>
             <span>
-                {event.process_name} (PID {event.device_id}) → {event.provider}
+                {event.process_name} → {event.provider}
             </span>
         </div>
     );

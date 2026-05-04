@@ -1,8 +1,5 @@
-import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { AI_FLEET_ROUTE_CONFIG } from '../config/routes';
 
 interface DeviceState {
     hostname: string;
@@ -16,7 +13,6 @@ export function FleetPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-    const { rootPath } = useModuleRouting(AI_FLEET_ROUTE_CONFIG);
 
     useEffect(() => {
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/devices')
@@ -47,7 +43,7 @@ export function FleetPage() {
                         <DeviceCard
                             key={device.hostname}
                             device={device}
-                            onClick={() => navigate(`${rootPath}/events?host=${device.hostname}`)}
+                            onClick={() => navigate('../events', { state: { host: device.hostname }, relative: 'route' })}
                         />
                     ))}
                 </div>

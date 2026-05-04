@@ -15,7 +15,9 @@
  */
 package io.gravitee.gamma.module.aifleet;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -102,5 +104,50 @@ public class AiFleetResource {
         }
 
         return Response.ok(events).build();
+    }
+
+    @GET
+    @Path("/stats/{hostname}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response stats(@PathParam("hostname") String hostname) {
+        java.nio.file.Path eventsFile = Paths.get(BASE_DIR, hostname, "events.jsonl");
+        ObjectNode stats = MAPPER.createObjectNode();
+        stats.put("requests", 0);
+        stats.put("blocked", 0);
+        stats.put("tokens_in", 0);
+        stats.put("tokens_out", 0);
+
+        if (!eventsFile.toFile().exists()) {
+            return Response.ok(stats).build();
+        }
+
+        int requests = 0, blocked = 0, tokensIn = 0, tokensOut = 0;
+        try (BufferedReader reader = new BufferedReader(new FileReader(eventsFile.toFile()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+                try {
+                    JsonNode node = MAPPER.readTree(line);
+                    String type = node.path("type").asText();
+                    if ("request".equals(type)) {
+                        requests++;
+                        tokensIn += node.path("tokens_in").asInt(0);
+                        tokensOut += node.path("tokens_out").asInt(0);
+                    } else if ("policy_block".equals(type)) {
+                        blocked++;
+                    }
+                } catch (IOException e) {
+                    log.debug("Skipping malformed line: {}", e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Failed to read events for stats {}: {}", hostname, e.getMessage());
+        }
+
+        stats.put("requests", requests);
+        stats.put("blocked", blocked);
+        stats.put("tokens_in", tokensIn);
+        stats.put("tokens_out", tokensOut);
+        return Response.ok(stats).build();
     }
 }
