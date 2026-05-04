@@ -78,17 +78,28 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
         List<String> intersected = luceneIds.stream().filter(allowedApiIds::contains).toList();
 
         int total = intersected.size();
-        int pageSize = pageable.map(Pageable::getPageSize).orElse(10);
 
-        if (total == 0 || pageSize <= 0) {
-            return new Page<>(List.of(), pageNumber, 0, total);
+        if (total == 0) {
+            return new Page<>(List.of(), pageNumber, 0, 0);
         }
 
-        int start = (pageNumber - 1) * pageSize;
-        if (start >= total) {
-            return new Page<>(List.of(), pageNumber, 0, total);
+        final List<String> pageSubset;
+        final int resultPageNumber;
+        if (pageable.isEmpty()) {
+            pageSubset = intersected;
+            resultPageNumber = 1;
+        } else {
+            resultPageNumber = pageNumber;
+            int pageSize = pageable.get().getPageSize();
+            if (pageSize <= 0) {
+                return new Page<>(List.of(), resultPageNumber, 0, total);
+            }
+            int start = (resultPageNumber - 1) * pageSize;
+            if (start >= total) {
+                return new Page<>(List.of(), resultPageNumber, 0, total);
+            }
+            pageSubset = intersected.subList(start, Math.min(start + pageSize, total));
         }
-        List<String> pageSubset = intersected.subList(start, Math.min(start + pageSize, total));
 
         // Fetch by IDs then reorder to preserve Lucene relevance order
         Map<String, Api> apiById = apiQueryService
@@ -99,7 +110,7 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
 
         List<Api> pageContent = pageSubset.stream().map(apiById::get).filter(Objects::nonNull).toList();
 
-        return new Page<>(pageContent, pageNumber, pageContent.size(), total);
+        return new Page<>(pageContent, resultPageNumber, pageContent.size(), total);
     }
 
     private io.gravitee.apim.core.api.model.Sortable toCoreSortable(Sortable sortable) {

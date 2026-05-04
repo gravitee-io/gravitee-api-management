@@ -28,12 +28,14 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -215,6 +217,33 @@ class GetVisiblePortalNavigationApisUseCaseTest {
         );
 
         assertThat(result.apis().getContent()).extracting(PortalNavigationApi::getApiId).containsExactly("api-auth");
+    }
+
+    @Test
+    void search_with_query_does_not_cap_results_before_catalog_pagination() {
+        List<PortalNavigationItem> navItems = IntStream.rangeClosed(1, 12)
+            .mapToObj(i -> (PortalNavigationItem) publishedApiNavItem("api-" + i, PortalVisibility.PUBLIC))
+            .toList();
+        navQueryService.initWith(navItems);
+
+        List<Api> apis = IntStream.rangeClosed(1, 12)
+            .mapToObj(i -> anApi("api-" + i, "Catalog Service " + i, ENV_ID))
+            .toList();
+        apiSearchQueryService.initWith(apis);
+
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(1, 10),
+                Optional.of("Catalog"),
+                Set.of()
+            )
+        );
+
+        assertThat(result.apis().getTotalElements()).isEqualTo(12);
+        assertThat(result.apis().getContent()).hasSize(10);
     }
 
     // --- helpers ---
