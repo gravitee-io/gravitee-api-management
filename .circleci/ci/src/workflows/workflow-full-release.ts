@@ -29,6 +29,7 @@ import {
   ReleaseNotesApimJob,
   SetupJob,
   SlackAnnouncementJob,
+  TriggerApimApiDocsPipelineJob,
   TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
@@ -81,6 +82,9 @@ export class FullReleaseWorkflow {
 
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+
+    const triggerApimApiDocsPipelineJob = TriggerApimApiDocsPipelineJob.create(environment);
+    dynamicConfig.addJob(triggerApimApiDocsPipelineJob);
 
     return new Workflow(FullReleaseWorkflow.workflowName, [
       // PREPARE
@@ -204,6 +208,14 @@ export class FullReleaseWorkflow {
         requires: ['Trigger SaaS Docker images creation'],
       }),
 
+      // Trigger gravitee-apim-api-docs ingestion (fire-and-forget; the docs
+      // pipeline absorbs the Sonatype → Maven Central propagation delay).
+      new workflow.WorkflowJob(triggerApimApiDocsPipelineJob, {
+        context: [...config.jobContext, 'keeper-orb-publishing'],
+        name: 'Trigger APIM API docs ingestion',
+        requires: ['Nexus staging'],
+      }),
+
       // Release Helm chart
       new workflow.WorkflowJob(releaseHelmJob, {
         context: config.jobContext,
@@ -229,6 +241,7 @@ export class FullReleaseWorkflow {
         requires: [
           'Nexus staging',
           'Release Helm Chart',
+          'Trigger APIM API docs ingestion',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
       }),
