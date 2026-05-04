@@ -26,43 +26,45 @@
               Manage who can interact with your API Product through the API Management console
             </p>
           </div>
-          <div class="card__header__actions">
-            @if (canTransferOwnership) {
+          @if (!state.isLoading) {
+            <div class="card__header__actions">
+              @if (canTransferOwnership) {
+                <button
+                  class="card__header__actions__button"
+                  mat-raised-button
+                  type="button"
+                  (click)="transferOwnership()"
+                  data-testid="api_product_members_transfer_ownership_button"
+                >
+                  Transfer ownership
+                </button>
+              }
               <button
+                *gioPermission="{ anyOf: ['api_product-member-u'] }"
                 class="card__header__actions__button"
                 mat-raised-button
                 type="button"
-                (click)="transferOwnership()"
-                data-testid="api_product_members_transfer_ownership_button"
+                aria-label="Manage groups"
+                data-testid="api_product_members_manage_groups_button"
+                [disabled]="state.groups.length === 0"
+                (click)="openManageGroups()"
               >
-                Transfer ownership
+                Manage groups
               </button>
-            }
-            <button
-              *gioPermission="{ anyOf: ['api_product-member-u'] }"
-              class="card__header__actions__button"
-              mat-raised-button
-              type="button"
-              aria-label="Manage groups"
-              data-testid="api_product_members_manage_groups_button"
-              [disabled]="(state.groups?.length ?? 0) === 0"
-              (click)="openManageGroups()"
-            >
-              Manage groups
-            </button>
-            <button
-              *gioPermission="{ anyOf: ['api_product-member-c'] }"
-              class="card__header__actions__button"
-              mat-raised-button
-              color="primary"
-              type="button"
-              data-testid="api_product_members_add_button"
-              [disabled]="isReadOnly"
-              (click)="openAddMemberDialog()"
-            >
-              <mat-icon svgIcon="gio:plus"></mat-icon> Add members
-            </button>
-          </div>
+              <button
+                *gioPermission="{ anyOf: ['api_product-member-c'] }"
+                class="card__header__actions__button"
+                mat-raised-button
+                color="primary"
+                type="button"
+                data-testid="api_product_members_add_button"
+                [disabled]="isReadOnly"
+                (click)="openAddMemberDialog()"
+              >
+                <mat-icon svgIcon="gio:plus"></mat-icon> Add members
+              </button>
+            </div>
+          }
         </div>
 
         <gio-form-slide-toggle class="card__enable-notification-toggle">
