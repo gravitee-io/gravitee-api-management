@@ -28,7 +28,7 @@ policies:
         - name: github-token
           regex: "ghp_[a-zA-Z0-9]{36}"
         - name: generic-secret
-          regex: "(?i)(password|secret|token)\\s*[:=]\\s*['\"][^'\"]{8,}"
+          regex: "(?i)(password|secret|token)\\s*[:=]\\s*['\"]?[^'\"\\s]+"
       message: "Blocked: sensitive content detected ({{.MatchName}})"
 
   - name: token-budget
