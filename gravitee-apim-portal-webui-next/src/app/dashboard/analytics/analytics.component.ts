@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
@@ -59,7 +59,7 @@ export default class AnalyticsComponent {
   readonly pageSize = 20;
   private readonly currentPage = signal(1);
 
-  private readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
+  readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
   readonly pinnedIdsSet = computed(() => new Set(this.pinnedIds()));
   readonly canPinMore = computed(() => this.pinnedIds().length < AnalyticsComponent.MAX_PINNED);
 
@@ -89,10 +89,7 @@ export default class AnalyticsComponent {
     },
   });
 
-  readonly pinnedDashboards = linkedSignal<Dashboard[] | undefined, Dashboard[]>({
-    source: () => this.pinnedResource.value(),
-    computation: (value, previous) => value ?? previous?.value ?? [],
-  });
+  readonly pinnedDashboards = computed(() => this.pinnedResource.value() ?? []);
 
   constructor() {
     this.breadcrumbService.set([analyticsListBreadcrumb()]);
