@@ -25,6 +25,8 @@ import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFi
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * @author Guillaume Lamirand (guillaume.lamirand at graviteesource.com)
@@ -37,14 +39,26 @@ public class HttpPolicyFactory implements PolicyFactory {
     protected final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
     protected final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter;
 
+    private final long policyTimeoutMs;
+
     public HttpPolicyFactory(
         final Configuration configuration,
         final PolicyPluginFactory policyPluginFactory,
         final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
     ) {
+        this(configuration, policyPluginFactory, filter, 0L);
+    }
+
+    public HttpPolicyFactory(
+        final Configuration configuration,
+        final PolicyPluginFactory policyPluginFactory,
+        final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter,
+        final long policyTimeoutMs
+    ) {
         this.configuration = configuration;
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
+        this.policyTimeoutMs = policyTimeoutMs;
         // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by v4 engine.
         this.v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory);
     }
@@ -84,7 +98,12 @@ public class HttpPolicyFactory implements PolicyFactory {
                     policyConfiguration,
                     policyMetadata
                 );
-                policy = new PolicyAdapter(v3Policy);
+                // PEN-88: evaluate Schedulers.io() lazily here (at API-deploy time, after
+                // HttpProtocolVerticle has registered its RxJavaPlugins handler) so that
+                // Schedulers.io() correctly resolves to RxHelper.blockingScheduler(vertx),
+                // which preserves the Vert.x context through executeBlocking.
+                Scheduler workerScheduler = policyTimeoutMs > 0 ? Schedulers.io() : null;
+                policy = new PolicyAdapter(v3Policy, workerScheduler);
             }
         } else {
             throw new IllegalArgumentException(
