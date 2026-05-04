@@ -2,18 +2,32 @@ databaseChangeLog:
   - changeSet:
       id: 3.5.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}parameters
             columnDataType: nvarchar(32)
             columnName: reference_type
-        - dropPrimaryKey:
-            constraintName: pk_${gravitee_prefix}parameters
-            tableName: ${gravitee_prefix}parameters
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}parameters
-            columnNames: key, reference_id, reference_type
-            tableName: ${gravitee_prefix}parameters
+        # Rebuild PK (key) → (key, reference_id, reference_type). Combined
+        # ALTER for MySQL/MariaDB so strict-PK mode does not reject the drop.
+        - sql:
+            dbms: mysql, mariadb
+            sql: |
+                ALTER TABLE ${gravitee_prefix}parameters
+                    DROP PRIMARY KEY,
+                    ADD CONSTRAINT pk_${gravitee_prefix}parameters PRIMARY KEY (`key`, reference_id, reference_type);
+        # Typed dropPrimaryKey / addPrimaryKey honour the dbms filter inconsistently
+        # on individual change-actions in our pinned Liquibase — they were observed
+        # to run on MySQL even with dbms: '!mysql, !mariadb' and then trip
+        # sql_require_primary_key=ON. Stick to raw <sql> here, where dbms is
+        # honoured reliably; the MySQL/MariaDB combined ALTER above already covers
+        # those engines.
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}parameters DROP CONSTRAINT pk_${gravitee_prefix}parameters
+        - sql:
+            dbms: '!mysql, !mariadb'
+            sql: ALTER TABLE ${gravitee_prefix}parameters ADD CONSTRAINT pk_${gravitee_prefix}parameters PRIMARY KEY ("key", reference_id, reference_type)
         # dbms: mariadb, mysql
         - sql:
             dbms: mariadb, mysql

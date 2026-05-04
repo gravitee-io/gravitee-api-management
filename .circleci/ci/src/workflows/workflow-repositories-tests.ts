@@ -68,6 +68,20 @@ export class RepositoriesTestsWorkflow {
           ],
         },
       }),
+      // Reproduces MySQL HeatWave / Group Replication strict-PK behaviour so the changelog
+      // migrations are exercised against sql_require_primary_key=ON. Scoped to MySQL only —
+      // the MariaDB 12.1 testcontainer refused to start with --sql-require-primary-key=ON
+      // (container exits 1 before any test runs), and MariaDB strict-PK is not the customer
+      // scenario this PR was filed for.
+      new workflow.WorkflowJob(jdbcTestContainerJob, {
+        name: 'Management repository tests - JDBC - mysql~8.4 (strict-PK)',
+        context: ['cicd-orchestrator'],
+        requires: [buildJobName],
+        parameters: {
+          jdbcType: 'mysql~8.4',
+          strictPrimaryKey: 'true',
+        },
+      }),
       new workflow.WorkflowJob(mongoTestContainerJob, {
         name: 'Management repository tests - Mongo << matrix.mongoVersion >>',
         context: ['cicd-orchestrator'],

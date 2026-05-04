@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.8.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addColumn:
             tableName: ${gravitee_prefix}pages
@@ -24,17 +25,13 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}node_monitoring
             columns:
-              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}node_monitoring" } }
               - column: { name: node_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: type, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: payload, type: nclob, constraints: { nullable: false } }
               - column: { name: created_at, type: timestamp(6), constraints: { nullable: true } }
               - column: { name: evaluated_at, type: timestamp(6), constraints: { nullable: true } }
               - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
-
-              - addPrimaryKey:
-                  constraintName: pk_${gravitee_prefix}node_monitoring
-                  columnNames: id
 
         - addColumn:
             tableName: ${gravitee_prefix}pages
@@ -46,14 +43,9 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}page_acl
             columns:
-              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}page_acl
-            columnNames: page_id, reference_id, reference_type
-            tableName: ${gravitee_prefix}page_acl
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}page_acl" } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
 
         - sql:
             sql: insert into ${gravitee_prefix}page_acl (page_id, reference_id, reference_type) select page_id, excluded_group, 'GROUP' from ${gravitee_prefix}page_excluded_groups;

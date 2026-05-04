@@ -2,18 +2,15 @@ databaseChangeLog:
     - changeSet:
         id: 1.20.0
         author: GraviteeSource Team
+        validCheckSum: ANY
         changes:
         - createTable:
             tableName: ${gravitee_prefix}api_headers
             columns:
-                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}api_headers" } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: value, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: order, type: int, constraints: { nullable: true } }
                 - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}api_headers
-            columnNames: id
-            tableName: ${gravitee_prefix}api_headers

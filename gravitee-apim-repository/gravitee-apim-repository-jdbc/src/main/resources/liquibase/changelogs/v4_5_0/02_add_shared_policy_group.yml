@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 4.5.0_add_shared_policy_group
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         # ################
         # shared policy group changes
@@ -9,7 +10,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}sharedpolicygroups
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}sharedpolicygroups" } }
               - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: environment_id, type: nvarchar(64) }
               - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -24,10 +25,6 @@ databaseChangeLog:
               - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}sharedpolicygroups
-            columnNames: id
-            tableName: ${gravitee_prefix}sharedpolicygroups
         - createIndex:
             tableName: ${gravitee_prefix}sharedpolicygroups
             indexName: idx_${gravitee_prefix}environment_id_name
@@ -54,7 +51,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}sharedpolicygrouphistories
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}sharedpolicygrouphistories" } }
               - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: environment_id, type: nvarchar(64) }
               - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -68,11 +65,7 @@ databaseChangeLog:
               - column: {name: lifecycle_state, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
-              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}sharedpolicygrouphistories
-            columnNames: id, updated_at
-            tableName: ${gravitee_prefix}sharedpolicygrouphistories
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false, primaryKey: true }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
         - createIndex:
             tableName: ${gravitee_prefix}sharedpolicygrouphistories
             indexName: idx_${gravitee_prefix}environment_id
