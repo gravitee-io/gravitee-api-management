@@ -153,6 +153,101 @@ class ApiEntrypointServiceImplTest {
     }
 
     @Test
+    void should_not_duplicate_api_v4_entrypoints_when_multiple_mappings_match_and_virtual_host_overrides_access() {
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "kafka.domain"
+        );
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("multi-entrypoint-tag"));
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("some_host").path("/test").overrideAccess(true).build()))
+            .build();
+        apiEntity.setListeners(List.of(httpListener));
+
+        EntrypointEntity entrypointOne = new EntrypointEntity();
+        entrypointOne.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointOne.setValue("https://entrypoint-one.com");
+        entrypointOne.setTarget(EntrypointEntity.Target.HTTP);
+        EntrypointEntity entrypointTwo = new EntrypointEntity();
+        entrypointTwo.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointTwo.setValue("https://entrypoint-two.com");
+        entrypointTwo.setTarget(EntrypointEntity.Target.HTTP);
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("some_host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://some_host/test");
+    }
+
+    @Test
+    void should_return_distinct_api_v4_entrypoints_when_multiple_mappings_match_and_virtual_host_does_not_override_access() {
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "kafka.domain"
+        );
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("multi-entrypoint-tag"));
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("some_host").path("/test").overrideAccess(false).build()))
+            .build();
+        apiEntity.setListeners(List.of(httpListener));
+
+        EntrypointEntity entrypointOne = new EntrypointEntity();
+        entrypointOne.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointOne.setValue("https://entrypoint-one.com");
+        entrypointOne.setTarget(EntrypointEntity.Target.HTTP);
+        EntrypointEntity entrypointTwo = new EntrypointEntity();
+        entrypointTwo.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointTwo.setValue("https://entrypoint-two.com");
+        entrypointTwo.setTarget(EntrypointEntity.Target.HTTP);
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://entrypoint-one.com/test");
+        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("https://entrypoint-two.com/test");
+    }
+
+    @Test
+    void should_not_duplicate_api_v2_entrypoints_when_multiple_mappings_match_and_virtual_host_overrides_entrypoint() {
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
+        apiEntity.setTags(Set.of("multi-entrypoint-tag"));
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        virtualHost.setHost("some_host");
+        virtualHost.setPath("/test");
+        virtualHost.setOverrideEntrypoint(true);
+        proxy.setVirtualHosts(List.of(virtualHost));
+        apiEntity.setProxy(proxy);
+
+        EntrypointEntity entrypointOne = new EntrypointEntity();
+        entrypointOne.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointOne.setValue("https://entrypoint-one.com");
+        entrypointOne.setTarget(EntrypointEntity.Target.HTTP);
+        EntrypointEntity entrypointTwo = new EntrypointEntity();
+        entrypointTwo.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointTwo.setValue("https://entrypoint-two.com");
+        entrypointTwo.setTarget(EntrypointEntity.Target.HTTP);
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("some_host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://some_host/test");
+    }
+
+    @Test
     void shouldReturnDefaultTcpPortAndEntrypointWithoutApiV4Tags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -172,6 +267,36 @@ class ApiEntrypointServiceImplTest {
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("https://default-entrypoint");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("some_tcp_host:4082");
+    }
+
+    @Test
+    void should_not_duplicate_api_v4_tcp_entrypoints_when_multiple_mappings_match_same_listener() {
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "kafka.domain"
+        );
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("multi-entrypoint-tag"));
+        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        apiEntity.setListeners(List.of(tcpListener));
+
+        EntrypointEntity entrypointOne = new EntrypointEntity();
+        entrypointOne.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointOne.setValue("https://tcp-entrypoint-one.com");
+        entrypointOne.setTarget(EntrypointEntity.Target.TCP);
+        EntrypointEntity entrypointTwo = new EntrypointEntity();
+        entrypointTwo.setTags(Arrays.array("multi-entrypoint-tag"));
+        entrypointTwo.setValue("https://tcp-entrypoint-two.com");
+        entrypointTwo.setTarget(EntrypointEntity.Target.TCP);
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("some_tcp_host:4082");
     }
 
