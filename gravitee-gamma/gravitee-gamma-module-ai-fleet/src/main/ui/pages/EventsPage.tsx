@@ -287,7 +287,7 @@ function DirectRow({ event }: { readonly event: FleetEvent }) {
             <span style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}>{ts}</span>
             <span>
                 {event.process_name} → {formatProvider(event.provider ?? '')}
-                {label && <span style={{ color: 'var(--color-muted-foreground)', marginLeft: '0.4rem' }}>{label}</span>}
+                {label && <span style={{ color: '#94a3b8' }}> {label}</span>}
             </span>
         </div>
     );
