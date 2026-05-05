@@ -63,10 +63,14 @@ class LuceneEscapeTest {
 
         String result = ElasticLogRepository.escapeForJsonLucene(input);
 
-        assertThat(result).doesNotContain("RMel/1.0.0");
+        // forward slash is escaped so Lucene treats it as literal, not a regex delimiter
+        assertThat(result).contains("RMel\\\\/1.0.0");
         assertThat(result).contains("status:200");
         assertThat(result).contains("custom.userAgent:");
+
+        // parentheses are intentionally left unescaped to preserve Lucene grouping syntax
         assertThat(result).contains("(Ubuntu)");
+        assertThat(result).doesNotContain("\\\\(");
     }
 
     @Test
@@ -75,5 +79,58 @@ class LuceneEscapeTest {
 
         assertThat(result).startsWith("status:(200 OR 400)");
         assertThat(result).doesNotContain("uri:/");
+    }
+
+    // --- safeEscapeReplacement ---
+
+    @Test
+    void should_replace_filter_with_escaped_form_when_filter_has_no_double_quote() {
+        String filter = "uri:/api/test";
+        String json = "{\"query\":\"" + filter + "\"}";
+
+        String result = ElasticLogRepository.safeEscapeReplacement(json, filter);
+
+        assertThat(result).isEqualTo("{\"query\":\"uri:\\\\/api\\\\/test\"}");
+    }
+
+    @Test
+    void should_skip_replacement_when_filter_contains_double_quote() {
+        // legacy portal wraps API UUIDs in backslash-escaped quotes: api:(\"uuid\")
+        String filter = "api:(\\\"bad3b39c-7d97-4ab4-93b3-9c7d970ab4ca\\\")";
+        String json = "{\"query\":\"" + filter + "\"}";
+
+        String result = ElasticLogRepository.safeEscapeReplacement(json, filter);
+
+        // bypass — backslash quadrupling would corrupt the \" JSON escape sequences (APIM-13402)
+        assertThat(result).isEqualTo(json);
+    }
+
+    @Test
+    void should_skip_replacement_when_filter_with_double_quote_also_has_forward_slash() {
+        // caller contract: when filter contains ", caller must pre-escape / and \ in the quoted span
+        String filter = "uri:(\\\"/api/v1\\\")";
+        String json = "{\"query\":\"" + filter + "\"}";
+
+        String result = ElasticLogRepository.safeEscapeReplacement(json, filter);
+
+        assertThat(result).isEqualTo(json);
+    }
+
+    @Test
+    void should_no_op_when_filter_is_empty() {
+        String json = "{\"query\":\"\"}";
+
+        String result = ElasticLogRepository.safeEscapeReplacement(json, "");
+
+        assertThat(result).isEqualTo(json);
+    }
+
+    @Test
+    void should_no_op_when_filter_is_null() {
+        String json = "{\"query\":\"\"}";
+
+        String result = ElasticLogRepository.safeEscapeReplacement(json, null);
+
+        assertThat(result).isEqualTo(json);
     }
 }
