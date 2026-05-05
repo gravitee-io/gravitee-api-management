@@ -8,6 +8,8 @@ spec:
           label: Message
         - name: MCP
           label: MCP
+        - name: NATIVE
+          label: Native
 
     metrics:
         - name: HTTP_REQUESTS
@@ -1026,6 +1028,24 @@ spec:
               - MCP_PROXY_PROMPT
               - API_PRODUCT
 
+        - name: NATIVE_CONNECTIONS_SUMMARY
+          label: Native Connections
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_CONNECTION_STATUS
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_CONNECTION_STATUS
+
     filters:
         - name: API
           label: API
@@ -1269,6 +1289,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - NATIVE
           operators:
               - EQ
               - IN
@@ -1323,6 +1344,19 @@ spec:
               - IN
           apis:
               - HTTP_PROXY
+
+        - name: NATIVE_CONNECTION_STATUS
+          label: Native Connection Status
+          type: ENUM
+          enumValues:
+              - CONNECTED
+              - DISCONNECTED
+              - CONNECTION_ERROR
+              - SESSION_ERROR
+              - INTERNAL_ERROR
+          operators:
+              - EQ
+              - IN
     facets:
         - name: API
           label: API
@@ -1438,4 +1472,8 @@ spec:
 
         - name: API_PRODUCT
           label: API Product
+          type: KEYWORD
+
+        - name: NATIVE_CONNECTION_STATUS
+          label: Native Connection Status
           type: KEYWORD

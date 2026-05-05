@@ -2632,6 +2632,122 @@ paths:
                     $ref: "#/components/responses/ApiMessageLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/logs/native:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get native API connection logs
+            description: |-
+                Returns the paginated list of native API connection log entries for the API.
+
+                User must have the API_NATIVE_LOG[READ] permission.
+            operationId: getNativeApiLogs
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - name: from
+                  in: query
+                  required: true
+                  description: The timestamp from which the logs will be returned.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: to
+                  in: query
+                  required: true
+                  description: The timestamp to which the logs will be returned.
+                  schema:
+                      type: integer
+                      format: int64
+                - $ref: "#/components/parameters/applicationIds"
+                - $ref: "#/components/parameters/planIds"
+                - name: connectionStatuses
+                  in: query
+                  description: Filter by native connection status.
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                          enum: [CONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
+                      example:
+                          - CONNECTED
+                          - CONNECTION_ERROR
+            responses:
+                "200":
+                    $ref: "#/components/responses/NativeApiLogsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/logs/native/summary:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get analytics for native API connection logs
+            description: |-
+                Returns the count of native API connection lifecycle events grouped by connection status.
+
+                User must have the API_NATIVE_LOG[READ] permission.
+            operationId: getNativeApiLogsSummary
+            parameters:
+                - name: from
+                  in: query
+                  required: true
+                  description: The timestamp from which the logs will be returned.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: to
+                  in: query
+                  required: true
+                  description: The timestamp to which the logs will be returned.
+                  schema:
+                      type: integer
+                      format: int64
+            responses:
+                "200":
+                    $ref: "#/components/responses/NativeApiLogsSummaryResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/logs/native/{requestId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/requestIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get a native API connection log for a request
+            description: |-
+                Returns the native API connection log entry for the given request.
+
+                User must have the API_NATIVE_ANALYTICS[READ] permission.
+            operationId: getNativeApiLog
+            parameters:
+                - name: from
+                  in: query
+                  required: true
+                  description: The timestamp from which the log will be returned.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: to
+                  in: query
+                  required: true
+                  description: The timestamp to which the log will be returned.
+                  schema:
+                      type: integer
+                      format: int64
+            responses:
+                "200":
+                    $ref: "#/components/responses/NativeApiLogResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Health
     /environments/{envId}/apis/{apiId}/health/average-response-time:
@@ -7509,6 +7625,81 @@ components:
                     type: string
                     description: The value of the metadata
                     example: [my-value]
+        NativeApiLogsSummary:
+            type: object
+            description: Summary of native API connection logs aggregated by connection status.
+            properties:
+                countByConnectionStatus:
+                    type: object
+                    description: Number of native connection lifecycle events keyed by connection status (CONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR).
+                    additionalProperties:
+                        type: integer
+                        format: int64
+        NativeApiLog:
+            type: object
+            description: Native API connection log entry.
+            properties:
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) when the connection lifecycle event was recorded.
+                    example: 2026-01-01T00:00:00.000Z
+                apiId:
+                    type: string
+                    description: The id of the API.
+                requestId:
+                    type: string
+                    description: The id of the request.
+                transactionId:
+                    type: string
+                    description: The id of the transaction.
+                applicationId:
+                    type: string
+                    description: The id of the application.
+                planId:
+                    type: string
+                    description: The id of the plan.
+                clientIdentifier:
+                    type: string
+                    description: The client identifier of the request.
+                subscriptionId:
+                    type: string
+                    description: The id of the subscription.
+                entrypointId:
+                    type: string
+                    description: The id of the entrypoint serving the connection.
+                gateway:
+                    type: string
+                    description: The id of the gateway instance handling the connection.
+                remoteAddress:
+                    type: string
+                    description: The client remote address.
+                localAddress:
+                    type: string
+                    description: The gateway local address.
+                host:
+                    type: string
+                    description: The host targeted by the client.
+                errorKey:
+                    type: string
+                    description: The error key when the connection terminated with an error.
+                errorMessage:
+                    type: string
+                    description: The error message when the connection terminated with an error.
+                connectionStatus:
+                    type: string
+                    enum: [CONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
+                    description: The connection lifecycle status of the native API connection.
+                clientId:
+                    type: string
+                    description: The native protocol client id (e.g. Kafka client.id) reported by the connection. Visible in detail view only.
+                brokerId:
+                    type: string
+                    description: The id of the native protocol broker the connection is targeting (e.g. Kafka broker id). Visible in detail view only.
+                connectionDurationMs:
+                    type: integer
+                    format: int64
+                    description: The duration of the connection in milliseconds, when the connection has terminated.
 
         # Audits
         Audit:
@@ -9745,6 +9936,33 @@ components:
                                 $ref: "#/components/schemas/ApiLogRequestContent"
                             endpointResponse:
                                 $ref: "#/components/schemas/ApiLogResponseContent"
+        NativeApiLogsSummaryResponse:
+            description: Summary of native API connection logs aggregated by connection status.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/NativeApiLogsSummary"
+        NativeApiLogsResponse:
+            description: Page of native API connection logs.
+            content:
+                application/json:
+                    schema:
+                        title: "NativeApiLogsResponse"
+                        properties:
+                            data:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/NativeApiLog"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        NativeApiLogResponse:
+            description: Native API connection log for a particular request.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/NativeApiLog"
         ApiAggregatedMessageLogsResponse:
             description: Page of API Messages Logs
             content:

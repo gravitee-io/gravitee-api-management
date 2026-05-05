@@ -70,6 +70,8 @@ paths:
                                               label: "LLM"
                                             - name: "MCP"
                                               label: "MCP"
+                                            - name: "NATIVE"
+                                              label: "Native"
                 "500":
                     description: Internal server error while getting available API specs.
                     content:
@@ -275,7 +277,8 @@ paths:
                                               label: "API Type"
                                               type: "ENUM"
                                               operators: ["EQ", "IN"]
-                                              enumValues: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP"]
+
+                                              enumValues: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE"]
                 "500":
                     description: Internal server error while getting filter definitions.
                     content:
@@ -1315,6 +1318,7 @@ components:
                 - MESSAGE
                 - LLM
                 - MCP
+                - NATIVE
             description: Available API names for analytics queries
             example: "HTTP_PROXY"
 
@@ -1339,6 +1343,7 @@ components:
                 - MESSAGES
                 - MESSAGE_ERRORS
                 - MESSAGE_GATEWAY_LATENCY
+                - NATIVE_CONNECTIONS_SUMMARY
             description: Available metric names for analytics queries
 
         FacetName:
@@ -1373,6 +1378,7 @@ components:
                 - MCP_PROXY_TOOL
                 - MCP_PROXY_RESOURCE
                 - MCP_PROXY_PROMPT
+                - NATIVE_CONNECTION_STATUS
             description: Available facet names for grouping analytics data
 
         FilterName:
@@ -1417,6 +1423,7 @@ components:
                 - MCP_PROXY_PROMPT
                 - API_TYPE
                 - ERROR_KEY
+                - NATIVE_CONNECTION_STATUS
             description: Available filter names for filtering analytics data
 
         Operator:

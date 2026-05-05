@@ -21,5 +21,6 @@ public record ApiSpec(Name name, String label) {
         MESSAGE,
         LLM,
         MCP,
+        NATIVE,
     }
 }

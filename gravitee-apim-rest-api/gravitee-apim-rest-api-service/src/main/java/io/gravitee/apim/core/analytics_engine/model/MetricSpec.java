@@ -45,6 +45,7 @@ public record MetricSpec(
         MESSAGES,
         MESSAGE_ERRORS,
         MESSAGE_GATEWAY_LATENCY,
+        NATIVE_CONNECTIONS_SUMMARY,
     }
 
     public enum Unit {

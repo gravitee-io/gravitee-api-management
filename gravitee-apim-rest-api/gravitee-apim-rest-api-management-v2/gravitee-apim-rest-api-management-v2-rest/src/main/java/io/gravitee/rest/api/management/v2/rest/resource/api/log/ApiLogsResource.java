@@ -17,11 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
-import io.gravitee.apim.core.log.use_case.SearchApiAggregatedMessageLogsUseCase;
-import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
-import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogErrorKeysUseCase;
-import io.gravitee.apim.core.log.use_case.SearchApiMessageLogsUseCase;
-import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase;
+import io.gravitee.apim.core.log.use_case.*;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAggregatedMessageLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
@@ -42,6 +38,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -49,6 +47,9 @@ public class ApiLogsResource extends AbstractResource {
 
     @PathParam("apiId")
     private String apiId;
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private SearchApiV4ConnectionLogsUseCase searchConnectionLogsUsecase;
@@ -151,5 +152,10 @@ public class ApiLogsResource extends AbstractResource {
             .data(ApiMessageLogsMapper.INSTANCE.map(output.data()))
             .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
             .links(computePaginationLinks(output.total(), paginationParam));
+    }
+
+    @Path("/native")
+    public NativeApiLogsResource getNativeApiLogsResource() {
+        return resourceContext.getResource(NativeApiLogsResource.class);
     }
 }

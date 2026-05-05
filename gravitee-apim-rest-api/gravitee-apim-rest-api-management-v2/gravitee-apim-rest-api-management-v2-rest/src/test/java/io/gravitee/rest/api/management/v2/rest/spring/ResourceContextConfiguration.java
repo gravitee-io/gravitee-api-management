@@ -151,6 +151,7 @@ import io.gravitee.apim.core.json_patch.domain_service.JsonPatchService;
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -251,6 +252,7 @@ import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDDomainS
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.query_service.analytics_engine.HTTPDataPlaneAnalyticsQueryService;
 import io.gravitee.apim.infra.query_service.analytics_engine.MessageDataPlaneQueryService;
+import io.gravitee.apim.infra.query_service.analytics_engine.NativeApiAnalyticsQueryService;
 import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.apim.infra.query_service.subscription.SubscriptionSearchQueryServiceImpl;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
@@ -1449,6 +1451,16 @@ public class ResourceContextConfiguration {
     @Bean
     public MessageDataPlaneQueryService messageDataPlaneQueryService(AnalyticsRepository analyticsRepository) {
         return new MessageDataPlaneQueryService(analyticsRepository);
+    }
+
+    @Bean
+    public NativeApiAnalyticsQueryService nativeDataPlaneAnalyticsQueryService(AnalyticsRepository analyticsRepository) {
+        return new NativeApiAnalyticsQueryService(analyticsRepository);
+    }
+
+    @Bean
+    public NativeApiLogCrudService nativeApiLogCrudService() {
+        return mock(NativeApiLogCrudService.class);
     }
 
     @Bean

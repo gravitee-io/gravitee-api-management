@@ -1417,4 +1417,9 @@ public class ResourceContextConfiguration {
     public DictionaryAutomationDomainService dictionaryAutomationDomainService() {
         return mock(DictionaryAutomationDomainService.class);
     }
+
+    @Bean
+    public io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService nativeApiLogCrudService() {
+        return mock(io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService.class);
+    }
 }
