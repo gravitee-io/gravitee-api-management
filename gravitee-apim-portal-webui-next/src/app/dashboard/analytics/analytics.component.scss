@@ -16,8 +16,6 @@
 @use '../../../scss/theme' as app-theme;
 
 :host {
-  --cards-grid-row-height: 120px;
-
   display: flex;
   flex-direction: column;
   max-width: app-theme.$inner-content-width;
