@@ -212,7 +212,7 @@ class DictionaryController {
   addProperty() {
     this.$mdDialog
       .show({
-        controller: 'DialogAddPropertyController',
+        controller: 'DialogDictionaryAddPropertyController',
         controllerAs: 'dialogDictionaryAddPropertyCtrl',
         template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
