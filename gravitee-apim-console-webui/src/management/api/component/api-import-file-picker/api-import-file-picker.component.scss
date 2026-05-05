@@ -55,6 +55,11 @@ api-import-file-picker.api-import-file-picker--fill-drop-zone {
     box-sizing: border-box;
   }
 
+  gio-form-file-picker.file-picker > .file-picker .file-picker__add-button__content,
+  gio-form-file-picker.file-picker > .file-picker .file-picker__add-button__content > gio-form-file-picker-add-button {
+    height: 100% !important;
+  }
+
   gio-form-file-picker.file-picker > .file-picker .file-picker__preview {
     flex: 1 1 auto !important;
     flex-basis: auto !important;
