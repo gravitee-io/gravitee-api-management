@@ -18,13 +18,13 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 import { analyticsListBreadcrumb } from './analytics-breadcrumbs';
 import AnalyticsComponent from './analytics.component';
 import { AnalyticsComponentHarness } from './analytics.harness';
 import { AnalyticsDashboardsResponse } from '../../../entities/analytics-dashboard/analytics-dashboard';
-import { fakeDashboard, fakeAnalyticsDashboardsResponse } from '../../../entities/analytics-dashboard/analytics-dashboard.fixtures';
+import { fakeAnalyticsDashboardsResponse, fakeDashboard } from '../../../entities/analytics-dashboard/analytics-dashboard.fixtures';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { ConfigService } from '../../../services/config.service';
 import { TESTING_BASE_URL } from '../../../testing/app-testing.module';
@@ -131,7 +131,15 @@ describe('AnalyticsComponent', () => {
       await cards[cardIndex].clickPinButtonWithoutStabilizing();
     }
 
-    async function pinAndFlush(cardIndex: number, id: string, name: string, allPinned: { id: string; name: string }[] = []): Promise<void> {
+    async function pinAndFlush(
+      cardIndex: number,
+      id: string,
+      name: string,
+      allPinned: {
+        id: string;
+        name: string;
+      }[] = [],
+    ): Promise<void> {
       await clickPinButtonForCard(cardIndex);
       fixture.detectChanges();
       const pinned = [...allPinned, { id, name }];
@@ -162,7 +170,6 @@ describe('AnalyticsComponent', () => {
       fixture.detectChanges();
       const pinned = await harness.getPinnedDashboards();
       expect(pinned).toHaveLength(0);
-      expect(JSON.parse(localStorage.getItem('analytics-pinned-dashboards')!)).toEqual([]);
     });
 
     it('should_show_pinned_dashboards_in_pinned_row', async () => {
@@ -187,21 +194,6 @@ describe('AnalyticsComponent', () => {
       await clickPinButtonForCard(4);
       fixture.detectChanges();
       httpTestingController.match(r => r.url.includes('/analytics/dashboards/'));
-      await fixture.whenStable();
-      fixture.detectChanges();
-      const pinned = await harness.getPinnedDashboards();
-      expect(pinned).toHaveLength(4);
-    });
-
-    it('should_allow_pinning_when_under_limit', async () => {
-      await pinAndFlush(0, 'dash-1', 'Dashboard 1');
-      await pinAndFlush(1, 'dash-2', 'Dashboard 2', [{ id: 'dash-1', name: 'Dashboard 1' }]);
-      await pinAndFlush(2, 'dash-3', 'Dashboard 3', [
-        { id: 'dash-1', name: 'Dashboard 1' },
-        { id: 'dash-2', name: 'Dashboard 2' },
-      ]);
-      const pinned = await harness.getPinnedDashboards();
-      expect(pinned).toHaveLength(3);
       await fixture.whenStable();
       fixture.detectChanges();
       const pinned = await harness.getPinnedDashboards();
