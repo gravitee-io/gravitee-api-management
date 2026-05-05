@@ -80,7 +80,6 @@ export class AddMembersDialogComponent implements OnInit {
 
   private group: Group;
   private members: Member[] = [];
-  private memberships: GroupMembership[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: AddOrInviteMembersDialogData,
@@ -228,7 +227,7 @@ export class AddMembersDialogComponent implements OnInit {
   }
 
   submit() {
-    this.matDialogRef.close({ memberships: this.memberships });
+    this.matDialogRef.close({ memberships: this.selectedUsers.map(user => this.mapGroupMembership(user)) });
   }
 
   mapGroupMembership(user: SearchableUser): GroupMembership {
@@ -278,7 +277,6 @@ export class AddMembersDialogComponent implements OnInit {
 
     if (!this.selectedUsers.includes(selectedUser)) {
       this.selectedUsers.push(selectedUser);
-      this.memberships.push(this.mapGroupMembership(selectedUser));
     }
     this.changeFormState();
   }
@@ -288,39 +286,35 @@ export class AddMembersDialogComponent implements OnInit {
 
     if (index >= 0) {
       this.selectedUsers.splice(index, 1);
-      const membershipIndex = this.memberships.findIndex(member => member.id === user.id);
-
-      if (membershipIndex >= 0) {
-        this.memberships.splice(index, 1);
-      }
     }
     this.changeFormState();
   }
 
   private changeFormState() {
-    const noOfPrimaryOwners = this.filterPrimaryOwners().length;
     this.addMemberForm.controls.searchTerm.setValue('');
     this.disableSearch();
 
-    if (this.addMemberForm.controls.defaultAPIRole.value === RoleName.PRIMARY_OWNER) {
-      if (noOfPrimaryOwners > 0) {
+    if (this.isPrimaryOwnerSelected()) {
+      if (this.selectedUsers.length > 0) {
         this.addMemberForm.controls.searchTerm.disable();
         this.addMemberForm.controls.searchTerm.removeValidators(Validators.required);
-      } else if (noOfPrimaryOwners < 1) {
+      } else {
         this.addMemberForm.controls.searchTerm.enable();
         this.addMemberForm.controls.searchTerm.addValidators(Validators.required);
       }
     }
-    this.disableSubmit = this.memberships.length === 0;
+    this.disableSubmit = this.selectedUsers.length === 0;
   }
 
-  private filterPrimaryOwners() {
-    return this.memberships.filter(membership => membership.roles.find(role => role.scope === 'API').name === RoleName.PRIMARY_OWNER);
+  private isPrimaryOwnerSelected(): boolean {
+    return (
+      this.addMemberForm.controls.defaultAPIRole.value === RoleName.PRIMARY_OWNER ||
+      this.addMemberForm.controls.defaultAPIProductRole.value === RoleName.PRIMARY_OWNER
+    );
   }
 
-  onAPIRoleChange() {
+  onDefaultRoleChange() {
     this.selectedUsers = [];
-    this.memberships = [];
     this.changeFormState();
   }
 }
