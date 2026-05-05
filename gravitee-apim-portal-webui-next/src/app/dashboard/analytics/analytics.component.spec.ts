@@ -122,7 +122,7 @@ describe('AnalyticsComponent', () => {
     });
 
     async function clickPinButtonForCard(cardIndex: number): Promise<void> {
-      const cards = await harness.getCards();
+      const cards = await harness.getGridCards();
       await cards[cardIndex].clickPinButtonWithoutStabilizing();
     }
 

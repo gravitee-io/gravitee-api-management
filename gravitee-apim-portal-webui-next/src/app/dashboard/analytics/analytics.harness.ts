@@ -41,6 +41,10 @@ export class AnalyticsComponentHarness extends ComponentHarness {
     return this.locateGridCards();
   }
 
+  public async getGridCards(): Promise<AnalyticsDashboardCardHarness[]> {
+    return this.locateGridCards();
+  }
+
   public async isEmptyStateDisplayed(): Promise<boolean> {
     return !!(await this.locateEmptyState());
   }
