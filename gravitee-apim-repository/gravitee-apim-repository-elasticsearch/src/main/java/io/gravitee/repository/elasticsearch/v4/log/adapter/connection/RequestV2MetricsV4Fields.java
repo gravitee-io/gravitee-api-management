@@ -40,6 +40,10 @@ public class RequestV2MetricsV4Fields {
     public static final String ERROR_COMPONENT_TYPE = "error-component-type";
     public static final String ADDITIONAL_METRICS = "additional-metrics";
     public static final String WARNINGS = "warnings";
+    public static final String SUBSCRIPTION_ID = "subscription-id";
+    public static final String REMOTE_ADDRESS = "remote-address";
+    public static final String LOCAL_ADDRESS = "local-address";
+    public static final String HOST = "host";
 
     // Fields with different names in each index
     public static final Field MESSAGE = new Field("message", "error-message");

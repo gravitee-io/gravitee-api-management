@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
@@ -29,19 +30,24 @@ import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetr
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi.NativeApiMetricsFindQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi.NativeApiMetricsFindResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi.NativeApiMetricsSearchQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi.NativeApiMetricsSearchResponseAdapter;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.connection.Metrics;
-import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
-import io.gravitee.repository.log.v4.model.connection.SearchConnectionLogErrorKeysQuery;
+import io.gravitee.repository.log.v4.model.connection.*;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.List;
+import java.util.Optional;
+import lombok.CustomLog;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class MetricsElasticsearchRepository extends AbstractElasticsearchRepository implements MetricsRepository {
 
     private final RepositoryConfiguration configuration;
@@ -91,5 +97,46 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         var searchRequest = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
         var searchResponse = this.client.search(indexes, null, searchRequest);
         return searchResponse.map(SearchConnectionLogErrorKeysResponseAdapter::adapt).blockingGet();
+    }
+
+    @Override
+    public Optional<NativeApiMetrics> findNativeApiMetrics(QueryContext queryContext, String apiId, String requestId, Long from, Long to)
+        throws AnalyticsException {
+        var indexes = getQueryIndexesFromDefinitionVersions(
+            Type.REQUEST,
+            Type.V4_METRICS,
+            configuration,
+            queryContext,
+            List.of(DefinitionVersion.V4)
+        );
+        try {
+            return this.client.search(indexes, null, NativeApiMetricsFindQueryAdapter.adapt(apiId, requestId, from, to))
+                .map(NativeApiMetricsFindResponseAdapter::adapt)
+                .blockingGet();
+        } catch (RuntimeException e) {
+            log.error("Failed to find native metric [apiId={},requestId={}]", apiId, requestId, e);
+            throw new AnalyticsException("Failed to find native metric for api " + apiId + " and requestId " + requestId, e);
+        }
+    }
+
+    @Override
+    public LogResponse<NativeApiMetrics> searchNativeApiMetrics(QueryContext queryContext, NativeApiMetricsQuery query)
+        throws AnalyticsException {
+        query.validate();
+        var indexes = getQueryIndexesFromDefinitionVersions(
+            Type.REQUEST,
+            Type.V4_METRICS,
+            configuration,
+            queryContext,
+            List.of(DefinitionVersion.V4)
+        );
+        try {
+            return this.client.search(indexes, null, NativeApiMetricsSearchQueryAdapter.adapt(query))
+                .map(NativeApiMetricsSearchResponseAdapter::adapt)
+                .blockingGet();
+        } catch (RuntimeException e) {
+            log.error("Failed to search native metrics [apiId={}]", query.getApiId(), e);
+            throw new AnalyticsException("Failed to search native metrics for api " + query.getApiId(), e);
+        }
     }
 }
