@@ -20,11 +20,7 @@ import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -87,6 +83,13 @@ public class FilterAdapter {
         Filter.Name.MESSAGE_ERROR_COUNT
     );
 
+    static final List<Filter.Name> NATIVE_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.APPLICATION,
+        Filter.Name.PLAN,
+        Filter.Name.NATIVE_CONNECTION_STATUS
+    );
+
     private final FieldResolver fieldResolver;
 
     public FilterAdapter(FieldResolver fieldResolver) {
@@ -123,6 +126,16 @@ public class FilterAdapter {
         return jsonFilters.add(messageFilter());
     }
 
+    public JsonArray adaptForNative(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForNative(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters;
+    }
+
     public boolean shouldAdaptForHTTP(Filter filter) {
         return HTTP_FILTER_NAMES.contains(filter.name());
     }
@@ -133,6 +146,10 @@ public class FilterAdapter {
 
     public boolean shouldAdaptForMessageConnexion(Filter filter) {
         return HTTP_FILTER_NAMES.contains(filter.name());
+    }
+
+    public boolean shouldAdaptForNative(Filter filter) {
+        return NATIVE_FILTER_NAMES.contains(filter.name());
     }
 
     public JsonObject httpFilter() {

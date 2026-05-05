@@ -58,6 +58,7 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
+        NATIVE_CONNECTION_STATUS,
     }
 
     public enum Operator {

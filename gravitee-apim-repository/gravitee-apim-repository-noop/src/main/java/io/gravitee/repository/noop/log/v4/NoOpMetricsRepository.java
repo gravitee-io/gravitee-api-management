@@ -21,10 +21,13 @@ import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class NoOpMetricsRepository implements MetricsRepository {
 
@@ -41,5 +44,15 @@ public class NoOpMetricsRepository implements MetricsRepository {
     @Override
     public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Optional<NativeApiMetrics> findNativeApiMetrics(QueryContext queryContext, String apiId, String requestId, Long from, Long to) {
+        return Optional.empty();
+    }
+
+    @Override
+    public LogResponse<NativeApiMetrics> searchNativeApiMetrics(QueryContext queryContext, NativeApiMetricsQuery query) {
+        return new LogResponse<>(0L, new ArrayList<>());
     }
 }
