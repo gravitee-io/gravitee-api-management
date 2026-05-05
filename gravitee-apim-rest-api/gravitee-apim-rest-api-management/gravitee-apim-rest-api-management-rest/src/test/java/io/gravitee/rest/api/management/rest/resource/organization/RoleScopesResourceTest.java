@@ -94,6 +94,8 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "MEMBER",
             "MESSAGE",
             "METADATA",
+            "NATIVE_ANALYTICS",
+            "NATIVE_LOG",
             "NOTIFICATION",
             "PLAN",
             "QUALITY_RULE",

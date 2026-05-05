@@ -37,6 +37,8 @@ public enum RolePermission {
     API_EVENT(RoleScope.API, ApiPermission.EVENT),
     API_HEALTH(RoleScope.API, ApiPermission.HEALTH),
     API_LOG(RoleScope.API, ApiPermission.LOG),
+    API_NATIVE_LOG(RoleScope.API, ApiPermission.NATIVE_LOG),
+    API_NATIVE_ANALYTICS(RoleScope.API, ApiPermission.NATIVE_ANALYTICS),
     API_DOCUMENTATION(RoleScope.API, ApiPermission.DOCUMENTATION),
     API_GATEWAY_DEFINITION(RoleScope.API, ApiPermission.GATEWAY_DEFINITION),
     API_AUDIT(RoleScope.API, ApiPermission.AUDIT),
