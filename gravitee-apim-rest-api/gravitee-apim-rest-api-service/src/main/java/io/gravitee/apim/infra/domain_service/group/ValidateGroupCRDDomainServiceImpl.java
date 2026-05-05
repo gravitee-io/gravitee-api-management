@@ -28,12 +28,12 @@ import io.gravitee.apim.infra.adapter.GroupCRDAdapter;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.service.RoleService;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.SequencedMap;
+import java.util.SequencedSet;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -80,18 +80,18 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
         return Result.ofValue(name);
     }
 
-    private Result<Set<GroupCRDSpec.Member>> validateAndSanitizeMembers(ValidateGroupCRDDomainService.Input input) {
+    private Result<SequencedSet<GroupCRDSpec.Member>> validateAndSanitizeMembers(ValidateGroupCRDDomainService.Input input) {
         if (CollectionUtils.isEmpty(input.spec().getMembers())) {
-            return Result.ofBoth(Set.of(), List.of());
+            return Result.ofBoth(new LinkedHashSet<>(), List.of());
         }
 
-        var sanitizedGroupMembers = new HashMap<String, GroupCRDSpec.Member>();
+        var sanitizedGroupMembers = new LinkedHashMap<String, GroupCRDSpec.Member>();
         var errors = new ArrayList<Error>();
 
         var defaultRoles = getDefaultRoles(input.auditInfo());
 
         for (var member : input.spec().getMembers()) {
-            member.setRoles(member.getRoles() == null ? new HashMap<>() : new HashMap<>(member.getRoles()));
+            member.setRoles(member.getRoles() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(member.getRoles()));
             member.getRoles().computeIfAbsent(RoleScope.API, scope -> defaultRoles.get(scope).getName());
             member.getRoles().computeIfAbsent(RoleScope.APPLICATION, scope -> defaultRoles.get(scope).getName());
             member.getRoles().computeIfAbsent(RoleScope.INTEGRATION, scope -> defaultRoles.get(scope).getName());
@@ -117,10 +117,10 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
             )
             .peek(output -> groupMembersById(RoleScope.INTEGRATION, output.members(), sanitizedGroupMembers), errors::addAll);
 
-        return Result.ofBoth(new HashSet<>(sanitizedGroupMembers.values()), errors);
+        return Result.ofBoth(new LinkedHashSet<>(sanitizedGroupMembers.values()), errors);
     }
 
-    private Map<RoleScope, RoleEntity> getDefaultRoles(AuditInfo auditInfo) {
+    private SequencedMap<RoleScope, RoleEntity> getDefaultRoles(AuditInfo auditInfo) {
         return roleService
             .findDefaultRoleByScopes(
                 auditInfo.organizationId(),
@@ -129,10 +129,16 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
                 io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION
             )
             .stream()
-            .collect(Collectors.toMap(role -> RoleScope.valueOf(role.getScope().name()), Function.identity()));
+            .collect(
+                Collectors.toMap(role -> RoleScope.valueOf(role.getScope().name()), Function.identity(), (a, b) -> a, LinkedHashMap::new)
+            );
     }
 
-    private static void groupMembersById(RoleScope roleScope, Set<MemberCRD> members, HashMap<String, GroupCRDSpec.Member> groups) {
+    private static void groupMembersById(
+        RoleScope roleScope,
+        SequencedSet<MemberCRD> members,
+        HashMap<String, GroupCRDSpec.Member> groups
+    ) {
         for (var member : members) {
             groups.computeIfPresent(member.getId(), (id, groupMember) -> addMemberRole(roleScope, groupMember, member));
             groups.computeIfAbsent(member.getId(), id -> initGroupMember(roleScope, member));
@@ -153,8 +159,8 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
             .build();
     }
 
-    private static Map<RoleScope, String> initMemberRoles(RoleScope roleScope, String roleName) {
-        var roles = new EnumMap<RoleScope, String>(RoleScope.class);
+    private static SequencedMap<RoleScope, String> initMemberRoles(RoleScope roleScope, String roleName) {
+        SequencedMap<RoleScope, String> roles = new LinkedHashMap<>();
         roles.put(roleScope, roleName);
         return roles;
     }

@@ -75,7 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -103,6 +103,7 @@ import org.slf4j.Logger;
         ServiceMapper.class,
         CorsMapper.class,
         ConfigurationSerializationMapper.class,
+        CollectionFactory.class,
     }
 )
 public interface ApiMapper {
@@ -158,20 +159,20 @@ public interface ApiMapper {
         return api;
     }
 
-    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
+    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Predicate<GenericApiEntity> isSynchronized) {
         return map(apiEntities, uriInfo, isSynchronized, null);
     }
 
     default List<Api> map(
         List<GenericApiEntity> apiEntities,
         UriInfo uriInfo,
-        Function<GenericApiEntity, Boolean> isSynchronized,
+        Predicate<GenericApiEntity> isSynchronized,
         Set<String> expands
     ) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
-                result.add(this.map(api, uriInfo, isSynchronized.apply(api), expands));
+                result.add(this.map(api, uriInfo, isSynchronized.test(api), expands));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
@@ -566,6 +567,6 @@ public interface ApiMapper {
                 return null;
             })
             .filter(Objects::nonNull)
-            .collect(java.util.stream.Collectors.toList());
+            .toList();
     }
 }

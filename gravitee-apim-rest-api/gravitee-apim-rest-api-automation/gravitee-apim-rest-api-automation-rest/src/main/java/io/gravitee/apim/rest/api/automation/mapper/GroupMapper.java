@@ -23,8 +23,8 @@ import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.GroupMember;
 import io.gravitee.apim.rest.api.automation.model.GroupSpec;
 import io.gravitee.apim.rest.api.automation.model.GroupState;
-import io.gravitee.definition.model.Origin;
-import java.util.List;
+import io.gravitee.rest.api.management.v2.rest.mapper.CollectionFactory;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ import org.mapstruct.factory.Mappers;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
+@Mapper(uses = { CollectionFactory.class })
 public interface GroupMapper {
     GroupMapper INSTANCE = Mappers.getMapper(GroupMapper.class);
 
@@ -54,26 +54,32 @@ public interface GroupMapper {
 
     Errors toErrors(GroupCRDStatus.Errors errors);
 
-    default GroupState groupSpecAndStatusToGroupState(GroupSpec spec, GroupCRDStatus status) {
-        GroupState state = new GroupState();
+    default GroupState groupSpecAndStatusToGroupState(GroupSpec spec, GroupCRDStatus status, ExecutionContext executionContext) {
+        GroupState state = new GroupState(
+            status.getId(),
+            executionContext.getEnvironmentId(),
+            executionContext.getOrganizationId(),
+            status.getMembers()
+        );
         state.setHrid(spec.getHrid());
         state.setName(spec.getName());
         state.setMembers(spec.getMembers());
         state.setNotifyMembers(spec.getNotifyMembers());
-        state.setId(status.getId());
-        state.setMemberCount(status.getMembers());
         state.setErrors(toErrors(status.getErrors()));
         return state;
     }
 
-    default GroupState groupToGroupState(Group group, Set<GroupCRDSpec.Member> members) {
-        GroupState state = new GroupState();
+    default GroupState groupToGroupState(Group group, Set<GroupCRDSpec.Member> members, ExecutionContext executionContext) {
+        GroupState state = new GroupState(
+            group.getId(),
+            executionContext.getEnvironmentId(),
+            executionContext.getOrganizationId(),
+            members != null ? (long) members.size() : 0L
+        );
         state.setHrid(group.getHrid());
         state.setName(group.getName());
         state.setNotifyMembers(!group.isDisableMembershipNotifications());
-        state.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : List.of());
-        state.setId(group.getId());
-        state.setMemberCount(members != null ? (long) members.size() : 0L);
+        state.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : null);
         return state;
     }
 

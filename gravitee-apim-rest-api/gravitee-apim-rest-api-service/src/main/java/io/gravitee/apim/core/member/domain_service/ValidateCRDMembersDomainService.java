@@ -29,8 +29,9 @@ import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.UUID;
 import lombok.CustomLog;
@@ -48,15 +49,16 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
     private final UserDomainService userDomainService;
     private final RoleQueryService roleQueryService;
 
-    public record Input(AuditInfo auditInfo, MembershipReferenceType referenceType, Set<MemberCRD> members) implements Validator.Input {
-        Input sanitized(Set<MemberCRD> sanitizedMembers) {
+    public record Input(AuditInfo auditInfo, MembershipReferenceType referenceType, SequencedSet<MemberCRD> members) implements
+        Validator.Input {
+        Input sanitized(SequencedSet<MemberCRD> sanitizedMembers) {
             return new Input(auditInfo, referenceType, sanitizedMembers);
         }
     }
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        var sanitizedMembers = input.members == null ? new HashSet<MemberCRD>() : new HashSet<>(input.members);
+        var sanitizedMembers = input.members == null ? new LinkedHashSet<MemberCRD>() : new LinkedHashSet<>(input.members);
         var errors = new ArrayList<Error>();
 
         validateAndSanitizeMemberId(input, sanitizedMembers, errors);
@@ -66,7 +68,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         return Result.ofBoth(input.sanitized(sanitizedMembers), errors);
     }
 
-    private void validateAndSanitizeMemberId(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
+    private void validateAndSanitizeMemberId(Input input, SequencedSet<MemberCRD> sanitized, ArrayList<Error> errors) {
         var members = sanitized.iterator();
         while (members.hasNext()) {
             var member = members.next();
@@ -89,7 +91,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         }
     }
 
-    private void validateMemberRole(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
+    private void validateMemberRole(Input input, SequencedSet<MemberCRD> sanitized, ArrayList<Error> errors) {
         for (var member : sanitized) {
             findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole()).ifPresentOrElse(
                 role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
@@ -113,7 +115,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         }
     }
 
-    private void validatePrimaryOwner(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
+    private void validatePrimaryOwner(Input input, SequencedSet<MemberCRD> sanitized, ArrayList<Error> errors) {
         var actor = input.auditInfo.actor();
         var members = sanitized.iterator();
 

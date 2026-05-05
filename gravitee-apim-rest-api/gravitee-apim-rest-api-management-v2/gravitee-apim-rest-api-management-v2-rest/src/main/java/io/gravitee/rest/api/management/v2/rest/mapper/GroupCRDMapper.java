@@ -23,7 +23,7 @@ import org.mapstruct.factory.Mappers;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
+@Mapper(uses = { CollectionFactory.class })
 public interface GroupCRDMapper {
     GroupCRDMapper INSTANCE = Mappers.getMapper(GroupCRDMapper.class);
 

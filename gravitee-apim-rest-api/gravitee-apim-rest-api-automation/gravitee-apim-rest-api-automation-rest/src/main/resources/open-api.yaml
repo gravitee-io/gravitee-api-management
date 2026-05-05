@@ -1047,10 +1047,11 @@ components:
           maxLength: 512
         members:
           type: array
-          description: Members of this group with their IDP source and role assignments.
+          description: | 
+            Members of this group with their IDP source and role assignments.
+            Members that do not already exist in the IDP will be ignored.
           items:
             $ref: "#/components/schemas/GroupMember"
-          default: []
         notifyMembers:
           type: boolean
           description: If true, members will be notified when the group is synced with APIM.
@@ -1059,7 +1060,7 @@ components:
         - hrid
         - name
     GroupMember:
-      description: A member of a group, identified by an external IDP source.
+      description: A member of a group, possibly identified by an external IDP source.
       type: object
       properties:
         source:
@@ -1067,19 +1068,24 @@ components:
           description: The identity provider source of the member.
           examples:
             - gravitee
+            - google
+            - memory
         sourceId:
           type: string
-          description: The member's identifier in the identity provider.
+          description: The member's identifier within the identity provider.
           examples:
-            - "john.doe@example.com"
+            - "john.doe@acme.com"
+            - "john.doe@gmail.com"
+            - "admin"
         roles:
           type: object
-          description: Map of role scope to role name defining what the member can do.
+          description: Map of scopes to role name defining what the member can do.
           additionalProperties:
             type: string
           examples:
             - API: USER
               APPLICATION: ADMIN
+              INTEGRATION: ACME_READ_ONLY
       required:
         - source
         - sourceId
@@ -1090,16 +1096,27 @@ components:
         id:
           type: string
           description: Group's uuid.
+          readOnly: true
           examples:
             - 550e8400-e29b-41d4-a716-446655440000
+        environmentId:
+          type: string
+          description: The environment ID of the API.
+          readOnly: true
+        organizationId:
+          type: string
+          description: The organization ID of the API.
+          readOnly: true
         memberCount:
           type: integer
           format: int64
           description: Number of members in the group.
           examples:
             - 5
+          readOnly: true
         errors:
           $ref: "#/components/schemas/Errors"
+
     GroupState:
       description: Group state combining spec and status after creation/update.
       allOf:
@@ -1531,16 +1548,19 @@ components:
       properties:
         source:
           type: string
-          description: Where the memeber was created (system, idp, etc.)
+          description: Where the member was created (system, idp, etc.)
           examples:
-            - system
+            - gravitee
+            - google
+            - memory
         sourceId:
           description: Id of the user in the source
           type: string
           examples:
-            - "john.doe@example.com"
+            - john.doe@example.com
+            - admin
         role:
-          description: The role of the user in regards of the managed oject (API, Application, etc.)
+          description: The role of the user in regards of the managed object (API, Application, etc.)
           examples:
             - REVIEWER
           type: string

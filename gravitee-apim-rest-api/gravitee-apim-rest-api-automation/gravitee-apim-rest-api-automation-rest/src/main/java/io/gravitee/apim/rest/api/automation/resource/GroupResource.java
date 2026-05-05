@@ -23,6 +23,7 @@ import io.gravitee.apim.rest.api.automation.mapper.GroupMapper;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -41,10 +42,12 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -82,7 +85,7 @@ public class GroupResource extends AbstractResource {
 
         var members = buildGroupMembers(executionContext, memberEntities);
 
-        return Response.ok(GroupMapper.INSTANCE.groupToGroupState(group, members)).build();
+        return Response.ok(GroupMapper.INSTANCE.groupToGroupState(group, members, executionContext)).build();
     }
 
     @DELETE
@@ -98,24 +101,31 @@ public class GroupResource extends AbstractResource {
         return Response.noContent().build();
     }
 
-    private Set<GroupCRDSpec.Member> buildGroupMembers(ExecutionContext executionContext, Set<MemberEntity> memberEntities) {
+    private SequencedSet<GroupCRDSpec.Member> buildGroupMembers(ExecutionContext executionContext, Set<MemberEntity> memberEntities) {
         if (memberEntities.isEmpty()) {
-            return Set.of();
+            return new LinkedHashSet<>();
         }
 
-        var memberRolesById = new HashMap<String, Map<RoleScope, String>>();
+        var memberRolesById = new LinkedHashMap<String, Map<RoleScope, String>>();
 
         for (MemberEntity member : memberEntities) {
-            var roles = memberRolesById.computeIfAbsent(member.getId(), k -> new HashMap<>());
+            var roles = memberRolesById.computeIfAbsent(member.getId(), k -> new LinkedHashMap<>());
 
             Optional.ofNullable(member.getRoles())
                 .orElse(List.of())
                 .forEach(role -> roles.put(RoleScope.valueOf(role.getScope().name()), role.getName()));
         }
 
-        return userService
+        var usersByIds = userService
             .findByIds(executionContext, memberRolesById.keySet())
             .stream()
+            .collect(Collectors.groupingBy(UserEntity::getId));
+
+        return memberRolesById
+            .keySet()
+            .stream()
+            .map(usersByIds::get)
+            .map(List::getFirst)
             .map(user ->
                 GroupCRDSpec.Member.builder()
                     .source(user.getSource())
@@ -123,6 +133,6 @@ public class GroupResource extends AbstractResource {
                     .roles(memberRolesById.getOrDefault(user.getId(), Map.of()))
                     .build()
             )
-            .collect(Collectors.toSet());
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

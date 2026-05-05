@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.ApiValidationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                 new ValidateCRDMembersDomainService.Input(
                     auditInfo,
                     MembershipReferenceType.API,
-                    ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers())
+                    new LinkedHashSet<>(ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers()))
                 )
             )
             .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);

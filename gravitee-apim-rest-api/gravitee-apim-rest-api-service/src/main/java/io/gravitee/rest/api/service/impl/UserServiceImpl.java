@@ -160,6 +160,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -470,7 +471,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 return users
                     .stream()
                     .map(u -> this.convert(u, false, withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList(), true))
-                    .collect(toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);

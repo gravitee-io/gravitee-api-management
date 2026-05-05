@@ -27,6 +27,7 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -99,7 +100,7 @@ class ValidateCRDMembersDomainServiceTest {
 
     @Test
     void should_return_no_warning_with_existing_member() {
-        var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build()));
         var expectedMembers = Set.of(MemberCRD.builder().id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
         var result = cut.validateAndSanitize(
             new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members)
@@ -113,10 +114,9 @@ class ValidateCRDMembersDomainServiceTest {
 
     @Test
     void should_return_warning_with_unknown_member() {
-        var members = Set.of(
-            MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build(),
-            MemberCRD.builder().source(USER_SOURCE).sourceId("unknown-id").role("USER").build()
-        );
+        var members = new LinkedHashSet<MemberCRD>();
+        members.add(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
+        members.add(MemberCRD.builder().source(USER_SOURCE).sourceId("unknown-id").role("USER").build());
         var expectedMembers = Set.of(MemberCRD.builder().id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
         var result = cut.validateAndSanitize(
             new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members)
@@ -134,7 +134,7 @@ class ValidateCRDMembersDomainServiceTest {
     @ParameterizedTest
     @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
     void should_return_warning_with_unknown_member_role(MembershipReferenceType referenceType) {
-        var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("UNKNOWN").build());
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("UNKNOWN").build()));
         var expectedMembers = Set.copyOf(members);
         var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
@@ -147,7 +147,7 @@ class ValidateCRDMembersDomainServiceTest {
     @ParameterizedTest
     @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
     void should_not_return_warning_with_known_member_role(MembershipReferenceType referenceType) {
-        var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role(ROLE_ID).build());
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role(ROLE_ID).build()));
         var expectedMembers = Set.copyOf(members);
         var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
@@ -160,7 +160,7 @@ class ValidateCRDMembersDomainServiceTest {
     @ParameterizedTest
     @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
     void should_return_error_with_primary_owner_role(MembershipReferenceType referenceType) {
-        var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("PRIMARY_OWNER").build());
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("PRIMARY_OWNER").build()));
         var expectedMembers = Set.of();
         var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
@@ -177,7 +177,7 @@ class ValidateCRDMembersDomainServiceTest {
         userDomainService.initWith(
             List.of(BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).build())
         );
-        var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(ACTOR_USER_ID).role("USER").build());
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(ACTOR_USER_ID).role("USER").build()));
         var expectedMembers = Set.of();
         var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
