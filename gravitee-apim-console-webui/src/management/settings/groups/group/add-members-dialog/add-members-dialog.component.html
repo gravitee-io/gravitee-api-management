@@ -20,7 +20,7 @@
   <form [formGroup]="addMemberForm" class="add-member__form">
     <mat-form-field aria-hidden="false" aria-label="Select default API role">
       <mat-label>Default API Role</mat-label>
-      <mat-select formControlName="defaultAPIRole" (selectionChange)="onAPIRoleChange()">
+      <mat-select formControlName="defaultAPIRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultAPIRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="disabledAPIRoles.has(role.id)">{{ role.name }}</mat-option>
         }
@@ -29,7 +29,7 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default API product role">
       <mat-label>Default API Product Role</mat-label>
-      <mat-select formControlName="defaultAPIProductRole">
+      <mat-select formControlName="defaultAPIProductRole" (selectionChange)="onDefaultRoleChange()">
         @for (role of defaultAPIProductRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="disabledAPIProductRoles.has(role.id)">{{ role.name }}</mat-option>
         }
