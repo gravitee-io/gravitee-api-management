@@ -251,27 +251,47 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         return tabularResponse;
     }
 
-    /**
-     * Escapes backslashes and forward slashes so they survive both JSON
-     * and Lucene parsing levels (fix APIM-12955).
-     *
-     * Parentheses are intentionally left unescaped to preserve Lucene
-     * grouping syntax (e.g., {@code status:(200 OR 400)}).
-     */
     private String createSafeElasticsearchJsonQuery(final TabularQuery query) {
         String json = this.createElasticsearchJsonQuery(query);
 
-        if (query != null && query.query() != null && query.query().filter() != null) {
-            String filter = query.query().filter();
-
-            if (!filter.isEmpty()) {
-                String escaped = escapeForJsonLucene(filter);
-
-                // Targeted replacement within quotes to protect JSON structure
-                json = json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
-            }
+        if (query != null && query.query() != null) {
+            return safeEscapeReplacement(json, query.query().filter());
         }
+
         return json;
+    }
+
+    /**
+     * Replaces the filter value inside the rendered JSON with its escaped form
+     * so backslashes and forward slashes survive both JSON and Lucene parsing.
+     *
+     * <p>Parentheses are intentionally left unescaped to preserve Lucene grouping
+     * syntax (e.g., {@code status:(200 OR 400)}).
+     *
+     * <p>The replacement is skipped entirely when the filter contains a double-quote
+     * character. The filter reaches the rendered JSON verbatim:
+     * {@code FreeMarkerComponent} in {@code gravitee-common-elasticsearch} pins the
+     * FreeMarker {@code Configuration} to incompatible-improvements 2.3.23 — which
+     * predates output-format auto-escaping (added in 2.3.24) — and registers no
+     * {@code JSON} output format, so {@code <#ftl output_format="JSON">} in
+     * {@code log.ftl} is a no-op. A literal {@code \"} pair in the filter therefore
+     * lands in the rendered JSON as a valid escape sequence for {@code "}. Applying
+     * the backslash-quadrupling on top of that would turn each pair into four
+     * backslashes plus an unescaped {@code "}, prematurely terminating the JSON
+     * string and producing a 400 from Elasticsearch.
+     *
+     * <p><b>Caller contract:</b> any caller that emits a literal {@code "} inside
+     * {@code filter} must pre-escape {@code \} and {@code /} inside the quoted span
+     * itself. The legacy portal does so in {@code analytics.service.ts}; without that
+     * pre-escaping a filter mixing {@code "} with raw {@code /} would lose the
+     * regex-delimiter protection added for APIM-12955.
+     */
+    static String safeEscapeReplacement(String json, String filter) {
+        if (filter == null || filter.isEmpty() || filter.contains("\"")) {
+            return json;
+        }
+        String escaped = escapeForJsonLucene(filter);
+        return json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
     }
 
     /**
