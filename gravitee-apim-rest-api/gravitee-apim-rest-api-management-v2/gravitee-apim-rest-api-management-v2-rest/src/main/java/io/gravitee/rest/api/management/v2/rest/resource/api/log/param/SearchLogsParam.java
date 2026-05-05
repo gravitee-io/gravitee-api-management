@@ -37,8 +37,6 @@ public class SearchLogsParam implements TimeInterval {
     public static final String STATUSES_QUERY_PARAM_NAME = "statuses";
     public static final String ENTRYPOINT_IDS_QUERY_PARAM_NAME = "entrypointIds";
     public static final String ERROR_KEYS_QUERY_PARAM_NAME = "errorKeys";
-    public static final String NATIVE_KAFKA_CLIENT_IDS_QUERY_PARAM_NAME = "nativeKafkaClientIds";
-    public static final String CONNECTION_STATUSES_QUERY_PARAM_NAME = "connectionStatuses";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -71,10 +69,4 @@ public class SearchLogsParam implements TimeInterval {
 
     @QueryParam(ERROR_KEYS_QUERY_PARAM_NAME)
     Set<String> errorKeys;
-
-    @QueryParam(NATIVE_KAFKA_CLIENT_IDS_QUERY_PARAM_NAME)
-    Set<String> nativeKafkaClientIds;
-
-    @QueryParam(CONNECTION_STATUSES_QUERY_PARAM_NAME)
-    Set<String> connectionStatuses;
 }

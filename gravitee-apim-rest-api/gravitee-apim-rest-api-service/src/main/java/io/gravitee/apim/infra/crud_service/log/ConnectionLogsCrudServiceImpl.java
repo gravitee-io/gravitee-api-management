@@ -95,6 +95,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
             String joinedApiIds = String.join(",", apiIds);
+            log.error("An error occurs while trying to search connection logs of api [apiIds={}]", joinedApiIds, e);
             throw new TechnicalManagementException("Error while searching connection logs of api " + joinedApiIds, e);
         }
     }
@@ -152,6 +153,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
             return mapToConnectionResponse(connectionLogsResponse);
         } catch (AnalyticsException e) {
+            log.error("An error occurs while trying to search application connection logs [applicationId={}]", applicationId, e);
             throw new TechnicalManagementException("Error while searching application connection logs " + applicationId, e);
         }
     }
@@ -201,9 +203,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())
             .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
-            .errorKeys(searchLogsFilters.errorKeys())
-            .nativeKafkaClientIds(searchLogsFilters.nativeKafkaClientIds())
-            .nativeKafkaConnectionStatuses(searchLogsFilters.connectionStatuses());
+            .errorKeys(searchLogsFilters.errorKeys());
     }
 
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(
@@ -263,6 +263,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             );
         } catch (AnalyticsException e) {
             var context = apiId != null ? "api " + apiId : "environment " + executionContext.getEnvironmentId();
+            log.error("An error occurs while trying to search error keys for {}", context, e);
             throw new TechnicalManagementException("Error while searching error keys for " + context, e);
         }
     }
