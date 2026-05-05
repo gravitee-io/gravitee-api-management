@@ -202,6 +202,21 @@ describe('AnalyticsComponent', () => {
       ]);
       const pinned = await harness.getPinnedDashboards();
       expect(pinned).toHaveLength(3);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const pinned = await harness.getPinnedDashboards();
+      expect(pinned).toHaveLength(4);
+    });
+
+    it('should_allow_pinning_when_under_limit', async () => {
+      await pinAndFlush(0, 'dash-1', 'Dashboard 1');
+      await pinAndFlush(1, 'dash-2', 'Dashboard 2', [{ id: 'dash-1', name: 'Dashboard 1' }]);
+      await pinAndFlush(2, 'dash-3', 'Dashboard 3', [
+        { id: 'dash-1', name: 'Dashboard 1' },
+        { id: 'dash-2', name: 'Dashboard 2' },
+      ]);
+      const pinned = await harness.getPinnedDashboards();
+      expect(pinned).toHaveLength(3);
     });
   });
 
