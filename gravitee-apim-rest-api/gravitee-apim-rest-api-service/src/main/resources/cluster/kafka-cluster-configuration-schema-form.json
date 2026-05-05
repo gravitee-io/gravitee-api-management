@@ -41,7 +41,7 @@
           "properties": {
             "type": {
               "title": "Select SASL mechanism",
-              "enum": ["NONE", "AWS_MSK_IAM", "GSSAPI", "OAUTHBEARER", "OAUTHBEARER_TOKEN", "PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+              "enum": ["NONE", "AWS_MSK_IAM", "GSSAPI", "OAUTHBEARER", "OAUTHBEARER_TOKEN", "PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512", "DELEGATE_TO_BROKER"],
               "default": "NONE"
             }
           },
@@ -246,6 +246,15 @@
                   },
                   "additionalProperties": false,
                   "required": ["saslJaasConfig"]
+                },
+                {
+                  "description": "Delegate the SASL handshake to the backend broker. The gateway forwards the client's SASL exchange as-is.",
+                  "properties": {
+                    "type": {
+                      "enum": ["DELEGATE_TO_BROKER"]
+                    }
+                  },
+                  "additionalProperties": false
                 }
               ]
             }
