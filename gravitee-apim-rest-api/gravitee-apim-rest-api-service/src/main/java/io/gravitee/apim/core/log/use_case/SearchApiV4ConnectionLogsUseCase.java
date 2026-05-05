@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @UseCase
@@ -78,15 +77,14 @@ public class SearchApiV4ConnectionLogsUseCase {
             pageable,
             List.of(DefinitionVersion.V4)
         );
+
         return mapToResponse(executionContext, response);
     }
 
     private Output mapToResponse(ExecutionContext executionContext, SearchLogsResponse<BaseConnectionLog> logs) {
         var total = logs.total();
         var logList = logs.logs();
-
         var apiProductNames = prefetchApiProductNames(executionContext, logList);
-
         var data = logList
             .stream()
             .map(log -> mapToModel(executionContext, log, apiProductNames))
@@ -100,6 +98,7 @@ public class SearchApiV4ConnectionLogsUseCase {
         if (ids.isEmpty()) {
             return Map.of();
         }
+
         return apiProductQueryService
             .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
             .stream()
@@ -138,6 +137,7 @@ public class SearchApiV4ConnectionLogsUseCase {
 
     private GenericPlanEntity getPlanInfo(String planId) {
         final BasePlanEntity unknownPlan = BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
+
         try {
             return planId != null ? planCrudService.getById(planId) : unknownPlan;
         } catch (PlanNotFoundException | TechnicalManagementException e) {
@@ -149,6 +149,7 @@ public class SearchApiV4ConnectionLogsUseCase {
         if (applicationId == null) {
             return BaseApplicationEntity.builder().id(UNKNOWN.toLowerCase()).name(UNKNOWN).build();
         }
+
         try {
             return applicationCrudService.findById(applicationId, executionContext.getEnvironmentId());
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {

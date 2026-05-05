@@ -16,19 +16,12 @@
 package io.gravitee.apim.core.log.use_case;
 
 import static io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase.UNKNOWN;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.repository.ConnectionLogFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiProductQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.ConnectionLogsCrudServiceInMemory;
-import inmemory.InMemoryAlternative;
-import inmemory.PlanCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase.Input;
@@ -470,63 +463,5 @@ class SearchApiV4ConnectionLogsUseCaseTest {
         );
 
         assertThat(result.data()).extracting(ConnectionLogModel::getApiProductName).containsOnlyNulls();
-    }
-
-    @Test
-    void should_filter_by_native_kafka_client_id() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures
-                    .aConnectionLog("req1")
-                    .toBuilder()
-                    .entrypointId("native-kafka")
-                    .additionalMetrics(Map.of(ConnectionLogsCrudServiceInMemory.NATIVE_KAFKA_CLIENT_ID_KEY, "consumer-A"))
-                    .build(),
-                connectionLogFixtures
-                    .aConnectionLog("req2")
-                    .toBuilder()
-                    .entrypointId("native-kafka")
-                    .additionalMetrics(Map.of(ConnectionLogsCrudServiceInMemory.NATIVE_KAFKA_CLIENT_ID_KEY, "consumer-B"))
-                    .build()
-            )
-        );
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().nativeKafkaClientIds(Set.of("consumer-A")).build())
-        );
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(1);
-            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
-        });
-    }
-
-    @Test
-    void should_filter_by_connection_status() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures
-                    .aConnectionLog("req1")
-                    .toBuilder()
-                    .entrypointId("native-kafka")
-                    .additionalMetrics(Map.of(ConnectionLogsCrudServiceInMemory.NATIVE_KAFKA_CONNECTION_STATUS_KEY, "CONNECTED"))
-                    .build(),
-                connectionLogFixtures
-                    .aConnectionLog("req2")
-                    .toBuilder()
-                    .entrypointId("native-kafka")
-                    .additionalMetrics(Map.of(ConnectionLogsCrudServiceInMemory.NATIVE_KAFKA_CONNECTION_STATUS_KEY, "SESSION_ERROR"))
-                    .build()
-            )
-        );
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().connectionStatuses(Set.of("SESSION_ERROR")).build())
-        );
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(1);
-            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req2");
-        });
     }
 }

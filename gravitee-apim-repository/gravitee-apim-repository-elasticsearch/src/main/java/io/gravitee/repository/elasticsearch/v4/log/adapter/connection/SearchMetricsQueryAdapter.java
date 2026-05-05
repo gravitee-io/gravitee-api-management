@@ -19,11 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import org.springframework.util.CollectionUtils;
 
 public class SearchMetricsQueryAdapter {
@@ -78,10 +74,6 @@ public class SearchMetricsQueryAdapter {
         addErrorKeysFilter(filter, mustFilterList);
 
         addResponseTimeRangesFilter(filter, mustFilterList);
-
-        addNativeKafkaClientIdFilter(filter, mustFilterList);
-
-        addNativeKafkaConnectionStatusFilter(filter, mustFilterList);
 
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
@@ -209,20 +201,6 @@ public class SearchMetricsQueryAdapter {
                 timestampJsonObject.put("lte", new Date(filter.getTo()));
             }
             mustFilterList.add(JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, timestampJsonObject)));
-        }
-    }
-
-    private static void addNativeKafkaClientIdFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
-        if (!CollectionUtils.isEmpty(filter.getNativeKafkaClientIds())) {
-            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.NATIVE_KAFKA_CLIENT_ID, filter.getNativeKafkaClientIds()));
-        }
-    }
-
-    private static void addNativeKafkaConnectionStatusFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
-        if (!CollectionUtils.isEmpty(filter.getNativeKafkaConnectionStatuses())) {
-            mustFilterList.add(
-                buildV4Terms(RequestV2MetricsV4Fields.NATIVE_KAFKA_CONNECTION_STATUS, filter.getNativeKafkaConnectionStatuses())
-            );
         }
     }
 
