@@ -121,22 +121,18 @@ describe('AnalyticsComponent', () => {
       localStorage.clear();
     });
 
-    // Direct DOM clicks: harness methods deadlock because the pin triggers an rxResource HTTP call
-    // that blocks whenStable(), which the harness awaits internally before returning.
-    function clickPinButtonForCard(cardIndex: number): void {
-      const cards = fixture.nativeElement.querySelectorAll('.analytics-list__grid app-analytics-dashboard-card');
-      const pinButton = cards[cardIndex]?.querySelector('.dashboard-card__pin-button') as HTMLButtonElement;
-      pinButton?.click();
+    async function clickPinButtonForCard(cardIndex: number): Promise<void> {
+      const cards = await harness.getGridCards();
+      await cards[cardIndex].clickPinButtonWithoutStabilizing();
     }
 
-    function clickUnpinButtonInPinnedRow(cardIndex: number): void {
-      const cards = fixture.nativeElement.querySelectorAll('.analytics-list__pinned-row app-analytics-dashboard-card');
-      const pinButton = cards[cardIndex]?.querySelector('.dashboard-card__pin-button') as HTMLButtonElement;
-      pinButton?.click();
+    async function clickUnpinButtonInPinnedRow(cardIndex: number): Promise<void> {
+      const cards = await harness.getPinnedDashboards();
+      await cards[cardIndex].clickPinButtonWithoutStabilizing();
     }
 
     async function pinAndFlush(cardIndex: number, id: string, name: string, allPinned: { id: string; name: string }[] = []): Promise<void> {
-      clickPinButtonForCard(cardIndex);
+      await clickPinButtonForCard(cardIndex);
       fixture.detectChanges();
       const pinned = [...allPinned, { id, name }];
       for (const p of pinned) {
@@ -160,7 +156,7 @@ describe('AnalyticsComponent', () => {
 
     it('should_unpin_when_already_pinned', async () => {
       await pinAndFlush(0, 'dash-1', 'Dashboard 1');
-      clickUnpinButtonInPinnedRow(0);
+      await clickUnpinButtonInPinnedRow(0);
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
@@ -187,7 +183,7 @@ describe('AnalyticsComponent', () => {
         { id: 'dash-2', name: 'Dashboard 2' },
         { id: 'dash-3', name: 'Dashboard 3' },
       ]);
-      clickPinButtonForCard(4);
+      await clickPinButtonForCard(4);
       fixture.detectChanges();
       httpTestingController.match(r => r.url.includes('/analytics/dashboards/'));
       await fixture.whenStable();
