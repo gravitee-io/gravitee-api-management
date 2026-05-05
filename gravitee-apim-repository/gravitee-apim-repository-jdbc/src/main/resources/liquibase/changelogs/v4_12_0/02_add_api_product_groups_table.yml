@@ -6,12 +6,8 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}api_product_groups
             columns:
-              - column: {name: api_product_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}api_product_groups
-            columnNames: api_product_id, group_id
-            tableName: ${gravitee_prefix}api_product_groups
+              - column: {name: api_product_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}api_product_groups" } }
+              - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
         - createIndex:
             indexName: idx_${gravitee_prefix}api_product_groups_group_id
             tableName: ${gravitee_prefix}api_product_groups
