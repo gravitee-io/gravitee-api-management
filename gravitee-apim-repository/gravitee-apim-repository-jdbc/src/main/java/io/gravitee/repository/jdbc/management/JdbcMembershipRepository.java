@@ -31,6 +31,7 @@ import java.sql.Types;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -211,7 +212,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                 },
                 getOrm().getRowMapper()
             );
-            return new HashSet<>(items);
+            return new LinkedHashSet<>(items);
         } catch (final Exception ex) {
             log.error("Failed to find membership by references and membership role_id", ex);
             throw new TechnicalException("Failed to find membership by references and membership role_id", ex);

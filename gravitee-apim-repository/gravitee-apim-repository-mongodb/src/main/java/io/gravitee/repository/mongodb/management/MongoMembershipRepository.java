@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -174,7 +175,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         } else {
             membershipMongos = internalMembershipRepo.findByReferencesAndRoleId(referenceType.name(), referenceIds, roleId);
         }
-        Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
+        Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toCollection(LinkedHashSet::new));
         log.debug("Find membership by references and roleId [{}, {}, {}] = {}", referenceType, referenceIds, roleId, memberships);
         return memberships;
     }

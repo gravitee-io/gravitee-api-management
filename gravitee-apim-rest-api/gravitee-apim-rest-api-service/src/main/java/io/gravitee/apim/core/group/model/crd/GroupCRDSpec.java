@@ -20,7 +20,7 @@ import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.definition.model.Origin;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SequencedSet;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,7 +42,7 @@ public class GroupCRDSpec {
 
     private String name;
 
-    private Set<Member> members;
+    private SequencedSet<Member> members;
 
     private boolean notifyMembers;
 

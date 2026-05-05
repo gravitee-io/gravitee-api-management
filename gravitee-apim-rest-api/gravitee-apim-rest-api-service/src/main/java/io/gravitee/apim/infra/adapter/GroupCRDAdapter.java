@@ -18,8 +18,8 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
@@ -33,33 +33,19 @@ import org.mapstruct.factory.Mappers;
 public interface GroupCRDAdapter {
     GroupCRDAdapter INSTANCE = Mappers.getMapper(GroupCRDAdapter.class);
 
-    default Set<MemberCRD> toApiMemberCRDSet(Set<GroupCRDSpec.Member> members) {
+    default SequencedSet<MemberCRD> toApiMemberCRDSet(Set<GroupCRDSpec.Member> members) {
         return toMemberCRDSet(members, RoleScope.API);
     }
 
-    default Set<MemberCRD> toApplicationMemberCRDSet(Set<GroupCRDSpec.Member> members) {
+    default SequencedSet<MemberCRD> toApplicationMemberCRDSet(Set<GroupCRDSpec.Member> members) {
         return toMemberCRDSet(members, RoleScope.APPLICATION);
     }
 
-    default Set<MemberCRD> toIntegrationMemberCRDSet(Set<GroupCRDSpec.Member> members) {
+    default SequencedSet<MemberCRD> toIntegrationMemberCRDSet(Set<GroupCRDSpec.Member> members) {
         return toMemberCRDSet(members, RoleScope.INTEGRATION);
     }
 
-    default Set<GroupCRDSpec.Member> toGroupMembers(Set<MemberCRD> apiMembers) {
-        var groupMembers = new HashMap<String, GroupCRDSpec.Member>();
-        for (var member : apiMembers) {
-            groupMembers.put(member.getId(), initGroupMember(member, RoleScope.API));
-        }
-        return new HashSet<>(groupMembers.values());
-    }
-
-    private GroupCRDSpec.Member initGroupMember(MemberCRD memberCRD, RoleScope roleScope) {
-        var memberRoles = new HashMap<RoleScope, String>();
-        memberRoles.put(roleScope, memberCRD.getRole());
-        return new GroupCRDSpec.Member(memberCRD.getId(), memberCRD.getSourceId(), memberCRD.getSource(), memberRoles);
-    }
-
-    private static Set<MemberCRD> toMemberCRDSet(Set<GroupCRDSpec.Member> members, RoleScope roleScope) {
+    private static SequencedSet<MemberCRD> toMemberCRDSet(Set<GroupCRDSpec.Member> members, RoleScope roleScope) {
         return members
             .stream()
             .flatMap(member ->
@@ -70,6 +56,6 @@ public interface GroupCRDAdapter {
                     .filter(roleEntry -> roleEntry.getKey() == roleScope)
                     .map(roleEntry -> new MemberCRD(member.getId(), member.getSource(), member.getSourceId(), roleEntry.getValue()))
             )
-            .collect(Collectors.toSet());
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

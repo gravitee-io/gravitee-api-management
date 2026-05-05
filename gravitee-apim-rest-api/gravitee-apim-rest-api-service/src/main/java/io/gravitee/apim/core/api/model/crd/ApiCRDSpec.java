@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -118,7 +119,7 @@ public class ApiCRDSpec {
 
     private Set<String> groups;
 
-    private Set<MemberCRD> members;
+    private SequencedSet<MemberCRD> members;
 
     private boolean notifyMembers;
 

@@ -33,7 +33,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -149,7 +149,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
         var givenMemberIds = members.stream().map(MemberCRD::getId).collect(Collectors.toSet());
 
-        var existingMemberIds = new HashSet<>(
+        var existingMemberIds = new LinkedHashSet<>(
             membershipService
                 .getMembersByReference(executionContext, referenceType, referenceId)
                 .stream()

@@ -103,7 +103,6 @@ import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiProductGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -112,6 +111,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -648,7 +648,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         List<MemberEntity> members
     ) {
         if (memberships != null && !memberships.isEmpty()) {
-            final Set<UserEntity> userEntities = new HashSet<>();
+            final Set<UserEntity> userEntities = new LinkedHashSet<>();
             final List<String> userIds = members
                 .stream()
                 .filter(m -> m.getType() == MembershipMemberType.USER)
@@ -1197,7 +1197,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String referenceId,
         String role
     ) {
-        return new HashSet<>(getMembersByReference(executionContext, referenceType, referenceId, role, null).getContent());
+        return new LinkedHashSet<>(getMembersByReference(executionContext, referenceType, referenceId, role, null).getContent());
     }
 
     @Override

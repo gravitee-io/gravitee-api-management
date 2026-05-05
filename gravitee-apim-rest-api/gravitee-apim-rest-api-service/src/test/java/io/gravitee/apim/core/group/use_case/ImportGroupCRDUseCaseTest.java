@@ -29,8 +29,8 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +44,7 @@ import org.mockito.Mockito;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class ImportGroupCRDUseCaseTest {
+class ImportGroupCRDUseCaseTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -62,8 +62,6 @@ public class ImportGroupCRDUseCaseTest {
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
 
     private final CRDMembersDomainServiceInMemory membersService = new CRDMembersDomainServiceInMemory();
-
-    private final MembershipService membershipService = Mockito.mock(MembershipService.class);
 
     private final RoleService roleService = Mockito.mock(RoleService.class);
 
@@ -85,12 +83,14 @@ public class ImportGroupCRDUseCaseTest {
             .id("abc0a85b-9924-4981-bd71-69295353f5ff")
             .name("kubernetes-spec")
             .members(
-                Set.of(
-                    GroupCRDSpec.Member.builder()
-                        .source("memory")
-                        .sourceId("api1")
-                        .roles(Map.of(RoleScope.API, "OWNER", RoleScope.APPLICATION, "OWNER", RoleScope.INTEGRATION, "OWNER"))
-                        .build()
+                new LinkedHashSet<>(
+                    Set.of(
+                        GroupCRDSpec.Member.builder()
+                            .source("memory")
+                            .sourceId("api1")
+                            .roles(Map.of(RoleScope.API, "OWNER", RoleScope.APPLICATION, "OWNER", RoleScope.INTEGRATION, "OWNER"))
+                            .build()
+                    )
                 )
             );
 

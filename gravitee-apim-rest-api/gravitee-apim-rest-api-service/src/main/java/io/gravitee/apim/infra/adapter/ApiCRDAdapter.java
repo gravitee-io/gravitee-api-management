@@ -38,9 +38,10 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.SequencedSet;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mapstruct.Mapper;
@@ -168,13 +169,13 @@ public interface ApiCRDAdapter {
         }
     }
 
-    default Set<MemberCRD> mapMembers(ExportApiEntity definition) {
+    default SequencedSet<MemberCRD> mapMembers(ExportApiEntity definition) {
         return definition.getMembers() != null
             ? definition
                 .getMembers()
                 .stream()
                 .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().getFirst().getName()))
-                .collect(Collectors.toSet())
+                .collect(Collectors.toCollection(LinkedHashSet::new))
             : null;
     }
 
