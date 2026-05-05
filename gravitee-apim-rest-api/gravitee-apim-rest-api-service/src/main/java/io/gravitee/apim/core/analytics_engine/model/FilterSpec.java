@@ -68,5 +68,6 @@ public record FilterSpec(
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
         API_TYPE,
+        NATIVE_CONNECTION_STATUS,
     }
 }
