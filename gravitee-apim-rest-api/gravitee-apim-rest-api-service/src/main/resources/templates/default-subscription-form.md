@@ -1,19 +1,19 @@
 <gmd-grid columns="1" class="hero-grid">
   <gmd-card class="boilerplate-hero">
-    <gmd-card-title>🎨 Subscription Form Builder</gmd-card-title>
+    <gmd-card-title>Subscription Form Builder</gmd-card-title>
     <gmd-md>
       Welcome to your subscription form workspace! This is where you can design and customize the form that API consumers will see when subscribing to your APIs.
 
       **How to use this space:**
 
-      - **✏️ Edit freely** - Modify the examples below or start from scratch
-      - **👀 Live preview** - See your changes instantly on the right side
-      - **🧪 Test validation** - Try filling out the form to test required fields and validation rules
-      - **💾 Save & publish** - When ready, save your form and publish it to make it available in the portal
+      - **Edit freely** - Modify the examples below or start from scratch
+      - **Live preview** - See your changes instantly on the right side
+      - **Test validation** - Try filling out the form to test required fields and validation rules
+      - **Save & publish** - When ready, save your form and publish it to make it available in the portal
 
       ---
 
-      **💡 Pro tip:** Start by editing the example form below, then delete what you don't need and build your own!
+      **Pro tip:** Start by editing the example form below, then delete what you don't need and build your own!
     </gmd-md>
   </gmd-card>
 </gmd-grid>
