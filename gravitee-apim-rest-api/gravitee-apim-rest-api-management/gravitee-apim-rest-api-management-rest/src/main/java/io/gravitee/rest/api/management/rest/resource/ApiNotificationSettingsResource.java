@@ -133,7 +133,7 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Update portal notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_NOTIFICATION, acls = READ) })
+    @Permissions({ @Permission(value = API_NOTIFICATION, acls = UPDATE) })
     public PortalNotificationConfigEntity updateApiPortalNotificationSettings(PortalNotificationConfigEntity config) {
         if (
             !api.equals(config.getReferenceId()) ||
@@ -142,6 +142,7 @@ public class ApiNotificationSettingsResource extends AbstractResource {
         ) {
             throw new ForbiddenAccessException();
         }
+        config.setUser(getAuthenticatedUser());
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         checkGroups(executionContext, config);
         return portalNotificationConfigService.save(config);
