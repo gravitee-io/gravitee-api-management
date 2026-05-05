@@ -15,7 +15,7 @@
  */
 import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
-export const ROUTE_KEYS = ['dashboard', 'apis', 'api-products', 'applications', 'analytics', 'settings'] as const;
+export const ROUTE_KEYS: readonly string[] = ['dashboard', 'apis', 'api-products', 'applications', 'analytics', 'settings'];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 const DEFAULT_ROUTE_KEY: RouteKey = 'dashboard';
