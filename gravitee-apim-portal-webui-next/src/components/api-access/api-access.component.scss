@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/theme' as app-theme;
+
 :host {
   width: 100%;
 }
@@ -59,6 +61,16 @@
       display: flex;
       flex-flow: column;
       gap: 8px;
+    }
+  }
+
+  &__renew-feedback {
+    &--success {
+      color: app-theme.$primary-main-color;
+    }
+
+    &--error {
+      color: app-theme.$error-main-color;
     }
   }
 }

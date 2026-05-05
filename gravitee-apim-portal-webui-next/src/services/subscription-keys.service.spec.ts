@@ -49,4 +49,16 @@ describe('SubscriptionKeysService', () => {
 
     req.flush(null);
   });
+
+  it('should renew key subscription', done => {
+    service.renew(subscriptionId).subscribe(() => {
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions/${subscriptionId}/keys/_renew`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toBeNull();
+
+    req.flush(null);
+  });
 });

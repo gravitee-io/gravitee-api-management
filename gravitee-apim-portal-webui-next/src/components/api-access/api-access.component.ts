@@ -48,6 +48,11 @@ interface ApiKeyTableRow {
   closedAt?: string;
 }
 
+interface ApiKeyRenewFeedback {
+  type: 'success' | 'error';
+  message: string;
+}
+
 @Component({
   selector: 'app-api-access',
   imports: [
@@ -159,6 +164,7 @@ export class ApiAccessComponent {
   }
 
   apiKeyRevoked = output<void>();
+  apiKeyRenewed = output<void>();
 
   protected readonly apiKeysColumns: TableColumn[] = [
     { id: 'status', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnStatus:Status` },
@@ -178,6 +184,9 @@ export class ApiAccessComponent {
   private readonly clientIdInput = signal<string | undefined>(undefined);
   private readonly clientSecretInput = signal<string | undefined>(undefined);
   private readonly canManageApiKeyInput = signal(false);
+  protected readonly apiKeyRenewFeedback = signal<ApiKeyRenewFeedback | undefined>(undefined);
+  protected readonly isRenewingApiKey = signal(false);
+  protected readonly isRenewApiKeyDialogOpen = signal(false);
 
   protected readonly entrypointUrlValues = computed(() => this.entrypointUrlsInput() ?? []);
   protected readonly apiKeyRows = computed<ApiKeyTableRow[]>(() =>
@@ -266,6 +275,34 @@ export class ApiAccessComponent {
       .subscribe(() => this.executeApiKeyRevocation(apiKey.key));
   }
 
+  protected renewApiKey(): void {
+    if (!this.canManageApiKeyInput() || this.isRenewingApiKey() || this.isRenewApiKeyDialogOpen() || !this.subscription?.id) {
+      return;
+    }
+
+    const dialogData: ConfirmDialogData = {
+      title: $localize`:@@subscriptionDetailsRenewApiKeyDialogTitle:Renew API Key?`,
+      content: $localize`:@@subscriptionDetailsRenewApiKeyDialogContent:API Key renewal will eventually deprecate the current key`,
+      confirmLabel: $localize`:@@subscriptionDetailsRenewApiKeyDialogConfirm:Yes, renew`,
+      cancelLabel: $localize`:@@subscriptionDetailsRenewApiKeyDialogCancel:Cancel`,
+    };
+
+    this.isRenewApiKeyDialogOpen.set(true);
+    this.dialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        id: 'confirmDialog',
+        data: dialogData,
+      })
+      .afterClosed()
+      .pipe(
+        tap(() => this.isRenewApiKeyDialogOpen.set(false)),
+        filter(confirmed => !!confirmed),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.executeApiKeyRenewal());
+  }
+
   private isActiveApiKey(apiKey: SubscriptionDataKeys): boolean {
     if (apiKey.revoked_at) {
       return false;
@@ -312,6 +349,37 @@ export class ApiAccessComponent {
               panelClass: 'gio-snack-bar-error',
             },
           );
+        },
+      });
+  }
+
+  private executeApiKeyRenewal(): void {
+    const subscriptionId = this.subscription?.id;
+    if (!subscriptionId) {
+      return;
+    }
+
+    this.isRenewingApiKey.set(true);
+    this.apiKeyRenewFeedback.set(undefined);
+    this.subscriptionKeysService
+      .renew(subscriptionId)
+      .pipe(
+        finalize(() => this.isRenewingApiKey.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.apiKeyRenewed.emit();
+          this.apiKeyRenewFeedback.set({
+            type: 'success',
+            message: $localize`:@@subscriptionDetailsApiAccessRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
+          });
+        },
+        error: () => {
+          this.apiKeyRenewFeedback.set({
+            type: 'error',
+            message: $localize`:@@subscriptionDetailsApiAccessRenewError:Failed to renew API key. Please try again.`,
+          });
         },
       });
   }

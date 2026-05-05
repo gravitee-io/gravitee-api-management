@@ -29,4 +29,8 @@ export class SubscriptionKeysService {
   revoke(subscriptionId: string, apiKey: string): Observable<void> {
     return this.http.post<void>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/keys/${apiKey}/_revoke`, null);
   }
+
+  renew(subscriptionId: string): Observable<void> {
+    return this.http.post<void>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/keys/_renew`, null);
+  }
 }
