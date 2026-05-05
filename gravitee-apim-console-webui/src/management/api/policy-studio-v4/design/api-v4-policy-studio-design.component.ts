@@ -103,7 +103,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
             this.connectorPluginsV2Service.listEntrypointPlugins(),
             this.connectorPluginsV2Service.listEndpointPlugins(),
             this.apiPlanV2Service
-              .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED'], undefined, undefined, 1, 9999)
+              .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, undefined, 1, 9999)
               .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
             this.policyV2Service.list(),
             this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
