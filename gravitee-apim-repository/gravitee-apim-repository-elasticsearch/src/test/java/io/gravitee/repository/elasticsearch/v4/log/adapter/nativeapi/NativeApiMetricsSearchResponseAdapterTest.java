@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi;
 
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CONNECTION_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +45,7 @@ class NativeApiMetricsSearchResponseAdapterTest {
 
     @Test
     @SneakyThrows
-    void parses_hits_into_metrics_list_with_total() {
+    void adapt_additional_metrics_for_successful_connection() {
         var source = objectMapper.readTree(
             """
             {
@@ -75,7 +75,7 @@ class NativeApiMetricsSearchResponseAdapterTest {
 
         assertThat(result.total()).isEqualTo(7);
         assertThat(result.data()).hasSize(1);
-        var first = result.data().get(0);
+        var first = result.data().getFirst();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(first.getApiId()).isEqualTo("api-1");
             soft.assertThat(first.getRequestId()).isEqualTo("request-42");

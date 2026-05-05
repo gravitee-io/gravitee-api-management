@@ -1,0 +1,22 @@
+{
+  "@timestamp": "2026-04-29T10:05:00.000Z",
+  "request-id": "conn-error-001",
+  "transaction-id": "conn-error-001",
+  "api-id": "kafka-api-001",
+  "plan-id": "kafka-plan-001",
+  "application-id": "kafka-app-001",
+  "subscription-id": "kafka-sub-B",
+  "client-identifier": "client-fp-B",
+  "entrypoint-id": "native-kafka",
+  "gateway": "2c99d50d-d318-42d3-99d5-0dd31862d3d2",
+  "remote-address": "192.168.1.11",
+  "local-address": "10.0.2.208",
+  "host": "broker.kafka.local:9092",
+  "error-key": "KAFKA_AUTH_FAILED",
+  "error-code": "SASL_AUTHENTICATION_FAILED",
+  "error-message": "SASL authentication failed: Invalid credentials",
+  "additional-metrics": {
+    "keyword_native-kafka_client-id": "consumer-app-1-B",
+    "keyword_native-kafka_connection-status": "CONNECTION_ERROR"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "@timestamp": "2026-04-29T10:30:00.000Z",
+  "request-id": "conn-disconnect-001",
+  "transaction-id": "conn-disconnect-001",
+  "api-id": "kafka-api-001",
+  "plan-id": "kafka-plan-001",
+  "application-id": "kafka-app-001",
+  "subscription-id": "kafka-sub-A",
+  "client-identifier": "client-fp-A",
+  "entrypoint-id": "native-kafka",
+  "gateway": "2c99d50d-d318-42d3-99d5-0dd31862d3d2",
+  "remote-address": "192.168.1.10",
+  "local-address": "10.0.2.208",
+  "host": "broker.kafka.local:9092",
+  "error-key": "KAFKA_CONSUMER_LEFT_GROUP",
+  "error-code": "CLIENT_DISCONNECTED",
+  "error-message": "Consumer left the group gracefully after 30 minutes",
+  "additional-metrics": {
+    "keyword_native-kafka_client-id": "consumer-app-1-A",
+    "keyword_native-kafka_broker-id": "broker-1",
+    "keyword_native-kafka_connection-status": "DISCONNECTED",
+    "long_native-kafka_connection-duration-ms": 1800000
+  }
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi;
 
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.BROKER_ID;
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CLIENT_ID;
@@ -27,6 +27,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.elasticsearch.AbstractAdapterTest;
 import java.util.List;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -41,7 +42,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void returns_empty_optional_when_search_hits_is_null() {
-            assertThat(NativeApiMetricsFindResponseAdapter.adapt(new SearchResponse())).isEmpty();
+            Assertions.assertThat(NativeApiMetricsFindResponseAdapter.adapt(new SearchResponse())).isEmpty();
         }
 
         @Test
@@ -82,7 +83,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
     class ConnectedEvent {
 
         @Test
-        void parses_top_level_identity_fields() {
+        void adapt_base_fields_for_successful_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
 
             SoftAssertions.assertSoftly(soft -> {
@@ -103,7 +104,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
-        void leaves_error_fields_null_for_a_successful_connection() {
+        void adapt__error_fields_for_successful_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
 
             assertThat(metrics.getErrorKey()).isNull();
@@ -111,7 +112,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
-        void exposes_only_client_id_broker_id_and_status_in_additional_metrics() {
+        void adapt_additional_metrics_for_successful_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
 
             assertThat(metrics.getAdditionalMetrics())
@@ -126,7 +127,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
     class DisconnectedEvent {
 
         @Test
-        void parses_top_level_error_fields_for_a_terminated_connection() {
+        void adapt_error_fields_for_terminated_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-disconnected.json")).orElseThrow();
 
             assertThat(metrics.getRequestId()).isEqualTo("conn-disconnect-001");
@@ -135,7 +136,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
-        void exposes_client_id_broker_id_status_and_duration_in_additional_metrics() {
+        void adapt_additional_metrics_for_terminated_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-disconnected.json")).orElseThrow();
 
             assertThat(metrics.getAdditionalMetrics())
@@ -150,7 +151,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
     class ConnectionErrorEvent {
 
         @Test
-        void parses_top_level_error_fields_for_a_failed_connection_attempt() {
+        void adapt_error_fields_for_failed_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json")).orElseThrow();
 
             assertThat(metrics.getRequestId()).isEqualTo("conn-error-001");
@@ -159,7 +160,7 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
-        void omits_broker_id_and_duration_when_connection_never_established() {
+        void adapt_additional_metrics_for_failed_connection() {
             var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json")).orElseThrow();
 
             assertThat(metrics.getAdditionalMetrics())
