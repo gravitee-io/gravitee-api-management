@@ -15,7 +15,7 @@
  */
 import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene-core';
 import { AppWindowIcon } from '@gravitee/graphene-core/icons';
-import type { ReactNode } from 'react';
+import { type ReactNode, useCallback } from 'react';
 
 const localDevApp = {
     key: 'module-local',
@@ -26,8 +26,14 @@ const localDevApp = {
 
 /** Minimal app chrome for standalone `nx serve` only; the host provides the real shell when federated. */
 export function LocalDevShell({ children }: { readonly children: ReactNode }) {
-    const { slots } = useLayoutSlots();
+    const { slots, setSlots } = useLayoutSlots();
     const breadcrumbs = slots.breadcrumbs.length > 0 ? slots.breadcrumbs : [{ label: 'APIM' }];
+    const onCtxChange = useCallback(
+        (v: boolean) => {
+            setSlots({ contextExpanded: v });
+        },
+        [setSlots],
+    );
 
     return (
         <AppLayout
@@ -35,7 +41,12 @@ export function LocalDevShell({ children }: { readonly children: ReactNode }) {
             defaultTheme="system"
             fullHeight
             sidebar={<AppSidebar apps={[localDevApp]} activeAppKey={localDevApp.key} renderNavigation={() => slots.navigation} />}
-            subheader={<ContentHeader breadcrumbs={breadcrumbs} />}
+            subheader={<ContentHeader breadcrumbs={breadcrumbs} leading={slots.leading} />}
+            contextSidebar={slots.contextSidebar}
+            viewMode={slots.viewMode}
+            contextExpanded={slots.contextExpanded}
+            onContextExpandedChange={onCtxChange}
+            contentVariant={slots.contentVariant}
         >
             {children}
         </AppLayout>

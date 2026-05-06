@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsProvider } from '../settings/context/SettingsContext';
-import { SettingsModule } from '../settings/SettingsModule';
-
-export function SettingsPage() {
-    return (
-        <SettingsProvider>
-            <SettingsModule />
-        </SettingsProvider>
-    );
+export interface MockEnvironment {
+    readonly id: string;
+    readonly name: string;
+    readonly hrids: readonly string[];
 }
+
+export const ENVIRONMENTS: readonly MockEnvironment[] = [
+    { id: 'dev', name: 'Development', hrids: ['dev'] },
+    { id: 'staging', name: 'Staging', hrids: ['staging'] },
+    { id: 'prod', name: 'Production', hrids: ['prod'] },
+] as const;

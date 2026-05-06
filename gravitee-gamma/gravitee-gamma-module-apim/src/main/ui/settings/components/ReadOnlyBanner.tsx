@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsProvider } from '../settings/context/SettingsContext';
-import { SettingsModule } from '../settings/SettingsModule';
+import { Alert, AlertDescription, AlertTitle, Badge } from '@gravitee/graphene-core';
+import { EyeIcon } from 'lucide-react';
 
-export function SettingsPage() {
+export function ReadOnlyBanner() {
     return (
-        <SettingsProvider>
-            <SettingsModule />
-        </SettingsProvider>
+        <Alert className="mb-4">
+            <EyeIcon className="h-4 w-4" />
+            <AlertTitle className="flex items-center gap-2">
+                <Badge variant="secondary">View Only</Badge>
+            </AlertTitle>
+            <AlertDescription>You do not have edit permissions for this resource.</AlertDescription>
+        </Alert>
     );
 }

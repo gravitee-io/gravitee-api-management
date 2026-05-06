@@ -68,7 +68,7 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const envHrid = useEnvHrid();
     const location = useLocation();
     const pathname = location.pathname;
-    const { slots } = useLayoutSlots();
+    const { slots, setSlots } = useLayoutSlots();
 
     const environments = useEnvironmentStore(s => s.environments);
 
@@ -103,6 +103,13 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
         void logout();
     }, [logout]);
 
+    const onContextExpandedChange = useCallback(
+        (expanded: boolean) => {
+            setSlots({ contextExpanded: expanded });
+        },
+        [setSlots],
+    );
+
     return (
         <AppLayout
             defaultSidebarMode="hover-expand"
@@ -122,9 +129,15 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
             subheader={
                 <ContentHeader
                     breadcrumbs={slots.breadcrumbs}
+                    leading={slots.leading}
                     trailing={user ? <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} /> : undefined}
                 />
             }
+            contextSidebar={slots.contextSidebar}
+            viewMode={slots.viewMode}
+            contextExpanded={slots.contextExpanded}
+            onContextExpandedChange={onContextExpandedChange}
+            contentVariant={slots.contentVariant}
         >
             <Outlet />
         </AppLayout>

@@ -36,12 +36,21 @@ function ModuleLayout() {
         [activeNavKey, navigate, rootPath],
     );
 
+    const isSettings = activeNavKey === 'settings';
+
     useLayoutConfig(
         {
             navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
             breadcrumbs,
+            ...(isSettings
+                ? { viewMode: 'context' as const }
+                : {
+                      viewMode: 'global' as const,
+                      contextSidebar: null,
+                      leading: null,
+                  }),
         },
-        [activeNavKey, breadcrumbs, navigateToKey],
+        [activeNavKey, breadcrumbs, navigateToKey, isSettings],
     );
 
     return <Outlet />;
