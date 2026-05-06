@@ -141,10 +141,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
         if (currentApiProduct != null) {
             log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
 
-            // Emit UNDEPLOY event before removal from registry
-            emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
-
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
+
+            emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
 
             log.info("API Product [{}] has been undeployed", apiProductId);
         } else {
@@ -165,8 +164,12 @@ public class ApiProductManagerImpl implements ApiProductManager {
             eventManager.publishEvent(eventType, event);
             log.debug("Emitted {} event for API Product [{}]", eventType, apiProduct.getId());
         } catch (Exception e) {
-            log.warn("Failed to emit {} event for API Product [{}]", eventType, apiProduct.getId(), e);
-            // Don't fail the operation if event emission fails
+            log.error(
+                "Failed to emit {} event for API Product [{}] — security chain may be stale until next sync cycle",
+                eventType,
+                apiProduct.getId(),
+                e
+            );
         }
     }
 }

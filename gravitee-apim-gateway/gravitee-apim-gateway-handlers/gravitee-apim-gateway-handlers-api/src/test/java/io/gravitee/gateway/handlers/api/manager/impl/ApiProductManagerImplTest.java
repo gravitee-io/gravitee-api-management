@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -166,6 +168,18 @@ class ApiProductManagerImplTest {
 
             assertThat(manager.get("product-1")).isNull();
             verify(apiProductRegistry).remove("product-1", "env-1");
+        }
+
+        @Test
+        void should_remove_from_registry_before_emitting_undeploy_event() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(apiProduct);
+
+            InOrder inOrder = inOrder(apiProductRegistry, eventManager);
+            manager.unregister("product-1");
+
+            inOrder.verify(apiProductRegistry).remove("product-1", "env-1");
+            inOrder.verify(eventManager).publishEvent(eq(ApiProductEventType.UNDEPLOY), any(ApiProductChangedEvent.class));
         }
 
         @Test

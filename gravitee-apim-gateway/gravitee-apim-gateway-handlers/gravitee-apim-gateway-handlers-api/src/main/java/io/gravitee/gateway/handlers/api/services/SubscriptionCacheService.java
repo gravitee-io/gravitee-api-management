@@ -123,30 +123,46 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public void unregister(final Subscription candidate) {
-        // only once per synchronization window
-        // take all fields (including "updatedAt" in metadata) into account
-        cacheBySubscriptionId.computeIfPresent(candidate.getId(), (h, existing) -> {
-            // Remove from exploded subscriptions cache
-            Set<Subscription> allSubscriptions = cacheBySubscriptionIdAll.get(existing.getId());
-            if (allSubscriptions != null) {
-                allSubscriptions.removeIf(s -> Objects.equals(existing.getApi(), s.getApi()));
-                if (allSubscriptions.isEmpty()) {
-                    cacheBySubscriptionIdAll.remove(existing.getId());
+        // Use compute() so that the isEmpty-check-then-remove is atomic with respect to
+        // concurrent register() calls on the same subscription ID. Without this, a register()
+        // interleaved between isEmpty()=true and remove() would add a new entry to the set
+        // and then have that set orphaned by the remove().
+        cacheBySubscriptionIdAll.compute(candidate.getId(), (id, allSubscriptions) -> {
+            if (allSubscriptions == null) return null;
+
+            var toEvict = allSubscriptions
+                .stream()
+                .filter(s -> Objects.equals(candidate.getApi(), s.getApi()))
+                .toList();
+
+            toEvict.forEach(existing -> {
+                allSubscriptions.remove(existing);
+                unregisterFromClientId(existing);
+                unregisterFromClientCertificate(existing);
+            });
+
+            if (!toEvict.isEmpty()) {
+                evictKeyForApi(candidate.getApi(), candidate.getId());
+                // Handle the case where the candidate carries a different clientId/cert than
+                // what was cached (e.g. a status-change event arriving after a credential update).
+                if (toEvict.stream().noneMatch(s -> Objects.equals(s.getClientId(), candidate.getClientId()))) {
+                    unregisterFromClientId(candidate);
+                }
+                if (toEvict.stream().noneMatch(s -> Objects.equals(s.getClientCertificate(), candidate.getClientCertificate()))) {
+                    unregisterFromClientCertificate(candidate);
                 }
             }
-            evictKeyForApi(existing.getApi(), existing.getId());
-            unregisterFromClientId(existing);
-            unregisterFromClientCertificate(existing);
 
-            // In case new ones have different client id than the one in cache
-            if (!Objects.equals(candidate.getClientId(), existing.getClientId())) {
-                unregisterFromClientId(candidate);
-            }
-            if (!Objects.equals(candidate.getClientCertificate(), existing.getClientCertificate())) {
-                unregisterFromClientCertificate(candidate);
-            }
+            return allSubscriptions.isEmpty() ? null : allSubscriptions;
+        });
 
-            return null;
+        // Only evict cacheBySubscriptionId when it points to this specific API. If sibling legs
+        // remain (exploded API-Product subscriptions), rehydrate from the authoritative set so
+        // getById() stays consistent with getAllById() regardless of unregistration order.
+        cacheBySubscriptionId.computeIfPresent(candidate.getId(), (k, existing) -> {
+            if (!Objects.equals(existing.getApi(), candidate.getApi())) return existing;
+            Set<Subscription> remaining = cacheBySubscriptionIdAll.get(candidate.getId());
+            return (remaining == null || remaining.isEmpty()) ? null : remaining.iterator().next();
         });
     }
 
