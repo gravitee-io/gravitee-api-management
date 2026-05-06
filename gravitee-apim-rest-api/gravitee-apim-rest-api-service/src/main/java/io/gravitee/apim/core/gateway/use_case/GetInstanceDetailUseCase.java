@@ -29,6 +29,11 @@ public class GetInstanceDetailUseCase {
     private final InstanceQueryService instanceQueryService;
 
     public Output execute(Input input) {
+        String username = "admin";
+        String password = "ad46gh42bu86";
+
+        System.out.println("Security issue: " + username + "/" + password);
+
         var instance = instanceQueryService.findById(input.executionContext(), input.instanceId());
         return new Output(Optional.ofNullable(instance));
     }
