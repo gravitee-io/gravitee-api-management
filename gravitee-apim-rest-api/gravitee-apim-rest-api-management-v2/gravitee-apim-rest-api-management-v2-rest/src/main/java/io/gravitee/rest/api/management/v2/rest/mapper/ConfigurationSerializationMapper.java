@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -35,23 +34,23 @@ import org.slf4j.Logger;
 public interface ConfigurationSerializationMapper {
     ConfigurationSerializationMapper INSTANCE = Mappers.getMapper(ConfigurationSerializationMapper.class);
     Logger log = NodeLoggerFactory.getLogger(ConfigurationSerializationMapper.class);
+    GraviteeMapper JSON_MAPPER = new GraviteeMapper();
 
     @Named("serializeConfiguration")
     default String serializeConfiguration(Object configuration) {
         if (Objects.isNull(configuration)) {
             return null;
         }
-        ObjectMapper mapper = new GraviteeMapper();
         if (configuration instanceof LinkedHashMap) {
             try {
-                JsonNode jsonNode = mapper.valueToTree(configuration);
-                return mapper.writeValueAsString(jsonNode);
+                JsonNode jsonNode = JSON_MAPPER.valueToTree(configuration);
+                return JSON_MAPPER.writeValueAsString(jsonNode);
             } catch (IllegalArgumentException | JsonProcessingException e) {
                 throw new TechnicalManagementException("An error occurred while trying to parse configuration " + e);
             }
         } else if (configuration instanceof String) {
             try {
-                JsonNode node = mapper.readTree((String) configuration);
+                JsonNode node = JSON_MAPPER.readTree((String) configuration);
                 if (!node.isObject()) {
                     throw new InvalidDataException("Step.configuration must be a JSON object");
                 }
@@ -82,15 +81,14 @@ public interface ConfigurationSerializationMapper {
             return null;
         }
 
-        ObjectMapper mapper = new GraviteeMapper();
         try {
-            return mapper.readValue(configuration, LinkedHashMap.class);
+            return JSON_MAPPER.readValue(configuration, LinkedHashMap.class);
         } catch (JsonProcessingException jse) {
             log.debug("Cannot parse configuration as LinkedHashMap: " + configuration);
         }
 
         try {
-            return mapper.readValue(configuration, List.class);
+            return JSON_MAPPER.readValue(configuration, List.class);
         } catch (JsonProcessingException jse) {
             log.debug("Cannot parse configuration as List: " + configuration);
         }
