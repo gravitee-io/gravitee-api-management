@@ -34,7 +34,7 @@ import { PortalApiViewParam } from '../../../../../entities/api/portal-api-view-
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
 import { Configuration } from '../../../../../entities/configuration/configuration';
-import { fakeUserApiPermissions } from '../../../../../entities/permission/permission.fixtures';
+import { fakeUserApiPermissions, fakeUserApplicationPermissions } from '../../../../../entities/permission/permission.fixtures';
 import { fakePlan, fakePlansResponse } from '../../../../../entities/plan/plan.fixture';
 import { PlansResponse } from '../../../../../entities/plan/plans-response';
 import {
@@ -221,7 +221,7 @@ describe('SubscriptionsDetailsComponent', () => {
 
       const apiAccessDebugElement = fixture.debugElement.query(By.directive(ApiAccessComponent));
       const apiAccessComponent = apiAccessDebugElement.componentInstance as ApiAccessComponent;
-      apiAccessComponent.revokeApiKey.emit();
+      apiAccessComponent.apiKeyRevoked.emit();
 
       const refreshedApiKey = 'refreshed-api-key';
       expectSubscriptionWithKeys({
@@ -248,6 +248,105 @@ describe('SubscriptionsDetailsComponent', () => {
       await apiAccess.toggleClientSecretVisibility();
       expect(await apiAccess.getClientSecret()).toStrictEqual('3zEYOXPqqCyaq7os--Nf1-6jrHjL0AjumFz4CL78nwQ');
     });
+  });
+
+  describe('OAuth2 API access without API permissions', () => {
+    const PLAN_ID = 'plan-id';
+    const APP_ID = 'app-id';
+    const APP_NAME = 'app-name';
+
+    it('should show client credentials when application permissions are available', async () => {
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID }));
+      expectGetApiPermissions(undefined, false);
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }), fakeUserApplicationPermissions({ SUBSCRIPTION: ['U'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'OAUTH2' })] }));
+      fixture.detectChanges();
+
+      httpTestingController.expectNone(request => request.url === `${TESTING_BASE_URL}/apis/${API_ID}`);
+      const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+      expect(await apiAccess.getClientId()).toStrictEqual('zLgNDMUCbbCBDNnpBGb-WOV_lNrUlQlAlUiSditR9Es');
+      expect(await apiAccess.getClientSecret()).toContain('***');
+      await apiAccess.toggleClientSecretVisibility();
+      expect(await apiAccess.getClientSecret()).toStrictEqual('3zEYOXPqqCyaq7os--Nf1-6jrHjL0AjumFz4CL78nwQ');
+    });
+  });
+
+  describe('API key revoke permissions', () => {
+    const PLAN_ID = 'plan-id';
+    const APP_ID = 'app-id';
+    const APP_NAME = 'app-name';
+    const API_KEY = 'my-api-key';
+
+    it('should allow API key revoke with API subscription update permission', async () => {
+      expectAcceptedApiKeySubscription();
+      expectGetApiPermissions(fakeUserApiPermissions({ SUBSCRIPTION: ['U'] }));
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccessComponent = getApiAccessComponent();
+      expect(apiAccessComponent.canManageApiKey).toBeTruthy();
+    });
+
+    it('should not allow API key revoke with only API subscription delete permission', async () => {
+      expectAcceptedApiKeySubscription();
+      expectGetApiPermissions(fakeUserApiPermissions({ SUBSCRIPTION: ['D'] }));
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccessComponent = getApiAccessComponent();
+      expect(apiAccessComponent.canManageApiKey).toBeFalsy();
+    });
+
+    it('should allow API key revoke with application subscription update permission when API permissions are unavailable', async () => {
+      expectAcceptedApiKeySubscription();
+      expectGetApiPermissions(undefined, false);
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }), fakeUserApplicationPermissions({ SUBSCRIPTION: ['U'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccessComponent = getApiAccessComponent();
+      expect(apiAccessComponent.canManageApiKey).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-label"]')).not.toBeNull();
+    });
+
+    it('should allow API key revoke with API subscription update permission when application permissions are unavailable', async () => {
+      expectAcceptedApiKeySubscription();
+      expectGetApiPermissions(fakeUserApiPermissions({ SUBSCRIPTION: ['U'] }));
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }), undefined, false);
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccessComponent = getApiAccessComponent();
+      expect(apiAccessComponent.canManageApiKey).toBeTruthy();
+    });
+
+    it('should render error state when application permissions fail with non-404 error', async () => {
+      expectAcceptedApiKeySubscription();
+      expectGetApiPermissions(fakeUserApiPermissions({ SUBSCRIPTION: ['U'] }));
+      httpTestingController
+        .expectOne(`${TESTING_BASE_URL}/applications/99c6cbe6-eead-414d-86cb-e6eeadc14db3`)
+        .flush(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      expectGetApplicationPermissions(undefined, true, 500);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.subscriptions-details__error')).not.toBeNull();
+    });
+
+    function expectAcceptedApiKeySubscription() {
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID });
+      expectSubscriptionWithKeys({
+        ...subscription,
+        keys: [{ key: API_KEY, id: '1', application: { id: APP_ID, name: APP_NAME } }],
+      });
+    }
   });
 
   describe('with push plan', () => {
@@ -476,8 +575,14 @@ describe('SubscriptionsDetailsComponent', () => {
     expectSubscriptionList(fakeSubscriptionResponse({ metadata }), API_ID);
   }
 
-  function expectApplicationsList(applicationsResponse: Application = fakeApplication()) {
+  function expectApplicationsList(
+    applicationsResponse: Application = fakeApplication(),
+    applicationPermissions = fakeUserApplicationPermissions(),
+    hasApplicationAccess = true,
+    applicationPermissionsErrorStatus?: number,
+  ) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/99c6cbe6-eead-414d-86cb-e6eeadc14db3`).flush(applicationsResponse);
+    expectGetApplicationPermissions(applicationPermissions, hasApplicationAccess, applicationPermissionsErrorStatus);
   }
 
   function expectGetApi(api: Api = fakeApi()) {
@@ -503,6 +608,28 @@ describe('SubscriptionsDetailsComponent', () => {
     } else {
       req.flush(null, { status: 404, statusText: 'Not Found' });
     }
+  }
+
+  function expectGetApplicationPermissions(
+    permissions = fakeUserApplicationPermissions(),
+    hasApplicationAccess = true,
+    errorStatus?: number,
+  ) {
+    const req = httpTestingController.expectOne(
+      request =>
+        request.url === `${TESTING_BASE_URL}/permissions` && request.params.get('applicationId') === '99c6cbe6-eead-414d-86cb-e6eeadc14db3',
+    );
+    if (errorStatus) {
+      req.flush(null, { status: errorStatus, statusText: 'Error' });
+    } else if (hasApplicationAccess) {
+      req.flush(permissions);
+    } else {
+      req.flush(null, { status: 404, statusText: 'Not Found' });
+    }
+  }
+
+  function getApiAccessComponent(): ApiAccessComponent {
+    return fixture.debugElement.query(By.directive(ApiAccessComponent)).componentInstance as ApiAccessComponent;
   }
 
   describe('when documentation view is unavailable', () => {

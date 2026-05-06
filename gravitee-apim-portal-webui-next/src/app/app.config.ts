@@ -15,11 +15,12 @@
  */
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
@@ -65,6 +66,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
     provideOAuthClient(),
+    importProvidersFrom(GioIconsModule),
     provideAppInitializer(() => {
       const initializerFn = initApp(
         inject(AuthService),

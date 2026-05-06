@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, EventEmitter, Input, model, Output } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Input, model, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIcon, MatIconRegistry } from '@angular/material/icon';
+import { MatIcon } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarConfig, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
-import { DomSanitizer } from '@angular/platform-browser';
-import { filter } from 'rxjs';
+import { filter, tap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
@@ -40,26 +41,12 @@ import { TableCellDirective } from '../paginated-table/table-cell.directive';
 interface ApiKeyTableRow {
   statusIcon: 'gio:check-circled-outline' | 'gio:x-circle';
   statusLabel: string;
+  revokeAriaLabel: string;
   isActive: boolean;
   key: string;
   createdAt?: string;
-  revokedAt?: string;
+  closedAt?: string;
 }
-
-const GIO_CHECK_CIRCLED_OUTLINE_ICON = `
-  <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path fill="currentColor" d="M15.663 3.773A9 9 0 1 0 21 12v-.919a1 1 0 0 1 2 0V12a11.002 11.002 0 0 1-21.066 4.432A11 11 0 0 1 16.477 1.947a.999.999 0 0 1-.037 1.863 1 1 0 0 1-.777-.037Z"/>
-    <path fill="currentColor" d="M22.707 3.293a1 1 0 0 1 0 1.414l-10 10.01a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L12 12.595l9.293-9.302a1 1 0 0 1 1.414 0Z"/>
-  </svg>
-`;
-
-const GIO_X_CIRCLE_ICON = `
-  <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path fill="currentColor" fill-rule="evenodd" d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM1 12C1 5.925 5.925 1 12 1s11 4.925 11 11-4.925 11-11 11S1 18.075 1 12Z" clip-rule="evenodd"/>
-    <path fill="currentColor" fill-rule="evenodd" d="M15.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1-1.414-1.414l6-6a1 1 0 0 1 1.414 0Z" clip-rule="evenodd"/>
-    <path fill="currentColor" fill-rule="evenodd" d="M8.293 8.293a1 1 0 0 1 1.414 0l6 6a1 1 0 0 1-1.414 1.414l-6-6a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"/>
-  </svg>
-`;
 
 @Component({
   selector: 'app-api-access',
@@ -74,6 +61,7 @@ const GIO_X_CIRCLE_ICON = `
     MatFormFieldModule,
     MatIcon,
     MatSelectModule,
+    MatSnackBarModule,
     MatTooltip,
     CopyCodeIconComponent,
     PaginatedTableComponent,
@@ -83,117 +71,175 @@ const GIO_X_CIRCLE_ICON = `
   styleUrl: './api-access.component.scss',
 })
 export class ApiAccessComponent {
-  @Input()
-  planSecurity!: PlanSecurityEnum;
+  private readonly configService = inject(ConfigService);
+  private readonly subscriptionKeysService = inject(SubscriptionKeysService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input()
-  subscription?: Subscription;
+  set planSecurity(value: PlanSecurityEnum) {
+    this.planSecurityInput.set(value);
+  }
+
+  get planSecurity(): PlanSecurityEnum {
+    return this.planSecurityInput() as PlanSecurityEnum;
+  }
+
+  @Input()
+  set subscription(value: Subscription | undefined) {
+    this.subscriptionInput.set(value);
+  }
+
+  get subscription(): Subscription | undefined {
+    return this.subscriptionInput();
+  }
 
   @Input()
   set apiKeys(value: SubscriptionDataKeys[] | undefined) {
-    this._apiKeys = value ?? [];
-    this.apiKeyRows = this._apiKeys.map(apiKey => {
+    this.apiKeysInput.set(value ?? []);
+  }
+
+  get apiKeys(): SubscriptionDataKeys[] {
+    return this.apiKeysInput();
+  }
+
+  @Input()
+  set apiKeyConfigUsername(value: string | undefined) {
+    this.apiKeyConfigUsernameInput.set(value);
+  }
+
+  get apiKeyConfigUsername(): string | undefined {
+    return this.apiKeyConfigUsernameInput();
+  }
+
+  @Input()
+  set apiType(value: ApiType | undefined) {
+    this.apiTypeInput.set(value);
+  }
+
+  get apiType(): ApiType | undefined {
+    return this.apiTypeInput();
+  }
+
+  @Input()
+  set entrypointUrls(value: string[] | undefined) {
+    this.entrypointUrlsInput.set(value);
+  }
+
+  get entrypointUrls(): string[] | undefined {
+    return this.entrypointUrlsInput();
+  }
+
+  @Input()
+  set clientId(value: string | undefined) {
+    this.clientIdInput.set(value);
+  }
+
+  get clientId(): string | undefined {
+    return this.clientIdInput();
+  }
+
+  @Input()
+  set clientSecret(value: string | undefined) {
+    this.clientSecretInput.set(value);
+  }
+
+  get clientSecret(): string | undefined {
+    return this.clientSecretInput();
+  }
+
+  @Input()
+  set canManageApiKey(value: boolean) {
+    this.canManageApiKeyInput.set(value);
+  }
+
+  get canManageApiKey(): boolean {
+    return this.canManageApiKeyInput();
+  }
+
+  apiKeyRevoked = output<void>();
+
+  protected readonly apiKeysColumns: TableColumn[] = [
+    { id: 'status', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnStatus:Status` },
+    { id: 'key', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnKey:Key` },
+    { id: 'createdAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnCreatedAt:Created At`, type: 'date-time' },
+    { id: 'closedAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnRevokedAt:Revoked/Expired At`, type: 'date-time' },
+    { id: 'revoke', label: '' },
+  ];
+  protected readonly apiKeysPageSizeOptions = [5, 10, 25];
+
+  private readonly planSecurityInput = signal<PlanSecurityEnum | undefined>(undefined);
+  private readonly subscriptionInput = signal<Subscription | undefined>(undefined);
+  private readonly apiKeysInput = signal<SubscriptionDataKeys[]>([]);
+  private readonly apiKeyConfigUsernameInput = signal<string | undefined>(undefined);
+  private readonly apiTypeInput = signal<ApiType | undefined>(undefined);
+  private readonly entrypointUrlsInput = signal<string[] | undefined>(undefined);
+  private readonly clientIdInput = signal<string | undefined>(undefined);
+  private readonly clientSecretInput = signal<string | undefined>(undefined);
+  private readonly canManageApiKeyInput = signal(false);
+
+  protected readonly entrypointUrlValues = computed(() => this.entrypointUrlsInput() ?? []);
+  protected readonly apiKeyRows = computed<ApiKeyTableRow[]>(() =>
+    this.apiKeysInput().map(apiKey => {
       const isActive = this.isActiveApiKey(apiKey);
       return {
         statusIcon: isActive ? 'gio:check-circled-outline' : 'gio:x-circle',
         statusLabel: isActive
           ? $localize`:@@subscriptionDetailsApiAccessApiKeysStatusActive:Active API key`
           : $localize`:@@subscriptionDetailsApiAccessApiKeysStatusInactive:Inactive API key`,
+        revokeAriaLabel: $localize`:@@subscriptionDetailsApiAccessRevokeAriaLabel:Revoke API key ${apiKey.key ?? ''}:apiKey:`,
         isActive,
         key: apiKey.key ?? '',
         createdAt: apiKey.created_at,
-        revokedAt: apiKey.revoked_at ?? apiKey.expire_at,
+        closedAt: apiKey.revoked_at ?? apiKey.expire_at,
       };
-    });
-    this.hasActiveApiKey = !!this.activeApiKey;
-    this.totalApiKeyElements = this.apiKeyRows.length;
-    this.apiKeysCurrentPage = 1;
-    this.updateDisplayedApiKeyRows();
-  }
-
-  @Input()
-  apiKeyConfigUsername?: string;
-
-  @Input()
-  apiType?: ApiType;
-
-  @Input()
-  entrypointUrls?: string[];
-
-  @Input()
-  clientId?: string;
-
-  @Input()
-  clientSecret?: string;
-
-  @Input()
-  canManageSubscription = false;
-
-  @Output()
-  revokeApiKey = new EventEmitter<void>();
-
-  protected readonly apiKeysColumns: TableColumn[] = [
-    { id: 'status', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnStatus:Status` },
-    { id: 'key', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnKey:Key` },
-    { id: 'createdAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnCreatedAt:Created At`, type: 'date-time' },
-    { id: 'revokedAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnRevokedAt:Revoked/Expired At`, type: 'date-time' },
-    { id: 'revoke', label: '' },
-  ];
-  protected readonly apiKeysPageSizeOptions = [5, 10, 25];
-
-  protected apiKeyRows: ApiKeyTableRow[] = [];
-  protected displayedApiKeyRows: ApiKeyTableRow[] = [];
-  protected totalApiKeyElements = 0;
-  protected apiKeysCurrentPage = 1;
-  protected apiKeysPageSize = 5;
+    }),
+  );
+  protected readonly activeApiKey = computed(() => this.apiKeysInput().find(apiKey => this.isActiveApiKey(apiKey)));
+  protected readonly hasActiveApiKey = computed(() => !!this.activeApiKey());
+  protected readonly totalApiKeyElements = computed(() => this.apiKeyRows().length);
+  protected readonly apiKeysPageSize = signal(5);
+  private readonly requestedApiKeysCurrentPage = signal(1);
+  protected readonly lastValidApiKeysPage = computed(() => Math.max(1, Math.ceil(this.totalApiKeyElements() / this.apiKeysPageSize())));
+  protected readonly apiKeysCurrentPage = computed(() => Math.min(this.requestedApiKeysCurrentPage(), this.lastValidApiKeysPage()));
+  protected readonly displayedApiKeyRows = computed(() => {
+    const startIndex = (this.apiKeysCurrentPage() - 1) * this.apiKeysPageSize();
+    const endIndex = startIndex + this.apiKeysPageSize();
+    return this.apiKeyRows().slice(startIndex, endIndex);
+  });
+  protected readonly primaryApiKey = computed(() => this.activeApiKey()?.key ?? '');
+  protected readonly resolvedApiKeyConfigUsername = computed(() => this.apiKeyConfigUsernameInput() ?? this.activeApiKey()?.hash ?? '');
+  protected readonly shouldShowApiAccessContent = computed(
+    () => this.planSecurityInput() !== 'API_KEY' || this.subscriptionInput()?.status !== 'ACCEPTED' || this.hasActiveApiKey(),
+  );
   protected isRevokingApiKey = false;
-  protected hasActiveApiKey = false;
-
-  private _apiKeys: SubscriptionDataKeys[] = [];
+  protected isRevokeApiKeyDialogOpen = false;
+  private readonly defaultSnackBarOptions: MatSnackBarConfig = {
+    duration: 5000,
+    horizontalPosition: 'end',
+  };
 
   selectedEntrypointUrl = model<string>('');
+  protected readonly selectedEntrypointUrlValue = computed(() => {
+    const selectedEntrypointUrl = this.selectedEntrypointUrl();
+    const entrypointUrls = this.entrypointUrlValues();
+    return selectedEntrypointUrl && entrypointUrls.includes(selectedEntrypointUrl) ? selectedEntrypointUrl : (entrypointUrls[0] ?? '');
+  });
 
-  curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrl(), this.planSecurity, this.primaryApiKey));
-
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly subscriptionKeysService: SubscriptionKeysService,
-    private readonly dialog: MatDialog,
-    private readonly matIconRegistry: MatIconRegistry,
-    private readonly sanitizer: DomSanitizer,
-  ) {
-    this.registerApiKeyStatusIcons();
-
-    effect(() => {
-      this.selectedEntrypointUrl.set(this.entrypointUrls?.length ? this.entrypointUrls[0] : this.selectedEntrypointUrl());
-    });
-  }
+  curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrlValue(), this.planSecurityInput(), this.primaryApiKey()));
 
   protected onApiKeysPageChange(page: number): void {
-    this.apiKeysCurrentPage = page;
-    this.updateDisplayedApiKeyRows();
+    this.requestedApiKeysCurrentPage.set(page);
   }
 
   protected onApiKeysPageSizeChange(pageSize: number): void {
-    this.apiKeysPageSize = pageSize;
-    this.apiKeysCurrentPage = 1;
-    this.updateDisplayedApiKeyRows();
-  }
-
-  protected get primaryApiKey(): string {
-    return this.activeApiKey?.key ?? this._apiKeys[0]?.key ?? '';
-  }
-
-  protected get resolvedApiKeyConfigUsername(): string {
-    return this.apiKeyConfigUsername ?? this.activeApiKey?.hash ?? this._apiKeys[0]?.hash ?? '';
-  }
-
-  protected get shouldShowApiAccessContent(): boolean {
-    return this.planSecurity !== 'API_KEY' || this.subscription?.status !== 'ACCEPTED' || this.hasActiveApiKey;
+    this.apiKeysPageSize.set(pageSize);
+    this.requestedApiKeysCurrentPage.set(1);
   }
 
   protected revokeApiKeyRow(apiKey: ApiKeyTableRow): void {
-    if (!this.canManageSubscription || this.isRevokingApiKey || !apiKey.isActive || !apiKey.key) {
+    if (!this.canManageApiKeyInput() || this.isRevokingApiKey || this.isRevokeApiKeyDialogOpen || !apiKey.isActive || !apiKey.key) {
       return;
     }
 
@@ -204,6 +250,7 @@ export class ApiAccessComponent {
       cancelLabel: $localize`:@@subscriptionDetailsCloseApiKeyDialogCancel:Cancel`,
     };
 
+    this.isRevokeApiKeyDialogOpen = true;
     this.dialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         role: 'alertdialog',
@@ -211,12 +258,12 @@ export class ApiAccessComponent {
         data: dialogData,
       })
       .afterClosed()
-      .pipe(filter(confirmed => !!confirmed))
+      .pipe(
+        tap(() => (this.isRevokeApiKeyDialogOpen = false)),
+        filter(confirmed => !!confirmed),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(() => this.executeApiKeyRevocation(apiKey.key));
-  }
-
-  private get activeApiKey(): SubscriptionDataKeys | undefined {
-    return this._apiKeys.find(apiKey => this.isActiveApiKey(apiKey));
   }
 
   private isActiveApiKey(apiKey: SubscriptionDataKeys): boolean {
@@ -231,17 +278,8 @@ export class ApiAccessComponent {
     return new Date(apiKey.expire_at).getTime() > Date.now();
   }
 
-  private registerApiKeyStatusIcons(): void {
-    this.matIconRegistry.addSvgIconLiteralInNamespace(
-      'gio',
-      'check-circled-outline',
-      this.sanitizer.bypassSecurityTrustHtml(GIO_CHECK_CIRCLED_OUTLINE_ICON), //NOSONAR
-    );
-    this.matIconRegistry.addSvgIconLiteralInNamespace('gio', 'x-circle', this.sanitizer.bypassSecurityTrustHtml(GIO_X_CIRCLE_ICON)); //NOSONAR
-  }
-
   private executeApiKeyRevocation(apiKey: string): void {
-    const subscriptionId = this.subscription?.id;
+    const subscriptionId = this.subscriptionInput()?.id;
     if (!subscriptionId || !apiKey) {
       return;
     }
@@ -249,22 +287,36 @@ export class ApiAccessComponent {
     this.isRevokingApiKey = true;
     this.subscriptionKeysService
       .revoke(subscriptionId, apiKey)
-      .pipe(finalize(() => (this.isRevokingApiKey = false)))
+      .pipe(
+        finalize(() => (this.isRevokingApiKey = false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: () => this.revokeApiKey.emit(),
+        next: () => {
+          this.apiKeyRevoked.emit();
+          this.snackBar.open(
+            $localize`:@@subscriptionDetailsApiAccessRevokeSuccess:API key revoked successfully. Applications using it will no longer be able to access the API.`,
+            undefined,
+            {
+              ...this.defaultSnackBarOptions,
+              panelClass: 'gio-snack-bar-success',
+            },
+          );
+        },
         error: () => {
-          // no-op: keep UI stable and release loading state in finalize
+          this.snackBar.open(
+            $localize`:@@subscriptionDetailsApiAccessRevokeError:Failed to revoke API key. Please try again.`,
+            $localize`:@@subscriptionDetailsApiAccessRevokeErrorClose:Close`,
+            {
+              ...this.defaultSnackBarOptions,
+              panelClass: 'gio-snack-bar-error',
+            },
+          );
         },
       });
   }
 
-  private updateDisplayedApiKeyRows(): void {
-    const startIndex = (this.apiKeysCurrentPage - 1) * this.apiKeysPageSize;
-    const endIndex = startIndex + this.apiKeysPageSize;
-    this.displayedApiKeyRows = this.apiKeyRows.slice(startIndex, endIndex);
-  }
-
-  private formatCurlCommandLine(entrypointUrl: string, planSecurity: PlanSecurityEnum, apiKey?: string): string {
+  private formatCurlCommandLine(entrypointUrl: string, planSecurity: PlanSecurityEnum | undefined, apiKey?: string): string {
     if (!entrypointUrl) {
       return '';
     }

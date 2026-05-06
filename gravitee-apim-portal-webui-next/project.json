@@ -22,6 +22,11 @@
         "assets": [
           "gravitee-apim-portal-webui-next/src/assets",
           {
+            "glob": "**/*",
+            "input": "node_modules/@gravitee/ui-particles-angular/assets",
+            "output": "assets/"
+          },
+          {
             "glob": "oauth2-redirect.html",
             "input": "node_modules/swagger-ui/dist",
             "output": "/"

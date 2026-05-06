@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
@@ -23,10 +23,8 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class SubscriptionKeysService {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly configService: ConfigService,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly configService = inject(ConfigService);
 
   revoke(subscriptionId: string, apiKey: string): Observable<void> {
     return this.http.post<void>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/keys/${apiKey}/_revoke`, null);

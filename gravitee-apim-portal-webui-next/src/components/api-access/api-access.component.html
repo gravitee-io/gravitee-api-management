@@ -32,23 +32,23 @@
       }
       @if (apiType === 'NATIVE') {
         <app-native-kafka-api-access
-          [entrypointUrls]="entrypointUrls ?? []"
+          [entrypointUrls]="entrypointUrlValues()"
           [planSecurity]="planSecurity"
-          [apiKey]="primaryApiKey"
-          [apiKeyConfigUsername]="resolvedApiKeyConfigUsername"
+          [apiKey]="primaryApiKey()"
+          [apiKeyConfigUsername]="resolvedApiKeyConfigUsername()"
           [clientId]="clientId ?? ''"
         />
       } @else {
         @if (planSecurity === 'API_KEY') {
           <div class="api-access__copy-code-content__api-keys-list">
             <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
-            @if (apiKeyRows.length > 0) {
+            @if (apiKeyRows().length > 0) {
               <app-paginated-table
                 [columns]="apiKeysColumns"
-                [rows]="displayedApiKeyRows"
-                [totalElements]="totalApiKeyElements"
-                [currentPage]="apiKeysCurrentPage"
-                [pageSize]="apiKeysPageSize"
+                [rows]="displayedApiKeyRows()"
+                [totalElements]="totalApiKeyElements()"
+                [currentPage]="apiKeysCurrentPage()"
+                [pageSize]="apiKeysPageSize()"
                 [pageSizeOptions]="apiKeysPageSizeOptions"
                 [navigable]="false"
                 (pageChange)="onApiKeysPageChange($event)"
@@ -63,14 +63,15 @@
                   />
                 </ng-template>
                 <ng-template appTableCell="revoke" let-apiKey>
-                  @if (canManageSubscription && apiKey.isActive) {
+                  @if (canManageApiKey && apiKey.isActive) {
                     <button
                       mat-icon-button
                       type="button"
                       color="warn"
-                      [disabled]="isRevokingApiKey"
+                      [disabled]="isRevokingApiKey || isRevokeApiKeyDialogOpen"
                       matTooltip="Revoke"
-                      [attr.aria-label]="'Revoke API key ' + apiKey.key"
+                      i18n-matTooltip="@@subscriptionDetailsApiAccessRevokeTooltip"
+                      [attr.aria-label]="apiKey.revokeAriaLabel"
                       [attr.data-api-key]="apiKey.key"
                       data-testid="api-key-revoke-button"
                       (click)="revokeApiKeyRow(apiKey)"
@@ -85,24 +86,28 @@
             }
           </div>
         }
-        @if (shouldShowApiAccessContent) {
+        @if (shouldShowApiAccessContent()) {
           <div class="api-access__copy-code-content__calling-api">
             <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
-            @if (entrypointUrls?.length === 1) {
-              <app-copy-code id="base-url" title="Base URL" [text]="(entrypointUrls ?? [''])[0]" />
-            } @else if (entrypointUrls && entrypointUrls.length > 1) {
+            @if (entrypointUrlValues().length === 1) {
+              <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrlValues()[0]" />
+            } @else if (entrypointUrlValues().length > 1) {
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label class="next-gen-body" i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
-                <mat-select [(value)]="selectedEntrypointUrl" id="select-entrypoints">
-                  @for (entrypointUrl of entrypointUrls; track entrypointUrl) {
+                <mat-select
+                  [value]="selectedEntrypointUrlValue()"
+                  id="select-entrypoints"
+                  (selectionChange)="selectedEntrypointUrl.set($event.value)"
+                >
+                  @for (entrypointUrl of entrypointUrlValues(); track entrypointUrl) {
                     <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
                   }
                 </mat-select>
                 <app-copy-code-icon
                   matSuffix
                   (click)="$event.stopPropagation()"
-                  [contentToCopy]="selectedEntrypointUrl()"
-                  [label]="selectedEntrypointUrl()"
+                  [contentToCopy]="selectedEntrypointUrlValue()"
+                  [label]="selectedEntrypointUrlValue()"
                 />
               </mat-form-field>
             }
