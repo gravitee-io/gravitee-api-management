@@ -400,6 +400,43 @@ describe('ApiAccessComponent', () => {
           await expect(revokeButtonsAfterCancel[1].isDisabled()).resolves.toBeFalsy();
         });
 
+        it('should not open another confirmation dialog while one is already open', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.apiKeys = [
+            { key: 'api-key-1', application: { id: 'app-id', name: 'app-name' } },
+            { key: 'api-key-2', application: { id: 'app-id', name: 'app-name' } },
+          ];
+          const matDialogOpenSpy = jest.spyOn(TestBed.inject(MatDialog), 'open');
+
+          fixture.detectChanges();
+
+          const revokeButtons = await getRevokeApiKeyButtons();
+          expect(revokeButtons).toHaveLength(2);
+
+          await revokeButtons[0].click();
+          fixture.detectChanges();
+
+          expect(matDialogOpenSpy).toHaveBeenCalledTimes(1);
+          await expect(revokeButtons[0].isDisabled()).resolves.toBeTruthy();
+          await expect(revokeButtons[1].isDisabled()).resolves.toBeTruthy();
+
+          (component as unknown as { revokeApiKeyRow: (apiKey: { isActive: boolean; key: string }) => void }).revokeApiKeyRow({
+            isActive: true,
+            key: 'api-key-2',
+          });
+
+          expect(matDialogOpenSpy).toHaveBeenCalledTimes(1);
+
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          await confirmDialog.cancel();
+          fixture.detectChanges();
+
+          const revokeButtonsAfterCancel = await getRevokeApiKeyButtons();
+          await expect(revokeButtonsAfterCancel[0].isDisabled()).resolves.toBeFalsy();
+          await expect(revokeButtonsAfterCancel[1].isDisabled()).resolves.toBeFalsy();
+        });
+
         it('should not emit revoke event when revoke service fails', async () => {
           component.planSecurity = 'API_KEY';
           component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
