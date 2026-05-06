@@ -443,7 +443,8 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
                 "[{\"op\":\"replace\",\"path\":\"/disableMembershipNotifications\",\"value\":null}]",
                 JSON_PATCH_TYPE,
                 "disableMembershipNotifications"
-            )
+            ),
+            Arguments.of("[{\"op\":\"remove\",\"path\":\"/name\"}]", JSON_PATCH_TYPE, "name")
         );
     }
 
@@ -458,7 +459,8 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     static Stream<Arguments> nullOnOptionalFieldCases() {
         return Stream.of(
             Arguments.of("{\"description\":null}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/description\",\"value\":null}]", JSON_PATCH_TYPE)
+            Arguments.of("[{\"op\":\"replace\",\"path\":\"/description\",\"value\":null}]", JSON_PATCH_TYPE),
+            Arguments.of("[{\"op\":\"remove\",\"path\":\"/description\"}]", JSON_PATCH_TYPE)
         );
     }
 

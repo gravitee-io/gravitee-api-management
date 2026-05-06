@@ -15,16 +15,10 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,16 +40,26 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiJsonPatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.JsonMergePatchServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -170,7 +174,10 @@ class PatchApiUseCaseTest {
         if (value == null) {
             node.putNull("value");
         } else {
-            node.set("value", OBJECT_MAPPER.copy().setSerializationInclusion(JsonInclude.Include.ALWAYS).valueToTree(value));
+            node.set(
+                "value",
+                JsonMapperFactory.jsonBuilder().serializationInclusion(JsonInclude.Include.ALWAYS).build().valueToTree(value)
+            );
         }
         return node;
     }
@@ -232,22 +239,47 @@ class PatchApiUseCaseTest {
 
     static Api apiWithServices(ApiServices services) {
         var base = ApiFixtures.aProxyApiV4();
-        return base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().services(services).build()).build();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().services(services).build()).build();
     }
 
     static Api apiWithResponseTemplates(Map<String, Map<String, ResponseTemplate>> templates) {
         var base = ApiFixtures.aProxyApiV4();
-        return base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().responseTemplates(templates).build()).build();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().responseTemplates(templates).build()).build();
     }
 
     static Api apiWithProperties(List<Property> properties) {
         var base = ApiFixtures.aProxyApiV4();
-        return base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().properties(properties).build()).build();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().properties(properties).build()).build();
+    }
+
+    static Api apiWithFlows(List<Flow> flows) {
+        var base = ApiFixtures.aProxyApiV4();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().flows(flows).build()).build();
+    }
+
+    private static io.gravitee.definition.model.v4.Api httpV4Def(Api api) {
+        return (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+    }
+
+    static Step aStep(String name, String policy) {
+        return Step.builder().name(name).policy(policy).enabled(true).build();
+    }
+
+    static Flow aFlow(String name, List<Step> request) {
+        return Flow.builder().name(name).enabled(true).request(request).build();
+    }
+
+    static Map<String, Object> stepMap(String name, String policy) {
+        return Map.of("name", name, "policy", policy, "enabled", true);
+    }
+
+    static Map<String, Object> flowMap(String name, List<Map<String, Object>> request) {
+        return Map.of("name", name, "enabled", true, "request", request);
     }
 
     static void assertNonPatchedFieldsPreserved(Api api, Api existing, String expectedName) {
-        var httpV4 = api.getApiDefinitionHttpV4();
-        var originalHttpV4 = existing.getApiDefinitionHttpV4();
+        var httpV4 = httpV4Def(api);
+        var originalHttpV4 = httpV4Def(existing);
 
         assertThat(api.getName()).isEqualTo(expectedName);
         assertThat(api.getDescription()).isEqualTo(existing.getDescription());
@@ -267,6 +299,7 @@ class PatchApiUseCaseTest {
         assertThat(httpV4.getAllowedInApiProducts()).isEqualTo(originalHttpV4.getAllowedInApiProducts());
         assertThat(httpV4.getProperties()).isEqualTo(originalHttpV4.getProperties());
         assertThat(httpV4.getResponseTemplates()).isEqualTo(originalHttpV4.getResponseTemplates());
+        assertThat(httpV4.getFlows()).isEqualTo(originalHttpV4.getFlows());
     }
 
     @Nested
@@ -400,7 +433,7 @@ class PatchApiUseCaseTest {
         @ParameterizedTest
         @EnumSource(PatchApiUseCase.PatchType.class)
         void preserves_every_non_patched_field(PatchApiUseCase.PatchType type) {
-            var existing = apiCrudService.storage().get(0);
+            var existing = apiCrudService.storage().getFirst();
 
             var output = execute(type, setField(type, "name", "only-name-changed"), false);
 
@@ -434,14 +467,6 @@ class PatchApiUseCaseTest {
             assertThatThrownBy(() -> execute(type, setField(type, "endpointGroups", List.of()), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
                 .hasMessageContaining("endpointGroups");
-        }
-
-        @ParameterizedTest
-        @EnumSource(PatchApiUseCase.PatchType.class)
-        void flows_field_is_rejected(PatchApiUseCase.PatchType type) {
-            assertThatThrownBy(() -> execute(type, setField(type, "flows", List.of()), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("flows");
         }
 
         @ParameterizedTest
@@ -569,7 +594,7 @@ class PatchApiUseCaseTest {
         void tags_field_is_cleared(PatchApiUseCase.PatchType type, String body) {
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getTags()).isEmpty();
+            assertThat(httpV4Def(output.api()).getTags()).isEmpty();
         }
 
         @ParameterizedTest
@@ -577,7 +602,7 @@ class PatchApiUseCaseTest {
         void analytics_field_is_cleared(PatchApiUseCase.PatchType type, String body) {
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getAnalytics()).isNull();
+            assertThat(httpV4Def(output.api()).getAnalytics()).isNull();
         }
 
         @ParameterizedTest
@@ -587,9 +612,7 @@ class PatchApiUseCaseTest {
             givenExistingApi(
                 base
                     .toBuilder()
-                    .apiDefinitionValue(
-                        base.getApiDefinitionHttpV4().toBuilder().analytics(Analytics.builder().enabled(true).build()).build()
-                    )
+                    .apiDefinitionValue(httpV4Def(base).toBuilder().analytics(Analytics.builder().enabled(true).build()).build())
                     .build()
             );
             var body = switch (type) {
@@ -599,7 +622,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(type, body, false);
 
-            var messageSampling = output.api().getApiDefinitionHttpV4().getAnalytics().getMessageSampling();
+            var messageSampling = httpV4Def(output.api()).getAnalytics().getMessageSampling();
             assertThat(messageSampling).isNotNull();
             assertThat(messageSampling.getType()).isEqualTo(SamplingType.COUNT);
             assertThat(messageSampling.getValue()).isEqualTo("50");
@@ -610,7 +633,7 @@ class PatchApiUseCaseTest {
         void failover_field_is_cleared(PatchApiUseCase.PatchType type, String body) {
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getFailover()).isNull();
+            assertThat(httpV4Def(output.api()).getFailover()).isNull();
         }
 
         @ParameterizedTest
@@ -618,7 +641,7 @@ class PatchApiUseCaseTest {
         void flowExecution_field_is_cleared(PatchApiUseCase.PatchType type, String body) {
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getFlowExecution()).isNull();
+            assertThat(httpV4Def(output.api()).getFlowExecution()).isNull();
         }
 
         @ParameterizedTest
@@ -631,7 +654,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+            assertThat(httpV4Def(output.api()).getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
         }
 
         @ParameterizedTest
@@ -641,7 +664,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getServices()).isNull();
+            assertThat(httpV4Def(output.api()).getServices()).isNull();
         }
 
         @ParameterizedTest
@@ -651,7 +674,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(type, setField(type, "responseTemplates", value), false);
 
-            var templates = output.api().getApiDefinitionHttpV4().getResponseTemplates();
+            var templates = httpV4Def(output.api()).getResponseTemplates();
             assertThat(templates).containsKey("DEFAULT");
             assertThat(templates.get("DEFAULT").get("application/json").getStatusCode()).isEqualTo(400);
         }
@@ -663,7 +686,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getResponseTemplates()).isNull();
+            assertThat(httpV4Def(output.api()).getResponseTemplates()).isNull();
         }
 
         @ParameterizedTest
@@ -676,7 +699,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(type, body, false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getProperties()).isNull();
+            assertThat(httpV4Def(output.api()).getProperties()).isNull();
         }
     }
 
@@ -867,13 +890,6 @@ class PatchApiUseCaseTest {
         }
 
         @Test
-        void remove_op_on_flows_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/flows"), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("flows");
-        }
-
-        @Test
         void remove_op_on_endpointGroups_is_rejected() {
             assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/endpointGroups"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
@@ -889,22 +905,13 @@ class PatchApiUseCaseTest {
         }
 
         @Test
-        void add_op_on_flows_subpath_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/flows/-", Map.of()), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("flows");
-        }
-
-        @Test
         void null_flowExecution_is_preserved_when_patching_other_fields() {
             var base = ApiFixtures.aProxyApiV4();
-            givenExistingApi(
-                base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().flowExecution(null).build()).build()
-            );
+            givenExistingApi(base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().flowExecution(null).build()).build());
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/name", "patched-name"), false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getFlowExecution()).isNull();
+            assertThat(httpV4Def(output.api()).getFlowExecution()).isNull();
         }
 
         @Test
@@ -913,7 +920,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/responseTemplates", null), false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getResponseTemplates()).isNull();
+            assertThat(httpV4Def(output.api()).getResponseTemplates()).isNull();
         }
 
         @Test
@@ -922,7 +929,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/responseTemplates"), false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getResponseTemplates()).isNull();
+            assertThat(httpV4Def(output.api()).getResponseTemplates()).isNull();
         }
 
         @Test
@@ -932,7 +939,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/responseTemplates", value), false);
 
-            var templates = output.api().getApiDefinitionHttpV4().getResponseTemplates();
+            var templates = httpV4Def(output.api()).getResponseTemplates();
             assertThat(templates).containsKey("DEFAULT");
             assertThat(templates.get("DEFAULT").get("application/json").getStatusCode()).isEqualTo(201);
         }
@@ -990,7 +997,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/services", null), false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getServices()).isNull();
+            assertThat(httpV4Def(output.api()).getServices()).isNull();
         }
 
         @Test
@@ -999,7 +1006,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/services"), false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getServices()).isNull();
+            assertThat(httpV4Def(output.api()).getServices()).isNull();
         }
 
         @Test
@@ -1012,7 +1019,7 @@ class PatchApiUseCaseTest {
                 false
             );
 
-            assertThat(output.api().getApiDefinitionHttpV4().getProperties()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getProperties()).hasSize(1);
         }
 
         @Test
@@ -1021,7 +1028,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/properties", null), false);
 
-            assertThat(output.api().getApiDefinitionHttpV4().getProperties()).isNull();
+            assertThat(httpV4Def(output.api()).getProperties()).isNull();
         }
 
         @Test
@@ -1052,8 +1059,566 @@ class PatchApiUseCaseTest {
         }
     }
 
-    @Test
-    void patchable_response_template_from_returns_null_when_domain_is_null() {
-        assertThat(PatchApiUseCase.PatchableResponseTemplate.from(null)).isNull();
+    @Nested
+    class PatchableResponseTemplateFactory {
+
+        @Test
+        void from_returns_null_when_domain_is_null() {
+            assertThat(PatchApiUseCase.PatchableResponseTemplate.from(null)).isNull();
+        }
+    }
+
+    @Nested
+    class FlowsResolution {
+
+        @Test
+        void merge_patch_with_flows_null_clears_flows_on_rebuilt_definition() {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", null), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).isNull();
+        }
+
+        @Test
+        void merge_patch_with_populated_flows_replaces_existing_list_preserving_order() {
+            givenExistingApi(apiWithFlows(List.of(aFlow("old", List.of(aStep("s", "p"))))));
+            var supplied = List.of(
+                flowMap("first", List.of(stepMap("s1", "policy-a"))),
+                flowMap("second", List.of(stepMap("s2", "policy-b")))
+            );
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", supplied), false);
+
+            var flows = httpV4Def(output.api()).getFlows();
+            assertThat(flows).hasSize(2);
+            assertThat(flows.getFirst().getName()).isEqualTo("first");
+            assertThat(flows.get(1).getName()).isEqualTo("second");
+            assertThat(flows.getFirst().getRequest().getFirst().getPolicy()).isEqualTo("policy-a");
+        }
+
+        @Test
+        void json_patch_remove_flows_clears_flows_on_rebuilt_definition() {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/flows"), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).isNull();
+        }
+
+        @Test
+        void json_patch_replace_flows_with_fresh_array_replaces_existing_list() {
+            givenExistingApi(apiWithFlows(List.of(aFlow("old", List.of(aStep("s", "p"))))));
+            var supplied = List.of(flowMap("brand-new", List.of(stepMap("s1", "policy-a"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/flows", supplied), false);
+
+            var flows = httpV4Def(output.api()).getFlows();
+            assertThat(flows).hasSize(1);
+            assertThat(flows.getFirst().getName()).isEqualTo("brand-new");
+        }
+
+        @Test
+        void patch_not_addressing_flows_leaves_existing_list_intact() {
+            var existing = List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))), aFlow("f2", List.of(aStep("s2", "policy-b"))));
+            givenExistingApi(apiWithFlows(existing));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).isEqualTo(existing);
+        }
+
+        @Test
+        void blocked_field_combined_with_allowed_flows_patch_is_still_rejected() {
+            var body = OBJECT_MAPPER.createObjectNode();
+            body.set("flows", OBJECT_MAPPER.valueToTree(List.of(flowMap("f", List.of()))));
+            body.set("endpointGroups", OBJECT_MAPPER.valueToTree(List.of()));
+
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body.toString(), false))
+                .isInstanceOf(ApiPatchNotAllowedException.class)
+                .hasMessageContaining("endpointGroups");
+        }
+
+        @Test
+        void merge_patch_with_empty_flows_array_clears_flows() {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", List.of()), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).isEmpty();
+        }
+
+        @Test
+        void selector_polymorphism_round_trips_through_patch_view() {
+            var http = HttpSelector.builder().path("/foo").build();
+            var flowWithSelector = Flow.builder().name("f1").selectors(List.of(http)).request(List.of(aStep("s1", "policy-a"))).build();
+            givenExistingApi(apiWithFlows(List.of(flowWithSelector)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), false);
+
+            var flows = httpV4Def(output.api()).getFlows();
+            assertThat(flows).hasSize(1);
+            assertThat(flows.getFirst().getSelectors()).hasSize(1);
+            assertThat(flows.getFirst().getSelectors().getFirst()).isInstanceOf(HttpSelector.class);
+            assertThat(((HttpSelector) flows.getFirst().getSelectors().getFirst()).getPath()).isEqualTo("/foo");
+        }
+
+        static Stream<Arguments> reorderFlowsVariants() {
+            var reordered = List.of(flowMap("second", List.of(stepMap("s2", "p2"))), flowMap("first", List.of(stepMap("s1", "p1"))));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", reordered)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/flows", reordered))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("reorderFlowsVariants")
+        void reordering_flows_reflects_new_order(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(
+                apiWithFlows(List.of(aFlow("first", List.of(aStep("s1", "p1"))), aFlow("second", List.of(aStep("s2", "p2")))))
+            );
+
+            var output = execute(type, body, false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getName).containsExactly("second", "first");
+        }
+
+        static Stream<Arguments> addStepVariants() {
+            var twoSteps = List.of(flowMap("f1", List.of(stepMap("s1", "p1"), stepMap("s2", "p2"))));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", twoSteps)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/flows/0/request/-", stepMap("s2", "p2")))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("addStepVariants")
+        void adding_a_step_places_it_at_the_requested_index(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "p1"))))));
+
+            var output = execute(type, body, false);
+
+            var steps = httpV4Def(output.api()).getFlows().getFirst().getRequest();
+            assertThat(steps).extracting(Step::getName).containsExactly("s1", "s2");
+        }
+
+        static Stream<Arguments> removeStepVariants() {
+            var oneStep = List.of(flowMap("f1", List.of(stepMap("s1", "p1"))));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", oneStep)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/flows/0/request/1"))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("removeStepVariants")
+        void removing_a_step_removes_it_from_the_list(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "p1"), aStep("s2", "p2"))))));
+
+            var output = execute(type, body, false);
+
+            var steps = httpV4Def(output.api()).getFlows().getFirst().getRequest();
+            assertThat(steps).extracting(Step::getName).containsExactly("s1");
+        }
+
+        static Stream<Arguments> reorderStepsVariants() {
+            var reordered = List.of(flowMap("f1", List.of(stepMap("s2", "p2"), stepMap("s1", "p1"))));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", reordered)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/flows", reordered))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("reorderStepsVariants")
+        void reordering_steps_reflects_new_order(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "p1"), aStep("s2", "p2"))))));
+
+            var output = execute(type, body, false);
+
+            var steps = httpV4Def(output.api()).getFlows().getFirst().getRequest();
+            assertThat(steps).extracting(Step::getName).containsExactly("s2", "s1");
+        }
+
+        static Stream<Arguments> stepFieldEditCases() {
+            var fieldDefaults = Map.of(
+                "name",
+                "renamed",
+                "policy",
+                "policy-z",
+                "condition",
+                "{#new}",
+                "messageCondition",
+                "{#msg}",
+                "description",
+                "new-desc"
+            );
+            return fieldDefaults
+                .entrySet()
+                .stream()
+                .flatMap(e ->
+                    Stream.of(PatchApiUseCase.PatchType.MERGE_PATCH, PatchApiUseCase.PatchType.JSON_PATCH).map(t ->
+                        Arguments.of(t, e.getKey(), e.getValue())
+                    )
+                );
+        }
+
+        @ParameterizedTest
+        @MethodSource("stepFieldEditCases")
+        void modifying_step_string_field_changes_only_that_field(PatchApiUseCase.PatchType type, String field, String newValue) {
+            var existingStep = Step.builder()
+                .name("s1")
+                .policy("policy-a")
+                .enabled(true)
+                .description("orig-desc")
+                .condition("{#orig}")
+                .messageCondition("{#orig-msg}")
+                .build();
+            var siblingStep = aStep("sibling", "p-sib");
+            givenExistingApi(
+                apiWithFlows(
+                    List.of(
+                        Flow.builder().name("f1").enabled(true).request(List.of(existingStep, siblingStep)).build(),
+                        aFlow("other", List.of(aStep("ss", "ps")))
+                    )
+                )
+            );
+
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/flows/0/request/0/" + field, newValue)
+                : buildMergeStepEdit(field, newValue);
+
+            var output = execute(type, body, false);
+
+            var flows = httpV4Def(output.api()).getFlows();
+            var patchedStep = flows.getFirst().getRequest().getFirst();
+            switch (field) {
+                case "name" -> assertThat(patchedStep.getName()).isEqualTo(newValue);
+                case "policy" -> assertThat(patchedStep.getPolicy()).isEqualTo(newValue);
+                case "condition" -> assertThat(patchedStep.getCondition()).isEqualTo(newValue);
+                case "messageCondition" -> assertThat(patchedStep.getMessageCondition()).isEqualTo(newValue);
+                case "description" -> assertThat(patchedStep.getDescription()).isEqualTo(newValue);
+            }
+            if (!"name".equals(field)) {
+                assertThat(patchedStep.getName()).isEqualTo("s1");
+            }
+            if (!"policy".equals(field)) {
+                assertThat(patchedStep.getPolicy()).isEqualTo("policy-a");
+            }
+            assertThat(flows).hasSize(2);
+            assertThat(flows.getFirst().getRequest().get(1).getName()).isEqualTo("sibling");
+            assertThat(flows.get(1).getName()).isEqualTo("other");
+        }
+
+        private static String buildMergeStepEdit(String field, String value) {
+            var firstStep = new LinkedHashMap<String, Object>();
+            firstStep.put("name", "s1");
+            firstStep.put("policy", "policy-a");
+            firstStep.put("enabled", true);
+            firstStep.put("description", "orig-desc");
+            firstStep.put("condition", "{#orig}");
+            firstStep.put("messageCondition", "{#orig-msg}");
+            firstStep.put(field, value);
+            var flows = List.of(
+                Map.of("name", "f1", "enabled", true, "request", List.of(firstStep, stepMap("sibling", "p-sib"))),
+                flowMap("other", List.of(stepMap("ss", "ps")))
+            );
+            return mergePatch("flows", flows);
+        }
+
+        static Stream<Arguments> stepEnabledVariants() {
+            return Stream.of(true, false).flatMap(enabled -> {
+                var step = Map.<String, Object>of("name", "s1", "policy", "p1", "enabled", enabled);
+                var flow = Map.of("name", "f1", "enabled", true, "request", List.of(step));
+                return Stream.of(
+                    Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/flows/0/request/0/enabled", enabled), enabled),
+                    Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", List.of(flow)), enabled)
+                );
+            });
+        }
+
+        @ParameterizedTest
+        @MethodSource("stepEnabledVariants")
+        void modifying_step_enabled_changes_only_that_field(PatchApiUseCase.PatchType type, String body, boolean expected) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "p1"))))));
+
+            var output = execute(type, body, false);
+
+            var patchedStep = httpV4Def(output.api()).getFlows().getFirst().getRequest().getFirst();
+            assertThat(patchedStep.isEnabled()).isEqualTo(expected);
+            assertThat(patchedStep.getName()).isEqualTo("s1");
+            assertThat(patchedStep.getPolicy()).isEqualTo("p1");
+        }
+
+        static Stream<Arguments> stepConfigurationVariants() {
+            var newConfig = Map.of("threshold", 42, "mode", "strict", "tags", List.of("a", "b"));
+            var step = Map.of("name", "s1", "policy", "policy-a", "enabled", true, "configuration", newConfig);
+            var flow = Map.of("name", "f1", "enabled", true, "request", List.of(step));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/flows/0/request/0/configuration", newConfig)),
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", List.of(flow)))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("stepConfigurationVariants")
+        void modifying_step_configuration_object_preserves_value(PatchApiUseCase.PatchType type, String body) {
+            var existingStep = Step.builder().name("s1").policy("policy-a").enabled(true).configuration("{}").build();
+            givenExistingApi(apiWithFlows(List.of(Flow.builder().name("f1").enabled(true).request(List.of(existingStep)).build())));
+
+            var output = execute(type, body, false);
+
+            var config = httpV4Def(output.api()).getFlows().getFirst().getRequest().getFirst().getConfiguration();
+            assertThat(config).contains("\"threshold\":42").contains("\"mode\":\"strict\"").contains("\"a\"").contains("\"b\"");
+        }
+
+        static Stream<Arguments> addSelectorVariants() {
+            var selector = Map.<String, Object>of("type", "http", "path", "/api", "pathOperator", "EQUALS");
+            var flow = Map.of("name", "f1", "enabled", true, "selectors", List.of(selector), "request", List.of(stepMap("s1", "p1")));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", List.of(flow))),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/flows/0/selectors", List.of(selector)))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("addSelectorVariants")
+        void adding_a_selector_makes_it_present(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "p1"))))));
+
+            var output = execute(type, body, false);
+
+            var selectors = httpV4Def(output.api()).getFlows().getFirst().getSelectors();
+            assertThat(selectors).hasSize(1);
+            assertThat(selectors.getFirst()).isInstanceOf(HttpSelector.class);
+        }
+
+        static Stream<Arguments> removeSelectorVariants() {
+            var withoutSelector = List.of(flowMap("f1", List.of(stepMap("s1", "p1"))));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", withoutSelector)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/flows/0/selectors"))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("removeSelectorVariants")
+        void removing_a_selector_makes_it_absent(PatchApiUseCase.PatchType type, String body) {
+            var http = HttpSelector.builder().path("/api").pathOperator(Operator.EQUALS).build();
+            givenExistingApi(
+                apiWithFlows(
+                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                )
+            );
+
+            var output = execute(type, body, false);
+
+            var selectors = httpV4Def(output.api()).getFlows().getFirst().getSelectors();
+            assertThat(selectors).isNullOrEmpty();
+        }
+
+        private static Stream<Arguments> selectorVariants(Map<String, Object> selector, String jsonPatchPath, Object jsonPatchValue) {
+            var flow = Map.of(
+                "name",
+                "f1",
+                "enabled",
+                true,
+                "request",
+                List.of(Map.<String, Object>of("name", "s1", "policy", "p1", "enabled", true)),
+                "selectors",
+                List.of(selector)
+            );
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", List.of(flow))),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", jsonPatchPath, jsonPatchValue))
+            );
+        }
+
+        static Stream<Arguments> httpSelectorPathReplaceVariants() {
+            return selectorVariants(
+                Map.of("type", "http", "path", "/new", "pathOperator", "EQUALS", "methods", List.of("GET")),
+                "/flows/0/selectors/0/path",
+                "/new"
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("httpSelectorPathReplaceVariants")
+        void replacing_http_selector_path_preserves_siblings(PatchApiUseCase.PatchType type, String body) {
+            var http = HttpSelector.builder()
+                .path("/old")
+                .pathOperator(Operator.EQUALS)
+                .methods(new LinkedHashSet<>(Set.of(HttpMethod.GET)))
+                .build();
+            givenExistingApi(
+                apiWithFlows(
+                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                )
+            );
+
+            var output = execute(type, body, false);
+
+            var selector = (HttpSelector) httpV4Def(output.api()).getFlows().getFirst().getSelectors().getFirst();
+            assertThat(selector.getPath()).isEqualTo("/new");
+            assertThat(selector.getPathOperator()).isEqualTo(Operator.EQUALS);
+            assertThat(selector.getMethods()).contains(HttpMethod.GET);
+        }
+
+        static Stream<Arguments> httpSelectorPathOperatorReplaceVariants() {
+            return selectorVariants(
+                Map.of("type", "http", "path", "/old", "pathOperator", "STARTS_WITH"),
+                "/flows/0/selectors/0/pathOperator",
+                "STARTS_WITH"
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("httpSelectorPathOperatorReplaceVariants")
+        void replacing_http_selector_pathOperator_preserves_siblings(PatchApiUseCase.PatchType type, String body) {
+            var http = HttpSelector.builder().path("/old").pathOperator(Operator.EQUALS).build();
+            givenExistingApi(
+                apiWithFlows(
+                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                )
+            );
+
+            var output = execute(type, body, false);
+
+            var selector = (HttpSelector) httpV4Def(output.api()).getFlows().getFirst().getSelectors().getFirst();
+            assertThat(selector.getPathOperator()).isEqualTo(Operator.STARTS_WITH);
+            assertThat(selector.getPath()).isEqualTo("/old");
+        }
+
+        static Stream<Arguments> httpSelectorMethodsReplaceVariants() {
+            return selectorVariants(
+                Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS", "methods", List.of("POST", "PUT")),
+                "/flows/0/selectors/0/methods",
+                List.of("POST", "PUT")
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("httpSelectorMethodsReplaceVariants")
+        void replacing_http_selector_methods_updates_method_set(PatchApiUseCase.PatchType type, String body) {
+            var http = HttpSelector.builder()
+                .path("/api")
+                .pathOperator(Operator.EQUALS)
+                .methods(new LinkedHashSet<>(Set.of(HttpMethod.GET)))
+                .build();
+            givenExistingApi(
+                apiWithFlows(
+                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                )
+            );
+
+            var output = execute(type, body, false);
+
+            var selector = (HttpSelector) httpV4Def(output.api()).getFlows().getFirst().getSelectors().getFirst();
+            assertThat(selector.getMethods()).containsExactlyInAnyOrder(HttpMethod.POST, HttpMethod.PUT);
+        }
+
+        static Stream<Arguments> conditionSelectorReplaceVariants() {
+            return selectorVariants(Map.of("type", "condition", "condition", "{#new}"), "/flows/0/selectors/0/condition", "{#new}");
+        }
+
+        @ParameterizedTest
+        @MethodSource("conditionSelectorReplaceVariants")
+        void replacing_condition_selector_condition_reflects_new_value(PatchApiUseCase.PatchType type, String body) {
+            var cond = ConditionSelector.builder().condition("{#old}").build();
+            givenExistingApi(
+                apiWithFlows(
+                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(cond)).request(List.of(aStep("s1", "p1"))).build())
+                )
+            );
+
+            var output = execute(type, body, false);
+
+            var selector = (ConditionSelector) httpV4Def(output.api()).getFlows().getFirst().getSelectors().getFirst();
+            assertThat(selector.getCondition()).isEqualTo("{#new}");
+        }
+
+        static Stream<Arguments> roundTripVariants() {
+            var step = new LinkedHashMap<String, Object>();
+            step.put("name", "s1");
+            step.put("policy", "policy-a");
+            step.put("enabled", true);
+            step.put("condition", "{#cond}");
+            var flow = Map.of(
+                "name",
+                "f1",
+                "enabled",
+                true,
+                "selectors",
+                List.of(Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS", "methods", List.of("GET", "POST"))),
+                "request",
+                List.of(step)
+            );
+            var flows = List.of(flow);
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", flows)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/flows", flows))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("roundTripVariants")
+        void round_trip_preserves_nested_step_and_selector_fields(PatchApiUseCase.PatchType type, String body) {
+            var http = HttpSelector.builder()
+                .path("/api")
+                .pathOperator(Operator.EQUALS)
+                .methods(new LinkedHashSet<>(Set.of(HttpMethod.GET, HttpMethod.POST)))
+                .build();
+            var richStep = Step.builder().name("s1").policy("policy-a").enabled(true).condition("{#cond}").build();
+            givenExistingApi(
+                apiWithFlows(List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(richStep)).build()))
+            );
+
+            var output = execute(type, body, false);
+
+            var flows = httpV4Def(output.api()).getFlows();
+            assertThat(flows).hasSize(1);
+            var f = flows.getFirst();
+            assertThat(f.getName()).isEqualTo("f1");
+            assertThat(f.getSelectors()).hasSize(1);
+            var sel = (HttpSelector) f.getSelectors().getFirst();
+            assertThat(sel.getPath()).isEqualTo("/api");
+            assertThat(sel.getMethods()).containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
+            assertThat(f.getRequest()).hasSize(1);
+            assertThat(f.getRequest().getFirst().getName()).isEqualTo("s1");
+            assertThat(f.getRequest().getFirst().getPolicy()).isEqualTo("policy-a");
+            assertThat(f.getRequest().getFirst().getCondition()).isEqualTo("{#cond}");
+        }
+
+        @Test
+        void successful_flows_only_patch_delegates_to_audited_update_with_old_and_new_state() {
+            var oldFlow = aFlow("old", List.of(aStep("s-old", "policy-old")));
+            givenExistingApi(apiWithFlows(List.of(oldFlow)));
+            var preFlows = httpV4Def(apiCrudService.storage().getFirst()).getFlows();
+
+            var addedFlows = List.of(flowMap("added", List.of(stepMap("s1", "policy-a"))));
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", addedFlows), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getName).containsExactly("added");
+            var captor = ArgumentCaptor.forClass(Api.class);
+            verify(updateApiDomainService).updateV4(captor.capture(), any());
+            assertThat(httpV4Def(captor.getValue()).getFlows()).extracting(Flow::getName).containsExactly("added");
+            assertThat(httpV4Def(captor.getValue()).getFlows()).isNotEqualTo(preFlows);
+        }
+
+        @Test
+        void flows_only_patch_preserves_existing_flow_execution() {
+            var flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            var base = apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a")))));
+            givenExistingApi(base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().flowExecution(flowExecution).build()).build());
+
+            var output = execute(
+                PatchApiUseCase.PatchType.MERGE_PATCH,
+                mergePatch("flows", List.of(flowMap("f2", List.of(stepMap("s2", "policy-b"))))),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getFlowExecution()).isEqualTo(flowExecution);
+        }
     }
 }
