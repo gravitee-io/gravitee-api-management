@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -272,6 +274,73 @@ class PortalNavigationItemsQueryServiceImplTest {
                 .hasCauseInstanceOf(TechnicalException.class);
             var capturedCriteria = criteriaCaptor.getValue();
             assertThat(capturedCriteria.getEnvironmentId()).isEqualTo(environmentId);
+        }
+    }
+
+    @Nested
+    class FindNavigationPageByPortalPageContentId {
+
+        @Test
+        void should_return_first_matching_portal_navigation_page() throws TechnicalException {
+            var contentIdStr = "00000000-0000-0000-0000-0000000000aa";
+            var contentId = PortalPageContentId.of(contentIdStr);
+            var other = PortalNavigationItemsRepositoryFixtures.aPage(
+                "00000000-0000-0000-0000-0000000000cc",
+                "Other",
+                "00000000-0000-0000-0000-0000000000dd",
+                null
+            );
+            var matching = PortalNavigationItemsRepositoryFixtures.aPage(
+                "00000000-0000-0000-0000-0000000000bb",
+                "Match",
+                contentIdStr,
+                null
+            );
+            when(repository.searchByCriteria(any())).thenReturn(List.of(other, matching));
+
+            var result = service.findNavigationPageByPortalPageContentId(PortalNavigationItemsRepositoryFixtures.ENV_ID, contentId);
+
+            assertThat(result).isPresent();
+            assertThat(result.orElseThrow().getTitle()).isEqualTo("Match");
+        }
+
+        @Test
+        void should_return_empty_when_no_page_has_the_content_id() throws TechnicalException {
+            var wanted = PortalPageContentId.of("00000000-0000-0000-0000-0000000099");
+            var page = PortalNavigationItemsRepositoryFixtures.aPage(
+                "00000000-0000-0000-0000-000000000001",
+                "X",
+                "00000000-0000-0000-0000-0000000098",
+                null
+            );
+            when(repository.searchByCriteria(any())).thenReturn(List.of(page));
+
+            assertThat(service.findNavigationPageByPortalPageContentId(PortalNavigationItemsRepositoryFixtures.ENV_ID, wanted)).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_when_results_contain_no_pages() throws TechnicalException {
+            var contentId = PortalPageContentId.random();
+            var folder = PortalNavigationItemsRepositoryFixtures.aFolder("00000000-0000-0000-0000-0000000000ee", "Folder");
+            when(repository.searchByCriteria(any())).thenReturn(List.of(folder));
+
+            assertThat(
+                service.findNavigationPageByPortalPageContentId(PortalNavigationItemsRepositoryFixtures.ENV_ID, contentId)
+            ).isEmpty();
+        }
+
+        @Test
+        void should_propagate_failure_from_search() throws TechnicalException {
+            when(repository.searchByCriteria(any())).thenThrow(new TechnicalException("Database error"));
+
+            assertThatThrownBy(() ->
+                service.findNavigationPageByPortalPageContentId(
+                    PortalNavigationItemsRepositoryFixtures.ENV_ID,
+                    PortalPageContentId.random()
+                )
+            )
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 }

@@ -19,7 +19,11 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.List;
+import java.util.Optional;
 
 public interface PortalNavigationItemsQueryService {
     PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
@@ -29,4 +33,17 @@ public interface PortalNavigationItemsQueryService {
     List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria);
 
     List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);
+
+    default Optional<PortalNavigationPage> findNavigationPageByPortalPageContentId(String environmentId, PortalPageContentId contentId) {
+        final var criteria = PortalNavigationItemQueryCriteria.builder()
+            .environmentId(environmentId)
+            .type(PortalNavigationItemType.PAGE)
+            .build();
+        return search(criteria)
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .map(PortalNavigationPage.class::cast)
+            .filter(page -> page.getPortalPageContentId().equals(contentId))
+            .findFirst();
+    }
 }
