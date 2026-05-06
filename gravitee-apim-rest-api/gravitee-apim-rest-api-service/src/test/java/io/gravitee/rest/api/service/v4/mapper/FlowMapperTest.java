@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -134,6 +135,22 @@ public class FlowMapperTest {
         assertEquals("ip-filtering", mappedStep.getPolicy());
         assertEquals(POLICY_CONDITION, mappedStep.getCondition());
         assertEquals("{\"blacklistIps\":[\"127.0.0.1\"]}", mappedStep.getConfiguration());
+    }
+
+    @Test
+    public void toRepositoryShouldThrowValidationExceptionWhenHttpSelectorPathOperatorIsNull() {
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/");
+        httpSelector.setPathOperator(null);
+
+        Flow flowDefinition = new Flow();
+        flowDefinition.setName("bad_flow");
+        flowDefinition.setSelectors(List.of(httpSelector));
+        flowDefinition.setEnabled(true);
+
+        assertThatThrownBy(() -> flowMapper.toRepository(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0)).isInstanceOf(
+            io.gravitee.rest.api.service.exceptions.InvalidDataException.class
+        );
     }
 
     @Test

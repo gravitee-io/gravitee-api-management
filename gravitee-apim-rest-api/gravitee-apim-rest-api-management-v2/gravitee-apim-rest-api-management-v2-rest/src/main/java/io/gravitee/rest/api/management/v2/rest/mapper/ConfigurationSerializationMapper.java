@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.logging.NodeLoggerFactory;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,16 +41,26 @@ public interface ConfigurationSerializationMapper {
         if (Objects.isNull(configuration)) {
             return null;
         }
+        ObjectMapper mapper = new GraviteeMapper();
         if (configuration instanceof LinkedHashMap) {
-            ObjectMapper mapper = new GraviteeMapper();
             try {
                 JsonNode jsonNode = mapper.valueToTree(configuration);
                 return mapper.writeValueAsString(jsonNode);
             } catch (IllegalArgumentException | JsonProcessingException e) {
                 throw new TechnicalManagementException("An error occurred while trying to parse configuration " + e);
             }
+        } else if (configuration instanceof String) {
+            try {
+                JsonNode node = mapper.readTree((String) configuration);
+                if (!node.isObject()) {
+                    throw new InvalidDataException("Step.configuration must be a JSON object");
+                }
+                return (String) configuration;
+            } catch (JsonProcessingException e) {
+                throw new InvalidDataException("Step.configuration must be a JSON object");
+            }
         } else {
-            return configuration.toString();
+            throw new InvalidDataException("Step.configuration must be a JSON object");
         }
     }
 
