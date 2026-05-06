@@ -473,5 +473,39 @@ public class FlowValidationDomainServiceTest {
                 .stream()
                 .flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
         }
+
+        @Test
+        void should_return_validation_exception_when_http_selector_path_is_null() {
+            var flow = Flow.builder()
+                .selectors(List.of(HttpSelector.builder().path(null).pathOperator(Operator.STARTS_WITH).build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validatePathParameters(ApiType.PROXY, Stream.of(flow), Stream.empty()));
+
+            assertThat(throwable).isInstanceOf(InvalidDataException.class);
+        }
+
+        @Test
+        void should_not_throw_on_overlapping_paths_when_flows_are_disabled() {
+            var flow1 = Flow.builder()
+                .enabled(false)
+                .selectors(List.of(HttpSelector.builder().path("/products/:productId").build()))
+                .build();
+            var flow2 = Flow.builder().enabled(false).selectors(List.of(HttpSelector.builder().path("/products/:id").build())).build();
+
+            assertThatNoException().isThrownBy(() ->
+                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
+            );
+        }
+
+        @Test
+        void should_not_throw_on_flows_with_static_paths_only() {
+            var flow1 = Flow.builder().enabled(true).selectors(List.of(HttpSelector.builder().path("/products/list").build())).build();
+            var flow2 = Flow.builder().enabled(true).selectors(List.of(HttpSelector.builder().path("/products/list").build())).build();
+
+            assertThatNoException().isThrownBy(() ->
+                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
+            );
+        }
     }
 }
