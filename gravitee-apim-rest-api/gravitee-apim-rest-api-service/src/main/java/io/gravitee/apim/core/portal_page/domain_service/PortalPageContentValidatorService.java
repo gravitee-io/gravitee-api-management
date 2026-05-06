@@ -31,6 +31,6 @@ public class PortalPageContentValidatorService {
         validators
             .stream()
             .filter(validator -> validator.appliesTo(existingContent))
-            .forEach(validator -> validator.validate(updateContent));
+            .forEach(validator -> validator.validate(existingContent, updateContent));
     }
 }

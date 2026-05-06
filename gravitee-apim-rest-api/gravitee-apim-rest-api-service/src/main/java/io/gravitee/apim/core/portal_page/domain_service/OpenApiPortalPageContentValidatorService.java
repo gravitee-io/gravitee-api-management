@@ -35,7 +35,7 @@ public class OpenApiPortalPageContentValidatorService implements PortalPageConte
     }
 
     @Override
-    public void validate(UpdatePortalPageContent updateContent) {
+    public void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent) {
         openApiValidator.validateNotEmpty(OpenApi.of(updateContent.getContent()));
     }
 }

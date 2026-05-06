@@ -74,10 +74,11 @@ class OpenApiPortalPageContentValidatorServiceTest {
     @Test
     void should_delegate_validation_to_open_api_validator() {
         // Given
+        PortalPageContent<?> existing = OpenApiPageContent.create("org", "env", "old");
         UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("openapi: 3.0.0").build();
 
         // When
-        validator.validate(updateContent);
+        validator.validate(existing, updateContent);
 
         // Then
         verify(openApiValidator).validateNotEmpty(eq(new OpenApi("openapi: 3.0.0")));
@@ -86,11 +87,12 @@ class OpenApiPortalPageContentValidatorServiceTest {
     @Test
     void should_throw_when_validator_rejects_content() {
         // Given
+        PortalPageContent<?> existing = OpenApiPageContent.create("org", "env", "old");
         UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("").build();
         doThrow(new OpenApiContentEmptyException()).when(openApiValidator).validateNotEmpty(any());
 
         // When / Then
-        assertThatThrownBy(() -> validator.validate(updateContent))
+        assertThatThrownBy(() -> validator.validate(existing, updateContent))
             .isInstanceOf(OpenApiContentEmptyException.class)
             .hasMessage("Content must not be null or empty");
     }

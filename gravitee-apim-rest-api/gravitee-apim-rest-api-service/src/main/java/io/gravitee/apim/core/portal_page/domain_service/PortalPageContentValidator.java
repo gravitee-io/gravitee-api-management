@@ -21,5 +21,5 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 public interface PortalPageContentValidator {
     boolean appliesTo(PortalPageContent<?> existingContent);
 
-    void validate(UpdatePortalPageContent updateContent);
+    void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent);
 }

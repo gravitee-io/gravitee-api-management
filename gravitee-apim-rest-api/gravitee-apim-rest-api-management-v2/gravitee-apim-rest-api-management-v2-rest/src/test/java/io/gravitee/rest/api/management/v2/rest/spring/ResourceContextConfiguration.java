@@ -173,11 +173,13 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudServi
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
@@ -1283,10 +1285,16 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdatePortalPageContentUseCase updatePortalPageContentUseCase(
         PortalPageContentQueryService portalPageContentQueryService,
-        PortalPageContentCrudService portalPageContentCrudService
+        PortalPageContentCrudService portalPageContentCrudService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService
     ) {
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
-        GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(gmdValidator);
+        GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(
+            gmdValidator,
+            portalNavigationItemsQueryService,
+            mock(PortalNavigationEnclosingApiDomainService.class),
+            mock(PortalNavigationTemplatingService.class)
+        );
         OpenApiValidator openApiValidator = new OpenApiValidator();
         OpenApiPortalPageContentValidatorService openApiContentValidator = new OpenApiPortalPageContentValidatorService(openApiValidator);
         PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(
@@ -1302,6 +1310,11 @@ public class ResourceContextConfiguration {
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService
     ) {
         return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, portalNavigationApiVisibilityDomainService);
+    }
+
+    @Bean
+    public PortalNavigationTemplatingService portalNavigationTemplatingService() {
+        return mock(PortalNavigationTemplatingService.class);
     }
 
     @Bean
