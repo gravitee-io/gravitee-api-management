@@ -104,4 +104,31 @@ class CsrfRequestMatcherTest {
 
         assertTrue(csrfRequestMatcher.matches(request));
     }
+
+    @Test
+    void should_not_match_with_POST_request_and_oauth2_auth_path() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/organizations/1/auth/oauth2/azure");
+        request.setPathInfo("/organizations/1/auth/oauth2/azure");
+        request.addHeader("Origin", "http://localhost:8083");
+
+        assertFalse(csrfRequestMatcher.matches(request));
+    }
+
+    @Test
+    void should_not_match_with_POST_request_and_portal_login_path() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/environments/DEFAULT/auth/login");
+        request.setPathInfo("/environments/DEFAULT/auth/login");
+        request.addHeader("Origin", "http://localhost:8083");
+
+        assertFalse(csrfRequestMatcher.matches(request));
+    }
+
+    @Test
+    void should_not_match_with_POST_request_and_portal_oauth2_auth_path() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/environments/DEFAULT/auth/oauth2/azure");
+        request.setPathInfo("/environments/DEFAULT/auth/oauth2/azure");
+        request.addHeader("Origin", "http://localhost:8083");
+
+        assertFalse(csrfRequestMatcher.matches(request));
+    }
 }
