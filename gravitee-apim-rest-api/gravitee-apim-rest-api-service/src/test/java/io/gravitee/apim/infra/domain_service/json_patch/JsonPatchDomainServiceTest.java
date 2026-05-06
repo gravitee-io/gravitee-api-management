@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.api;
+package io.gravitee.apim.infra.domain_service.json_patch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.domain_service.ApiPatchDomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author GraviteeSource Team
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ApiPatchDomainServiceTest {
+class JsonPatchDomainServiceTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ApiPatchDomainService cut = new ApiPatchDomainService(new JsonMergePatchServiceImpl(), new ApiJsonPatchServiceImpl());
+    private final JsonPatchDomainService cut = new JsonPatchDomainService(new JsonMergePatchServiceImpl(), new JsonPatchServiceImpl());
 
     @Test
     void applyJsonPatch_applies_replace_operation() throws Exception {

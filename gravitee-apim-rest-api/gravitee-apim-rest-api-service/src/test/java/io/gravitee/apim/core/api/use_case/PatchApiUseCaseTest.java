@@ -27,7 +27,6 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
-import io.gravitee.apim.core.api.domain_service.ApiPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
@@ -35,10 +34,11 @@ import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.infra.domain_service.api.ApiJsonPatchServiceImpl;
-import io.gravitee.apim.infra.domain_service.api.JsonMergePatchServiceImpl;
+import io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImpl;
+import io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -73,6 +73,9 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
+/**
+ * @author GraviteeSource Team
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PatchApiUseCaseTest {
 
@@ -96,7 +99,7 @@ class PatchApiUseCaseTest {
             apiCrudService,
             apiPrimaryOwnerDomainService,
             updateApiDomainService,
-            new ApiPatchDomainService(new JsonMergePatchServiceImpl(), new ApiJsonPatchServiceImpl()),
+            new JsonPatchDomainService(new JsonMergePatchServiceImpl(), new JsonPatchServiceImpl()),
             workflowQueryService,
             OBJECT_MAPPER
         );

@@ -52,13 +52,10 @@ import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.JsonMergePatchService;
-import io.gravitee.apim.core.api.domain_service.JsonPatchService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
@@ -111,6 +108,9 @@ import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
+import io.gravitee.apim.core.json_patch.domain_service.JsonMergePatchService;
+import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
+import io.gravitee.apim.core.json_patch.domain_service.JsonPatchService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
@@ -180,11 +180,11 @@ import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
-import io.gravitee.apim.infra.domain_service.api.ApiJsonPatchServiceImpl;
-import io.gravitee.apim.infra.domain_service.api.JsonMergePatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImpl;
+import io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDDomainServiceImpl;
@@ -753,12 +753,12 @@ public class ResourceContextConfiguration {
 
     @Bean
     public JsonPatchService jsonPatchService() {
-        return new ApiJsonPatchServiceImpl();
+        return new JsonPatchServiceImpl();
     }
 
     @Bean
-    public ApiPatchDomainService apiPatchDomainService(JsonMergePatchService jsonMergePatchService, JsonPatchService jsonPatchService) {
-        return new ApiPatchDomainService(jsonMergePatchService, jsonPatchService);
+    public JsonPatchDomainService jsonPatchDomainService(JsonMergePatchService jsonMergePatchService, JsonPatchService jsonPatchService) {
+        return new JsonPatchDomainService(jsonMergePatchService, jsonPatchService);
     }
 
     @Bean
