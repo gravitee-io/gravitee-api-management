@@ -40,8 +40,13 @@ public class FreemarkerTemplateProcessor implements TemplateProcessor {
 
     @Override
     public String processInlineTemplate(String template, Map<String, Object> params) throws TemplateProcessorException {
+        return processInlineTemplate("", template, params);
+    }
+
+    @Override
+    public String processInlineTemplate(String name, String template, Map<String, Object> params) throws TemplateProcessorException {
         try {
-            Template freemarkerTemplate = new Template("", new StringReader(template), configuration);
+            Template freemarkerTemplate = new Template(name, new StringReader(template), configuration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(freemarkerTemplate, params);
         } catch (TemplateException | IOException e) {
             throw new TemplateProcessorException(template, e);
