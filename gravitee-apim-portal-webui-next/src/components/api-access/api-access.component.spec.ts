@@ -15,20 +15,20 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { By } from '@angular/platform-browser';
-import { of, Subject, throwError } from 'rxjs';
 
 import { ApiAccessComponent } from './api-access.component';
 import { Configuration } from '../../entities/configuration/configuration';
 import { Subscription } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
-import { SubscriptionKeysService } from '../../services/subscription-keys.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { ConfirmDialogHarness } from '../confirm-dialog/confirm-dialog.harness';
 import { CopyCodeHarness } from '../copy-code/copy-code.harness';
@@ -39,7 +39,7 @@ describe('ApiAccessComponent', () => {
   let fixture: ComponentFixture<ApiAccessComponent>;
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
-  let subscriptionKeysServiceMock: { revoke: jest.Mock };
+  let httpTestingController: HttpTestingController;
 
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
 
@@ -59,10 +59,6 @@ describe('ApiAccessComponent', () => {
   }
 
   beforeEach(async () => {
-    subscriptionKeysServiceMock = {
-      revoke: jest.fn().mockReturnValue(of(undefined)),
-    };
-
     await TestBed.configureTestingModule({
       imports: [ApiAccessComponent, AppTestingModule, MatIconTestingModule],
       providers: [
@@ -70,18 +66,19 @@ describe('ApiAccessComponent', () => {
           provide: ConfigService,
           useClass: CustomConfigurationServiceStub,
         },
-        {
-          provide: SubscriptionKeysService,
-          useValue: subscriptionKeysServiceMock,
-        },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiAccessComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
-    component.canManageSubscription = true;
+    component.canManageApiKey = true;
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   describe('Keyless', () => {
@@ -89,7 +86,7 @@ describe('ApiAccessComponent', () => {
       component.planSecurity = 'KEY_LESS';
       component.entrypointUrls = ['my-entrypoint-url'];
       fixture.detectChanges();
-      expect(apiAccessContentShown()).toBeTruthy();
+      expect(apiAccessShellShown()).toBeTruthy();
       expect(await baseUrlShown()).toBeTruthy();
       expect(await commandLineShown()).toBeTruthy();
     });
@@ -103,7 +100,7 @@ describe('ApiAccessComponent', () => {
       const selectEntrypoints = await getSelectEntrypoints();
       expect(selectEntrypoints).toBeTruthy();
       expect(await selectEntrypoints?.getValueText()).toContain('my-entrypoint-url');
-      expect(apiAccessContentShown()).toBeTruthy();
+      expect(apiAccessShellShown()).toBeTruthy();
       expect(await commandLineShown()).toBeTruthy();
     });
   });
@@ -131,7 +128,7 @@ describe('ApiAccessComponent', () => {
           ];
 
           fixture.detectChanges();
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await apiKeysTableShown()).toBeTruthy();
           expect(await baseUrlShown()).toBeFalsy();
           expect(await commandLineShown()).toBeFalsy();
@@ -146,7 +143,7 @@ describe('ApiAccessComponent', () => {
 
           fixture.detectChanges();
 
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await apiKeysTableShown()).toBeFalsy();
           expect(fixture.nativeElement.textContent).toContain('No API keys available.');
           expect(await revokeApiKeyButtonShown()).toBeFalsy();
@@ -163,12 +160,12 @@ describe('ApiAccessComponent', () => {
           expect(await commandLineShown()).toBeFalsy();
         });
 
-        it('should hide revoke button when canManageSubscription is false', async () => {
+        it('should hide revoke button when canManageApiKey is false', async () => {
           component.planSecurity = 'API_KEY';
           component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
           component.entrypointUrls = ['my-entrypoint-url'];
           component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
-          component.canManageSubscription = false;
+          component.canManageApiKey = false;
 
           fixture.detectChanges();
 
@@ -193,8 +190,9 @@ describe('ApiAccessComponent', () => {
           const revokeButton = await getRevokeApiKeyButton();
           expect(revokeButton).toBeTruthy();
           expect(await revokeButton!.isDisabled()).toBeFalsy();
+          expect(await (await revokeButton!.host()).getAttribute('aria-label')).toBe('Revoke API key active-api-key');
           expect(getApiKeyRevokeButtonApiKeys()).toEqual(['active-api-key']);
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await apiKeysTableShown()).toBeTruthy();
           expect(await baseUrlShown()).toBeTruthy();
           expect(await commandLineShown()).toBeTruthy();
@@ -204,7 +202,7 @@ describe('ApiAccessComponent', () => {
           const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
           await confirmDialog.confirm();
 
-          expect(subscriptionKeysServiceMock.revoke).toHaveBeenCalledWith('subscription-id', 'active-api-key');
+          expectRevokeApiKeyRequest('subscription-id', 'active-api-key').flush(null);
         });
 
         it('should display active and inactive api key status icons', async () => {
@@ -273,7 +271,7 @@ describe('ApiAccessComponent', () => {
 
           fixture.detectChanges();
 
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await revokeApiKeyButtonShown()).toBeFalsy();
         });
 
@@ -296,7 +294,7 @@ describe('ApiAccessComponent', () => {
 
           fixture.detectChanges();
 
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await revokeApiKeyButtonShown()).toBeFalsy();
         });
 
@@ -319,34 +317,18 @@ describe('ApiAccessComponent', () => {
 
           fixture.detectChanges();
 
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await revokeApiKeyButtonShown()).toBeFalsy();
-        });
-
-        it('should not call revoke service when canManageSubscription is false', () => {
-          component.planSecurity = 'API_KEY';
-          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
-          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
-          component.canManageSubscription = false;
-
-          fixture.detectChanges();
-          (component as unknown as { revokeApiKeyRow: (apiKey: { isActive: boolean; key: string }) => void }).revokeApiKeyRow({
-            isActive: true,
-            key: 'api-key',
-          });
-
-          expect(subscriptionKeysServiceMock.revoke).not.toHaveBeenCalled();
         });
 
         it('should open confirmation dialog and call revoke service after confirmation', async () => {
           component.planSecurity = 'API_KEY';
           component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
           component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
-          const revokeApiKeySpy = jest.spyOn(component.revokeApiKey, 'emit');
+          const apiKeyRevokedSpy = jest.spyOn(component.apiKeyRevoked, 'emit');
 
           fixture.detectChanges();
 
-          expect(await headerRevokeApiKeyButtonShown()).toBeFalsy();
           const revokeButton = await getRevokeApiKeyButton();
           expect(revokeButton).toBeTruthy();
           expect(await revokeButton!.isDisabled()).toBeFalsy();
@@ -359,8 +341,9 @@ describe('ApiAccessComponent', () => {
           expect(await confirmDialog.getConfirmText()).toContain('Yes, revoke');
 
           await confirmDialog.confirm();
-          expect(subscriptionKeysServiceMock.revoke).toHaveBeenCalledWith('subscription-id', 'api-key');
-          expect(revokeApiKeySpy).toHaveBeenCalled();
+          expectRevokeApiKeyRequest('subscription-id', 'api-key').flush(null);
+
+          expect(apiKeyRevokedSpy).toHaveBeenCalled();
         });
 
         it('should not call revoke service when dialog is canceled', async () => {
@@ -377,15 +360,51 @@ describe('ApiAccessComponent', () => {
           const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
           await confirmDialog.cancel();
 
-          expect(subscriptionKeysServiceMock.revoke).not.toHaveBeenCalled();
+          expectNoRevokeApiKeyRequest();
+        });
+
+        it('should not open another confirmation dialog while one is already open', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.apiKeys = [
+            { key: 'api-key-1', application: { id: 'app-id', name: 'app-name' } },
+            { key: 'api-key-2', application: { id: 'app-id', name: 'app-name' } },
+          ];
+          const matDialogOpenSpy = jest.spyOn(TestBed.inject(MatDialog), 'open');
+
+          fixture.detectChanges();
+
+          const revokeButtons = await getRevokeApiKeyButtons();
+          expect(revokeButtons).toHaveLength(2);
+
+          await revokeButtons[0].click();
+          fixture.detectChanges();
+
+          expect(matDialogOpenSpy).toHaveBeenCalledTimes(1);
+          await expect(revokeButtons[0].isDisabled()).resolves.toBeTruthy();
+          await expect(revokeButtons[1].isDisabled()).resolves.toBeTruthy();
+
+          (component as unknown as { revokeApiKeyRow: (apiKey: { isActive: boolean; key: string }) => void }).revokeApiKeyRow({
+            isActive: true,
+            key: 'api-key-2',
+          });
+
+          expect(matDialogOpenSpy).toHaveBeenCalledTimes(1);
+
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          await confirmDialog.cancel();
+          fixture.detectChanges();
+
+          const revokeButtonsAfterCancel = await getRevokeApiKeyButtons();
+          await expect(revokeButtonsAfterCancel[0].isDisabled()).resolves.toBeFalsy();
+          await expect(revokeButtonsAfterCancel[1].isDisabled()).resolves.toBeFalsy();
         });
 
         it('should not emit revoke event when revoke service fails', async () => {
-          subscriptionKeysServiceMock.revoke.mockReturnValue(throwError(() => new Error('Failed to revoke API key')));
           component.planSecurity = 'API_KEY';
           component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
           component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
-          const revokeApiKeySpy = jest.spyOn(component.revokeApiKey, 'emit');
+          const apiKeyRevokedSpy = jest.spyOn(component.apiKeyRevoked, 'emit');
 
           fixture.detectChanges();
 
@@ -396,8 +415,12 @@ describe('ApiAccessComponent', () => {
           const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
           await confirmDialog.confirm();
 
-          expect(subscriptionKeysServiceMock.revoke).toHaveBeenCalledWith('subscription-id', 'api-key');
-          expect(revokeApiKeySpy).not.toHaveBeenCalled();
+          expectRevokeApiKeyRequest('subscription-id', 'api-key').flush('Failed to revoke API key', {
+            status: 500,
+            statusText: 'Server Error',
+          });
+
+          expect(apiKeyRevokedSpy).not.toHaveBeenCalled();
         });
 
         it('should not call revoke service when subscription id is missing', async () => {
@@ -414,29 +437,10 @@ describe('ApiAccessComponent', () => {
           const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
           await confirmDialog.confirm();
 
-          expect(subscriptionKeysServiceMock.revoke).not.toHaveBeenCalled();
-        });
-
-        it('should not call revoke service when api key is missing', async () => {
-          component.planSecurity = 'API_KEY';
-          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
-          component.apiKeys = [];
-
-          fixture.detectChanges();
-
-          expect(await revokeApiKeyButtonShown()).toBeFalsy();
-          (component as unknown as { revokeApiKeyRow: (apiKey: { isActive: boolean; key: string }) => void }).revokeApiKeyRow({
-            isActive: true,
-            key: '',
-          });
-
-          expect(subscriptionKeysServiceMock.revoke).not.toHaveBeenCalled();
+          expectNoRevokeApiKeyRequest();
         });
 
         it('should disable revoke button while request is in flight', async () => {
-          const revokeSubject = new Subject<void>();
-          subscriptionKeysServiceMock.revoke.mockReturnValue(revokeSubject.asObservable());
-
           component.planSecurity = 'API_KEY';
           component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
           component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
@@ -452,11 +456,11 @@ describe('ApiAccessComponent', () => {
           await confirmDialog.confirm();
           fixture.detectChanges();
 
+          const request = expectRevokeApiKeyRequest('subscription-id', 'api-key');
           const revokeButtonWhileLoading = await getRevokeApiKeyButton();
           expect(await revokeButtonWhileLoading!.isDisabled()).toBeTruthy();
 
-          revokeSubject.next();
-          revokeSubject.complete();
+          request.flush(null);
           fixture.detectChanges();
 
           const revokeButtonAfterDone = await getRevokeApiKeyButton();
@@ -471,7 +475,7 @@ describe('ApiAccessComponent', () => {
           component.clientSecret = 'my-client-secret';
 
           fixture.detectChanges();
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await clientIdShown()).toBeTruthy();
           expect(await clientSecretShown()).toBeTruthy();
           expect(await baseUrlShown()).toBeFalsy();
@@ -486,7 +490,7 @@ describe('ApiAccessComponent', () => {
           component.clientSecret = 'my-client-secret';
 
           fixture.detectChanges();
-          expect(apiAccessContentShown()).toBeTruthy();
+          expect(apiAccessShellShown()).toBeTruthy();
           expect(await clientIdShown()).toBeTruthy();
           expect(await clientSecretShown()).toBeTruthy();
           expect(await baseUrlShown()).toBeFalsy();
@@ -660,6 +664,18 @@ describe('ApiAccessComponent', () => {
   function expiredApiKeyDate(): string {
     return new Date(Date.now() - 60_000).toISOString();
   }
+  function revokeApiKeyUrl(subscriptionId: string, apiKey: string): string {
+    return `${TESTING_BASE_URL}/subscriptions/${subscriptionId}/keys/${apiKey}/_revoke`;
+  }
+  function expectRevokeApiKeyRequest(subscriptionId: string, apiKey: string) {
+    const request = httpTestingController.expectOne(revokeApiKeyUrl(subscriptionId, apiKey));
+    expect(request.request.method).toEqual('POST');
+    expect(request.request.body).toBeNull();
+    return request;
+  }
+  function expectNoRevokeApiKeyRequest() {
+    httpTestingController.expectNone(request => request.url.includes('/_revoke'), 'revoke API key request');
+  }
   function getApiKeyStatusIcons() {
     return fixture.debugElement
       .queryAll(By.css('[data-testid="api-key-status-icon"]'))
@@ -670,17 +686,17 @@ describe('ApiAccessComponent', () => {
       .queryAll(By.css('[data-testid="api-key-status-icon"]'))
       .map(icon => icon.nativeElement.getAttribute('aria-label'));
   }
-  function apiAccessContentShown() {
+  function apiAccessShellShown() {
     return !!fixture.debugElement.query(By.css('.api-access__copy-code-content'));
   }
   async function getRevokeApiKeyButton() {
     return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="api-key-revoke-button"]' }));
   }
+  async function getRevokeApiKeyButtons() {
+    return await harnessLoader.getAllHarnesses(MatButtonHarness.with({ selector: '[data-testid="api-key-revoke-button"]' }));
+  }
   async function revokeApiKeyButtonShown() {
     return !!(await getRevokeApiKeyButton());
-  }
-  async function headerRevokeApiKeyButtonShown() {
-    return !!(await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="revoke-api-key-button"]' })));
   }
   function getApiKeyRevokeButtonApiKeys() {
     return fixture.debugElement

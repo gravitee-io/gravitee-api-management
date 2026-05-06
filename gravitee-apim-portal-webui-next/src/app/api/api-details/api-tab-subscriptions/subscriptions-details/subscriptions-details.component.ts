@@ -33,7 +33,7 @@ import { LoaderComponent } from '../../../../../components/loader/loader.compone
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../../entities/api/api';
 import { Application } from '../../../../../entities/application/application';
-import { UserApiPermissions } from '../../../../../entities/permission/permission';
+import { UserApiPermissions, UserApplicationPermissions } from '../../../../../entities/permission/permission';
 import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import {
   SubscriptionConsumerStatusEnum,
@@ -73,7 +73,7 @@ interface SubscriptionDetailsData {
   api?: Api;
   apiName?: string;
   hasDocumentationAccess: boolean;
-  canManageSubscription: boolean;
+  canManageApiKey: boolean;
   documentationNavigationTarget?: ApiDocumentationNavigationTarget;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
@@ -172,7 +172,6 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
   private getApiPermissions$(): Observable<UserApiPermissions | undefined> {
     return this.permissionsService.getApiPermissions(this.apiId).pipe(
-      map(permissions => permissions),
       catchError(error => {
         if (error instanceof HttpErrorResponse && error.status === 404) {
           return of(undefined);
@@ -181,6 +180,22 @@ export class SubscriptionsDetailsComponent implements OnInit {
         return throwError(() => error);
       }),
     );
+  }
+
+  private getApplicationPermissions$(applicationId: string): Observable<UserApplicationPermissions | undefined> {
+    return this.permissionsService.getApplicationPermissions(applicationId).pipe(
+      catchError(error => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          return of(undefined);
+        }
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  private canRevokeApiKey(apiPermissions?: UserApiPermissions, applicationPermissions?: UserApplicationPermissions): boolean {
+    return !!apiPermissions?.SUBSCRIPTION?.includes('U') || !!applicationPermissions?.SUBSCRIPTION?.includes('U');
   }
 
   private loadDetails() {
@@ -194,11 +209,12 @@ export class SubscriptionsDetailsComponent implements OnInit {
       switchMap(({ subscription, apiPermissions }) =>
         forkJoin({
           subscription: of(subscription),
+          apiPermissions: of(apiPermissions),
           plan: this.getPlanData$(subscription.plan),
           api: apiPermissions ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
           application: this.applicationService.get(subscription.application),
+          applicationPermissions: this.getApplicationPermissions$(subscription.application),
           hasDocumentationAccess: of(!!apiPermissions),
-          canManageSubscription: of(!!(apiPermissions?.SUBSCRIPTION?.includes('U') || apiPermissions?.SUBSCRIPTION?.includes('D'))),
           documentationNavigationTarget: apiPermissions
             ? this.portalNavigationItemsService.searchNavigationItemsWithApis(1, this.apiId, 10).pipe(
                 map(res => {
@@ -210,67 +226,79 @@ export class SubscriptionsDetailsComponent implements OnInit {
             : of(null),
         }),
       ),
-      map(({ subscription, plan, api, application, hasDocumentationAccess, canManageSubscription, documentationNavigationTarget }) => {
-        const subscriptionDetails: SubscriptionDetailsData = {
-          application,
+      map(
+        ({
           subscription,
-          api: api ?? undefined,
-          apiName: plan.apiName,
-          planName: plan.name,
-          planSecurity: plan.securityType,
-          planUsageConfiguration: plan.usageConfiguration,
-          consumerStatus: subscription.consumerStatus,
-          failureCause: subscription.failureCause,
-          createdAt: subscription.created_at,
-          updatedAt: subscription.updated_at,
-          entrypointUrls: api?.entrypoints ?? [],
+          apiPermissions,
+          plan,
+          api,
+          application,
+          applicationPermissions,
           hasDocumentationAccess,
-          canManageSubscription,
-          documentationNavigationTarget: documentationNavigationTarget ?? undefined,
-        };
+          documentationNavigationTarget,
+        }) => {
+          const canManageApiKey = this.canRevokeApiKey(apiPermissions, applicationPermissions);
+          const subscriptionDetails: SubscriptionDetailsData = {
+            application,
+            subscription,
+            api: api ?? undefined,
+            apiName: plan.apiName,
+            planName: plan.name,
+            planSecurity: plan.securityType,
+            planUsageConfiguration: plan.usageConfiguration,
+            consumerStatus: subscription.consumerStatus,
+            failureCause: subscription.failureCause,
+            createdAt: subscription.created_at,
+            updatedAt: subscription.updated_at,
+            entrypointUrls: api?.entrypoints ?? [],
+            hasDocumentationAccess,
+            canManageApiKey,
+            documentationNavigationTarget: documentationNavigationTarget ?? undefined,
+          };
 
-        if (subscription.status === 'ACCEPTED') {
-          if (plan.securityType === 'API_KEY' && subscription.api) {
-            const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
-            const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
+          if (subscription.status === 'ACCEPTED') {
+            if (plan.securityType === 'API_KEY' && subscription.api) {
+              const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
+              const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
 
+              return {
+                result: {
+                  ...subscriptionDetails,
+                  apiKeys: subscription.keys ?? [],
+                  apiKeyConfigUsername,
+                },
+              };
+            } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
+              if (application.settings.oauth) {
+                return {
+                  result: {
+                    ...subscriptionDetails,
+                    clientId: application.settings.oauth.client_id,
+                    clientSecret: application.settings.oauth.client_secret,
+                  },
+                };
+              } else if (application.settings.app) {
+                return {
+                  result: {
+                    ...subscriptionDetails,
+                    clientId: application.settings.app.client_id,
+                  },
+                };
+              }
+            }
+          }
+
+          if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
             return {
               result: {
                 ...subscriptionDetails,
-                apiKeys: subscription.keys ?? [],
-                apiKeyConfigUsername,
+                consumerConfiguration: subscription.consumerConfiguration,
               },
             };
-          } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
-            if (application.settings.oauth) {
-              return {
-                result: {
-                  ...subscriptionDetails,
-                  clientId: application.settings.oauth.client_id,
-                  clientSecret: application.settings.oauth.client_secret,
-                },
-              };
-            } else if (application.settings.app) {
-              return {
-                result: {
-                  ...subscriptionDetails,
-                  clientId: application.settings.app.client_id,
-                },
-              };
-            }
           }
-        }
-
-        if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
-          return {
-            result: {
-              ...subscriptionDetails,
-              consumerConfiguration: subscription.consumerConfiguration,
-            },
-          };
-        }
-        return { result: subscriptionDetails };
-      }),
+          return { result: subscriptionDetails };
+        },
+      ),
       catchError(_ => of({ error: true })),
       tap(() => (this.isLoadingStatus = false)),
     );

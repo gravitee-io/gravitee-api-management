@@ -40,18 +40,22 @@
         (resumeConsumerStatus)="resumeConsumerStatus()"
         (closeSubscription)="closeSubscription()"
       />
-      @if (detailsVM.result.api) {
+      @if (
+        detailsVM.result.api ||
+        (detailsVM.result.planSecurity === 'API_KEY' && detailsVM.result.canManageApiKey) ||
+        ((detailsVM.result.planSecurity === 'OAUTH2' || detailsVM.result.planSecurity === 'JWT') && detailsVM.result.clientId)
+      ) {
         <app-api-access
           [planSecurity]="detailsVM.result.planSecurity"
           [subscription]="detailsVM.result.subscription"
-          [canManageSubscription]="detailsVM.result.canManageSubscription"
+          [canManageApiKey]="detailsVM.result.canManageApiKey"
           [entrypointUrls]="detailsVM.result.entrypointUrls"
           [apiKeys]="detailsVM.result.apiKeys"
           [clientId]="detailsVM.result.clientId"
           [clientSecret]="detailsVM.result.clientSecret"
-          [apiType]="detailsVM.result.api.type"
+          [apiType]="detailsVM.result.api?.type"
           [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
-          (revokeApiKey)="reloadSubscriptionDetails()"
+          (apiKeyRevoked)="reloadSubscriptionDetails()"
         />
       }
     </div>
