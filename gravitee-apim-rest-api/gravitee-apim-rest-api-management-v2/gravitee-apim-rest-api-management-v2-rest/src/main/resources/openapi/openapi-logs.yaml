@@ -442,6 +442,7 @@ components:
         - URI
         - RESPONSE_TIME
         - ERROR_KEY
+        - API_PRODUCT
       description: Available filter names for filtering analytics data
 
     Operator:

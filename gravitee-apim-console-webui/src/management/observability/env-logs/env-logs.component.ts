@@ -14,27 +14,36 @@
  * limitations under the License.
  */
 
+import {
+  AddFilterDialogComponent,
+  AddFilterDialogData,
+  customTimeFrames,
+  DynamicFilterBarComponent,
+  FilterCondition,
+  provideFilterDefinitions,
+  provideFilterValues,
+  TimeframeSelectorComponent,
+  timeFrames,
+} from '@gravitee/gravitee-dashboard';
+
+import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, computed, DestroyRef, inject, Injector, signal } from '@angular/core';
+import { toObservable, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 import { EMPTY } from 'rxjs';
 import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
-import moment from 'moment';
 
 import type { EnvLog } from './models/env-log.model';
 
-import { EnvLogsInitialValues } from './models/env-logs-initial-values.model';
-import {
-  EnvLogsFilterBarComponent,
-  EnvLogsFilterValues,
-  ENV_LOGS_PERIODS,
-} from './components/env-logs-filter-bar/env-logs-filter-bar.component';
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 
+import { DashboardFiltersStore } from '../dashboards/ui/dashboard-viewer/dashboard-filters.store';
+import { FilterLabelResolver } from '../dashboards/ui/dashboard-viewer/filter-label.resolver';
+import { ObservabilityFiltersApiService } from '../data-access/observability-filters-api.service';
 import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam, LogApiType } from '../../../services-ngx/environment-logs.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperPagination } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -54,129 +63,143 @@ const API_TYPE_LABELS: Record<LogApiType, string> = {
   selector: 'env-logs',
   templateUrl: './env-logs.component.html',
   styleUrl: './env-logs.component.scss',
-  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule, GioHeaderComponent],
-  providers: [DatePipe],
-  standalone: true,
+  imports: [
+    EnvLogsTableComponent,
+    DynamicFilterBarComponent,
+    TimeframeSelectorComponent,
+    ReactiveFormsModule,
+    MatCardModule,
+    GioBannerModule,
+    GioHeaderComponent,
+  ],
+  providers: [
+    DatePipe,
+    DashboardFiltersStore,
+    ObservabilityFiltersApiService,
+    FilterLabelResolver,
+    provideFilterDefinitions(ObservabilityFiltersApiService),
+    provideFilterValues(ObservabilityFiltersApiService),
+  ],
 })
 export class EnvLogsComponent {
   private readonly environmentLogsService = inject(EnvironmentLogsService);
   private readonly snackBarService = inject(SnackBarService);
   private readonly datePipe = inject(DatePipe);
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
+  // Required so dialogs can resolve DashboardFiltersStore from this component's injector scope
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
+  /** Prevents opening a second filter dialog while one is already active. */
+  private dialogOpen = false;
 
-  pagination = signal<Pagination>({ page: 1, perPage: DEFAULT_PER_PAGE, totalCount: 0 });
-  filters = signal<EnvLogsFilterValues | null>(null);
-  loading = signal(true);
-  error = signal<string | null>(null);
+  protected readonly filtersStore = inject(DashboardFiltersStore);
+  protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
 
-  initialValues = signal<EnvLogsInitialValues | undefined>(this.parseQueryParams());
+  protected pagination = signal<Pagination>({ page: 1, perPage: DEFAULT_PER_PAGE, totalCount: 0 });
+  protected loading = signal(true);
+  protected error = signal<string | null>(null);
 
   private readonly searchParams = computed(() => ({
     pagination: this.pagination(),
-    filters: this.filters(),
+    requestFilters: this.filtersStore.requestFilters(),
+    timeRange: this.filtersStore.timeRange(),
   }));
 
   private readonly logsResult$ = toObservable(this.searchParams).pipe(
-    debounceTime(0),
+    debounceTime(0), // batch synchronous signal updates into a single emission
     switchMap(params => this.fetchLogs(params)),
   );
 
   private readonly logsResult = toSignal(this.logsResult$);
 
-  logs = computed(() => {
+  protected logs = computed(() => {
     const result = this.logsResult();
     return result?.data.map(log => this.mapToEnvLog(log)) ?? [];
   });
 
-  paginationWithTotal = computed(() => ({
+  protected paginationWithTotal = computed(() => ({
     ...this.pagination(),
     totalCount: this.logsResult()?.pagination.totalCount ?? 0,
   }));
 
-  onRefresh() {
+  protected onRefresh() {
+    // Spreading into a new object always produces a new signal reference, which marks
+    // searchParams as dirty and triggers a re-fetch even when the page is already 1.
     this.pagination.update(prev => ({ ...prev, page: 1 }));
   }
 
-  onFiltersChanged(filters: EnvLogsFilterValues) {
-    this.filters.set(filters);
-    this.pagination.update(prev => (prev.page === 1 ? prev : { ...prev, page: 1 }));
-    this.syncQueryParams(filters, this.pagination());
-  }
-
-  onPaginationUpdated(event: GioTableWrapperPagination) {
+  protected onPaginationUpdated(event: GioTableWrapperPagination) {
     this.pagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
-    this.syncQueryParams(this.filters(), this.pagination());
   }
 
-  private syncQueryParams(filters: EnvLogsFilterValues | null, pagination: Pagination) {
-    const queryParams: Record<string, string | null> = {
-      page: pagination.page > 1 ? String(pagination.page) : null,
-      perPage: pagination.perPage === DEFAULT_PER_PAGE ? null : String(pagination.perPage),
-      period: filters?.period && filters.period !== '0' ? filters.period : null,
-      apiIds: filters?.apiIds?.length ? filters.apiIds.join(',') : null,
-      applicationIds: filters?.applicationIds?.length ? filters.applicationIds.join(',') : null,
-      methods: filters?.more?.methods?.length ? filters.more.methods.join(',') : null,
-      statuses: filters?.more?.statuses?.size ? [...filters.more.statuses].join(',') : null,
-      entrypoints: filters?.more?.entrypoints?.length ? filters.more.entrypoints.join(',') : null,
-      planIds: filters?.more?.plans?.length ? filters.more.plans.join(',') : null,
-      transactionId: filters?.more?.transactionId ?? null,
-      requestId: filters?.more?.requestId ?? null,
-      uri: filters?.more?.uri ?? null,
-      responseTime: filters?.more?.responseTime != null && filters.more.responseTime > 0 ? String(filters.more.responseTime) : null,
-      from: filters?.more?.from?.toISOString() ?? null,
-      to: filters?.more?.to?.toISOString() ?? null,
-      errorKeys: filters?.more?.errorKeys?.length ? filters.more.errorKeys.join(',') : null,
-    };
-
-    this.router.navigate(['.'], {
-      relativeTo: this.activatedRoute,
-      queryParams,
-      replaceUrl: true,
-    });
+  protected openAddFilter(): void {
+    this.openFilterDialog(null);
   }
 
-  private parseQueryParams(): EnvLogsInitialValues | undefined {
-    const queryParams = this.activatedRoute.snapshot.queryParams;
-    this.restorePagination(queryParams);
-
-    const nonFilterKeys = new Set(['apiId', 'page', 'perPage']);
-    const hasAnyFilter = Object.keys(queryParams).some(k => !nonFilterKeys.has(k));
-    if (!hasAnyFilter) return undefined;
-
-    const period = queryParams['period'] ? ENV_LOGS_PERIODS.find(p => p.value === queryParams['period']) : undefined;
-    const splitOrUndefined = (key: string): string[] | undefined => queryParams[key]?.split(',').filter(Boolean) || undefined;
-
-    return {
-      period,
-      apiIds: splitOrUndefined('apiIds'),
-      applicationIds: splitOrUndefined('applicationIds'),
-      methods: splitOrUndefined('methods'),
-      statuses: queryParams['statuses'] ? new Set(queryParams['statuses'].split(',').map(Number)) : undefined,
-      entrypoints: splitOrUndefined('entrypoints'),
-      plans: splitOrUndefined('planIds'),
-      transactionId: queryParams['transactionId'] || undefined,
-      requestId: queryParams['requestId'] || undefined,
-      uri: queryParams['uri'] || undefined,
-      responseTime: queryParams['responseTime'] ? Number(queryParams['responseTime']) : undefined,
-      from: queryParams['from'] ? moment(queryParams['from']) : undefined,
-      to: queryParams['to'] ? moment(queryParams['to']) : undefined,
-      errorKeys: splitOrUndefined('errorKeys'),
-    };
+  protected openEditFilter(index: number, condition: FilterCondition): void {
+    this.openFilterDialog({ index, condition });
   }
 
-  private restorePagination(queryParams: Record<string, string>) {
-    const page = Number(queryParams['page']);
-    if (page > 1) {
-      this.pagination.update(prev => ({ ...prev, page }));
-    }
-    const perPage = Number(queryParams['perPage']);
-    if (perPage && perPage !== DEFAULT_PER_PAGE) {
-      this.pagination.update(prev => ({ ...prev, perPage }));
-    }
+  /**
+   * Wrapper called from the template for single-chip removal.
+   * Resets to page 1 synchronously before the store mutation so that
+   * debounceTime(0) in logsResult$ collapses both signal writes into one fetch.
+   */
+  protected onFilterRemoved(index: number): void {
+    this.resetToFirstPage();
+    this.filtersStore.remove(index);
   }
 
-  private fetchLogs(params: { pagination: Pagination; filters: EnvLogsFilterValues | null }) {
+  /**
+   * Wrapper called from the template for "clear all" action.
+   * Same page-reset contract as onFilterRemoved.
+   */
+  protected onFilterCleared(): void {
+    this.resetToFirstPage();
+    this.filtersStore.clear();
+  }
+
+  private openFilterDialog(edit: { index: number; condition: FilterCondition } | null): void {
+    if (this.dialogOpen) return;
+    this.dialogOpen = true;
+
+    const { from, to } = this.filtersStore.timeRangeEpoch();
+    const data: AddFilterDialogData = edit
+      ? { existingCondition: edit.condition, timeFrom: from, timeTo: to }
+      : { timeFrom: from, timeTo: to };
+
+    this.dialog
+      .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
+        data,
+        injector: this.injector,
+        autoFocus: 'dialog',
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(result => {
+        this.dialogOpen = false;
+        if (!result) return;
+        // Reset synchronously before the store mutation so debounceTime(0)
+        // collapses both signal writes into a single fetch on page 1.
+        this.resetToFirstPage();
+        if (edit) {
+          this.filtersStore.edit(edit.index, result);
+        } else {
+          this.filtersStore.add(result);
+        }
+      });
+  }
+
+  /** Resets pagination to page 1 without changing perPage. */
+  private resetToFirstPage(): void {
+    this.pagination.update(prev => ({ ...prev, page: 1 }));
+  }
+
+  private fetchLogs(params: {
+    pagination: Pagination;
+    requestFilters: ReturnType<DashboardFiltersStore['requestFilters']>;
+    timeRange: { from: string; to: string };
+  }) {
     this.loading.set(true);
     this.error.set(null);
 
@@ -195,26 +218,33 @@ export class EnvLogsComponent {
     );
   }
 
-  private buildSearchParam(params: { pagination: Pagination; filters: EnvLogsFilterValues | null }): SearchLogsParam {
+  private buildSearchParam(params: {
+    pagination: Pagination;
+    requestFilters: ReturnType<DashboardFiltersStore['requestFilters']>;
+    timeRange: { from: string; to: string };
+  }): SearchLogsParam {
     const { page, perPage } = params.pagination;
-    const filters = params.filters;
+    // RequestFilter.value is always string[] for IN filters returned by the store;
+    // scalar (EQ) filters also arrive as string[] with a single element.
+    const filterMap = new Map<string, string[]>(
+      params.requestFilters.map(f => [f.name as string, Array.isArray(f.value) ? f.value : [f.value]]),
+    );
+
     return {
       page,
       perPage,
-      period: filters?.period,
-      from: filters?.more?.from?.toISOString(),
-      to: filters?.more?.to?.toISOString(),
-      apiIds: filters?.apiIds?.length ? filters.apiIds : undefined,
-      applicationIds: filters?.applicationIds?.length ? filters.applicationIds : undefined,
-      planIds: filters?.more?.plans?.length ? filters.more.plans : undefined,
-      methods: filters?.more?.methods?.length ? filters.more.methods : undefined,
-      statuses: filters?.more?.statuses?.size ? [...filters.more.statuses] : undefined,
-      entrypoints: filters?.more?.entrypoints?.length ? filters.more.entrypoints : undefined,
-      transactionId: filters?.more?.transactionId ?? undefined,
-      requestId: filters?.more?.requestId ?? undefined,
-      uri: filters?.more?.uri ?? undefined,
-      responseTime: filters?.more?.responseTime ?? undefined,
-      errorKeys: filters?.more?.errorKeys?.length ? filters.more.errorKeys : undefined,
+      timeRange: params.timeRange,
+      apiIds: filterMap.get('API'),
+      applicationIds: filterMap.get('APPLICATION'),
+      planIds: filterMap.get('PLAN'),
+      methods: filterMap.get('HTTP_METHOD'),
+      statuses: filterMap.get('HTTP_STATUS')?.map(Number),
+      entrypoints: filterMap.get('ENTRYPOINT'),
+      errorKeys: filterMap.get('ERROR_KEY'),
+      apiProductIds: filterMap.get('API_PRODUCT'),
+      // Scalar / numeric filters (REQUEST_ID, TRANSACTION_ID, URI, RESPONSE_TIME) are
+      // excluded from the filter definitions served by ObservabilityFiltersApiService
+      // until full support is implemented.
     };
   }
 
