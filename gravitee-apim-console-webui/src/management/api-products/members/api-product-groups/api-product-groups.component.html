@@ -16,11 +16,13 @@
 
 -->
 <div class="api-product-groups">
-  <h2 mat-dialog-title class="api-product-groups__title" data-testid="api_product_groups_dialog_title">Manage groups</h2>
-  <p class="api-product-groups__subtitle">Give groups access to your API Product through the API Management console</p>
+  <div class="api-product-groups__header">
+    <div class="api-product-groups__header__title" data-testid="api_product_groups_dialog_title">Manage groups</div>
+    <div class="api-product-groups__header__subtitle">Give groups access to your API Product through the API Management console</div>
+  </div>
 
   <form [formGroup]="form" (ngSubmit)="save()">
-    <mat-dialog-content class="api-product-groups__body">
+    <div class="api-product-groups__body">
       @if (!isReadOnly) {
         <mat-form-field appearance="outline" class="api-product-groups__field" subscriptSizing="dynamic">
           <mat-label>Groups</mat-label>
@@ -32,17 +34,17 @@
         </mat-form-field>
       } @else {
         <section class="api-product-groups__read-only" aria-labelledby="api-product-groups-readonly-heading">
-          <h3 id="api-product-groups-readonly-heading" class="api-product-groups__readonly-heading">Groups</h3>
-          <div class="api-product-groups__read-only-groups">
-            <span class="mat-subtitle-2 api-product-groups__read-only-label">Associated groups</span>
+          <h3 id="api-product-groups-readonly-heading" class="mat-h4">Groups</h3>
+          <div class="api-product-groups__body__read-only-groups">
+            <div class="mat-subtitle-2">Associated groups</div>
             <span>{{ readOnlyGroupList }}</span>
           </div>
         </section>
       }
-    </mat-dialog-content>
+    </div>
 
     @if (!isReadOnly) {
-      <mat-dialog-actions align="end">
+      <div class="api-product-groups__actions">
         <button
           type="submit"
           color="primary"
@@ -53,7 +55,7 @@
         >
           Save
         </button>
-      </mat-dialog-actions>
+      </div>
     }
   </form>
 </div>
