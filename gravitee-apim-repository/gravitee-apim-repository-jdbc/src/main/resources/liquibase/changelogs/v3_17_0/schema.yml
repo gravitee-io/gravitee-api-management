@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.17.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addColumn:
             tableName: ${gravitee_prefix}applications
@@ -14,12 +15,8 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}key_subscriptions
             columns:
-              - column: { name: key_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: subscription_id, type: nvarchar(64), constraints: { nullable: false } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}key_subscriptions
-            columnNames: key_id, subscription_id
-            tableName: ${gravitee_prefix}key_subscriptions
+              - column: {name: key_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}key_subscriptions" } }
+              - column: {name: subscription_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
         - dropNotNullConstraint:
             columnDataType: nvarchar(64)
             columnName: api

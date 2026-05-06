@@ -2,18 +2,14 @@ databaseChangeLog:
   - changeSet:
       id: 4.10.0_01_add_portal_page_contents_table
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - createTable:
             tableName: ${gravitee_prefix}portal_page_contents
             columns:
-              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}portal_page_contents" } }
               - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: configuration, type: nclob, constraints: { nullable: true } }
               - column: {name: content, type: nclob, constraints: { nullable: true } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}portal_page_contents
-            columnNames: id
-            tableName: ${gravitee_prefix}portal_page_contents
-

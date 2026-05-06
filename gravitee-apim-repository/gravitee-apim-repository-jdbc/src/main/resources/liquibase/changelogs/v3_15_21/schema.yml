@@ -1,21 +1,112 @@
 databaseChangeLog:
+  # The original v3.15.21 migration replaced flow_steps's composite PK with a
+  # synthetic auto-increment `id` column. Two complications drove the rewrite
+  # below:
+  #
+  #   * In the historical 3.x train, flow_steps was created in v3.9.0 without
+  #     any PK and the PK was added as a separate addPrimaryKey under v3_15_20
+  #     (then dropped+rebuilt to the synthetic id by 3.15.21). This PR moves
+  #     the synthetic id PK back to v3_9_0's inline createTable for fresh
+  #     deploys, so HEAD's v3_15_20 no longer touches flow_steps. But legacy
+  #     baselines that haven't yet applied v3_15_20's flow_steps PK addition
+  #     (e.g. 3.15.0) still arrive here with a PK-less flow_steps. The
+  #     migration therefore has to handle both "rebuild PK" and "first PK on
+  #     the table".
+  #   * MySQL `sql_require_primary_key=ON` rejects a transient PK-less state,
+  #     so the drop+add must be a single ALTER on MySQL/MariaDB.
+  #   * Liquibase 4.27's action-level `dbms: '!mysql, !mariadb'` filter is
+  #     unreliable on typed actions (addColumn/dropPrimaryKey), so dbms is
+  #     applied at the changeSet header where it works correctly.
+  #
+  # All four changesets gate on `not columnExists id`, so they MARK_RAN on
+  # any deploy that has already adopted the synthetic id PK (fresh deploys
+  # via v3.9.0's inline createTable, plus any prior 3.15.21 application).
+
+  # CASE 1 — flow_steps has a PRIOR PK to replace.
+
   - changeSet:
+      id: 3.15.21-rebuild-flow-steps-pk-mysql
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      dbms: mysql, mariadb
       preConditions:
         - onFail: MARK_RAN
         - primaryKeyExists:
             tableName: ${gravitee_prefix}flow_steps
-      id: 3.15.21-clean-flow-steps-pk
-      author: GraviteeSource Team
+        - not:
+            - columnExists:
+                tableName: ${gravitee_prefix}flow_steps
+                columnName: id
       changes:
-        # Drop any existing PK on the flow_steps table
+        - sql:
+            sql: |
+                ALTER TABLE ${gravitee_prefix}flow_steps
+                    DROP PRIMARY KEY,
+                    ADD COLUMN id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY;
+
+  - changeSet:
+      id: 3.15.21-rebuild-flow-steps-pk-others
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      dbms: '!mysql, !mariadb'
+      preConditions:
+        - onFail: MARK_RAN
+        - primaryKeyExists:
+            tableName: ${gravitee_prefix}flow_steps
+        - not:
+            - columnExists:
+                tableName: ${gravitee_prefix}flow_steps
+                columnName: id
+      changes:
         - dropPrimaryKey:
             dropIndex: true
             tableName: ${gravitee_prefix}flow_steps
+        - addColumn:
+            tableName: ${gravitee_prefix}flow_steps
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+  # CASE 2 — flow_steps has NO prior PK (3.15.0-era baselines). Just add id+PK.
+
   - changeSet:
-      id: 3.15.21
+      id: 3.15.21-add-flow-steps-id-mysql
       author: GraviteeSource Team
+      validCheckSum: ANY
+      dbms: mysql, mariadb
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}flow_steps
+        - not:
+            - columnExists:
+                tableName: ${gravitee_prefix}flow_steps
+                columnName: id
       changes:
-        # Create a new auto increment column and set it as a PK
+        - sql:
+            sql: ALTER TABLE ${gravitee_prefix}flow_steps ADD COLUMN id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY;
+
+  - changeSet:
+      id: 3.15.21-add-flow-steps-id-others
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      dbms: '!mysql, !mariadb'
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - primaryKeyExists:
+                tableName: ${gravitee_prefix}flow_steps
+        - not:
+            - columnExists:
+                tableName: ${gravitee_prefix}flow_steps
+                columnName: id
+      changes:
         - addColumn:
             tableName: ${gravitee_prefix}flow_steps
             columns:

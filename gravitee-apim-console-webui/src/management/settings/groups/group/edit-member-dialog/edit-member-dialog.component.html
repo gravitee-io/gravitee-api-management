@@ -78,7 +78,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Search Members</mat-label>
         <input aria-label="Search members" matInput formControlName="searchTerm" [matAutocomplete]="auto" />
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectPrimaryOwner($event)">
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayMember" (optionSelected)="selectPrimaryOwner($event)">
           @for (member of filteredMembers$ | async; track member.id) {
             <mat-option [value]="member">
               {{ member.displayName }}

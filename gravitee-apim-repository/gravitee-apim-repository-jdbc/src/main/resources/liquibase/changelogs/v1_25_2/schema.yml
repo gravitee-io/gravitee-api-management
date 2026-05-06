@@ -5,6 +5,7 @@ databaseChangeLog:
         validCheckSum:
         - 8:67ff408ab1ca458f85386d06f45e395b
         - 8:a1872ce916e96806b18767089dde811d
+        - ANY
         changes:
         - addColumn:
             tableName: ${gravitee_rate_limit_prefix}ratelimit
@@ -32,6 +33,57 @@ databaseChangeLog:
             columnName: subscription
             defaultNullValue: 'unknown'
             tableName: ${gravitee_rate_limit_prefix}ratelimit
+
+    # Rebuild the primary key on `key` after widening it to nvarchar(128).
+    # MySQL with sql_require_primary_key=ON rejects an ALTER that drops the
+    # PK without adding a replacement in the same statement, so the rebuild
+    # is split per-DBMS: a single combined ALTER on MySQL/MariaDB, and the
+    # original typed sequence elsewhere so Liquibase can keep generating
+    # portable SQL.
+    # MARK_RAN if `key` is already NVARCHAR(128) on the running database — that
+    # is the post-migration state. This guards 4.10.x → 4.11.x upgrades, where
+    # the original (now-trimmed) `1.25.2` changeset already widened the column
+    # and added the PK. Without the gate, the combined ALTER below would
+    # needlessly drop+rebuild a PK that's already at the target shape.
+    - changeSet:
+        id: 1.25.2-rebuild-key-pk-mysql
+        author: GraviteeSource Team
+        dbms: mysql, mariadb
+        preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 64
+            sql: |
+                SELECT character_maximum_length
+                FROM information_schema.columns
+                WHERE table_schema = (SELECT DATABASE())
+                  AND table_name = '${gravitee_rate_limit_prefix}ratelimit'
+                  AND column_name = 'key'
+        changes:
+        - sql:
+            sql: |
+                ALTER TABLE ${gravitee_rate_limit_prefix}ratelimit
+                    DROP PRIMARY KEY,
+                    MODIFY COLUMN `key` NVARCHAR(128) NOT NULL,
+                    ADD CONSTRAINT pk_${gravitee_rate_limit_prefix}ratelimit PRIMARY KEY (`key`);
+
+    # Same MARK_RAN guard as the MySQL changeset above. Postgres, MSSQL, and H2
+    # all report character_maximum_length in characters (not bytes), so a
+    # single sqlCheck applies cleanly across the !mysql,!mariadb family.
+    - changeSet:
+        id: 1.25.2-rebuild-key-pk-other
+        author: GraviteeSource Team
+        dbms: '!mysql, !mariadb'
+        preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 64
+            sql: |
+                SELECT character_maximum_length
+                FROM information_schema.columns
+                WHERE table_name = '${gravitee_rate_limit_prefix}ratelimit'
+                  AND column_name = 'key'
+        changes:
         - dropPrimaryKey:
             constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
             tableName: ${gravitee_rate_limit_prefix}ratelimit

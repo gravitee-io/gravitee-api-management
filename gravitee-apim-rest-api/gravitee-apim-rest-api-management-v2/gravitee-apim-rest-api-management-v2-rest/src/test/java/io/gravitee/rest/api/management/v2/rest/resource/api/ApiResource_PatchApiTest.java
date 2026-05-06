@@ -45,10 +45,13 @@ import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +86,15 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var existingApi = ApiFixtures.aProxyApiV4();
         apiCrudService.initWith(List.of(existingApi));
 
+        var apiEntity = new ApiEntity();
+        apiEntity.setId(API);
+        apiEntity.setDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V4);
+        apiEntity.setType(io.gravitee.definition.model.v4.ApiType.PROXY);
+        apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
+        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
+            apiEntity
+        );
+
         roleQueryService.resetSystemRoles(ORGANIZATION);
         primaryOwnerDomainService.initWith(
             List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
@@ -110,7 +122,7 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     @AfterEach
     public void tearDown() {
         Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
-        reset(updateApiDomainService);
+        reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     // ---- General (format-independent) tests ----

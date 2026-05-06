@@ -63,6 +63,15 @@ describe('GroupComponent', () => {
     },
   };
 
+  const HYBRID_SETTINGS_SNAPSHOT = {
+    api: {
+      primaryOwnerMode: 'HYBRID',
+    },
+    apiProduct: {
+      primaryOwnerMode: 'HYBRID',
+    },
+  };
+
   const GROUP: Group = {
     disable_membership_notifications: false,
     manageable: true,
@@ -128,7 +137,8 @@ describe('GroupComponent', () => {
 
   const ROLES_API_PRODUCT: Role[] = [
     { id: 'ap1', name: 'OWNER', scope: 'API_PRODUCT' },
-    { id: 'ap2', name: 'USER', scope: 'API_PRODUCT' },
+    { id: 'ap2', name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+    { id: 'ap3', name: 'USER', scope: 'API_PRODUCT' },
   ];
 
   const INVITATIONS: Invitation[] = [
@@ -448,6 +458,689 @@ describe('GroupComponent', () => {
     });
   });
 
+  describe('Transfer of Primary Ownership via Edit Member dialog', () => {
+    it('should transfer API primary ownership when promoting a member to PRIMARY_OWNER', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      const apiOptions = await apiRoleSelect.getOptions({ text: 'PRIMARY_OWNER' });
+      await apiOptions[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      // Demoted PO sent first; otherwise the server rejects the promotion of the new PO.
+      expect(req.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should transfer API Product primary ownership when promoting a member', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const options = await apiProductRoleSelect.getOptions({ text: 'PRIMARY_OWNER' });
+      await options[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should transfer both API and API Product primary ownership in a single demotion when same outgoing PO', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      const apiOptions = await apiRoleSelect.getOptions({ text: 'PRIMARY_OWNER' });
+      await apiOptions[0].click();
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const apiProductOptions = await apiProductRoleSelect.getOptions({ text: 'PRIMARY_OWNER' });
+      await apiProductOptions[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should transfer both primary ownerships to a chosen successor when downgrading both scopes', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      const apiOptions = await apiRoleSelect.getOptions({ text: 'OWNER' });
+      await apiOptions[0].click();
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const apiProductOptions = await apiProductRoleSelect.getOptions({ text: 'OWNER' });
+      await apiProductOptions[0].click();
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      await autoCompleteHarness.enterText('Test Member 2');
+      const successors = await autoCompleteHarness.getOptions();
+      await successors[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual([
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should successfully transfer api product ownership and freshly assign api primary owner in one save', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'USER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      const apiPoOption = (await apiRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0];
+      await apiPoOption.click();
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const apiProductPoOption = (await apiProductRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0];
+      await apiProductPoOption.click();
+      await fixture.whenStable();
+
+      // Scoped to the dialog to avoid matching banners rendered by the parent component.
+      const bannerText = document.querySelector('#editMemberDialog gio-banner-info')?.textContent ?? '';
+      expect(bannerText).toContain('Test Member 1 will become the API primary owner of this group.');
+      expect(bannerText).toContain('Test Member 2 is the API Product primary owner');
+      expect(bannerText).toContain('transferred to Test Member 1');
+
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      // Demotion of the previous API_PRODUCT PO must come before the new PO is promoted.
+      expect(req.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'USER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'USER', scope: 'APPLICATION' },
+            { name: 'USER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should send only the edit user when promoting to PRIMARY_OWNER with no existing primary owner for that scope', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      (await apiRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual([
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should produce two distinct demotions when API and API Product primary owners are different members', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT, [
+        ...USERS,
+        { id: '3', reference: 'testmember3', email: 'testmember3@xxx.com', displayName: 'Test Member 3' },
+      ]);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '3',
+          displayName: 'Test Member 3',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[2].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      (await apiRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0].click();
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      (await apiProductRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      // Each demotion only touches the relevant scope; the demoted member's other scopes stay at their existing values.
+      expect(req.request.body).toEqual([
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '3',
+          reference: 'testmember3',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should transfer API primary ownership only when downgrading API role alone', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      (await apiRoleSelect.getOptions({ text: 'OWNER' }))[0].click();
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      await autoCompleteHarness.enterText('Test Member 2');
+      const successors = await autoCompleteHarness.getOptions();
+      await successors[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual([
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should transfer API Product primary ownership only when downgrading API Product role alone', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      (await apiProductRoleSelect.getOptions({ text: 'OWNER' }))[0].click();
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      await autoCompleteHarness.enterText('Test Member 2');
+      const successors = await autoCompleteHarness.getOptions();
+      await successors[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await confirmButtonHarness.click();
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual([
+        {
+          id: '1',
+          reference: 'testmember1',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      req.flush({});
+    });
+
+    it('should display a single combined banner when the same member is PO of both scopes during upgrade', async () => {
+      await init(GROUP.id, HYBRID_SETTINGS_SNAPSHOT);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
+      await editButton.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      const apiPoOption = (await apiRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0];
+      await apiPoOption.click();
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const apiProductPoOption = (await apiProductRoleSelect.getOptions({ text: 'PRIMARY_OWNER' }))[0];
+      await apiProductPoOption.click();
+      await fixture.whenStable();
+
+      const bannerText = document.querySelector('#editMemberDialog gio-banner-info')?.textContent ?? '';
+      expect(bannerText).toContain('Test Member 2 is the API and API Product primary owner');
+      expect(bannerText).toContain('transferred to Test Member 1');
+      expect(bannerText).not.toContain('The API primary ownership will be transferred');
+      expect(bannerText).not.toContain('The API Product primary ownership will be transferred');
+    });
+  });
+
   describe('Invitations', () => {
     beforeEach(async () => {
       await init(GROUP.id);
@@ -590,9 +1283,10 @@ describe('GroupComponent', () => {
       expect(apiProductRoleSelect).toBeTruthy();
       await apiProductRoleSelect.open();
       const options = await apiProductRoleSelect.getOptions();
-      expect(options.length).toEqual(2);
+      expect(options.length).toEqual(3);
       expect(await options[0].getText()).toEqual('OWNER');
-      expect(await options[1].getText()).toEqual('USER');
+      expect(await options[1].getText()).toEqual('PRIMARY_OWNER');
+      expect(await options[2].getText()).toEqual('USER');
     });
 
     it('should show API Product role dropdown in Edit Member dialog', async () => {
@@ -909,6 +1603,117 @@ describe('GroupComponent', () => {
         { name: 'USER', scope: 'API_PRODUCT' },
         { name: 'OWNER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
+        { name: 'USER', scope: 'CLUSTER' },
+      ]);
+    });
+
+    it('should clear selected user when api product role changes', async () => {
+      await init(GROUP.id);
+      expectGetGroup({
+        disable_membership_notifications: false,
+        email_invitation: false,
+        event_rules: [],
+        lock_api_role: false,
+        lock_application_role: false,
+        max_invitation: 10,
+        manageable: true,
+        name: 'Group 1',
+        roles: {},
+        system_invitation: true,
+        id: '1',
+      });
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      await buttonHarness.click();
+      const menuHarness = await harnessLoader.getHarness(MatMenuHarness);
+      const userSearchMenuItem = await menuHarness.getHarness(
+        MatMenuItemHarness.with({ selector: '[aria-label="Click to invite user via search"]' }),
+      );
+      await userSearchMenuItem.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      await autoCompleteHarness.enterText('test');
+      const searchResults = await autoCompleteHarness.getOptions();
+      await searchResults[0].click();
+      const apiProductRoleSelect = await dialogHarness.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultAPIProductRole"]' }),
+      );
+      await apiProductRoleSelect.open();
+      const apiProductOptions = await apiProductRoleSelect.getOptions({ text: 'OWNER' });
+      await apiProductOptions[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add Users' }));
+      expect(await confirmButtonHarness.isDisabled()).toEqual(true);
+      await autoCompleteHarness.enterText('test');
+      const searchResultsAgain = await autoCompleteHarness.getOptions();
+      await searchResultsAgain[0].click();
+      expect(await confirmButtonHarness.isDisabled()).toEqual(false);
+      await confirmButtonHarness.click();
+      expectAddOrUpdateMembership('2', 'testmember2', [
+        { name: 'USER', scope: 'API' },
+        { name: 'OWNER', scope: 'API_PRODUCT' },
+        { name: 'USER', scope: 'APPLICATION' },
+        { name: 'USER', scope: 'INTEGRATION' },
+        { name: 'USER', scope: 'CLUSTER' },
+      ]);
+    });
+
+    it('should clear selected user when api role changes after the user is selected', async () => {
+      await init(GROUP.id);
+      expectGetGroup({
+        disable_membership_notifications: false,
+        email_invitation: false,
+        event_rules: [],
+        lock_api_role: false,
+        lock_application_role: false,
+        max_invitation: 10,
+        manageable: true,
+        name: 'Group 1',
+        roles: {},
+        system_invitation: true,
+        id: '1',
+      });
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      await buttonHarness.click();
+      const menuHarness = await harnessLoader.getHarness(MatMenuHarness);
+      const userSearchMenuItem = await menuHarness.getHarness(
+        MatMenuItemHarness.with({ selector: '[aria-label="Click to invite user via search"]' }),
+      );
+      await userSearchMenuItem.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      await autoCompleteHarness.enterText('test');
+      const searchResults = await autoCompleteHarness.getOptions();
+      await searchResults[0].click();
+      const apiRoleSelect = await dialogHarness.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      await apiRoleSelect.open();
+      const apiOptions = await apiRoleSelect.getOptions({ text: 'REVIEWER' });
+      await apiOptions[0].click();
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add Users' }));
+      expect(await confirmButtonHarness.isDisabled()).toEqual(true);
+      await autoCompleteHarness.enterText('test');
+      const searchResultsAgain = await autoCompleteHarness.getOptions();
+      await searchResultsAgain[0].click();
+      await confirmButtonHarness.click();
+      expectAddOrUpdateMembership('2', 'testmember2', [
+        { name: 'REVIEWER', scope: 'API' },
+        { name: 'USER', scope: 'API_PRODUCT' },
+        { name: 'USER', scope: 'APPLICATION' },
+        { name: 'USER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
       ]);
     });

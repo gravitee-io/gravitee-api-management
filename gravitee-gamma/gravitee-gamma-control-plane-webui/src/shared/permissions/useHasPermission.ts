@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { UseHasPermissionFn, UseHasPermissionOptions } from '@gravitee/gamma-modules-sdk/types';
 import { useMemo, useSyncExternalStore } from 'react';
 
 import { permissionService } from './permission-service';
-import type { PermissionCheck } from './types';
 
-export type UseHasPermissionOptions = PermissionCheck;
+export type { UseHasPermissionOptions } from '@gravitee/gamma-modules-sdk/types';
 
-export function useHasPermission(options: UseHasPermissionOptions): boolean {
+export const useHasPermission: UseHasPermissionFn = (options: UseHasPermissionOptions) => {
     const version = useSyncExternalStore(
         cb => permissionService.subscribe(cb),
         () => permissionService.getSnapshot(),
@@ -39,4 +39,4 @@ export function useHasPermission(options: UseHasPermissionOptions): boolean {
         }
         return false;
     }, [version, optionsKey]);
-}
+};

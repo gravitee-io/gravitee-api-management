@@ -2,11 +2,12 @@ databaseChangeLog:
   - changeSet:
       id: 4.11.0_00_add_client_certificates_table
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - createTable:
             tableName: ${gravitee_prefix}client_certificates
             columns:
-              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}client_certificates" } }
               - column: { name: cross_id, type: nvarchar(64) , constraints: { nullable: false }}
               - column: { name: application_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: name, type: nvarchar(512), constraints: { nullable: false } }
@@ -21,10 +22,6 @@ databaseChangeLog:
               - column: { name: fingerprint, type: nvarchar(256), constraints: { nullable: false } }
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: status, type: nvarchar(32), constraints: { nullable: false } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}client_certificates
-            columnNames: id
-            tableName: ${gravitee_prefix}client_certificates
         - createIndex:
             tableName: ${gravitee_prefix}client_certificates
             indexName: idx_${gravitee_prefix}client_certificates_application_id

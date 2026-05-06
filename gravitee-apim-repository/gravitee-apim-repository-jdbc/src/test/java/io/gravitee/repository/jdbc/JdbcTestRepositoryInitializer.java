@@ -207,7 +207,10 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             );
             liquibase.update((Contexts) null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to set up database: ", ex);
+            // Rethrow so a failed Liquibase bootstrap fails the test run loudly. Previously this
+            // was logged-and-swallowed, which made tests pass vacuously against an empty schema —
+            // strict-PK migration breakage in particular went undetected.
+            throw new IllegalStateException("Failed to set up database via Liquibase", ex);
         }
     }
 

@@ -137,6 +137,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public UserQueryServiceInMemory userQueryService(UserCrudServiceInMemory userCrudService) {
+        return new UserQueryServiceInMemory(userCrudService);
+    }
+
+    @Bean
     public UserDomainServiceInMemory userDomainService() {
         return new UserDomainServiceInMemory();
     }

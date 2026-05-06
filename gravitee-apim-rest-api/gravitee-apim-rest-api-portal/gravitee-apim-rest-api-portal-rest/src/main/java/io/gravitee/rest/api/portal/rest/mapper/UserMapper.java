@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
@@ -86,14 +85,20 @@ public class UserMapper {
         return userItem;
     }
 
-    public User convert(SearchableUser user) {
+    public User convert(io.gravitee.apim.core.user.model.User user) {
         final User userItem = new User();
-        userItem.setEmail(user.getEmail());
-        userItem.setFirstName(user.getFirstname());
-        userItem.setLastName(user.getLastname());
-        userItem.setDisplayName(user.getDisplayName());
-        userItem.setId(user.getId());
-        userItem.setReference(user.getReference());
+        userItem.setEmail(user.email());
+        userItem.setFirstName(user.firstName());
+        userItem.setLastName(user.lastName());
+        userItem.setDisplayName(user.displayName());
+        userItem.setId(user.id());
+        userItem.setReference(user.reference());
+        if (user.editableProfile() != null) {
+            userItem.setEditableProfile(user.editableProfile());
+        }
+        if (user.permissions() != null) {
+            userItem.setPermissions(objectMapper.convertValue(user.permissions(), UserPermissions.class));
+        }
         return userItem;
     }
 

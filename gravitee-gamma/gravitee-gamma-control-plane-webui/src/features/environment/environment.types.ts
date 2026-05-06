@@ -13,11 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/** APIM environment as returned by `GET /organizations/{orgId}/environments`. */
-export interface Environment {
-    id: string;
-    hrids?: string[];
-    name?: string;
-    description?: string;
-    organizationId: string;
-}
+export type { Environment } from '@gravitee/gamma-modules-sdk/types';

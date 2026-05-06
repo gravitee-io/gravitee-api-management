@@ -299,17 +299,17 @@
         <gravitee-endpoint-kafka.version>6.0.2</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>5.0.0</gravitee-endpoint-mqtt5.version>
         <gravitee-endpoint-rabbitmq.version>4.0.0</gravitee-endpoint-rabbitmq.version>
-        <gravitee-endpoint-solace.version>4.0.0</gravitee-endpoint-solace.version>
+        <gravitee-endpoint-solace.version>4.0.1</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>2.0.0</gravitee-endpoint-azure-service-bus.version>
         <gravitee-endpoint-agent-to-agent.version>2.0.0</gravitee-endpoint-agent-to-agent.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
-        <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
+        <gravitee-resource-schema-registry-confluent.version>5.0.0-alpha.1</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-schema-registry-embedded.version>1.0.0-alpha.1</gravitee-resource-schema-registry-embedded.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>11.0.0-alpha.2</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>7.0.0-alpha.6</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>7.0.0-alpha.9</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.1.2</gravitee-reactor-mcp-proxy.version>
-        <gravitee-reactor-llm-proxy.version>2.8.1</gravitee-reactor-llm-proxy.version>
+        <gravitee-reactor-llm-proxy.version>2.9.0</gravitee-reactor-llm-proxy.version>
         <gravitee-reactor-a2a-proxy.version>1.0.0</gravitee-reactor-a2a-proxy.version>
         <gravitee-resource-ai-vector-store-redis.version>1.0.1</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
@@ -326,16 +326,16 @@
         <gravitee-policy-kafka-transform-key.version>1.0.0</gravitee-policy-kafka-transform-key.version>
         <gravitee-policy-kafka-message-filtering.version>1.0.0</gravitee-policy-kafka-message-filtering.version>
         <gravitee-policy-kafka-message-encryption-decryption.version>1.0.0</gravitee-policy-kafka-message-encryption-decryption.version>
-        <gravitee-policy-kafka-rules.version>1.1.0</gravitee-policy-kafka-rules.version>
+        <gravitee-policy-kafka-rules.version>1.1.2</gravitee-policy-kafka-rules.version>
         <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
         <gravitee-policy-token-ratelimit.version>1.0.0</gravitee-policy-token-ratelimit.version>
         <gravitee-policy-mcp-acl.version>1.0.4</gravitee-policy-mcp-acl.version>
         <gravitee-policy-pii-filtering.version>1.0.0</gravitee-policy-pii-filtering.version>
-        <gravitee-policy-native-ipfiltering.version>1.0.0</gravitee-policy-native-ipfiltering.version>
+        <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
         <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
 
         <!-- Gamma plugins -->
-        <gravitee-gamma-module-aim.version>1.0.0-alpha.9</gravitee-gamma-module-aim.version>
+        <gravitee-gamma-module-aim.version>1.0.0-alpha.12</gravitee-gamma-module-aim.version>
         <gravitee-gamma-module-authz.version>1.0.0-alpha.3</gravitee-gamma-module-authz.version>
     </properties>
 

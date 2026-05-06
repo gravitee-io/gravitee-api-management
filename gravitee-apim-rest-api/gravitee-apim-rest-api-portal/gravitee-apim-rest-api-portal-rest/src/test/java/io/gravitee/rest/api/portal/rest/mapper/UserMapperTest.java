@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -32,10 +31,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -56,8 +56,8 @@ public class UserMapperTest {
     private static final String USER_SOURCE_ID = "my-user-source-id";
     private static final String USER_STATUS = "my-user-status";
 
-    private static final String SEARCHABLE_USER_DISPLAY_NAME = "my-searchable-user-display-name";
-    private static final String SEARCHABLE_USER_REFERENCE = "my-searchable-user-reference";
+    private static final String SEARCH_USER_DISPLAY_NAME = "my-search-user-display-name";
+    private static final String SEARCH_USER_REFERENCE = "my-search-user-reference";
 
     @InjectMocks
     private UserMapper userMapper;
@@ -142,26 +142,31 @@ public class UserMapperTest {
     }
 
     @Test
-    public void testConvertSearchableUser() {
+    public void testConvertSearchUser() {
         // init
-        SearchableUser searchableUser = Mockito.mock(SearchableUser.class);
-
-        Mockito.when(searchableUser.getDisplayName()).thenReturn(SEARCHABLE_USER_DISPLAY_NAME);
-        Mockito.when(searchableUser.getEmail()).thenReturn(USER_EMAIL);
-        Mockito.when(searchableUser.getFirstname()).thenReturn(USER_FIRSTNAME);
-        Mockito.when(searchableUser.getId()).thenReturn(USER_ID);
-        Mockito.when(searchableUser.getLastname()).thenReturn(USER_LASTNAME);
-        Mockito.when(searchableUser.getReference()).thenReturn(SEARCHABLE_USER_REFERENCE);
+        io.gravitee.apim.core.user.model.User searchUser = io.gravitee.apim.core.user.model.User.builder()
+            .id(USER_ID)
+            .reference(SEARCH_USER_REFERENCE)
+            .displayName(SEARCH_USER_DISPLAY_NAME)
+            .firstName(USER_FIRSTNAME)
+            .lastName(USER_LASTNAME)
+            .email(USER_EMAIL)
+            .editableProfile(true)
+            .permissions(Map.of("APPLICATION", List.of("C", "R"), "USER", List.of("R")))
+            .build();
 
         // Test
-        User responseUser = userMapper.convert(searchableUser);
+        User responseUser = userMapper.convert(searchUser);
         assertNotNull(responseUser);
         assertEquals(USER_ID, responseUser.getId());
         assertEquals(USER_EMAIL, responseUser.getEmail());
         assertEquals(USER_FIRSTNAME, responseUser.getFirstName());
         assertEquals(USER_LASTNAME, responseUser.getLastName());
-        assertEquals(SEARCHABLE_USER_DISPLAY_NAME, responseUser.getDisplayName());
-        assertEquals(SEARCHABLE_USER_REFERENCE, responseUser.getReference());
+        assertEquals(SEARCH_USER_DISPLAY_NAME, responseUser.getDisplayName());
+        assertEquals(SEARCH_USER_REFERENCE, responseUser.getReference());
+        assertTrue(responseUser.getEditableProfile());
+        assertEquals(List.of("C", "R"), responseUser.getPermissions().getAPPLICATION());
+        assertEquals(List.of("R"), responseUser.getPermissions().getUSER());
     }
 
     @Test

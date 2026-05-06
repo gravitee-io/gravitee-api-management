@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export default {
-    displayName: 'gamma-modules-sdk',
-    testEnvironment: 'node',
-    transform: {
-        '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
-    },
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-    coverageDirectory: __dirname + '/coverage',
-};
+import { environmentService } from '@gravitee/gamma-modules-sdk';
+
+import { useEnvironmentStore } from './environment.store';
+
+/**
+ * Subscribes to the Zustand environment store and pushes changes to the
+ * SDK environmentService singleton so federated modules can access the
+ * current environment via useEnvironment().
+ */
+export function startEnvironmentSync(): () => void {
+    return useEnvironmentStore.subscribe((state, prev) => {
+        if (state.currentEnvironment !== prev.currentEnvironment) {
+            environmentService.setEnvironment(state.currentEnvironment);
+        }
+    });
+}

@@ -15,6 +15,7 @@
  */
 import { useAuthStore } from './features/auth';
 import { useEnvironmentStore } from './features/environment';
+import { startEnvironmentSync } from './features/environment/environment-sync';
 import { startPermissionSync } from './features/permissions/permission-sync';
 import { useBootstrapStore } from './shared/config/bootstrap.store';
 
@@ -26,6 +27,7 @@ export async function runApplicationBootstrap(): Promise<void> {
     await useBootstrapStore.getState().initialize();
 
     startPermissionSync();
+    startEnvironmentSync();
 
     const config = useBootstrapStore.getState().config!;
 
