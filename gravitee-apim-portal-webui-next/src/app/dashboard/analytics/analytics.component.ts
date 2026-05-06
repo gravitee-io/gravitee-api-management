@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
@@ -89,10 +89,18 @@ export default class AnalyticsComponent {
     },
   });
 
-  readonly pinnedDashboards = computed(() => this.pinnedResource.value() ?? []);
+  private readonly cachedPinnedDashboards = signal<Dashboard[]>([]);
+  readonly pinnedDashboards = computed(() => this.pinnedResource.value() ?? this.cachedPinnedDashboards());
 
   constructor() {
     this.breadcrumbService.set([analyticsListBreadcrumb()]);
+    // Cache last loaded set to keep the pinned row stable during rxResource reloads.
+    effect(() => {
+      const value = this.pinnedResource.value();
+      if (value !== undefined) {
+        this.cachedPinnedDashboards.set(value);
+      }
+    });
   }
 
   onPageChange(page: number): void {
