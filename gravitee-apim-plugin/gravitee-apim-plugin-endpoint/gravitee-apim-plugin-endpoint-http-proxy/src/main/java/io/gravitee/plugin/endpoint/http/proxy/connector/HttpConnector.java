@@ -134,7 +134,7 @@ public class HttpConnector implements ProxyConnector {
             // setServer() so the custom value only affects the HTTP Host header, not the connection address.
             final String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
             if (customHost != null && !customHost.isBlank()) {
-                options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(options.getPort(), defaultHost));
+                options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(options.getPort(), options.getHost()));
                 options.setHost(customHost);
             }
 
