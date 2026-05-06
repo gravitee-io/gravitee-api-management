@@ -34,6 +34,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { CdkScrollable } from '@angular/cdk/scrolling';
@@ -523,8 +524,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         .updatePageContent(pageId, { content: this.contentControl.value })
         .pipe(
           map(({ content }) => content),
-          catchError(() => {
-            this.snackBarService.error('Failed to update page content');
+          catchError(error => {
+            // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar.
+            // Suppress here to avoid replacing a specific backend message with a generic one.
+            if (!(error instanceof HttpErrorResponse)) {
+              this.snackBarService.error('Failed to update page content');
+            }
             return EMPTY;
           }),
           takeUntilDestroyed(this.destroyRef),

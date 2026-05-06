@@ -1147,6 +1147,27 @@ describe('PortalNavigationItemsComponent', () => {
       expect(await harness.isSaveButtonDisabled()).toBe(true);
       expect(await harness.getEditorContentText()).toBe('Edited content');
     });
+
+    it('should not display a generic snackbar when save fails with an HTTP error (interceptor handles it)', async () => {
+      await harness.setEditorContentText('Edited content with ${api.invalid}');
+      expect(await harness.isSaveButtonDisabled()).toBe(false);
+
+      const saveButton = await rootLoader.getHarness(MatButtonHarness.with({ text: /Save/i }));
+      await saveButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/nav-item-1-content`,
+      });
+      req.flush({ message: 'Invalid template: api.invalid' }, { status: 400, statusText: 'Bad Request' });
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(document.body.textContent).not.toContain('Failed to update page content');
+      expect(await harness.getEditorContentText()).toBe('Edited content with ${api.invalid}');
+      expect(await harness.isSaveButtonDisabled()).toBe(false);
+    });
   });
 
   describe('publishing and unpublishing a navigation item', () => {
