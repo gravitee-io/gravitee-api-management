@@ -243,6 +243,7 @@ import io.gravitee.apim.infra.query_service.subscription.SubscriptionSearchQuery
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -293,6 +294,12 @@ import org.springframework.mock.env.MockEnvironment;
 @Import({ UsecaseSpringConfiguration.class, JacksonSpringConfiguration.class, InMemoryConfiguration.class, FakeConfiguration.class })
 @PropertySource("classpath:/io/gravitee/rest/api/management/v2/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
+
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        return new GraviteeMapper();
+    }
 
     @Bean
     public ApiRepository apiRepository() {

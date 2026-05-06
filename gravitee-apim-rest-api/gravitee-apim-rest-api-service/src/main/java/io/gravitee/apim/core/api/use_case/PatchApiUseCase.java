@@ -18,6 +18,8 @@ package io.gravitee.apim.core.api.use_case;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
@@ -42,6 +44,7 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
 import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.property.Property;
@@ -79,6 +82,7 @@ public class PatchApiUseCase {
     private static final String FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS = "disableMembershipNotifications";
     private static final String FIELD_PROPERTIES = "properties";
     private static final String FIELD_RESPONSE_TEMPLATES = "responseTemplates";
+    private static final String FIELD_FLOWS = "flows";
 
     private static final Set<String> ALLOWED_FIELDS = Set.of(
         FIELD_NAME,
@@ -97,13 +101,14 @@ public class PatchApiUseCase {
         FIELD_ALLOW_MULTI_JWT_OAUTH2_SUBSCRIPTIONS,
         FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS,
         FIELD_PROPERTIES,
-        FIELD_RESPONSE_TEMPLATES
+        FIELD_RESPONSE_TEMPLATES,
+        FIELD_FLOWS
     );
 
     private static final int MAX_PATCH_OPS = 200;
 
     private static final Set<String> BLOCKED_WITH_HINT = Set.of("state");
-    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("flows", "endpointGroups", "listeners", "resources");
+    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("endpointGroups", "listeners", "resources");
 
     private static final String NULL_NOT_ALLOWED_MESSAGE_FORMAT =
         "'%s' cannot be null; omit the field to leave it unchanged, or send an explicit value";
@@ -334,8 +339,16 @@ public class PatchApiUseCase {
             existingApi.isDisableMembershipNotifications()
         );
 
-        var properties = resolveProperties(patchType, rawPatchNode, patchedNode, httpV4.getProperties());
+        var properties = resolvePatchableList(
+            patchType,
+            rawPatchNode,
+            patchedNode,
+            FIELD_PROPERTIES,
+            Property.class,
+            httpV4.getProperties()
+        );
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
+        var flows = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, Flow.class, httpV4.getFlows());
 
         var updatedDefinition = httpV4
             .toBuilder()
@@ -349,6 +362,7 @@ public class PatchApiUseCase {
             .allowedInApiProducts(allowedInApiProducts)
             .properties(properties)
             .responseTemplates(responseTemplates)
+            .flows(flows)
             .build();
 
         return existingApi
@@ -367,22 +381,29 @@ public class PatchApiUseCase {
             .build();
     }
 
-    private List<Property> resolveProperties(PatchType patchType, JsonNode rawPatchNode, JsonNode patchedNode, List<Property> existing) {
-        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(FIELD_PROPERTIES)) {
-            if (rawPatchNode.get(FIELD_PROPERTIES).isNull()) {
+    private <T> List<T> resolvePatchableList(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        String field,
+        Class<T> elementType,
+        List<T> existing
+    ) {
+        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(field)) {
+            if (rawPatchNode.get(field).isNull()) {
                 return null;
             }
-            return readList(patchedNode, FIELD_PROPERTIES, Property.class, null);
+            return readList(patchedNode, field, elementType, null);
         }
         if (patchType == PatchType.JSON_PATCH) {
-            if (patchedNode.get(FIELD_PROPERTIES) == null && isRemovedByJsonPatch(patchType, rawPatchNode, FIELD_PROPERTIES)) {
+            if (patchedNode.get(field) == null && isNullifiedByJsonPatch(rawPatchNode, field)) {
                 return null;
             }
-            if (patchedNode.has(FIELD_PROPERTIES)) {
-                if (patchedNode.get(FIELD_PROPERTIES).isNull() && isNullReplacedByJsonPatch(rawPatchNode, FIELD_PROPERTIES)) {
+            if (patchedNode.has(field)) {
+                if (patchedNode.get(field).isNull() && isNullifiedByJsonPatch(rawPatchNode, field)) {
                     return null;
                 }
-                return readList(patchedNode, FIELD_PROPERTIES, Property.class, existing);
+                return readList(patchedNode, field, elementType, existing);
             }
         }
         return existing;
@@ -401,15 +422,11 @@ public class PatchApiUseCase {
             return parseResponseTemplates(patchedNode);
         }
         if (patchType == PatchType.JSON_PATCH) {
-            if (
-                patchedNode.get(FIELD_RESPONSE_TEMPLATES) == null && isRemovedByJsonPatch(patchType, rawPatchNode, FIELD_RESPONSE_TEMPLATES)
-            ) {
+            if (patchedNode.get(FIELD_RESPONSE_TEMPLATES) == null && isNullifiedByJsonPatch(rawPatchNode, FIELD_RESPONSE_TEMPLATES)) {
                 return null;
             }
             if (patchedNode.has(FIELD_RESPONSE_TEMPLATES)) {
-                if (
-                    patchedNode.get(FIELD_RESPONSE_TEMPLATES).isNull() && isNullReplacedByJsonPatch(rawPatchNode, FIELD_RESPONSE_TEMPLATES)
-                ) {
+                if (patchedNode.get(FIELD_RESPONSE_TEMPLATES).isNull() && isNullifiedByJsonPatch(rawPatchNode, FIELD_RESPONSE_TEMPLATES)) {
                     return null;
                 }
                 return parseResponseTemplates(patchedNode);
@@ -453,29 +470,24 @@ public class PatchApiUseCase {
         return patchType == PatchType.MERGE_PATCH && rawPatchNode.has(field) && rawPatchNode.get(field).isNull();
     }
 
-    private boolean isRemovedByJsonPatch(PatchType patchType, JsonNode rawPatchNode, String field) {
-        if (patchType != PatchType.JSON_PATCH) {
+    private boolean isNullifiedByJsonPatch(JsonNode rawPatchNode, String field) {
+        if (!rawPatchNode.isArray()) {
             return false;
         }
+        String fieldPath = "/" + field;
         for (JsonNode op : rawPatchNode) {
-            if ("remove".equals(op.path("op").asText()) && ("/" + field).equals(op.path("path").asText())) {
+            if (!fieldPath.equals(op.path("path").asText())) {
+                continue;
+            }
+            String opType = op.path("op").asText();
+            if ("remove".equals(opType)) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    private boolean isNullReplacedByJsonPatch(JsonNode rawPatchNode, String field) {
-        for (JsonNode op : rawPatchNode) {
-            String opType = op.path("op").asText();
-            JsonNode value = op.get("value");
-            if (
-                ("/" + field).equals(op.path("path").asText()) &&
-                ("replace".equals(opType) || "add".equals(opType)) &&
-                value != null &&
-                value.isNull()
-            ) {
-                return true;
+            if ("replace".equals(opType) || "add".equals(opType)) {
+                JsonNode value = op.get("value");
+                if (value != null && value.isNull()) {
+                    return true;
+                }
             }
         }
         return false;
@@ -484,7 +496,7 @@ public class PatchApiUseCase {
     private void rejectExplicitNullOnNonNullable(PatchType patchType, JsonNode rawPatchNode, String field) {
         boolean nullified = switch (patchType) {
             case MERGE_PATCH -> isExplicitNull(patchType, rawPatchNode, field);
-            case JSON_PATCH -> isRemovedByJsonPatch(patchType, rawPatchNode, field) || isNullReplacedByJsonPatch(rawPatchNode, field);
+            case JSON_PATCH -> isNullifiedByJsonPatch(rawPatchNode, field);
         };
         if (nullified) {
             throw new ValidationDomainException(NULL_NOT_ALLOWED_MESSAGE_FORMAT.formatted(field));
@@ -499,7 +511,8 @@ public class PatchApiUseCase {
         if (fieldNode != null && fieldNode.isNull()) {
             return true;
         }
-        return fieldNode == null && isRemovedByJsonPatch(patchType, rawPatchNode, field);
+        // fieldNode == null only when the patch removed the field; the replace-null branch of the scan cannot fire here
+        return fieldNode == null && isNullifiedByJsonPatch(rawPatchNode, field);
     }
 
     private List<String> resolveNullableList(
@@ -630,10 +643,33 @@ public class PatchApiUseCase {
             return defaultValue;
         }
         try {
-            return objectMapper.convertValue(fieldNode, objectMapper.getTypeFactory().constructCollectionType(List.class, elementType));
+            return objectMapper
+                .<List<T>>readerFor(objectMapper.getTypeFactory().constructCollectionType(List.class, elementType))
+                .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
+                .readValue(fieldNode);
         } catch (Exception e) {
-            throw new ValidationDomainException("Invalid value for field '" + field + "': " + e.getMessage());
+            throw new ValidationDomainException(
+                "Invalid value for field '" + field + "': " + e.getMessage(),
+                Map.of("location", deserializationLocation(field, e)),
+                "invalidValue"
+            );
         }
+    }
+
+    private String deserializationLocation(String field, Throwable e) {
+        var cause = e instanceof IllegalArgumentException && e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof JsonMappingException jme && jme.getPath() != null && !jme.getPath().isEmpty()) {
+            var sb = new StringBuilder("/").append(field);
+            for (var ref : jme.getPath()) {
+                if (ref.getFieldName() != null) {
+                    sb.append("/").append(ref.getFieldName());
+                } else if (ref.getIndex() >= 0) {
+                    sb.append("/").append(ref.getIndex());
+                }
+            }
+            return sb.toString();
+        }
+        return "/" + field;
     }
 
     public enum PatchType {
@@ -728,7 +764,8 @@ public class PatchApiUseCase {
         boolean allowMultiJwtOauth2Subscriptions,
         boolean disableMembershipNotifications,
         List<Property> properties,
-        Map<String, Map<String, PatchableResponseTemplate>> responseTemplates
+        Map<String, Map<String, PatchableResponseTemplate>> responseTemplates,
+        List<Flow> flows
     ) {
         static PatchableView from(Api api, io.gravitee.definition.model.v4.Api httpV4) {
             return new PatchableView(
@@ -748,7 +785,8 @@ public class PatchApiUseCase {
                 api.isAllowMultiJwtOauth2Subscriptions(),
                 api.isDisableMembershipNotifications(),
                 httpV4.getProperties(),
-                toPatchableResponseTemplates(httpV4.getResponseTemplates())
+                toPatchableResponseTemplates(httpV4.getResponseTemplates()),
+                httpV4.getFlows()
             );
         }
 
