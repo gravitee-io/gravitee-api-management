@@ -34,7 +34,13 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class CsrfRequestMatcher implements RequestMatcher {
 
     private final Set<String> allowedMethods = new HashSet<>(Arrays.asList("GET", "HEAD", "TRACE", "OPTIONS"));
-    private final Set<Pattern> allowedPaths = new HashSet<>(Arrays.asList(Pattern.compile("^/organizations/[^/]+/user/login$")));
+    private final Set<Pattern> allowedPaths = new HashSet<>(
+        Arrays.asList(
+            Pattern.compile("^/organizations/[^/]+/user/login$"),
+            Pattern.compile("^/organizations/[^/]+/auth/.*$"),
+            Pattern.compile("^/environments/[^/]+/auth/.*$")
+        )
+    );
 
     @Override
     public boolean matches(HttpServletRequest request) {
