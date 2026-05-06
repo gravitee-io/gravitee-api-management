@@ -10,7 +10,6 @@ databaseChangeLog:
               - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}kafka_port_ranges" } }
               - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: sharding_tag, type: nvarchar(128) }
               - column: {name: bootstrap_port, type: int, constraints: { nullable: false } }
               - column: {name: range_start, type: int, constraints: { nullable: false } }
               - column: {name: range_end, type: int, constraints: { nullable: false } }
@@ -18,7 +17,6 @@ databaseChangeLog:
               - column: {name: updated_at, type: timestamp(6) }
         - createIndex:
             tableName: ${gravitee_prefix}kafka_port_ranges
-            indexName: idx_${gravitee_prefix}kpr_env_tag
+            indexName: idx_${gravitee_prefix}kpr_env
             columns:
               - column: { name: environment_id, type: nvarchar(64) }
-              - column: { name: sharding_tag, type: nvarchar(128) }

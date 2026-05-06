@@ -85,7 +85,6 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
     @Override
     public List<KafkaPortRange> findConflicting(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
@@ -93,7 +92,7 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
     ) {
         try {
             return repository
-                .findConflicting(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+                .findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
                 .stream()
                 .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
                 .toList();
@@ -105,7 +104,6 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
@@ -113,7 +111,7 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
     ) {
         try {
             return repository
-                .findConflictingForUpdate(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+                .findConflictingForUpdate(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
                 .stream()
                 .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
                 .toList();

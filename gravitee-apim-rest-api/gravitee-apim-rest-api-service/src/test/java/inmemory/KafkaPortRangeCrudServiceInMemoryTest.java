@@ -40,7 +40,6 @@ class KafkaPortRangeCrudServiceInMemoryTest {
             .planId(planId)
             .apiId("api-1")
             .environmentId("env-1")
-            .shardingTag(null)
             .bootstrapPort(bootstrap)
             .rangeStart(rangeStart)
             .rangeEnd(rangeEnd)
@@ -54,7 +53,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_detect_broker_range_overlap() {
             cut.create(range("existing", 9092, 9100, 9105));
 
-            var conflicts = cut.findConflicting("env-1", null, 9192, 9103, 9108, null);
+            var conflicts = cut.findConflicting("env-1", 9192, 9103, 9108, null);
 
             assertThat(conflicts).extracting(KafkaPortRange::getPlanId).containsExactly("existing");
         }
@@ -63,7 +62,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_detect_new_bootstrap_inside_existing_broker_range() {
             cut.create(range("existing", 9092, 9100, 9110));
 
-            var conflicts = cut.findConflicting("env-1", null, 9105, 9200, 9202, null);
+            var conflicts = cut.findConflicting("env-1", 9105, 9200, 9202, null);
 
             assertThat(conflicts).extracting(KafkaPortRange::getPlanId).containsExactly("existing");
         }
@@ -72,7 +71,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_detect_existing_bootstrap_inside_new_broker_range() {
             cut.create(range("existing", 9105, 9200, 9210));
 
-            var conflicts = cut.findConflicting("env-1", null, 9092, 9100, 9110, null);
+            var conflicts = cut.findConflicting("env-1", 9092, 9100, 9110, null);
 
             assertThat(conflicts).extracting(KafkaPortRange::getPlanId).containsExactly("existing");
         }
@@ -81,7 +80,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_detect_bootstrap_port_collision() {
             cut.create(range("existing", 9092, 9200, 9202));
 
-            var conflicts = cut.findConflicting("env-1", null, 9092, 9300, 9302, null);
+            var conflicts = cut.findConflicting("env-1", 9092, 9300, 9302, null);
 
             assertThat(conflicts).extracting(KafkaPortRange::getPlanId).containsExactly("existing");
         }
@@ -90,7 +89,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_not_detect_conflict_on_non_overlapping_ranges() {
             cut.create(range("existing", 9092, 9100, 9102));
 
-            var conflicts = cut.findConflicting("env-1", null, 9192, 9200, 9202, null);
+            var conflicts = cut.findConflicting("env-1", 9192, 9200, 9202, null);
 
             assertThat(conflicts).isEmpty();
         }
@@ -99,7 +98,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_exclude_plan_id_from_conflict_check() {
             cut.create(range("plan-1", 9092, 9100, 9102));
 
-            var conflicts = cut.findConflicting("env-1", null, 9092, 9100, 9102, "plan-1");
+            var conflicts = cut.findConflicting("env-1", 9092, 9100, 9102, "plan-1");
 
             assertThat(conflicts).isEmpty();
         }
@@ -108,16 +107,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_scope_by_environment_id() {
             cut.create(range("other-env-plan", 9092, 9100, 9102).toBuilder().environmentId("env-2").build());
 
-            var conflicts = cut.findConflicting("env-1", null, 9092, 9100, 9102, null);
-
-            assertThat(conflicts).isEmpty();
-        }
-
-        @Test
-        void should_scope_by_sharding_tag() {
-            cut.create(range("other-tag-plan", 9092, 9100, 9102).toBuilder().shardingTag("us-east").build());
-
-            var conflicts = cut.findConflicting("env-1", "eu-west", 9092, 9100, 9102, null);
+            var conflicts = cut.findConflicting("env-1", 9092, 9100, 9102, null);
 
             assertThat(conflicts).isEmpty();
         }
@@ -128,7 +118,7 @@ class KafkaPortRangeCrudServiceInMemoryTest {
             cut.create(range("plan-b", 9092, 9200, 9202)); // bootstrap collision
             cut.create(range("plan-c", 9192, 9101, 9103)); // range overlap with new
 
-            var conflicts = cut.findConflicting("env-1", null, 9092, 9100, 9105, null);
+            var conflicts = cut.findConflicting("env-1", 9092, 9100, 9105, null);
 
             assertThat(conflicts).hasSize(3);
         }

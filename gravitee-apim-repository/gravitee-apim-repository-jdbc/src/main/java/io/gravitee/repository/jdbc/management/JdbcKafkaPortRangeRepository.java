@@ -45,7 +45,6 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
             .addColumn("plan_id", Types.NVARCHAR, String.class)
             .addColumn("api_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("sharding_tag", Types.NVARCHAR, String.class)
             .addColumn("bootstrap_port", Types.INTEGER, int.class)
             .addColumn("range_start", Types.INTEGER, int.class)
             .addColumn("range_end", Types.INTEGER, int.class)
@@ -55,32 +54,24 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
     }
 
     @Override
-    public List<KafkaPortRange> findConflicting(
-        String environmentId,
-        String shardingTag,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) throws TechnicalException {
-        return runConflictQuery(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId, false);
+    public List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+        throws TechnicalException {
+        return runConflictQuery(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId, false);
     }
 
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
         String excludePlanId
     ) throws TechnicalException {
-        return runConflictQuery(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId, true);
+        return runConflictQuery(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId, true);
     }
 
     private List<KafkaPortRange> runConflictQuery(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
@@ -91,7 +82,6 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
             // Four conflict conditions in a single indexed query (see KafkaPortRangeRepository javadoc).
             final StringBuilder sql = new StringBuilder(getOrm().getSelectAllSql())
                 .append(" where environment_id = ?")
-                .append(shardingTag == null ? " and sharding_tag is null" : " and sharding_tag = ?")
                 .append(excludePlanId == null ? "" : " and plan_id <> ?")
                 .append(" and (")
                 .append("  (range_start <= ? and range_end >= ?)") // 1. broker-range overlap
@@ -109,9 +99,6 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
 
             final var params = new java.util.ArrayList<Object>();
             params.add(environmentId);
-            if (shardingTag != null) {
-                params.add(shardingTag);
-            }
             if (excludePlanId != null) {
                 params.add(excludePlanId);
             }

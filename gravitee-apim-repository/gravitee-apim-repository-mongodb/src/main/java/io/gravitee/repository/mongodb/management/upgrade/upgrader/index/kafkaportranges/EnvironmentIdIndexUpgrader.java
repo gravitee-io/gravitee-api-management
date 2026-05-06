@@ -20,20 +20,19 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpg
 import org.springframework.stereotype.Component;
 
 /**
- * Mirrors the JDBC {@code idx_kpr_env_tag} compound index on the {@code kafka_port_ranges}
- * collection. Conflict queries scope on {@code (environmentId, shardingTag)}; without this index
- * MongoDB falls back to a collection scan in environments with many plans.
+ * Mirrors the JDBC {@code idx_kpr_env} index on the {@code kafka_port_ranges} collection.
+ * Conflict queries scope on {@code environmentId}; without this index MongoDB falls back to a
+ * collection scan in environments with many plans.
  */
-@Component("KafkaPortRangesEnvironmentIdShardingTagIndexUpgrader")
-public class EnvironmentIdShardingTagIndexUpgrader extends IndexUpgrader {
+@Component("KafkaPortRangesEnvironmentIdIndexUpgrader")
+public class EnvironmentIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
             .collection("kafka_port_ranges")
-            .name("ei1st1")
+            .name("ei1")
             .key("environmentId", ascending())
-            .key("shardingTag", ascending())
             .build();
     }
 }

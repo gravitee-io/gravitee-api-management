@@ -64,7 +64,7 @@ class VerifyPlanPortRangesDomainServiceTest {
 
         @Test
         void should_reject_bootstrap_port_below_1024() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 1023, 9100, 9102))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 1023, 9100, 9102))
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessageContaining("bootstrapPort (1023)")
                 .hasMessageContaining("[1024-65535]");
@@ -72,33 +72,33 @@ class VerifyPlanPortRangesDomainServiceTest {
 
         @Test
         void should_reject_bootstrap_port_above_65535() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 65536, 65530, 65534))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 65536, 65530, 65534))
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessageContaining("bootstrapPort (65536)");
         }
 
         @Test
         void should_reject_broker_range_start_below_1024() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9092, 1023, 9100))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9092, 1023, 9100))
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessageContaining("brokerRangeStart (1023)");
         }
 
         @Test
         void should_reject_broker_range_end_above_65535() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9092, 9100, 65536))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9092, 9100, 65536))
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessageContaining("brokerRangeEnd (65536)");
         }
 
         @Test
         void should_accept_port_65535_as_valid_upper_bound() {
-            assertThatCode(() -> cut.verify("env-1", null, null, 9092, 65530, 65535)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 9092, 65530, 65535)).doesNotThrowAnyException();
         }
 
         @Test
         void should_accept_port_1024_as_valid_lower_bound() {
-            assertThatCode(() -> cut.verify("env-1", null, null, 1024, 1025, 1027)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 1024, 1025, 1027)).doesNotThrowAnyException();
         }
     }
 
@@ -107,19 +107,19 @@ class VerifyPlanPortRangesDomainServiceTest {
 
         @Test
         void should_reject_inverted_broker_range() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9092, 9102, 9100))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9092, 9102, 9100))
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessageContaining("brokerRangeStart (9102) must be <= brokerRangeEnd (9100)");
         }
 
         @Test
         void should_accept_equal_range_start_and_end() {
-            assertThatCode(() -> cut.verify("env-1", null, null, 9092, 9100, 9100)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 9092, 9100, 9100)).doesNotThrowAnyException();
         }
 
         @Test
         void should_reject_bootstrap_inside_broker_range() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9101, 9100, 9102))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9101, 9100, 9102))
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessageContaining("bootstrapPort (9101)")
                 .hasMessageContaining("must not fall within brokerRange [9100-9102]");
@@ -127,18 +127,18 @@ class VerifyPlanPortRangesDomainServiceTest {
 
         @Test
         void should_reject_bootstrap_on_range_start_boundary() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9100, 9100, 9102)).isInstanceOf(PlanInvalidException.class);
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9100, 9100, 9102)).isInstanceOf(PlanInvalidException.class);
         }
 
         @Test
         void should_reject_bootstrap_on_range_end_boundary() {
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9102, 9100, 9102)).isInstanceOf(PlanInvalidException.class);
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9102, 9100, 9102)).isInstanceOf(PlanInvalidException.class);
         }
 
         @Test
         void should_accept_bootstrap_adjacent_to_range() {
-            assertThatCode(() -> cut.verify("env-1", null, null, 9099, 9100, 9102)).doesNotThrowAnyException();
-            assertThatCode(() -> cut.verify("env-1", null, null, 9103, 9100, 9102)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 9099, 9100, 9102)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 9103, 9100, 9102)).doesNotThrowAnyException();
         }
     }
 
@@ -149,7 +149,7 @@ class VerifyPlanPortRangesDomainServiceTest {
         void should_reject_broker_range_overlap_with_sibling() {
             portRanges.create(existing("sibling", 9092, 9100, 9105));
 
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9192, 9103, 9108))
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9192, 9103, 9108))
                 .isInstanceOf(PortRangeConflictException.class)
                 .hasMessageContaining("Port range [9103-9108]")
                 .hasMessageContaining("plan 'sibling'")
@@ -160,28 +160,28 @@ class VerifyPlanPortRangesDomainServiceTest {
         void should_reject_new_bootstrap_inside_existing_range() {
             portRanges.create(existing("sibling", 9092, 9100, 9110));
 
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9105, 9200, 9202)).isInstanceOf(PortRangeConflictException.class);
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9105, 9200, 9202)).isInstanceOf(PortRangeConflictException.class);
         }
 
         @Test
         void should_reject_existing_bootstrap_inside_new_range() {
             portRanges.create(existing("sibling", 9205, 9300, 9302));
 
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9092, 9200, 9210)).isInstanceOf(PortRangeConflictException.class);
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9092, 9200, 9210)).isInstanceOf(PortRangeConflictException.class);
         }
 
         @Test
         void should_reject_bootstrap_port_collision() {
             portRanges.create(existing("sibling", 9092, 9300, 9302));
 
-            assertThatThrownBy(() -> cut.verify("env-1", null, null, 9092, 9400, 9402)).isInstanceOf(PortRangeConflictException.class);
+            assertThatThrownBy(() -> cut.verify("env-1", null, 9092, 9400, 9402)).isInstanceOf(PortRangeConflictException.class);
         }
 
         @Test
         void should_accept_non_overlapping_allocation() {
             portRanges.create(existing("sibling", 9092, 9100, 9102));
 
-            assertThatCode(() -> cut.verify("env-1", null, null, 9192, 9200, 9202)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 9192, 9200, 9202)).doesNotThrowAnyException();
         }
 
         @Test
@@ -189,21 +189,14 @@ class VerifyPlanPortRangesDomainServiceTest {
             portRanges.create(existing("plan-1", 9092, 9100, 9102));
 
             // Re-verifying the same allocation with plan-1's id excluded should succeed — update path.
-            assertThatCode(() -> cut.verify("env-1", null, "plan-1", 9092, 9100, 9102)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", "plan-1", 9092, 9100, 9102)).doesNotThrowAnyException();
         }
 
         @Test
         void should_scope_conflict_check_to_environment() {
             portRanges.create(existing("sibling", 9092, 9100, 9102).toBuilder().environmentId("env-2").build());
 
-            assertThatCode(() -> cut.verify("env-1", null, null, 9092, 9100, 9102)).doesNotThrowAnyException();
-        }
-
-        @Test
-        void should_scope_conflict_check_to_sharding_tag() {
-            portRanges.create(existing("sibling", 9092, 9100, 9102).toBuilder().shardingTag("us-east").build());
-
-            assertThatCode(() -> cut.verify("env-1", "eu-west", null, 9092, 9100, 9102)).doesNotThrowAnyException();
+            assertThatCode(() -> cut.verify("env-1", null, 9092, 9100, 9102)).doesNotThrowAnyException();
         }
     }
 
@@ -217,13 +210,13 @@ class VerifyPlanPortRangesDomainServiceTest {
             // (not the non-locking findConflicting) by using a pure mock so no internal delegation
             // between the two methods can confuse the assertion.
             KafkaPortRangeCrudService mockService = mock(KafkaPortRangeCrudService.class);
-            when(mockService.findConflictingForUpdate(any(), any(), anyInt(), anyInt(), anyInt(), any())).thenReturn(List.of());
+            when(mockService.findConflictingForUpdate(any(), anyInt(), anyInt(), anyInt(), any())).thenReturn(List.of());
             VerifyPlanPortRangesDomainService lockingCut = new VerifyPlanPortRangesDomainService(mockService);
 
-            lockingCut.verify("env-1", null, null, 9092, 9100, 9102);
+            lockingCut.verify("env-1", null, 9092, 9100, 9102);
 
-            verify(mockService).findConflictingForUpdate("env-1", null, 9092, 9100, 9102, null);
-            verify(mockService, never()).findConflicting(any(), any(), anyInt(), anyInt(), anyInt(), any());
+            verify(mockService).findConflictingForUpdate("env-1", 9092, 9100, 9102, null);
+            verify(mockService, never()).findConflicting(any(), anyInt(), anyInt(), anyInt(), any());
         }
     }
 }

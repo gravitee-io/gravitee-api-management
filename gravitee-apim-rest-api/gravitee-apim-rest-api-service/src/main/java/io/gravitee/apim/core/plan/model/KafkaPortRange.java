@@ -27,8 +27,7 @@ import lombok.ToString;
 /**
  * Core-domain view of a Kafka plan's port allocation. Persisted via
  * {@code io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService} into the
- * {@code kafka_port_ranges} table, indexed by {@code (environment_id, sharding_tag)} for fast
- * conflict queries.
+ * {@code kafka_port_ranges} table, indexed by {@code environment_id} for fast conflict queries.
  */
 @Getter
 @Setter
@@ -42,7 +41,6 @@ public class KafkaPortRange {
     private String planId;
     private String apiId;
     private String environmentId;
-    private String shardingTag;
     private int bootstrapPort;
     private int rangeStart;
     private int rangeEnd;

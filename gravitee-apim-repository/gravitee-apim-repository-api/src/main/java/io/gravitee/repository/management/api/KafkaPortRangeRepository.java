@@ -22,7 +22,7 @@ import java.util.List;
 public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange, String> {
     /**
      * Returns all port-range records that conflict with the given candidate range, scoped to the
-     * same {@code environment_id + sharding_tag}. A conflict is any of:
+     * same {@code environment_id}. A conflict is any of:
      *
      * <ol>
      *   <li>existing broker range overlaps with {@code [rangeStart, rangeEnd]}</li>
@@ -33,22 +33,13 @@ public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange,
      *
      * <p>The plan identified by {@code excludePlanId} is skipped (used when updating a plan, so the
      * plan's own row doesn't conflict with itself). Pass {@code null} to consider all rows.</p>
-     *
-     * <p>{@code shardingTag} {@code null} matches rows with {@code null} tag only — caller is
-     * responsible for querying once per applicable tag when a plan is deployed to multiple.</p>
      */
-    List<KafkaPortRange> findConflicting(
-        String environmentId,
-        String shardingTag,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) throws TechnicalException;
+    List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+        throws TechnicalException;
 
     /**
-     * Same semantics as {@link #findConflicting(String, String, int, int, int, String)} but acquires
-     * a row-level lock on each matching row for the duration of the current transaction (JDBC
+     * Same semantics as {@link #findConflicting(String, int, int, int, String)} but acquires a
+     * row-level lock on each matching row for the duration of the current transaction (JDBC
      * {@code SELECT ... FOR UPDATE}).
      *
      * <p>Callers must invoke this inside an active transaction and follow up with a {@code create}
@@ -63,7 +54,6 @@ public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange,
      */
     List<KafkaPortRange> findConflictingForUpdate(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
