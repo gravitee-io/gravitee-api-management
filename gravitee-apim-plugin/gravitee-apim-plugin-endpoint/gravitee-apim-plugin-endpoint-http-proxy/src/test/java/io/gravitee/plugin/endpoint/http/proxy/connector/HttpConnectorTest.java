@@ -542,6 +542,28 @@ class HttpConnectorTest {
     }
 
     @Test
+    void should_connect_to_hc_absolute_target_not_to_endpoint_default_host_when_custom_host_header_is_configured()
+        throws InterruptedException {
+        // Regression: setServer() must use options.getHost() (actual HC target) not defaultHost (endpoint config).
+        // Using defaultHost when the two differ causes the TCP connection to go to the wrong server.
+        configuration.setTarget("http://endpoint-host.invalid/");
+        sharedConfiguration.setHeaders(List.of(new HttpHeader("Host", "custom-backend.example.com")));
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/health");
+
+        wiremock.stubFor(get("/health").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/health")).withHeader(HOST, equalTo("custom-backend.example.com")));
+    }
+
+    @Test
     void should_propagate_request_vertx_http_header_without_temporary_copy() throws InterruptedException {
         requestHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         when(request.headers()).thenReturn(requestHeaders);
