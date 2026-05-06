@@ -39,10 +39,20 @@ public class ConnectionLogFixtures {
         BASE.apiId(defaultApiId).applicationId(defaultApplicationId).planId(defaultPlanId);
     }
 
+    /**
+     * Returns a {@link BaseConnectionLog} with sensible defaults for most fields.
+     * Fields not present in the base builder (e.g. {@code apiProductId}) default to {@code null}.
+     * Override using {@code .toBuilder().apiProductId("...").build()} in individual tests.
+     */
     public BaseConnectionLog aConnectionLog() {
         return BASE.requestId(UUID.randomUUID().toString()).build();
     }
 
+    /**
+     * Returns a {@link BaseConnectionLog} with the given {@code requestId} and sensible defaults.
+     * Fields not present in the base builder (e.g. {@code apiProductId}) default to {@code null}.
+     * Override using {@code .toBuilder().apiProductId("...").build()} in individual tests.
+     */
     public BaseConnectionLog aConnectionLog(String requestId) {
         return BASE.requestId(requestId).build();
     }

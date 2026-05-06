@@ -81,6 +81,7 @@ export type SearchLogsParam = {
   uri?: string;
   responseTime?: number;
   errorKeys?: string[];
+  apiProductIds?: string[];
 };
 
 /** Parses a period string like '-1h', '-30m', '-3d' into milliseconds. Returns null for '0' (none) or unrecognized formats. */
@@ -115,6 +116,7 @@ function buildFilters(param?: SearchLogsParam): LogFilter[] {
     { name: 'HTTP_STATUS', values: param.statuses?.map(String) },
     { name: 'ENTRYPOINT', values: param.entrypoints },
     { name: 'ERROR_KEY', values: param.errorKeys },
+    { name: 'API_PRODUCT', values: param.apiProductIds },
   ];
 
   const scalarFilters: { name: string; value: string | undefined }[] = [

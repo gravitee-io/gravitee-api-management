@@ -617,6 +617,37 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_filter_logs_by_api_product() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId("product-1").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().apiProductId("product-1").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().apiProductId("product-2").build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(
+                    new Filter(new ArrayFilter().name(FilterName.API_PRODUCT).operator(Operator.IN).value(List.of("product-1")))
+                );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                });
+        }
+
+        @Test
         void should_and_filters_with_same_name() {
             // When the same filter name appears multiple times, they should be AND-ed
             // together

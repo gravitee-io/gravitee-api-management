@@ -28,4 +28,5 @@ public enum FilterName {
     URI,
     RESPONSE_TIME,
     ERROR_KEY,
+    API_PRODUCT,
 }

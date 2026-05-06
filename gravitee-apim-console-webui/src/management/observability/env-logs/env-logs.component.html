@@ -28,18 +28,35 @@
   <gio-banner-error>{{ error() }}</gio-banner-error>
 }
 
+<div class="env-logs__controls">
+  <div class="env-logs__time-row">
+    <gd-timeframe-selector
+      [formControl]="filtersStore.periodControl"
+      [timeFrames]="timeFrames"
+      [customPeriod]="'custom'"
+      (apply)="filtersStore.applyCustomTimeframe()"
+      (refresh)="onRefresh()"
+    />
+  </div>
+
+  <div class="env-logs__filters-row">
+    <gd-dynamic-filter-bar
+      [conditions]="filtersStore.conditions()"
+      [editable]="true"
+      (addRequested)="openAddFilter()"
+      (editRequested)="openEditFilter($event.index, $event.condition)"
+      (removeRequested)="onFilterRemoved($event)"
+      (clearRequested)="onFilterCleared()"
+    />
+  </div>
+</div>
+
 <mat-card class="logs-section">
-  <env-logs-filter-bar
-    [loading]="loading()"
-    [initialValues]="initialValues()"
-    (refresh)="onRefresh()"
-    (filtersChanged)="onFiltersChanged($event)"
-  ></env-logs-filter-bar>
   <env-logs-table
     class="env-runtime-logs__table"
     [logs]="logs()"
     [showAssetTypeColumn]="true"
     [pagination]="paginationWithTotal()"
     (paginationUpdated)="onPaginationUpdated($event)"
-  ></env-logs-table>
+  />
 </mat-card>

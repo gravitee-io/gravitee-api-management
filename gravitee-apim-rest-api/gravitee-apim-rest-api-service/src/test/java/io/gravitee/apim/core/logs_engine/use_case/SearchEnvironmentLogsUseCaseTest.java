@@ -440,6 +440,55 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @ParameterizedTest
+        @MethodSource("apiProductFiltersProvider")
+        void should_intersect_api_product_filters(List<Filter> filters, String[] expectedApiProductIds) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().apiProductIds()).containsExactlyInAnyOrder(expectedApiProductIds);
+        }
+
+        static Stream<Arguments> apiProductFiltersProvider() {
+            return Stream.of(
+                // EQ intersected with IN: only the common value survives
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-1")),
+                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2")))
+                    ),
+                    new String[] { "product-1" }
+                ),
+                // Two IN filters: intersection is returned
+                Arguments.of(
+                    List.of(
+                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2"))),
+                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-2", "product-3")))
+                    ),
+                    new String[] { "product-2" }
+                ),
+                // Two conflicting EQ filters: empty result
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-1")),
+                        new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-2"))
+                    ),
+                    new String[] {}
+                ),
+                // Single IN filter: all values pass through
+                Arguments.of(
+                    List.of(
+                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2", "product-3")))
+                    ),
+                    new String[] { "product-1", "product-2", "product-3" }
+                )
+            );
+        }
+
+        @ParameterizedTest
         @MethodSource("httpStatusFiltersProvider")
         void should_intersect_http_status_filters(List<Filter> filters, Integer[] expectedStatuses) {
             var request = new SearchLogsRequest(null, filters, 1, 10);
