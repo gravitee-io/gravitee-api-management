@@ -34,13 +34,19 @@ import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import java.util.Map;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
+@CustomLog
 @RequiredArgsConstructor
 public class DeleteApiProductUseCase {
 
@@ -52,6 +58,9 @@ public class DeleteApiProductUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
+    private final SubscriptionQueryService subscriptionQueryService;
+    private final CloseSubscriptionDomainService closeSubscriptionDomainService;
+    private final DeleteSubscriptionDomainService deleteSubscriptionDomainService;
 
     public void execute(Input input) {
         ApiProduct apiProduct = apiProductQueryService
@@ -67,11 +76,31 @@ public class DeleteApiProductUseCase {
             }
         }
 
+        closeAndDeleteSubscriptions(input.apiProductId(), input.auditInfo());
+
         publishUndeployEvent(input.auditInfo(), apiProduct);
 
         apiProductCrudService.delete(input.apiProductId());
         apiProductIndexerDomainService.delete(oneShotIndexation(input.auditInfo()), apiProduct);
         createAuditLog(input.apiProductId, input.auditInfo());
+    }
+
+    private void closeAndDeleteSubscriptions(String apiProductId, AuditInfo auditInfo) {
+        subscriptionQueryService
+            .findAllByReferenceIdAndReferenceType(apiProductId, SubscriptionReferenceType.API_PRODUCT)
+            .forEach(subscription -> {
+                try {
+                    closeSubscriptionDomainService.closeSubscription(subscription, auditInfo);
+                    deleteSubscriptionDomainService.delete(subscription, auditInfo);
+                } catch (Exception e) {
+                    log.error(
+                        "Failed to close/delete subscription [{}] for API Product [{}] — subscription may remain authorized on the gateway",
+                        subscription.getId(),
+                        apiProductId,
+                        e
+                    );
+                }
+            });
     }
 
     private void publishUndeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
