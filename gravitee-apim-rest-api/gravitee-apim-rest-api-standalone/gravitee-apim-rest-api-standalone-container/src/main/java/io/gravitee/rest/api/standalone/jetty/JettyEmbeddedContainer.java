@@ -19,6 +19,7 @@ import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gamma.rest.GammaModuleApplication;
+import io.gravitee.gamma.infra.spring.GammaRestApiConfiguration;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
 import io.gravitee.rest.api.management.v2.rest.GraviteeManagementV2Application;
@@ -142,7 +143,14 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
         if (gammaEnabled && startGamma) {
             // Configuration for Gamma modules. For now, inherit security from Management API V2, but it could be different in the future if needed.
-            contexts.add(configureAPI("/gamma", GammaModuleApplication.class.getName(), SecurityManagementV2Configuration.class));
+            contexts.add(
+                configureAPI(
+                    "/gamma",
+                    GammaModuleApplication.class.getName(),
+                    SecurityManagementV2Configuration.class,
+                    GammaRestApiConfiguration.class
+                )
+            );
         }
 
         if (contexts.isEmpty()) {
@@ -158,7 +166,8 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     private ServletContextHandler configureAPI(
         String apiContextPath,
         String applicationName,
-        Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
+        Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass,
+        Class<?>... additionalConfigurationClasses
     ) {
         final ServletContextHandler childContext = new ServletContextHandler(apiContextPath, ServletContextHandler.SESSIONS);
 
@@ -169,6 +178,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
         AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
         webApplicationContext.register(securityConfigurationClass);
+        if (additionalConfigurationClasses != null && additionalConfigurationClasses.length > 0) {
+            webApplicationContext.register(additionalConfigurationClasses);
+        }
 
         webApplicationContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
         webApplicationContext.setParent(applicationContext);
