@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -27,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.SubscriptionFixtures;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
@@ -34,6 +38,8 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.IndexerInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -44,6 +50,10 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -58,10 +68,14 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
+    private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
+    private final CloseSubscriptionDomainService closeSubscriptionDomainService = mock(CloseSubscriptionDomainService.class);
+    private final DeleteSubscriptionDomainService deleteSubscriptionDomainService = mock(DeleteSubscriptionDomainService.class);
     private DeleteApiProductUseCase deleteApiProductUseCase;
 
     @BeforeEach
@@ -81,7 +95,10 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
             apiStateDomainService,
             eventCrudService,
             eventLatestCrudService,
-            apiProductIndexerDomainService
+            apiProductIndexerDomainService,
+            subscriptionQueryService,
+            closeSubscriptionDomainService,
+            deleteSubscriptionDomainService
         );
     }
 
@@ -130,7 +147,10 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
             apiStateDomainService,
             eventCrudService,
             eventLatestCrudService,
-            realIndexerDomainService
+            realIndexerDomainService,
+            subscriptionQueryService,
+            closeSubscriptionDomainService,
+            deleteSubscriptionDomainService
         );
 
         useCaseWithRealIndexer.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO));
@@ -235,5 +255,87 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(apiStateDomainService).stop(argThat(api -> "api-2".equals(api.getId())), eq(AUDIT_INFO));
         verify(apiProductIndexerDomainService).delete(any(), argThat(apiProduct -> productId.equals(apiProduct.getId())));
         verify(apiProductIndexerDomainService, never()).index(any(), any(), any());
+    }
+
+    @Test
+    void should_close_and_delete_subscriptions_when_deleting_api_product() {
+        var productId = "api-product-id";
+        ApiProduct product = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build();
+        apiProductCrudService.create(product);
+        apiProductQueryService.initWith(List.of(product));
+
+        SubscriptionEntity subscription1 = SubscriptionFixtures.aSubscription()
+            .toBuilder()
+            .id("sub-1")
+            .referenceId(productId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .build();
+        SubscriptionEntity subscription2 = SubscriptionFixtures.aSubscription()
+            .toBuilder()
+            .id("sub-2")
+            .referenceId(productId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .build();
+        subscriptionCrudService.initWith(List.of(subscription1, subscription2));
+
+        deleteApiProductUseCase.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO));
+
+        var inOrder = inOrder(closeSubscriptionDomainService, deleteSubscriptionDomainService);
+        inOrder.verify(closeSubscriptionDomainService).closeSubscription(subscription1, AUDIT_INFO);
+        inOrder.verify(deleteSubscriptionDomainService).delete(subscription1, AUDIT_INFO);
+        inOrder.verify(closeSubscriptionDomainService).closeSubscription(subscription2, AUDIT_INFO);
+        inOrder.verify(deleteSubscriptionDomainService).delete(subscription2, AUDIT_INFO);
+        assertThat(apiProductCrudService.findById(productId)).isEmpty();
+    }
+
+    @Test
+    void should_not_call_close_or_delete_when_no_subscriptions_exist_for_api_product() {
+        var productId = "api-product-id";
+        ApiProduct product = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build();
+        apiProductCrudService.create(product);
+        apiProductQueryService.initWith(List.of(product));
+
+        deleteApiProductUseCase.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO));
+
+        verify(closeSubscriptionDomainService, never()).closeSubscription(any(SubscriptionEntity.class), any());
+        verify(deleteSubscriptionDomainService, never()).delete(any(), any());
+        assertThat(apiProductCrudService.findById(productId)).isEmpty();
+    }
+
+    @Test
+    void should_continue_closing_remaining_subscriptions_when_one_close_throws() {
+        var productId = "api-product-id";
+        ApiProduct product = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build();
+        apiProductCrudService.create(product);
+        apiProductQueryService.initWith(List.of(product));
+
+        SubscriptionEntity subscription1 = SubscriptionFixtures.aSubscription()
+            .toBuilder()
+            .id("sub-1")
+            .referenceId(productId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .build();
+        SubscriptionEntity subscription2 = SubscriptionFixtures.aSubscription()
+            .toBuilder()
+            .id("sub-2")
+            .referenceId(productId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .build();
+        subscriptionCrudService.initWith(List.of(subscription1, subscription2));
+
+        doThrow(new RuntimeException("close failed")).when(closeSubscriptionDomainService).closeSubscription(eq(subscription1), any());
+
+        // The product deletion must complete even though closing subscription1 throws:
+        // any subscription skipped here will never receive another close event once the product is gone.
+        assertThatCode(() ->
+            deleteApiProductUseCase.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO))
+        ).doesNotThrowAnyException();
+
+        // subscription2 must still be processed despite subscription1 failing
+        verify(closeSubscriptionDomainService).closeSubscription(eq(subscription2), any());
+        verify(deleteSubscriptionDomainService).delete(eq(subscription2), any());
+        // subscription1 delete is never called because its close threw
+        verify(deleteSubscriptionDomainService, never()).delete(eq(subscription1), any());
+        assertThat(apiProductCrudService.findById(productId)).isEmpty();
     }
 }
