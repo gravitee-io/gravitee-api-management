@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiPatchDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
@@ -32,6 +31,7 @@ import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.workflow.model.Workflow;
@@ -118,7 +118,7 @@ public class PatchApiUseCase {
     private final ApiCrudService apiCrudService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final UpdateApiDomainService updateApiDomainService;
-    private final ApiPatchDomainService apiPatchDomainService;
+    private final JsonPatchDomainService jsonPatchDomainService;
     private final WorkflowQueryService workflowQueryService;
     private final ObjectMapper objectMapper;
 
@@ -276,9 +276,9 @@ public class PatchApiUseCase {
 
     private JsonNode applyPatch(PatchType patchType, JsonNode patchNode, JsonNode currentNode) {
         if (patchType == PatchType.JSON_PATCH) {
-            return apiPatchDomainService.applyJsonPatch(patchNode, currentNode);
+            return jsonPatchDomainService.applyJsonPatch(patchNode, currentNode);
         }
-        return apiPatchDomainService.applyMergePatch(patchNode, currentNode);
+        return jsonPatchDomainService.applyMergePatch(patchNode, currentNode);
     }
 
     private Api applyPatchedValues(Api existingApi, JsonNode patchedNode, PatchType patchType, JsonNode rawPatchNode) {

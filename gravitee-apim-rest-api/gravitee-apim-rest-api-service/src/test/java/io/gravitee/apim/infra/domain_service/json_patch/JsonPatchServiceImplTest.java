@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.api;
+package io.gravitee.apim.infra.domain_service.json_patch;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,11 +23,14 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author GraviteeSource Team
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ApiJsonPatchServiceImplTest {
+class JsonPatchServiceImplTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ApiJsonPatchServiceImpl cut = new ApiJsonPatchServiceImpl();
+    private final JsonPatchServiceImpl cut = new JsonPatchServiceImpl();
 
     @Test
     void runtime_exception_from_library_propagates_without_wrapping_as_validation_exception() throws Exception {

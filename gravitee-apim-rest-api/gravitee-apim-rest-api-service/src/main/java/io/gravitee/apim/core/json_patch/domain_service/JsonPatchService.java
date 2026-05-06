@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.json_patch.domain_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 
+/**
+ * @author GraviteeSource Team
+ */
 public interface JsonPatchService {
     JsonNode applyJsonPatch(JsonNode patch, JsonNode target) throws ValidationDomainException;
 }
