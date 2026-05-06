@@ -485,6 +485,40 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
+        void should_unregister_all_exploded_subscriptions_sharing_same_subscription_id() {
+            // Same subscription ID and plan (the API Product plan) exploded across two APIs
+            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subApi1);
+            subscriptionService.register(subApi2);
+
+            subscriptionService.unregister(subApi1);
+            subscriptionService.unregister(subApi2);
+
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getAllById(SUB_ID)).isEmpty();
+        }
+
+        @Test
+        void should_unregister_all_exploded_subscriptions_regardless_of_unregister_order() {
+            // Unregistering in the opposite order must produce the same result
+            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subApi1);
+            subscriptionService.register(subApi2);
+
+            subscriptionService.unregister(subApi2);
+            subscriptionService.unregister(subApi1);
+
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getAllById(SUB_ID)).isEmpty();
+        }
+
+        @Test
         void should_evict_subscription_when_re_registered_as_closed() {
             Subscription accepted = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(accepted);
@@ -497,6 +531,67 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
             assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_evict_stale_client_id_when_unregister_candidate_has_different_client_id() {
+            // Register with current clientId
+            Subscription registered = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, "clientId-current", PLAN_ID);
+            subscriptionService.register(registered);
+
+            // An unregister event arrives carrying the old clientId (credential was rotated before this event)
+            Subscription staleCandidate = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, "clientId-old", PLAN_ID);
+            subscriptionService.unregister(staleCandidate);
+
+            // The API leg is removed
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getAllById(SUB_ID)).isEmpty();
+            // Both the current and the stale client-id keys are gone
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "clientId-current", PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "clientId-old", PLAN_ID)).isEmpty();
+        }
+
+        @Test
+        void should_keep_sibling_subscription_accessible_after_one_leg_unregistered() {
+            // Same subscription ID exploded across two APIs (API Product scenario)
+            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subApi1);
+            subscriptionService.register(subApi2);
+
+            // Unregister only the first leg (subApi2 is the last-registered and sits in cacheBySubscriptionId)
+            subscriptionService.unregister(subApi1);
+
+            // API_ID leg is gone
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+
+            // API_ID_2 leg is still alive — getById must agree with getAllById
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isPresent().contains(subApi2);
+            assertThat(subscriptionService.getAllById(SUB_ID)).containsExactly(subApi2);
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
+        }
+
+        @Test
+        void should_keep_getById_consistent_when_last_registered_leg_is_unregistered_first() {
+            // Same subscription ID exploded across two APIs (API Product scenario).
+            // subApi2 is registered last, so it wins the cacheBySubscriptionId single slot.
+            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subApi1);
+            subscriptionService.register(subApi2);
+
+            // Unregister the leg that currently occupies cacheBySubscriptionId
+            subscriptionService.unregister(subApi2);
+
+            // API_ID_2 leg is gone
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiId(API_ID_2)).isEmpty();
+
+            // API_ID leg is still alive — getById must agree with getAllById
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent().contains(subApi1);
+            assertThat(subscriptionService.getAllById(SUB_ID)).containsExactly(subApi1);
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
         }
     }
 
