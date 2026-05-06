@@ -240,7 +240,6 @@ public class CreatePlanDomainService {
         }
         verifyPlanPortRangesDomainService.verify(
             auditInfo.environmentId(),
-            firstShardingTag(api),
             null, // new plan — nothing to exclude from the conflict check
             nativeDefinition.getBootstrapPort(),
             nativeDefinition.getBrokerRangeStart(),
@@ -263,7 +262,6 @@ public class CreatePlanDomainService {
                 .planId(createdPlan.getId())
                 .apiId(api.getId())
                 .environmentId(auditInfo.environmentId())
-                .shardingTag(firstShardingTag(api))
                 .bootstrapPort(nativeDefinition.getBootstrapPort())
                 .rangeStart(nativeDefinition.getBrokerRangeStart())
                 .rangeEnd(nativeDefinition.getBrokerRangeEnd())
@@ -271,13 +269,6 @@ public class CreatePlanDomainService {
                 .updatedAt(TimeProvider.now())
                 .build()
         );
-    }
-
-    private static String firstShardingTag(Api api) {
-        // Sharding-tag scoping: a plan may declare multiple tags in `plan.tags`. For the first
-        // iteration of port-conflict detection we scope the row to the first tag only; full
-        // multi-tag expansion is tracked in the plan's Iteration 3 / sharding-tag section.
-        return api.getTags() == null || api.getTags().isEmpty() ? null : api.getTags().iterator().next();
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {

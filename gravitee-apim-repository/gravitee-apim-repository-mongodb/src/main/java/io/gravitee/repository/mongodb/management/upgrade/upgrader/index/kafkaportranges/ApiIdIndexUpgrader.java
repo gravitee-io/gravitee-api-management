@@ -13,11 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.kafkaportranges;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.kafkaportranges;
 
-import io.gravitee.repository.mongodb.management.internal.model.KafkaPortRangeMongo;
-import java.util.List;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
-public interface KafkaPortRangeMongoRepositoryCustom {
-    List<KafkaPortRangeMongo> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
+@Component("KafkaPortRangesApiIdIndexUpgrader")
+public class ApiIdIndexUpgrader extends IndexUpgrader {
+
+    @Override
+    protected Index buildIndex() {
+        return Index.builder()
+            .collection("kafka_port_ranges")
+            .name("ai1")
+            .key("apiId", ascending())
+            .build();
+    }
 }

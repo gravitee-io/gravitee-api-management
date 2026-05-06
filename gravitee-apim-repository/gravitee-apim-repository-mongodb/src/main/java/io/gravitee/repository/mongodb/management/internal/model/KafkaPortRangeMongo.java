@@ -31,12 +31,11 @@ public class KafkaPortRangeMongo {
 
     private String apiId;
 
-    // Compound index on (environmentId, shardingTag) is declared by
-    // io.gravitee.repository.mongodb.management.upgrade.upgrader.index.kafkaportranges.EnvironmentIdShardingTagIndexUpgrader
-    // — mirrors the JDBC idx_kpr_env_tag scoping index.
+    // Index on environmentId is declared by
+    // io.gravitee.repository.mongodb.management.upgrade.upgrader.index.kafkaportranges.EnvironmentIdIndexUpgrader
+    // — mirrors the JDBC idx_kpr_env scoping index.
     private String environmentId;
 
-    private String shardingTag;
     private int bootstrapPort;
     private int rangeStart;
     private int rangeEnd;

@@ -351,7 +351,6 @@ class CreatePlanUseCaseTest {
                 .planId("existing-plan")
                 .apiId(api.getId())
                 .environmentId(ENVIRONMENT_ID)
-                .shardingTag("tag1") // must match ApiFixtures.aNativeApi() which has tags=Set.of("tag1")
                 .bootstrapPort(9092)
                 .rangeStart(9100)
                 .rangeEnd(9105)

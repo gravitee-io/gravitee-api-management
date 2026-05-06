@@ -32,7 +32,7 @@ public interface KafkaPortRangeCrudService {
 
     /**
      * Returns all port-range records that conflict with the given candidate range within the same
-     * {@code environment_id + sharding_tag} scope. See
+     * {@code environment_id} scope. See
      * {@code io.gravitee.repository.management.api.KafkaPortRangeRepository#findConflicting} for
      * the exact overlap conditions (broker-range overlap, bootstrap-inside-range, bootstrap
      * collision).
@@ -40,14 +40,7 @@ public interface KafkaPortRangeCrudService {
      * @param excludePlanId plan id to exclude from the check (the plan being updated); may be
      *                      {@code null} when creating a new plan.
      */
-    List<KafkaPortRange> findConflicting(
-        String environmentId,
-        String shardingTag,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    );
+    List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
 
     /**
      * Same as {@link #findConflicting} but acquires a row-level lock (JDBC {@code SELECT ... FOR
@@ -61,7 +54,6 @@ public interface KafkaPortRangeCrudService {
      */
     List<KafkaPortRange> findConflictingForUpdate(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,

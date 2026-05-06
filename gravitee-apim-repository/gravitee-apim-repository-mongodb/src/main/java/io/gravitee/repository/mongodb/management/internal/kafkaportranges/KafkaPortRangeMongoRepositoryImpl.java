@@ -32,14 +32,13 @@ public class KafkaPortRangeMongoRepositoryImpl implements KafkaPortRangeMongoRep
     @Override
     public List<KafkaPortRangeMongo> findConflicting(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
         String excludePlanId
     ) {
         // The four conflict conditions (see KafkaPortRangeRepository javadoc), expressed as an $or
-        // of Mongo criteria. Scoping to environmentId + sharding_tag is added as separate $and terms.
+        // of Mongo criteria. Scoping to environmentId is added as a separate $and term.
         final Criteria brokerRangeOverlap = where("rangeStart").lte(rangeEnd).and("rangeEnd").gte(rangeStart);
         final Criteria newBootstrapInsideExistingRange = where("rangeStart").lte(bootstrapPort).and("rangeEnd").gte(bootstrapPort);
         final Criteria existingBootstrapInsideNewRange = where("bootstrapPort").gte(rangeStart).lte(rangeEnd);
@@ -53,12 +52,6 @@ public class KafkaPortRangeMongoRepositoryImpl implements KafkaPortRangeMongoRep
         );
 
         final Query query = new Query().addCriteria(where("environmentId").is(environmentId)).addCriteria(conflict);
-
-        if (shardingTag == null) {
-            query.addCriteria(where("shardingTag").isNull());
-        } else {
-            query.addCriteria(where("shardingTag").is(shardingTag));
-        }
 
         if (excludePlanId != null) {
             query.addCriteria(where("_id").ne(excludePlanId));

@@ -72,16 +72,10 @@ public class MongoKafkaPortRangeRepository implements KafkaPortRangeRepository {
     }
 
     @Override
-    public List<KafkaPortRange> findConflicting(
-        String environmentId,
-        String shardingTag,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) throws TechnicalException {
+    public List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+        throws TechnicalException {
         return internalRepository
-            .findConflicting(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+            .findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
             .stream()
             .map(mapper::map)
             .toList();
@@ -90,7 +84,6 @@ public class MongoKafkaPortRangeRepository implements KafkaPortRangeRepository {
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
         String environmentId,
-        String shardingTag,
         int bootstrapPort,
         int rangeStart,
         int rangeEnd,
@@ -101,7 +94,7 @@ public class MongoKafkaPortRangeRepository implements KafkaPortRangeRepository {
         // FOR UPDATE has no MongoDB equivalent, so we fall back to the non-locking query. Deployments
         // that require strict concurrent-save protection on MongoDB should enable multi-document
         // transactions and route this call through a ClientSession.
-        return findConflicting(environmentId, shardingTag, bootstrapPort, rangeStart, rangeEnd, excludePlanId);
+        return findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId);
     }
 
     @Override

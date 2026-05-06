@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>Checks internal consistency of the candidate allocation ({@code bootstrapPort},
  * {@code [rangeStart, rangeEnd]}) and queries the {@code kafka_port_ranges} table for conflicts
- * with already-deployed plans sharing the same {@code environment_id + sharding_tag} scope.</p>
+ * with already-deployed plans within the same {@code environment_id} scope.</p>
  *
  * <p>Follows the pattern of {@link io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService}.</p>
  */
@@ -45,7 +45,6 @@ public class VerifyPlanPortRangesDomainService {
      * Runs the full set of port-routing checks. Throws on first failure.
      *
      * @param environmentId  scoping key — conflicts only compared within the same environment
-     * @param shardingTag    scoping key — {@code null} = default tag; matches other null-tagged plans only
      * @param planId         id of the plan being saved; excluded from its own conflict check on update. Pass {@code null} for create.
      * @param bootstrapPort  candidate bootstrap port
      * @param rangeStart     candidate broker range start (inclusive)
@@ -54,7 +53,7 @@ public class VerifyPlanPortRangesDomainService {
      * @throws PlanInvalidException        if values are out of bounds, or {@code bootstrapPort} falls inside {@code [rangeStart, rangeEnd]}
      * @throws PortRangeConflictException  if the candidate allocation overlaps with an existing plan
      */
-    public void verify(String environmentId, String shardingTag, String planId, int bootstrapPort, int rangeStart, int rangeEnd) {
+    public void verify(String environmentId, String planId, int bootstrapPort, int rangeStart, int rangeEnd) {
         ensurePortInBounds(bootstrapPort, "bootstrapPort");
         ensurePortInBounds(rangeStart, "brokerRangeStart");
         ensurePortInBounds(rangeEnd, "brokerRangeEnd");
@@ -74,14 +73,7 @@ public class VerifyPlanPortRangesDomainService {
         // would conflict blocks here until we commit, then re-runs the conflict check and fails
         // cleanly — preventing the TOCTOU race where two saves both observe "no conflict" and both
         // persist.
-        var conflicts = kafkaPortRangeCrudService.findConflictingForUpdate(
-            environmentId,
-            shardingTag,
-            bootstrapPort,
-            rangeStart,
-            rangeEnd,
-            planId
-        );
+        var conflicts = kafkaPortRangeCrudService.findConflictingForUpdate(environmentId, bootstrapPort, rangeStart, rangeEnd, planId);
         if (!conflicts.isEmpty()) {
             var first = conflicts.get(0);
             throw new PortRangeConflictException(first.getPlanId(), first.getApiId(), rangeStart, rangeEnd, bootstrapPort);

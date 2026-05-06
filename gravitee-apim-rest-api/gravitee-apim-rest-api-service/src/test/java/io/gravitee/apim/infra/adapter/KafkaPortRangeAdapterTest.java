@@ -33,7 +33,6 @@ class KafkaPortRangeAdapterTest {
             .planId("plan-1")
             .apiId("api-1")
             .environmentId("env-1")
-            .shardingTag("eu-west")
             .bootstrapPort(9092)
             .rangeStart(9100)
             .rangeEnd(9102)
@@ -48,7 +47,6 @@ class KafkaPortRangeAdapterTest {
             soft.assertThat(roundTripped.getPlanId()).isEqualTo(source.getPlanId());
             soft.assertThat(roundTripped.getApiId()).isEqualTo(source.getApiId());
             soft.assertThat(roundTripped.getEnvironmentId()).isEqualTo(source.getEnvironmentId());
-            soft.assertThat(roundTripped.getShardingTag()).isEqualTo(source.getShardingTag());
             soft.assertThat(roundTripped.getBootstrapPort()).isEqualTo(source.getBootstrapPort());
             soft.assertThat(roundTripped.getRangeStart()).isEqualTo(source.getRangeStart());
             soft.assertThat(roundTripped.getRangeEnd()).isEqualTo(source.getRangeEnd());

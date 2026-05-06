@@ -251,7 +251,6 @@ public class UpdatePlanDomainService {
         }
         verifyPlanPortRangesDomainService.verify(
             auditInfo.environmentId(),
-            firstShardingTag(api),
             updatePlan.getId(),
             nativeDefinition.getBootstrapPort(),
             nativeDefinition.getBrokerRangeStart(),
@@ -277,7 +276,6 @@ public class UpdatePlanDomainService {
             .planId(updated.getId())
             .apiId(api.getId())
             .environmentId(auditInfo.environmentId())
-            .shardingTag(firstShardingTag(api))
             .bootstrapPort(nativeDefinition.getBootstrapPort())
             .rangeStart(nativeDefinition.getBrokerRangeStart())
             .rangeEnd(nativeDefinition.getBrokerRangeEnd())
@@ -289,10 +287,6 @@ public class UpdatePlanDomainService {
                 existing -> kafkaPortRangeCrudService.update(row.toBuilder().createdAt(existing.getCreatedAt()).build()),
                 () -> kafkaPortRangeCrudService.create(row.toBuilder().createdAt(TimeProvider.now()).build())
             );
-    }
-
-    private static String firstShardingTag(Api api) {
-        return api.getTags() == null || api.getTags().isEmpty() ? null : api.getTags().iterator().next();
     }
 
     /**

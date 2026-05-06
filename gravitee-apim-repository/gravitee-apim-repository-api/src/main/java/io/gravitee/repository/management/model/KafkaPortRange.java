@@ -28,9 +28,9 @@ import lombok.ToString;
  * Persisted record of a Kafka plan's port allocation.
  *
  * <p>One row per plan that is configured for port-based routing. Used by the management API to
- * detect port conflicts across plans sharing the same {@code environment_id + sharding_tag}.
- * Mirrors the {@code bootstrap_port / range_start / range_end} fields already stored inline on
- * the plan definition — denormalized here for efficient indexed overlap queries.</p>
+ * detect port conflicts across plans sharing the same {@code environment_id}. Mirrors the
+ * {@code bootstrap_port / range_start / range_end} fields already stored inline on the plan
+ * definition — denormalized here for efficient indexed overlap queries.</p>
  */
 @Getter
 @Setter
@@ -44,7 +44,6 @@ public class KafkaPortRange {
     private String planId;
     private String apiId;
     private String environmentId;
-    private String shardingTag;
     private int bootstrapPort;
     private int rangeStart;
     private int rangeEnd;
