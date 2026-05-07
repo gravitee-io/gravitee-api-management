@@ -398,6 +398,58 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     }
 
     @Test
+    public void should_return_false_for_V4_native_API_when_analytics_changed() throws JsonProcessingException {
+        var apiDefinition = io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
+
+        when(
+            eventLatestRepository.search(
+                EventCriteria.builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            )
+        ).thenReturn(List.of(event));
+
+        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false, false, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        // Enable per-API tracing on the current entity. Deployed payload has no tracing →
+        // isSynchronized must return false so the redeploy banner is shown.
+        var analytics = new io.gravitee.definition.model.v4.nativeapi.NativeAnalytics();
+        var tracing = new io.gravitee.definition.model.v4.analytics.tracing.Tracing();
+        tracing.setEnabled(true);
+        analytics.setTracing(tracing);
+        apiEntity.setAnalytics(analytics);
+
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(isSynchronized).isFalse();
+        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
+    }
+
+    @Test
     public void should_return_false_for_V4_API() throws JsonProcessingException {
         var apiDefinition = io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
             .id("apiId")

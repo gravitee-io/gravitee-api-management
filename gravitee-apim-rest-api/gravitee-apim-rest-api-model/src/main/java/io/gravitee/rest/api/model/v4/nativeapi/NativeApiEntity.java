@@ -197,6 +197,7 @@ public class NativeApiEntity implements GenericApiEntity {
     @JsonIgnore
     private String referenceId;
 
+    @DeploymentRequired
     @Schema(description = "Analytics settings")
     private NativeAnalytics analytics;
 

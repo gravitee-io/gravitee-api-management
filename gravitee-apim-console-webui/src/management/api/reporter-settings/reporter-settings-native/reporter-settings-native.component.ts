@@ -15,8 +15,10 @@
  */
 import { Component, DestroyRef, inject, input, InputSignal, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
@@ -25,6 +27,7 @@ import { MatIcon } from '@angular/material/icon';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
 
 type NativeReporterFormType = {
@@ -37,7 +40,17 @@ type NativeReporterFormType = {
   selector: 'reporter-settings-native',
   templateUrl: './reporter-settings-native.component.html',
   styleUrls: ['./reporter-settings-native.component.scss'],
-  imports: [MatCardModule, FormsModule, GioFormSlideToggleModule, GioSaveBarModule, ReactiveFormsModule, MatSlideToggle, MatHint, MatIcon],
+  imports: [
+    MatCardModule,
+    MatSnackBarModule,
+    FormsModule,
+    GioFormSlideToggleModule,
+    GioSaveBarModule,
+    ReactiveFormsModule,
+    MatSlideToggle,
+    MatHint,
+    MatIcon,
+  ],
 })
 export class ReporterSettingsNativeComponent implements OnInit {
   reporterSettingsForm: FormGroup<NativeReporterFormType>;
@@ -48,6 +61,7 @@ export class ReporterSettingsNativeComponent implements OnInit {
   constructor(
     private readonly apiService: ApiV2Service,
     private readonly permissionService: GioPermissionService,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -101,25 +115,37 @@ export class ReporterSettingsNativeComponent implements OnInit {
   }
 
   submit(): void {
-    const values = this.reporterSettingsForm.getRawValue();
-    const currentApi = this.api();
-    const updatedApi: ApiV4 = {
-      ...currentApi,
-      analytics: {
-        ...(currentApi.analytics ?? {}),
-        enabled: values.enabled,
-        tracing: {
-          enabled: values.tracingEnabled,
-          verbose: values.tracingVerbose,
-        },
-      },
-    };
-
     this.apiService
-      .update(updatedApi.id, updatedApi)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.defaultConfiguration = this.reporterSettingsForm.getRawValue();
-      });
+      .get(this.api().id)
+      .pipe(
+        switchMap((api: ApiV4) => {
+          const values = this.reporterSettingsForm.getRawValue();
+          const updatedApi: ApiV4 = {
+            ...api,
+            analytics: {
+              ...(api.analytics ?? {}),
+              enabled: values.enabled,
+              tracing: {
+                enabled: values.tracingEnabled,
+                verbose: values.tracingVerbose,
+              },
+            },
+          };
+          return this.apiService.update(api.id, updatedApi);
+        }),
+        tap(() => {
+          this.defaultConfiguration = this.reporterSettingsForm.getRawValue();
+          this.reporterSettingsForm.markAsPristine();
+        }),
+        map(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+        }),
+        catchError(err => {
+          this.snackBarService.error(err?.error?.message ?? 'Failed to save analytics settings');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 }
