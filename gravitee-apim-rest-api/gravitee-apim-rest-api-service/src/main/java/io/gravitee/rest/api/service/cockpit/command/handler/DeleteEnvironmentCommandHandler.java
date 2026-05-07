@@ -50,6 +50,7 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.InvitationRepository;
+import io.gravitee.repository.management.api.KafkaPortRangeRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.PageRepository;
@@ -154,6 +155,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final AsyncJobRepository asyncJobRepository;
     private final IntegrationRepository integrationRepository;
     private final InvitationRepository invitationRepository;
+    private final KafkaPortRangeRepository kafkaPortRangeRepository;
     private final MediaRepository mediaRepository;
     private final MembershipRepository membershipRepository;
     private final MetadataRepository metadataRepository;
@@ -211,6 +213,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy IdentityProviderActivationRepository identityProviderActivationRepository,
         @Lazy IntegrationRepository integrationRepository,
         @Lazy InvitationRepository invitationRepository,
+        @Lazy KafkaPortRangeRepository kafkaPortRangeRepository,
         @Lazy MediaRepository mediaRepository,
         @Lazy MembershipRepository membershipRepository,
         @Lazy MetadataRepository metadataRepository,
@@ -281,6 +284,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.asyncJobRepository = asyncJobRepository;
         this.integrationRepository = integrationRepository;
         this.invitationRepository = invitationRepository;
+        this.kafkaPortRangeRepository = kafkaPortRangeRepository;
         this.mediaRepository = mediaRepository;
         this.membershipRepository = membershipRepository;
         this.metadataRepository = metadataRepository;
@@ -379,6 +383,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         deletePages(executionContext, PageReferenceType.ENVIRONMENT, environment.getId());
         subscriptionRepository.deleteByEnvironmentId(environment.getId());
         apiKeyRepository.deleteByEnvironmentId(environment.getId());
+        kafkaPortRangeRepository.deleteByEnvironmentId(environment.getId());
         planRepository
             .deleteByEnvironmentId(executionContext.getEnvironmentId())
             .forEach(planId -> {
