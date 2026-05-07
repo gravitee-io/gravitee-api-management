@@ -321,6 +321,30 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     }
 
     @Override
+    public List<Group> findByHridsAndEnvironmentId(Set<String> hrids, String environmentId) throws TechnicalException {
+        log.debug("JdbcGroupRepository.findByHridsAndEnvironmentId({}, {})", hrids, environmentId);
+        if (hrids == null || hrids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
+        query.append(" where environment_id = ?");
+        getOrm().buildInCondition(false, query, "hrid", hrids);
+        try {
+            List<Object> args = new ArrayList<>();
+            args.add(environmentId);
+            args.addAll(hrids);
+            List<Group> rows = jdbcTemplate.query(query.toString(), getOrm().getRowMapper(), args.toArray());
+            for (Group group : rows) {
+                addGroupEvents(group);
+            }
+            return rows;
+        } catch (final Exception ex) {
+            log.error("Failed to find groups by hrids", ex);
+            throw new TechnicalException("Failed to find groups by hrids", ex);
+        }
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcGroupRepository.deleteByEnvironmentId({})", environmentId);
         try {

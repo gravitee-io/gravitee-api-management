@@ -28,17 +28,20 @@
   {
     "id": "group-1",
     "environmentId": "DEFAULT",
-    "name": "group test 1"
+    "name": "group test 1",
+    "hrid": "group-test-1"
   },
   {
     "id": "group-2",
     "environmentId": "DEFAULT_2",
-    "name": "Group test 2"
+    "name": "Group test 2",
+    "hrid": "group-test-2"
   },
   {
     "id": "group-3",
     "environmentId": "DEFAULT",
-    "name": "Group Test 3"
+    "name": "Group Test 3",
+    "hrid": "group-test-3"
   },
   {
     "id": "group-4",

@@ -36,6 +36,8 @@ public interface GroupRepository extends CrudRepository<Group, String> {
 
     Set<Group> findAllByOrganization(String organizationId) throws TechnicalException;
 
+    List<Group> findByHridsAndEnvironmentId(Set<String> hrids, String environmentId) throws TechnicalException;
+
     /**
      * Delete group by environment ID
      *

@@ -189,9 +189,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
         assertEquals(2, groups.size());
-        assertTrue(
-            groups.stream().map(Group::getId).collect(Collectors.toList()).containsAll(asList("group-application-1", "group-api-to-delete"))
-        );
+        assertTrue(groups.stream().map(Group::getId).toList().containsAll(asList("group-application-1", "group-api-to-delete")));
     }
 
     @Test
@@ -200,6 +198,35 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(groups);
         assertTrue(groups.isEmpty());
+    }
+
+    @Test
+    public void shouldFindByHridsAndEnvironmentId() throws TechnicalException {
+        List<Group> groups = groupRepository.findByHridsAndEnvironmentId(Set.of("group-test-1", "group-test-3"), "DEFAULT");
+
+        assertThat(groups).isNotEmpty().hasSize(2);
+        assertThat(groups.stream().map(Group::getId).toList()).containsExactlyInAnyOrder("group-1", "group-3");
+    }
+
+    @Test
+    public void shouldNotFindByHridsWhenEnvironmentDoesNotMatch() throws TechnicalException {
+        List<Group> groups = groupRepository.findByHridsAndEnvironmentId(Set.of("group-test-2"), "DEFAULT");
+
+        assertThat(groups).isEmpty();
+    }
+
+    @Test
+    public void shouldNotFindByEmptyHrids() throws TechnicalException {
+        List<Group> groups = groupRepository.findByHridsAndEnvironmentId(Collections.emptySet(), "DEFAULT");
+
+        assertThat(groups).isEmpty();
+    }
+
+    @Test
+    public void shouldNotFindByUnknownHrids() throws TechnicalException {
+        List<Group> groups = groupRepository.findByHridsAndEnvironmentId(Set.of("unknown-hrid"), "DEFAULT");
+
+        assertThat(groups).isEmpty();
     }
 
     @Test(expected = IllegalStateException.class)

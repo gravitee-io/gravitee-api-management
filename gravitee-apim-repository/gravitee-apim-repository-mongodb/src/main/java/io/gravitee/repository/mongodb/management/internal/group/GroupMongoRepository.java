@@ -35,6 +35,9 @@ public interface GroupMongoRepository extends MongoRepository<GroupMongo, String
     @Query("{ environmentId: ?0 }")
     List<GroupMongo> findByEnvironmentId(String environmentId);
 
+    @Query("{ environmentId: ?0, hrid: {$in: ?1} }")
+    List<GroupMongo> findByEnvironmentIdAndHridIn(String environmentId, Set<String> hrids);
+
     @Query(value = "{ environmentId: ?0 }", delete = true)
     List<GroupMongo> deleteByEnvironmentId(String environmentId);
 }

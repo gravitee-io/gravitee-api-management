@@ -169,6 +169,22 @@ public class MongoGroupRepository implements GroupRepository {
     }
 
     @Override
+    public List<Group> findByHridsAndEnvironmentId(Set<String> hrids, String environmentId) throws TechnicalException {
+        log.debug("Find groups by hrids [{}] and environmentId [{}]", hrids, environmentId);
+        if (CollectionUtils.isEmpty(hrids)) {
+            return List.of();
+        }
+        try {
+            List<Group> groups = internalRepository.findByEnvironmentIdAndHridIn(environmentId, hrids).stream().map(this::map).toList();
+            log.debug("Find groups by hrids - Found {}", groups);
+            return groups;
+        } catch (Exception ex) {
+            log.error("Failed to find groups by hrids", ex);
+            throw new TechnicalException("Failed to find groups by hrids", ex);
+        }
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete groups by environmentId: {}", environmentId);
         try {

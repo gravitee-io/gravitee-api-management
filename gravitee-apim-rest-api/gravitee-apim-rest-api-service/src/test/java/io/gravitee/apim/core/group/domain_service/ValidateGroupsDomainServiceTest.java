@@ -17,13 +17,13 @@ package io.gravitee.apim.core.group.domain_service;
 
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE;
-import static org.mockito.ArgumentMatchers.any;
 
 import inmemory.GroupQueryServiceInMemory;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.model.Group.GroupEventRule;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -56,6 +56,14 @@ class ValidateGroupsDomainServiceTest {
                     .id("default-group")
                     .name("default-group")
                     .eventRules(List.of(new GroupEventRule(API_CREATE), new GroupEventRule(APPLICATION_CREATE)))
+                    .build(),
+                Group.builder().environmentId(ENVIRONMENT).id("hrid-group-id").name("hrid-group").hrid("my-hrid-group").build(),
+                Group.builder()
+                    .environmentId(ENVIRONMENT)
+                    .id("hrid-group-with-po-id")
+                    .name("hrid-group-with-po")
+                    .hrid("my-hrid-group-with-po")
+                    .apiPrimaryOwner("some-po")
                     .build()
             )
         );
@@ -137,6 +145,102 @@ class ValidateGroupsDomainServiceTest {
             soft.assertThat(result.value()).isNotEmpty();
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id")));
             soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_return_original_input_when_groups_are_empty() {
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, Collections.emptySet(), DefinitionVersion.V4.getLabel());
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input);
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_return_original_input_when_groups_are_null() {
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, null, DefinitionVersion.V4.getLabel());
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input);
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_return_only_default_groups_when_groups_are_empty_and_add_default_groups() {
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            Collections.emptySet(),
+            DefinitionVersion.V4.getLabel(),
+            API_CREATE,
+            true
+        );
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("default-group")));
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_warn_when_group_is_unknown() {
+        var givenGroups = Set.of("does-not-exist");
+
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of()));
+            soft.assertThat(result.errors()).isNotEmpty();
+            soft
+                .assertThat(result.errors())
+                .hasValue(List.of(Validator.Error.warning("Group [does-not-exist] could not be found in environment [TEST]")));
+        });
+    }
+
+    @Test
+    void should_resolve_group_by_hrid_v4() {
+        var givenGroups = Set.of("my-hrid-group");
+
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("hrid-group-id")));
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_warn_and_discard_group_resolved_by_hrid_with_primary_owner() {
+        var givenGroups = Set.of("my-hrid-group-with-po");
+
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of()));
+            soft.assertThat(result.errors()).isNotEmpty();
+            soft
+                .assertThat(result.errors())
+                .hasValue(
+                    List.of(
+                        Validator.Error.warning(
+                            "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported with by the operator."
+                        )
+                    )
+                );
         });
     }
 }

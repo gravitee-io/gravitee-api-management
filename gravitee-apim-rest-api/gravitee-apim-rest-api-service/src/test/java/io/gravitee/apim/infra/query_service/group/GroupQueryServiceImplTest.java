@@ -281,6 +281,41 @@ class GroupQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindByHRIDs {
+
+        @Test
+        @SneakyThrows
+        void should_find_groups_matching_the_hrids_provided() {
+            when(groupRepository.findByHridsAndEnvironmentId(anySet(), any(String.class))).thenReturn(
+                List.of(aGroup("1").hrid("hrid-1").build(), aGroup("2").hrid("hrid-2").build())
+            );
+
+            var groups = service.findByHRIDs("environment-id", Set.of("hrid-1", "hrid-2"));
+
+            Assertions.assertThat(groups).hasSize(2).extracting(Group::getId).containsExactly("1", "2");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_when_hrids_is_empty() {
+            var groups = service.findByHRIDs("environment-id", Set.of());
+
+            Assertions.assertThat(groups).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(groupRepository.findByHridsAndEnvironmentId(anySet(), any(String.class))).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByHRIDs("environment-id", Set.of("hrid-1")));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find groups by hrids");
+        }
+    }
+
     io.gravitee.repository.management.model.Group.GroupBuilder aGroup(String id) {
         return io.gravitee.repository.management.model.Group.builder()
             .id(id)
@@ -347,7 +382,6 @@ class GroupQueryServiceImplTest {
         void should_search_groups_with_pagination() {
             Set<String> groupIds = Set.of("1", "2", "3");
             io.gravitee.rest.api.model.common.Pageable pageable = new PageableImpl(1, 10);
-            io.gravitee.repository.management.api.search.Pageable repoPageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
             List<io.gravitee.repository.management.model.Group> groups = List.of(aGroup("1").build(), aGroup("2").build());
 
@@ -362,7 +396,7 @@ class GroupQueryServiceImplTest {
             assertThat(result.getContent()).hasSize(2);
             assertThat(result.getContent().get(0).getId()).isEqualTo("1");
             assertThat(result.getContent().get(1).getId()).isEqualTo("2");
-            assertThat(result.getPageNumber()).isEqualTo(0);
+            assertThat(result.getPageNumber()).isZero();
             assertThat(result.getPageElements()).isEqualTo(2);
             assertThat(result.getTotalElements()).isEqualTo(2);
         }
@@ -382,9 +416,9 @@ class GroupQueryServiceImplTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).isEmpty();
-            assertThat(result.getPageNumber()).isEqualTo(0);
-            assertThat(result.getPageElements()).isEqualTo(0);
-            assertThat(result.getTotalElements()).isEqualTo(0);
+            assertThat(result.getPageNumber()).isZero();
+            assertThat(result.getPageElements()).isZero();
+            assertThat(result.getTotalElements()).isZero();
         }
 
         @Test

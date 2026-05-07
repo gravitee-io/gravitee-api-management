@@ -78,6 +78,16 @@ public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlt
     }
 
     @Override
+    public List<Group> findByHRIDs(String environmentId, Set<String> hrids) {
+        return storage
+            .stream()
+            .filter(group -> group.getHrid() != null)
+            .filter(group -> environmentId.equals(group.getEnvironmentId()))
+            .filter(group -> hrids.contains(group.getHrid()))
+            .toList();
+    }
+
+    @Override
     public Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable) {
         List<Group> filteredGroups = storage
             .stream()
