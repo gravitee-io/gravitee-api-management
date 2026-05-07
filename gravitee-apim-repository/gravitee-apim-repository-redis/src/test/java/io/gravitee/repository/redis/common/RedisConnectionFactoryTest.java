@@ -19,13 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
-import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
-import io.vertx.redis.client.RedisOptions;
-import java.util.ArrayList;
-import java.util.List;
+import io.gravitee.plugin.configurations.redis.RedisClientOptions;
+import io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,48 +51,52 @@ public class RedisConnectionFactoryTest {
     }
 
     @Test
-    void shouldReturnRedisOptionsWithSecuredEndpoint() {
+    void shouldReturnRedisClientOptionsWithSslEnabled() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getEndpoint()).isEqualTo("rediss://redis:6379");
+        assertThat(options.getHost()).isEqualTo("redis");
+        assertThat(options.getPort()).isEqualTo(6379);
+        assertThat(options.isUseSsl()).isTrue();
     }
 
     @Test
-    void shouldReturnRedisOptionsWithoutSecuredEndpoint() {
+    void shouldReturnRedisClientOptionsWithoutSsl() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getEndpoint()).isEqualTo("redis://redis:6379");
+        assertThat(options.getHost()).isEqualTo("redis");
+        assertThat(options.getPort()).isEqualTo(6379);
+        assertThat(options.isUseSsl()).isFalse();
     }
 
     @Test
-    public void shouldReturnRedisOptionsWithSentinelsEndpoints() {
+    public void shouldReturnRedisClientOptionsWithSentinel() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.master", "redis-master");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[0].host", "sent1");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[0].port", "26379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].host", "sent2");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].port", "26379");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
-
-        List<String> sentinelEndpoints = new ArrayList<>();
-        sentinelEndpoints.add("redis://sent1:26379");
-        sentinelEndpoints.add("redis://sent2:26379");
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getEndpoints()).containsAll(sentinelEndpoints);
+        assertThat(options.getSentinel()).isNotNull();
+        assertThat(options.getSentinel().getMasterId()).isEqualTo("redis-master");
+        assertThat(options.getSentinel().getNodes()).hasSize(2);
+        assertThat(options.getSentinel().getNodes().get(0).getHost()).isEqualTo("sent1");
+        assertThat(options.getSentinel().getNodes().get(1).getHost()).isEqualTo("sent2");
     }
 
     @Test
-    void shouldReturnRedisOptionsWithSentinelsSecuredEndpoints() {
+    void shouldReturnRedisClientOptionsWithSentinelAndSsl() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.master", "redis-master");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[0].host", "sent1");
@@ -100,15 +104,49 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].host", "sent2");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].port", "26379");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
-
-        List<String> sentinelEndpoints = new ArrayList<>();
-        sentinelEndpoints.add("rediss://sent1:26379");
-        sentinelEndpoints.add("rediss://sent2:26379");
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getNetClientOptions().getHostnameVerificationAlgorithm()).isEqualTo("");
-        assertThat(options.getEndpoints()).containsAll(sentinelEndpoints);
+        assertThat(options.isUseSsl()).isTrue();
+        assertThat(options.getSsl()).isNotNull();
+        assertThat(options.getSsl().isHostnameVerifier()).isFalse();
+        assertThat(options.getSsl().getHostnameVerificationAlgorithm()).isEqualTo("NONE");
+        assertThat(options.getSentinel()).isNotNull();
+        assertThat(options.getSentinel().getMasterId()).isEqualTo("redis-master");
+        assertThat(options.getSentinel().getNodes()).hasSize(2);
+    }
+
+    @Test
+    void shouldPreserveLdapsHostnameVerificationAlgorithm() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.hostnameVerificationAlgorithm", "LDAPS");
+
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
+
+        assertThat(options.getSsl().getHostnameVerificationAlgorithm()).isEqualTo("LDAPS");
+        assertThat(options.getSsl().isHostnameVerifier()).isTrue();
+    }
+
+    @Test
+    void shouldReturnRedisClientOptionsWithMultiCertPemKeystore() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "pem");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].cert", "/path/cert0.pem");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].key", "/path/key0.pem");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[1].cert", "/path/cert1.pem");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[1].key", "/path/key1.pem");
+
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
+
+        assertThat(options.getSsl().getKeyStore()).isInstanceOf(PEMKeyStore.class);
+        PEMKeyStore pemKeyStore = (PEMKeyStore) options.getSsl().getKeyStore();
+        assertThat(pemKeyStore.getCertPaths()).containsExactly("/path/cert0.pem", "/path/cert1.pem");
+        assertThat(pemKeyStore.getKeyPaths()).containsExactly("/path/key0.pem", "/path/key1.pem");
     }
 
     @Test
@@ -119,12 +157,12 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].port", "26379");
 
         assertThatIllegalStateException()
-            .isThrownBy(() -> redisConnectionFactory.buildRedisOptions())
+            .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
             .withMessageContaining("Incorrect Sentinel configuration");
     }
 
     @Test
-    void shouldReturnRedisOptionsWithPemTruststoreAndKeystore() {
+    void shouldReturnRedisClientOptionsWithPemTruststoreAndKeystore() {
         String keystoreCertPath = "/path/to/client.crt";
         String keystoreKeyPath = "/path/to/client.key";
         String truststorePath = "/path/to/ca.crt";
@@ -136,27 +174,27 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "pem");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].cert", keystoreCertPath);
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].key", keystoreKeyPath);
-
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "pem");
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", truststorePath);
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
-
-        PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
-        pemKeyCertOptions.addCertPath(keystoreCertPath);
-        pemKeyCertOptions.addKeyPath(keystoreKeyPath);
-
-        PemTrustOptions pemTrustOptions = new PemTrustOptions();
-        pemTrustOptions.addCertPath(truststorePath);
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getNetClientOptions().getHostnameVerificationAlgorithm()).isEqualTo("HTTPS");
-        assertThat(options.getNetClientOptions().getKeyCertOptions()).usingRecursiveComparison().isEqualTo(pemKeyCertOptions);
-        assertThat(options.getNetClientOptions().getTrustOptions()).usingRecursiveComparison().isEqualTo(pemTrustOptions);
+        assertThat(options.getSsl()).isNotNull();
+        assertThat(options.getSsl().isHostnameVerifier()).isTrue();
+
+        assertThat(options.getSsl().getKeyStore()).isInstanceOf(PEMKeyStore.class);
+        PEMKeyStore pemKeyStore = (PEMKeyStore) options.getSsl().getKeyStore();
+        assertThat(pemKeyStore.getCertPath()).isEqualTo(keystoreCertPath);
+        assertThat(pemKeyStore.getKeyPath()).isEqualTo(keystoreKeyPath);
+
+        assertThat(options.getSsl().getTrustStore()).isInstanceOf(PEMTrustStore.class);
+        PEMTrustStore pemTrustStore = (PEMTrustStore) options.getSsl().getTrustStore();
+        assertThat(pemTrustStore.getPath()).isEqualTo(truststorePath);
     }
 
     @Test
-    void shouldReturnRedisOptionsWithPKCS12TruststoreAndKeystore() {
+    void shouldReturnRedisClientOptionsWithPKCS12TruststoreAndKeystore() {
         String keystorePath = "/path/to/client.pkcs12";
         String truststorePath = "/path/to/ca.pkcs12";
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
@@ -165,25 +203,20 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "pkcs12");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.path", keystorePath);
-
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "pkcs12");
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", truststorePath);
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
-
-        PfxOptions keystorePfxOptions = new PfxOptions();
-        keystorePfxOptions.setPath(keystorePath);
-
-        PfxOptions truststorePfxOptions = new PfxOptions();
-        truststorePfxOptions.setPath(truststorePath);
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getNetClientOptions().getKeyCertOptions()).usingRecursiveComparison().isEqualTo(keystorePfxOptions);
-        assertThat(options.getNetClientOptions().getTrustOptions()).usingRecursiveComparison().isEqualTo(truststorePfxOptions);
+        assertThat(options.getSsl().getKeyStore()).isInstanceOf(PKCS12KeyStore.class);
+        assertThat(((PKCS12KeyStore) options.getSsl().getKeyStore()).getPath()).isEqualTo(keystorePath);
+        assertThat(options.getSsl().getTrustStore()).isInstanceOf(PKCS12TrustStore.class);
+        assertThat(((PKCS12TrustStore) options.getSsl().getTrustStore()).getPath()).isEqualTo(truststorePath);
     }
 
     @Test
-    void shouldReturnRedisOptionsWithJKSTruststoreAndKeystore() {
+    void shouldReturnRedisClientOptionsWithJKSTruststoreAndKeystore() {
         String keystorePath = "/path/to/client.jks";
         String truststorePath = "/path/to/ca.jks";
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
@@ -192,21 +225,16 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "jks");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.path", keystorePath);
-
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "jks");
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", truststorePath);
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
-
-        JksOptions keystoreJksOptions = new JksOptions();
-        keystoreJksOptions.setPath(keystorePath);
-
-        JksOptions truststoreJksOptions = new JksOptions();
-        truststoreJksOptions.setPath(truststorePath);
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getNetClientOptions().getKeyCertOptions()).usingRecursiveComparison().isEqualTo(keystoreJksOptions);
-        assertThat(options.getNetClientOptions().getTrustOptions()).usingRecursiveComparison().isEqualTo(truststoreJksOptions);
+        assertThat(options.getSsl().getKeyStore()).isInstanceOf(JKSKeyStore.class);
+        assertThat(((JKSKeyStore) options.getSsl().getKeyStore()).getPath()).isEqualTo(keystorePath);
+        assertThat(options.getSsl().getTrustStore()).isInstanceOf(JKSTrustStore.class);
+        assertThat(((JKSTrustStore) options.getSsl().getTrustStore()).getPath()).isEqualTo(truststorePath);
     }
 
     @ParameterizedTest
@@ -221,7 +249,7 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", "truststorePath");
 
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> redisConnectionFactory.buildRedisOptions())
+            .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
             .withMessageContaining("Missing " + keystoreType + " keystore value");
     }
 
@@ -237,56 +265,58 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", truststoreType);
 
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> redisConnectionFactory.buildRedisOptions())
+            .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
             .withMessageContaining("Missing " + truststoreType + " truststore value");
     }
 
     @Test
-    void shouldReturnRedisOptionsWithTrustAllEnabledToAvoidBreakingChangeWhenOnlySslConfigured() {
+    void shouldReturnRedisClientOptionsWithTrustAllEnabledByDefault() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
-        assertThat(options.getNetClientOptions()).isNotNull();
-        assertThat(options.getNetClientOptions().isTrustAll()).isTrue();
+        assertThat(options.getSsl()).isNotNull();
+        assertThat(options.getSsl().isTrustAll()).isTrue();
     }
 
     @Test
-    void shouldReturnRedisOptionsWithTCPTimeouts() {
+    void shouldReturnRedisClientOptionsWithTCPTimeouts() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.tcp.connectTimeout", "1234");
         environment.setProperty(PROPERTY_PREFIX + ".redis.tcp.idleTimeout", "5678");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
-        assertThat(options.getNetClientOptions()).isNotNull();
-        assertThat(options.getNetClientOptions().getConnectTimeout()).isEqualTo(1234);
-        assertThat(options.getNetClientOptions().getIdleTimeout()).isEqualTo(5678);
+        assertThat(options).isNotNull();
+        assertThat(options.getConnectTimeout()).isEqualTo(1234);
+        assertThat(options.getIdleTimeout()).isEqualTo(5678);
     }
 
     @Test
-    void shouldReturnRedisOptionsWithUsernameAndPassword() {
+    void shouldReturnRedisClientOptionsWithUsernameAndPassword() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.username", "testuser");
         environment.setProperty(PROPERTY_PREFIX + ".redis.password", "testpass");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getEndpoint()).isEqualTo("redis://testuser:testpass@redis:6379");
+        assertThat(options.getUsername()).isEqualTo("testuser");
+        assertThat(options.getPassword()).isEqualTo("testpass");
     }
 
     @Test
-    void shouldReturnRedisOptionsWithOnlyPassword() {
+    void shouldReturnRedisClientOptionsWithOnlyPassword() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.password", "testpass");
 
-        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
 
         assertThat(options).isNotNull();
-        assertThat(options.getEndpoint()).isEqualTo("redis://:testpass@redis:6379");
+        assertThat(options.getPassword()).isEqualTo("testpass");
+        assertThat(options.getUsername()).isNull();
     }
 }
