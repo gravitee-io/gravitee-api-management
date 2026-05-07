@@ -1,0 +1,76 @@
+{
+  "id": "failing-request",
+  "name": "failing-request",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "native",
+  "listeners": [
+    {
+      "type": "kafka",
+      "host": "foo",
+      "port": 19092,
+      "entrypoints": [
+        {
+          "type": "native-kafka",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "native-kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "native-kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "security": {
+              "protocol": "PLAINTEXT",
+              "sasl": {
+                "mechanism": {
+                  "type": "NONE"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "default-plan",
+      "name": "default-plan",
+      "security": {
+        "type": "key-less"
+      },
+      "mode": "STANDARD",
+      "status": "PUBLISHED",
+      "flows": []
+    }
+  ],
+  "flows": [
+    {
+      "name": "always-fail",
+      "enabled": true,
+      "interact": [
+        {
+          "name": "always fail",
+          "enabled": true,
+          "policy": "kafka-failing-request"
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": true,
+    "reporterMetricsEnabled": true
+  }
+}
