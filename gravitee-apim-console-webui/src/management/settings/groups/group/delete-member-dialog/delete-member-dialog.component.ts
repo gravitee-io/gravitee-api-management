@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, computed, Inject, OnInit, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -29,10 +29,15 @@ import { MatListModule } from '@angular/material/list';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
-import { GroupMembership } from '../../../../../entities/group/groupMember';
+import { GroupMembership, GroupMembershipMemberRoleEntity } from '../../../../../entities/group/groupMember';
 import { Member, RoleName } from '../membershipState';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { DeleteMemberDialogData } from '../group.component';
+
+const SCOPE_LABELS: Readonly<Record<'API' | 'API_PRODUCT', string>> = {
+  API: 'API',
+  API_PRODUCT: 'API Product',
+};
 
 @Component({
   selector: 'delete-member-dialog',
@@ -64,6 +69,8 @@ export class DeleteMemberDialogComponent implements OnInit {
   }>;
   ownershipTransferMessage: string = null;
   disableSubmit = false;
+  readonly primaryOwnerScopes = signal<('API' | 'API_PRODUCT')[]>([]);
+  readonly isPrimaryOwner = computed(() => this.primaryOwnerScopes().length > 0);
 
   private members: Member[] = [];
   private primaryOwnerMembership: GroupMembership = null;
@@ -83,15 +90,17 @@ export class DeleteMemberDialogComponent implements OnInit {
   private initializeDataFromInput() {
     this.member = this.data.member;
     this.members = this.data.members;
+    this.primaryOwnerScopes.set(
+      (['API', 'API_PRODUCT'] as ('API' | 'API_PRODUCT')[]).filter(scope => this.member.roles[scope] === RoleName.PRIMARY_OWNER),
+    );
   }
 
   private initializeForm() {
     this.deleteMemberForm = new FormGroup({
       searchTerm: new FormControl<string>({ value: '', disabled: true }),
     });
-    const isPrimaryOwner = this.member.roles['API'] === RoleName.PRIMARY_OWNER;
 
-    if (isPrimaryOwner) {
+    if (this.isPrimaryOwner()) {
       this.deleteMemberForm.controls.searchTerm.enable();
       this.deleteMemberForm.controls.searchTerm.addValidators(Validators.required);
       this.disableSubmit = true;
@@ -125,7 +134,10 @@ export class DeleteMemberDialogComponent implements OnInit {
     this.deleteMemberForm.controls.searchTerm.setValue('');
     this.deleteMemberForm.controls.searchTerm.disable();
     this.deleteMemberForm.controls.searchTerm.removeValidators(Validators.required);
-    this.ownershipTransferMessage = `${this.member.displayName} is the API primary owner. Primary ownership of the group will be transferred from ${this.member.displayName} to ${this.newPrimaryOwner.displayName}.`;
+    const scopesLabel = this.primaryOwnerScopes()
+      .map(scope => SCOPE_LABELS[scope])
+      .join(' and ');
+    this.ownershipTransferMessage = `${this.member.displayName} is the ${scopesLabel} primary owner. Primary ownership of the group will be transferred from ${this.member.displayName} to ${this.newPrimaryOwner.displayName}.`;
     this.mapGroupMembership();
     this.disableSubmit = false;
   }
@@ -144,23 +156,24 @@ export class DeleteMemberDialogComponent implements OnInit {
     this.usersService.search(this.newPrimaryOwner.displayName).subscribe({
       next: response => {
         const reference = response.find(user => user.id === this.newPrimaryOwner.id).reference;
+        const roles: GroupMembershipMemberRoleEntity[] = [];
+        for (const [scope, name] of Object.entries(this.newPrimaryOwner.roles)) {
+          if (name) {
+            roles.push({ name: name as string, scope: scope as GroupMembershipMemberRoleEntity['scope'] });
+          }
+        }
+        for (const scope of this.primaryOwnerScopes()) {
+          const existing = roles.find(role => role.scope === scope);
+          if (existing) {
+            existing.name = RoleName.PRIMARY_OWNER;
+          } else {
+            roles.push({ name: RoleName.PRIMARY_OWNER, scope });
+          }
+        }
         this.primaryOwnerMembership = {
           id: this.newPrimaryOwner.id,
           reference: reference,
-          roles: [
-            {
-              name: RoleName.PRIMARY_OWNER,
-              scope: 'API',
-            },
-            {
-              name: this.newPrimaryOwner.roles['APPLICATION'],
-              scope: 'APPLICATION',
-            },
-            {
-              name: this.newPrimaryOwner.roles['INTEGRATION'],
-              scope: 'INTEGRATION',
-            },
-          ],
+          roles,
         };
       },
     });

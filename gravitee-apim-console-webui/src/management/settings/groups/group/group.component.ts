@@ -574,7 +574,7 @@ export class GroupComponent implements OnInit {
   }
 
   private handleOwnershipTransfer(member: Member, dialogResult: DeleteMemberDialogResult): Observable<void> {
-    if (member.roles['API'] === RoleName.PRIMARY_OWNER) {
+    if (member.roles['API'] === RoleName.PRIMARY_OWNER || member.roles['API_PRODUCT'] === RoleName.PRIMARY_OWNER) {
       return this.groupService.addOrUpdateMemberships(this.groupId, [dialogResult.primaryOwnerMembership]).pipe(
         tap(() => {
           this.snackBarService.success('Successfully transferred the ownership.');

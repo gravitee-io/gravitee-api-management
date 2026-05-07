@@ -1141,6 +1141,183 @@ describe('GroupComponent', () => {
     });
   });
 
+  describe('Transfer of Primary Ownership via Delete Member dialog', () => {
+    const TWO_MEMBER_ROSTER = (poScope: 'API' | 'API_PRODUCT' | 'BOTH'): Member[] => {
+      const baseRoles = { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' };
+      const targetRoles =
+        poScope === 'API'
+          ? { ...baseRoles, API: 'PRIMARY_OWNER' }
+          : poScope === 'API_PRODUCT'
+            ? { ...baseRoles, API_PRODUCT: 'PRIMARY_OWNER' }
+            : { ...baseRoles, API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER' };
+      return [
+        { id: '1', displayName: 'Test Member 1', roles: targetRoles },
+        { id: '2', displayName: 'Test Member 2', roles: { ...baseRoles } },
+      ];
+    };
+
+    const openDeleteDialogForFirstRow = async () => {
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const deleteButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Remove member from group"]' }));
+      await deleteButton.click();
+      return rootLoader.getHarness(MatDialogHarness);
+    };
+
+    const pickSuccessor = async (displayName: string) => {
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      await autoCompleteHarness.enterText(displayName);
+      const successors = await autoCompleteHarness.getOptions();
+      await successors[0].click();
+    };
+
+    it('should expose the search field and transfer API primary ownership when removing the API primary owner', async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers(TWO_MEMBER_ROSTER('API'));
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+
+      const dialogHarness = await openDeleteDialogForFirstRow();
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      expect(autoCompleteHarness).toBeTruthy();
+
+      await pickSuccessor('Test Member 2');
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmButtonHarness.click();
+
+      expectDeleteMember('1');
+
+      const transferReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(transferReq.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      transferReq.flush({});
+    });
+
+    it('should expose the search field and transfer API Product primary ownership when removing the API Product primary owner', async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers(TWO_MEMBER_ROSTER('API_PRODUCT'));
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+
+      const dialogHarness = await openDeleteDialogForFirstRow();
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      expect(autoCompleteHarness).toBeTruthy();
+
+      await pickSuccessor('Test Member 2');
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmButtonHarness.click();
+
+      expectDeleteMember('1');
+
+      const transferReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(transferReq.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      transferReq.flush({});
+    });
+
+    it('should transfer both API and API Product primary ownership in one update when removing a dual primary owner', async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers(TWO_MEMBER_ROSTER('BOTH'));
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+
+      const dialogHarness = await openDeleteDialogForFirstRow();
+      await pickSuccessor('Test Member 2');
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmButtonHarness.click();
+
+      expectDeleteMember('1');
+
+      const transferReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+      expect(transferReq.request.body).toEqual([
+        {
+          id: '2',
+          reference: 'testmember2',
+          roles: [
+            { name: 'PRIMARY_OWNER', scope: 'API' },
+            { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            { name: 'OWNER', scope: 'INTEGRATION' },
+            { name: 'USER', scope: 'CLUSTER' },
+          ],
+        },
+      ]);
+      transferReq.flush({});
+    });
+
+    it('should not show the search field nor issue a transfer when the member is not a primary owner', async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+
+      const dialogHarness = await openDeleteDialogForFirstRow();
+      const autoCompletes = await dialogHarness.getAllHarnesses(MatAutocompleteHarness);
+      expect(autoCompletes).toEqual([]);
+
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmButtonHarness.click();
+
+      expectDeleteMember('1');
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
+        method: 'POST',
+      });
+    });
+  });
+
   describe('Invitations', () => {
     beforeEach(async () => {
       await init(GROUP.id);
@@ -1914,10 +2091,11 @@ describe('GroupComponent', () => {
   }
 
   function expectDeleteMember(memberId: string) {
-    httpTestingController.expectOne({
+    const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members/${memberId}`,
       method: 'DELETE',
     });
+    req.flush({});
   }
 
   function expectPostInvitation() {
