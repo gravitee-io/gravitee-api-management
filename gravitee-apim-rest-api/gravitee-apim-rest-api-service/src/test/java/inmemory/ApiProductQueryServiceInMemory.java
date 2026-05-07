@@ -96,6 +96,24 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
     }
 
     @Override
+    public Set<String> findIdsByEnvironmentIdAndGroups(String environmentId, Set<String> groupIds) {
+        if (groupIds == null || groupIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<String> result = new HashSet<>();
+        for (ApiProduct apiProduct : storage) {
+            if (
+                Objects.equals(environmentId, apiProduct.getEnvironmentId()) &&
+                apiProduct.getGroups() != null &&
+                apiProduct.getGroups().stream().anyMatch(groupIds::contains)
+            ) {
+                result.add(apiProduct.getId());
+            }
+        }
+        return result;
+    }
+
+    @Override
     public Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds) {
         Map<String, Set<ApiProduct>> result = new HashMap<>();
         if (apiIds == null || apiIds.isEmpty()) {

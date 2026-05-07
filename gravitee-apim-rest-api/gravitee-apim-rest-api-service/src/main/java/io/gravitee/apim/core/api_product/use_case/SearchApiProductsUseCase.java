@@ -16,10 +16,9 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
-import io.gravitee.apim.core.membership.model.Membership;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -34,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class SearchApiProductsUseCase {
 
     private final ApiProductSearchQueryService apiProductSearchQueryService;
-    private final MembershipQueryService membershipQueryService;
+    private final ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
 
     public Output execute(Input input) {
         if (input.isAdmin()) {
@@ -48,11 +47,7 @@ public class SearchApiProductsUseCase {
     }
 
     private Optional<Set<String>> findAccessibleApiProductIds(Input input) {
-        Set<String> allowedIds = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(input.userId(), Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
+        Set<String> allowedIds = apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(input.environmentId(), input.userId());
         if (allowedIds.isEmpty()) {
             return Optional.empty();
         }

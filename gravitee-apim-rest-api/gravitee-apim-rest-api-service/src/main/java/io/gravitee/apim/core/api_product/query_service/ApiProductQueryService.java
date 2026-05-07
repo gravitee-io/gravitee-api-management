@@ -30,4 +30,5 @@ public interface ApiProductQueryService {
     Set<ApiProduct> findByApiId(String apiId);
     Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
     Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable);
+    Set<String> findIdsByEnvironmentIdAndGroups(String environmentId, Set<String> groupIds);
 }

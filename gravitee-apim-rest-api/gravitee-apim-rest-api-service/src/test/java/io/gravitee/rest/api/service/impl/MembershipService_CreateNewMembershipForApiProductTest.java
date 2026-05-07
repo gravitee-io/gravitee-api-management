@@ -31,8 +31,10 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -98,6 +100,9 @@ class MembershipService_CreateNewMembershipForApiProductTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
+
     @BeforeEach
     void setUp() {
         reset(membershipRepository, apiSearchService, userService, auditService, roleService, identityService);
@@ -116,6 +121,7 @@ class MembershipService_CreateNewMembershipForApiProductTest {
             apiSearchService,
             null,
             null,
+            apiProductsRepository,
             null,
             auditService,
             null,
@@ -129,6 +135,17 @@ class MembershipService_CreateNewMembershipForApiProductTest {
         );
 
         mockRole();
+        mockApiProductLookup();
+    }
+
+    private void mockApiProductLookup() {
+        try {
+            ApiProduct apiProduct = new ApiProduct();
+            apiProduct.setId(API_PRODUCT_ID);
+            lenient().when(apiProductsRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(apiProduct));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

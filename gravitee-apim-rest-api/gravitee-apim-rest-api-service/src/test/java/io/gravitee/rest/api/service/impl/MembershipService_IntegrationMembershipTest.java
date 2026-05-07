@@ -141,6 +141,7 @@ public class MembershipService_IntegrationMembershipTest {
             null,
             apiRepository,
             null,
+            null,
             auditService,
             null,
             integrationRepository,

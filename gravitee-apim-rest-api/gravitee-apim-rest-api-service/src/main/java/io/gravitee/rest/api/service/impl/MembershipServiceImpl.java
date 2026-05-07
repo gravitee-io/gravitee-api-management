@@ -28,11 +28,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.CommandRepository;
@@ -88,6 +90,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
+import io.gravitee.rest.api.service.exceptions.ApiProductOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
@@ -170,6 +173,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     private final ApiRepository apiRepository;
 
+    private final ApiProductsRepository apiProductsRepository;
+
     private final ApplicationRepository applicationRepository;
 
     private final EventManager eventManager;
@@ -201,6 +206,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired ApiSearchService apiSearchService,
         @Autowired @Lazy ApiGroupService apiGroupService,
         @Autowired @Lazy ApiRepository apiRepository,
+        @Autowired @Lazy ApiProductsRepository apiProductsRepository,
         @Autowired @Lazy GroupService groupService,
         @Autowired AuditService auditService,
         @Autowired ParameterService parameterService,
@@ -225,6 +231,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.apiSearchService = apiSearchService;
         this.apiGroupService = apiGroupService;
         this.apiRepository = apiRepository;
+        this.apiProductsRepository = apiProductsRepository;
         this.groupService = groupService;
         this.auditService = auditService;
         this.parameterService = parameterService;
@@ -1572,6 +1579,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .findById(referenceId)
                     .orElseThrow(() -> new ApiNotFoundException(referenceId))
                     .getGroups();
+                case API_PRODUCT -> apiProductsRepository
+                    .findById(referenceId)
+                    .orElseThrow(() -> new ApiProductNotFoundException(referenceId))
+                    .getGroups();
                 case APPLICATION -> applicationRepository
                     .findById(referenceId)
                     .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
@@ -1625,18 +1636,25 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .collect(Collectors.toSet());
                 Map<String, RoleEntity> rolesById = roleService.findByIds(roleIds);
 
-                // Pre-fetch primary owner for API reference type (used in mapApiPrimaryOwnerRoleToGroupRole)
+                // Pre-fetch the reference's primary owner (only relevant for API and API_PRODUCT). It is used to
+                // tell whether the group itself is the PO of the reference, which decides whether a user holding
+                // the group's PRIMARY_OWNER role should resolve to PRIMARY_OWNER on the reference or be
+                // downgraded to the group's default role for that scope. Legacy API products may not yet have
+                // a PO assigned, so absence is treated as "no group is PO".
                 PrimaryOwnerEntity primaryOwner = null;
                 if (MembershipReferenceType.API.equals(referenceType)) {
                     primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), referenceId);
+                } else if (MembershipReferenceType.API_PRODUCT.equals(referenceType)) {
+                    primaryOwner = primaryOwnerService.getApiProductPrimaryOwner(executionContext.getOrganizationId(), referenceId);
                 }
 
-                // Batch fetch groups that have API Primary Owner role
+                // Batch fetch groups whose user-membership role is a PRIMARY_OWNER role for the requested scope
+                // (API or API_PRODUCT). For other scopes this set is empty and the group lookup is skipped.
                 Set<String> groupIdsWithPrimaryOwnerRole = groupMemberships
                     .stream()
                     .filter(m -> {
                         RoleEntity role = rolesById.get(m.getRoleId());
-                        return role != null && role.isApiPrimaryOwner();
+                        return role != null && (role.isApiPrimaryOwner() || role.isApiProductPrimaryOwner());
                     })
                     .map(io.gravitee.repository.management.model.Membership::getReferenceId)
                     .collect(Collectors.toSet());
@@ -1660,15 +1678,27 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         .map(entry -> {
                             RoleEntity role = entry.getValue();
                             String groupId = entry.getKey();
-                            return role.isApiPrimaryOwner()
-                                ? mapApiPrimaryOwnerRoleToGroupRole(
+                            if (role.isApiPrimaryOwner()) {
+                                return mapPrimaryOwnerRoleToGroupRole(
                                     executionContext,
                                     finalPrimaryOwner,
                                     groupsById.get(groupId),
                                     groupId,
-                                    role
-                                )
-                                : role;
+                                    role,
+                                    RoleScope.API
+                                );
+                            }
+                            if (role.isApiProductPrimaryOwner()) {
+                                return mapPrimaryOwnerRoleToGroupRole(
+                                    executionContext,
+                                    finalPrimaryOwner,
+                                    groupsById.get(groupId),
+                                    groupId,
+                                    role,
+                                    RoleScope.API_PRODUCT
+                                );
+                            }
+                            return role;
                         })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet())
@@ -1690,25 +1720,32 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(
+    /**
+     * If the user's group holds the {@link SystemRole#PRIMARY_OWNER} role for the given scope but the
+     * group itself is not the reference's primary owner, fall back to the group's default role for
+     * that scope. Otherwise (group IS the PO) keep the PRIMARY_OWNER role. Used for both API and
+     * API_PRODUCT permission resolution paths.
+     */
+    private RoleEntity mapPrimaryOwnerRoleToGroupRole(
         ExecutionContext executionContext,
-        PrimaryOwnerEntity apiPrimaryOwner,
+        PrimaryOwnerEntity primaryOwner,
         GroupEntity userGroup,
         String groupId,
-        RoleEntity role
+        RoleEntity role,
+        RoleScope roleScope
     ) {
-        if (apiPrimaryOwner != null && apiPrimaryOwner.getId().equals(groupId)) {
+        if (primaryOwner != null && primaryOwner.getId().equals(groupId)) {
             return role;
         }
 
-        if (userGroup == null) {
+        if (userGroup == null || userGroup.getRoles() == null) {
             return null;
         }
 
-        String groupApiRole = userGroup.getRoles().get(RoleScope.API);
-        return groupApiRole == null
+        String groupDefaultRoleName = userGroup.getRoles().get(roleScope);
+        return groupDefaultRoleName == null
             ? null
-            : roleService.findByScopeAndName(RoleScope.API, groupApiRole, executionContext.getOrganizationId()).orElse(null);
+            : roleService.findByScopeAndName(roleScope, groupDefaultRoleName, executionContext.getOrganizationId()).orElse(null);
     }
 
     private Map<String, char[]> computeGlobalPermissions(Set<RoleEntity> userRoles) {
@@ -1952,6 +1989,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipMember newOwnerMember,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
+        if (
+            newOwnerMember.getMemberType() == MembershipMemberType.GROUP &&
+            membershipReferenceType == MembershipReferenceType.API_PRODUCT &&
+            !this.hasPrimaryOwnerMemberInGroup(executionContext, newOwnerMember.getMemberId(), roleScope)
+        ) {
+            throw new ApiProductOwnershipTransferException(itemId);
+        }
+
         List<RoleEntity> newRoles;
         if (newPrimaryOwnerRoles == null || newPrimaryOwnerRoles.isEmpty()) {
             newRoles = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), roleScope);
@@ -2244,9 +2289,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private boolean hasApiPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId) {
+        return this.hasPrimaryOwnerMemberInGroup(executionContext, groupId, RoleScope.API);
+    }
+
+    private boolean hasPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId, RoleScope roleScope) {
         return this.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
             .stream()
-            .anyMatch(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner));
+            .anyMatch(member ->
+                member
+                    .getRoles()
+                    .stream()
+                    .anyMatch(role -> role.getScope() == roleScope && PRIMARY_OWNER.name().equals(role.getName()))
+            );
     }
 
     public void invalidateRoleCacheAndSendCommand(

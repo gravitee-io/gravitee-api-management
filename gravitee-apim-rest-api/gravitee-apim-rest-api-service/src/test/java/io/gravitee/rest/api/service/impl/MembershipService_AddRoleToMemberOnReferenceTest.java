@@ -129,6 +129,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             apiSearchService,
             null,
             apiRepository,
+            null,
             groupService,
             auditService,
             parameterService,

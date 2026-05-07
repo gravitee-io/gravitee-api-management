@@ -57,6 +57,10 @@ public class RoleEntity {
         return scope == RoleScope.API && SystemRole.PRIMARY_OWNER.name().equals(name);
     }
 
+    public boolean isApiProductPrimaryOwner() {
+        return scope == RoleScope.API_PRODUCT && SystemRole.PRIMARY_OWNER.name().equals(name);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -23,6 +23,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -144,6 +145,26 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
             return new Page<>(content, pageable.getPageNumber(), content.size(), page.getTotalElements());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to search API Products by ids", e);
+        }
+    }
+
+    @Override
+    public Set<String> findIdsByEnvironmentIdAndGroups(String environmentId, Set<String> groupIds) {
+        if (groupIds == null || groupIds.isEmpty()) {
+            return Set.of();
+        }
+        try {
+            log.debug("Finding API Product ids in environment {} attached to groups {}", environmentId, groupIds);
+            ApiProductCriteria criteria = new ApiProductCriteria.Builder().environmentId(environmentId).groups(groupIds).build();
+            Page<String> page = apiProductRepository.searchIds(
+                List.of(criteria),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
+                null
+            );
+            List<String> content = page.getContent();
+            return content == null ? Set.of() : new HashSet<>(content);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to find API Products by groups", e);
         }
     }
 

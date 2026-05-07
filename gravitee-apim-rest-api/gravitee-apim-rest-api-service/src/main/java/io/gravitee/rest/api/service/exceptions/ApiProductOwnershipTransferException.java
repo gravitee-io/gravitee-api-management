@@ -20,36 +20,31 @@ import static java.util.Collections.singletonMap;
 import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
 
-public class PrimaryOwnerNotFoundException extends AbstractManagementException {
+public class ApiProductOwnershipTransferException extends AbstractManagementException {
 
-    private final String api;
+    private final String apiProductId;
 
-    public PrimaryOwnerNotFoundException(String api) {
-        this.api = api;
-    }
-
-    public PrimaryOwnerNotFoundException(String api, Throwable cause) {
-        super(cause);
-        this.api = api;
+    public ApiProductOwnershipTransferException(String apiProductId) {
+        this.apiProductId = apiProductId;
     }
 
     @Override
     public int getHttpStatusCode() {
-        return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
     public String getMessage() {
-        return "Primary owner not found for API [" + api + "]";
+        return "Api Product [" + apiProductId + "] transfer not allowed.";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "primaryOwner.notFound";
+        return "apiProduct.transferNotAllowed";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("api", api);
+        return singletonMap("apiProduct", apiProductId);
     }
 }

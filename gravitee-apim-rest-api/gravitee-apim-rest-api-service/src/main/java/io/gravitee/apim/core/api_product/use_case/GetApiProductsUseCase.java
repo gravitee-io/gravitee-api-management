@@ -18,15 +18,14 @@ package io.gravitee.apim.core.api_product.use_case;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
-import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.EventType;
@@ -48,7 +47,7 @@ public class GetApiProductsUseCase {
     private final EventLatestQueryService eventLatestQueryService;
     private final PlanQueryService planQueryService;
     private final ObjectMapper objectMapper;
-    private final MembershipQueryService membershipQueryService;
+    private final ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
 
     public Output execute(Input input) {
         if (input.apiProductId() != null) {
@@ -76,11 +75,7 @@ public class GetApiProductsUseCase {
         if (input.isAdmin()) {
             return apiProductQueryService.findByEnvironmentId(input.environmentId());
         }
-        Set<String> allowedIds = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(input.userId(), Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
+        Set<String> allowedIds = apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(input.environmentId(), input.userId());
         if (allowedIds.isEmpty()) {
             return Set.of();
         }

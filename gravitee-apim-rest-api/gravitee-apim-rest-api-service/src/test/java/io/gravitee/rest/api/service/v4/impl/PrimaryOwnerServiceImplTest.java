@@ -94,7 +94,8 @@ public class PrimaryOwnerServiceImplTest {
             groupService,
             parameterService,
             roleService,
-            primaryOwnerDomainService
+            primaryOwnerDomainService,
+            null
         );
     }
 

@@ -79,6 +79,7 @@ public class MembershipService_GetUserMemberTest {
             null,
             null,
             null,
+            null,
             null
         );
     }
