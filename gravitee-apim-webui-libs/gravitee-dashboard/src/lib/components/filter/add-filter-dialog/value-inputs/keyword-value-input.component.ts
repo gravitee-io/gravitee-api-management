@@ -134,7 +134,7 @@ interface KeywordOption {
                   </mat-option>
                 }
               } @else if (!panel.loading) {
-                <mat-option disabled>No matching values</mat-option>
+                <mat-option disabled>{{ searchControl.value ? 'No matching values' : 'Type to search…' }}</mat-option>
               }
             }
           </mat-autocomplete>
@@ -162,7 +162,9 @@ interface KeywordOption {
                 }
               </div>
             } @else if (!panel.loading) {
-              <div class="gd-keyword-values-overlay__hint gd-keyword-values-overlay__hint--muted">No matching values</div>
+              <div class="gd-keyword-values-overlay__hint gd-keyword-values-overlay__hint--muted">
+                {{ searchControl.value ? 'No matching values' : 'Type to search…' }}
+              </div>
             }
           </div>
         </ng-template>
@@ -353,6 +355,9 @@ export class KeywordValueInputComponent {
     } else {
       current.push(value);
       this.updateLabels([{ value, label: option.label }]);
+      // Clear the search input after selecting an option so the typed text
+      // doesn't linger next to the newly added chip.
+      this.clearSearchInputAfterPick();
     }
     this.emitSelection(current);
     this.changeDetectorRef.markForCheck();
@@ -452,15 +457,21 @@ export class KeywordValueInputComponent {
   }
 
   private clearSearchInputAfterPick(): void {
-    if (this.searchControl.value) {
-      this.searchControl.setValue('');
-    } else {
-      this.searchControl.setValue('', { emitEvent: false });
-    }
-    const input = this.valueInput()?.nativeElement;
-    if (input) {
-      input.value = '';
-    }
+    // Suppress emitEvent so the FormControl change doesn't trigger a new search fetch.
+    this.searchControl.setValue('', { emitEvent: false });
+    // Use queueMicrotask so the native-input clear runs AFTER any synchronous
+    // value writes by the framework. For the mat-autocomplete path, Material's
+    // _setTriggerValue() re-writes the selected option label into the <input>
+    // synchronously after (optionSelected) fires — the microtask ensures we
+    // overwrite that value last. For the CDK-overlay multi-select path there
+    // is no _setTriggerValue call, so the microtask is harmless but keeps a
+    // single clear code-path for both flows.
+    queueMicrotask(() => {
+      const input = this.valueInput()?.nativeElement;
+      if (input) {
+        input.value = '';
+      }
+    });
   }
 
   private mergeUnique(current: KeywordOption[], incoming: KeywordOption[]): KeywordOption[] {

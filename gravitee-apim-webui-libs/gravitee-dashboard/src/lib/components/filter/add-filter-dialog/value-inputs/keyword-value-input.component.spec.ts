@@ -145,4 +145,58 @@ describe('KeywordValueInputComponent', () => {
     expect(getValuesSpy).toHaveBeenCalledTimes(2);
     expect(getValuesSpy).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
   }));
+
+  it('should clear the native input after selecting a value in multi-select mode (bug: leftover text)', fakeAsync(() => {
+    TestBed.resetTestingModule();
+    const data = makeItems('api', 3);
+    configureBed(() => of({ data, hasNextPage: false }));
+
+    tick(200);
+    fixture.detectChanges();
+
+    const comp = fixture.componentInstance as unknown as {
+      searchControl: { value: string; setValue: (val: string, options?: { emitEvent?: boolean }) => void };
+      valueInput: () => { nativeElement?: HTMLInputElement } | undefined;
+      onMultiOptionClicked: (opt: { value: string; label: string }) => void;
+    };
+
+    // Simulate the user typing a search term
+    comp.searchControl.setValue('api', { emitEvent: false });
+    const inputEl = comp.valueInput()?.nativeElement as HTMLInputElement | undefined;
+    if (inputEl) inputEl.value = 'api';
+
+    // Pick an option via the CDK overlay path (multi-select)
+    comp.onMultiOptionClicked({ value: 'api-0', label: 'api 0' });
+    flushMicrotasks();
+
+    // Search input should be cleared after picking
+    expect(comp.searchControl.value).toBe('');
+    if (inputEl) expect(inputEl.value).toBe('');
+  }));
+
+  it('should NOT clear the search input when de-selecting a value in multi-select mode', fakeAsync(() => {
+    TestBed.resetTestingModule();
+    const data = makeItems('api', 3);
+    configureBed(() => of({ data, hasNextPage: false }));
+    fixture.componentRef.setInput('selectedValues', ['api-0']);
+
+    tick(200);
+    fixture.detectChanges();
+
+    const comp = fixture.componentInstance as unknown as {
+      searchControl: { value: string; setValue: (val: string, options?: { emitEvent?: boolean }) => void };
+      valueInput: () => { nativeElement?: HTMLInputElement } | undefined;
+      onMultiOptionClicked: (opt: { value: string; label: string }) => void;
+    };
+    comp.searchControl.setValue('api', { emitEvent: false });
+    const inputEl = comp.valueInput()?.nativeElement as HTMLInputElement | undefined;
+    if (inputEl) inputEl.value = 'api';
+
+    // De-select the already-selected value
+    comp.onMultiOptionClicked({ value: 'api-0', label: 'api 0' });
+    flushMicrotasks();
+
+    // Search input should be preserved on de-selection
+    expect(comp.searchControl.value).toBe('api');
+  }));
 });

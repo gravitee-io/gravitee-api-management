@@ -31,7 +31,7 @@ export interface FilterDefinition {
   apiTypes?: string[];
 }
 
-export const ID_BASED_FILTER_NAMES: ReadonlyArray<string> = ['API', 'APPLICATION', 'PLAN'];
+export const ID_BASED_FILTER_NAMES: ReadonlyArray<string> = ['API', 'APPLICATION', 'PLAN', 'API_PRODUCT'];
 
 /** Emitted by keyword-style value inputs: API ids plus parallel display labels. */
 export interface FilterValueSelection {

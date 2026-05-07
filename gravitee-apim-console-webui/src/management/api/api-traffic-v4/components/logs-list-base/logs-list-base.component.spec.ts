@@ -235,4 +235,28 @@ describe('LogsListBaseComponent', () => {
       expect(component.displayedColumns()).toEqual(['timestamp', 'method', 'status', 'api', 'actions']);
     });
   });
+
+  describe('loading state', () => {
+    it('should_display_loader_when_isLoading_is_true', () => {
+      fixture.componentRef.setInput('logs', []);
+      fixture.componentRef.setInput('pagination', defaultPagination);
+      fixture.componentRef.setInput('columns', defaultColumns);
+      fixture.componentRef.setInput('isLoading', true);
+      fixture.detectChanges();
+
+      const loader = fixture.nativeElement.querySelector('gio-loader');
+      expect(loader).toBeTruthy();
+    });
+
+    it('should_not_display_loader_when_isLoading_is_false', () => {
+      fixture.componentRef.setInput('logs', []);
+      fixture.componentRef.setInput('pagination', defaultPagination);
+      fixture.componentRef.setInput('columns', defaultColumns);
+      fixture.componentRef.setInput('isLoading', false);
+      fixture.detectChanges();
+
+      const loader = fixture.nativeElement.querySelector('gio-loader');
+      expect(loader).toBeFalsy();
+    });
+  });
 });

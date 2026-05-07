@@ -39,6 +39,7 @@ export class EnvLogsTableComponent {
   logs = input.required<EnvLog[]>();
   pagination = input.required<Pagination>();
   showAssetTypeColumn = input<boolean>(false);
+  isLoading = input<boolean>(false);
 
   paginationUpdated = output<GioTableWrapperPagination>();
 
