@@ -50,6 +50,24 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.node</groupId>
+			<artifactId>gravitee-node-vertx</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.node</groupId>
+			<artifactId>gravitee-node-logging</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-common-configurations</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- Runtime scope -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

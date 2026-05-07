@@ -491,7 +491,7 @@ class V2ToV4MigrationOperatorTest {
             v2Endpoint2.setWeight(5);
             v2Endpoint2.setInherit(false);
             String configJsonForEndpoint =
-                "{\"http\":{\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}]}";
+                "{\"http\":{\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}]}";
             v2Endpoint2.setConfiguration(configJsonForEndpoint);
             // Setup EndpointGroup
             EndpointGroup v2Group = new EndpointGroup();

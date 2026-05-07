@@ -15,21 +15,26 @@
  */
 package io.gravitee.repository.redis.common;
 
+import io.gravitee.node.vertx.client.redis.VertxRedisClientFactory;
+import io.gravitee.plugin.configurations.redis.HostAndPort;
+import io.gravitee.plugin.configurations.redis.RedisClientOptions;
+import io.gravitee.plugin.configurations.redis.RedisSentinelOptions;
+import io.gravitee.plugin.configurations.ssl.KeyStore;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
+import io.gravitee.plugin.configurations.ssl.TrustStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore;
+import io.gravitee.plugin.configurations.ssl.none.NoneKeyStore;
+import io.gravitee.plugin.configurations.ssl.none.NoneTrustStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
-import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.core.net.OpenSSLEngineOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
-import io.vertx.redis.client.RedisClientType;
-import io.vertx.redis.client.RedisOptions;
-import io.vertx.redis.client.RedisRole;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
@@ -47,7 +52,6 @@ public class RedisConnectionFactory {
     private final Map<String, String> scripts;
 
     private static final String SENTINEL_PARAMETER_PREFIX = "sentinel.";
-
     private static final String PASSWORD_PARAMETER = "password";
 
     private static final String STORE_FORMAT_JKS = "JKS";
@@ -67,27 +71,26 @@ public class RedisConnectionFactory {
     }
 
     public RedisClient createRedisClient() {
-        return new RedisClient(vertx, buildRedisOptions(), scripts);
+        RedisClientOptions options = buildRedisClientOptions();
+        VertxRedisClientFactory factory = new VertxRedisClientFactory(vertx);
+        return new RedisClient(vertx, factory, options, scripts);
     }
 
-    protected RedisOptions buildRedisOptions() {
-        final RedisOptions options = new RedisOptions();
+    protected RedisClientOptions buildRedisClientOptions() {
+        RedisClientOptions.RedisClientOptionsBuilder builder = RedisClientOptions.builder();
 
         boolean ssl = readPropertyValue(propertyPrefix + "ssl", boolean.class, false);
         String username = readPropertyValue(propertyPrefix + "username", String.class, null);
+        String password = readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class);
+
+        builder.host(readPropertyValue(propertyPrefix + "host", String.class, "localhost"));
+        builder.port(readPropertyValue(propertyPrefix + "port", int.class, 6379));
+        builder.username(username);
+        builder.password(password);
+        builder.useSsl(ssl);
 
         if (isSentinelEnabled()) {
-            // Sentinels + Redis master / replicas
             log.debug("Redis repository configured to use Sentinel connection");
-
-            options.setType(RedisClientType.SENTINEL);
-            List<HostAndPort> sentinelNodes = getSentinelNodes();
-
-            // Redis Password
-            String password = readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class);
-            sentinelNodes.forEach(hostAndPort ->
-                options.addConnectionString(hostAndPort.withPassword(password).withSsl(ssl).toConnectionString())
-            );
 
             String redisMaster = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master", String.class);
             if (!StringUtils.hasText(redisMaster)) {
@@ -95,149 +98,110 @@ public class RedisConnectionFactory {
                     "Incorrect Sentinel configuration : parameter '" + propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master' is mandatory!"
                 );
             }
-            options.setMasterName(redisMaster).setRole(RedisRole.MASTER);
 
-            // Sentinel Password
             String sentinelPassword = readPropertyValue(
                 propertyPrefix + SENTINEL_PARAMETER_PREFIX + PASSWORD_PARAMETER,
                 String.class,
                 null
             );
-            options.setPassword(sentinelPassword);
+
+            builder.sentinel(
+                RedisSentinelOptions.builder().masterId(redisMaster).password(sentinelPassword).nodes(getSentinelNodes()).build()
+            );
         } else {
-            // Standalone Redis
             log.debug("Redis repository configured to use standalone connection");
-
-            options.setType(RedisClientType.STANDALONE);
-
-            HostAndPort hostAndPort = HostAndPort.of(
-                readPropertyValue(propertyPrefix + "host", String.class, "localhost"),
-                readPropertyValue(propertyPrefix + "port", int.class, 6379)
-            )
-                .withUsername(username)
-                .withPassword(readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class))
-                .withSsl(ssl);
-
-            options.setConnectionString(hostAndPort.toConnectionString());
         }
 
-        // SSL
         if (ssl) {
             log.debug("Redis repository configured with ssl enabled");
-
-            boolean trustAll = readPropertyValue(propertyPrefix + "trustAll", boolean.class, true);
-            options.getNetClientOptions().setSsl(true);
-            options.getNetClientOptions().setTrustAll(trustAll);
-
-            String hostnameVerificationAlgorithm = readPropertyValue(
-                propertyPrefix + "hostnameVerificationAlgorithm",
-                String.class,
-                "NONE"
-            );
-            if ("NONE".equals(hostnameVerificationAlgorithm)) {
-                options.getNetClientOptions().setHostnameVerificationAlgorithm("");
-            } else {
-                options.getNetClientOptions().setHostnameVerificationAlgorithm(hostnameVerificationAlgorithm);
-            }
-
-            // TLS Protocols
-            options
-                .getNetClientOptions()
-                .setEnabledSecureTransportProtocols(
-                    StringUtils.commaDelimitedListToSet(
-                        StringUtils.trimAllWhitespace(readPropertyValue(propertyPrefix + "tlsProtocols", String.class, ""))
-                    )
-                );
-
-            // TLS Ciphers
-            StringUtils.commaDelimitedListToSet(readPropertyValue(propertyPrefix + "tlsCiphers", String.class, "")).forEach(cipherSuite ->
-                options.getNetClientOptions().addEnabledCipherSuite(cipherSuite.strip())
-            );
-
-            options.getNetClientOptions().setUseAlpn(readPropertyValue(propertyPrefix + "alpn", boolean.class, false));
-
-            if (readPropertyValue(propertyPrefix + "openssl", boolean.class, false)) {
-                options.getNetClientOptions().setSslEngineOptions(new OpenSSLEngineOptions());
-            }
-
-            if (!trustAll) {
-                // Client truststore configuration (trust server certificate).
-                configureTrustStore(options.getNetClientOptions());
-            } else {
-                log.warn("Redis repository configured with ssl and trustAll which is not a good practice for security");
-            }
-
-            // Client keystore configuration (client certificate for mtls).
-            configureKeyStore(options.getNetClientOptions());
+            builder.ssl(buildSslOptions());
         }
 
-        // Set max waiting handlers high enough to manage high throughput since we are not using the pooled mode
-        options.setMaxWaitingHandlers(1024);
+        builder.connectTimeout(readPropertyValue(propertyPrefix + "tcp.connectTimeout", int.class, 5000));
+        builder.idleTimeout(readPropertyValue(propertyPrefix + "tcp.idleTimeout", int.class, 0));
 
-        // Enforce timeouts with default ones if not defined.
-        options
-            .getNetClientOptions()
-            .setConnectTimeout(readPropertyValue(propertyPrefix + "tcp.connectTimeout", int.class, 5000))
-            .setIdleTimeout(readPropertyValue(propertyPrefix + "tcp.idleTimeout", int.class, 0))
-            .setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
-
-        return options;
+        return builder.build();
     }
 
-    private void configureTrustStore(NetClientOptions netClientOptions) {
+    private SslOptions buildSslOptions() {
+        SslOptions sslOptions = new SslOptions();
+        boolean trustAll = readPropertyValue(propertyPrefix + "trustAll", boolean.class, true);
+        sslOptions.setTrustAll(trustAll);
+
+        String hostnameVerificationAlgorithm = readPropertyValue(propertyPrefix + "hostnameVerificationAlgorithm", String.class, "NONE");
+        sslOptions.setHostnameVerificationAlgorithm(hostnameVerificationAlgorithm);
+        sslOptions.setHostnameVerifier(!"NONE".equalsIgnoreCase(hostnameVerificationAlgorithm));
+
+        String tlsProtocols = readPropertyValue(propertyPrefix + "tlsProtocols", String.class, "");
+        if (StringUtils.hasText(tlsProtocols)) {
+            sslOptions.setTlsProtocols(StringUtils.commaDelimitedListToSet(StringUtils.trimAllWhitespace(tlsProtocols)));
+        }
+
+        String tlsCiphers = readPropertyValue(propertyPrefix + "tlsCiphers", String.class, "");
+        if (StringUtils.hasText(tlsCiphers)) {
+            sslOptions.setTlsCiphers(new java.util.ArrayList<>(StringUtils.commaDelimitedListToSet(tlsCiphers)));
+        }
+
+        sslOptions.setAlpn(readPropertyValue(propertyPrefix + "alpn", boolean.class, false));
+        sslOptions.setOpenSsl(readPropertyValue(propertyPrefix + "openssl", boolean.class, false));
+
+        if (!trustAll) {
+            sslOptions.setTrustStore(buildTrustStore());
+        }
+
+        sslOptions.setKeyStore(buildKeyStore());
+
+        return sslOptions;
+    }
+
+    private TrustStore buildTrustStore() {
         String truststorePropertyPrefix = propertyPrefix + "truststore.";
         String truststorePath = readPropertyValue(truststorePropertyPrefix + "path", String.class);
         String truststoreType = readPropertyValue(truststorePropertyPrefix + "type", String.class);
         String truststorePassword = readPropertyValue(truststorePropertyPrefix + "password", String.class);
         String truststoreAlias = readPropertyValue(truststorePropertyPrefix + "alias", String.class);
 
-        if (StringUtils.hasText(truststoreType)) {
-            switch (truststoreType.toUpperCase()) {
-                case STORE_FORMAT_PEM:
-                    final PemTrustOptions pemTrustOptions = new PemTrustOptions();
-
-                    if (StringUtils.hasText(truststorePath)) {
-                        pemTrustOptions.addCertPath(truststorePath);
-                    } else {
-                        throw new IllegalArgumentException("Missing PEM truststore value");
-                    }
-
-                    netClientOptions.setTrustOptions(pemTrustOptions);
-                    break;
-                case STORE_FORMAT_PKCS12:
-                    final PfxOptions pfxOptions = new PfxOptions();
-
-                    if (StringUtils.hasText(truststorePath)) {
-                        pfxOptions.setPath(truststorePath);
-                    } else {
-                        throw new IllegalArgumentException("Missing PKCS12 truststore value");
-                    }
-
-                    pfxOptions.setAlias(truststoreAlias);
-                    pfxOptions.setPassword(truststorePassword);
-                    netClientOptions.setTrustOptions(pfxOptions);
-                    break;
-                case STORE_FORMAT_JKS:
-                    final JksOptions jksOptions = new JksOptions();
-
-                    if (StringUtils.hasText(truststorePath)) {
-                        jksOptions.setPath(truststorePath);
-                    } else {
-                        throw new IllegalArgumentException("Missing JKS truststore value");
-                    }
-
-                    jksOptions.setAlias(truststoreAlias);
-                    jksOptions.setPassword(truststorePassword);
-                    netClientOptions.setTrustOptions(jksOptions);
-                    break;
-                default:
-                    log.error("Unknown type of Truststore provided {}", truststoreType);
-                    break;
-            }
+        if (!StringUtils.hasText(truststoreType)) {
+            return new NoneTrustStore();
         }
+
+        return switch (truststoreType.toUpperCase()) {
+            case STORE_FORMAT_PEM -> {
+                if (!StringUtils.hasText(truststorePath)) {
+                    throw new IllegalArgumentException("Missing PEM truststore value");
+                }
+                PEMTrustStore pemTrustStore = new PEMTrustStore();
+                pemTrustStore.setPath(truststorePath);
+                yield pemTrustStore;
+            }
+            case STORE_FORMAT_PKCS12 -> {
+                if (!StringUtils.hasText(truststorePath)) {
+                    throw new IllegalArgumentException("Missing PKCS12 truststore value");
+                }
+                PKCS12TrustStore pkcs12TrustStore = new PKCS12TrustStore();
+                pkcs12TrustStore.setPath(truststorePath);
+                pkcs12TrustStore.setAlias(truststoreAlias);
+                pkcs12TrustStore.setPassword(truststorePassword);
+                yield pkcs12TrustStore;
+            }
+            case STORE_FORMAT_JKS -> {
+                if (!StringUtils.hasText(truststorePath)) {
+                    throw new IllegalArgumentException("Missing JKS truststore value");
+                }
+                JKSTrustStore jksTrustStore = new JKSTrustStore();
+                jksTrustStore.setPath(truststorePath);
+                jksTrustStore.setAlias(truststoreAlias);
+                jksTrustStore.setPassword(truststorePassword);
+                yield jksTrustStore;
+            }
+            default -> {
+                log.error("Unknown type of Truststore provided {}", truststoreType);
+                yield new NoneTrustStore();
+            }
+        };
     }
 
-    private void configureKeyStore(NetClientOptions netClientOptions) {
+    private KeyStore buildKeyStore() {
         String keystorePropertyPrefix = propertyPrefix + "keystore.";
         String keystorePath = readPropertyValue(keystorePropertyPrefix + "path", String.class);
         String keystorePassword = readPropertyValue(keystorePropertyPrefix + "password", String.class);
@@ -245,63 +209,62 @@ public class RedisConnectionFactory {
         String keystoreType = readPropertyValue(keystorePropertyPrefix + "type", String.class);
         String keystoreAlias = readPropertyValue(keystorePropertyPrefix + "alias", String.class);
 
-        if (StringUtils.hasText(keystoreType)) {
-            switch (keystoreType.toUpperCase()) {
-                case STORE_FORMAT_PEM:
-                    final PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
-
-                    for (
-                        int idx = 0;
-                        StringUtils.hasText(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
-                        idx++
-                    ) {
-                        pemKeyCertOptions.addCertPath(
-                            readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class)
-                        );
-                        pemKeyCertOptions.addKeyPath(
-                            readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].key", String.class)
-                        );
-                    }
-
-                    if (pemKeyCertOptions.getCertPaths().isEmpty()) {
-                        throw new IllegalArgumentException("Missing PEM keystore value");
-                    }
-
-                    netClientOptions.setKeyCertOptions(pemKeyCertOptions);
-                    break;
-                case STORE_FORMAT_PKCS12:
-                    final PfxOptions pfxOptions = new PfxOptions();
-
-                    if (StringUtils.hasText(keystorePath)) {
-                        pfxOptions.setPath(keystorePath);
-                    } else {
-                        throw new IllegalArgumentException("Missing PKCS12 keystore value");
-                    }
-
-                    pfxOptions.setAlias(keystoreAlias);
-                    pfxOptions.setAliasPassword(keyPassword);
-                    pfxOptions.setPassword(keystorePassword);
-                    netClientOptions.setKeyCertOptions(pfxOptions);
-                    break;
-                case STORE_FORMAT_JKS:
-                    final JksOptions jksOptions = new JksOptions();
-
-                    if (StringUtils.hasText(keystorePath)) {
-                        jksOptions.setPath(keystorePath);
-                    } else {
-                        throw new IllegalArgumentException("Missing JKS keystore value");
-                    }
-
-                    jksOptions.setAlias(keystoreAlias);
-                    jksOptions.setAliasPassword(keyPassword);
-                    jksOptions.setPassword(keystorePassword);
-                    netClientOptions.setKeyCertOptions(jksOptions);
-                    break;
-                default:
-                    log.error("Unknown type of Keystore provided {}", keystoreType);
-                    break;
-            }
+        if (!StringUtils.hasText(keystoreType)) {
+            return new NoneKeyStore();
         }
+
+        return switch (keystoreType.toUpperCase()) {
+            case STORE_FORMAT_PEM -> {
+                List<String> certPaths = new ArrayList<>();
+                List<String> keyPaths = new ArrayList<>();
+                for (
+                    int idx = 0;
+                    StringUtils.hasText(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
+                    idx++
+                ) {
+                    certPaths.add(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
+                    keyPaths.add(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].key", String.class));
+                }
+                if (certPaths.isEmpty()) {
+                    throw new IllegalArgumentException("Missing PEM keystore value");
+                }
+                PEMKeyStore pemKeyStore = new PEMKeyStore();
+                if (certPaths.size() == 1) {
+                    pemKeyStore.setCertPath(certPaths.get(0));
+                    pemKeyStore.setKeyPath(keyPaths.get(0));
+                } else {
+                    pemKeyStore.setCertPaths(certPaths);
+                    pemKeyStore.setKeyPaths(keyPaths);
+                }
+                yield pemKeyStore;
+            }
+            case STORE_FORMAT_PKCS12 -> {
+                if (!StringUtils.hasText(keystorePath)) {
+                    throw new IllegalArgumentException("Missing PKCS12 keystore value");
+                }
+                PKCS12KeyStore pkcs12KeyStore = new PKCS12KeyStore();
+                pkcs12KeyStore.setPath(keystorePath);
+                pkcs12KeyStore.setAlias(keystoreAlias);
+                pkcs12KeyStore.setKeyPassword(keyPassword);
+                pkcs12KeyStore.setPassword(keystorePassword);
+                yield pkcs12KeyStore;
+            }
+            case STORE_FORMAT_JKS -> {
+                if (!StringUtils.hasText(keystorePath)) {
+                    throw new IllegalArgumentException("Missing JKS keystore value");
+                }
+                JKSKeyStore jksKeyStore = new JKSKeyStore();
+                jksKeyStore.setPath(keystorePath);
+                jksKeyStore.setAlias(keystoreAlias);
+                jksKeyStore.setKeyPassword(keyPassword);
+                jksKeyStore.setPassword(keystorePassword);
+                yield jksKeyStore;
+            }
+            default -> {
+                log.error("Unknown type of Keystore provided {}", keystoreType);
+                yield new NoneKeyStore();
+            }
+        };
     }
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType) {
@@ -327,59 +290,8 @@ public class RedisConnectionFactory {
         ) {
             String host = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
             int port = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
-            nodes.add(HostAndPort.of(host, port));
+            nodes.add(HostAndPort.builder().host(host).port(port).build());
         }
         return nodes;
-    }
-
-    private static class HostAndPort {
-
-        private final String host;
-        private final int port;
-        private String password;
-        private boolean useSsl;
-        private String username;
-
-        private HostAndPort(String host, int port) {
-            this.host = host;
-            this.port = port;
-        }
-
-        static HostAndPort of(String host, int port) {
-            return new HostAndPort(host, port);
-        }
-
-        public HostAndPort withPassword(String password) {
-            this.password = password;
-
-            return this;
-        }
-
-        public HostAndPort withUsername(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public HostAndPort withSsl(boolean useSsl) {
-            this.useSsl = useSsl;
-
-            return this;
-        }
-
-        public String toConnectionString() {
-            String connectionType = "redis";
-
-            if (useSsl) {
-                connectionType = "rediss";
-            }
-            if (StringUtils.hasText(username) && StringUtils.hasText(password)) {
-                log.debug("Redis repository configured with username and password");
-                return connectionType + "://" + username + ":" + password + '@' + host + ':' + port;
-            } else if (StringUtils.hasText(password)) {
-                return connectionType + "://:" + password + '@' + host + ':' + port;
-            } else {
-                return connectionType + "://" + host + ':' + port;
-            }
-        }
     }
 }
