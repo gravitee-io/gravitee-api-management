@@ -119,6 +119,24 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
     }
 
     @Override
+    public List<Group> findByHRIDs(String environmentId, Set<String> hrids) {
+        try {
+            log.debug("findByHRIDs {}", hrids);
+            if (CollectionUtils.isEmpty(hrids)) {
+                return List.of();
+            }
+            return groupRepository
+                .findByHridsAndEnvironmentId(hrids, environmentId)
+                .stream()
+                .map(GroupAdapter.INSTANCE::toModel)
+                .sorted(Comparator.comparing(Group::getName))
+                .toList();
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException("An error occurs while trying to find groups by hrids", ex);
+        }
+    }
+
+    @Override
     public Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable) {
         return groupRepository
             .search(GroupCriteria.builder().idIn(groupIds).build(), convert(pageable))

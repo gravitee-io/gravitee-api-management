@@ -85,31 +85,39 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         var givenGroups = new HashSet<>(input.groups());
 
         var groupsFromIds = groupQueryService.findByIds(givenGroups).stream().toList();
+        var groupsFromHRIDs = groupQueryService.findByHRIDs(input.environmentId(), givenGroups).stream().toList();
         var groupsFromNames = groupQueryService.findByNames(input.environmentId(), givenGroups).stream().toList();
 
         var groupIds = groupsFromIds.stream().map(Group::getId).collect(toSet());
+        var groupHRIDs = groupsFromHRIDs.stream().map(Group::getHrid).collect(toSet());
         var groupNames = groupsFromNames.stream().map(Group::getName).collect(toSet());
 
         var errors = new ArrayList<Error>();
 
         var noPrimaryOwnerResultFromIds = validateAndSanitizeNoPrimaryOwners(groupsFromIds, Group::getId);
+        var noPrimaryOwnerResultFromHRIDs = validateAndSanitizeNoPrimaryOwners(groupsFromHRIDs, Group::getHrid);
         var noPrimaryOwnerResultFromNames = validateAndSanitizeNoPrimaryOwners(groupsFromNames, Group::getName);
 
         noPrimaryOwnerResultFromIds.errors().ifPresent(errors::addAll);
+        noPrimaryOwnerResultFromHRIDs.errors().ifPresent(errors::addAll);
         noPrimaryOwnerResultFromNames.errors().ifPresent(errors::addAll);
 
         var sanitizedFromIds = noPrimaryOwnerResultFromIds.value().orElse(List.of());
+        var sanitizedFromHRIDs = noPrimaryOwnerResultFromHRIDs.value().orElse(List.of());
         var sanitizedFromNames = noPrimaryOwnerResultFromNames.value().orElse(List.of());
 
         if (DefinitionVersion.V2.getLabel().equals(input.definitionVersion)) {
             sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getName).toList());
+            sanitizedGroups.addAll(sanitizedFromHRIDs.stream().map(Group::getName).toList());
             sanitizedGroups.addAll(sanitizedFromNames.stream().map(Group::getName).toList());
         } else {
             sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getId).toList());
+            sanitizedGroups.addAll(sanitizedFromHRIDs.stream().map(Group::getId).toList());
             sanitizedGroups.addAll(sanitizedFromNames.stream().map(Group::getId).toList());
         }
 
         givenGroups.removeAll(groupIds);
+        givenGroups.removeAll(groupHRIDs);
         givenGroups.removeAll(groupNames);
 
         for (var unknownGroup : givenGroups) {

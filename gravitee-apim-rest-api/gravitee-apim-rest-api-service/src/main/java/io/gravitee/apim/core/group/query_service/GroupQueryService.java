@@ -29,6 +29,7 @@ public interface GroupQueryService {
     Set<Group> findByIds(Set<String> ids);
     Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
     List<Group> findByNames(String environmentId, Set<String> name);
+    List<Group> findByHRIDs(String environmentId, Set<String> hrids);
     Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable);
     Page<Group> searchByIds(Set<String> groupIds, String environmentId, Pageable pageable);
 }
