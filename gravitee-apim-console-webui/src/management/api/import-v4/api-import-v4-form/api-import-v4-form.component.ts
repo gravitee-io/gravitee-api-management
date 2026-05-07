@@ -178,16 +178,7 @@ export class ApiImportV4FormComponent {
 
   protected readonly allowedImportFileExtensions = computed((): string[] => {
     const format = this.importFormat();
-    switch (format) {
-      case 'wsdl':
-        return ['wsdl', 'xml'];
-      case 'openapi':
-        return ['yml', 'yaml'];
-      case 'gravitee':
-        return ['json'];
-      default:
-        return ['json'];
-    }
+    return format === 'wsdl' ? ['wsdl', 'xml'] : ['yml', 'yaml', 'json'];
   });
 
   protected readonly allowedImportFileExtensionsLabel = computed(() => this.allowedImportFileExtensions().join(', '));
