@@ -795,9 +795,7 @@ function shouldBuildBackend(changedFiles: string[]): boolean {
     'gravitee-apim-reporter',
     'gravitee-apim-repository',
     'gravitee-apim-rest-api',
-    'gravitee-gamma-module-apim',
-    'gravitee-gamma-plugin',
-    'gravitee-gamma-rest-api',
+    'gravitee-gamma',
   ];
   return (
     shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
