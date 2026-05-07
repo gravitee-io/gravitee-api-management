@@ -24,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -119,11 +120,14 @@ public class GetFilterValuesUseCase {
         boolean isIdBased = ID_BASED_FILTERS.contains(filterSpecName);
         boolean hasQuery = input.query() != null && !input.query().isBlank();
 
-        if (isIdBased && hasQuery) {
-            return handleIdBasedSearch(input, filterSpecName, analyticsContext);
-        }
-
         if (isIdBased) {
+            // API_PRODUCT IDs are not indexed in the analytics log records; always
+            // query the database so the browse-all path (no query) behaves identically
+            // to the with-query path. Other ID-based filters fall back to Elasticsearch
+            // when no query is present so callers see only values active in the log window.
+            if (filterSpecName == FilterSpec.Name.API_PRODUCT || hasQuery) {
+                return handleIdBasedSearch(input, filterSpecName, analyticsContext);
+            }
             return handleIdBasedNoSearch(input, filterSpecName, analyticsContext);
         }
 
@@ -131,23 +135,25 @@ public class GetFilterValuesUseCase {
     }
 
     private Output handleIdBasedSearch(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
+        boolean hasQuery = input.query() != null && !input.query().isBlank();
+        var lowerQuery = hasQuery ? input.query().toLowerCase() : null;
+
         if (filterSpecName == FilterSpec.Name.API) {
-            return searchApisByNameFromContext(input, analyticsContext);
+            return searchApisByNameFromContext(input, lowerQuery, analyticsContext);
         }
         if (filterSpecName == FilterSpec.Name.APPLICATION) {
-            return searchApplicationsByNameFromEnvironment(input);
+            return searchApplicationsByNameFromEnvironment(input, lowerQuery);
         }
         if (filterSpecName == FilterSpec.Name.PLAN) {
-            return searchPlansByNameFromAuthorizedApis(input, analyticsContext);
+            return searchPlansByNameFromAuthorizedApis(input, lowerQuery, analyticsContext);
         }
         if (filterSpecName == FilterSpec.Name.API_PRODUCT) {
-            return searchApiProductsByNameFromEnvironment(input);
+            return searchApiProductsByNameFromEnvironment(input, lowerQuery);
         }
         return new Output(new FilterValuesPage(Collections.emptyList(), null, 0L));
     }
 
-    private Output searchApisByNameFromContext(Input input, AnalyticsQueryContext analyticsContext) {
-        var lowerQuery = input.query().toLowerCase();
+    private Output searchApisByNameFromContext(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         var matching = analyticsContext
             .apiNamesById()
             .entrySet()
@@ -173,9 +179,8 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output searchApplicationsByNameFromEnvironment(Input input) {
+    private Output searchApplicationsByNameFromEnvironment(Input input, String lowerQuery) {
         var environmentId = input.auditInfo().environmentId();
-        var lowerQuery = input.query().toLowerCase();
         var matching = applicationQueryService
             .findByEnvironment(environmentId)
             .stream()
@@ -199,19 +204,21 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output searchApiProductsByNameFromEnvironment(Input input) {
+    private Output searchApiProductsByNameFromEnvironment(Input input, String lowerQuery) {
         var environmentId = input.auditInfo().environmentId();
-        var lowerQuery = input.query().toLowerCase();
-        var matching = apiProductQueryService
+
+        var stream = apiProductQueryService
             .findByEnvironmentId(environmentId)
             .stream()
-            .filter(ap -> ap.getName() != null && ap.getName().toLowerCase().contains(lowerQuery))
-            .sorted(
-                Comparator.comparing(
-                    io.gravitee.apim.core.api_product.model.ApiProduct::getName,
-                    String.CASE_INSENSITIVE_ORDER
-                ).thenComparing(io.gravitee.apim.core.api_product.model.ApiProduct::getId)
-            )
+            // Exclude products with no name — they cannot be meaningfully displayed.
+            .filter(ap -> ap.getName() != null);
+
+        if (lowerQuery != null) {
+            stream = stream.filter(ap -> ap.getName().toLowerCase().contains(lowerQuery));
+        }
+
+        var matching = stream
+            .sorted(Comparator.comparing(ApiProduct::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(ApiProduct::getId))
             .toList();
 
         var totalFiltered = (long) matching.size();
@@ -226,7 +233,7 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output searchPlansByNameFromAuthorizedApis(Input input, AnalyticsQueryContext analyticsContext) {
+    private Output searchPlansByNameFromAuthorizedApis(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         Objects.requireNonNull(analyticsContext);
         var environmentId = input.auditInfo().environmentId();
         var apiIds = analyticsContext.authorizedApiIds();
@@ -234,7 +241,6 @@ public class GetFilterValuesUseCase {
             return new Output(new FilterValuesPage(Collections.emptyList(), null, 0L));
         }
 
-        var lowerQuery = input.query().toLowerCase();
         var plans = planQueryService.findAllByApiIds(apiIds, Set.of(environmentId));
         var matching = plans
             .stream()

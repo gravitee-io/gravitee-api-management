@@ -39,6 +39,7 @@
       [pagination]="logs.pagination"
       [logs]="logs.data"
       [hasDlqConfigured]="hasDlqConfigured$ | async"
+      [isLoading]="loading"
       (logDetailsClicked)="onLogDetailsClicked($event)"
       (paginationUpdated)="paginationUpdated($event)"
     ></webhook-logs-list>

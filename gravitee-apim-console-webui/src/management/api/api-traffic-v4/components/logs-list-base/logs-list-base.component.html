@@ -69,10 +69,16 @@
 
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
       <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns().length">
-        <div class="table__empty-state">
-          <div class="mat-h3">No data to display</div>
-          <div>More data may be available. Try widening your timeframe or adjusting your filters.</div>
-        </div>
+        @if (isLoading()) {
+          <div class="table__empty-state">
+            <gio-loader></gio-loader>
+          </div>
+        } @else {
+          <div class="table__empty-state">
+            <div class="mat-h3">No data to display</div>
+            <div>More data may be available. Try widening your timeframe or adjusting your filters.</div>
+          </div>
+        }
       </td>
     </tr>
   </table>

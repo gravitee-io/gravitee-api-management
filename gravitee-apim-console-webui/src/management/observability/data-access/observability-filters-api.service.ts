@@ -75,7 +75,7 @@ export class ObservabilityFiltersApiService implements FilterDefinitionProvider,
   getValues(query: FilterValuesQuery): Observable<FilterValuesResult> {
     const url = `${this.constants.env?.v2BaseURL}/observability/filters/${encodeURIComponent(query.filterName)}/values`;
     let params = new HttpParams().set('page', String(query.page)).set('perPage', String(query.perPage));
-    if (query.query != null && query.query !== '') {
+    if (query.query) {
       params = params.set('query', query.query);
     }
     if (query.from != null) {

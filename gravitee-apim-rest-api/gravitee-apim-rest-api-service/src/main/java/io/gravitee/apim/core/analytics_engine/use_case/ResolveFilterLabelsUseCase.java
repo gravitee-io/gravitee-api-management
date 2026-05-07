@@ -38,7 +38,8 @@ public class ResolveFilterLabelsUseCase {
     private static final Set<FilterSpec.Name> RESOLVABLE_FILTERS = Set.of(
         FilterSpec.Name.API,
         FilterSpec.Name.APPLICATION,
-        FilterSpec.Name.PLAN
+        FilterSpec.Name.PLAN,
+        FilterSpec.Name.API_PRODUCT
     );
 
     private final FilterValueNameResolver filterValueNameResolver;

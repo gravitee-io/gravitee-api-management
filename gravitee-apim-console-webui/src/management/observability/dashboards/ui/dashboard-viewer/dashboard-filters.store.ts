@@ -278,7 +278,10 @@ function withPendingLabels(conditions: FilterCondition[]): FilterCondition[] {
 
 function mergeResolvedLabels(current: FilterCondition[], resolved: FilterCondition[]): FilterCondition[] {
   const resolvedLabelsByField = new Map<string, Map<string, string>>();
+  const fieldLabels = new Map<string, string>();
+
   resolved.forEach(condition => {
+    fieldLabels.set(condition.field, condition.label);
     const labelsByValue = resolvedLabelsByField.get(condition.field) ?? new Map<string, string>();
     condition.values.forEach((value, index) => {
       const label = condition.valueLabels?.[index];
@@ -291,11 +294,16 @@ function mergeResolvedLabels(current: FilterCondition[], resolved: FilterConditi
 
   return current.map(condition => {
     const labelsByValue = resolvedLabelsByField.get(condition.field);
-    if (!labelsByValue) return condition;
+    const resolvedFieldLabel = fieldLabels.get(condition.field);
+
+    if (!labelsByValue && !resolvedFieldLabel) return condition;
 
     return {
       ...condition,
-      valueLabels: condition.values.map((value, index) => labelsByValue.get(value) ?? condition.valueLabels?.[index] ?? value),
+      label: resolvedFieldLabel ?? condition.label,
+      valueLabels: labelsByValue
+        ? condition.values.map((value, index) => labelsByValue.get(value) ?? condition.valueLabels?.[index] ?? value)
+        : condition.valueLabels,
     };
   });
 }

@@ -22,6 +22,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
@@ -664,6 +665,46 @@ describe('EnvLogsComponent', () => {
       // Service omits filters key entirely when filter list is empty
       expect(req.request.body.filters).toBeUndefined();
       req.flush(EMPTY_RESPONSE);
+    }));
+
+    it('should pass timeRange from store to search request when timeframe changes', fakeAsync(() => {
+      initComponent();
+
+      store().periodControl.setValue({ period: '5m', from: null, to: null });
+      store().applyCustomTimeframe();
+      fixture.detectChanges();
+
+      // Snapshot the exact timeRange the store derives BEFORE tick so the
+      // relative "now" window is frozen to the same instant as the request.
+      const expectedTimeRange = store().timeRange();
+
+      tick(1);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.timeRange).toEqual({
+        from: expectedTimeRange.from,
+        to: expectedTimeRange.to,
+      });
+      req.flush(EMPTY_RESPONSE);
+    }));
+  });
+
+  describe('timeframe picker config', () => {
+    it('should configure timeframe selector with predefined and custom frames', fakeAsync(async () => {
+      initComponent();
+
+      // Query the rendered <mat-select> in gd-timeframe-selector and assert
+      // on the visible option labels — avoids coupling to the private `timeFrames` field.
+      // Label strings come from the timeFrames constant in timeframe-ranges.ts.
+      const select = await loader.getHarness(MatSelectHarness);
+      await select.open();
+      const options = await select.getOptions();
+      const optionTexts = await Promise.all(options.map(o => o.getText()));
+
+      expect(optionTexts.length).toBeGreaterThan(0);
+      // '1h' renders as 'Last hour', '5m' renders as 'Last 5 minutes'
+      expect(optionTexts).toContain('Last hour');
+      expect(optionTexts).toContain('Last 5 minutes');
     }));
   });
 

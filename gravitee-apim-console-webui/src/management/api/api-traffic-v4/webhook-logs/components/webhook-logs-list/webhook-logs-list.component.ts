@@ -35,6 +35,7 @@ export class WebhookLogsListComponent {
   logs = input.required<WebhookLog[]>();
   pagination = input.required<Pagination>();
   hasDlqConfigured = input<boolean | undefined>();
+  isLoading = input<boolean>(false);
 
   paginationUpdated = output<GioTableWrapperPagination>();
   logDetailsClicked = output<WebhookLog>();

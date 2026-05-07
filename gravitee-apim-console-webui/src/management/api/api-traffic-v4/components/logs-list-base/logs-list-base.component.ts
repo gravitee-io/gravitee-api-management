@@ -22,6 +22,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { Pagination } from '../../../../../entities/management-api-v2';
@@ -42,7 +43,17 @@ export interface LogsListColumnDef {
   templateUrl: './logs-list-base.component.html',
   styleUrls: ['./logs-list-base.component.scss'],
   standalone: true,
-  imports: [GioTableWrapperModule, MatTableModule, MatSort, NgTemplateOutlet, MatCheckboxModule, MatMenuModule, MatButtonModule, MatIcon],
+  imports: [
+    GioTableWrapperModule,
+    MatTableModule,
+    MatSort,
+    NgTemplateOutlet,
+    MatCheckboxModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIcon,
+    GioLoaderModule,
+  ],
 })
 export class LogsListBaseComponent<T = unknown> {
   private readonly constants = inject(Constants, { optional: true });
@@ -53,6 +64,7 @@ export class LogsListBaseComponent<T = unknown> {
   tableId = input<string>('logsTable');
   ariaLabel = input<string>('Logs table');
   storageKey = input<string>();
+  isLoading = input<boolean>(false);
 
   paginationUpdated = output<GioTableWrapperPagination>();
 

@@ -71,6 +71,25 @@ class ResolveFilterLabelsUseCaseTest {
     }
 
     @Test
+    void should_resolve_api_product_filter_labels() {
+        when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.API_PRODUCT, List.of("prod-id"))).thenReturn(
+            Map.of("prod-id", "My Product")
+        );
+
+        var output = useCase.execute(
+            new ResolveFilterLabelsUseCase.Input(
+                AUDIT_INFO,
+                List.of(new ResolveFilterLabelsUseCase.Entry("API_PRODUCT", List.of("prod-id")))
+            )
+        );
+
+        assertThat(output.entries()).containsExactly(
+            new ResolveFilterLabelsUseCase.ResolvedEntry("API_PRODUCT", Map.of("prod-id", "My Product"))
+        );
+        verify(filterValueNameResolver).resolveNames("env-id", FilterSpec.Name.API_PRODUCT, List.of("prod-id"));
+    }
+
+    @Test
     void should_ignore_unsupported_filter_names() {
         var output = useCase.execute(
             new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("HTTP_STATUS", List.of("200"))))
