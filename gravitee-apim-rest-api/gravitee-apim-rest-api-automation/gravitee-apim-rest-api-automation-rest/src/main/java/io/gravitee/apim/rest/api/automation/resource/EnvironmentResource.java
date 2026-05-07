@@ -47,4 +47,9 @@ public class EnvironmentResource {
     public SharedPolicyGroupsResource getSharedPolicyGroupsResource() {
         return resourceContext.getResource(SharedPolicyGroupsResource.class);
     }
+
+    @Path("/dictionaries")
+    public DictionariesResource getDictionariesResource() {
+        return resourceContext.getResource(DictionariesResource.class);
+    }
 }

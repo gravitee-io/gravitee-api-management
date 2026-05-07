@@ -73,7 +73,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
         if (input.spec.isNative()) {
             validateAndSanitizeNativeV4ForCreation(input, sanitizedBuilder, errors);
-        } else {
+        } else if (!input.spec.isOnlySubscription()) {
             validateAndSanitizeHttpV4ForCreation(input, sanitizedBuilder, errors);
         }
 

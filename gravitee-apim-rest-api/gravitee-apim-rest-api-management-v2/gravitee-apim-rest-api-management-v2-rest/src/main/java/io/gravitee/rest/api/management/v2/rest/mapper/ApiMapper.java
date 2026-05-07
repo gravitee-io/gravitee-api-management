@@ -103,6 +103,7 @@ import org.slf4j.Logger;
         ServiceMapper.class,
         CorsMapper.class,
         ConfigurationSerializationMapper.class,
+        CollectionFactory.class,
     }
 )
 public interface ApiMapper {
@@ -566,6 +567,6 @@ public interface ApiMapper {
                 return null;
             })
             .filter(Objects::nonNull)
-            .collect(java.util.stream.Collectors.toList());
+            .toList();
     }
 }

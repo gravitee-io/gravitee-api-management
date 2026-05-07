@@ -20,6 +20,7 @@ import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
 import io.gravitee.apim.rest.api.automation.model.ClientCertificate;
 import io.gravitee.apim.rest.api.automation.model.Metadata;
+import io.gravitee.rest.api.management.v2.rest.mapper.CollectionFactory;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
@@ -30,13 +31,12 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class })
+@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class, CollectionFactory.class })
 public interface ApplicationMapper {
     ApplicationMapper INSTANCE = Mappers.getMapper(ApplicationMapper.class);
 

@@ -52,8 +52,8 @@ describe('ApiImportV4FormComponent', () => {
   });
 
   it.each([
-    ['gravitee', 'Supported file formats: json'],
-    ['openapi', 'Supported file formats: yml, yaml'],
+    ['gravitee', 'Supported file formats: yml, yaml, json'],
+    ['openapi', 'Supported file formats: yml, yaml, json'],
   ])('should surface supported file formats in the UI for format %s', async (format, expectedBanner) => {
     await harness.selectFormat(format as string);
     fixture.detectChanges();
@@ -70,6 +70,7 @@ describe('ApiImportV4FormComponent', () => {
     const accept = await harness.getFilePickerInputAccept();
     expect(accept).toContain('.yml');
     expect(accept).toContain('.yaml');
+    expect(accept).toContain('.json');
   });
 
   it('should keep picked file when going back from configure step to format step without changing API format', async () => {

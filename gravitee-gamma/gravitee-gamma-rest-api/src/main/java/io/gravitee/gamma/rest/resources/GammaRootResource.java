@@ -40,11 +40,11 @@ public class GammaRootResource {
 
     @Path("/organizations/{orgId}/modules")
     public GammaModulesResource getModulesResourceFromOrganization() {
-        return resourceContext.getResource( GammaModulesResource.class);
+        return resourceContext.getResource(GammaModulesResource.class);
     }
 
     @Path("/organizations/{orgId}/environments/{envId}/modules")
     public GammaModulesResource getModulesResourceFromEnvironment() {
-        return resourceContext.getResource( GammaModulesResource.class);
+        return resourceContext.getResource(GammaModulesResource.class);
     }
 }

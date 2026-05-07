@@ -66,6 +66,8 @@ class GroupsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getHrid()).isEqualTo("my-group");
                 soft.assertThat(state.getName()).isEqualTo("my-group");
                 soft.assertThat(state.getNotifyMembers()).isTrue();
+                soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
         }
 

@@ -19,7 +19,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ReporterSettingsProxyHarness extends ComponentHarness {
-  static hostSelector = 'api-runtime-logs-proxy-settings';
+  static hostSelector = 'reporter-settings-proxy';
 
   private getEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
   private getEntrypointToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="entrypoint"]' }));

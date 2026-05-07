@@ -18,8 +18,6 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
-import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
-import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
 import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
@@ -29,6 +27,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -82,14 +81,16 @@ public class GroupsResource extends AbstractResource {
             CrdIdHelper.generateGroupId(groupCRDSpec, auditInfo);
         }
 
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         if (dryRun) {
             var status = validateGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
 
-            return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status)).build();
+            return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext)).build();
         }
 
         var status = importGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
 
-        return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status)).build();
+        return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext)).build();
     }
 }

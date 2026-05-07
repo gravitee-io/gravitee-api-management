@@ -231,6 +231,7 @@
                         <typeMapping>BigDecimal=Number</typeMapping>
                     </typeMappings>
                     <additionalProperties>removeEnumValuePrefix=false</additionalProperties>
+                    <instantiationTypes>map=java.util.LinkedHashMap</instantiationTypes>
                 </configuration>
                 <executions>
                     <execution>

@@ -26,6 +26,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ReporterSettingsComponent } from '../reporter-settings.component';
 
 describe('ReporterSettingsComponent', () => {
@@ -240,9 +241,79 @@ describe('ReporterSettingsComponent', () => {
       const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
       await saveBar.clickSubmit();
 
+      // submit() fetches the latest API state before issuing the PUT
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
       expect(req.request.body.analytics.tracing).toEqual({ enabled: true, verbose: true });
       req.flush(req.request.body);
+    });
+
+    it('should dismiss the save bar and show a success snackbar after saving', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[1].check();
+
+      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toEqual(true);
+
+      const snackBarService = TestBed.inject(SnackBarService);
+      const successSpy = jest.spyOn(snackBarService, 'success').mockImplementation(() => undefined);
+
+      await saveBar.clickSubmit();
+
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      req.flush(req.request.body);
+      fixture.detectChanges();
+
+      expect(successSpy).toHaveBeenCalledWith('Configuration successfully saved!');
+      expect(await saveBar.isVisible()).toEqual(false);
+    });
+
+    it('should show an error snackbar when save fails', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[1].check();
+
+      const snackBarService = TestBed.inject(SnackBarService);
+      const errorSpy = jest.spyOn(snackBarService, 'error');
+
+      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      req.flush({ message: 'Validation failed' }, { status: 400, statusText: 'Bad Request' });
+
+      expect(errorSpy).toHaveBeenCalledWith('Validation failed');
+    });
+
+    it('should show a fallback error snackbar when save fails without a body', async () => {
+      await init(['api-definition-r', 'api-definition-u']);
+      fixture.detectChanges();
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const toggles = await harnessLoader.getAllHarnesses(MatSlideToggleHarness);
+
+      await toggles[1].check();
+
+      const snackBarService = TestBed.inject(SnackBarService);
+      const errorSpy = jest.spyOn(snackBarService, 'error');
+
+      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expectGetAPI('V4', 'NATIVE', API_ID, { enabled: true, tracing: { enabled: false, verbose: false } }, true);
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      req.error(new ProgressEvent('error'));
+
+      expect(errorSpy).toHaveBeenCalledWith('Failed to save analytics settings');
     });
   });
 

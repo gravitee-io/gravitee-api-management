@@ -97,6 +97,7 @@ import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -1360,5 +1361,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ClientCertificateValidationDomainService clientCertificateValidationDomainService() {
         return mock(ClientCertificateValidationDomainService.class);
+    }
+
+    @Bean
+    public DictionaryAutomationDomainService dictionaryAutomationDomainService() {
+        return mock(DictionaryAutomationDomainService.class);
     }
 }

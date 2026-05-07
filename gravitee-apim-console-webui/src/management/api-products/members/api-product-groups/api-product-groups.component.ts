@@ -15,7 +15,7 @@
  */
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -40,15 +40,14 @@ interface ApiProductGroupsForm {
 @Component({
   selector: 'api-product-groups',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatSelectModule],
+  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatSelectModule],
   templateUrl: './api-product-groups.component.html',
   styleUrls: ['./api-product-groups.component.scss'],
 })
 export class ApiProductGroupsComponent {
   private readonly permissionService = inject(GioPermissionService);
   private readonly formBuilder = inject(FormBuilder);
-  public readonly dialogRef = inject<MatDialogRef<ApiProductGroupsComponent, ApiProductGroupsDialogResult>>(MatDialogRef);
-
+  private readonly dialogRef = inject<MatDialogRef<ApiProductGroupsComponent, ApiProductGroupsDialogResult>>(MatDialogRef);
   private readonly dialogData = inject<ApiProductGroupsDialogData>(MAT_DIALOG_DATA);
 
   public readonly apiProduct: ApiProduct = this.dialogData.apiProduct;

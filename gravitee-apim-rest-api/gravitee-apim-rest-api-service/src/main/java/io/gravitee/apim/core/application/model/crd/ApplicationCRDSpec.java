@@ -21,7 +21,7 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import java.util.List;
-import java.util.Set;
+import java.util.SequencedSet;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,7 +44,7 @@ import lombok.experimental.SuperBuilder;
 public class ApplicationCRDSpec extends ApplicationEntity {
 
     private List<ApplicationMetadataCRD> metadata;
-    private Set<MemberCRD> members;
+    private SequencedSet<MemberCRD> members;
 
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();

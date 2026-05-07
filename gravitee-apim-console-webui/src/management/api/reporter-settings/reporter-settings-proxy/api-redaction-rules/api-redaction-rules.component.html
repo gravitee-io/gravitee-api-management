@@ -1,0 +1,98 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="redactionRules">
+  <div class="redactionRules__header">
+    <div class="redactionRules__header__title">Span Attribute Redaction</div>
+    @if (!isReadOnly()) {
+      <button mat-stroked-button color="primary" class="redactionRules__header__btn" (click)="addRule()">
+        <mat-icon svgIcon="gio:plus"></mat-icon>
+        Add rule
+      </button>
+    }
+  </div>
+
+  <div class="redactionRules__banner">
+    <gio-banner-info>
+      Global redaction rules are always applied first. Rules defined here are API-specific and are appended after them.
+    </gio-banner-info>
+  </div>
+
+  <table mat-table [dataSource]="rows()" class="redactionRules__table">
+    <ng-container matColumnDef="index">
+      <th mat-header-cell *matHeaderCellDef>#</th>
+      <td mat-cell *matCellDef="let row; let i = index">
+        <span class="gio-badge-neutral">{{ i + 1 }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="pattern">
+      <th mat-header-cell *matHeaderCellDef>Attribute Pattern</th>
+      <td mat-cell *matCellDef="let row">
+        <code class="redactionRules__code">{{ row.attributeNamePattern }}</code>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="masking">
+      <th mat-header-cell *matHeaderCellDef>Masking</th>
+      <td mat-cell *matCellDef="let row">
+        @let display = row | redactionMaskingDisplay;
+        <span [class]="display.badgeClass">{{ display.label }}</span>
+        <span class="redactionRules__detail">{{ display.detail }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="valueFilter">
+      <th mat-header-cell *matHeaderCellDef>Value Filter</th>
+      <td mat-cell *matCellDef="let row">
+        @if (row.valuePattern) {
+          <code class="redactionRules__code">{{ row.valuePattern }}</code>
+        } @else {
+          <span class="redactionRules__empty">—</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row">
+        @if (!isReadOnly()) {
+          <div class="redactionRules__actionsCell">
+            <button mat-icon-button (click)="editRule(row._id)" matTooltip="Edit rule" aria-label="Edit rule">
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+            <button mat-icon-button (click)="removeRule(row._id)" matTooltip="Delete rule" aria-label="Delete rule">
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </div>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+        <div class="redactionRules__emptyState">
+          <mat-icon svgIcon="gio:lock"></mat-icon>
+          No redaction rules — span attributes are exported as-is.
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>

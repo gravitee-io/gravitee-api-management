@@ -78,9 +78,11 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
       constants.production = production ?? true;
 
       return Promise.all([
-        fetch(`${constants.org.baseURL}/console`, requestConfig).then(r => getSuccessJsonDataOrThrowError(r)),
-        fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig).then(r => (r.status === 200 ? r.json() : null)),
-        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then(r => getSuccessJsonDataOrThrowError(r)),
+        fetch(`${constants.org.baseURL}/console`, requestConfig).then(storeCsrfToken).then(getSuccessJsonDataOrThrowError),
+        fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig)
+          .then(storeCsrfToken)
+          .then(r => (r.status === 200 ? r.json() : null)),
+        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then(storeCsrfToken).then(getSuccessJsonDataOrThrowError),
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
         constants.org.settings = consoleResponse;
         constants.org.identityProviders = identityProvidersResponse;

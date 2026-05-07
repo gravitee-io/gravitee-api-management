@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+import { RedactionConfig } from './redactionV4';
+
 export interface TracingV4 {
   enabled: boolean;
   verbose: boolean;
+  redaction?: RedactionConfig;
 }

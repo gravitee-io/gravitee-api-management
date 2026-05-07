@@ -15,7 +15,9 @@
  */
 package io.gravitee.definition.model.v4.analytics.tracing;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,4 +39,8 @@ public class Tracing implements Serializable {
 
     private boolean enabled;
     private boolean verbose;
+
+    @Valid
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private TracingRedactionConfig redaction;
 }

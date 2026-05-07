@@ -18,12 +18,18 @@ package io.gravitee.rest.api.model.configuration.dictionary;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Map;
+import lombok.Data;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
 public class NewDictionaryEntity {
+
+    private String id;
+
+    private String key;
 
     @NotNull
     @Size(min = 3)
@@ -39,67 +45,4 @@ public class NewDictionaryEntity {
     private DictionaryTriggerEntity trigger;
 
     private Map<String, String> properties;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public DictionaryType getType() {
-        return type;
-    }
-
-    public void setType(DictionaryType type) {
-        this.type = type;
-    }
-
-    public DictionaryProviderEntity getProvider() {
-        return provider;
-    }
-
-    public void setProvider(DictionaryProviderEntity provider) {
-        this.provider = provider;
-    }
-
-    public DictionaryTriggerEntity getTrigger() {
-        return trigger;
-    }
-
-    public void setTrigger(DictionaryTriggerEntity trigger) {
-        this.trigger = trigger;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        NewDictionaryEntity that = (NewDictionaryEntity) o;
-
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
 }

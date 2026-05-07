@@ -186,10 +186,10 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
@@ -801,7 +801,7 @@ class ImportApiCRDUseCaseTest {
 
             var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of(member)).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(new LinkedHashSet<>(Set.of(member))).build()));
 
             assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
         }
@@ -822,7 +822,9 @@ class ImportApiCRDUseCaseTest {
 
             var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().members(Set.of(member)).build()));
+            useCase.execute(
+                new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().members(new LinkedHashSet<>(Set.of(member))).build())
+            );
 
             assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
         }
@@ -918,7 +920,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_handle_empty_members() {
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of()).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(new LinkedHashSet<>()).build()));
 
             assertThat(crdMembersDomainService.getApiMembers(API_ID)).isEmpty();
         }

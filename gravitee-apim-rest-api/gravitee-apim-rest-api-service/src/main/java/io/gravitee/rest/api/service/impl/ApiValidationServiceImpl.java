@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.ApiValidationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -91,12 +92,13 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             .validateAndSanitize(new ValidateCategoryIdsDomainService.Input(executionContext.getEnvironmentId(), api.getCategories()))
             .peek(sanitized -> api.setCategories(sanitized.idOrKeys()), errors::addAll);
 
+        var members = ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers());
         validateCRDMembersDomainService
             .validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(
                     auditInfo,
                     MembershipReferenceType.API,
-                    ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers())
+                    members != null ? new LinkedHashSet<>(members) : null
                 )
             )
             .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);
