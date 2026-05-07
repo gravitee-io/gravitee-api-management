@@ -93,7 +93,8 @@ public class ApiService_FindPrimaryOwnerTest {
             groupService,
             parameterService,
             roleService,
-            primaryOwnerDomainService
+            primaryOwnerDomainService,
+            null
         );
         ReflectionTestUtils.setField(apiService, "primaryOwnerService", primaryOwnerService);
     }

@@ -89,6 +89,7 @@ public class MembershipService_FindUserMembershipMetadataTest {
             null,
             null,
             mockApiRepository,
+            null,
             mockGroupService,
             null,
             null,

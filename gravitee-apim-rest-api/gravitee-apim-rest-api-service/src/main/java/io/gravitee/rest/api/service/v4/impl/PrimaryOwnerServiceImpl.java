@@ -18,7 +18,9 @@ package io.gravitee.rest.api.service.v4.impl;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -61,6 +63,7 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
     private final ParameterService parameterService;
     private final RoleService roleService;
     private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
+    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
 
     public PrimaryOwnerServiceImpl(
         final UserService userService,
@@ -68,7 +71,8 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         final GroupService groupService,
         final ParameterService parameterService,
         final RoleService roleService,
-        final ApiPrimaryOwnerDomainService primaryOwnerDomainService
+        final ApiPrimaryOwnerDomainService primaryOwnerDomainService,
+        final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService
     ) {
         this.userService = userService;
         this.membershipService = membershipService;
@@ -76,6 +80,7 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         this.parameterService = parameterService;
         this.roleService = roleService;
         this.primaryOwnerDomainService = primaryOwnerDomainService;
+        this.apiProductPrimaryOwnerDomainService = apiProductPrimaryOwnerDomainService;
     }
 
     @Override
@@ -88,6 +93,20 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
             return PrimaryOwnerAdapter.INSTANCE.toRestEntity(po);
         } catch (ApiPrimaryOwnerNotFoundException e) {
             throw new PrimaryOwnerNotFoundException(e.getApiId());
+        }
+    }
+
+    @Override
+    public PrimaryOwnerEntity getApiProductPrimaryOwner(final String organizationId, final String apiProductId)
+        throws TechnicalManagementException {
+        try {
+            io.gravitee.apim.core.membership.model.PrimaryOwnerEntity po = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
+                organizationId,
+                apiProductId
+            );
+            return PrimaryOwnerAdapter.INSTANCE.toRestEntity(po);
+        } catch (ApiProductPrimaryOwnerNotFoundException e) {
+            throw new PrimaryOwnerNotFoundException(e.getApiProductId(), e);
         }
     }
 

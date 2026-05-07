@@ -95,13 +95,18 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             userCrudService
         );
 
+        var apiProductAccessibleIdsDomainService =
+            new io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService(
+                apiProductQueryService,
+                membershipQueryService
+            );
         getApiProductsUseCase = new GetApiProductsUseCase(
             apiProductQueryService,
             apiProductPrimaryOwnerDomainService,
             eventLatestQueryService,
             planQueryService,
             objectMapper,
-            membershipQueryService
+            apiProductAccessibleIdsDomainService
         );
     }
 
@@ -225,6 +230,74 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
         var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
         assertThat(output.apiProducts()).isEmpty();
+    }
+
+    @Test
+    void should_include_api_products_inherited_via_group_membership_for_non_admin() {
+        ApiProduct product1 = ApiProduct.builder().id("id1").name("Direct").environmentId(ENV_ID).build();
+        ApiProduct product2 = ApiProduct.builder()
+            .id("id2")
+            .name("Inherited")
+            .environmentId(ENV_ID)
+            .groups(java.util.Set.of("s-group"))
+            .build();
+        apiProductQueryService.initWith(List.of(product1, product2));
+
+        membershipCrudService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("group-membership-id")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId("s-group")
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                    .source("system")
+                    .build()
+            )
+        );
+
+        var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
+        assertThat(output.apiProducts()).extracting(ApiProduct::getId).containsExactly("id2");
+    }
+
+    @Test
+    void should_union_direct_and_group_inherited_api_products_for_non_admin() {
+        ApiProduct product1 = ApiProduct.builder().id("id1").name("Direct").environmentId(ENV_ID).build();
+        ApiProduct product2 = ApiProduct.builder()
+            .id("id2")
+            .name("Inherited")
+            .environmentId(ENV_ID)
+            .groups(java.util.Set.of("s-group"))
+            .build();
+        ApiProduct product3 = ApiProduct.builder().id("id3").name("Other").environmentId(ENV_ID).build();
+        apiProductQueryService.initWith(List.of(product1, product2, product3));
+
+        membershipCrudService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("direct")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("id1")
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                    .source("system")
+                    .build(),
+                Membership.builder()
+                    .id("group")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId("s-group")
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                    .source("system")
+                    .build()
+            )
+        );
+
+        var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
+        assertThat(output.apiProducts()).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id1", "id2");
     }
 
     @Test

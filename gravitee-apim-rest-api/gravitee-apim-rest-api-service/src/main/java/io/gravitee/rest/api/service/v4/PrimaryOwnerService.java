@@ -38,6 +38,19 @@ public interface PrimaryOwnerService {
     PrimaryOwnerEntity getPrimaryOwner(String organizationId, String apiId) throws TechnicalManagementException;
 
     /**
+     * Resolves the primary owner for the given API Product.
+     *
+     * @param organizationId the organization id
+     * @param apiProductId the API Product id
+     * @return The primary owner
+     * @throws TechnicalManagementException if an error occurs while resolving the primary owner
+     * @throws io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException if no primary owner is set on the API Product
+     * @deprecated use {@link io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService#getApiProductPrimaryOwner(String, String)} instead
+     */
+    @Deprecated
+    PrimaryOwnerEntity getApiProductPrimaryOwner(String organizationId, String apiProductId) throws TechnicalManagementException;
+
+    /**
      * Resolves the primary owner email for the given API.
      * If the primary owner is a user, the email is returned.
      * If the primary owner is a group, the email of the member entitled as an API primary owner is returned.

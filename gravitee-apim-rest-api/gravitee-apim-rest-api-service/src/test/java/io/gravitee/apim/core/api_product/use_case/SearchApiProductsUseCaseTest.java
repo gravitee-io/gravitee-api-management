@@ -16,37 +16,48 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import inmemory.ApiProductSearchQueryServiceInMemory;
-import inmemory.MembershipCrudServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SearchApiProductsUseCaseTest {
 
     private static final String ENV_ID = "env-id";
     private static final String ORG_ID = "org-id";
     private static final String USER_ID = "user-id";
-    private static final String ROLE_ID = "role-id";
 
     private ApiProductSearchQueryServiceInMemory apiProductSearchQueryService;
-    private MembershipCrudServiceInMemory membershipCrudService;
-    private MembershipQueryServiceInMemory membershipQueryService;
+
+    @Mock
+    private ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
+
     private SearchApiProductsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         apiProductSearchQueryService = new ApiProductSearchQueryServiceInMemory();
-        membershipCrudService = new MembershipCrudServiceInMemory();
-        membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
-        useCase = new SearchApiProductsUseCase(apiProductSearchQueryService, membershipQueryService);
+        useCase = new SearchApiProductsUseCase(apiProductSearchQueryService, apiProductAccessibleIdsDomainService);
+    }
+
+    @AfterEach
+    void tearDown() {
+        verifyNoMoreInteractions(apiProductAccessibleIdsDomainService);
     }
 
     @Test
@@ -136,26 +147,7 @@ class SearchApiProductsUseCaseTest {
         var product3 = ApiProduct.builder().id("id-3").name("Product Three").environmentId(ENV_ID).build();
         apiProductSearchQueryService.initWith(List.of(product1, product2, product3));
 
-        membershipCrudService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("m-1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id-1")
-                    .roleId(ROLE_ID)
-                    .build(),
-                Membership.builder()
-                    .id("m-2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id-3")
-                    .roleId(ROLE_ID)
-                    .build()
-            )
-        );
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1", "id-3"));
 
         var pageable = new PageableImpl(1, 10);
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
@@ -163,6 +155,7 @@ class SearchApiProductsUseCaseTest {
         var output = useCase.execute(input);
 
         assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id-1", "id-3");
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
     }
 
     @Test
@@ -171,32 +164,23 @@ class SearchApiProductsUseCaseTest {
         var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
         apiProductSearchQueryService.initWith(List.of(product1, product2));
 
-        membershipCrudService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("m-1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id-1")
-                    .roleId(ROLE_ID)
-                    .build()
-            )
-        );
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1"));
 
         var pageable = new PageableImpl(1, 10);
-        // User requests id-1 and id-2 but only owns id-1
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
 
         var output = useCase.execute(input);
 
         assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactly("id-1");
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
     }
 
     @Test
     void should_return_empty_page_for_non_admin_with_no_memberships() {
         var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
         apiProductSearchQueryService.initWith(List.of(product1));
+
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of());
 
         var pageable = new PageableImpl(1, 10);
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
@@ -205,6 +189,58 @@ class SearchApiProductsUseCaseTest {
 
         assertThat(output.page().getContent()).isEmpty();
         assertThat(output.page().getTotalElements()).isZero();
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
+    }
+
+    @Test
+    void should_include_api_products_inherited_via_group_membership_for_non_admin() {
+        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1, product2));
+
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-2"));
+
+        var pageable = new PageableImpl(1, 10);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactly("id-2");
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
+    }
+
+    @Test
+    void should_union_direct_and_group_inherited_api_products_for_non_admin() {
+        var product1 = ApiProduct.builder().id("id-1").name("Direct").environmentId(ENV_ID).build();
+        var product2 = ApiProduct.builder().id("id-2").name("Inherited").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1, product2));
+
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1", "id-2"));
+
+        var pageable = new PageableImpl(1, 10);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id-1", "id-2");
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
+    }
+
+    @Test
+    void should_intersect_requested_ids_with_group_inherited_ids_for_non_admin() {
+        var product1 = ApiProduct.builder().id("id-1").name("Inherited One").environmentId(ENV_ID).build();
+        var product2 = ApiProduct.builder().id("id-2").name("Other").environmentId(ENV_ID).build();
+        apiProductSearchQueryService.initWith(List.of(product1, product2));
+
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1"));
+
+        var pageable = new PageableImpl(1, 10);
+        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.page().getContent()).extracting(ApiProduct::getId).containsExactly("id-1");
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
     }
 
     @Test
@@ -212,25 +248,14 @@ class SearchApiProductsUseCaseTest {
         var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
         apiProductSearchQueryService.initWith(List.of(product1));
 
-        membershipCrudService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("m-2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id-2")
-                    .roleId(ROLE_ID)
-                    .build()
-            )
-        );
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-2"));
 
         var pageable = new PageableImpl(1, 10);
-        // User owns id-2 but requests id-1 (which they don't own)
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1"), pageable, null, USER_ID, false);
 
         var output = useCase.execute(input);
 
         assertThat(output.page().getContent()).isEmpty();
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
     }
 }
