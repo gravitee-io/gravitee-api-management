@@ -117,6 +117,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService() {
+        return new KafkaPortRangeCrudServiceInMemory();
+    }
+
+    @Bean
     public SubscriptionCrudServiceInMemory subscriptionCrudService() {
         return new SubscriptionCrudServiceInMemory();
     }
