@@ -353,6 +353,17 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_when_a_step_has_a_scalar_configuration() {
+            var newApi = aValidV4Api().flows(
+                List.of(new FlowV4().request(List.of(new StepV4().enabled(true).policy("my-policy").configuration("a-string"))))
+            );
+
+            final Response response = target.request().post(Entity.json(newApi));
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
         void should_return_created_api() {
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
                 invocation.getArgument(0)
