@@ -75,7 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.function.Function;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -159,20 +159,20 @@ public interface ApiMapper {
         return api;
     }
 
-    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Predicate<GenericApiEntity> isSynchronized) {
+    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
         return map(apiEntities, uriInfo, isSynchronized, null);
     }
 
     default List<Api> map(
         List<GenericApiEntity> apiEntities,
         UriInfo uriInfo,
-        Predicate<GenericApiEntity> isSynchronized,
+        Function<GenericApiEntity, Boolean> isSynchronized,
         Set<String> expands
     ) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
-                result.add(this.map(api, uriInfo, isSynchronized.test(api), expands));
+                result.add(this.map(api, uriInfo, isSynchronized.apply(api), expands));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted

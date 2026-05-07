@@ -55,7 +55,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.assertj.core.api.SoftAssertions;
@@ -307,10 +309,12 @@ class ImportApplicationCRDUseCaseTest {
             .build();
     }
 
-    private Set<MemberCRD> applicationMembers() {
-        return Set.of(
-            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_2).role("USER").build(),
-            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_1).role("OWNER").build()
+    private SequencedSet<MemberCRD> applicationMembers() {
+        return new LinkedHashSet<>(
+            Set.of(
+                MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_2).role("USER").build(),
+                MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_1).role("OWNER").build()
+            )
         );
     }
 

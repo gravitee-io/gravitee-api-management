@@ -92,12 +92,13 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             .validateAndSanitize(new ValidateCategoryIdsDomainService.Input(executionContext.getEnvironmentId(), api.getCategories()))
             .peek(sanitized -> api.setCategories(sanitized.idOrKeys()), errors::addAll);
 
+        var members = ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers());
         validateCRDMembersDomainService
             .validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(
                     auditInfo,
                     MembershipReferenceType.API,
-                    new LinkedHashSet<>(ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers()))
+                    members != null ? new LinkedHashSet<>(members) : null
                 )
             )
             .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);

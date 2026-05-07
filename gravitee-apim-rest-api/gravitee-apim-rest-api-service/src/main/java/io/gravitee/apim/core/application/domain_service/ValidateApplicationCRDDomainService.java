@@ -24,7 +24,6 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -62,11 +61,7 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
 
         membersValidator
             .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(
-                    input.auditInfo,
-                    MembershipReferenceType.APPLICATION,
-                    new LinkedHashSet<>(input.spec.getMembers())
-                )
+                new ValidateCRDMembersDomainService.Input(input.auditInfo, MembershipReferenceType.APPLICATION, input.spec.getMembers())
             )
             .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
