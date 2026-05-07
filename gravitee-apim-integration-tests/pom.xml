@@ -591,6 +591,12 @@
             <version>${gravitee-entrypoint-websocket.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graviteesource.connector</groupId>
+            <artifactId>gravitee-entrypoint-native-kafka</artifactId>
+            <version>${gravitee-entrypoint-native-kafka.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Endpoints -->
         <dependency>
             <groupId>com.graviteesource.endpoint</groupId>
