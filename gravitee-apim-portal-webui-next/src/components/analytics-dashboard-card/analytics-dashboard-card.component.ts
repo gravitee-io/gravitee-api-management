@@ -49,6 +49,8 @@ export class AnalyticsDashboardCardComponent {
   protected readonly ariaLabel = computed(() => $localize`:@@analyticsDashboardCardAriaLabel:Open dashboard ${this.name()}:name:`);
   protected readonly pinLabel = $localize`:@@analyticsDashboardPin:Pin dashboard`;
   protected readonly unpinLabel = $localize`:@@analyticsDashboardUnpin:Unpin dashboard`;
+  protected readonly maxPinnedTooltip = $localize`:@@analyticsDashboardMaxPinned:Pin limit reached`;
+  protected readonly isPinDisabled = computed(() => !this.isPinned() && !this.canPin());
 
   private readonly labelEntries = computed(() => Object.entries(this.dashboard().labels ?? {}));
 
@@ -71,6 +73,7 @@ export class AnalyticsDashboardCardComponent {
 
   onPinClick(event: Event): void {
     event.stopPropagation();
+    if (this.isPinDisabled()) return;
     this.pinToggle.emit(this.dashboardId());
   }
 }

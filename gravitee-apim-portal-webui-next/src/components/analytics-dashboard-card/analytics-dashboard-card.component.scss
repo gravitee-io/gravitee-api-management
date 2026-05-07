@@ -86,7 +86,12 @@
       color: app-theme.$primary-main-color;
     }
 
-    &:hover:not(:disabled) {
+    &--disabled {
+      opacity: 0.2;
+      cursor: default;
+    }
+
+    &:hover:not(.dashboard-card__pin-button--disabled) {
       opacity: 1;
     }
   }
