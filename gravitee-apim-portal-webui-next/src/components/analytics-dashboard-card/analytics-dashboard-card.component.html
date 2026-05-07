@@ -32,8 +32,11 @@
         mat-icon-button
         class="dashboard-card__pin-button"
         [class.dashboard-card__pin-button--pinned]="isPinned()"
+        [class.dashboard-card__pin-button--disabled]="isPinDisabled()"
         [attr.aria-label]="isPinned() ? unpinLabel : pinLabel"
-        [disabled]="!isPinned() && !canPin()"
+        [attr.aria-disabled]="isPinDisabled()"
+        [matTooltip]="maxPinnedTooltip"
+        [matTooltipDisabled]="!isPinDisabled()"
         (click)="onPinClick($event)"
       >
         <mat-icon aria-hidden="true">push_pin</mat-icon>
