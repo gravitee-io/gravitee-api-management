@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -46,7 +47,9 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +68,9 @@ public class ApplicationResource extends AbstractResource {
 
     @Inject
     private MembershipService membershipService;
+
+    @Inject
+    private GroupService groupService;
 
     @Inject
     private UserService userService;
@@ -90,6 +96,7 @@ public class ApplicationResource extends AbstractResource {
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
             addMembers(executionContext, applicationEntity, applicationSpec);
             addMetadata(applicationEntity, applicationSpec);
+            replaceGroupIdsWithHrids(applicationSpec);
             return Response.ok(
                 ApplicationMapper.INSTANCE.applicationSpecToApplicationState(
                     applicationSpec,
@@ -100,6 +107,18 @@ public class ApplicationResource extends AbstractResource {
             ).build();
         } catch (ApplicationNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
+        }
+    }
+
+    private void replaceGroupIdsWithHrids(ApplicationSpec applicationSpec) {
+        if (applicationSpec.getGroups() != null && !applicationSpec.getGroups().isEmpty()) {
+            var groups = new ArrayList<>(applicationSpec.getGroups());
+            groupService
+                .findByIds(new LinkedHashSet<>(groups))
+                .stream()
+                .filter(group -> group.getHrid() != null)
+                .forEach(group -> groups.set(groups.indexOf(group.getName()), group.getHrid()));
+            applicationSpec.setGroups(groups);
         }
     }
 

@@ -20,21 +20,18 @@ import static io.gravitee.apim.rest.api.automation.helpers.HRIDHelper.nameToHRID
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -50,7 +47,10 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.CustomLog;
@@ -70,6 +70,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
+
+    @Inject
+    private GroupQueryService groupQueryService;
 
     @Path("subscriptions")
     public ApiSubscriptionsResource getSubscriptionsResource() {
@@ -111,6 +114,8 @@ public class ApiResource extends AbstractResource {
                 // we need to format them to be compliant with the previous transformation
                 formatHrids(apiV4Spec);
             }
+            replaceGroupNamesWithHrids(executionContext.getEnvironmentId(), apiV4Spec);
+
             return Response.ok(
                 ApiMapper.INSTANCE.apiV4SpecToApiV4State(
                     apiV4Spec,
@@ -177,6 +182,18 @@ public class ApiResource extends AbstractResource {
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)
                 .forEach(p -> p.setGeneralConditionsHrid(pageIDsToHrid.get(p.getGeneralConditions())));
+        }
+    }
+
+    private void replaceGroupNamesWithHrids(String environmentId, ApiV4Spec apiV4Spec) {
+        if (apiV4Spec.getGroups() != null && !apiV4Spec.getGroups().isEmpty()) {
+            var groups = new ArrayList<>(apiV4Spec.getGroups());
+            groupQueryService
+                .findByNames(environmentId, new LinkedHashSet<>(groups))
+                .stream()
+                .filter(group -> group.getHrid() != null)
+                .forEach(group -> groups.set(groups.indexOf(group.getName()), group.getHrid()));
+            apiV4Spec.setGroups(groups);
         }
     }
 
