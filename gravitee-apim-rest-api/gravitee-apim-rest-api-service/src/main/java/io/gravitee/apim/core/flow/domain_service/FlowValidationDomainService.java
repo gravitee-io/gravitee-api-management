@@ -231,14 +231,17 @@ public class FlowValidationDomainService {
     }
 
     private static void checkForInvalidSelectors(List<Flow> apiFlowList, List<Flow> planFlowList) {
-        Stream.concat(apiFlowList.stream(), planFlowList.stream())
+        var httpSelectors = Stream.concat(apiFlowList.stream(), planFlowList.stream())
             .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
             .map(HttpSelector.class::cast)
-            .filter(selector -> selector.getPath() == null)
-            .findAny()
-            .ifPresent(selector -> {
-                throw new InvalidDataException("flows[].selectors[].path is required");
-            });
+            .toList();
+
+        if (httpSelectors.stream().anyMatch(selector -> selector.getPath() == null)) {
+            throw new InvalidDataException("flows[].selectors[].path is required");
+        }
+        if (httpSelectors.stream().anyMatch(selector -> selector.getPathOperator() == null)) {
+            throw new InvalidDataException("flows[].selectors[].pathOperator is required");
+        }
     }
 
     private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
