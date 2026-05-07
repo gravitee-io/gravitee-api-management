@@ -54,6 +54,7 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.InvitationRepository;
+import io.gravitee.repository.management.api.KafkaPortRangeRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.PageRepository;
@@ -225,6 +226,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private InvitationRepository invitationRepository;
+
+    @Mock
+    private KafkaPortRangeRepository kafkaPortRangeRepository;
 
     @Mock
     private WorkflowRepository workflowRepository;
@@ -450,6 +454,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             identityProviderActivationRepository,
             integrationRepository,
             invitationRepository,
+            kafkaPortRangeRepository,
             mediaRepository,
             membershipRepository,
             metadataRepository,
