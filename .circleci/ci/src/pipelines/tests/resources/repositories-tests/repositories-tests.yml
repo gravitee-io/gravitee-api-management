@@ -304,14 +304,17 @@ workflows:
                 - sqlserver~2022-latest
                 - sqlserver~2025-latest
       - job-jdbc-test-container:
-          name: Management repository tests - JDBC - mysql~8.4 (strict-PK)
+          name: Management repository tests - JDBC - << matrix.jdbcType >> (strict-PK)
           context:
             - cicd-orchestrator
           requires:
             - Build
-          parameters:
-            jdbcType: mysql~8.4
-            strictPrimaryKey: "true"
+          matrix:
+            parameters:
+              jdbcType:
+                - mysql~8.4
+              strictPrimaryKey:
+                - "true"
       - job-mongo-test-container:
           name: Management repository tests - Mongo << matrix.mongoVersion >>
           context:
