@@ -84,9 +84,15 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
         var givenGroups = new HashSet<>(input.groups());
 
-        var groupsFromIds = groupQueryService.findByIds(givenGroups).stream().toList();
-        var groupsFromHRIDs = groupQueryService.findByHRIDs(input.environmentId(), givenGroups).stream().toList();
-        var groupsFromNames = groupQueryService.findByNames(input.environmentId(), givenGroups).stream().toList();
+        var queried = new HashSet<>(input.groups());
+        var groupsFromIds = groupQueryService.findByIds(queried).stream().toList();
+        // for the sake of not searching group that will never be found
+        groupsFromIds.stream().map(Group::getId).forEach(queried::remove);
+        var groupsFromHRIDs = groupQueryService.findByHRIDs(input.environmentId(), queried).stream().toList();
+        // group hrid might also be the name of another group,
+        // removing it from the queried groups to avoid adding a group that is not meant to be added
+        groupsFromHRIDs.stream().map(Group::getHrid).forEach(queried::remove);
+        var groupsFromNames = groupQueryService.findByNames(input.environmentId(), queried).stream().toList();
 
         var groupIds = groupsFromIds.stream().map(Group::getId).collect(toSet());
         var groupHRIDs = groupsFromHRIDs.stream().map(Group::getHrid).collect(toSet());
@@ -144,7 +150,7 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
             .map(idMapper)
             .map(id ->
                 Error.warning(
-                    "Group [%s] will be discarded because it contains an API Primary Owner member, which is not supported with by the operator.",
+                    "Group [%s] will be discarded because it contains an API Primary Owner member, which is not supported by the API.",
                     id
                 )
             )

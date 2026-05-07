@@ -87,7 +87,7 @@ class ValidateGroupsDomainServiceTest {
                 .hasValue(
                     List.of(
                         Validator.Error.warning(
-                            "Group [group-with-po-id] will be discarded because it contains an API Primary Owner member, which is not supported with by the operator."
+                            "Group [group-with-po-id] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
                         )
                     )
                 );
@@ -126,7 +126,7 @@ class ValidateGroupsDomainServiceTest {
                 .hasValue(
                     List.of(
                         Validator.Error.warning(
-                            "Group [group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported with by the operator."
+                            "Group [group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
                         )
                     )
                 );
@@ -237,7 +237,7 @@ class ValidateGroupsDomainServiceTest {
                 .hasValue(
                     List.of(
                         Validator.Error.warning(
-                            "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported with by the operator."
+                            "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
                         )
                     )
                 );

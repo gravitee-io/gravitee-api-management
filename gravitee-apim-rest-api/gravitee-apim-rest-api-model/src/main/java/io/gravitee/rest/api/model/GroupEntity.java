@@ -45,6 +45,8 @@ public class GroupEntity {
     @EqualsAndHashCode.Include
     private String id;
 
+    private String hrid;
+
     private String name;
 
     @JsonProperty("event_rules")

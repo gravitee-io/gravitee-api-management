@@ -1159,6 +1159,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
         GroupEntity entity = new GroupEntity();
         entity.setId(group.getId());
+        entity.setHrid(group.getHrid());
         entity.setName(group.getName());
         if (group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()) {
             entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
@@ -1225,6 +1226,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         GroupEntity entity = new GroupEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
+        entity.setHrid(group.getHrid());
         if (group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()) {
             entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
             entity.setPrimaryOwner(true);
