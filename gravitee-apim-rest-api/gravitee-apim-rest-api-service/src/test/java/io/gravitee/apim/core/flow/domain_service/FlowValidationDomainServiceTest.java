@@ -486,6 +486,15 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        void should_return_validation_exception_when_http_selector_path_operator_is_null() {
+            var flow = Flow.builder().selectors(List.of(HttpSelector.builder().path("/").pathOperator(null).build())).build();
+
+            var throwable = catchThrowable(() -> service.validatePathParameters(ApiType.PROXY, Stream.of(flow), Stream.empty()));
+
+            assertThat(throwable).isInstanceOf(InvalidDataException.class);
+        }
+
+        @Test
         void should_not_throw_on_overlapping_paths_when_flows_are_disabled() {
             var flow1 = Flow.builder()
                 .enabled(false)
