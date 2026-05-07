@@ -45,7 +45,9 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -154,6 +156,19 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             eq(false),
             eq(USER_NAME)
         );
+    }
+
+    @Test
+    public void should_return_400_when_a_step_has_a_scalar_configuration() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
+
+        var updateApiV4 = ApiFixtures.anUpdateApiV4().flows(
+            List.of(new FlowV4().request(List.of(new StepV4().enabled(true).policy("my-policy").configuration("a-string"))))
+        );
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
