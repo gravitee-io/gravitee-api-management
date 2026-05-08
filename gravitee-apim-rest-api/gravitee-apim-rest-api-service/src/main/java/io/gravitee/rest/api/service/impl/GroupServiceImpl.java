@@ -89,6 +89,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
+import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -708,22 +709,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 throw new GroupNotFoundException(groupId);
             }
 
-            RoleEntity apiPORole = roleService
-                .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
-
-            final long apiCount = membershipService
-                .getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.GROUP,
-                    groupId,
-                    MembershipReferenceType.API,
-                    apiPORole.getId()
-                )
-                .size();
-
-            if (apiCount > 0) {
-                throw new StillPrimaryOwnerException(apiCount, ApiPrimaryOwnerMode.GROUP);
-            }
+            assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API);
+            assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API_PRODUCT);
 
             //remove all members
             membershipService.deleteReference(executionContext, MembershipReferenceType.GROUP, groupId);
@@ -1279,10 +1266,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void verifyUserCanBeDeletedFromGroup(ExecutionContext executionContext, String groupId, String username) {
-        // Check if this group is the primary owner of any API and if the user to remove has the API primary owner role in this group
-        RoleEntity apiPORole = roleService
-            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-            .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
+        RoleEntity apiPORole = getPrimaryOwnerRoleOrThrow(executionContext, RoleScope.API);
+        RoleEntity apiProductPORole = getPrimaryOwnerRoleOrThrow(executionContext, RoleScope.API_PRODUCT);
 
         Set<MembershipEntity> groupApiPrimaryOwnerMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
             MembershipMemberType.GROUP,
@@ -1290,24 +1275,62 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             MembershipReferenceType.API,
             apiPORole.getId()
         );
+        Set<MembershipEntity> groupApiProductPrimaryOwnerMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
+            MembershipMemberType.GROUP,
+            groupId,
+            MembershipReferenceType.API_PRODUCT,
+            apiProductPORole.getId()
+        );
 
-        if (!groupApiPrimaryOwnerMemberships.isEmpty()) {
-            // Check if the user has the API primary owner role in this group
-            Set<RoleEntity> userRolesInGroup = membershipService.getRoles(
-                MembershipReferenceType.GROUP,
-                groupId,
-                MembershipMemberType.USER,
-                username
-            );
+        Set<RoleEntity> userRolesInGroup = membershipService.getRoles(
+            MembershipReferenceType.GROUP,
+            groupId,
+            MembershipMemberType.USER,
+            username
+        );
 
-            boolean userHasApiPrimaryOwnerRole = userRolesInGroup
-                .stream()
-                .anyMatch(role -> role.getScope() == RoleScope.API && SystemRole.PRIMARY_OWNER.name().equals(role.getName()));
-
-            if (userHasApiPrimaryOwnerRole) {
-                throw new StillPrimaryOwnerException(groupApiPrimaryOwnerMemberships.size(), ApiPrimaryOwnerMode.GROUP);
-            }
+        if (!groupApiPrimaryOwnerMemberships.isEmpty() && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API)) {
+            throw new StillPrimaryOwnerException(groupApiPrimaryOwnerMemberships.size(), ApiPrimaryOwnerMode.GROUP);
         }
+        if (!groupApiProductPrimaryOwnerMemberships.isEmpty() && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API_PRODUCT)) {
+            throw new StillApiProductPrimaryOwnerException(groupApiProductPrimaryOwnerMemberships.size());
+        }
+    }
+
+    /**
+     * Resolves the {@link SystemRole#PRIMARY_OWNER} role for the given scope. Loud-fails if the role
+     * is missing — the {@code DefaultRolesUpgrader} / {@code ApiProductRolesUpgrader} run at startup
+     * and create these roles, so a missing role means the boot sequence didn't complete.
+     */
+    private RoleEntity getPrimaryOwnerRoleOrThrow(ExecutionContext executionContext, RoleScope scope) {
+        return roleService
+            .findByScopeAndName(scope, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+            .orElseThrow(() -> new TechnicalManagementException(scope.name() + " System Role 'PRIMARY_OWNER' not found."));
+    }
+
+    /**
+     * Refuses to delete the group if it still holds the {@code PRIMARY_OWNER} role for the given
+     * scope on at least one reference (API or API Product), to prevent orphan PO memberships.
+     */
+    private void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        RoleEntity poRole = getPrimaryOwnerRoleOrThrow(executionContext, scope);
+        long count = membershipService
+            .getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.valueOf(scope.name()),
+                poRole.getId()
+            )
+            .size();
+        if (count > 0) {
+            throw scope == RoleScope.API
+                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
+                : new StillApiProductPrimaryOwnerException(count);
+        }
+    }
+
+    private boolean userHasPrimaryOwnerRoleForScope(Set<RoleEntity> userRoles, RoleScope scope) {
+        return userRoles.stream().anyMatch(role -> role.getScope() == scope && SystemRole.PRIMARY_OWNER.name().equals(role.getName()));
     }
 
     @Override

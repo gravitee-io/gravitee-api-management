@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -122,6 +123,45 @@ public class GroupService_DeleteTest {
     @Mock
     private ApiTemplateService apiTemplateService;
 
+    private void stubPrimaryOwnerGuardAllowsDeletion() {
+        RoleEntity apiRole = new RoleEntity();
+        apiRole.setId("API_PRIMARY_OWNER_ID");
+        when(
+            roleService.findByScopeAndName(
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name(),
+                GraviteeContext.getExecutionContext().getOrganizationId()
+            )
+        ).thenReturn(Optional.of(apiRole));
+
+        RoleEntity apiProductRole = new RoleEntity();
+        apiProductRole.setId("API_PRODUCT_PRIMARY_OWNER_ID");
+        when(
+            roleService.findByScopeAndName(
+                RoleScope.API_PRODUCT,
+                SystemRole.PRIMARY_OWNER.name(),
+                GraviteeContext.getExecutionContext().getOrganizationId()
+            )
+        ).thenReturn(Optional.of(apiProductRole));
+
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                GROUP_ID,
+                MembershipReferenceType.API,
+                "API_PRIMARY_OWNER_ID"
+            )
+        ).thenReturn(Collections.emptySet());
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                GROUP_ID,
+                MembershipReferenceType.API_PRODUCT,
+                "API_PRODUCT_PRIMARY_OWNER_ID"
+            )
+        ).thenReturn(Collections.emptySet());
+    }
+
     @Test(expected = GroupNotFoundException.class)
     public void throwGroupNotFoundException() throws Exception {
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
@@ -166,23 +206,23 @@ public class GroupService_DeleteTest {
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
     }
 
-    @Test
-    public void shouldDeleteGroup() throws Exception {
+    @Test(expected = StillApiProductPrimaryOwnerException.class)
+    public void throwStillApiProductPrimaryOwnerException() throws Exception {
         final Group group = new Group();
         group.setId(GROUP_ID);
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
-        RoleEntity role = new RoleEntity();
-        role.setId("API_PRIMARY_OWNER_ID");
+        // API guard passes (no API PO membership for the group).
+        RoleEntity apiRole = new RoleEntity();
+        apiRole.setId("API_PRIMARY_OWNER_ID");
         when(
             roleService.findByScopeAndName(
                 RoleScope.API,
                 SystemRole.PRIMARY_OWNER.name(),
                 GraviteeContext.getExecutionContext().getOrganizationId()
             )
-        ).thenReturn(Optional.of(role));
-
+        ).thenReturn(Optional.of(apiRole));
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.GROUP,
@@ -191,6 +231,38 @@ public class GroupService_DeleteTest {
                 "API_PRIMARY_OWNER_ID"
             )
         ).thenReturn(Collections.emptySet());
+
+        // Group is the primary owner of an API Product → must refuse deletion with the
+        // API-Product-specific exception so the admin gets accurate wording.
+        RoleEntity apiProductRole = new RoleEntity();
+        apiProductRole.setId("API_PRODUCT_PRIMARY_OWNER_ID");
+        when(
+            roleService.findByScopeAndName(
+                RoleScope.API_PRODUCT,
+                SystemRole.PRIMARY_OWNER.name(),
+                GraviteeContext.getExecutionContext().getOrganizationId()
+            )
+        ).thenReturn(Optional.of(apiProductRole));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                GROUP_ID,
+                MembershipReferenceType.API_PRODUCT,
+                "API_PRODUCT_PRIMARY_OWNER_ID"
+            )
+        ).thenReturn(Set.of(new MembershipEntity()));
+
+        groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
+    }
+
+    @Test
+    public void shouldDeleteGroup() throws Exception {
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+
+        stubPrimaryOwnerGuardAllowsDeletion();
 
         when(
             apiRepository.search(
@@ -283,24 +355,7 @@ public class GroupService_DeleteTest {
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
-        RoleEntity role = new RoleEntity();
-        role.setId("API_PRIMARY_OWNER_ID");
-        when(
-            roleService.findByScopeAndName(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-        ).thenReturn(Optional.of(role));
-
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                GROUP_ID,
-                MembershipReferenceType.API,
-                "API_PRIMARY_OWNER_ID"
-            )
-        ).thenReturn(Collections.emptySet());
+        stubPrimaryOwnerGuardAllowsDeletion();
 
         UserEntity mockUser = mock(UserEntity.class);
         when(mockUser.getDisplayName()).thenReturn("Mock User");
@@ -374,23 +429,7 @@ public class GroupService_DeleteTest {
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
-        RoleEntity role = new RoleEntity();
-        role.setId("API_PRIMARY_OWNER_ID");
-        when(
-            roleService.findByScopeAndName(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-        ).thenReturn(Optional.of(role));
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                GROUP_ID,
-                MembershipReferenceType.API,
-                "API_PRIMARY_OWNER_ID"
-            )
-        ).thenReturn(Collections.emptySet());
+        stubPrimaryOwnerGuardAllowsDeletion();
 
         when(
             apiRepository.search(
@@ -432,24 +471,7 @@ public class GroupService_DeleteTest {
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
-        RoleEntity role = new RoleEntity();
-        role.setId("API_PRIMARY_OWNER_ID");
-        when(
-            roleService.findByScopeAndName(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-        ).thenReturn(Optional.of(role));
-
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                GROUP_ID,
-                MembershipReferenceType.API,
-                "API_PRIMARY_OWNER_ID"
-            )
-        ).thenReturn(Collections.emptySet());
+        stubPrimaryOwnerGuardAllowsDeletion();
 
         // No APIs found by group membership search (the API is NOT in the group's groups[])
         when(
