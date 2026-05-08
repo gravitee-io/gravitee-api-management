@@ -15,11 +15,14 @@
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import SwaggerUI from 'swagger-ui';
 
 import { NavigationItemContentViewerComponent } from './navigation-item-content-viewer.component';
 import { NavigationItemContentViewerHarness } from './navigation-item-content-viewer.harness';
+import { ViewerEnum } from '../../entities/page/page-configuration';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
 import { RedocService } from '../../services/redoc.service';
+import { AppTestingModule } from '../../testing/app-testing.module';
 
 interface initData {
   pageContent: PortalPageContent | null;
@@ -61,6 +64,7 @@ describe('NavigationItemContentViewerComponent', () => {
     const pageContent: PortalPageContent = {
       type: 'OPENAPI',
       content: 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0',
+      configuration: { viewer: ViewerEnum.Redoc, try_it_url: 'https://try-it.example.com' },
     };
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -84,6 +88,9 @@ describe('NavigationItemContentViewerComponent', () => {
       expect(redocViewer).not.toBeNull();
       expect(await harness.isShowingRedocContent()).toBe(true);
     });
+    it('should read Redoc try it URL from snake_case configuration', () => {
+      expect(fixture.componentInstance.tryItUrl()).toBe('https://try-it.example.com');
+    });
     it('should not render markdown viewer', async () => {
       const markdownViewer = await harness.getGMDViewer();
       expect(markdownViewer).toBeNull();
@@ -106,6 +113,76 @@ describe('NavigationItemContentViewerComponent', () => {
       const markdownViewer = await harness.getGMDViewer();
       expect(markdownViewer).toBeNull();
     });
+    it('should not render redoc viewer', async () => {
+      expect(await harness.isShowingRedocContent()).toBe(false);
+    });
+  });
+
+  describe('if page content is OPENAPI with Swagger', () => {
+    const pageContent: PortalPageContent = {
+      type: 'OPENAPI',
+      content: 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0',
+      configuration: { viewer: ViewerEnum.Swagger },
+    };
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [NavigationItemContentViewerComponent, AppTestingModule],
+      }).compileComponents();
+
+      jest.mocked(SwaggerUI).mockClear();
+
+      fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
+      fixture.componentRef.setInput('pageContent', pageContent);
+
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
+      fixture.detectChanges();
+    });
+
+    it('should not reinitialize Swagger UI on unchanged change detection cycles', () => {
+      expect(SwaggerUI).toHaveBeenCalledTimes(1);
+
+      fixture.detectChanges();
+      fixture.detectChanges();
+
+      expect(SwaggerUI).toHaveBeenCalledTimes(1);
+    });
+
+    it('should render swagger viewer', async () => {
+      const swaggerViewer = await harness.getSwaggerViewer();
+      expect(swaggerViewer).not.toBeNull();
+    });
+
+    it('should not render redoc viewer', async () => {
+      expect(await harness.isShowingRedocContent()).toBe(false);
+    });
+  });
+
+  describe('if page content is OPENAPI with no viewer set', () => {
+    const pageContent: PortalPageContent = {
+      type: 'OPENAPI',
+      content: 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0',
+    };
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [NavigationItemContentViewerComponent, AppTestingModule],
+      }).compileComponents();
+
+      jest.mocked(SwaggerUI).mockClear();
+
+      fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
+      fixture.componentRef.setInput('pageContent', pageContent);
+
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
+      fixture.detectChanges();
+    });
+
+    it('should render swagger viewer', async () => {
+      const swaggerViewer = await harness.getSwaggerViewer();
+      expect(swaggerViewer).not.toBeNull();
+    });
+
     it('should not render redoc viewer', async () => {
       expect(await harness.isShowingRedocContent()).toBe(false);
     });

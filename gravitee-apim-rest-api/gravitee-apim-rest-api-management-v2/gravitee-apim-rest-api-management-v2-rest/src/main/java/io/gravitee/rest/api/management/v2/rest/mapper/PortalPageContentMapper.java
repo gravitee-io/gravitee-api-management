@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalPageOpenApiConfigurat
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageRedocConfiguration;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageSwaggerConfiguration;
 import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -72,7 +73,7 @@ public interface PortalPageContentMapper {
         }
         return switch (configuration) {
             case SwaggerUiConfiguration cfg -> new PortalPageOpenApiConfiguration(mapToDto(cfg));
-            case RedocConfiguration ignored -> new PortalPageOpenApiConfiguration(mapRedocToDto());
+            case RedocConfiguration cfg -> new PortalPageOpenApiConfiguration(mapRedocToDto(cfg));
         };
     }
 
@@ -81,22 +82,22 @@ public interface PortalPageContentMapper {
             return null;
         }
         return switch (configuration.getActualInstance()) {
-            case PortalPageRedocConfiguration ignored -> new RedocConfiguration();
+            case PortalPageRedocConfiguration redoc -> new RedocConfiguration(Objects.requireNonNullElse(redoc.getTryItURL(), ""));
             case PortalPageSwaggerConfiguration swagger -> new SwaggerUiConfiguration(
-                swagger.getDisplayOperationId(),
+                Objects.requireNonNullElse(swagger.getDisplayOperationId(), false),
                 mapDocExpansion(swagger.getDocExpansion()),
-                swagger.getEnableFiltering(),
-                swagger.getMaxDisplayedTags(),
-                swagger.getShowCommonExtensions(),
-                swagger.getShowExtensions(),
-                swagger.getShowURL(),
-                swagger.getTryIt(),
-                swagger.getDisableSyntaxHighlight(),
-                swagger.getTryItAnonymous(),
-                swagger.getTryItURL(),
-                swagger.getUsePkce(),
-                swagger.getEntrypointsAsServers(),
-                swagger.getEntrypointAsBasePath()
+                Objects.requireNonNullElse(swagger.getEnableFiltering(), false),
+                Objects.requireNonNullElse(swagger.getMaxDisplayedTags(), -1),
+                Objects.requireNonNullElse(swagger.getShowCommonExtensions(), false),
+                Objects.requireNonNullElse(swagger.getShowExtensions(), false),
+                Objects.requireNonNullElse(swagger.getShowURL(), false),
+                Objects.requireNonNullElse(swagger.getTryIt(), false),
+                Objects.requireNonNullElse(swagger.getDisableSyntaxHighlight(), false),
+                Objects.requireNonNullElse(swagger.getTryItAnonymous(), false),
+                Objects.requireNonNullElse(swagger.getTryItURL(), ""),
+                Objects.requireNonNullElse(swagger.getUsePkce(), false),
+                Objects.requireNonNullElse(swagger.getEntrypointsAsServers(), false),
+                Objects.requireNonNullElse(swagger.getEntrypointAsBasePath(), false)
             );
             default -> throw new IllegalStateException("Cannot map configuration to OpenApi configuration");
         };
@@ -130,9 +131,10 @@ public interface PortalPageContentMapper {
         return configuration;
     }
 
-    private static PortalPageRedocConfiguration mapRedocToDto() {
+    private static PortalPageRedocConfiguration mapRedocToDto(RedocConfiguration cfg) {
         var configuration = new PortalPageRedocConfiguration();
         configuration.setViewer(BasePortalPageOpenApiConfiguration.ViewerEnum.REDOC);
+        configuration.setTryItURL(cfg.tryItUrl());
         return configuration;
     }
 }

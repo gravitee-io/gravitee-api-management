@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { NewPortalPageContent, PortalPageContent, UpdatePortalPageContent } from '../entities/management-api-v2';
+import { OpenApiViewerConfiguration } from '../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
 
 @Injectable({
   providedIn: 'root',
@@ -39,5 +40,12 @@ export class PortalPageContentService {
 
   public updatePageContent(contentId: string, content: UpdatePortalPageContent): Observable<PortalPageContent> {
     return this.http.put<PortalPageContent>(`${this.constants.env.v2BaseURL}/portal-page-contents/${contentId}`, content);
+  }
+
+  public updatePageContentConfiguration(contentId: string, configuration: OpenApiViewerConfiguration): Observable<PortalPageContent> {
+    return this.http.patch<PortalPageContent>(
+      `${this.constants.env.v2BaseURL}/portal-page-contents/${contentId}/configuration`,
+      configuration,
+    );
   }
 }

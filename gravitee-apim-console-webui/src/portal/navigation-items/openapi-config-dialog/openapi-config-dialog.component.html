@@ -1,0 +1,152 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div mat-dialog-title>Configure OpenAPI Viewer</div>
+
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <mat-dialog-content>
+    <div class="open-api-configuration">
+      <mat-form-field>
+        <mat-label>Base URL</mat-label>
+        <input id="openapi-try-it-url" matInput type="text" aria-label="Base URL" formControlName="tryItURL" />
+        <mat-hint
+          >Custom base URL to use as server URL. If empty and not using API entrypoints as a base URL, the server URL from the specification
+          will be used.</mat-hint
+        >
+        @if (form.controls.tryItURL.hasError('pattern')) {
+          <mat-error>Must be a valid URL starting with http:// or https://</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>OpenAPI Documentation Viewer</mat-label>
+        <mat-select formControlName="viewer">
+          <mat-option [value]="viewerEnum.Swagger">SwaggerUI</mat-option>
+          <mat-option [value]="viewerEnum.Redoc">Redoc</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      @if (isSwaggerViewer()) {
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="tryIt" />
+          <gio-form-label>
+            <div>Enable "Try It!" mode</div>
+            <div class="mat-body-2">
+              Allows trying the API from the Developer Portal for authenticated users. You may have to configure CORS in the entrypoint
+              section.
+            </div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="disableSyntaxHighlight" />
+          <gio-form-label>
+            <div>Disable response body styling for large JSON payloads</div>
+            <div class="mat-body-2">
+              Displays API responses without Swagger UI styling to optimize performance when handling large payloads.
+            </div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="tryItAnonymous" />
+          <gio-form-label>
+            <div>Enable "Try It!" mode for anonymous users</div>
+            <div class="mat-body-2">
+              Allows users not logged into the Developer Portal to try the API from the OpenAPI spec when the page and API are public.
+            </div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="showURL" />
+          <gio-form-label>
+            <div>Show URL to download content</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="displayOperationId" />
+          <gio-form-label>
+            <div>Display the <code>operationId</code> in the operation list</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="usePkce" />
+          <gio-form-label>
+            <div>Use PKCE with OAuth</div>
+            <div class="mat-body-2">Uses PKCE when authenticating with OAuth authorization code flow.</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Expand content on the page</mat-label>
+          <mat-select formControlName="docExpansion">
+            <mat-option [value]="docExpansionEnum.List">Only tags</mat-option>
+            <mat-option [value]="docExpansionEnum.Full">Tags and operations</mat-option>
+            <mat-option [value]="docExpansionEnum.None">Default</mat-option>
+          </mat-select>
+          <mat-hint>Determines whether to expand operations, tags, or nothing by default when the page is opened.</mat-hint>
+        </mat-form-field>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enableFiltering" />
+          <gio-form-label>
+            <div>Add top bar to filter content</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="showExtensions" />
+          <gio-form-label>
+            <div>Display vendor extensions</div>
+            <div class="mat-body-2">
+              Determines whether vendor extension (X-) fields and values for operations, parameters, and schemas should be displayed.
+            </div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle formControlName="showCommonExtensions" />
+          <gio-form-label>
+            <div>Display extension fields for Parameters</div>
+            <div class="mat-body-2">Determines whether pattern, maxLength, minLength, maximum, and minimum extensions should be shown.</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
+        <mat-form-field>
+          <mat-label>Max number of tagged operations displayed</mat-label>
+          <input
+            id="openapi-max-displayed-tags"
+            matInput
+            type="number"
+            min="-1"
+            aria-label="Max number of tagged operations displayed"
+            formControlName="maxDisplayedTags"
+          />
+          <mat-hint>Limits the number of tagged operations displayed to the specific value. -1 means to show all operations.</mat-hint>
+        </mat-form-field>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Save</button>
+  </mat-dialog-actions>
+</form>

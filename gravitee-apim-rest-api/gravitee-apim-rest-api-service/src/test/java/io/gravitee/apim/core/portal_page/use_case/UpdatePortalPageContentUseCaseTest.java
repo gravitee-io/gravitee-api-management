@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalPageContentFixtures.CONTENT_ID;
 import static fixtures.core.model.PortalPageContentFixtures.ENVIRONMENT_ID;
 import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
+import static fixtures.core.model.SwaggerUiConfigurationFixtures.aSwaggerUiConfiguration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,10 +37,13 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosin
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -49,11 +53,13 @@ import org.junit.jupiter.api.Test;
 class UpdatePortalPageContentUseCaseTest {
 
     private UpdatePortalPageContentUseCase useCase;
+    private PortalPageContentQueryServiceInMemory queryService;
+    private PortalPageContentCrudServiceInMemory crudService;
 
     @BeforeEach
     void setUp() {
-        PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-        PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
+        queryService = new PortalPageContentQueryServiceInMemory();
+        crudService = new PortalPageContentCrudServiceInMemory();
 
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         PortalNavigationItemsQueryService portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
@@ -93,6 +99,38 @@ class UpdatePortalPageContentUseCaseTest {
         final var updatedContent = (GraviteeMarkdownPageContent) output.portalPageContent();
         assertThat(updatedContent.getContent().value()).isEqualTo("Updated content");
         assertThat(updatedContent.getId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
+    }
+
+    @Test
+    void should_preserve_openapi_viewer_configuration_when_updating_content_only() {
+        // Given
+        final var contentId = PortalPageContentId.of("00000000-0000-0000-0000-000000000003");
+        final var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
+            contentId,
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "openapi: 3.0.3\ninfo:\n  title: Initial",
+            aSwaggerUiConfiguration()
+        );
+        queryService.initWith(List.of(openApiContent));
+        crudService.initWith(List.of(openApiContent));
+
+        final var updateContent = UpdatePortalPageContent.builder().content("openapi: 3.0.3\ninfo:\n  title: Updated").build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(contentId.toString())
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When
+        final var output = useCase.execute(input);
+
+        // Then
+        assertThat(output.portalPageContent()).isInstanceOf(OpenApiPageContent.class);
+        final var updatedContent = (OpenApiPageContent) output.portalPageContent();
+        assertThat(updatedContent.getContent().value()).contains("title: Updated");
+        assertThat(updatedContent.getViewerSettings()).isInstanceOf(SwaggerUiConfiguration.class);
     }
 
     @Test

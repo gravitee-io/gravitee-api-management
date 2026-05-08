@@ -17,7 +17,7 @@ import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 
 export class PageSwaggerHarness extends ComponentHarness {
   public static hostSelector = 'app-page-swagger';
-  protected locateSwagger = this.locatorFor('#swagger');
+  protected locateSwagger = this.locatorFor('[data-testid="swagger"]');
 
   public async getSwagger(): Promise<TestElement> {
     return await this.locateSwagger();

@@ -30,6 +30,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
   private getEditButton = this.locatorFor(MatButtonHarness.with({ text: /Edit/i }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
+  private readonly getConfigureButtonOptional = this.locatorForOptional(MatButtonHarness.with({ text: /^Configure$/ }));
   private getPublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Publish$/ }));
   private getUnpublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Unpublish$/ }));
   private getMenu = this.locatorFor(MatMenuHarness);
@@ -63,6 +64,15 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async clickEditButton(): Promise<void> {
     const button = await this.getEditButton();
     return button.click();
+  }
+
+  async isConfigureButtonVisible(): Promise<boolean> {
+    return (await this.getConfigureButtonOptional()) !== null;
+  }
+
+  async clickConfigureButton(): Promise<void> {
+    const button = await this.getConfigureButtonOptional();
+    return button?.click();
   }
 
   async getPageMenuItem(): Promise<MatMenuItemHarness> {

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import SwaggerUI from 'swagger-ui';
 
 import { PageSwaggerComponent } from './page-swagger.component';
+import { DocExpansionEnum } from '../../../entities/page/page-configuration';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
@@ -25,13 +27,26 @@ const SwaggerUIMock = jest.mocked(SwaggerUI);
 
 type WithNormalizeTypeArrays = { normalizeTypeArrays: (obj: unknown) => unknown };
 
+@Component({
+  standalone: true,
+  imports: [PageSwaggerComponent],
+  template: `
+    <app-page-swagger [page]="firstPage" />
+    <app-page-swagger [page]="secondPage" />
+  `,
+})
+class PageSwaggerHostComponent {
+  firstPage = fakePage({ id: 'first-page', type: 'SWAGGER', content: '{"openapi":"3.0.0"}' });
+  secondPage = fakePage({ id: 'second-page', type: 'SWAGGER', content: '{"openapi":"3.0.0"}' });
+}
+
 describe('PageSwaggerComponent', () => {
   let component: PageSwaggerComponent;
   let fixture: ComponentFixture<PageSwaggerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PageSwaggerComponent, AppTestingModule],
+      imports: [PageSwaggerComponent, PageSwaggerHostComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageSwaggerComponent);
@@ -191,5 +206,73 @@ describe('PageSwaggerComponent', () => {
       expect((component as unknown as WithNormalizeTypeArrays).normalizeTypeArrays('string')).toBe('string');
       expect((component as unknown as WithNormalizeTypeArrays).normalizeTypeArrays(42)).toBe(42);
     });
+  });
+
+  it('should map snake_case page configuration to Swagger UI options', () => {
+    const initOAuth = jest.fn();
+    jest.mocked(SwaggerUI).mockClear();
+    jest.mocked(SwaggerUI).mockReturnValue({ initOAuth } as never);
+    component.page = fakePage({
+      type: 'SWAGGER',
+      content: '{"openapi":"3.0.0","info":{"title":"Test","version":"1.0.0"}}',
+      configuration: {
+        try_it_url: 'https://try-it.example.com',
+        disable_syntax_highlight: true,
+        doc_expansion: DocExpansionEnum.Full,
+        display_operation_id: true,
+        enable_filtering: true,
+        show_extensions: true,
+        show_common_extensions: true,
+        max_displayed_tags: 7,
+        use_pkce: true,
+      },
+    });
+
+    component.ngOnChanges();
+
+    expect(SwaggerUI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: expect.objectContaining({ servers: [{ url: 'https://try-it.example.com' }] }),
+        syntaxHighlight: false,
+        docExpansion: DocExpansionEnum.Full,
+        displayOperationId: true,
+        filter: true,
+        showExtensions: true,
+        showCommonExtensions: true,
+        maxDisplayedTags: 7,
+      }),
+    );
+    expect(initOAuth).toHaveBeenCalledWith({
+      usePkceWithAuthorizationCodeGrant: true,
+    });
+  });
+
+  it('should mount Swagger UI on its local element without using a global id lookup', () => {
+    const getElementByIdSpy = jest.spyOn(document, 'getElementById');
+    jest.mocked(SwaggerUI).mockClear();
+
+    component.ngOnChanges();
+
+    expect(getElementByIdSpy).not.toHaveBeenCalled();
+    expect(SwaggerUI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        domNode: expect.any(HTMLDivElement),
+      }),
+    );
+
+    getElementByIdSpy.mockRestore();
+  });
+
+  it('should mount multiple instances on separate local elements', () => {
+    jest.mocked(SwaggerUI).mockClear();
+
+    const hostFixture = TestBed.createComponent(PageSwaggerHostComponent);
+    hostFixture.detectChanges();
+
+    const [firstOptions, secondOptions] = jest.mocked(SwaggerUI).mock.calls.map(([options]) => options);
+
+    expect(firstOptions.domNode).toEqual(expect.any(HTMLDivElement));
+    expect(secondOptions.domNode).toEqual(expect.any(HTMLDivElement));
+    expect(firstOptions.domNode).not.toBe(secondOptions.domNode);
   });
 });

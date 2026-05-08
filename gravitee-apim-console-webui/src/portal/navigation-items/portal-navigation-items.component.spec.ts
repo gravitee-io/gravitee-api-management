@@ -25,6 +25,7 @@ import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { of } from 'rxjs';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -32,6 +33,7 @@ import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
+import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -39,6 +41,7 @@ import {
   fakeNewFolderPortalNavigationItem,
   fakeNewLinkPortalNavigationItem,
   fakeNewPagePortalNavigationItem,
+  fakePortalPageContent,
   fakePortalNavigationApi,
   fakePortalNavigationFolder,
   fakePortalNavigationItemsResponse,
@@ -54,8 +57,14 @@ import {
   UpdateLinkPortalNavigationItem,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
+import {
+  OpenApiDocExpansion,
+  OpenApiViewer,
+  OpenApiViewerConfiguration,
+} from '../../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 
 type PortalNavigationItemsComponentPrivateMethods = {
   validateAsyncApiSpec: () => boolean;
@@ -2521,10 +2530,15 @@ describe('PortalNavigationItemsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectGetPageContent(contentId: string, content: string, type: PortalPageContentType = 'GRAVITEE_MARKDOWN') {
+  function expectGetPageContent(
+    contentId: string,
+    content: string,
+    type: PortalPageContentType = 'GRAVITEE_MARKDOWN',
+    configuration?: Partial<OpenApiViewerConfiguration>,
+  ) {
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}` })
-      .flush({ id: contentId, content, type });
+      .flush({ id: contentId, content, type, configuration });
 
     fixture.detectChanges();
   }
@@ -2622,6 +2636,136 @@ describe('PortalNavigationItemsComponent', () => {
 
     component.contentControl.setValue('Initial content');
     expect(component.hasUnsavedChanges()).toBeFalsy();
+  });
+
+  describe('Configure button for OPENAPI page', () => {
+    const openApiNavItem = fakePortalNavigationPage({
+      id: 'openapi-page-1',
+      title: 'OpenAPI Page',
+      portalPageContentId: 'openapi-content-1',
+    });
+    const initialConfig: OpenApiViewerConfiguration = {
+      viewer: OpenApiViewer.Redoc,
+      tryItURL: '',
+      tryIt: false,
+      disableSyntaxHighlight: false,
+      tryItAnonymous: false,
+      showURL: false,
+      displayOperationId: false,
+      usePkce: false,
+      docExpansion: OpenApiDocExpansion.None,
+      enableFiltering: false,
+      showExtensions: false,
+      showCommonExtensions: false,
+      maxDisplayedTags: 0,
+    };
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [openApiNavItem] }));
+      expectGetPageContent('openapi-content-1', 'openapi: 3.0.0', 'OPENAPI', initialConfig);
+    });
+
+    it('should show Configure button when an OPENAPI page is selected', async () => {
+      expect(await harness.isConfigureButtonVisible()).toBe(true);
+    });
+
+    it('should open the Configure dialog when Configure button is clicked', async () => {
+      await harness.clickConfigureButton();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(OpenApiConfigDialogHarness);
+      expect(dialog).not.toBeNull();
+    });
+
+    it('should call PATCH and update configuration when dialog is saved', async () => {
+      await harness.clickConfigureButton();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(OpenApiConfigDialogHarness);
+      await dialog.clickSaveButton();
+
+      const req = httpTestingController.expectOne({
+        method: 'PATCH',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/openapi-content-1/configuration`,
+      });
+      expect(req.request.body).toEqual(expect.objectContaining({ viewer: OpenApiViewer.Redoc }));
+      req.flush(fakePortalPageContent({ id: 'openapi-content-1', type: 'OPENAPI', configuration: initialConfig }));
+      fixture.detectChanges();
+
+      expect(component.currentPageConfiguration()).toEqual(expect.objectContaining({ viewer: OpenApiViewer.Redoc }));
+    });
+
+    it('should not call PATCH when dialog is cancelled', async () => {
+      await harness.clickConfigureButton();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(OpenApiConfigDialogHarness);
+      await dialog.clickCancelButton();
+      fixture.detectChanges();
+
+      httpTestingController.expectNone({
+        method: 'PATCH',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/openapi-content-1/configuration`,
+      });
+    });
+  });
+
+  it('should save OpenAPI viewer configuration without persisting dirty content', async () => {
+    const initialConfiguration: OpenApiViewerConfiguration = {
+      viewer: OpenApiViewer.Redoc,
+      tryItURL: '',
+      tryIt: false,
+      disableSyntaxHighlight: false,
+      tryItAnonymous: false,
+      showURL: false,
+      displayOperationId: false,
+      usePkce: false,
+      docExpansion: OpenApiDocExpansion.None,
+      enableFiltering: false,
+      showExtensions: false,
+      showCommonExtensions: false,
+      maxDisplayedTags: 0,
+    };
+    const updatedConfiguration: OpenApiViewerConfiguration = {
+      ...initialConfiguration,
+      viewer: OpenApiViewer.Swagger,
+      tryIt: true,
+      showURL: true,
+      docExpansion: OpenApiDocExpansion.Full,
+      maxDisplayedTags: 12,
+    };
+
+    await expectGetNavigationItems({
+      items: [fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', portalPageContentId: 'content-1' })],
+    });
+    expectGetPageContent('content-1', 'Initial content', 'OPENAPI', initialConfiguration);
+
+    const portalPageContentService = TestBed.inject(PortalPageContentService);
+    const updatePageContentSpy = jest.spyOn(portalPageContentService, 'updatePageContent');
+    const updatePageContentConfigurationSpy = jest.spyOn(portalPageContentService, 'updatePageContentConfiguration').mockReturnValue(
+      of(
+        fakePortalPageContent({
+          id: 'content-1',
+          content: 'Initial content',
+          type: 'OPENAPI',
+          configuration: updatedConfiguration,
+        }),
+      ),
+    );
+    jest.spyOn(TestBed.inject(MatDialog), 'open').mockReturnValue({
+      afterClosed: () => of(updatedConfiguration),
+    } as ReturnType<MatDialog['open']>);
+
+    component.contentControl.setValue('Dirty draft content');
+    component.contentControl.markAsDirty();
+
+    component.onConfigure();
+
+    expect(updatePageContentConfigurationSpy).toHaveBeenCalledWith('content-1', updatedConfiguration);
+    expect(updatePageContentSpy).not.toHaveBeenCalled();
+    expect(component.contentControl.value).toBe('Dirty draft content');
+    expect(component.hasUnsavedChanges()).toBeTruthy();
+    expect(component.currentPageConfiguration()).toEqual(updatedConfiguration);
   });
 
   it('should not have unsaved changes after opening and closing the edit dialog without changes', async () => {

@@ -22,7 +22,13 @@
       <gmd-viewer [content]="pageContentVM.content" appInnerLink />
     }
     @case ('OPENAPI') {
-      <app-redoc-content-viewer [content]="pageContentVM.content" />
+      @if (pageContentVM.configuration?.viewer === viewerEnum.Redoc) {
+        <app-redoc-content-viewer [content]="pageContentVM.content" [tryItUrl]="tryItUrl()" />
+      } @else {
+        @if (swaggerPage(); as swaggerPageVM) {
+          <app-page-swagger [page]="swaggerPageVM" />
+        }
+      }
     }
     @case ('ASYNCAPI') {
       <app-page-async-api [content]="pageContentVM.content" />
