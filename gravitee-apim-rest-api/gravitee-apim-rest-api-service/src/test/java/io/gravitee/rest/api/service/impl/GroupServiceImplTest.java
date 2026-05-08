@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import java.util.List;
 import java.util.Optional;
@@ -268,18 +269,34 @@ public class GroupServiceImplTest {
         String username = "user-1";
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
 
         when(
             roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
         ).thenReturn(Optional.of(apiPORole));
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
 
-        // Group is NOT a primary owner of any API (empty memberships)
+        // Group is NOT a primary owner of any API or API Product.
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.GROUP,
                 groupId,
                 MembershipReferenceType.API,
                 apiPORole.getId()
+            )
+        ).thenReturn(Set.of());
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
             )
         ).thenReturn(Set.of());
 
@@ -307,10 +324,18 @@ public class GroupServiceImplTest {
         String username = "user-1";
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
 
         when(
             roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
         ).thenReturn(Optional.of(apiPORole));
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
 
         // Group IS a primary owner of some APIs
         MembershipEntity groupApiPOMembership = MembershipEntity.builder()
@@ -326,6 +351,15 @@ public class GroupServiceImplTest {
                 apiPORole.getId()
             )
         ).thenReturn(Set.of(groupApiPOMembership));
+        // Group is NOT API_PRODUCT primary owner.
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
+            )
+        ).thenReturn(Set.of());
 
         // User does NOT have API PRIMARY_OWNER role in this group (has a different role)
         RoleEntity userApiRole = RoleEntity.builder().id("api-user-role-id").name("USER").scope(RoleScope.API).build();
@@ -356,10 +390,18 @@ public class GroupServiceImplTest {
         String username = "user-1";
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
 
         when(
             roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
         ).thenReturn(Optional.of(apiPORole));
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
 
         // Group IS a primary owner of some APIs
         MembershipEntity groupApiPOMembership = MembershipEntity.builder()
@@ -375,6 +417,14 @@ public class GroupServiceImplTest {
                 apiPORole.getId()
             )
         ).thenReturn(Set.of(groupApiPOMembership));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
+            )
+        ).thenReturn(Set.of());
 
         // User HAS API PRIMARY_OWNER role in this group
         when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
@@ -384,6 +434,143 @@ public class GroupServiceImplTest {
         assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username)).isInstanceOf(
             StillPrimaryOwnerException.class
         );
+    }
+
+    @Test
+    public void deleteUserFromGroup_shouldThrow_whenGroupIsApiProductPrimaryOwner_andUserHasApiProductPrimaryOwnerRole() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+        String username = "user-1";
+
+        // The API guard is satisfied (no API PO membership for the group).
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API,
+                apiPORole.getId()
+            )
+        ).thenReturn(Set.of());
+
+        // The group IS the primary owner of an API Product.
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
+        MembershipEntity groupApiProductPOMembership = MembershipEntity.builder()
+            .id("ap-membership-1")
+            .referenceId("api-product-1")
+            .referenceType(MembershipReferenceType.API_PRODUCT)
+            .build();
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
+            )
+        ).thenReturn(Set.of(groupApiProductPOMembership));
+
+        // The user holds the API_PRODUCT PRIMARY_OWNER role inside the group.
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
+            Set.of(apiProductPORole)
+        );
+
+        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username)).isInstanceOf(
+            StillApiProductPrimaryOwnerException.class
+        );
+    }
+
+    @Test
+    public void deleteUserFromGroup_shouldSucceed_whenGroupIsApiProductPrimaryOwner_butUserDoesNotHaveApiProductPrimaryOwnerRole()
+        throws Exception {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+        String username = "user-1";
+
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API,
+                apiPORole.getId()
+            )
+        ).thenReturn(Set.of());
+
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
+            )
+        ).thenReturn(
+            Set.of(
+                MembershipEntity.builder().id("ap").referenceId("api-product-1").referenceType(MembershipReferenceType.API_PRODUCT).build()
+            )
+        );
+
+        // The user has only an API_PRODUCT USER role, not PRIMARY_OWNER → removal must succeed.
+        RoleEntity userApiProductRole = RoleEntity.builder().id("user-role").name("USER").scope(RoleScope.API_PRODUCT).build();
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
+            Set.of(userApiProductRole)
+        );
+
+        when(groupRepository.findById(groupId)).thenReturn(
+            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
+        );
+
+        service.deleteUserFromGroup(executionContext, groupId, username);
+
+        verify(membershipService).deleteReferenceMember(
+            executionContext,
+            MembershipReferenceType.GROUP,
+            groupId,
+            MembershipMemberType.USER,
+            username
+        );
+    }
+
+    @Test
+    public void deleteUserFromGroup_shouldThrow_whenApiProductPrimaryOwnerRoleNotInOrg() {
+        // The PO-role lookup is symmetric: missing API_PRODUCT PRIMARY_OWNER role means startup
+        // didn't complete (ApiProductRolesUpgrader didn't run). Loud-fail rather than silently
+        // skipping the guard, otherwise the user could be removed and orphan a PO group's contact.
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+        String username = "user-1";
+
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username))
+            .isInstanceOf(io.gravitee.rest.api.service.exceptions.TechnicalManagementException.class)
+            .hasMessageContaining("API_PRODUCT");
     }
 
     @Test
