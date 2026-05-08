@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.async_api.exception;
 
-public enum PortalPageContentType {
-    GRAVITEE_MARKDOWN,
-    OPENAPI,
-    ASYNCAPI,
+import io.gravitee.apim.core.exception.ValidationDomainException;
+
+/**
+ * Exception thrown when AsyncAPI content is null, empty, or contains only whitespace.
+ *
+ * @author Gravitee.io Team
+ */
+public class AsyncApiContentEmptyException extends ValidationDomainException {
+
+    public AsyncApiContentEmptyException() {
+        super("Content must not be null or empty");
+    }
 }

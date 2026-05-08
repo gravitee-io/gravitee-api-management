@@ -15,7 +15,9 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -57,5 +59,23 @@ public class PortalPageContentFixtures {
 
     public static List<PortalPageContent<?>> samplePortalPageContents() {
         return List.of(aGraviteeMarkdownPageContent());
+    }
+
+    public static AsyncApiPageContent anAsyncApiPageContent() {
+        return new AsyncApiPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            new AsyncApi("asyncapi: '3.0.0'\ninfo:\n  title: Test")
+        );
+    }
+
+    public static AsyncApiPageContent anAsyncApiPageContent(
+        PortalPageContentId id,
+        String organizationId,
+        String environmentId,
+        String content
+    ) {
+        return new AsyncApiPageContent(id, organizationId, environmentId, new AsyncApi(content));
     }
 }

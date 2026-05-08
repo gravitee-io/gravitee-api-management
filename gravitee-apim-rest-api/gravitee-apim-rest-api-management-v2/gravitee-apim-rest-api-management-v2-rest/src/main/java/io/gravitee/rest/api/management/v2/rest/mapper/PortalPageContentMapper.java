@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -31,6 +32,7 @@ public interface PortalPageContentMapper {
         return switch (portalPageContent) {
             case GraviteeMarkdownPageContent markdownContent -> map(markdownContent);
             case OpenApiPageContent openApiContent -> map(openApiContent);
+            case AsyncApiPageContent asyncApiContent -> map(asyncApiContent);
         };
     }
 
@@ -45,6 +47,10 @@ public interface PortalPageContentMapper {
     @Mapping(target = "type", constant = "OPENAPI")
     @Mapping(target = "content", expression = "java(openApiContent.getContent().value())")
     io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(OpenApiPageContent openApiContent);
+
+    @Mapping(target = "type", constant = "ASYNCAPI")
+    @Mapping(target = "content", expression = "java(asyncApiContent.getContent().value())")
+    io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(AsyncApiPageContent asyncApiContent);
 
     UpdatePortalPageContent map(io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent portalPageContent);
 }

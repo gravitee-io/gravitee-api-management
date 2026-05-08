@@ -8138,6 +8138,7 @@ components:
             enum:
                 - GRAVITEE_MARKDOWN
                 - OPENAPI
+                - ASYNCAPI
 
         ValidateCertificateRequest:
             type: object

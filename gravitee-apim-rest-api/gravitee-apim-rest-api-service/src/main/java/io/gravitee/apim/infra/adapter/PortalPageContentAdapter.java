@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.open_api.OpenApi;
+import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -32,6 +34,7 @@ public interface PortalPageContentAdapter {
         return switch (portalPageContent.getType()) {
             case GRAVITEE_MARKDOWN -> graviteeMarkdownPageContentFromRepository(portalPageContent);
             case OPENAPI -> openApiPageContentFromRepository(portalPageContent);
+            case ASYNCAPI -> asyncApiPageContentFromRepository(portalPageContent);
         };
     }
 
@@ -57,10 +60,22 @@ public interface PortalPageContentAdapter {
         );
     }
 
+    default AsyncApiPageContent asyncApiPageContentFromRepository(
+        io.gravitee.repository.management.model.PortalPageContent portalPageContent
+    ) {
+        return new AsyncApiPageContent(
+            PortalPageContentId.of(portalPageContent.getId()),
+            portalPageContent.getOrganizationId(),
+            portalPageContent.getEnvironmentId(),
+            AsyncApi.of(portalPageContent.getContent())
+        );
+    }
+
     default io.gravitee.repository.management.model.PortalPageContent toRepository(PortalPageContent<?> portalPageContent) {
         String rawContent = switch (portalPageContent) {
             case GraviteeMarkdownPageContent gmd -> gmd.getContent().value();
             case OpenApiPageContent oapi -> oapi.getContent().value();
+            case AsyncApiPageContent aapi -> aapi.getContent().value();
         };
         return io.gravitee.repository.management.model.PortalPageContent.builder()
             .id(portalPageContent.getId().toString())
@@ -77,6 +92,7 @@ public interface PortalPageContentAdapter {
         return switch (type) {
             case GRAVITEE_MARKDOWN -> io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN;
             case OPENAPI -> io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI;
+            case ASYNCAPI -> io.gravitee.repository.management.model.PortalPageContent.Type.ASYNCAPI;
         };
     }
 }

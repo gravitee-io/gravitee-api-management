@@ -35,6 +35,7 @@ public class PortalPageContent {
     public enum Type {
         GRAVITEE_MARKDOWN,
         OPENAPI,
+        ASYNCAPI,
     }
 
     @EqualsAndHashCode.Include

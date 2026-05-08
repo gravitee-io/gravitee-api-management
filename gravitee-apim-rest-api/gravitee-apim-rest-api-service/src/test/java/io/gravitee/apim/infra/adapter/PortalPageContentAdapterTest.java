@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -95,6 +97,27 @@ class PortalPageContentAdapterTest {
             assertThat(openApiContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440002"));
             assertThat(openApiContent.getContent().value()).isEqualTo("openapi: 3.0.0\ninfo:\n  title: Test API");
         }
+
+        @Test
+        void should_map_asyncapi_content_to_entity() {
+            // Given
+            var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
+                .id("550e8400-e29b-41d4-a716-446655440003")
+                .organizationId("ORG")
+                .environmentId("ENV")
+                .type(io.gravitee.repository.management.model.PortalPageContent.Type.ASYNCAPI)
+                .content("asyncapi: '3.0.0'\ninfo:\n  title: Test API")
+                .build();
+
+            // When
+            var entity = adapter.toEntity(repositoryContent);
+
+            // Then
+            assertThat(entity).isInstanceOf(AsyncApiPageContent.class);
+            var asyncApiContent = (AsyncApiPageContent) entity;
+            assertThat(asyncApiContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
+            assertThat(asyncApiContent.getContent().value()).isEqualTo("asyncapi: '3.0.0'\ninfo:\n  title: Test API");
+        }
     }
 
     @Nested
@@ -115,6 +138,27 @@ class PortalPageContentAdapterTest {
 
             // Then
             assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.GRAVITEE_MARKDOWN);
+            assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
+            assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
+            assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
+            assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent().value());
+        }
+
+        @Test
+        void should_map_asyncapi_content_to_repository() {
+            // Given
+            final var entityContent = new AsyncApiPageContent(
+                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"),
+                "DEFAULT_ORG",
+                "DEFAULT_ENV",
+                new AsyncApi("asyncapi: '3.0.0'\ninfo:\n  title: Test")
+            );
+
+            // When
+            var repositoryContent = adapter.toRepository(entityContent);
+
+            // Then
+            assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.ASYNCAPI);
             assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
             assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
