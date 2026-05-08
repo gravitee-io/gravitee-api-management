@@ -271,7 +271,9 @@ export class GroupsComponent implements OnInit {
     if (!this.permissionService.hasAnyMatching(['environment-group-d'])) {
       this.protectedGroups = new Set(this.groups.value.map(group => group.id));
     } else {
-      this.protectedGroups = new Set(this.groups.value.filter(group => group.apiPrimaryOwner).map(group => group.id));
+      this.protectedGroups = new Set(
+        this.groups.value.filter(group => group.apiPrimaryOwner || !!group.apiProductPrimaryOwner).map(group => group.id),
+      );
     }
   }
 

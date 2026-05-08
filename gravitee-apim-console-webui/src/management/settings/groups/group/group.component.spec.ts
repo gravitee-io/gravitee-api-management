@@ -415,6 +415,105 @@ describe('GroupComponent', () => {
       expectDeleteMember('1');
     });
 
+    it('should disable remove member when sole member is API primary owner', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+          },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      fixture.detectChanges();
+
+      expect(component.deleteDisabled).toEqual(true);
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const deleteButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Remove member from group"]' }));
+      expect(await deleteButton.isDisabled()).toEqual(true);
+    });
+
+    it('should disable remove member when sole member is API Product primary owner only', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: {
+            API: 'OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+          },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      fixture.detectChanges();
+
+      expect(component.deleteDisabled).toEqual(true);
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
+      const deleteButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Remove member from group"]' }));
+      expect(await deleteButton.isDisabled()).toEqual(true);
+    });
+
+    it('should not disable remove member when group has more than one member', async () => {
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: {
+            API: 'OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+          },
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: {
+            API: 'OWNER',
+            API_PRODUCT: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+          },
+        },
+      ]);
+      expectGetCurrentUser();
+      expectGetGroupAPIs();
+      expectGetGroupAPIProducts();
+      expectGetGroupApplications();
+      fixture.detectChanges();
+
+      expect(component.deleteDisabled).toEqual(false);
+      const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
+      const rows = await tableHarness.getRows();
+      const deleteButtonRow0 = await (
+        await rows[0].getCells({ columnName: 'actions' }).then(c => c[0])
+      ).getHarness(MatButtonHarness.with({ selector: '[mattooltip="Remove member from group"]' }));
+      expect(await deleteButtonRow0.isDisabled()).toEqual(false);
+    });
+
     it('should update member', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();

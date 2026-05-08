@@ -875,7 +875,9 @@ export class GroupComponent implements OnInit {
 
   private disableDeleteMember(): void {
     const groupMembers = this.groupMembers.value;
-    this.deleteDisabled = groupMembers.length === 1 && groupMembers[0].roles['API'] === RoleName.PRIMARY_OWNER;
+    this.deleteDisabled =
+      groupMembers.length === 1 &&
+      (groupMembers[0].roles['API'] === RoleName.PRIMARY_OWNER || groupMembers[0].roles['API_PRODUCT'] === RoleName.PRIMARY_OWNER);
   }
 
   private disableForm() {
