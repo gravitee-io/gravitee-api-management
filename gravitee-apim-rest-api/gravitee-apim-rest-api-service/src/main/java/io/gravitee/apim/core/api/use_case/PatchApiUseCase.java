@@ -393,7 +393,7 @@ public class PatchApiUseCase {
             if (rawPatchNode.get(field).isNull()) {
                 return null;
             }
-            return readList(patchedNode, field, elementType, null);
+            return readList(patchedNode, field, elementType, existing);
         }
         if (patchType == PatchType.JSON_PATCH) {
             if (patchedNode.get(field) == null && isNullifiedByJsonPatch(rawPatchNode, field)) {
