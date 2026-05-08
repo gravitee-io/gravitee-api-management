@@ -173,7 +173,7 @@ public interface PortalPageContentAdapter {
                 OpenApiConfiguration.Viewer.valueOf(viewerNode.asText())
             );
             return switch (viewer.orElse(OpenApiConfiguration.Viewer.REDOC)) {
-                case REDOC -> new RedocConfiguration();
+                case REDOC -> new RedocConfiguration(optionalText(node, "tryItUrl", optionalText(node, "tryItURL", "")));
                 case SWAGGER -> new SwaggerUiConfiguration(
                     optionalBoolean(node, "displayOperationId", false),
                     optionalText(node, "docExpansion", "none"),
@@ -200,7 +200,10 @@ public interface PortalPageContentAdapter {
         throws com.fasterxml.jackson.core.JsonProcessingException {
         var values = new LinkedHashMap<String, Object>();
         switch (configuration) {
-            case RedocConfiguration ignored -> values.put("viewer", OpenApiConfiguration.Viewer.REDOC);
+            case RedocConfiguration redoc -> {
+                values.put("viewer", OpenApiConfiguration.Viewer.REDOC);
+                values.put("tryItUrl", redoc.tryItUrl());
+            }
             case SwaggerUiConfiguration swagger -> {
                 values.put("viewer", OpenApiConfiguration.Viewer.SWAGGER);
                 values.put("displayOperationId", swagger.displayOperationId());

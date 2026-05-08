@@ -77,9 +77,9 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
     @Override
     public void update(@Nonnull UpdatePortalPageContent updatePortalPageContent) {
         this.content = OpenApi.of(updatePortalPageContent.getContent());
-        this.viewerSettings = updatePortalPageContent.getConfiguration() != null
-            ? updatePortalPageContent.getConfiguration()
-            : new RedocConfiguration();
+        if (updatePortalPageContent.getConfiguration() != null) {
+            this.viewerSettings = updatePortalPageContent.getConfiguration();
+        }
     }
 
     public void updateViewerSettings(@Nonnull OpenApiConfiguration viewerSettings) {

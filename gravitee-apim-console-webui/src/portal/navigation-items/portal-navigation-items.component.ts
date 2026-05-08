@@ -50,6 +50,7 @@ import {
   ApiSectionEditorDialogComponent,
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
+import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -66,6 +67,7 @@ import {
   PortalVisibility,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
+import { OpenApiViewerConfiguration } from '../../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
@@ -196,6 +198,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   initialContent = signal('');
 
   readonly currentPageContentType = signal<PortalPageContentType | null>(null);
+  readonly currentPageConfiguration = signal<Partial<OpenApiViewerConfiguration>>({});
   readonly contentLoadError = signal(false);
   private readonly asyncApiSpecValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
     const validationError = this.getAsyncApiSpecValidationError(control.value);
@@ -374,6 +377,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
         if (result.success) {
           this.currentPageContentType.set(result.type);
+          this.currentPageConfiguration.set(result.configuration ?? {});
           this.contentControl.reset(result.content);
           this.contentControl.updateValueAndValidity();
           this.initialContent.set(result.content);
@@ -381,9 +385,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       });
   }
 
-  private loadPageContent(contentId: string): Observable<{ success: boolean; content: string; type?: PortalPageContentType }> {
+  private loadPageContent(
+    contentId: string,
+  ): Observable<{ success: boolean; content: string; type?: PortalPageContentType; configuration?: Partial<OpenApiViewerConfiguration> }> {
     return this.portalPageContentService.getPageContent(contentId).pipe(
-      map(({ content, type }) => ({ success: true, content, type })),
+      map(({ content, type, configuration }) => ({ success: true, content, type, configuration })),
       catchError(() => {
         this.contentLoadError.set(true);
         this.isLoadingPageContent.set(false);
@@ -613,6 +619,32 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       return { message: `Invalid AsyncAPI spec: ${yamlError.message}` };
     }
     return null;
+  }
+
+  onConfigure() {
+    const navItem = this.selectedNavigationItem()?.data as PortalNavigationPage | undefined;
+    if (!navItem) return;
+
+    this.matDialog
+      .open<OpenApiConfigDialogComponent, OpenApiConfigDialogData, OpenApiViewerConfiguration>(OpenApiConfigDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: { configuration: this.currentPageConfiguration() },
+      })
+      .afterClosed()
+      .pipe(
+        filter(result => !!result),
+        switchMap(result => {
+          return this.portalPageContentService.updatePageContentConfiguration(navItem.portalPageContentId, result).pipe(map(() => result));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: configuration => {
+          this.currentPageConfiguration.set(configuration);
+          this.snackBarService.success('OpenAPI viewer configuration saved.');
+        },
+        error: () => this.snackBarService.error('Failed to save configuration.'),
+      });
   }
 
   onEdit() {

@@ -20,6 +20,7 @@ import { PortalPageContentService } from './portal-page-content.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakePortalPageContent, fakeNewPortalPageContent } from '../entities/management-api-v2';
+import { OpenApiDocExpansion, OpenApiViewer } from '../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
 
 describe('PortalPageContentService', () => {
   let httpTestingController: HttpTestingController;
@@ -88,6 +89,40 @@ describe('PortalPageContentService', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}`,
       });
       expect(req.request.body).toEqual(updateContent);
+      req.flush(fakeUpdatedContent);
+    });
+  });
+
+  describe('updatePageContentConfiguration', () => {
+    it('should call the API', done => {
+      const contentId = 'content-1';
+      const configuration = {
+        viewer: OpenApiViewer.Swagger,
+        tryItURL: 'https://example.com',
+        tryIt: true,
+        disableSyntaxHighlight: true,
+        tryItAnonymous: true,
+        showURL: true,
+        displayOperationId: true,
+        usePkce: true,
+        docExpansion: OpenApiDocExpansion.Full,
+        enableFiltering: true,
+        showExtensions: true,
+        showCommonExtensions: true,
+        maxDisplayedTags: 10,
+      };
+      const fakeUpdatedContent = fakePortalPageContent({ id: contentId, configuration });
+
+      service.updatePageContentConfiguration(contentId, configuration).subscribe(response => {
+        expect(response).toMatchObject(fakeUpdatedContent);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PATCH',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}/configuration`,
+      });
+      expect(req.request.body).toEqual(configuration);
       req.flush(fakeUpdatedContent);
     });
   });

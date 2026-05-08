@@ -27,9 +27,12 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
+import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContent;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -202,6 +205,103 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var content = response.readEntity(PortalPageContent.class);
             assertThat(content.getContent()).isEqualTo("Page content text");
             assertThat(content.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
+        }
+
+        @Test
+        void should_return_openapi_content_configuration_when_page_found_and_published() {
+            // Given
+            var itemId = PortalNavigationFixtures.randomNavigationId();
+            var contentId = PortalNavigationFixtures.randomPageId();
+            var configuration = new SwaggerUiConfiguration(
+                true,
+                "list",
+                true,
+                12,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                "https://sandbox.example.com",
+                true,
+                false,
+                false
+            );
+            var pageContent = PortalPageContentFixtures.anOpenApiPageContent(
+                contentId,
+                ORGANIZATION_ID,
+                ENV_ID,
+                "openapi: 3.0.3\ninfo:\n  title: Test",
+                configuration
+            );
+
+            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            publishedPage.setPublished(true);
+            publishedPage.setEnvironmentId(ENV_ID);
+
+            portalNavigationItemsQueryService.initWith(List.of(publishedPage));
+            portalPageContentQueryService.initWith(List.of(pageContent));
+
+            // When
+            Response response = target(itemId.toString()).path("content").request().get();
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(200);
+            var content = response.readEntity(PortalPageContent.class);
+            assertThat(content.getContent()).isEqualTo("openapi: 3.0.3\ninfo:\n  title: Test");
+            assertThat(content.getType()).isEqualTo(PortalPageContentType.OPENAPI);
+
+            PageConfiguration pageConfiguration = content.getConfiguration();
+            assertThat(pageConfiguration).isNotNull();
+            assertThat(pageConfiguration.getViewer()).isEqualTo(PageConfiguration.ViewerEnum.SWAGGER);
+            assertThat(pageConfiguration.getDisplayOperationId()).isTrue();
+            assertThat(pageConfiguration.getDocExpansion()).isEqualTo(PageConfiguration.DocExpansionEnum.LIST);
+            assertThat(pageConfiguration.getEnableFiltering()).isTrue();
+            assertThat(pageConfiguration.getMaxDisplayedTags()).isEqualTo(12);
+            assertThat(pageConfiguration.getShowCommonExtensions()).isTrue();
+            assertThat(pageConfiguration.getShowExtensions()).isTrue();
+            assertThat(pageConfiguration.getShowUrl()).isTrue();
+            assertThat(pageConfiguration.getTryIt()).isTrue();
+            assertThat(pageConfiguration.getDisableSyntaxHighlight()).isTrue();
+            assertThat(pageConfiguration.getTryItAnonymous()).isTrue();
+            assertThat(pageConfiguration.getTryItUrl()).isEqualTo("https://sandbox.example.com");
+            assertThat(pageConfiguration.getUsePkce()).isTrue();
+        }
+
+        @Test
+        void should_return_redoc_openapi_content_configuration_when_page_found_and_published() {
+            // Given
+            var itemId = PortalNavigationFixtures.randomNavigationId();
+            var contentId = PortalNavigationFixtures.randomPageId();
+            var pageContent = PortalPageContentFixtures.anOpenApiPageContent(
+                contentId,
+                ORGANIZATION_ID,
+                ENV_ID,
+                "openapi: 3.0.3\ninfo:\n  title: Test",
+                new RedocConfiguration("https://redoc.example.com")
+            );
+
+            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            publishedPage.setPublished(true);
+            publishedPage.setEnvironmentId(ENV_ID);
+
+            portalNavigationItemsQueryService.initWith(List.of(publishedPage));
+            portalPageContentQueryService.initWith(List.of(pageContent));
+
+            // When
+            Response response = target(itemId.toString()).path("content").request().get();
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(200);
+            var content = response.readEntity(PortalPageContent.class);
+            assertThat(content.getContent()).isEqualTo("openapi: 3.0.3\ninfo:\n  title: Test");
+            assertThat(content.getType()).isEqualTo(PortalPageContentType.OPENAPI);
+
+            PageConfiguration pageConfiguration = content.getConfiguration();
+            assertThat(pageConfiguration).isNotNull();
+            assertThat(pageConfiguration.getViewer()).isEqualTo(PageConfiguration.ViewerEnum.REDOC);
+            assertThat(pageConfiguration.getTryItUrl()).isEqualTo("https://redoc.example.com");
         }
 
         @Test

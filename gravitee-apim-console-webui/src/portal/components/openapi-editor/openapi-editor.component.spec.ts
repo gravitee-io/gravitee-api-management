@@ -15,7 +15,7 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { Component } from '@angular/core';
+import { Component, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -23,23 +23,36 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { OpenApiEditorComponent } from './openapi-editor.component';
 import { OpenApiEditorHarness } from './openapi-editor.harness';
 
+import { GioRedocService, type RedocApi } from '../../../components/documentation/gio-redoc/gio-redoc.service';
+import {
+  OpenApiDocExpansion,
+  OpenApiViewer,
+  OpenApiViewerConfiguration,
+} from '../../../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
+
 @Component({
-  template: ` <openapi-editor [formControl]="contentControl" /> `,
+  template: ` <openapi-editor [formControl]="contentControl" [configuration]="configuration" /> `,
   standalone: true,
   imports: [OpenApiEditorComponent, ReactiveFormsModule],
 })
 class TestHostComponent {
+  readonly editor = viewChild.required(OpenApiEditorComponent);
   contentControl = new FormControl('openapi: 3.0.0\ninfo:\n  title: Test');
+  configuration: Partial<OpenApiViewerConfiguration> | null = null;
 }
 
 describe('OpenApiEditorComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let host: TestHostComponent;
   let loader: HarnessLoader;
+  let redocApi: RedocApi;
 
   beforeEach(async () => {
+    redocApi = { init: jest.fn() };
+
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, TestHostComponent],
+      providers: [{ provide: GioRedocService, useValue: { load: () => Promise.resolve(redocApi) } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -64,5 +77,30 @@ describe('OpenApiEditorComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(host.contentControl.value).toBe('openapi: 3.0.0\ninfo:\n  title: Updated');
+  });
+
+  it('should read OpenAPI viewer settings from camelCase configuration', () => {
+    host.configuration = {
+      viewer: OpenApiViewer.Redoc,
+      tryItURL: 'https://try-it.example.com',
+      docExpansion: OpenApiDocExpansion.Full,
+      displayOperationId: true,
+      enableFiltering: true,
+      showExtensions: true,
+      showCommonExtensions: true,
+      maxDisplayedTags: 5,
+    };
+    fixture.detectChanges();
+
+    const editor = host.editor();
+
+    expect(editor.isRedocViewer()).toBe(true);
+    expect(editor.swaggerTryItURL()).toBe('https://try-it.example.com');
+    expect(editor.swaggerDocExpansion()).toBe(OpenApiDocExpansion.Full);
+    expect(editor.swaggerDisplayOperationId()).toBe(true);
+    expect(editor.swaggerFilter()).toBe(true);
+    expect(editor.swaggerShowExtensions()).toBe(true);
+    expect(editor.swaggerShowCommonExtensions()).toBe(true);
+    expect(editor.swaggerMaxDisplayedTags()).toBe(5);
   });
 });
