@@ -16,7 +16,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { FinalizeRegistrationInput, RegisterUserInput, UsersService } from './users.service';
+import { FinalizeRegistrationInput, RegisterUserInput, UsersResponse, UsersService } from './users.service';
 import { CustomUserField } from '../entities/user/custom-user-field';
 import { User } from '../entities/user/user';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
@@ -73,6 +73,43 @@ describe('UsersService', () => {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/users/registration`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(input);
+
+    req.flush(apiResponse);
+  });
+
+  it('should search users without applicationId', () => {
+    const apiResponse: UsersResponse = {
+      data: [{ id: 'user-1', display_name: 'John Doe', email: 'john@doe.com' }],
+      metadata: {},
+    };
+
+    service.searchUsers('john').subscribe(res => {
+      expect(res).toEqual(apiResponse);
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/users/_search`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ filters: { query: 'john' } });
+
+    req.flush(apiResponse);
+  });
+
+  it('should search users with applicationId enriching membership metadata', () => {
+    const apiResponse: UsersResponse = {
+      data: [
+        { id: 'user-1', display_name: 'John Doe', email: 'john@doe.com' },
+        { id: 'user-2', display_name: 'Jane Doe', email: 'jane@doe.com' },
+      ],
+      metadata: { applicationMembership: { 'user-1': true, 'user-2': false } },
+    };
+
+    service.searchUsers('doe', 'app-123').subscribe(res => {
+      expect(res).toEqual(apiResponse);
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/users/_search`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ filters: { query: 'doe' }, includes: { applicationMembership: 'app-123' } });
 
     req.flush(apiResponse);
   });

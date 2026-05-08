@@ -15,10 +15,12 @@
  */
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { EMPTY, of, switchMap, tap } from 'rxjs';
+import { EMPTY, filter, of, switchMap, tap } from 'rxjs';
 
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
+import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableAction, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
 import { TableCellDirective } from '../../../../components/paginated-table/table-cell.directive';
@@ -47,7 +49,7 @@ interface MembersRequestParams {
 @Component({
   selector: 'app-application-tab-members',
   standalone: true,
-  imports: [LoaderComponent, MatDialogModule, PaginatedTableComponent, SearchBarComponent, TableCellDirective, UserCellComponent],
+  imports: [LoaderComponent, MatButtonModule, MatDialogModule, PaginatedTableComponent, SearchBarComponent, TableCellDirective, UserCellComponent],
   templateUrl: './application-tab-members.component.html',
   styleUrl: './application-tab-members.component.scss',
 })
@@ -71,6 +73,7 @@ export class ApplicationTabMembersComponent {
   ];
 
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
   readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
 
   readonly actions = computed<TableAction<MemberTableRow>[]>(() =>
@@ -136,6 +139,22 @@ export class ApplicationTabMembersComponent {
     if (actionId === 'delete') {
       this.openDeleteConfirmation(row);
     }
+  }
+
+  openAddMember(): void {
+    this.matDialog
+      .open<AddMemberDialogComponent, AddMemberDialogData, boolean>(AddMemberDialogComponent, {
+        data: { applicationId: this.applicationId() },
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => confirmed === true),
+        tap(() => this.membersResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        error: () => this.error.set($localize`:@@addMemberError:An error occurred while adding the member. Please try again.`),
+      });
   }
 
   private openDeleteConfirmation(member: MemberTableRow): void {

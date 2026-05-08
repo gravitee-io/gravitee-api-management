@@ -21,6 +21,24 @@ import { ConfigService } from './config.service';
 import { CustomUserField } from '../entities/user/custom-user-field';
 import { User } from '../entities/user/user';
 
+export interface UsersSearchInput {
+  filters?: {
+    query?: string;
+    displayName?: string;
+  };
+  includes?: {
+    applicationMembership?: string;
+  };
+}
+
+export interface UsersResponse {
+  data?: User[];
+  metadata?: {
+    applicationMembership?: Record<string, boolean>;
+    [key: string]: unknown;
+  };
+}
+
 export interface RegisterUserInput {
   /**
    * Valid email of the new user.
@@ -82,5 +100,13 @@ export class UsersService {
 
   finalizeRegistration(finalizeInput: FinalizeRegistrationInput) {
     return this.http.post<User>(`${this.configService.baseURL}/users/registration/_finalize`, finalizeInput);
+  }
+
+  searchUsers(query: string, applicationId?: string): Observable<UsersResponse> {
+    const body: UsersSearchInput = { filters: { query } };
+    if (applicationId) {
+      body.includes = { applicationMembership: applicationId };
+    }
+    return this.http.post<UsersResponse>(`${this.configService.baseURL}/users/_search`, body);
   }
 }

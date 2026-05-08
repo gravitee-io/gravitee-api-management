@@ -18,7 +18,20 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { MemberSearchFilters, MembersResponse } from '../entities/member/member';
+import { Member, MemberSearchFilters, MembersResponse } from '../entities/member/member';
+
+export interface ApplicationRole {
+  id?: string;
+  name?: string;
+  default?: boolean;
+  system?: boolean;
+}
+
+export interface MemberInput {
+  user?: string;
+  reference?: string;
+  role?: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -35,7 +48,15 @@ export class MembershipService {
     );
   }
 
+  addApplicationMember(applicationId: string, input: MemberInput): Observable<Member> {
+    return this.http.post<Member>(`${this.configService.baseURL}/applications/${applicationId}/members`, input);
+  }
+
   deleteApplicationMember(applicationId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/members/${memberId}`);
+  }
+
+  getApplicationRoles(): Observable<{ data?: ApplicationRole[] }> {
+    return this.http.get<{ data?: ApplicationRole[] }>(`${this.configService.baseURL}/configuration/applications/roles`);
   }
 }

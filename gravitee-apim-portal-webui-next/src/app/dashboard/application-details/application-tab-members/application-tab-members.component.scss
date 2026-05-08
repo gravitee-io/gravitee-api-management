@@ -15,10 +15,17 @@
  */
 @use '../../../../scss/theme/index' as app-theme;
 
-app-search-bar {
-  display: block;
+.members__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
-  max-width: 400px;
+
+  app-search-bar {
+    display: block;
+    flex: 1;
+    max-width: 400px;
+  }
 }
 
 .members {
