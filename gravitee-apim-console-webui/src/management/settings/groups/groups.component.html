@@ -54,8 +54,8 @@
           <td mat-cell *matCellDef="let row">
             <div>
               {{ row.name }}
-              @if (row.apiPrimaryOwner) {
-                <span class="gio-badge-primary" tooltip="Group has a member with API role primary owner">Primary Owner</span>
+              @if (row.apiPrimaryOwner || row.apiProductPrimaryOwner) {
+                <span class="gio-badge-primary" tooltip="Group has a member with API or API Product role primary owner">Primary Owner</span>
               }
               @if (row.shouldAddToNewAPIs) {
                 <span class="gio-badge-warning" tooltip="Group will be automatically added to new applications"

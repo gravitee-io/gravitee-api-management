@@ -159,6 +159,21 @@ describe('GroupsComponent', () => {
       expect(await deleteButton.isDisabled()).toEqual(true);
     });
 
+    it('should not delete when API Product role is primary owner', async () => {
+      expectGetGroupsList(
+        fakePagedResult([{ id: '1', name: 'Group 1', manageable: true, apiProductPrimaryOwner: 'user-1', apiPrimaryOwner: false }], {
+          current: 1,
+          per_page: 10,
+          size: 2,
+          total_elements: 2,
+          total_pages: 1,
+        }),
+      );
+      const deleteButton = await getButtonByRowIndexAndTooltip(0, 'Delete group');
+
+      expect(await deleteButton.isDisabled()).toEqual(true);
+    });
+
     it('should delete group', async () => {
       expectGetGroupsList(
         fakePagedResult([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'OWNER' } }], {

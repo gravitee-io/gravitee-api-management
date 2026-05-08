@@ -159,7 +159,7 @@ export class DeleteMemberDialogComponent implements OnInit {
         const roles: GroupMembershipMemberRoleEntity[] = [];
         for (const [scope, name] of Object.entries(this.newPrimaryOwner.roles)) {
           if (name) {
-            roles.push({ name: name as string, scope: scope as GroupMembershipMemberRoleEntity['scope'] });
+            roles.push({ name, scope: scope as GroupMembershipMemberRoleEntity['scope'] });
           }
         }
         for (const scope of this.primaryOwnerScopes()) {
