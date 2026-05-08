@@ -41,6 +41,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiJsonPatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.JsonMergePatchServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -80,7 +81,7 @@ class PatchApiUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
 
-    static final ObjectMapper OBJECT_MAPPER = JsonMapperFactory.build();
+    static final ObjectMapper OBJECT_MAPPER = new GraviteeMapper(false);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     WorkflowQueryServiceInMemory workflowQueryService = new WorkflowQueryServiceInMemory();
