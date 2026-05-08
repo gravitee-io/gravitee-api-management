@@ -26,6 +26,19 @@
     ></gio-monaco-editor>
   </div>
   <div class="content__editor__cell">
-    <gio-swagger-ui [spec]="_value"></gio-swagger-ui>
+    @if (isRedocViewer()) {
+      <gio-redoc [spec]="_value" [tryItURL]="swaggerTryItURL()"></gio-redoc>
+    } @else {
+      <gio-swagger-ui
+        [spec]="_value"
+        [tryItURL]="swaggerTryItURL()"
+        [docExpansion]="swaggerDocExpansion()"
+        [displayOperationId]="swaggerDisplayOperationId()"
+        [filter]="swaggerFilter()"
+        [showExtensions]="swaggerShowExtensions()"
+        [showCommonExtensions]="swaggerShowCommonExtensions()"
+        [maxDisplayedTags]="swaggerMaxDisplayedTags()"
+      ></gio-swagger-ui>
+    }
   </div>
 </div>

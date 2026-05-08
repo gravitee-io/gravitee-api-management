@@ -33,15 +33,16 @@ const RENDER_DELAY_MS = 0;
 })
 export class RedocContentViewerComponent {
   content = input.required<string>();
+  tryItUrl = input<string | undefined>(undefined);
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly redocService = inject(RedocService);
-  private pendingTimeoutId: number | null = null;
+  private pendingTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(onCleanup => {
-      this.scheduleRedocInit(this.content());
+      this.scheduleRedocInit(this.content(), this.tryItUrl());
       onCleanup(() => {
         if (this.pendingTimeoutId !== null) {
           clearTimeout(this.pendingTimeoutId);
@@ -58,26 +59,18 @@ export class RedocContentViewerComponent {
     });
   }
 
-  /**
-   * Schedules Redoc initialization after the next tick so the #redoc container is in the DOM.
-   * The innerHTML is cleared before initialization to ensure a clean render state.
-   */
-  private scheduleRedocInit(spec: string): void {
-    this.pendingTimeoutId = window.setTimeout(() => this.initializeRedoc(spec), RENDER_DELAY_MS);
+  private scheduleRedocInit(spec: string, serverUrl?: string): void {
+    this.pendingTimeoutId = setTimeout(() => this.initializeRedoc(spec, serverUrl), RENDER_DELAY_MS);
   }
 
-  /**
-   * Initializes Redoc in the #redoc container: clears pending timeout, queries the container,
-   * clears its content, and calls RedocService.init with options (breakpoints from host CSS vars).
-   */
-  private initializeRedoc(spec: string): void {
+  private initializeRedoc(spec: string, serverUrl?: string): void {
     this.pendingTimeoutId = null;
     const redocElement = this.element.nativeElement?.querySelector('#redoc') as HTMLElement | null;
     if (!redocElement || !spec) {
       return;
     }
     redocElement.innerHTML = '';
-    this.redocService.init(spec, this.getRedocOptions(), redocElement);
+    this.redocService.init(spec, this.getRedocOptions(), redocElement, serverUrl);
   }
 
   /**
@@ -85,7 +78,7 @@ export class RedocContentViewerComponent {
    * (--redoc-breakpoint-medium, --redoc-breakpoint-large), with fallbacks.
    */
   private getRedocOptions(): Record<string, unknown> {
-    const style = this.element.nativeElement && window.getComputedStyle(this.element.nativeElement);
+    const style = this.element.nativeElement && getComputedStyle(this.element.nativeElement);
     const medium = style?.getPropertyValue('--redoc-breakpoint-medium')?.trim() || REDOC_BREAKPOINT_MEDIUM;
     const large = style?.getPropertyValue('--redoc-breakpoint-large')?.trim() || REDOC_BREAKPOINT_LARGE;
     return {

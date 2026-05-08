@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { PlatformLocation } from '@angular/common';
-import { Component, inject, Input, OnChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, Input, OnChanges, viewChild } from '@angular/core';
 import SwaggerUI, { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
 
 import { readYaml } from '../../../app/helpers/yaml-parser';
@@ -28,17 +28,30 @@ const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'o
 @Component({
   selector: 'app-page-swagger',
   standalone: true,
-  template: `<div id="swagger"></div>`,
+  template: `<div #swagger data-testid="swagger"></div>`,
 })
-export class PageSwaggerComponent implements OnChanges {
-  @Input() page!: Page;
-  private platformLocation: PlatformLocation = inject(PlatformLocation);
+export class PageSwaggerComponent implements AfterViewInit, OnChanges {
+  private readonly platformLocation = inject(PlatformLocation);
+  private readonly currentUser = inject(CurrentUserService);
 
-  constructor(private currentUser: CurrentUserService) {}
+  @Input() page!: Page;
+  private readonly swaggerNode = viewChild.required<ElementRef<HTMLDivElement>>('swagger');
+  private isViewInitialized = false;
 
   ngOnChanges() {
+    if (this.isViewInitialized) {
+      this.initializeSwagger();
+    }
+  }
+
+  ngAfterViewInit() {
+    this.isViewInitialized = true;
+    this.initializeSwagger();
+  }
+
+  private initializeSwagger() {
     SwaggerUI({
-      domNode: document.getElementById('swagger'),
+      domNode: this.swaggerNode().nativeElement,
       spec: this.readSpec() ?? '',
       ...this.buildConfig(),
     }).initOAuth({ usePkceWithAuthorizationCodeGrant: this.page.configuration?.use_pkce });
@@ -61,24 +74,25 @@ export class PageSwaggerComponent implements OnChanges {
     };
 
     if (this.page.configuration) {
-      const pageConfiguration = this.page.configuration;
-      if (pageConfiguration.show_url) {
-        config.url = this.page._links?.content;
+      const cfg = this.page.configuration;
+      if (cfg.show_url && this.page._links?.content) {
+        config.url = this.page._links.content;
         config.spec = undefined;
         plugins.push(this.normalizeSpecPlugin());
+      } else if (cfg.try_it_url) {
+        const parsedSpec = this.readSpec() as Record<string, unknown>;
+        config.spec = { ...parsedSpec, servers: [{ url: cfg.try_it_url }] };
       }
-      if (this.page.configuration?.disable_syntax_highlight) {
+      if (cfg.disable_syntax_highlight) {
         config.syntaxHighlight = false;
       }
-      config.docExpansion = this.page.configuration?.doc_expansion ?? 'none';
-      config.displayOperationId = pageConfiguration.display_operation_id || false;
-      config.filter = pageConfiguration.enable_filtering || false;
-      config.showExtensions = pageConfiguration.show_extensions || false;
-      config.showCommonExtensions = pageConfiguration.show_common_extensions || false;
-      config.maxDisplayedTags =
-        pageConfiguration.max_displayed_tags && pageConfiguration.max_displayed_tags >= 0
-          ? pageConfiguration.max_displayed_tags
-          : undefined;
+      config.docExpansion = cfg.doc_expansion ?? 'none';
+      config.displayOperationId = Boolean(cfg.display_operation_id);
+      config.filter = Boolean(cfg.enable_filtering);
+      config.showExtensions = Boolean(cfg.show_extensions);
+      config.showCommonExtensions = Boolean(cfg.show_common_extensions);
+      const maxTags = Number(cfg.max_displayed_tags);
+      config.maxDisplayedTags = !Number.isNaN(maxTags) && maxTags >= 0 ? maxTags : undefined;
     }
 
     return config;
@@ -192,10 +206,10 @@ export class PageSwaggerComponent implements OnChanges {
   }
 
   private isTryItEnabled() {
-    return this.page.configuration?.try_it && this.isTryItAllowed();
+    return Boolean(this.page.configuration?.try_it) && this.isTryItAllowed();
   }
 
   private isTryItAllowed() {
-    return this.currentUser.isAuthenticated() || this.page.configuration?.try_it_anonymous;
+    return this.currentUser.isAuthenticated() || Boolean(this.page.configuration?.try_it_anonymous);
   }
 }

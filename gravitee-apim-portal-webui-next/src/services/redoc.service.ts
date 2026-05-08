@@ -59,11 +59,12 @@ interface RedocOptions {
 export class RedocService {
   private readonly document = inject(DOCUMENT);
 
-  init(content: string | undefined, options: RedocOptions, element: HTMLElement): void {
+  init(content: string | undefined, options: RedocOptions, element: HTMLElement, serverUrl?: string): void {
     if (content) {
-      const swaggerSpec = this.parseContent(content);
+      const parsedSpec = this.parseContent(content) as Record<string, unknown>;
+      const spec = serverUrl ? { ...parsedSpec, servers: [{ url: serverUrl }] } : parsedSpec;
       const mergedOptions = this.mergeThemeWithPrimary(options);
-      Redoc.init(swaggerSpec, mergedOptions, element);
+      Redoc.init(spec, mergedOptions, element);
     }
   }
 

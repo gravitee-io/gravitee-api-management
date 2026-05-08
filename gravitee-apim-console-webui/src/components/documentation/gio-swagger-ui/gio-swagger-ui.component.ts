@@ -47,8 +47,8 @@ const normalizeTypeArrays = (obj: unknown): unknown => {
   return result;
 };
 
-const loadContent = (spec: string) => {
-  let contentAsJson = {};
+const loadContent = (spec: string): Record<string, unknown> => {
+  let contentAsJson: Record<string, unknown> = {};
   if (spec) {
     try {
       contentAsJson = normalizeTypeArrays(angular.fromJson(spec)) as Record<string, unknown>;
@@ -76,7 +76,7 @@ const loadOauth2RedirectUrl = () => {
 })
 export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   @Input()
-  spec: string;
+  spec: string = '';
 
   @Input()
   docExpansion: 'none' | 'list' | 'full' = 'none';
@@ -94,10 +94,13 @@ export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   showCommonExtensions = true;
 
   @Input()
-  maxDisplayedTags: number;
+  maxDisplayedTags?: number;
+
+  @Input()
+  tryItURL: string = '';
 
   @ViewChild('swagger')
-  swaggerNode: ElementRef;
+  swaggerNode!: ElementRef;
 
   ngOnChanges(): void {
     if (this.swaggerNode) {
@@ -110,9 +113,13 @@ export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   }
 
   private initSwaggerUI() {
+    const parsedSpec = loadContent(this.spec);
+    const tryItURL = this.tryItURL;
+    const spec = tryItURL ? { ...parsedSpec, servers: [{ url: tryItURL }] } : parsedSpec;
+
     SwaggerUI({
       domNode: this.swaggerNode.nativeElement,
-      spec: loadContent(this.spec),
+      spec,
       docExpansion: this.docExpansion,
       displayOperationId: this.displayOperationId,
       filter: this.filter,

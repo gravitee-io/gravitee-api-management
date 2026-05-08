@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -27,7 +28,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -75,10 +78,45 @@ public interface PortalNavigationItemMapper {
     }
 
     @Mapping(target = "content", expression = "java(content.value())")
-    @Mapping(target = "configuration", ignore = true)
     @Mapping(target = "_configuration", ignore = true)
     @Mapping(source = "type", target = "type")
     io.gravitee.rest.api.portal.rest.model.PortalPageContent map(RenderedPageContent content);
+
+    default PageConfiguration map(OpenApiConfiguration configuration) {
+        if (configuration == null) {
+            return null;
+        }
+
+        return switch (configuration) {
+            case SwaggerUiConfiguration cfg -> map(cfg);
+            case RedocConfiguration cfg -> mapRedocConfiguration(cfg);
+        };
+    }
+
+    private static PageConfiguration map(SwaggerUiConfiguration cfg) {
+        var configuration = new PageConfiguration();
+        configuration.setDisplayOperationId(cfg.displayOperationId());
+        configuration.setDocExpansion(PageConfiguration.DocExpansionEnum.fromValue(cfg.docExpansion()));
+        configuration.setEnableFiltering(cfg.enableFiltering());
+        configuration.setMaxDisplayedTags(cfg.maxDisplayedTags());
+        configuration.setShowCommonExtensions(cfg.showCommonExtensions());
+        configuration.setShowExtensions(cfg.showExtensions());
+        configuration.setShowUrl(cfg.showUrl());
+        configuration.setTryIt(cfg.tryIt());
+        configuration.setDisableSyntaxHighlight(cfg.disableSyntaxHighlight());
+        configuration.setTryItAnonymous(cfg.tryItAnonymous());
+        configuration.setTryItUrl(cfg.tryItUrl());
+        configuration.setUsePkce(cfg.usePkce());
+        configuration.setViewer(PageConfiguration.ViewerEnum.SWAGGER);
+        return configuration;
+    }
+
+    private static PageConfiguration mapRedocConfiguration(RedocConfiguration cfg) {
+        var configuration = new PageConfiguration();
+        configuration.setViewer(PageConfiguration.ViewerEnum.REDOC);
+        configuration.setTryItUrl(cfg.tryItUrl());
+        return configuration;
+    }
 
     default String map(@Nullable PortalNavigationItemId portalNavigationItemId) {
         if (portalNavigationItemId == null) {

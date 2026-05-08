@@ -119,7 +119,29 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(OpenApiPageContent.class);
             var openApiContent = (OpenApiPageContent) entity;
-            assertThat(openApiContent.getViewerSettings()).isInstanceOf(RedocConfiguration.class);
+            assertThat(openApiContent.getViewerSettings()).isInstanceOfSatisfying(RedocConfiguration.class, configuration ->
+                assertThat(configuration.tryItUrl()).isEmpty()
+            );
+        }
+
+        @Test
+        void should_map_openapi_content_with_redoc_try_it_url_configuration_to_entity() {
+            // Given
+            var repositoryContent = anOpenApiPageContent(
+                "550e8400-e29b-41d4-a716-446655440006",
+                "openapi: 3.0.0",
+                "{\"viewer\":\"REDOC\",\"tryItUrl\":\"https://redoc.example.com\"}"
+            );
+
+            // When
+            var entity = adapter.toEntity(repositoryContent);
+
+            // Then
+            assertThat(entity).isInstanceOf(OpenApiPageContent.class);
+            var openApiContent = (OpenApiPageContent) entity;
+            assertThat(openApiContent.getViewerSettings()).isInstanceOfSatisfying(RedocConfiguration.class, configuration ->
+                assertThat(configuration.tryItUrl()).isEqualTo("https://redoc.example.com")
+            );
         }
 
         @Test
@@ -236,6 +258,26 @@ class PortalPageContentAdapterTest {
             assertThat(repositoryContent.getConfiguration()).contains("\"viewer\":\"SWAGGER\"");
             assertThat(repositoryContent.getConfiguration()).contains("\"docExpansion\":\"full\"");
             assertThat(repositoryContent.getConfiguration()).contains("\"tryItUrl\":\"https://try-it.example.com\"");
+        }
+
+        @Test
+        void should_map_openapi_content_with_redoc_try_it_url_configuration_to_repository() {
+            // Given
+            final var entityContent = PortalPageContentFixtures.anOpenApiPageContent(
+                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440006"),
+                "DEFAULT_ORG",
+                "DEFAULT_ENV",
+                "openapi: 3.0.0",
+                new RedocConfiguration("https://redoc.example.com")
+            );
+
+            // When
+            var repositoryContent = adapter.toRepository(entityContent);
+
+            // Then
+            assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.OPENAPI);
+            assertThat(repositoryContent.getConfiguration()).contains("\"viewer\":\"REDOC\"");
+            assertThat(repositoryContent.getConfiguration()).contains("\"tryItUrl\":\"https://redoc.example.com\"");
         }
     }
 }

@@ -15,8 +15,12 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-public record RenderedPageContent(String value, PortalPageContentType type) {
+public record RenderedPageContent(String value, PortalPageContentType type, OpenApiConfiguration configuration) {
     public static RenderedPageContent of(String value, PortalPageContentType type) {
-        return new RenderedPageContent(value, type);
+        return new RenderedPageContent(value, type, null);
+    }
+
+    public static RenderedPageContent of(String value, PortalPageContentType type, OpenApiConfiguration configuration) {
+        return new RenderedPageContent(value, type, configuration);
     }
 }

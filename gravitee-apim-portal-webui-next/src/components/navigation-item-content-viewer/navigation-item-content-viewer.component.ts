@@ -13,21 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
+import { Page } from '../../entities/page/page';
+import { ViewerEnum } from '../../entities/page/page-configuration';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
 import { PageAsyncApiComponent } from '../page/page-async-api/page-async-api.component';
+import { PageSwaggerComponent } from '../page/page-swagger/page-swagger.component';
 import { RedocContentViewerComponent } from '../redoc-content-viewer/redoc-content-viewer.component';
 
 @Component({
   selector: 'app-navigation-item-content-viewer',
-  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective, PageAsyncApiComponent, RedocContentViewerComponent],
+  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective, PageAsyncApiComponent, RedocContentViewerComponent, PageSwaggerComponent],
   templateUrl: './navigation-item-content-viewer.component.html',
   styleUrl: './navigation-item-content-viewer.component.scss',
 })
 export class NavigationItemContentViewerComponent {
   pageContent = input.required<PortalPageContent | null>();
+  protected readonly viewerEnum = ViewerEnum;
+
+  tryItUrl = computed(() => this.pageContent()?.configuration?.try_it_url);
+
+  swaggerPage = computed<Page | null>(() => {
+    const pageContent = this.pageContent();
+    if (pageContent?.type !== 'OPENAPI') {
+      return null;
+    }
+
+    return {
+      id: '',
+      name: '',
+      type: 'SWAGGER',
+      order: 0,
+      content: pageContent.content,
+      configuration: pageContent.configuration,
+    };
+  });
 }

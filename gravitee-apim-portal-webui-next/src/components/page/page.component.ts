@@ -21,6 +21,7 @@ import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
 import { PageRedocComponent } from './page-redoc/page-redoc.component';
 import { PageSwaggerComponent } from './page-swagger/page-swagger.component';
 import { Page } from '../../entities/page/page';
+import { ViewerEnum } from '../../entities/page/page-configuration';
 import { ConfigService } from '../../services/config.service';
 
 @Component({
@@ -39,7 +40,12 @@ export class PageComponent {
 
   private configService = inject(ConfigService);
 
-  get effectiveViewer(): string {
-    return this.page.configuration?.viewer ?? this.configService.configuration.openAPIDocViewer?.openAPIDocType?.defaultType ?? 'Swagger';
+  protected readonly viewerEnum = ViewerEnum;
+
+  get effectiveViewer(): ViewerEnum {
+    const configuredViewer =
+      this.page.configuration?.viewer ?? this.configService.configuration.openAPIDocViewer?.openAPIDocType?.defaultType;
+
+    return configuredViewer?.toLowerCase() === ViewerEnum.Redoc.toLowerCase() ? ViewerEnum.Redoc : ViewerEnum.Swagger;
   }
 }

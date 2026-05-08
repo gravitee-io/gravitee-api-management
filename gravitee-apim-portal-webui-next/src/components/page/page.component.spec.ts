@@ -23,6 +23,7 @@ import { PageMarkdownHarness } from './page-markdown/page-markdown.harness';
 import { PageRedocHarness } from './page-redoc/page-redoc.harness';
 import { PageSwaggerHarness } from './page-swagger/page-swagger.harness';
 import { PageComponent } from './page.component';
+import { ViewerEnum } from '../../entities/page/page-configuration';
 import { fakePage } from '../../entities/page/page.fixtures';
 import { ConfigService } from '../../services/config.service';
 import { RedocService } from '../../services/redoc.service';
@@ -66,7 +67,7 @@ describe('PageComponent', () => {
 
   describe('redoc', () => {
     beforeEach(() => {
-      component.page = fakePage({ type: 'SWAGGER', configuration: { viewer: 'Redoc' } });
+      component.page = fakePage({ type: 'SWAGGER', configuration: { viewer: ViewerEnum.Redoc } });
       fixture.detectChanges();
     });
 
@@ -80,12 +81,12 @@ describe('PageComponent', () => {
   describe('redoc via env default', () => {
     beforeEach(() => {
       const configService = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
-      configService.configuration = { openAPIDocViewer: { openAPIDocType: { defaultType: 'Redoc' } } };
+      configService.configuration = { openAPIDocViewer: { openAPIDocType: { defaultType: 'redoc' } } };
       component.page = fakePage({ type: 'SWAGGER' });
       fixture.detectChanges();
     });
 
-    it('should show redoc content when env default is Redoc and page has no explicit viewer', async () => {
+    it('should show redoc content when env default is lowercase redoc and page has no explicit viewer', async () => {
       const redoc = await harnessLoader.getHarnessOrNull(PageRedocHarness);
       expect(redoc).toBeTruthy();
       expect(await redoc?.getRedoc()).toBeTruthy();

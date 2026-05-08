@@ -19,6 +19,7 @@ import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { DivHarness } from '../../testing/div.harness';
 import { PageAsyncApiHarness } from '../page/page-async-api/page-async-api.harness';
+import { PageSwaggerHarness } from '../page/page-swagger/page-swagger.harness';
 import { RedocContentViewerHarness } from '../redoc-content-viewer/redoc-content-viewer.harness';
 
 export class NavigationItemContentViewerHarness extends ComponentHarness {
@@ -27,6 +28,7 @@ export class NavigationItemContentViewerHarness extends ComponentHarness {
   private locateGMDViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
   private locateAsyncApiViewer = this.locatorForOptional(PageAsyncApiHarness);
   private locateRedocViewer = this.locatorForOptional(RedocContentViewerHarness);
+  private readonly locateSwaggerViewer = this.locatorForOptional(PageSwaggerHarness);
   private locateEmptyState = this.locatorForOptional(DivHarness.with({ selector: '.empty-state' }));
 
   public async isShowingMarkdownContent(): Promise<boolean> {
@@ -49,6 +51,14 @@ export class NavigationItemContentViewerHarness extends ComponentHarness {
 
   public async getRedocViewer(): Promise<RedocContentViewerHarness | null> {
     return this.locateRedocViewer();
+  }
+
+  public async getSwaggerViewer(): Promise<PageSwaggerHarness | null> {
+    return this.locateSwaggerViewer();
+  }
+
+  public async isShowingSwaggerContent(): Promise<boolean> {
+    return (await this.locateSwaggerViewer()) !== null;
   }
 
   public async getEmptyState(): Promise<DivHarness | null> {

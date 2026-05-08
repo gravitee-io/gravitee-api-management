@@ -52,6 +52,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import java.util.List;
 import java.util.Map;
@@ -185,6 +186,55 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         assertThat(output.renderedContent()).isNotNull();
         assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.ASYNCAPI);
         assertThat(output.renderedContent().value()).isEqualTo(content);
+    }
+
+    @Test
+    void should_return_openapi_page_content_with_viewer_configuration_when_navigation_page_found() {
+        var contentId = PortalPageContentId.random();
+        var pageId = "00000000-0000-0000-0000-000000000096";
+        var content = "openapi: 3.0.3\ninfo:\n  title: Test";
+        var configuration = new SwaggerUiConfiguration(
+            true,
+            "list",
+            true,
+            12,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            "https://sandbox.example.com",
+            true,
+            false,
+            false
+        );
+        var page = PortalNavigationItemFixtures.aPage(pageId, "OpenAPI page", null, contentId);
+        page.markAsRoot();
+        var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
+            contentId,
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            content,
+            configuration
+        );
+
+        pageContentQueryService.initWith(List.of(openApiContent));
+        navigationItemsQueryService.initWith(List.of(page));
+
+        var output = useCase.execute(
+            new GetPortalPageContentByNavigationIdUseCase.Input(
+                pageId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forConsole()
+            )
+        );
+
+        assertThat(output.renderedContent()).isNotNull();
+        assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.OPENAPI);
+        assertThat(output.renderedContent().value()).isEqualTo(content);
+        assertThat(output.renderedContent().configuration()).isEqualTo(configuration);
     }
 
     @Test

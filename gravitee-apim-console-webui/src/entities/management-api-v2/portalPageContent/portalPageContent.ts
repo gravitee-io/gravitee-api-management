@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { OpenApiViewerConfiguration } from './openApiViewerConfiguration';
+
 export type PortalPageContentType = 'GRAVITEE_MARKDOWN' | 'OPENAPI' | 'ASYNCAPI';
 
 export interface PortalPageContent {
   id: string;
   type: PortalPageContentType;
   content: string;
+  configuration?: Partial<OpenApiViewerConfiguration>;
 }
 
 export interface NewPortalPageContent {
@@ -28,4 +31,5 @@ export interface NewPortalPageContent {
 
 export interface UpdatePortalPageContent {
   content: string;
+  configuration?: OpenApiViewerConfiguration;
 }

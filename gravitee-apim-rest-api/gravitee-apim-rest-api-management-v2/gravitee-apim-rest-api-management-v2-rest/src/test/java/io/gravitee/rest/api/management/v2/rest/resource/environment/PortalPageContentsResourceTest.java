@@ -369,6 +369,43 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_update_redoc_configuration_with_try_it_url() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+
+            var configuration = Map.of("viewer", "REDOC", "tryItURL", "https://redoc.example.com");
+
+            // When
+            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
+
+            // Then
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                .satisfies(result -> {
+                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                    assertThat(result.getContent()).isEqualTo(OPENAPI_CONTENT);
+                    assertThat(result.getConfiguration().getActualInstance()).isInstanceOfSatisfying(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageRedocConfiguration.class,
+                        redocConfiguration -> assertThat(redocConfiguration.getTryItURL()).isEqualTo("https://redoc.example.com")
+                    );
+                });
+
+            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            assertThat(storedContent.getContent().value()).isEqualTo(OPENAPI_CONTENT);
+            assertThat(storedContent.getViewerSettings()).isInstanceOfSatisfying(RedocConfiguration.class, redocConfiguration ->
+                assertThat(redocConfiguration.tryItUrl()).isEqualTo("https://redoc.example.com")
+            );
+        }
+
+        @Test
         void should_return_403_when_insufficient_permissions() {
             // Given
             when(
