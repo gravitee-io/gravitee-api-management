@@ -17,8 +17,11 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
@@ -28,11 +31,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -207,6 +212,31 @@ class UpdateApiDomainServiceImplTest {
         var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getResponseTemplates()).isEqualTo(sanitizedResponseTemplates);
+    }
+
+    @Test
+    void should_return_sanitized_flows_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedFlows = List.of(new Flow());
+        stubValidate(entity -> entity.setFlows(sanitizedFlows));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getFlows()).isEqualTo(sanitizedFlows);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_preserve_original_flows_when_validator_returns_null() {
+        var originalFlows = List.of(new Flow());
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().flows(originalFlows).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        stubValidate(entity -> entity.setFlows(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getFlows()).isEqualTo(originalFlows);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
