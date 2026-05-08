@@ -13,6 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './portalPageContent';
-export * from './portalPageContent.fixture';
-export * from './openApiViewerConfiguration';
+export enum OpenApiViewer {
+  Swagger = 'SWAGGER',
+  Redoc = 'REDOC',
+}
+
+export enum OpenApiDocExpansion {
+  List = 'list',
+  Full = 'full',
+  None = 'none',
+}
+
+export interface OpenApiViewerConfiguration {
+  viewer: OpenApiViewer;
+  tryItURL: string;
+  tryIt: boolean;
+  disableSyntaxHighlight: boolean;
+  tryItAnonymous: boolean;
+  showURL: boolean;
+  displayOperationId: boolean;
+  usePkce: boolean;
+  docExpansion: OpenApiDocExpansion;
+  enableFiltering: boolean;
+  showExtensions: boolean;
+  showCommonExtensions: boolean;
+  maxDisplayedTags: number;
+}

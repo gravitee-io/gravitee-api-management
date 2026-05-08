@@ -85,6 +85,9 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+        @if (currentPageContentType() === 'OPENAPI') {
+          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onConfigure()">Configure</button>
+        }
         <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
         <span [matTooltip]="publishDisabledTooltip()" [matTooltipDisabled]="!publishDisabled()">
           <button [disabled]="publishActionDisabled()" mat-stroked-button (click)="onPublishToggle()">
@@ -113,7 +116,7 @@
           } @else {
             @switch (currentPageContentType()) {
               @case ('OPENAPI') {
-                <openapi-editor [formControl]="contentControl" />
+                <openapi-editor [formControl]="contentControl" [configuration]="currentPageConfiguration()" />
               }
               @case ('ASYNCAPI') {
                 <asyncapi-editor [formControl]="contentControl" />

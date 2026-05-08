@@ -163,7 +163,7 @@ class PortalPageContentMapperTest {
             "ORG",
             "ENV",
             OpenApi.of("openapi: 3.0.0"),
-            new RedocConfiguration()
+            new RedocConfiguration("https://redoc.example.com")
         );
 
         // When
@@ -173,7 +173,10 @@ class PortalPageContentMapperTest {
         assertThat(result.getConfiguration()).isNotNull();
         assertThat(result.getConfiguration().getActualInstance()).isInstanceOfSatisfying(
             PortalPageRedocConfiguration.class,
-            configuration -> assertThat(configuration.getViewer()).isEqualTo(BasePortalPageOpenApiConfiguration.ViewerEnum.REDOC)
+            configuration -> {
+                assertThat(configuration.getViewer()).isEqualTo(BasePortalPageOpenApiConfiguration.ViewerEnum.REDOC);
+                assertThat(configuration.getTryItURL()).isEqualTo("https://redoc.example.com");
+            }
         );
     }
 
@@ -264,7 +267,9 @@ class PortalPageContentMapperTest {
         var result = mapper.map(content);
 
         // Then
-        assertThat(result.getConfiguration()).isInstanceOf(RedocConfiguration.class);
+        assertThat(result.getConfiguration()).isInstanceOfSatisfying(RedocConfiguration.class, configuration ->
+            assertThat(configuration.tryItUrl()).isEqualTo("https://redoc.example.com")
+        );
     }
 
     private static PortalPageSwaggerConfiguration newSwaggerConfiguration() {
@@ -276,6 +281,7 @@ class PortalPageContentMapperTest {
     private static PortalPageRedocConfiguration newRedocConfiguration() {
         var configuration = new PortalPageRedocConfiguration();
         configuration.setViewer(BasePortalPageOpenApiConfiguration.ViewerEnum.REDOC);
+        configuration.setTryItURL("https://redoc.example.com");
         return configuration;
     }
 }

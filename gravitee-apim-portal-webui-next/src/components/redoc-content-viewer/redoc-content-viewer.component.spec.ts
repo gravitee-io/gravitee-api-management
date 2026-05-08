@@ -56,6 +56,7 @@ describe('RedocContentViewerComponent', () => {
         theme: { breakpoints: { medium: REDOC_BREAKPOINT_MEDIUM, large: REDOC_BREAKPOINT_LARGE } },
       }),
       expect.anything(),
+      undefined,
     );
   });
 

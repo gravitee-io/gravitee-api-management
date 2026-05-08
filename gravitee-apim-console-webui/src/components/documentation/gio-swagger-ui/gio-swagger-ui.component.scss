@@ -11,5 +11,9 @@
         padding: 10px 20px;
       }
     }
+
+    .swagger-ui .opblock-summary-operation-id {
+      word-break: keep-all;
+    }
   }
 }

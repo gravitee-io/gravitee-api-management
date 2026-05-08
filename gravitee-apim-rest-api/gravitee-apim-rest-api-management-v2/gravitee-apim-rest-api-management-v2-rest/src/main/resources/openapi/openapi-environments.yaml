@@ -2526,6 +2526,11 @@ components:
       description: Redoc viewer configuration for a portal page content
       allOf:
         - $ref: "#/components/schemas/BasePortalPageOpenApiConfiguration"
+        - properties:
+            tryItURL:
+              type: string
+              description: Base URL used as OpenAPI server URL for Redoc.
+              default: ""
 
     PortalPageContent:
       type: object

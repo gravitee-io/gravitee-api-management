@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PageConfiguration } from '../page/page-configuration';
+
 export type PortalPageContentType = 'GRAVITEE_MARKDOWN' | 'OPENAPI' | 'ASYNCAPI';
 
 export interface PortalPageContent {
   type: PortalPageContentType;
   content: string;
+  configuration?: PageConfiguration;
 }

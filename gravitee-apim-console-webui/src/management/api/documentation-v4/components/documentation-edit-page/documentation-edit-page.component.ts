@@ -213,6 +213,7 @@ export class DocumentationEditPageComponent implements OnInit {
       .pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef))
       .subscribe(enabled => {
         if (enabled) {
+          this.form.controls.openApiConfiguration.controls.tryItURL.setValue('');
           this.form.controls.openApiConfiguration.controls.tryItURL.disable();
         } else {
           this.form.controls.openApiConfiguration.controls.tryItURL.enable();
