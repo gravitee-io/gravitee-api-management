@@ -94,7 +94,7 @@ export class SectionEditorDialogHarness extends ComponentHarness {
   /**
    * Select a page content type (only when "Add page" dialog shows Page Type section).
    */
-  async selectPageType(value: 'GRAVITEE_MARKDOWN' | 'OPENAPI'): Promise<void> {
+  async selectPageType(value: 'GRAVITEE_MARKDOWN' | 'OPENAPI' | 'ASYNCAPI'): Promise<void> {
     const cards = await this.locatePageTypeCards();
     const card = await this.findCardByValue(cards, value);
     if (!card) {

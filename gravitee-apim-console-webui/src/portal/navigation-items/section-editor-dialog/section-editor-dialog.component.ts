@@ -18,9 +18,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconRegistry } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe, TitleCasePipe } from '@angular/common';
+import { DomSanitizer } from '@angular/platform-browser';
 import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -71,6 +73,7 @@ export interface PortalPageTypeOption {
 export const PORTAL_PAGE_CONTENT_TYPE_OPTIONS: PortalPageTypeOption[] = [
   { value: 'GRAVITEE_MARKDOWN', label: 'Markdown', icon: 'gio:gravitee', available: true },
   { value: 'OPENAPI', label: 'OpenAPI', icon: 'gio:open-api', available: true },
+  { value: 'ASYNCAPI', label: 'AsyncAPI', icon: 'gio:async-api', available: true },
 ];
 
 interface SectionFormControls {
@@ -125,6 +128,8 @@ export class SectionEditorDialogComponent implements OnInit {
 
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
+  private readonly iconRegistry = inject(MatIconRegistry);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly publicDisabled: Signal<boolean> = computed(() => {
     return isPublicVisibilityDisabled(this.data.parentItem);
   });
@@ -134,6 +139,7 @@ export class SectionEditorDialogComponent implements OnInit {
   public buttonTitle: string;
 
   constructor() {
+    this.iconRegistry.addSvgIconInNamespace('gio', 'async-api', this.sanitizer.bypassSecurityTrustResourceUrl('assets/logo_asyncapi.svg'));
     this.type = this.data.type;
     this.mode = this.data.mode;
     if (this.data.mode === 'create') {

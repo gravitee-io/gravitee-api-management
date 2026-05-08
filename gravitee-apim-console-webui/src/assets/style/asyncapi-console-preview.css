@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type PortalPageContentType = 'GRAVITEE_MARKDOWN' | 'OPENAPI' | 'ASYNCAPI';
+/*
+ * Compact overrides for the console navigation items preview panel.
+ * The asyncapi-component uses shadow DOM, so styles must be injected
+ * via cssImportPath — this is the only way to control internal layout.
+ */
+@import 'asyncapi-component.css';
 
-export interface PortalPageContent {
-  id: string;
-  type: PortalPageContentType;
-  content: string;
+.aui-root .panel--center {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
-export interface NewPortalPageContent {
-  type: PortalPageContentType;
-  content: string;
+/* panel-item--center carries px-8 (2rem) — reduce for narrow preview cell */
+.aui-root .panel-item--center {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
-export interface UpdatePortalPageContent {
-  content: string;
+/* Section h2 headers also carry px-8 */
+.aui-root h2 {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }

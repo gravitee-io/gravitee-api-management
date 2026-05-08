@@ -55,6 +55,12 @@ import {
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
+import { SnackBarService } from '../../services-ngx/snack-bar.service';
+
+type PortalNavigationItemsComponentPrivateMethods = {
+  validateAsyncApiSpec: () => boolean;
+  onSave: () => void;
+};
 
 describe('PortalNavigationItemsComponent', () => {
   let fixture: ComponentFixture<PortalNavigationItemsComponent>;
@@ -63,6 +69,7 @@ describe('PortalNavigationItemsComponent', () => {
   let httpTestingController: HttpTestingController;
   let routerSpy: SpyInstance;
   let component: PortalNavigationItemsComponent;
+  let snackBarErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -1167,6 +1174,90 @@ describe('PortalNavigationItemsComponent', () => {
       expect(document.body.textContent).not.toContain('Failed to update page content');
       expect(await harness.getEditorContentText()).toBe('Edited content with ${api.invalid}');
       expect(await harness.isSaveButtonDisabled()).toBe(false);
+    });
+  });
+
+  describe('validateAsyncApiSpec', () => {
+    beforeEach(() => {
+      snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+    });
+
+    it('should return true without showing a snackbar for non-ASYNCAPI content type', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+      component.currentPageContentType.set('GRAVITEE_MARKDOWN');
+      component.contentControl.setValue('not: asyncapi: yaml:');
+
+      expect(privateComponent().validateAsyncApiSpec()).toBe(true);
+      expect(snackBarErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return true without showing a snackbar for empty or whitespace AsyncAPI content', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+      component.currentPageContentType.set('ASYNCAPI');
+
+      component.contentControl.setValue('');
+      expect(privateComponent().validateAsyncApiSpec()).toBe(true);
+
+      component.contentControl.setValue('   \n\t  ');
+      expect(privateComponent().validateAsyncApiSpec()).toBe(true);
+
+      expect(snackBarErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should show a missing asyncapi version field snackbar and skip content update for valid YAML without asyncapi field', async () => {
+      const page = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [page] }));
+      expectGetPageContent('nav-item-1-content', 'asyncapi: 3.0.0', 'ASYNCAPI');
+
+      component.contentControl.setValue('info:\n  title: Missing AsyncAPI version');
+      privateComponent().onSave();
+
+      expect(snackBarErrorSpy).toHaveBeenCalledWith('Invalid AsyncAPI spec: missing asyncapi version field');
+      httpTestingController.expectNone({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/nav-item-1-content`,
+      });
+    });
+
+    it('should disable save without showing a snackbar when AsyncAPI content is invalid in real time', async () => {
+      const page = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [page] }));
+      expectGetPageContent('nav-item-1-content', 'asyncapi: 3.0.0', 'ASYNCAPI');
+
+      component.contentControl.setValue('info:\n  title: Missing AsyncAPI version');
+      fixture.detectChanges();
+
+      expect(component.contentControl.invalid).toBe(true);
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+      expect(snackBarErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reject non-string AsyncAPI version fields', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+      component.currentPageContentType.set('ASYNCAPI');
+      component.contentControl.setValue('asyncapi: 123');
+
+      expect(privateComponent().validateAsyncApiSpec()).toBe(false);
+      expect(snackBarErrorSpy).toHaveBeenCalledWith(
+        'Invalid AsyncAPI spec: asyncapi version field must be a non-empty semantic version string',
+      );
+    });
+
+    it('should show the formatted YAMLException validation error for invalid YAML', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+      component.currentPageContentType.set('ASYNCAPI');
+      component.contentControl.setValue('asyncapi: [');
+
+      expect(privateComponent().validateAsyncApiSpec()).toBe(false);
+      expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringMatching(/^Invalid AsyncAPI spec: .+/));
     });
   });
 
@@ -2298,6 +2389,10 @@ describe('PortalNavigationItemsComponent', () => {
       children: [],
       ...sectionNode,
     };
+  }
+
+  function privateComponent(): PortalNavigationItemsComponentPrivateMethods {
+    return component as unknown as PortalNavigationItemsComponentPrivateMethods;
   }
 
   async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {

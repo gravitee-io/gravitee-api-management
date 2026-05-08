@@ -20652,6 +20652,7 @@ __metadata:
     "@angular/router": "npm:20.3.16"
     "@angular/upgrade": "npm:20.3.16"
     "@asciidoctor/core": "npm:3.0.4"
+    "@asyncapi/react-component": "npm:^2.6.3"
     "@asyncapi/web-component": "npm:2.6.3"
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"

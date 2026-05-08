@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
     limitations under the License.
 
 -->
-@let pageContentVM = pageContent();
-@if (pageContentVM) {
-  @switch (pageContentVM.type) {
-    @case ('GRAVITEE_MARKDOWN') {
-      <gmd-viewer [content]="pageContentVM.content" appInnerLink />
-    }
-    @case ('OPENAPI') {
-      <app-redoc-content-viewer [content]="pageContentVM.content" />
-    }
-    @case ('ASYNCAPI') {
-      <app-page-async-api [content]="pageContentVM.content" />
-    }
-  }
-} @else {
-  <div class="empty-state" i18n="@@emptyContentLabel">No content to show</div>
-}
+<div class="content__editor">
+  <div class="content__editor__cell">
+    <gio-monaco-editor
+      [(ngModel)]="_value"
+      [languageConfig]="{ language: 'yaml' }"
+      (ngModelChange)="_onChange($event)"
+      [disableMiniMap]="true"
+      [disabled]="disabled"
+    ></gio-monaco-editor>
+  </div>
+  <div class="content__editor__cell">
+    <asyncapi-component [schema]="_value" cssImportPath="assets/style/asyncapi-console-preview.css"></asyncapi-component>
+  </div>
+</div>

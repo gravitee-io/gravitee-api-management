@@ -90,6 +90,27 @@ describe('NavigationItemContentViewerComponent', () => {
     });
   });
 
+  describe('if page content is ASYNCAPI', () => {
+    const pageContent: PortalPageContent = {
+      type: 'ASYNCAPI',
+      content: 'asyncapi: 2.0.0\ninfo:\n  title: Test\n  version: 1.0.0',
+    };
+    beforeEach(async () => {
+      await init({ pageContent });
+    });
+    it('should render async api viewer', async () => {
+      const asyncApiViewer = await harness.getAsyncApiViewer();
+      expect(asyncApiViewer).not.toBeNull();
+    });
+    it('should not render markdown viewer', async () => {
+      const markdownViewer = await harness.getGMDViewer();
+      expect(markdownViewer).toBeNull();
+    });
+    it('should not render redoc viewer', async () => {
+      expect(await harness.isShowingRedocContent()).toBe(false);
+    });
+  });
+
   describe('if page content is empty', () => {
     beforeEach(async () => {
       await init({ pageContent: null });

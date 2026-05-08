@@ -130,6 +130,20 @@ describe('SectionEditorDialogComponent', () => {
           contentType: 'OPENAPI',
         });
       });
+      it('should save contentType ASYNCAPI when AsyncAPI is selected', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        await titleInput.setValue('AsyncAPI Page');
+        await dialog.selectPageType('ASYNCAPI');
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'AsyncAPI Page',
+          visibility: 'PUBLIC',
+          contentType: 'ASYNCAPI',
+        });
+      });
       it('should save authentication', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const authToggle = await dialog.getAuthenticationToggle();
