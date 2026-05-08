@@ -80,6 +80,7 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
         var sanitizedDefinition = originalDefinition
             .toBuilder()
             .tags(sanitized.getTags() != null ? sanitized.getTags() : originalDefinition.getTags())
+            .flows(sanitized.getFlows() != null ? sanitized.getFlows() : originalDefinition.getFlows())
             .analytics(sanitized.getAnalytics() != null ? sanitized.getAnalytics() : originalDefinition.getAnalytics())
             .failover(sanitized.getFailover() != null ? sanitized.getFailover() : originalDefinition.getFailover())
             .flowExecution(sanitized.getFlowExecution() != null ? sanitized.getFlowExecution() : originalDefinition.getFlowExecution())
