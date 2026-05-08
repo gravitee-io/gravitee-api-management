@@ -84,6 +84,8 @@ public class PatchApiUseCase {
     private static final String FIELD_RESPONSE_TEMPLATES = "responseTemplates";
     private static final String FIELD_FLOWS = "flows";
 
+    private static final String JSON_PATCH_PATH_PREFIX = "/";
+
     private static final Set<String> ALLOWED_FIELDS = Set.of(
         FIELD_NAME,
         FIELD_DESCRIPTION,
@@ -474,7 +476,7 @@ public class PatchApiUseCase {
         if (!rawPatchNode.isArray()) {
             return false;
         }
-        String fieldPath = "/" + field;
+        String fieldPath = JSON_PATCH_PATH_PREFIX + field;
         for (JsonNode op : rawPatchNode) {
             if (!fieldPath.equals(op.path("path").asText())) {
                 continue;
