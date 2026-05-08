@@ -1107,6 +1107,20 @@ class PatchApiUseCaseTest {
         }
 
         @Test
+        void json_patch_replace_then_remove_flows_clears_flows() {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
+            var supplied = List.of(flowMap("brand-new", List.of(stepMap("s1", "policy-a"))));
+
+            var output = execute(
+                PatchApiUseCase.PatchType.JSON_PATCH,
+                patchNodes(patchOp("replace", "/flows", supplied), patchOp("remove", "/flows")),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getFlows()).isNull();
+        }
+
+        @Test
         void json_patch_replace_flows_with_fresh_array_replaces_existing_list() {
             givenExistingApi(apiWithFlows(List.of(aFlow("old", List.of(aStep("s", "p"))))));
             var supplied = List.of(flowMap("brand-new", List.of(stepMap("s1", "policy-a"))));
