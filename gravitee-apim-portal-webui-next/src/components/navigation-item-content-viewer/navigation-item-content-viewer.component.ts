@@ -19,11 +19,12 @@ import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { PageAsyncApiComponent } from '../page/page-async-api/page-async-api.component';
 import { RedocContentViewerComponent } from '../redoc-content-viewer/redoc-content-viewer.component';
 
 @Component({
   selector: 'app-navigation-item-content-viewer',
-  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective, RedocContentViewerComponent],
+  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective, PageAsyncApiComponent, RedocContentViewerComponent],
   templateUrl: './navigation-item-content-viewer.component.html',
   styleUrl: './navigation-item-content-viewer.component.scss',
 })

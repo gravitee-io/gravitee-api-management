@@ -18,12 +18,14 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { DivHarness } from '../../testing/div.harness';
+import { PageAsyncApiHarness } from '../page/page-async-api/page-async-api.harness';
 import { RedocContentViewerHarness } from '../redoc-content-viewer/redoc-content-viewer.harness';
 
 export class NavigationItemContentViewerHarness extends ComponentHarness {
   public static hostSelector = 'app-navigation-item-content-viewer';
 
   private locateGMDViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
+  private locateAsyncApiViewer = this.locatorForOptional(PageAsyncApiHarness);
   private locateRedocViewer = this.locatorForOptional(RedocContentViewerHarness);
   private locateEmptyState = this.locatorForOptional(DivHarness.with({ selector: '.empty-state' }));
 
@@ -34,6 +36,10 @@ export class NavigationItemContentViewerHarness extends ComponentHarness {
 
   public async getGMDViewer(): Promise<GraviteeMarkdownViewerHarness | null> {
     return this.locateGMDViewer();
+  }
+
+  public async getAsyncApiViewer(): Promise<PageAsyncApiHarness | null> {
+    return this.locateAsyncApiViewer();
   }
 
   public async isShowingRedocContent(): Promise<boolean> {

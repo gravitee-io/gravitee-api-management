@@ -15,6 +15,7 @@
  */
 import { GraviteeMarkdownEditorComponent, GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
+import { load, YAMLException } from 'js-yaml';
 import {
   GIO_DIALOG_WIDTH,
   GioCardEmptyStateModule,
@@ -25,7 +26,7 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
@@ -73,7 +74,12 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
 import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-icon.pipe';
+import { AsyncApiEditorComponent } from '../components/asyncapi-editor/asyncapi-editor.component';
 import { OpenApiEditorComponent } from '../components/openapi-editor/openapi-editor.component';
+
+type AsyncApiSpecValidationError = {
+  message: string;
+};
 
 @Component({
   selector: 'portal-navigation-items',
@@ -82,6 +88,7 @@ import { OpenApiEditorComponent } from '../components/openapi-editor/openapi-edi
   imports: [
     PortalHeaderComponent,
     GraviteeMarkdownEditorModule,
+    AsyncApiEditorComponent,
     OpenApiEditorComponent,
     ReactiveFormsModule,
     EmptyStateComponent,
@@ -190,6 +197,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   readonly currentPageContentType = signal<PortalPageContentType | null>(null);
   readonly contentLoadError = signal(false);
+  private readonly asyncApiSpecValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const validationError = this.getAsyncApiSpecValidationError(control.value);
+    return validationError ? { asyncApiSpec: validationError } : null;
+  };
 
   @HostListener('window:beforeunload', ['$event'])
   beforeUnloadHandler(event: BeforeUnloadEvent) {
@@ -217,6 +228,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     private readonly portalNavigationItemsService: PortalNavigationItemService,
     private readonly portalPageContentService: PortalPageContentService,
   ) {
+    this.contentControl.addValidators(this.asyncApiSpecValidator);
     this.setupPageContentSubscription();
   }
 
@@ -347,6 +359,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             this.contentControl.reset('');
             this.initialContent.set('');
             this.currentPageContentType.set(null);
+            this.contentControl.updateValueAndValidity();
             return of(null);
           }
 
@@ -362,6 +375,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         if (result.success) {
           this.currentPageContentType.set(result.type);
           this.contentControl.reset(result.content);
+          this.contentControl.updateValueAndValidity();
           this.initialContent.set(result.content);
         }
       });
@@ -519,6 +533,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const navItem = this.selectedNavigationItem().data;
 
     if (navItem && navItem.type === 'PAGE') {
+      if (!this.validateAsyncApiSpec()) {
+        return;
+      }
+
       const pageId = navItem.portalPageContentId;
       this.portalPageContentService
         .updatePageContent(pageId, { content: this.contentControl.value })
@@ -539,6 +557,45 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           this.initialContent.set(content);
         });
     }
+  }
+
+  private validateAsyncApiSpec(): boolean {
+    const validationError = this.getAsyncApiSpecFormError();
+
+    if (!validationError) {
+      return true;
+    }
+
+    this.snackBarService.error(validationError.message);
+    return false;
+  }
+
+  private getAsyncApiSpecFormError(): AsyncApiSpecValidationError | null {
+    const errors = this.contentControl.errors as { asyncApiSpec?: AsyncApiSpecValidationError } | null;
+    return errors?.asyncApiSpec ?? null;
+  }
+
+  private getAsyncApiSpecValidationError(value: string | null | undefined): AsyncApiSpecValidationError | null {
+    if (this.currentPageContentType() !== 'ASYNCAPI' || !value?.trim()) {
+      return null;
+    }
+
+    try {
+      const doc = load(value) as Record<string, unknown>;
+      // eslint-disable-next-line angular/typecheck-object
+      if (!doc || typeof doc !== 'object' || !('asyncapi' in doc)) {
+        return { message: 'Invalid AsyncAPI spec: missing asyncapi version field' };
+      }
+
+      const asyncApiVersion = doc.asyncapi;
+      if (typeof asyncApiVersion !== 'string' || !/^\d+\.\d+\.\d+/.test(asyncApiVersion.trim())) {
+        return { message: 'Invalid AsyncAPI spec: asyncapi version field must be a non-empty semantic version string' };
+      }
+    } catch (e) {
+      const yamlError = e as YAMLException;
+      return { message: `Invalid AsyncAPI spec: ${yamlError.message}` };
+    }
+    return null;
   }
 
   onEdit() {

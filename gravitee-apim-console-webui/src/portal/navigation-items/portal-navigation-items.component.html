@@ -91,7 +91,9 @@
             {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
           </button>
         </span>
-        <button mat-flat-button color="primary" [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
+        <button mat-flat-button color="primary" [disabled]="contentControl.pristine || contentControl.invalid" (click)="onSave()">
+          Save
+        </button>
       </div>
     </header>
 
@@ -112,6 +114,9 @@
             @switch (currentPageContentType()) {
               @case ('OPENAPI') {
                 <openapi-editor [formControl]="contentControl" />
+              }
+              @case ('ASYNCAPI') {
+                <asyncapi-editor [formControl]="contentControl" />
               }
               @default {
                 <gmd-editor [formControl]="contentControl" />

@@ -64,6 +64,11 @@
             "output": "assets/monaco-editor"
           },
           {
+            "glob": "default.min.css",
+            "input": "node_modules/@asyncapi/react-component/styles",
+            "output": "assets/asyncapi"
+          },
+          {
             "glob": "asciidoctor.js",
             "input": "node_modules/@asciidoctor/core/dist/browser",
             "output": "assets/asciidoctor/"

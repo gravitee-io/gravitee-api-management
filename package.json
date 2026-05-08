@@ -19,6 +19,7 @@
         "@angular/router": "20.3.16",
         "@angular/upgrade": "20.3.16",
         "@asciidoctor/core": "3.0.4",
+        "@asyncapi/react-component": "^2.6.3",
         "@asyncapi/web-component": "2.6.3",
         "@dagrejs/dagre": "1.1.4",
         "@danielmoncada/angular-datetime-picker": "20.0.1",
