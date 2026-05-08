@@ -79,34 +79,32 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
             : original.getVisibility();
         var sanitizedDefinition = originalDefinition
             .toBuilder()
-            .tags(sanitized.getTags() != null ? sanitized.getTags() : originalDefinition.getTags())
-            .flows(sanitized.getFlows() != null ? sanitized.getFlows() : originalDefinition.getFlows())
-            .analytics(sanitized.getAnalytics() != null ? sanitized.getAnalytics() : originalDefinition.getAnalytics())
-            .failover(sanitized.getFailover() != null ? sanitized.getFailover() : originalDefinition.getFailover())
-            .flowExecution(sanitized.getFlowExecution() != null ? sanitized.getFlowExecution() : originalDefinition.getFlowExecution())
-            .services(sanitized.getServices() != null ? sanitized.getServices() : originalDefinition.getServices())
-            .allowedInApiProducts(
-                sanitized.getAllowedInApiProducts() != null
-                    ? sanitized.getAllowedInApiProducts()
-                    : originalDefinition.getAllowedInApiProducts()
-            )
-            .responseTemplates(
-                sanitized.getResponseTemplates() != null ? sanitized.getResponseTemplates() : originalDefinition.getResponseTemplates()
-            )
+            .tags(coalesce(sanitized.getTags(), originalDefinition.getTags()))
+            .flows(coalesce(sanitized.getFlows(), originalDefinition.getFlows()))
+            .analytics(coalesce(sanitized.getAnalytics(), originalDefinition.getAnalytics()))
+            .failover(coalesce(sanitized.getFailover(), originalDefinition.getFailover()))
+            .flowExecution(coalesce(sanitized.getFlowExecution(), originalDefinition.getFlowExecution()))
+            .services(coalesce(sanitized.getServices(), originalDefinition.getServices()))
+            .allowedInApiProducts(coalesce(sanitized.getAllowedInApiProducts(), originalDefinition.getAllowedInApiProducts()))
+            .responseTemplates(coalesce(sanitized.getResponseTemplates(), originalDefinition.getResponseTemplates()))
             .build();
         return original
             .toBuilder()
-            .name(sanitized.getName() != null ? sanitized.getName() : original.getName())
-            .description(sanitized.getDescription() != null ? sanitized.getDescription() : original.getDescription())
-            .version(sanitized.getApiVersion() != null ? sanitized.getApiVersion() : original.getVersion())
+            .name(coalesce(sanitized.getName(), original.getName()))
+            .description(coalesce(sanitized.getDescription(), original.getDescription()))
+            .version(coalesce(sanitized.getApiVersion(), original.getVersion()))
             .visibility(sanitizedVisibility)
             .apiLifecycleState(sanitizedLifecycle)
-            .labels(sanitized.getLabels() != null ? sanitized.getLabels() : original.getLabels())
-            .categories(sanitized.getCategories() != null ? sanitized.getCategories() : original.getCategories())
-            .groups(sanitized.getGroups() != null ? sanitized.getGroups() : original.getGroups())
+            .labels(coalesce(sanitized.getLabels(), original.getLabels()))
+            .categories(coalesce(sanitized.getCategories(), original.getCategories()))
+            .groups(coalesce(sanitized.getGroups(), original.getGroups()))
             .allowMultiJwtOauth2Subscriptions(sanitized.isAllowMultiJwtOauth2Subscriptions())
             .disableMembershipNotifications(sanitized.isDisableMembershipNotifications())
             .apiDefinitionValue(sanitizedDefinition)
             .build();
+    }
+
+    private static <T> T coalesce(T sanitized, T original) {
+        return sanitized != null ? sanitized : original;
     }
 }
