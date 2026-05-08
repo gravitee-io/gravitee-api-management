@@ -26,4 +26,5 @@ export interface Analytics {
   sampling?: Sampling;
   logging?: LoggingV4;
   tracing?: TracingV4;
+  reporterMetricsEnabled?: boolean;
 }

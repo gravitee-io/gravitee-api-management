@@ -32,6 +32,7 @@ import { ApiV4 } from '../../../../entities/management-api-v2';
 
 type NativeReporterFormType = {
   enabled: FormControl<boolean>;
+  reporterMetricsEnabled: FormControl<boolean>;
   tracingEnabled: FormControl<boolean>;
   tracingVerbose: FormControl<boolean>;
 };
@@ -72,6 +73,10 @@ export class ReporterSettingsNativeComponent implements OnInit {
 
     this.reporterSettingsForm = new FormGroup<NativeReporterFormType>({
       enabled: new FormControl<boolean>({ value: analyticsEnabled, disabled: isReadOnly }),
+      reporterMetricsEnabled: new FormControl<boolean>({
+        value: api.analytics?.reporterMetricsEnabled ?? true,
+        disabled: isReadOnly,
+      }),
       tracingEnabled: new FormControl<boolean>({
         value: api.analytics?.tracing?.enabled ?? false,
         disabled: !analyticsEnabled || isReadOnly,
@@ -84,29 +89,27 @@ export class ReporterSettingsNativeComponent implements OnInit {
 
     this.defaultConfiguration = this.reporterSettingsForm.getRawValue();
 
-    this.reporterSettingsForm
-      .get('enabled')!
-      .valueChanges.pipe(
+    this.reporterSettingsForm.controls.enabled.valueChanges
+      .pipe(
         tap((enabled: boolean) => {
           if (enabled) {
-            this.reporterSettingsForm.get('tracingEnabled')!.enable();
+            this.reporterSettingsForm.controls.tracingEnabled.enable();
           } else {
-            this.reporterSettingsForm.get('tracingEnabled')!.disable();
-            this.reporterSettingsForm.get('tracingVerbose')!.disable();
+            this.reporterSettingsForm.controls.tracingEnabled.disable();
+            this.reporterSettingsForm.controls.tracingVerbose.disable();
           }
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
-    this.reporterSettingsForm
-      .get('tracingEnabled')!
-      .valueChanges.pipe(
+    this.reporterSettingsForm.controls.tracingEnabled.valueChanges
+      .pipe(
         tap((tracingEnabled: boolean) => {
           if (tracingEnabled) {
-            this.reporterSettingsForm.get('tracingVerbose')!.enable();
+            this.reporterSettingsForm.controls.tracingVerbose.enable();
           } else {
-            this.reporterSettingsForm.get('tracingVerbose')!.disable();
+            this.reporterSettingsForm.controls.tracingVerbose.disable();
           }
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -125,6 +128,7 @@ export class ReporterSettingsNativeComponent implements OnInit {
             analytics: {
               ...(api.analytics ?? {}),
               enabled: values.enabled,
+              reporterMetricsEnabled: values.reporterMetricsEnabled,
               tracing: {
                 enabled: values.tracingEnabled,
                 verbose: values.tracingVerbose,
