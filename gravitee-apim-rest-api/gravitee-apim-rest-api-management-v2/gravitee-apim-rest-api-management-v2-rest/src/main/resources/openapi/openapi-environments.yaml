@@ -2339,6 +2339,7 @@ components:
       enum:
         - GRAVITEE_MARKDOWN
         - OPENAPI
+        - ASYNCAPI
 
     PortalPageContent:
       type: object

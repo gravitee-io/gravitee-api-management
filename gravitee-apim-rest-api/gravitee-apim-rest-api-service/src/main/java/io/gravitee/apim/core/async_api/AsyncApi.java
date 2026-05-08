@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.async_api;
 
-public enum PortalPageContentType {
-    GRAVITEE_MARKDOWN,
-    OPENAPI,
-    ASYNCAPI,
+/**
+ * AsyncAPI specification content value for portal pages.
+ */
+public record AsyncApi(String value) {
+    public static AsyncApi of(String value) {
+        return new AsyncApi(value);
+    }
 }

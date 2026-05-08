@@ -86,4 +86,25 @@ class PortalPageContentMapperTest {
         assertThat(result.getContent()).isEqualTo("Test content");
         assertThat(result.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
     }
+
+    @Test
+    void should_map_asyncapi_page_content() {
+        // Given
+        var contentId = PortalPageContentId.of("12345678-1234-1234-1234-123456789abd");
+        var asyncApiContent = PortalPageContentFixtures.anAsyncApiPageContent(
+            contentId,
+            "ORG",
+            "ENV",
+            "asyncapi: '3.0.0'\ninfo:\n  title: Test AsyncAPI"
+        );
+
+        // When
+        var result = mapper.map(asyncApiContent);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo("12345678-1234-1234-1234-123456789abd");
+        assertThat(result.getContent()).isEqualTo("asyncapi: '3.0.0'\ninfo:\n  title: Test AsyncAPI");
+        assertThat(result.getType()).isEqualTo(PortalPageContentType.ASYNCAPI);
+    }
 }

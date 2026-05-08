@@ -15,8 +15,10 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -56,6 +58,7 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
         final var pageContentId = PortalPageContentId.random();
         PortalPageContent<?> portalPageContent = switch (contentType) {
             case OPENAPI -> OpenApiPageContent.create(organizationId, environmentId, "openapi: 3.0.3");
+            case ASYNCAPI -> AsyncApiPageContent.create(organizationId, environmentId, "asyncapi: '3.0.0'");
             case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(
                 pageContentId,
                 organizationId,
