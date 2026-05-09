@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.definition.model.command.ApiDeploymentFailureCommand;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
+import io.gravitee.rest.api.model.v4.api.DeploymentApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
@@ -34,7 +36,7 @@ public interface ApiStateService {
      * @param apiDeploymentEntity additional information about the deployment
      * @return the deployed API
      */
-    GenericApiEntity deploy(
+    DeploymentApiEntity deploy(
         ExecutionContext executionContext,
         Api apiToDeploy,
         String authenticatedUser,
@@ -49,7 +51,7 @@ public interface ApiStateService {
      * @param apiDeploymentEntity additional information about the deployment
      * @return the deployed API
      */
-    GenericApiEntity deploy(
+    DeploymentApiEntity deploy(
         ExecutionContext executionContext,
         String apiId,
         String authenticatedUser,
@@ -70,5 +72,7 @@ public interface ApiStateService {
 
     boolean stopV4DynamicProperties(String apiId);
 
-    boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity apiEntity);
+    DeploymentStatus isSynchronized(ExecutionContext executionContext, GenericApiEntity apiEntity);
+
+    void deploymentFail(ApiDeploymentFailureCommand command);
 }

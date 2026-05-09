@@ -87,6 +87,12 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
         triggerNotification(executionContext, ApiHook.API_STOPPED, indexableApi);
     }
 
+    @Override
+    public void triggerDeploymentFailureNotification(final ExecutionContext executionContext, final Api api) {
+        GenericApiEntity indexableApi = indexableApiMapper.toGenericApi(api, null);
+        triggerNotification(executionContext, ApiHook.API_DEPLOYMENT_FAILURE, indexableApi);
+    }
+
     private void triggerNotification(final ExecutionContext executionContext, final ApiHook hook, final GenericApiEntity genericApiEntity) {
         String userId = getAuthenticatedUsername();
         if (userId != null && !getAuthenticatedUser().isSystem()) {

@@ -35,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -440,7 +441,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(DeploymentStatus.OK);
 
         final Response response = rootTarget().queryParam("expands", "deploymentState").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -478,7 +479,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(DeploymentStatus.OK);
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)

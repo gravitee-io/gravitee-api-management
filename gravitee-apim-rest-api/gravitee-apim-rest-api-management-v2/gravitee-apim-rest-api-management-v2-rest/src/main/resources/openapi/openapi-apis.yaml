@@ -3228,6 +3228,10 @@ components:
                           enum:
                               - NEED_REDEPLOY
                               - DEPLOYED
+                      deploymentStateReason:
+                          type: string
+                          description: If the deploymentState is NEED_REDEPLOY, what could be the root cause
+                          example: A policy is missing in the gateway abd the API can't be deployed
                       visibility:
                           $ref: "#/components/schemas/Visibility"
                       labels:

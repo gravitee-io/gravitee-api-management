@@ -33,6 +33,9 @@ public abstract class AbstractReactableApi<T> implements ReactableApi<T>, Serial
     protected T definition;
 
     @Setter
+    private String eventId;
+
+    @Setter
     private boolean enabled = true;
 
     @Setter
@@ -79,6 +82,11 @@ public abstract class AbstractReactableApi<T> implements ReactableApi<T>, Serial
 
     public Date getDeployedAt() {
         return deployedAt;
+    }
+
+    @Override
+    public String getEventId() {
+        return eventId;
     }
 
     public String getEnvironmentId() {

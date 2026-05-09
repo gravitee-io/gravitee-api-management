@@ -123,6 +123,7 @@ import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
@@ -306,6 +307,9 @@ public class ApiServiceImplTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -402,7 +406,8 @@ public class ApiServiceImplTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            environmentService
         );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
@@ -1252,12 +1257,9 @@ public class ApiServiceImplTest {
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final ApiEntity result = (ApiEntity) apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            apiDeploymentEntity
-        );
+        final ApiEntity result = (ApiEntity) apiStateService
+            .deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity)
+            .getApiEntity();
 
         verify(eventService).createApiEvent(
             any(ExecutionContext.class),

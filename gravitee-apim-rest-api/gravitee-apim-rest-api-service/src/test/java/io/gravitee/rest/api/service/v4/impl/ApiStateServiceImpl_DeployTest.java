@@ -128,6 +128,9 @@ public class ApiStateServiceImpl_DeployTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
@@ -195,7 +198,8 @@ public class ApiStateServiceImpl_DeployTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            environmentService
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -229,12 +233,9 @@ public class ApiStateServiceImpl_DeployTest {
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final GenericApiEntity result = apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            apiDeploymentEntity
-        );
+        final GenericApiEntity result = apiStateService
+            .deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity)
+            .getApiEntity();
 
         verify(eventService).createApiEvent(
             any(ExecutionContext.class),
@@ -273,12 +274,9 @@ public class ApiStateServiceImpl_DeployTest {
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final GenericApiEntity result = apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            apiDeploymentEntity
-        );
+        final GenericApiEntity result = apiStateService
+            .deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity)
+            .getApiEntity();
 
         verify(eventService).createApiEvent(
             any(ExecutionContext.class),
@@ -335,6 +333,7 @@ public class ApiStateServiceImpl_DeployTest {
             null,
             null,
             eventLatestRepository,
+            null,
             null,
             null,
             null,

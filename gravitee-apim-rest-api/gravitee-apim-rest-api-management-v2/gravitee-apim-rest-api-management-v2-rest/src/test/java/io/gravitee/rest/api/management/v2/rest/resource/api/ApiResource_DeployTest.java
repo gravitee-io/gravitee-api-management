@@ -36,6 +36,8 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.DeploymentApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import jakarta.ws.rs.client.Entity;
@@ -57,7 +59,21 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         deployEntity.setDeploymentLabel("label");
 
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
-        when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any())).thenReturn(apiEntity);
+        DeploymentApiEntity deploymentApiEntity = new DeploymentApiEntity() {
+            @Override
+            public String getEventId() {
+                return "";
+            }
+
+            @Override
+            public GenericApiEntity getApiEntity() {
+                return apiEntity;
+            }
+        };
+
+        when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any())).thenReturn(
+            deploymentApiEntity
+        );
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 

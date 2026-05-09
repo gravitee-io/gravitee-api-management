@@ -91,6 +91,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -102,6 +103,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.DeploymentApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
@@ -464,8 +466,12 @@ public class ApiResource extends AbstractResource {
     public Response deployApi(@PathParam("apiId") String apiId, @Valid final ApiDeploymentEntity apiDeploymentEntity) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         apiLicenseService.checkLicense(executionContext, apiId);
-        GenericApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
-        return Response.accepted().tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
+        DeploymentApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
+        return Response.accepted()
+            .header("X-Gravitee-Deployment-Id", apiEntity.getEventId())
+            .tag(Long.toString(apiEntity.getApiEntity().getUpdatedAt().getTime()))
+            .lastModified(apiEntity.getApiEntity().getUpdatedAt())
+            .build();
     }
 
     @GET
@@ -1116,8 +1122,8 @@ public class ApiResource extends AbstractResource {
     }
 
     private Response apiResponse(GenericApiEntity apiEntity) {
-        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
-        return Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized))
+        DeploymentStatus status = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        return Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, status))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
             .lastModified(apiEntity.getUpdatedAt())
             .build();

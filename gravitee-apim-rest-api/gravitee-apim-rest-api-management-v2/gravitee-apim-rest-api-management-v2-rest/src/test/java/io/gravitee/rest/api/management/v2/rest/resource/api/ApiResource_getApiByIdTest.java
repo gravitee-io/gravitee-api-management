@@ -72,6 +72,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.ServiceV4;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -106,7 +107,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
             this.fakeApiEntityV4()
         );
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(DeploymentStatus.KO);
 
         final Response response = rootTarget(API).request().get();
 
@@ -285,7 +286,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
             this.fakeNativeApiEntityV4()
         );
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(DeploymentStatus.KO);
 
         final Response response = rootTarget(API).request().get();
 

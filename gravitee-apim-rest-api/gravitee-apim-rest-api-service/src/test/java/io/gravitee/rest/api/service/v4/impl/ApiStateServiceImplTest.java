@@ -158,6 +158,9 @@ public class ApiStateServiceImplTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     private Api api;
     private Api updatedApi;
     private ApiStateService apiStateService;
@@ -206,7 +209,8 @@ public class ApiStateServiceImplTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            environmentService
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();

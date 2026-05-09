@@ -42,6 +42,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -430,9 +431,9 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 2))
             )
         ).thenReturn(new Page<>(apiList, 1, 2, 42));
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(DeploymentStatus.OK);
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(DeploymentStatus.KO);
 
         final Response response = rootTarget()
             .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)

@@ -54,7 +54,6 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
@@ -65,6 +64,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -164,11 +164,9 @@ public class ApisResource extends AbstractResource {
             : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
-        GenericApi.DeploymentStateEnum deploymentState = isSynchronized
-            ? GenericApi.DeploymentStateEnum.DEPLOYED
-            : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+
         return Response.created(this.getLocationHeader(createdApi.getId()))
-            .entity(ApiMapper.INSTANCE.mapToV4(createdApi, uriInfo, deploymentState))
+            .entity(ApiMapper.INSTANCE.mapToV4(createdApi, uriInfo, new DeploymentStatus(isSynchronized)))
             .build();
     }
 
@@ -193,7 +191,7 @@ public class ApisResource extends AbstractResource {
                     if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
                         return null;
                     }
-                    return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                    return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api).isSynchronized();
                 })
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
@@ -361,7 +359,9 @@ public class ApisResource extends AbstractResource {
         return new ApisResponse()
             .data(
                 ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api ->
-                    expandDeploymentState ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api) : null
+                    expandDeploymentState
+                        ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api).isSynchronized()
+                        : null
                 )
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))

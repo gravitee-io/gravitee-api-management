@@ -31,6 +31,8 @@ public interface ApiNotificationService {
 
     void triggerDeployNotification(ExecutionContext executionContext, GenericApiEntity api);
 
+    void triggerDeploymentFailureNotification(ExecutionContext executionContext, Api api);
+
     void triggerStartNotification(ExecutionContext executionContext, GenericApiEntity indexableApi);
 
     void triggerStopNotification(ExecutionContext executionContext, GenericApiEntity indexableApi);

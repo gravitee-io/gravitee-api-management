@@ -50,7 +50,7 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
         return switch (api.getDefinitionVersion()) {
             case V4 -> {
                 var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId(), true, false, false);
-                yield apiStateService.isSynchronized(executionContext, genericApiEntity);
+                yield apiStateService.isSynchronized(executionContext, genericApiEntity).isSynchronized();
             }
             case V1, V2 -> apiService.isSynchronized(executionContext, api.getId());
             case FEDERATED_AGENT, FEDERATED -> true;
@@ -67,7 +67,7 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
             auditInfo.actor().userId(),
             new ApiDeploymentEntity(deploymentLabel)
         );
-        return apiAdapter.fromApiEntity(deployed);
+        return apiAdapter.fromApiEntity(deployed.getApiEntity());
     }
 
     @Override

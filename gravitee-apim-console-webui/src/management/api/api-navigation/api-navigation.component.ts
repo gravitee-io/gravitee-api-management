@@ -229,6 +229,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           canUpdateApiDefinition
             ? {
                 title: 'This API is out of sync.',
+                body: api.deploymentStateReason,
                 type: 'warning',
                 action: {
                   btnText: 'Deploy API',

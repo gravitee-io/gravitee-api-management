@@ -46,6 +46,9 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
   public deploymentState: string;
 
   @Input()
+  public deploymentStateReason: string;
+
+  @Input()
   public definitionInUseId: string;
 
   @Output()

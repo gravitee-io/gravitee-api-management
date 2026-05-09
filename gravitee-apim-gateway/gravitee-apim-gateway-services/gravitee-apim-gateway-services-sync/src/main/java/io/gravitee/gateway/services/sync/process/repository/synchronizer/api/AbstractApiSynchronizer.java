@@ -110,6 +110,7 @@ public abstract class AbstractApiSynchronizer {
                         .map(reactableApi ->
                             ApiReactorDeployable.builder()
                                 .apiId(reactableApi.getId())
+                                .eventId(reactableApi.getEventId())
                                 .syncAction(SyncAction.DEPLOY)
                                 .reactableApi(reactableApi)
                                 .build()

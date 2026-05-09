@@ -54,6 +54,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -251,6 +252,19 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             return createNewEventEntity(executionContext, environmentsIds, organizationId, event);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException(String.format("Failed to create event [%s]", type), e);
+        }
+    }
+
+    @Override
+    public EventEntity updateEvent(ExecutionContext executionContext, EventEntity eventEntity) {
+        try {
+            eventRepository.findById(eventEntity.getId()).orElseThrow(() -> new EventNotFoundException(eventEntity.getId()));
+
+            eventEntity.setUpdatedAt(new Date());
+
+            return convert(executionContext, eventRepository.update(convert(eventEntity)));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to update event " + eventEntity.getId(), ex);
         }
     }
 

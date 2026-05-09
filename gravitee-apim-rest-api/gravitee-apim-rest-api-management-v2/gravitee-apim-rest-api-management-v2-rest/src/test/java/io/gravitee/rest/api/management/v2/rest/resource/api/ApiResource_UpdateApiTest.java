@@ -48,6 +48,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -134,7 +135,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenReturn(apiEntity);
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(DeploymentStatus.OK);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(OK_200, response.getStatus());
@@ -185,7 +186,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 eq(false)
             )
         ).thenReturn(apiEntity);
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(DeploymentStatus.KO);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
         assertEquals(OK_200, response.getStatus());
@@ -335,7 +336,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         updateApiV4.setLabels(List.of(labelToAdd));
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(existingApi);
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(existingApi))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(existingApi))).thenReturn(DeploymentStatus.OK);
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenAnswer(invocation -> {

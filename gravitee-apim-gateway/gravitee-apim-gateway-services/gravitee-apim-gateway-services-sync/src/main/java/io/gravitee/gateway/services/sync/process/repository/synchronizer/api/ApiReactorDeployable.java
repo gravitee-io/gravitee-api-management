@@ -44,6 +44,8 @@ import lombok.experimental.Accessors;
 @ToString
 public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeployable {
 
+    private String eventId;
+
     private String apiId;
 
     private ReactableApi<?> reactableApi;

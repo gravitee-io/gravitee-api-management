@@ -15,14 +15,27 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.definition.model.command.ApiDeploymentFailureCommand;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.CommandTags;
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.MessageRecipient;
+import io.vertx.core.json.JsonObject;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +52,12 @@ import lombok.RequiredArgsConstructor;
 public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final ReactorFactoryManager reactorFactoryManager;
+    private final CommandRepository commandRepository;
+    private final Node node;
     private final Map<Reactable, List<ReactableAcceptors>> reactables = new ConcurrentHashMap<>();
     private final Map<Class<? extends Acceptor<?>>, List<Acceptor<?>>> acceptors = new ConcurrentHashMap<>();
     private final Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsClassMapping = new ConcurrentHashMap<>();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public void create(Reactable reactable) {
@@ -63,12 +79,60 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                     reactorHandler.start();
                     startedReactorHandlers.add(reactorHandler);
                 } catch (Exception ex) {
-                    log.error("Unable to start the new reactor handler: " + reactorHandler, ex);
+                    log.error("Unable to start the new reactor handler: {}", reactorHandler, ex);
+
+                    if (reactable instanceof ReactableApi<?>) {
+                        sendDeploymentCommand((ReactableApi<?>) reactable, ex);
+                    }
                 }
             });
         }
 
         return startedReactorHandlers;
+    }
+
+    private void sendDeploymentCommand(ReactableApi<?> reactableApi, Throwable throwable) {
+        final Command command = new Command();
+        Instant now = Instant.now();
+        command.setId(UUID.random().toString());
+        command.setFrom(node.id());
+        command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        command.setTags(List.of(CommandTags.API_DEPLOYMENT_FAILURE.name()));
+        command.setCreatedAt(Date.from(now));
+        command.setUpdatedAt(Date.from(now));
+        command.setEnvironmentId(reactableApi.getEnvironmentId());
+
+        try {
+            convertCommand(reactableApi, command, throwable);
+            commandRepository.create(command);
+        } catch (Exception cmdEx) {
+            log.warn(
+                "Unable to report a deployment failure for id[{}] name[{}] event [{}]",
+                reactableApi.getId(),
+                reactableApi.getName(),
+                reactableApi.getEventId(),
+                cmdEx
+            );
+        }
+    }
+
+    private void convertCommand(ReactableApi<?> reactableApi, Command command, Throwable throwable) {
+        try {
+            command.setContent(
+                mapper.writeValueAsString(
+                    new ApiDeploymentFailureCommand(node.id(), reactableApi.getEventId(), reactableApi.getId(), throwable.getMessage())
+                )
+            );
+        } catch (JsonProcessingException e) {
+            log.error("Failed to convert api deployment failure command [{}] to string", reactableApi.getId(), e);
+            JsonObject json = new JsonObject();
+            json
+                .put("nodeId", node.id())
+                .put("apiId", reactableApi.getId())
+                .put("eventId", reactableApi.getEventId())
+                .put("failureCause", throwable.getMessage());
+            command.setContent(json.encode());
+        }
     }
 
     private void register(Reactable reactable, ReactorHandler handler) {

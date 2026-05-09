@@ -36,6 +36,7 @@ public enum ApiHook implements Hook {
     API_STOPPED("API Stopped", "Triggered when an API is stopped", "LIFECYCLE"),
     API_UPDATED("API Updated", "Triggered when an API is updated", "LIFECYCLE"),
     API_DEPLOYED("API Deployed", "Triggered when an API is deployed", "LIFECYCLE"),
+    API_DEPLOYMENT_FAILURE("API Deployment failure", "Triggered when an API can not be deployed", "LIFECYCLE"),
     NEW_RATING("New Rating", "Triggered when a new rating is submitted", "RATING"),
     NEW_RATING_ANSWER("New Rating Answer", "Triggered when a new answer is submitted", "RATING"),
     MESSAGE("Message", "Used when sending a custom message to an Application Role", null, true),

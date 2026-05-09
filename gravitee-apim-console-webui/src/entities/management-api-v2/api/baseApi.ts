@@ -82,6 +82,11 @@ export interface GenericApi extends BaseApi {
   deploymentState?: ApiDeploymentState;
 
   /**
+   * The deployment state reason of the API regarding the gateway(s).
+   */
+  deploymentStateReason?: string;
+
+  /**
    * The visibility of the resource regarding the portal.
    */
   visibility?: ApiVisibility;

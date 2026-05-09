@@ -87,6 +87,8 @@ public interface EventService {
         Map<String, String> properties
     );
 
+    EventEntity updateEvent(ExecutionContext executionContext, EventEntity eventEntity);
+
     void deleteApiEvents(String apiId);
 
     Page<EventEntity> search(

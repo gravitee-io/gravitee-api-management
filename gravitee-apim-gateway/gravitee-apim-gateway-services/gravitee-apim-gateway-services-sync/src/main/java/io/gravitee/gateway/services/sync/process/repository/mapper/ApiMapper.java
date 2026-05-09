@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Event.EventProperties.DEPLOYMENT_NUMBER;
+import static io.gravitee.repository.management.model.Event.EventProperties.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -88,6 +89,11 @@ public class ApiMapper {
                 }
 
                 reactableApi.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+                reactableApi.setEventId(
+                    Optional.ofNullable(apiEvent.getProperties())
+                        .map(props -> props.get(ID.getValue()))
+                        .orElse(null)
+                );
                 reactableApi.setDeployedAt(apiEvent.getCreatedAt());
                 reactableApi.setRevision(
                     Optional.ofNullable(apiEvent.getProperties())

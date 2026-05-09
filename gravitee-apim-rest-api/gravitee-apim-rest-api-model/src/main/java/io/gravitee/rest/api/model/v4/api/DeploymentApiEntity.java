@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management;
+package io.gravitee.rest.api.model.v4.api;
+
+import java.io.Serializable;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum CommandTags {
-    DATA_TO_INDEX,
-    SUBSCRIPTION_FAILURE,
-    SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY,
-    EMAIL_TEMPLATE_UPDATE,
-    API_DEPLOYMENT_FAILURE,
+public interface DeploymentApiEntity extends Serializable {
+    String getEventId();
+
+    GenericApiEntity getApiEntity();
 }

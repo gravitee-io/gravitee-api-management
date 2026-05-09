@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.command.ApiDeploymentFailureCommand;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -33,18 +34,22 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.DeploymentApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -100,6 +105,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final SynchronizationService synchronizationService;
     private final EventManager eventManager;
     private final SearchEngineService searchEngineService;
+    private final EnvironmentService environmentService;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -118,7 +124,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         final ApiConverter apiConverter,
         final SynchronizationService synchronizationService,
         final EventManager eventManager,
-        final SearchEngineService searchEngineService
+        final SearchEngineService searchEngineService,
+        final EnvironmentService environmentService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -137,10 +144,11 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.synchronizationService = synchronizationService;
         this.eventManager = eventManager;
         this.searchEngineService = searchEngineService;
+        this.environmentService = environmentService;
     }
 
     @Override
-    public GenericApiEntity deploy(
+    public DeploymentApiEntity deploy(
         ExecutionContext executionContext,
         String apiId,
         String authenticatedUser,
@@ -151,7 +159,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     @Override
-    public GenericApiEntity deploy(
+    public DeploymentApiEntity deploy(
         ExecutionContext executionContext,
         Api apiToDeploy,
         String authenticatedUser,
@@ -166,7 +174,7 @@ public class ApiStateServiceImpl implements ApiStateService {
      * @param apiFromDb is the api coming from database, on which the deployedAt date will be set
      * @param apiToDeploy is the api to deploy in an Event. It can defer from apiFromDb in case an ApiService is still running in background
      */
-    private GenericApiEntity deploy(
+    private DeploymentApiEntity deploy(
         ExecutionContext executionContext,
         Api apiFromDb,
         Api apiToDeploy,
@@ -182,11 +190,11 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
 
         // FIXME: improvement: what about updating deployedAt only when the user trigger it manually ?
-        this.updateDeploymentDate(apiFromDb);
+        this.updateDeploymentStatus(apiFromDb);
         if (apiToDeploy.getDeployedAt() == null) {
             apiToDeploy.setDeployedAt(apiFromDb.getDeployedAt());
         }
-        this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, apiToDeploy);
+        String eventId = this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, apiToDeploy);
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiToDeploy.getId());
         final GenericApiEntity deployedApi = genericApiMapper.toGenericApi(apiToDeploy, primaryOwner);
@@ -194,10 +202,20 @@ public class ApiStateServiceImpl implements ApiStateService {
 
         apiNotificationService.triggerDeployNotification(executionContext, apiWithMetadata);
 
-        return deployedApi;
+        return new DeploymentApiEntity() {
+            @Override
+            public String getEventId() {
+                return eventId;
+            }
+
+            @Override
+            public GenericApiEntity getApiEntity() {
+                return deployedApi;
+            }
+        };
     }
 
-    private void updateDeploymentDate(Api api) {
+    private void updateDeploymentStatus(Api api) {
         try {
             // add deployment date
             api.setUpdatedAt(new Date());
@@ -209,7 +227,12 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
-    private void deployApi(ExecutionContext executionContext, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity, Api api) {
+    private String deployApi(
+        ExecutionContext executionContext,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity,
+        Api api
+    ) {
         // Clear useless field for history
         api.setPicture(null);
 
@@ -219,7 +242,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
 
         // And create event
-        eventService.createApiEvent(
+        EventEntity event = eventService.createApiEvent(
             executionContext,
             singleton(executionContext.getEnvironmentId()),
             executionContext.getOrganizationId(),
@@ -227,6 +250,8 @@ public class ApiStateServiceImpl implements ApiStateService {
             api,
             properties
         );
+
+        return event.getId();
     }
 
     private void addDeploymentLabelToProperties(
@@ -471,7 +496,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             } else {
                 // this is the first time we start the api without previously deployed id.
                 // let's do it.
-                return this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity());
+                return this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity()).getApiEntity();
             }
         } catch (AbstractManagementException e) {
             log.info("Unable to deploy last published API {} due to : {}", apiId, e.getMessage());
@@ -498,11 +523,11 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     @Override
-    public boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
+    public DeploymentStatus isSynchronized(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
         try {
             // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
             if (genericApiEntity.getOriginContext() instanceof OriginContext.Kubernetes) {
-                return true;
+                return DeploymentStatus.OK;
             }
 
             // 1 - Check if the api definition is sync with last one in events
@@ -527,6 +552,16 @@ public class ApiStateServiceImpl implements ApiStateService {
                 // According to page size, we know that we have only one element in the list
                 Event lastEvent = events.get(0);
                 boolean sync = false;
+
+                // Last event resulted in a failure (gateway not able to deploy)
+                // We are then considering the API as not synchronized
+                if (lastEvent.getProperties().containsKey(Event.EventProperties.DEPLOYMENT_FAILURE_EVENT.getValue())) {
+                    return new DeploymentStatus(
+                        sync,
+                        lastEvent.getProperties().get(Event.EventProperties.DEPLOYMENT_FAILURE_CAUSE.getValue())
+                    );
+                }
+
                 if (
                     io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType()) ||
                     io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType()) ||
@@ -537,7 +572,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                         payloadEntity != null &&
                         getOrV2(genericApiEntity::getDefinitionVersion) != getOrV2(payloadEntity::getDefinitionVersion)
                     ) {
-                        return false;
+                        return new DeploymentStatus(sync);
                     }
 
                     if (
@@ -581,7 +616,8 @@ public class ApiStateServiceImpl implements ApiStateService {
                             );
                     }
                 }
-                return sync;
+
+                return new DeploymentStatus(sync);
             }
         } catch (Exception e) {
             String errorMsg = String.format(
@@ -591,7 +627,61 @@ public class ApiStateServiceImpl implements ApiStateService {
             log.error(errorMsg, genericApiEntity.getId(), e);
         }
 
-        return false;
+        return DeploymentStatus.KO;
+    }
+
+    @Override
+    public void deploymentFail(ApiDeploymentFailureCommand command) {
+        try {
+            Api api = apiRepository.findById(command.getApiId()).orElseThrow(() -> new ApiNotFoundException(command.getApiId()));
+
+            EnvironmentEntity environmentEntity = environmentService.findById(api.getEnvironmentId());
+            ExecutionContext executionContext = new ExecutionContext(environmentEntity.getOrganizationId(), environmentEntity.getId());
+
+            // Update the deploy event so we can associate more information about the failure
+            EventEntity deployEvent = eventService.findById(executionContext, command.getEventId());
+
+            deployEvent.getProperties().put(Event.EventProperties.DEPLOYMENT_FAILURE_CAUSE.getValue(), command.getFailureCause());
+            deployEvent.getProperties().put(Event.EventProperties.DEPLOYMENT_FAILURE_GATEWAY.getValue(), command.getNodeId());
+
+            eventService.updateEvent(executionContext, deployEvent);
+
+            // Update the latest event as well so we can manage the sync state afterwards
+            List<Event> events = eventLatestRepository.search(
+                EventCriteria.builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), command.getApiId()))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            );
+
+            if (!events.isEmpty()) {
+                // According to page size, we know that we have only one element in the list
+                Event lastEvent = events.get(0);
+
+                lastEvent.getProperties().put(Event.EventProperties.DEPLOYMENT_FAILURE_EVENT.getValue(), command.getEventId());
+                lastEvent.getProperties().put(Event.EventProperties.DEPLOYMENT_FAILURE_CAUSE.getValue(), command.getFailureCause());
+                lastEvent.getProperties().put(Event.EventProperties.DEPLOYMENT_FAILURE_GATEWAY.getValue(), command.getNodeId());
+
+                lastEvent.setUpdatedAt(new Date());
+
+                eventLatestRepository.createOrUpdate(lastEvent);
+            }
+
+            // Send notification about deployment issue
+            apiNotificationService.triggerDeploymentFailureNotification(executionContext, api);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("Fail to handle deployment failure for API " + command.getApiId(), ex);
+        }
     }
 
     private void removePathsRuleDescriptionFromApiV1(final io.gravitee.rest.api.model.api.ApiEntity api) {

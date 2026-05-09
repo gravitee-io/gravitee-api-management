@@ -21,6 +21,7 @@ import java.util.Set;
 
 public interface ReactableApi<T> extends Reactable {
     T getDefinition();
+    String getEventId();
     String getId();
     DefinitionVersion getDefinitionVersion();
     String getApiVersion();
@@ -37,6 +38,7 @@ public interface ReactableApi<T> extends Reactable {
     String getOrganizationId();
     String getOrganizationHrid();
 
+    void setEventId(String eventId);
     void setEnabled(boolean enabled);
     void setDeployedAt(Date deployedAt);
     void setRevision(String revision);

@@ -89,6 +89,7 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.vertx.core.Vertx;
 import java.util.List;
@@ -99,6 +100,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 public class DebugConfiguration {
@@ -432,9 +434,11 @@ public class DebugConfiguration {
 
     @Bean
     public ReactorHandlerRegistry debugReactorHandlerRegistry(
-        @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager
+        @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager,
+        @Lazy CommandRepository commandRepository,
+        Node node
     ) {
-        return new DefaultReactorHandlerRegistry(reactorFactoryManager);
+        return new DefaultReactorHandlerRegistry(reactorFactoryManager, commandRepository, node);
     }
 
     @Bean

@@ -63,6 +63,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import io.vertx.core.Vertx;
 import java.util.List;
@@ -71,6 +72,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -211,8 +213,12 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public ReactorHandlerRegistry reactorHandlerRegistry(ReactorFactoryManager reactorFactoryManager) {
-        return new DefaultReactorHandlerRegistry(reactorFactoryManager);
+    public ReactorHandlerRegistry reactorHandlerRegistry(
+        ReactorFactoryManager reactorFactoryManager,
+        Node node,
+        @Lazy CommandRepository commandRepository
+    ) {
+        return new DefaultReactorHandlerRegistry(reactorFactoryManager, commandRepository, node);
     }
 
     @Bean

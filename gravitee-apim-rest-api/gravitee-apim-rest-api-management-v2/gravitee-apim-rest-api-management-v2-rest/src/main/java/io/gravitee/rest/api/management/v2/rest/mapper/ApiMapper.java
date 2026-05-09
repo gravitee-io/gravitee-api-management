@@ -45,7 +45,6 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.ExposedEntrypoint;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
-import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
@@ -56,6 +55,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
@@ -104,27 +104,33 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
+    default Api map(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo, Boolean isSynchronized, String reason) {
+        return map(api, uriInfo, new DeploymentStatus(isSynchronized, reason));
+    }
+
     default Api map(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo, Boolean isSynchronized) {
-        GenericApi.DeploymentStateEnum state = null;
+        return map(api, uriInfo, isSynchronized, null);
+    }
 
-        if (isSynchronized != null) {
-            state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
-        }
-
+    default Api map(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo, DeploymentStatus deploymentStatus) {
         if (api != null && api.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(api, uriInfo, state));
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(api, uriInfo, deploymentStatus));
         }
         return null;
     }
 
     @Nullable
+    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized, String reason) {
+        return map(apiEntity, uriInfo, new DeploymentStatus(isSynchronized, reason));
+    }
+
+    @Nullable
     default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
-        GenericApi.DeploymentStateEnum state = null;
+        return map(apiEntity, uriInfo, isSynchronized, null);
+    }
 
-        if (isSynchronized != null) {
-            state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
-        }
-
+    @Nullable
+    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, DeploymentStatus status) {
         return switch (apiEntity) {
             case FederatedApiAgentEntity federatedAgent -> new io.gravitee.rest.api.management.v2.rest.model.Api(
                 mapToFederatedAgent(federatedAgent, uriInfo)
@@ -132,12 +138,12 @@ public interface ApiMapper {
             case FederatedApiEntity federatedApi -> new io.gravitee.rest.api.management.v2.rest.model.Api(
                 mapToFederated(federatedApi, uriInfo)
             );
-            case ApiEntity asApiEntity -> new Api(mapToV4(asApiEntity, uriInfo, state));
-            case NativeApiEntity asNativeApiEntity -> new Api(mapToV4(asNativeApiEntity, uriInfo, state));
+            case ApiEntity asApiEntity -> new Api(mapToV4(asApiEntity, uriInfo, status));
+            case NativeApiEntity asNativeApiEntity -> new Api(mapToV4(asNativeApiEntity, uriInfo, status));
             case io.gravitee.rest.api.model.api.ApiEntity legacy -> legacy.getDefinitionVersion() ==
                 io.gravitee.definition.model.DefinitionVersion.V1
-                ? new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV1(legacy, uriInfo, state))
-                : new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV2(legacy, uriInfo, state));
+                ? new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV1(legacy, uriInfo, status))
+                : new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV2(legacy, uriInfo, status));
             case null, default -> null;
         };
     }
@@ -177,7 +183,10 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    @Mapping(target = "state", source = "apiEntity.state")
+    @Mapping(target = "deploymentState", source = "deploymentStatus.state")
+    @Mapping(target = "deploymentStateReason", source = "deploymentStatus.reason")
+    ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, DeploymentStatus deploymentStatus);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
@@ -186,17 +195,18 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV4 mapToV4(NativeApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    @Mapping(target = "state", source = "apiEntity.state")
+    ApiV4 mapToV4(NativeApiEntity apiEntity, UriInfo uriInfo, DeploymentStatus deploymentStatus);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     ApiV4 mapToV4(NativeApiEntity apiEntity);
 
-    default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
+    default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, DeploymentStatus deploymentStatus) {
         if (ApiType.NATIVE.equals(source.getType())) {
-            return mapToNativeV4(source, uriInfo, deploymentState);
+            return mapToNativeV4(source, uriInfo, deploymentStatus);
         }
-        return mapToHttpV4(source, uriInfo, deploymentState);
+        return mapToHttpV4(source, uriInfo, deploymentStatus);
     }
 
     default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
@@ -211,7 +221,8 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
-    @Mapping(target = "deploymentState", source = "deploymentState")
+    @Mapping(target = "deploymentState", source = "deploymentStatus.state")
+    @Mapping(target = "deploymentStateReason", source = "deploymentStatus.reason")
     @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
     @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
     @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
@@ -219,11 +230,12 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, DeploymentStatus deploymentStatus);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
-    @Mapping(target = "deploymentState", source = "deploymentState")
+    @Mapping(target = "deploymentState", source = "deploymentStatus.state")
+    @Mapping(target = "deploymentStateReason", source = "deploymentStatus.reason")
     @Mapping(target = "endpointGroups", source = "source.apiDefinitionNativeV4.endpointGroups")
     @Mapping(target = "flows", source = "source.apiDefinitionNativeV4.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
@@ -231,12 +243,13 @@ public interface ApiMapper {
     @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
     @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
-    ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, DeploymentStatus deploymentStatus);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
-    @Mapping(target = "deploymentState", source = "deploymentState")
+    @Mapping(target = "deploymentState", source = "deploymentStatus.state")
+    @Mapping(target = "deploymentStateReason", source = "deploymentStatus.reason")
     @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
     @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
     @Mapping(target = "flows", source = "source.flows", qualifiedByName = "mapToFlowV4List")
@@ -244,17 +257,23 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToV4(io.gravitee.apim.core.api.model.ApiWithFlows source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToV4(io.gravitee.apim.core.api.model.ApiWithFlows source, UriInfo uriInfo, DeploymentStatus deploymentStatus);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    @Mapping(target = "deploymentState", source = "deploymentStatus.state")
+    @Mapping(target = "deploymentStateReason", source = "deploymentStatus.reason")
+    @Mapping(target = "state", source = "apiEntity.state")
+    ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, DeploymentStatus deploymentStatus);
 
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "deploymentState", source = "deploymentStatus.state")
+    @Mapping(target = "deploymentStateReason", source = "deploymentStatus.reason")
+    @Mapping(target = "state", source = "apiEntity.state")
     io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapToV1(
         io.gravitee.rest.api.model.api.ApiEntity apiEntity,
         UriInfo uriInfo,
-        GenericApi.DeploymentStateEnum deploymentState
+        DeploymentStatus deploymentStatus
     );
 
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")

@@ -40,6 +40,7 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.rest.api.model.api.DeploymentStatus;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -140,6 +141,9 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -203,7 +207,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            environmentService
         );
         reset(searchEngineService);
     }
@@ -248,7 +253,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setPlans(Set.of(PlanEntity.builder().id("This plan should be ignored").build()));
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isTrue();
 
@@ -313,7 +318,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
         apiEntity.setFlows(apiFlows);
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isFalse();
 
@@ -374,7 +379,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
         var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false, false, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isTrue();
 
@@ -439,7 +444,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         var apiFlows = List.of(mock(NativeFlow.class), mock(NativeFlow.class));
         apiEntity.setFlows(apiFlows);
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isFalse();
 
@@ -511,7 +516,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         );
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         apiEntity.setPlans(Set.of(io.gravitee.rest.api.model.PlanEntity.builder().id("This plan should be ignored").build()));
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isTrue();
 
@@ -586,7 +591,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
         apiEntity.setFlows(Collections.singletonList(flow));
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isFalse();
 
@@ -666,7 +671,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             Set.of(planPublished, planStaging)
         );
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isTrue();
 
@@ -742,7 +747,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             Set.of(planPublished)
         );
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity).isSynchronized();
 
         assertThat(isSynchronized).isFalse();
 
@@ -815,7 +820,9 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(false);
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity);
+        final boolean isSynchronized = apiStateService
+            .isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity)
+            .isSynchronized();
 
         assertThat(isSynchronized).isFalse();
 
@@ -892,7 +899,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(true);
 
-        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity);
+        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity).isSynchronized();
         assertThat(isSynchronized).isTrue();
 
         Flow modifiedFlow = Flow.builder().build();
@@ -911,7 +918,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(false);
 
-        isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity);
+        isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity).isSynchronized();
+
         assertThat(isSynchronized).isFalse();
 
         verify(eventLatestRepository, times(2)).search(
