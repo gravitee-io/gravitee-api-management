@@ -114,4 +114,27 @@ describe('ApiV4MenuService', () => {
 
     expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(false);
   });
+
+  describe('Logs menu for NATIVE API', () => {
+    it('should include Logs menu pointing to v4/runtime-logs-native when user has api-native_log-r permission', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-native_log-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'NATIVE' });
+      const menu = service.getMenu(api);
+
+      const logsEntry = menu.subMenuItems.find(item => item.displayName === 'Logs');
+      expect(logsEntry).toBeDefined();
+      expect(logsEntry.routerLink).toBe('v4/runtime-logs-native');
+    });
+
+    it('should not include Logs menu for NATIVE API when user has only api-log-r permission', () => {
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'NATIVE' });
+      const menu = service.getMenu(api);
+
+      expect(menu.subMenuItems.some(item => item.displayName === 'Logs')).toBe(false);
+    });
+  });
 });

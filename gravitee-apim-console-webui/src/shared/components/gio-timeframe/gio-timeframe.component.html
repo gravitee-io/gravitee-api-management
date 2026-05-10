@@ -16,7 +16,7 @@
 
 -->
 <div class="gio-timeframe" [formGroup]="form">
-  <mat-form-field>
+  <mat-form-field [appearance]="appearance()">
     <mat-label>Timeframe</mat-label>
     <mat-select formControlName="period" (selectionChange)="onPeriodChange($event.value)">
       @for (timeFrame of timeFrames(); track timeFrame.id) {
@@ -28,7 +28,7 @@
   </mat-form-field>
 
   @if (form.controls.period.value === customPeriod()) {
-    <mat-form-field class="custom-date">
+    <mat-form-field class="custom-date" [appearance]="appearance()">
       <mat-label>From</mat-label>
       <input
         matInput
@@ -41,7 +41,7 @@
       <owl-date-time #fromDateTimePicker></owl-date-time>
     </mat-form-field>
 
-    <mat-form-field class="custom-date">
+    <mat-form-field class="custom-date" [appearance]="appearance()">
       <mat-label>To</mat-label>
       <input
         matInput

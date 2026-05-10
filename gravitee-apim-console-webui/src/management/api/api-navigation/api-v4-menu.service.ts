@@ -52,7 +52,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
       this.addApiTrafficMenuEntry(hasTcpListeners, api.type),
-      ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
+      ...(api.type === 'NATIVE' ? [this.addNativeLogs()] : [this.addLogs(hasTcpListeners)]),
       ...(webhooksMenuEntry ? [webhooksMenuEntry] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
@@ -400,6 +400,17 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Logs',
         icon: 'align-justify',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/runtime-logs',
+      };
+    }
+    return null;
+  }
+
+  private addNativeLogs(): MenuItem | null {
+    if (this.permissionService.hasAnyMatching(['api-native_log-r'])) {
+      return {
+        displayName: 'Logs',
+        icon: 'align-justify',
+        routerLink: 'v4/runtime-logs-native',
       };
     }
     return null;

@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-export * from './apiLogsResponse';
-export * from './apiLogsResponse.fixture';
-export * from './connectionLog';
-export * from './connectionLog.fixture';
-export * from './messageLog';
-export * from './messageLog.fixture';
-export * from './native';
+import { NativeApiLog } from './nativeApiLog';
+
+import { Links } from '../../links';
+import { Pagination } from '../../pagination';
+
+export interface NativeApiLogsParam {
+  page?: number;
+  perPage?: number;
+  from?: number;
+  to?: number;
+  applicationIds?: string;
+  planIds?: string;
+  connectionStatuses?: string;
+}
+
+export interface NativeApiLogsResponse {
+  data?: NativeApiLog[];
+  pagination?: Pagination;
+  links?: Links;
+}

@@ -17,11 +17,19 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
 import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
+import { ApiRuntimeLogsNativeComponent } from './runtime-logs-native/api-runtime-logs-native.component';
 import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
 import { WebhookLogsComponent } from './webhook-logs/webhook-logs.component';
 import { WebhookLogsDetailsComponent } from './webhook-logs-details/webhook-logs-details.component';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule, WebhookLogsComponent, WebhookLogsDetailsComponent],
+  imports: [
+    CommonModule,
+    ApiRuntimeLogsModule,
+    ApiRuntimeLogsNativeComponent,
+    ApiRuntimeLogsDetailsModule,
+    WebhookLogsComponent,
+    WebhookLogsDetailsComponent,
+  ],
 })
 export class ApiTrafficV4Module {}

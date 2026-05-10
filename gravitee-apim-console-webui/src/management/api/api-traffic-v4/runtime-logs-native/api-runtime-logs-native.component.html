@@ -1,0 +1,70 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<api-navigation-header [menuItemHeader]="{ title: 'Runtime Logs' }">
+  <div actionButtons>
+    <a mat-raised-button [routerLink]="['../../reporter-settings']" data-testid="native_logs_configure_reporting"> Configure Reporting </a>
+  </div>
+</api-navigation-header>
+
+@if (isReportingDisabled$ | async) {
+  <gio-banner-info class="banner-warning">
+    <div class="banner-warning__content" data-testid="native_logs_reporting_disabled_banner">
+      Reporting is disabled
+      <span class="mat-body"
+        >You’re seeing outdated or no data because reporting is disabled. To view the latest data, please enable reporting.</span
+      >
+    </div>
+  </gio-banner-info>
+}
+
+<mat-card>
+  <mat-card-content class="filters">
+    <form [formGroup]="form" class="filters__form">
+      <gio-select-search
+        formControlName="applicationIds"
+        label="Applications"
+        placeholder="Search applications..."
+        [resultsLoader]="applicationsResultsLoader"
+      />
+
+      <gio-select-search formControlName="planIds" label="Plans" placeholder="Search plans..." [options]="(planOptions$ | async) ?? []" />
+
+      <gio-select-search formControlName="connectionStatuses" label="Connection status" [options]="connectionStatusOptions" />
+
+      <div class="filters__timeframe">
+        <gio-timeframe
+          formControlName="timeframe"
+          [timeFrames]="timeFrames"
+          appearance="outline"
+          (apply)="applyCustomTimeframe()"
+          (refresh)="refresh()"
+        />
+      </div>
+    </form>
+  </mat-card-content>
+
+  @if (logs$ | async; as logs) {
+    <api-runtime-logs-native-list
+      [pagination]="logs.pagination"
+      [logs]="logs.data ?? []"
+      [applications]="(rowApplications$ | async) ?? []"
+      [plans]="(plans$ | async) ?? []"
+      (paginationUpdated)="paginationUpdated($event)"
+    ></api-runtime-logs-native-list>
+  }
+</mat-card>

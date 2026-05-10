@@ -14,10 +14,26 @@
  * limitations under the License.
  */
 
-export * from './apiLogsResponse';
-export * from './apiLogsResponse.fixture';
-export * from './connectionLog';
-export * from './connectionLog.fixture';
-export * from './messageLog';
-export * from './messageLog.fixture';
-export * from './native';
+export type NativeConnectionStatus = 'CONNECTED' | 'CONNECTION_ERROR' | 'SESSION_ERROR' | 'INTERNAL_ERROR';
+
+export interface NativeApiLog {
+  timestamp?: string;
+  apiId?: string;
+  requestId?: string;
+  transactionId?: string;
+  applicationId?: string;
+  planId?: string;
+  clientIdentifier?: string;
+  subscriptionId?: string;
+  entrypointId?: string;
+  gateway?: string;
+  remoteAddress?: string;
+  localAddress?: string;
+  host?: string;
+  errorKey?: string;
+  errorMessage?: string;
+  connectionStatus?: NativeConnectionStatus;
+  clientId?: string;
+  brokerId?: string;
+  connectionDurationMs?: number;
+}

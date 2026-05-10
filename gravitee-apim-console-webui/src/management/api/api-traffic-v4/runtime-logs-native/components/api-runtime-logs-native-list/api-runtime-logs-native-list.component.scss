@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-export * from './apiLogsResponse';
-export * from './apiLogsResponse.fixture';
-export * from './connectionLog';
-export * from './connectionLog.fixture';
-export * from './messageLog';
-export * from './messageLog.fixture';
-export * from './native';
+.table {
+  width: 100%;
+}
+
+.table__empty-state {
+  padding: 24px 16px;
+  text-align: center;
+}
