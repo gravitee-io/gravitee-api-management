@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-export * from './apiLogsResponse';
-export * from './apiLogsResponse.fixture';
-export * from './connectionLog';
-export * from './connectionLog.fixture';
-export * from './messageLog';
-export * from './messageLog.fixture';
-export * from './native';
+export * from './nativeApiLog';
+export * from './nativeApiLog.fixture';
+export * from './nativeApiLogsResponse';
+export * from './nativeApiLogsResponse.fixture';

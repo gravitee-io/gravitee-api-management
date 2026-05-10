@@ -31,7 +31,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DATE_TIME_FORMATS } from '../../utils/timeFrameRanges';
 import { dateRangeGroupValidator } from '../../validators/date-range.validator';
 
-interface TimeframeValue {
+export interface TimeframeValue {
   period: string;
   from: Moment | null;
   to: Moment | null;
@@ -67,6 +67,8 @@ interface TimeframeValue {
 export class GioTimeframeComponent implements ControlValueAccessor {
   timeFrames = input.required<{ id: string; label: string }[]>();
   customPeriod = input<string>('custom');
+
+  appearance = input<'fill' | 'outline'>('fill');
 
   apply = output<void>();
   refresh = output<void>();
