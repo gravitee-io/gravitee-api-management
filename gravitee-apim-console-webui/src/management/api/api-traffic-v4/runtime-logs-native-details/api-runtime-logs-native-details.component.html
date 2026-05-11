@@ -1,0 +1,116 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="details-page">
+  <a class="back-link" [routerLink]="['..']" [queryParams]="backQueryParams" data-testid="native_log_back">
+    <mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to Connection Logs
+  </a>
+
+  @if (state$ | async; as state) {
+    @if (state.kind === 'not-found') {
+      <gio-banner-error data-testid="native_log_not_found">
+        Log not found
+        <div gioBannerBody>
+          No log was found for request id <strong>{{ requestId }}</strong> within the selected time window. The window may be outside the
+          configured retention.
+        </div>
+      </gio-banner-error>
+    } @else if (state.kind === 'load-failed') {
+      <gio-banner-error data-testid="native_log_load_failed">
+        Failed to load connection log
+        <div gioBannerBody>
+          An unexpected error occurred while loading the log for request id <strong>{{ requestId }}</strong
+          >.
+        </div>
+      </gio-banner-error>
+    } @else {
+      <h1 class="title" data-testid="native_log_title">Connection detail</h1>
+
+      <div class="cards">
+        <mat-card appearance="outlined" class="card" data-testid="native_log_connection_card">
+          <h2 class="card__title">Connection</h2>
+          <dl class="card__list">
+            <dt>Timestamp</dt>
+            <dd>{{ state.log.timestamp | date: 'yyyy-MM-dd HH:mm:ss.SSS' }}</dd>
+            <dt>API id</dt>
+            <dd>{{ state.log.apiId || '—' }}</dd>
+            <dt>Transaction id</dt>
+            <dd>{{ state.log.transactionId || '—' }}</dd>
+            <dt>Request id</dt>
+            <dd>{{ state.log.requestId || '—' }}</dd>
+            <dt>Status</dt>
+            <dd>
+              @if (state.log.connectionStatus && statusMeta[state.log.connectionStatus]; as meta) {
+                <span [class]="meta.badgeClass"> <mat-icon [svgIcon]="meta.icon"></mat-icon>&nbsp;{{ meta.label }} </span>
+              } @else {
+                —
+              }
+            </dd>
+            <dt>Duration</dt>
+            <dd>{{ state.log.connectionDurationMs != null ? (state.log.connectionDurationMs | formatDuration) : '—' }}</dd>
+          </dl>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="card" data-testid="native_log_client_card">
+          <h2 class="card__title">Client</h2>
+          <dl class="card__list">
+            <dt>Application id</dt>
+            <dd>{{ state.log.applicationId || '—' }}</dd>
+            <dt>Plan id</dt>
+            <dd>{{ state.log.planId || '—' }}</dd>
+            <dt>Subscription id</dt>
+            <dd>{{ state.log.subscriptionId || '—' }}</dd>
+            <dt>Client identifier</dt>
+            <dd>{{ state.log.clientIdentifier || '—' }}</dd>
+            <dt>Client id</dt>
+            <dd>{{ state.log.clientId || '—' }}</dd>
+            <dt>Remote address</dt>
+            <dd>{{ state.log.remoteAddress || '—' }}</dd>
+          </dl>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="card" data-testid="native_log_server_card">
+          <h2 class="card__title">Server</h2>
+          <dl class="card__list">
+            <dt>Gateway</dt>
+            <dd>{{ state.log.gateway || '—' }}</dd>
+            <dt>Entrypoint id</dt>
+            <dd>{{ state.log.entrypointId || '—' }}</dd>
+            <dt>Local address</dt>
+            <dd>{{ state.log.localAddress || '—' }}</dd>
+            <dt>Host</dt>
+            <dd>{{ state.log.host || '—' }}</dd>
+            <dt>Broker id</dt>
+            <dd>{{ state.log.brokerId || '—' }}</dd>
+          </dl>
+        </mat-card>
+
+        @if (isErrored(state.log.connectionStatus)) {
+          <mat-card appearance="outlined" class="card card--error" data-testid="native_log_error_card">
+            <h2 class="card__title card__title--error"><mat-icon svgIcon="gio:alert-circle"></mat-icon>Error details</h2>
+            <dl class="card__list">
+              <dt>Error key</dt>
+              <dd>{{ state.log.errorKey || '—' }}</dd>
+              <dt>Error message</dt>
+              <dd>{{ state.log.errorMessage || '—' }}</dd>
+            </dl>
+          </mat-card>
+        }
+      </div>
+    }
+  }
+</div>

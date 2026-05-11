@@ -311,4 +311,22 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     flush();
     expect(publishedRows).toBeGreaterThan(0);
   }));
+
+  it('navigates to the detail route preserving current query params on view request', fakeAsync(async () => {
+    await initComponent({ period: '1h' });
+    expectApiCalls();
+    httpTestingController
+      .expectOne(r => r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native`)
+      .flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    httpTestingController
+      .match(r => r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`)
+      .forEach(r => r.flush({ countByConnectionStatus: {} }));
+    flush();
+    routerNavigateSpy.mockClear();
+
+    fixture.componentInstance['onViewLog']('req-42');
+
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['req-42'], expect.objectContaining({ queryParamsHandling: 'preserve' }));
+  }));
 });

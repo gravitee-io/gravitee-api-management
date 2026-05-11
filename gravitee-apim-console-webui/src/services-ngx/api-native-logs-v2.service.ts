@@ -18,7 +18,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { NativeApiLogsParam, NativeApiLogsResponse, NativeApiLogsSummary } from '../entities/management-api-v2';
+import { NativeApiLog, NativeApiLogsParam, NativeApiLogsResponse, NativeApiLogsSummary } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -46,5 +46,10 @@ export class ApiNativeLogsV2Service {
   searchSummary(apiId: string, from: number, to: number): Observable<NativeApiLogsSummary> {
     const params = new HttpParams().set('from', from).set('to', to);
     return this.http.get<NativeApiLogsSummary>(`${this.constants.env?.v2BaseURL}/apis/${apiId}/logs/native/summary`, { params });
+  }
+
+  getConnectionLog(apiId: string, requestId: string, from: number, to: number): Observable<NativeApiLog> {
+    const params = new HttpParams().set('from', from).set('to', to);
+    return this.http.get<NativeApiLog>(`${this.constants.env?.v2BaseURL}/apis/${apiId}/logs/native/${requestId}`, { params });
   }
 }

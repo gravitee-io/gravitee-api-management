@@ -18,6 +18,7 @@ import { NgModule } from '@angular/core';
 
 import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
 import { ApiRuntimeLogsNativeComponent } from './runtime-logs-native/api-runtime-logs-native.component';
+import { ApiRuntimeLogsNativeDetailsComponent } from './runtime-logs-native-details/api-runtime-logs-native-details.component';
 import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
 import { WebhookLogsComponent } from './webhook-logs/webhook-logs.component';
 import { WebhookLogsDetailsComponent } from './webhook-logs-details/webhook-logs-details.component';
@@ -27,6 +28,7 @@ import { WebhookLogsDetailsComponent } from './webhook-logs-details/webhook-logs
     CommonModule,
     ApiRuntimeLogsModule,
     ApiRuntimeLogsNativeComponent,
+    ApiRuntimeLogsNativeDetailsComponent,
     ApiRuntimeLogsDetailsModule,
     WebhookLogsComponent,
     WebhookLogsDetailsComponent,

@@ -67,6 +67,7 @@
       [applications]="(rowApplications$ | async) ?? []"
       [plans]="(plans$ | async) ?? []"
       (paginationUpdated)="paginationUpdated($event)"
+      (viewRequested)="onViewLog($event)"
     ></api-runtime-logs-native-list>
   }
 </mat-card>
