@@ -174,6 +174,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -429,6 +430,7 @@ public class ApiResource extends AbstractResource {
                 ImportWsdlDescriptor.TypeEnum.URL.equals(descriptor.getType()),
                 Boolean.TRUE.equals(descriptor.getWithDocumentation()),
                 Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()),
+                Optional.ofNullable(descriptor.getWithPolicies()).map(ArrayList::new).orElse(null),
                 audit
             )
         );

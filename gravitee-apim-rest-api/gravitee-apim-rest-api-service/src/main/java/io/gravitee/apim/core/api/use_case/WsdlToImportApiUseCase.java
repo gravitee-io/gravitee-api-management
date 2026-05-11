@@ -23,23 +23,47 @@ import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import java.util.List;
+import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 
 @UseCase
+@RequiredArgsConstructor
 public class WsdlToImportApiUseCase {
 
     public sealed interface Input permits Input.Inline, Input.Url {
         boolean withDocumentation();
         boolean withOASValidationPolicy();
+        List<String> withPolicies();
         AuditInfo auditInfo();
 
-        record Inline(String payload, boolean withDocumentation, boolean withOASValidationPolicy, AuditInfo auditInfo) implements Input {}
+        record Inline(
+            String payload,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy,
+            List<String> withPolicies,
+            AuditInfo auditInfo
+        ) implements Input {}
 
-        record Url(String url, boolean withDocumentation, boolean withOASValidationPolicy, AuditInfo auditInfo) implements Input {}
+        record Url(
+            String url,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy,
+            List<String> withPolicies,
+            AuditInfo auditInfo
+        ) implements Input {}
 
-        static Input of(String payload, boolean isUrl, boolean withDocumentation, boolean withOASValidationPolicy, AuditInfo auditInfo) {
+        static Input of(
+            String payload,
+            boolean isUrl,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy,
+            List<String> withPolicies,
+            AuditInfo auditInfo
+        ) {
             return isUrl
-                ? new Url(payload, withDocumentation, withOASValidationPolicy, auditInfo)
-                : new Inline(payload, withDocumentation, withOASValidationPolicy, auditInfo);
+                ? new Url(payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo)
+                : new Inline(payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo);
         }
     }
 
@@ -49,16 +73,6 @@ public class WsdlToImportApiUseCase {
     private final OAIDomainService oaiDomainService;
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
 
-    public WsdlToImportApiUseCase(
-        WsdlParserDomainService wsdlParserDomainService,
-        OAIDomainService oaiDomainService,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
-    ) {
-        this.wsdlParserDomainService = wsdlParserDomainService;
-        this.oaiDomainService = oaiDomainService;
-        this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
-    }
-
     public Output execute(Input input) {
         String content = switch (input) {
             case Input.Url u -> u.url();
@@ -66,13 +80,14 @@ public class WsdlToImportApiUseCase {
         };
         String openApiYaml = wsdlParserDomainService.toOpenApiYaml(content);
 
-        if (openApiYaml == null) {
-            throw new SwaggerDescriptorException("Failed to convert WSDL to OpenAPI specification");
-        }
+        var policies = addDependentPolicies(input.withPolicies());
 
         var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
             .payload(openApiYaml)
+            .format(ImportSwaggerDescriptorEntity.Format.WSDL)
             .withDocumentation(input.withDocumentation())
+            .withPolicies(policies)
+            .skipFlows(policies != null && policies.isEmpty())
             .build();
 
         var importDefinition = oaiDomainService.convert(
@@ -89,5 +104,12 @@ public class WsdlToImportApiUseCase {
 
         ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo(), importDefinition);
         return new Output(apiWithFlows);
+    }
+
+    private static List<String> addDependentPolicies(List<String> policies) {
+        if (policies == null || !policies.contains("rest-to-soap")) {
+            return policies;
+        }
+        return Stream.concat(policies.stream(), Stream.of("xml-json")).distinct().toList();
     }
 }

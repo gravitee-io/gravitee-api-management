@@ -195,6 +195,18 @@
             <ng-template matStepLabel>Options</ng-template>
             <div class="options-step__body">
               <h3>Options</h3>
+              @if (importFormat() === 'wsdl' && hasRestToSoapPolicy()) {
+                <gio-form-slide-toggle>
+                  <gio-form-label>Apply REST to SOAP Transformer policy</gio-form-label>
+                  This will overwrite all the existing policy.
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="withRestToSoap"
+                    aria-label="Toggle REST to SOAP Transformer policy"
+                    name="withRestToSoap"
+                  ></mat-slide-toggle>
+                </gio-form-slide-toggle>
+              }
               <gio-form-slide-toggle>
                 <gio-form-label>Create documentation page from spec</gio-form-label>
                 This will add a documentation page for this API using the OpenAPI spec used during the import. This page will be published
@@ -270,6 +282,16 @@
             <mat-card class="review-import-step__section">
               <mat-card-content>
                 <h3>Options</h3>
+                @if (importFormat() === 'wsdl' && hasRestToSoapPolicy()) {
+                  <div class="review-import-step__row">
+                    <span>REST to SOAP Transformer:</span>
+                    @if (optionsForm.controls.withRestToSoap.value) {
+                      <span class="gio-badge-success">Enabled</span>
+                    } @else {
+                      <span class="gio-badge-neutral">Disabled</span>
+                    }
+                  </div>
+                }
                 <div class="review-import-step__row">
                   <span>Documentation page:</span>
                   @if (optionsForm.controls.withDocumentation.value) {

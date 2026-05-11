@@ -25,9 +25,11 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.swagger.converter.extension.XGraviteeIODefinition;
 import io.swagger.v3.oas.models.OpenAPI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 public class OAIToImportDefinitionConverter {
@@ -37,6 +39,14 @@ public class OAIToImportDefinitionConverter {
     private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
     public ImportDefinition toImportDefinition(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
+        return toImportDefinition(specification, visitors, false);
+    }
+
+    public ImportDefinition toImportDefinition(
+        OpenAPI specification,
+        Collection<? extends OAIOperationVisitor> visitors,
+        boolean skipFlows
+    ) {
         var xGraviteeIODefinition = getXGraviteeIODefinition(specification);
         var serverUrls = OAIServersConverter.INSTANCE.convert(specification.getServers());
         var importDefinitionBuilder = ImportDefinition.builder();
@@ -50,7 +60,7 @@ public class OAIToImportDefinitionConverter {
             .definitionVersion(DefinitionVersion.V4)
             .apiVersion(specification.getInfo().getVersion())
             .type(ApiType.PROXY)
-            .flows(OAIToFlowsConverter.INSTANCE.convert(specification, visitors))
+            .flows(skipFlows ? new ArrayList<>() : OAIToFlowsConverter.INSTANCE.convert(specification, visitors))
             .listeners(
                 OAIToListenersConverter.INSTANCE.convert(
                     xGraviteeIODefinition,

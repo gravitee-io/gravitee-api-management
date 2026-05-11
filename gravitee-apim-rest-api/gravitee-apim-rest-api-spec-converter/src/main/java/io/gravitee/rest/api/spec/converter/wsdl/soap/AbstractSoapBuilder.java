@@ -18,6 +18,7 @@ package io.gravitee.rest.api.spec.converter.wsdl.soap;
 import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
 import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.Part;
 import javax.xml.namespace.QName;
@@ -34,6 +35,7 @@ public abstract class AbstractSoapBuilder {
 
     private SchemaTypeSystem schemaTypeSystem;
     private Map<String, String> namespaceMappings;
+    private BiConsumer<SchemaType, XmlCursor> typeContentWriter;
 
     protected SoapVersion version;
     protected BindingOperation bindingOperation;
@@ -64,6 +66,11 @@ public abstract class AbstractSoapBuilder {
         return this;
     }
 
+    public AbstractSoapBuilder withTypeContentWriter(BiConsumer<SchemaType, XmlCursor> typeContentWriter) {
+        this.typeContentWriter = typeContentWriter;
+        return this;
+    }
+
     public abstract XmlCursor build();
 
     protected void generateXml(Part part, XmlCursor cursor, boolean encoded) {
@@ -84,7 +91,7 @@ public abstract class AbstractSoapBuilder {
                 cursor.insertAttributeWithValue(SampleXmlUtil.XSI_TYPE, buildPrefixedName(elem));
             }
 
-            new SampleXmlUtil(encoded).createSampleForType(elem, cursor);
+            resolveTypeContentWriter(encoded).accept(elem, cursor);
         } else {
             SchemaType type = schemaTypeSystem.findType(part.getTypeName());
             if (type == null) {
@@ -94,9 +101,15 @@ public abstract class AbstractSoapBuilder {
                 if (encoded) {
                     cursor.insertAttributeWithValue(SampleXmlUtil.XSI_TYPE, buildPrefixedName(type));
                 }
-                new SampleXmlUtil(encoded).createSampleForType(type, cursor);
+                resolveTypeContentWriter(encoded).accept(type, cursor);
             }
         }
+    }
+
+    private BiConsumer<SchemaType, XmlCursor> resolveTypeContentWriter(boolean encoded) {
+        return typeContentWriter != null
+            ? typeContentWriter
+            : (type, cursor) -> new SampleXmlUtil(encoded).createSampleForType(type, cursor);
     }
 
     protected String buildPrefixedName(SchemaType type) {

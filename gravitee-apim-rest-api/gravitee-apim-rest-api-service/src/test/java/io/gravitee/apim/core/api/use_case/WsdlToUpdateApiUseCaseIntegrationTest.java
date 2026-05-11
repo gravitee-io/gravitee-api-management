@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
@@ -25,6 +28,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
@@ -50,6 +55,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -139,15 +145,14 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
     }
 
     @Test
-    void should_replace_flows_with_wsdl_operations() {
+    void should_have_no_flows_when_no_policies_are_requested() {
         givenExistingApi(API_ID);
 
         useCase.execute(buildInput(loadWsdl(), false, false));
 
         var captor = ArgumentCaptor.forClass(io.gravitee.rest.api.model.v4.api.UpdateApiEntity.class);
         verify(updateInitializer.apiService).update(any(), any(), captor.capture(), anyBoolean(), any());
-        // calculator.wsdl has 4 operations × 2 bindings (SOAP 1.1 + SOAP 1.2) = 8 flows
-        assertThat(captor.getValue().getFlows()).hasSize(8);
+        assertThat(captor.getValue().getFlows()).isEmpty();
     }
 
     @Test
@@ -178,6 +183,31 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
         assertThat(throwable).isInstanceOf(SwaggerDescriptorException.class);
     }
 
+    @Nested
+    @WireMockTest
+    class WithUrlUpdate {
+
+        @Test
+        void should_update_api_from_remote_wsdl_url(WireMockRuntimeInfo wm) {
+            givenExistingApi(API_ID);
+            var wsdlContent = loadWsdl();
+            wm.getWireMock().register(get(urlEqualTo("/calculator.wsdl")).willReturn(aResponse().withStatus(200).withBody(wsdlContent)));
+
+            var input = new WsdlToUpdateApiUseCase.Input.Url(
+                API_ID,
+                "http://localhost:" + wm.getHttpPort() + "/calculator.wsdl",
+                false,
+                false,
+                List.of(),
+                AUDIT_INFO
+            );
+            var output = useCase.execute(input);
+
+            assertThat(output).isNotNull();
+            assertThat(output.apiWithFlows().getId()).isEqualTo(API_ID);
+        }
+    }
+
     private void givenExistingApi(String apiId) {
         var existingApi = aProxyApiV4().toBuilder().id(apiId).environmentId(ENVIRONMENT_ID).build();
         apiCrudService.initWith(List.of(existingApi));
@@ -189,6 +219,6 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
     }
 
     private WsdlToUpdateApiUseCase.Input buildInput(String payload, boolean withDocumentation, boolean withOASValidationPolicy) {
-        return new WsdlToUpdateApiUseCase.Input.Inline(API_ID, payload, withDocumentation, withOASValidationPolicy, AUDIT_INFO);
+        return new WsdlToUpdateApiUseCase.Input.Inline(API_ID, payload, withDocumentation, withOASValidationPolicy, List.of(), AUDIT_INFO);
     }
 }

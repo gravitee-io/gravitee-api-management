@@ -62,11 +62,13 @@ class WsdlToUpdateApiUseCaseTest {
     }
 
     @Test
-    void should_throw_when_wsdl_conversion_returns_null() {
-        when(wsdlParserDomainService.toOpenApiYaml(any())).thenReturn(null);
+    void should_throw_when_wsdl_conversion_fails() {
+        when(wsdlParserDomainService.toOpenApiYaml(any())).thenThrow(
+            new SwaggerDescriptorException("Failed to convert WSDL to OpenAPI specification")
+        );
 
         assertThatThrownBy(() ->
-            useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, AUDIT_INFO))
+            useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, List.of(), AUDIT_INFO))
         )
             .isInstanceOf(SwaggerDescriptorException.class)
             .hasMessage("Failed to convert WSDL to OpenAPI specification");
@@ -78,12 +80,13 @@ class WsdlToUpdateApiUseCaseTest {
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
         when(oaiToUpdateApiUseCase.execute(any())).thenReturn(new OAIToUpdateApiUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, AUDIT_INFO));
+        useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, List.of(), AUDIT_INFO));
 
         var captor = ArgumentCaptor.forClass(OAIToUpdateApiUseCase.Input.class);
         verify(oaiToUpdateApiUseCase).execute(captor.capture());
         assertThat(captor.getValue().apiId()).isEqualTo(API_ID);
         assertThat(captor.getValue().importSwaggerDescriptor().getPayload()).isEqualTo(OPENAPI_YAML);
+        assertThat(captor.getValue().importSwaggerDescriptor().getFormat()).isEqualTo(ImportSwaggerDescriptorEntity.Format.WSDL);
         assertThat(captor.getValue().withPolicyPaths()).isFalse();
     }
 
@@ -93,7 +96,7 @@ class WsdlToUpdateApiUseCaseTest {
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
         when(oaiToUpdateApiUseCase.execute(any())).thenReturn(new OAIToUpdateApiUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", true, false, AUDIT_INFO));
+        useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", true, false, List.of(), AUDIT_INFO));
 
         var captor = ArgumentCaptor.forClass(OAIToUpdateApiUseCase.Input.class);
         verify(oaiToUpdateApiUseCase).execute(captor.capture());
@@ -107,9 +110,53 @@ class WsdlToUpdateApiUseCaseTest {
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
         when(oaiToUpdateApiUseCase.execute(any())).thenReturn(new OAIToUpdateApiUseCase.Output(apiWithFlows));
 
-        var output = useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, AUDIT_INFO));
+        var output = useCase.execute(
+            new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, List.of(), AUDIT_INFO)
+        );
 
         assertThat(output.apiWithFlows().getId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void should_forward_withPolicies_to_import_swagger_descriptor() {
+        when(wsdlParserDomainService.toOpenApiYaml(any())).thenReturn(OPENAPI_YAML);
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
+        when(oaiToUpdateApiUseCase.execute(any())).thenReturn(new OAIToUpdateApiUseCase.Output(new ApiWithFlows(existingApi, List.of())));
+
+        useCase.execute(
+            new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, List.of("rest-to-soap"), AUDIT_INFO)
+        );
+
+        var captor = ArgumentCaptor.forClass(OAIToUpdateApiUseCase.Input.class);
+        verify(oaiToUpdateApiUseCase).execute(captor.capture());
+        assertThat(captor.getValue().importSwaggerDescriptor().getWithPolicies()).containsExactly("rest-to-soap", "xml-json");
+        assertThat(captor.getValue().importSwaggerDescriptor().isSkipFlows()).isFalse();
+    }
+
+    @Test
+    void should_set_skipFlows_when_empty_policies_list_is_provided() {
+        when(wsdlParserDomainService.toOpenApiYaml(any())).thenReturn(OPENAPI_YAML);
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
+        when(oaiToUpdateApiUseCase.execute(any())).thenReturn(new OAIToUpdateApiUseCase.Output(new ApiWithFlows(existingApi, List.of())));
+
+        useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, List.of(), AUDIT_INFO));
+
+        var captor = ArgumentCaptor.forClass(OAIToUpdateApiUseCase.Input.class);
+        verify(oaiToUpdateApiUseCase).execute(captor.capture());
+        assertThat(captor.getValue().importSwaggerDescriptor().isSkipFlows()).isTrue();
+    }
+
+    @Test
+    void should_not_skip_flows_when_withPolicies_is_not_provided() {
+        when(wsdlParserDomainService.toOpenApiYaml(any())).thenReturn(OPENAPI_YAML);
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
+        when(oaiToUpdateApiUseCase.execute(any())).thenReturn(new OAIToUpdateApiUseCase.Output(new ApiWithFlows(existingApi, List.of())));
+
+        useCase.execute(new WsdlToUpdateApiUseCase.Input.Inline(API_ID, "<definitions/>", false, false, null, AUDIT_INFO));
+
+        var captor = ArgumentCaptor.forClass(OAIToUpdateApiUseCase.Input.class);
+        verify(oaiToUpdateApiUseCase).execute(captor.capture());
+        assertThat(captor.getValue().importSwaggerDescriptor().isSkipFlows()).isFalse();
     }
 
     @Nested
@@ -123,7 +170,9 @@ class WsdlToUpdateApiUseCaseTest {
                 new OAIToUpdateApiUseCase.Output(new ApiWithFlows(existingApi, List.of()))
             );
 
-            useCase.execute(new WsdlToUpdateApiUseCase.Input.Url(API_ID, "http://example.com/service.wsdl", false, false, AUDIT_INFO));
+            useCase.execute(
+                new WsdlToUpdateApiUseCase.Input.Url(API_ID, "http://example.com/service.wsdl", false, false, List.of(), AUDIT_INFO)
+            );
 
             verify(wsdlParserDomainService).toOpenApiYaml(eq("http://example.com/service.wsdl"));
         }

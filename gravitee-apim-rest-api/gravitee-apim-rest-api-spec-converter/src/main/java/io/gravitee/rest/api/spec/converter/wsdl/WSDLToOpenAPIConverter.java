@@ -24,10 +24,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.spec.converter.OpenAPIConverter;
 import io.gravitee.rest.api.spec.converter.wsdl.exception.WsdlDescriptorException;
 import io.gravitee.rest.api.spec.converter.wsdl.reader.GraviteeWSDLReaderImpl;
+import io.gravitee.rest.api.spec.converter.wsdl.utils.XsdToJsonSchemaConverter;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
@@ -39,6 +41,8 @@ import javax.wsdl.*;
 import javax.wsdl.extensions.schema.Schema;
 import javax.xml.namespace.QName;
 import lombok.CustomLog;
+import org.apache.xmlbeans.SchemaType;
+import org.apache.xmlbeans.SchemaTypeSystem;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
@@ -68,7 +72,7 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
         this.wsdlDefinition = loadWSDL(stream);
         // create the SoapBuilder with namespaces declared in the Definition element
         // this allows Apache XmlBeans to load additional Namespaces if required to parse the XSDs
-        this.soapBuilder = new SoapMessageBuilder(wsdlDefinition.getNamespaces());
+        this.soapBuilder = new SoapMessageBuilder(wsdlDefinition.getNamespaces(), true);
 
         this.openAPI = new OpenAPI();
         buildInfo();
@@ -161,6 +165,7 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                     this.soapBuilder.generateSoapEnvelop(wsdlDefinition, binding, bindingOperation).ifPresent(envelope ->
                         openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope)
                     );
+                    buildRequestBody(input).ifPresent(openApiOperation::setRequestBody);
                 }
 
                 // create an empty Content definition used by each response description
@@ -243,5 +248,36 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
             openAPI.addServersItem(server);
             serverCache.add(address);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<RequestBody> buildRequestBody(Input input) {
+        SchemaTypeSystem sts = soapBuilder.getSchemaTypeSystem();
+        if (sts == null || input.getMessage() == null) {
+            return Optional.empty();
+        }
+
+        return ((Collection<Part>) input.getMessage().getParts().values()).stream()
+            .findFirst()
+            .map(Part::getElementName)
+            .flatMap(elementName -> {
+                QName rootName = new QName(elementName.getNamespaceURI(), elementName.getLocalPart());
+                return Arrays.stream(sts.documentTypes())
+                    .filter(dt -> rootName.equals(dt.getDocumentElementName()))
+                    .findFirst();
+            })
+            .map(docType -> {
+                io.swagger.v3.oas.models.media.Schema<?> jsonSchema = XsdToJsonSchemaConverter.convert(docType);
+                io.swagger.v3.oas.models.media.MediaType mediaType = new io.swagger.v3.oas.models.media.MediaType();
+                mediaType.setSchema(jsonSchema);
+
+                Content content = new Content();
+                content.addMediaType(MediaType.APPLICATION_JSON, mediaType);
+
+                RequestBody requestBody = new RequestBody();
+                requestBody.setRequired(true);
+                requestBody.setContent(content);
+                return requestBody;
+            });
     }
 }

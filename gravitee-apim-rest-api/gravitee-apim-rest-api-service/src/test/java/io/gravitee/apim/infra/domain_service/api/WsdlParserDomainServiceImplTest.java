@@ -20,15 +20,17 @@ import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class WsdlParserDomainServiceImplTest {
@@ -46,18 +48,34 @@ class WsdlParserDomainServiceImplTest {
         assertThat(result).isNotNull().startsWith("openapi:");
     }
 
-    @Test
-    void should_throw_when_url_points_to_private_address() {
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "http://localhost:8080/spec.wsdl", "http://127.0.0.1/spec.wsdl", "http://169.254.1.2/spec.wsdl", "http://192.168.1.1/spec.wsdl",
+        }
+    )
+    void should_block_ssrf_attack_vectors(String url) {
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
 
-        var throwable = catchThrowable(() -> service.toOpenApiYaml("http://192.168.1.1/spec.wsdl"));
+        var throwable = catchThrowable(() -> service.toOpenApiYaml(url));
 
         assertThat(throwable).isInstanceOf(UrlForbiddenException.class);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "file:///etc/passwd", "not-a-valid-url-or-wsdl", "ftp://example.com/spec.wsdl" })
+    void should_fail_parsing_non_url_inputs(String content) {
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+        when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
+
+        var throwable = catchThrowable(() -> service.toOpenApiYaml(content));
+
+        assertThat(throwable).isNotInstanceOf(UrlForbiddenException.class);
+    }
+
     @SneakyThrows
     private String loadWsdl() {
-        return Resources.toString(Resources.getResource("wsdl/calculator.wsdl"), Charsets.UTF_8);
+        return Resources.toString(Resources.getResource("wsdl/calculator.wsdl"), StandardCharsets.UTF_8);
     }
 }

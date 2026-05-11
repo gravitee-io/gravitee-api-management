@@ -21,6 +21,7 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
@@ -37,7 +38,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
 
@@ -74,7 +78,7 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
     @Test
     void should_return_200_and_updated_api_on_success() {
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
-        var apiWithFlows = new ApiWithFlows(existingApi, java.util.List.of());
+        var apiWithFlows = new ApiWithFlows(existingApi, List.of());
 
         when(wsdlToUpdateApiUseCase.execute(any())).thenReturn(new WsdlToUpdateApiUseCase.Output(apiWithFlows));
         when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
@@ -107,6 +111,29 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
         Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+    }
+
+    @Test
+    void should_forward_with_policies_to_use_case() {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
+        var apiWithFlows = new ApiWithFlows(existingApi, List.of());
+
+        when(wsdlToUpdateApiUseCase.execute(any())).thenReturn(new WsdlToUpdateApiUseCase.Output(apiWithFlows));
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
+            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("CalculatorService").apiVersion("1.0").build()
+        );
+
+        var descriptor = new ImportWsdlDescriptor()
+            .payload("<definitions/>")
+            .withDocumentation(false)
+            .withOASValidationPolicy(false)
+            .withPolicies(Set.of("rest-to-soap"));
+
+        rootTarget().request().put(Entity.entity(descriptor, MediaType.APPLICATION_JSON));
+
+        var captor = ArgumentCaptor.forClass(WsdlToUpdateApiUseCase.Input.class);
+        verify(wsdlToUpdateApiUseCase).execute(captor.capture());
+        assertThat(captor.getValue().withPolicies()).containsExactly("rest-to-soap");
     }
 
     private ImportWsdlDescriptor buildDescriptor(String payload) {

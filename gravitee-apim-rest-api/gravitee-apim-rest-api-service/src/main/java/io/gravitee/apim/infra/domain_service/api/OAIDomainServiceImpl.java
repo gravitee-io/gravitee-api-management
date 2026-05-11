@@ -75,14 +75,19 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         var descriptor = toOAIDescriptor(payload);
         var visitors = getVisitors(importSwaggerDescriptor);
 
-        var importDefinition = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(descriptor.getSpecification(), visitors);
+        var importDefinition = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(
+            descriptor.getSpecification(),
+            visitors,
+            importSwaggerDescriptor.isSkipFlows()
+        );
 
         if (importDefinition != null) {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
             var importWithDocumentation = addOAIDocumentation(withDocumentation, payload, importWithTags);
-            return addOASValidationPolicy(withOASValidationPolicy, payload, importWithDocumentation);
+            boolean deferResponseValidation = shouldDeferResponseValidation(importSwaggerDescriptor);
+            return addOASValidationPolicy(withOASValidationPolicy, payload, importWithDocumentation, deferResponseValidation);
         }
 
         return null;
@@ -215,7 +220,12 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         return importWithTags.toBuilder().pages(List.of(page)).build();
     }
 
-    private ImportDefinition addOASValidationPolicy(boolean withOASValidationPolicy, String payload, ImportDefinition importDefinition) {
+    private ImportDefinition addOASValidationPolicy(
+        boolean withOASValidationPolicy,
+        String payload,
+        ImportDefinition importDefinition,
+        boolean deferResponseValidation
+    ) {
         if (!withOASValidationPolicy) {
             return importDefinition;
         }
@@ -233,7 +243,6 @@ public class OAIDomainServiceImpl implements OAIDomainService {
                 .build();
             importDefinition.getApiExport().setResources(List.of(resource));
 
-            // Add Flow with OAS validation policy to API flows
             var step = Step.builder()
                 .policy(oasValidationPolicy.getId())
                 .name(oasValidationPolicy.getName())
@@ -246,11 +255,20 @@ public class OAIDomainServiceImpl implements OAIDomainService {
                 .name("OpenAPI Specification Validation")
                 .selectors(List.of(httpSelector))
                 .request(List.of(step))
-                .response(List.of(step))
+                .response(deferResponseValidation ? List.of() : List.of(step))
                 .build();
 
             List<Flow> apiExportFlows = (List<Flow>) importDefinition.getApiExport().getFlows();
             apiExportFlows.addFirst(flow);
+
+            if (deferResponseValidation) {
+                var responseFlow = Flow.builder()
+                    .name("OpenAPI Specification Validation")
+                    .selectors(List.of(httpSelector))
+                    .response(List.of(step))
+                    .build();
+                apiExportFlows.addLast(responseFlow);
+            }
 
             importDefinition.getApiExport().setFlows(apiExportFlows);
 
@@ -258,5 +276,13 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("Error while serializing OpenAPI Specification", e);
         }
+    }
+
+    private static boolean shouldDeferResponseValidation(ImportSwaggerDescriptorEntity importSwaggerDescriptor) {
+        return (
+            ImportSwaggerDescriptorEntity.Format.WSDL.equals(importSwaggerDescriptor.getFormat()) &&
+            importSwaggerDescriptor.getWithPolicies() != null &&
+            !importSwaggerDescriptor.getWithPolicies().isEmpty()
+        );
     }
 }
