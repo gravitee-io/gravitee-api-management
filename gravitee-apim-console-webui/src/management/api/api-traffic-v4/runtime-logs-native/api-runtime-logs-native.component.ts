@@ -27,7 +27,7 @@ import { EMPTY, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import moment from 'moment';
 
-import { NATIVE_CONNECTION_STATUSES } from './api-runtime-logs-native.models';
+import { NATIVE_CONNECTION_STATUSES, NATIVE_STATUS_META } from './api-runtime-logs-native.models';
 import { ApiRuntimeLogsNativeListComponent } from './components/api-runtime-logs-native-list/api-runtime-logs-native-list.component';
 import { ApiRuntimeLogsNativeSummaryComponent } from './components/api-runtime-logs-native-summary/api-runtime-logs-native-summary.component';
 
@@ -160,7 +160,12 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
               this.logs$.next(response);
               this.router.navigate(['.'], { relativeTo: this.activatedRoute, queryParams: params, queryParamsHandling: '' });
             }),
-            catchError(() => EMPTY),
+            catchError(() => {
+              // Clear the table so stale rows don't sit under the new (failed) filter. HTTP interceptor surfaces the snackbar.
+              this.logs$.next({ data: [], pagination: { page, perPage, totalCount: 0, pageItemsCount: 0, pageCount: 0 } });
+              this.rowApplications$.next([]);
+              return EMPTY;
+            }),
             finalize(() => this.loading.set(false)),
           );
         }),
@@ -181,6 +186,10 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
 
   protected paginationUpdated(event: GioTableWrapperPagination) {
     this.searchTrigger$.next({ page: event.index, perPage: event.size });
+  }
+
+  protected onViewLog(requestId: string) {
+    this.router.navigate([requestId], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
   }
 
   protected refresh() {
@@ -212,7 +221,9 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
     return this.applicationService.findByIds(ids, 1, ids.length).pipe(
       tap(paged => this.rowApplications$.next(paged.data ?? [])),
       map(() => response),
-      catchError(() => {
+      catchError(err => {
+        // eslint-disable-next-line angular/log
+        console.error('Failed to resolve application names for native logs', err, { apiId: this.apiId, idsCount: ids.length });
         this.rowApplications$.next([]);
         return of(response);
       }),
@@ -244,7 +255,11 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
         timeframe: { period, from: period === CUSTOM_PERIOD ? fromQp : null, to: period === CUSTOM_PERIOD ? toQp : null },
         applicationIds: qp?.applicationIds ? qp.applicationIds.split(',') : [],
         planIds: qp?.planIds ? qp.planIds.split(',') : [],
-        connectionStatuses: qp?.connectionStatuses ? (qp.connectionStatuses.split(',') as NativeConnectionStatus[]) : [],
+        connectionStatuses: qp?.connectionStatuses
+          ? (qp.connectionStatuses.split(',') as NativeConnectionStatus[]).filter(
+              (s): s is NativeConnectionStatus => s in NATIVE_STATUS_META,
+            )
+          : [],
       },
       { emitEvent: false },
     );

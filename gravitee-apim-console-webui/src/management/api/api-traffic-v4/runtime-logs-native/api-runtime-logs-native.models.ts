@@ -20,14 +20,15 @@ export interface NativeConnectionStatusMeta {
   // gio-badge-* utility class — colors the badge in both the table cell and the summary card.
   badgeClass: string;
   icon: string;
+  isErrored: boolean;
 }
 
 // Record forces compile-time exhaustiveness — adding a new status to the union without an entry here is a build error.
 export const NATIVE_STATUS_META: Record<NativeConnectionStatus, NativeConnectionStatusMeta> = {
-  CONNECTED: { label: 'Connected', badgeClass: 'gio-badge-success', icon: 'gio:check-circled-outline' },
-  SESSION_ERROR: { label: 'Disconnected', badgeClass: 'gio-badge-warning', icon: 'gio:alert-circle' },
-  CONNECTION_ERROR: { label: 'Failed', badgeClass: 'gio-badge-error', icon: 'gio:error' },
-  INTERNAL_ERROR: { label: 'Unknown', badgeClass: 'gio-badge-accent', icon: 'gio:shield-alert' },
+  CONNECTED: { label: 'Connected', badgeClass: 'gio-badge-success', icon: 'gio:check-circled-outline', isErrored: false },
+  SESSION_ERROR: { label: 'Disconnected', badgeClass: 'gio-badge-warning', icon: 'gio:alert-circle', isErrored: true },
+  CONNECTION_ERROR: { label: 'Failed', badgeClass: 'gio-badge-error', icon: 'gio:error', isErrored: true },
+  INTERNAL_ERROR: { label: 'Unknown', badgeClass: 'gio-badge-accent', icon: 'gio:shield-alert', isErrored: true },
 };
 
 export const NATIVE_CONNECTION_STATUSES: { value: NativeConnectionStatus; label: string }[] = (
@@ -37,3 +38,6 @@ export const NATIVE_CONNECTION_STATUSES: { value: NativeConnectionStatus; label:
 // Derived from the meta table to stay in sync: adding a new status to NATIVE_STATUS_META
 // auto-appears in the summary widget at the position it was inserted at (healthy → degraded → fatal).
 export const NATIVE_SUMMARY_STATUSES = Object.keys(NATIVE_STATUS_META) as NativeConnectionStatus[];
+
+export const isNativeConnectionErrored = (status: NativeConnectionStatus | undefined): boolean =>
+  status != null && NATIVE_STATUS_META[status].isErrored;

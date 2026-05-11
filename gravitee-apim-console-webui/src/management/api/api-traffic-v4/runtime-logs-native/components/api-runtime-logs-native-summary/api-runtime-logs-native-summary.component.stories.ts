@@ -43,6 +43,8 @@ const stubLogsService = (response: NativeApiLogsSummary | null) =>
 
 const meta: Meta<ApiRuntimeLogsNativeSummaryComponent> = {
   title: 'API / Logs / Native / Summary',
+  component: ApiRuntimeLogsNativeSummaryComponent,
+  decorators: [moduleMetadata({ imports: [ApiRuntimeLogsNativeSummaryComponent] })],
   parameters: { layout: 'padded' },
   render: () => ({
     template: `

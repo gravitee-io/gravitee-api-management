@@ -23,6 +23,8 @@ import { ApiRuntimeLogsNativeListHarness } from './api-runtime-logs-native-list.
 
 import { fakeNativeApiLog, fakePlanV4 } from '../../../../../../entities/management-api-v2';
 import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
+import { GioTestingPermissionProvider } from '../../../../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingModule } from '../../../../../../shared/testing';
 
 describe('ApiRuntimeLogsNativeListComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeLogsNativeListComponent>;
@@ -32,10 +34,15 @@ describe('ApiRuntimeLogsNativeListComponent', () => {
   const apps = [fakeApplication({ id: 'app-1', name: 'Order Service' })];
   const plans = [fakePlanV4({ id: 'plan-1', name: 'Free' })];
 
-  const setup = async (logs: ReturnType<typeof fakeNativeApiLog>[], applications = apps, knownPlans = plans) => {
+  const setup = async (
+    logs: ReturnType<typeof fakeNativeApiLog>[],
+    applications = apps,
+    knownPlans = plans,
+    permissions: string[] = ['api-native_analytics-r'],
+  ) => {
     TestBed.configureTestingModule({
-      imports: [ApiRuntimeLogsNativeListComponent, MatIconTestingModule],
-      providers: [provideAnimationsAsync('noop')],
+      imports: [ApiRuntimeLogsNativeListComponent, MatIconTestingModule, GioTestingModule],
+      providers: [provideAnimationsAsync('noop'), { provide: GioTestingPermissionProvider, useValue: permissions }],
     });
     fixture = TestBed.createComponent(ApiRuntimeLogsNativeListComponent);
     component = fixture.componentInstance;
@@ -99,5 +106,24 @@ describe('ApiRuntimeLogsNativeListComponent', () => {
     const emitSpy = jest.spyOn(component.paginationUpdated, 'emit');
     component.onFiltersChanged({ pagination: { index: 1, size: 25 }, searchTerm: '' });
     expect(emitSpy).toHaveBeenCalledWith({ index: 1, size: 25 });
+  });
+
+  it('emits viewRequested with the row requestId when the view button is clicked', async () => {
+    await setup([fakeNativeApiLog({ requestId: 'req-42' })]);
+    const emitSpy = jest.spyOn(component.viewRequested, 'emit');
+    const btn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="native_logs_view_req-42"]');
+    expect(btn).not.toBeNull();
+    btn.click();
+    expect(emitSpy).toHaveBeenCalledWith('req-42');
+  });
+
+  it('omits the view button when requestId is missing', async () => {
+    await setup([fakeNativeApiLog({ requestId: undefined })]);
+    expect(await harness.getViewButtonCount()).toBe(0);
+  });
+
+  it('hides the view button when the user lacks api-native_analytics-r permission', async () => {
+    await setup([fakeNativeApiLog({ requestId: 'req-42' })], apps, plans, []);
+    expect(await harness.getViewButtonCount()).toBe(0);
   });
 });

@@ -52,6 +52,7 @@ import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/c
 import { ApiLlmProviderComponent } from './endpoints-v4/llm-provider/api-llm-provider.component';
 import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiRuntimeLogsNativeComponent } from './api-traffic-v4/runtime-logs-native/api-runtime-logs-native.component';
+import { ApiRuntimeLogsNativeDetailsComponent } from './api-traffic-v4/runtime-logs-native-details/api-runtime-logs-native-details.component';
 import { ApiListComponent } from './list/api-list.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
@@ -1020,6 +1021,18 @@ const apisRoutes: Routes = [
           },
         },
         component: ApiRuntimeLogsNativeComponent,
+      },
+      {
+        path: 'v4/runtime-logs-native/:requestId',
+        data: {
+          permissions: {
+            anyOf: ['api-native_analytics-r'],
+          },
+          docs: {
+            page: 'management-api-logs',
+          },
+        },
+        component: ApiRuntimeLogsNativeDetailsComponent,
       },
       {
         path: 'v4/runtime-logs/:requestId',

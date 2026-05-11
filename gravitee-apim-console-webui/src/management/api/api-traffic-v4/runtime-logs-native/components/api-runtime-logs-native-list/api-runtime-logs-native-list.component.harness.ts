@@ -25,6 +25,7 @@ export class ApiRuntimeLogsNativeListHarness extends ComponentHarness {
 
   private readonly statusBadgeElements = this.locatorForAll('td.mat-column-connectionStatus span');
   private readonly durationCells = this.locatorForAll('td.mat-column-duration');
+  private readonly viewButtons = this.locatorForAll('td.mat-column-view button');
 
   async getStatusBadges(): Promise<StatusBadge[]> {
     const spans = await this.statusBadgeElements();
@@ -39,5 +40,9 @@ export class ApiRuntimeLogsNativeListHarness extends ComponentHarness {
   async getDurationTexts(): Promise<string[]> {
     const cells = await this.durationCells();
     return Promise.all(cells.map(async cell => (await cell.text()).trim()));
+  }
+
+  async getViewButtonCount(): Promise<number> {
+    return (await this.viewButtons()).length;
   }
 }

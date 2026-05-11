@@ -98,4 +98,23 @@ describe('ApiNativeLogsV2Service', () => {
       expect(response.countByConnectionStatus).toEqual(fakeResponse.countByConnectionStatus);
     });
   });
+
+  describe('getConnectionLog', () => {
+    it('calls GET /logs/native/{requestId} with from and to params', async () => {
+      const REQUEST_ID = 'req-1';
+      const fakeResponse = fakeNativeApiLog({ requestId: REQUEST_ID });
+
+      const responsePromise = firstValueFrom(service.getConnectionLog(API_ID, REQUEST_ID, 1000, 2000));
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/${REQUEST_ID}?from=1000&to=2000`,
+          method: 'GET',
+        })
+        .flush(fakeResponse);
+
+      const response = await responsePromise;
+      expect(response.requestId).toEqual(REQUEST_ID);
+    });
+  });
 });
