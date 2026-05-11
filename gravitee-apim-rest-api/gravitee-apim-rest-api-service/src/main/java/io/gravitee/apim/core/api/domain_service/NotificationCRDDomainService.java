@@ -34,4 +34,14 @@ public interface NotificationCRDDomainService {
      * @see io.gravitee.rest.api.service.PortalNotificationConfigService
      */
     void syncApiPortalNotifications(final String apiId, final String user, final PortalNotificationConfigEntity notificationConfig);
+
+    /**
+     * Get console notification for the given API and User
+     *
+     * @param apiId  API ID
+     * @param userId User ID
+     * @return console notification entity
+     * @see io.gravitee.rest.api.service.PortalNotificationConfigService
+     */
+    PortalNotificationConfigEntity getApiConsoleNotification(String apiId, String userId);
 }

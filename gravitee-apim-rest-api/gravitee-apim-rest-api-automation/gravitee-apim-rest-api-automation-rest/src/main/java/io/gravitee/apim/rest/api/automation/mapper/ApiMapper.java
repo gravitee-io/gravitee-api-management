@@ -19,6 +19,7 @@ import static java.util.Comparator.comparingInt;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
+import io.gravitee.apim.rest.api.automation.model.ApiV4SpecConsoleNotification;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.model.ChannelSelector;
 import io.gravitee.apim.rest.api.automation.model.ConditionSelector;
@@ -43,6 +44,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanType;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,6 +65,7 @@ public interface ApiMapper {
     @Mapping(target = "listeners", expression = "java(mapApiV4SpecListeners(apiV4Spec))")
     @Mapping(target = "plans", expression = "java(mapApiV4SpecPlans(apiV4Spec))")
     @Mapping(target = "pages", expression = "java(mapApiV4SpecPages(apiV4Spec))")
+    @Mapping(target = "consoleNotificationConfiguration", source = "consoleNotification")
     ApiCRDSpec apiV4SpecToApiCRDSpec(LegacyAPIV4Spec apiV4Spec);
 
     @Mapping(target = "id", source = "id")
@@ -70,6 +73,7 @@ public interface ApiMapper {
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "organizationId", source = "organizationId")
     @Mapping(target = "environmentId", source = "environmentId")
+    @Mapping(target = "consoleNotification", expression = "java(apiV4Spec.getConsoleNotification())")
     ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4Spec, String id, String crossId, String organizationId, String environmentId);
 
     @Mapping(target = "selectors", expression = "java(mapApiV4SpecSelectors(flowV4))")
@@ -92,6 +96,7 @@ public interface ApiMapper {
     @Mapping(target = "listeners", expression = "java(mapApiCRDSpecListeners(apiCRD))")
     @Mapping(target = "plans", expression = "java(mapApiCRDSpecPlans(apiCRD))")
     @Mapping(target = "pages", expression = "java(mapApiCRDSpecPages(apiCRD))")
+    @Mapping(target = "consoleNotification", expression = "java(map(apiCRD.getConsoleNotificationConfiguration()))")
     ApiV4Spec apiCRDSpecToApiV4Spec(ApiCRDSpec apiCRD);
 
     @Mapping(target = "statusCode", source = "status")
@@ -157,6 +162,14 @@ public interface ApiMapper {
     PlanV4 map(PlanCRD planCRD);
 
     PageV4 map(PageCRD pageCRD);
+
+    @Mapping(target = "hooks", source = "events")
+    @Mapping(target = "configType", expression = "java(io.gravitee.rest.api.model.notification.NotificationConfigType.PORTAL)")
+    @Mapping(target = "origin", expression = "java(io.gravitee.definition.model.Origin.KUBERNETES)")
+    PortalNotificationConfigEntity map(ApiV4SpecConsoleNotification apiV4Spec);
+
+    @Mapping(target = "events", source = "hooks")
+    ApiV4SpecConsoleNotification map(PortalNotificationConfigEntity portalNotificationConfig);
 
     default io.gravitee.apim.rest.api.automation.model.PlanSecurityType map(
         io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType type

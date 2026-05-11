@@ -697,7 +697,8 @@ public class ApiResource extends AbstractResource {
                         .userSourceId(userDetails.getSourceId())
                         .build()
                 )
-                .build()
+                .build(),
+            false
         );
         var output = exportApiCRDUseCase.execute(input);
         var spec = ApiCRDMapper.INSTANCE.map(output.spec());

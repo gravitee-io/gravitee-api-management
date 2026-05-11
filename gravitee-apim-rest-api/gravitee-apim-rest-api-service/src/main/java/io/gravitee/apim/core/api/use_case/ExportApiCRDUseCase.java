@@ -34,9 +34,11 @@ public class ExportApiCRDUseCase {
 
     public record Output(ApiCRDSpec spec) {}
 
-    public record Input(String apiId, IDExportStrategy idExportStrategy, AuditInfo auditInfo) {}
+    public record Input(String apiId, IDExportStrategy idExportStrategy, AuditInfo auditInfo, boolean exportNotifications) {}
 
     public Output execute(Input input) {
-        return new Output(exportDomainService.export(input.apiId, input.idExportStrategy, input.auditInfo));
+        return new Output(
+            exportDomainService.export(input.apiId(), input.idExportStrategy(), input.auditInfo(), input.exportNotifications())
+        );
     }
 }

@@ -28,7 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainService {
 
     @Override
-    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {
+    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
         return ApiCRDFixtures.anApiCRD();
     }
 }

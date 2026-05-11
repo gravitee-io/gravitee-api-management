@@ -117,7 +117,7 @@ public class ApplicationResource extends AbstractResource {
                 .findByIds(new LinkedHashSet<>(groups))
                 .stream()
                 .filter(group -> group.getHrid() != null)
-                .forEach(group -> groups.set(groups.indexOf(group.getName()), group.getHrid()));
+                .forEach(group -> groups.set(groups.indexOf(group.getId()), group.getHrid()));
             applicationSpec.setGroups(groups);
         }
     }
