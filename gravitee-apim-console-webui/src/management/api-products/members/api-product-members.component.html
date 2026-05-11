@@ -65,14 +65,17 @@
         </div>
       </div>
 
-      <gio-form-slide-toggle class="card__enable-notification-toggle">
-        Notify members when they are added to the API Product
-        <mat-slide-toggle
-          gioFormSlideToggle
-          formControlName="isNotificationsEnabled"
-          aria-label="Enable notifications when members are added to this API Product"
-        ></mat-slide-toggle>
-      </gio-form-slide-toggle>
+      @if (state.apiProduct !== null) {
+        <gio-form-slide-toggle class="card__enable-notification-toggle">
+          Notify members when they are added to the API Product
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="isNotificationsEnabled"
+            aria-label="Enable notifications when members are added to this API Product"
+            data-testid="api_product_members_notify_toggle"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      }
     </mat-card-content>
     <gio-table-wrapper
       [disableSearchInput]="true"

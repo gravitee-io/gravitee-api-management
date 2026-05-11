@@ -35,4 +35,9 @@ export interface UpdateApiProduct {
    * Groups attached to this API Product.
    */
   groups?: string[];
+  /**
+   * Disable membership notifications.
+   * @default false
+   */
+  disableMembershipNotifications?: boolean;
 }
