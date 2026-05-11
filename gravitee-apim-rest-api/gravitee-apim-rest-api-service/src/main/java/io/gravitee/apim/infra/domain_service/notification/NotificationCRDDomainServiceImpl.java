@@ -39,6 +39,11 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
         syncPortalNotifications(apiId, NotificationReferenceType.API, user, notificationConfig);
     }
 
+    @Override
+    public PortalNotificationConfigEntity getApiConsoleNotification(String apiId, String userId) {
+        return portalNotificationConfigService.findById(userId, NotificationReferenceType.API, apiId);
+    }
+
     public void syncPortalNotifications(
         String referenceId,
         NotificationReferenceType referenceType,

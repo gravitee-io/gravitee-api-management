@@ -56,7 +56,7 @@ class ApiCRDAdapterTest {
     @Test
     void should_convert_to_crd_spec_with_hrid() {
         var export = exportEntity(true);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -72,7 +72,7 @@ class ApiCRDAdapterTest {
     @Test
     void should_convert_to_crd_spec_without_hrid() {
         var export = exportEntity(false);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -88,7 +88,7 @@ class ApiCRDAdapterTest {
     @Test
     void should_convert_nativeApi_to_crd_spec_with_hrid() {
         var export = exportNativeApiEntity(true);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -108,7 +108,7 @@ class ApiCRDAdapterTest {
         export.setPages(
             List.of(PageEntity.builder().name("page-name").type(PageType.SWAGGER.name()).content("content").source(source).build())
         );
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -138,7 +138,7 @@ class ApiCRDAdapterTest {
                     .build()
             )
         );
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -157,7 +157,7 @@ class ApiCRDAdapterTest {
         PageSourceEntity source = new PageSourceEntity();
         source.setType("github-fetcher");
         export.setPages(List.of(PageEntity.builder().name("page-name").type(PageType.FOLDER.name()).source(source).build()));
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -178,7 +178,7 @@ class ApiCRDAdapterTest {
         export.setPages(
             List.of(PageEntity.builder().name("page-name").type(PageType.SWAGGER.name()).content("content").source(source).build())
         );
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -195,7 +195,7 @@ class ApiCRDAdapterTest {
     @Test
     void should_convert_nativeApi_to_crd_spec_without_hrid() {
         var export = exportNativeApiEntity(false);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
@@ -213,7 +213,7 @@ class ApiCRDAdapterTest {
         Set<GenericPlanEntity> plansWithOneClosedPlan = new HashSet<>(export.getPlans());
         plansWithOneClosedPlan.add(PlanEntity.builder().status(PlanStatus.CLOSED).name("closed-plan").build());
         export.setPlans(plansWithOneClosedPlan);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         assertThat(spec.getPlans()).hasSize(1);
     }
 
@@ -243,7 +243,7 @@ class ApiCRDAdapterTest {
                 .build()
         );
         export.setPlans(plansWithConflictingNames);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
         assertThat(spec.getPlans()).hasSize(3);
         assertThat(spec.getPlans()).containsKey("api-key");
     }

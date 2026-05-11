@@ -29,6 +29,7 @@ import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -66,7 +67,9 @@ public interface ApiCRDAdapter {
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
-    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity);
+    @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
+    @Mapping(target = "groups", source = "apiEntity.groups")
+    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
     @Mapping(target = "metadata", source = "exportEntity.metadata")
@@ -75,13 +78,19 @@ public interface ApiCRDAdapter {
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
-    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity);
+    @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
+    @Mapping(target = "groups", source = "apiEntity.groups")
+    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
 
-    default ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, GenericApiEntity apiEntity) {
+    default ApiCRDSpec toCRDSpec(
+        ExportApiEntity exportEntity,
+        GenericApiEntity apiEntity,
+        PortalNotificationConfigEntity portalNotificationConfig
+    ) {
         if (apiEntity instanceof ApiEntity entity) {
-            return toCRDSpec(exportEntity, entity);
+            return toCRDSpec(exportEntity, entity, portalNotificationConfig);
         } else if (apiEntity instanceof NativeApiEntity nativeApiEntity) {
-            return toCRDSpec(exportEntity, nativeApiEntity);
+            return toCRDSpec(exportEntity, nativeApiEntity, portalNotificationConfig);
         }
         return null;
     }

@@ -95,7 +95,8 @@ public class ApiResource extends AbstractResource {
         var input = new ExportApiCRDUseCase.Input(
             hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
             IDExportStrategy.ALL,
-            buildAuditInfo(executionContext, userDetails)
+            buildAuditInfo(executionContext, userDetails),
+            true
         );
 
         try {
@@ -188,12 +189,27 @@ public class ApiResource extends AbstractResource {
     private void replaceGroupNamesWithHrids(String environmentId, ApiV4Spec apiV4Spec) {
         if (apiV4Spec.getGroups() != null && !apiV4Spec.getGroups().isEmpty()) {
             var groups = new ArrayList<>(apiV4Spec.getGroups());
+            List<String> notificationGroups = new ArrayList<>();
+            if (apiV4Spec.getConsoleNotification() != null && apiV4Spec.getConsoleNotification().getGroups() != null) {
+                notificationGroups.addAll(apiV4Spec.getConsoleNotification().getGroups());
+            }
+            // all groups in notifications are included in API groups
             groupQueryService
                 .findByNames(environmentId, new LinkedHashSet<>(groups))
                 .stream()
                 .filter(group -> group.getHrid() != null)
-                .forEach(group -> groups.set(groups.indexOf(group.getName()), group.getHrid()));
+                .forEach(group -> {
+                    groups.set(groups.indexOf(group.getName()), group.getHrid());
+                    // update notification groups if this group is included in notification groups
+                    int index = notificationGroups.indexOf(group.getName());
+                    if (index != -1) {
+                        notificationGroups.set(index, group.getHrid());
+                    }
+                });
             apiV4Spec.setGroups(groups);
+            if (!notificationGroups.isEmpty()) {
+                apiV4Spec.getConsoleNotification().setGroups(notificationGroups);
+            }
         }
     }
 

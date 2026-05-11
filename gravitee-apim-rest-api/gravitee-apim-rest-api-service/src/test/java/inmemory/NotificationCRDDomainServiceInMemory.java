@@ -30,4 +30,9 @@ public class NotificationCRDDomainServiceInMemory implements NotificationCRDDoma
     public void syncApiPortalNotifications(String apiId, String user, PortalNotificationConfigEntity notificationConfig) {
         // no op
     }
+
+    @Override
+    public PortalNotificationConfigEntity getApiConsoleNotification(String apiId, String userId) {
+        return null;
+    }
 }

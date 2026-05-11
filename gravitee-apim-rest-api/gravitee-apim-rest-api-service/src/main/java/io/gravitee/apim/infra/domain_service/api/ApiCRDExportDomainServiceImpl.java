@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -26,11 +27,13 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -56,11 +59,14 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
     private final GroupQueryService groupQueryService;
 
+    private final NotificationCRDDomainService notificationCRDDomainService;
+
     @Override
-    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {
+    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity());
+        var notificationConfigEntity = getPortalNotificationConfigEntity(apiId, auditInfo, exportNotifications);
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity(), notificationConfigEntity);
         if (spec.getMembers() != null) {
             setMembersSourceId(spec.getMembers());
             removePrimaryOwner(spec.getMembers());
@@ -68,10 +74,29 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         if (spec.getGroups() != null) {
             spec.setGroups(getGroupNames(spec.getGroups()));
         }
+        if (spec.getConsoleNotificationConfiguration() != null && spec.getConsoleNotificationConfiguration().getGroups() != null) {
+            spec
+                .getConsoleNotificationConfiguration()
+                .setGroups(new ArrayList<>(getGroupNames(new HashSet<>(spec.getConsoleNotificationConfiguration().getGroups()))));
+        }
 
         ensureCrossId(spec);
         applyIDExportStrategy(idExport, spec);
         return spec;
+    }
+
+    private PortalNotificationConfigEntity getPortalNotificationConfigEntity(
+        String apiId,
+        AuditInfo auditInfo,
+        boolean exportNotifications
+    ) {
+        var notificationConfigEntity = exportNotifications
+            ? notificationCRDDomainService.getApiConsoleNotification(apiId, auditInfo.actor().userId())
+            : null;
+        if (notificationConfigEntity != null && notificationConfigEntity.isDefaultEmpty()) {
+            notificationConfigEntity = null;
+        }
+        return notificationConfigEntity;
     }
 
     private void ensureCrossId(ApiCRDSpec spec) {

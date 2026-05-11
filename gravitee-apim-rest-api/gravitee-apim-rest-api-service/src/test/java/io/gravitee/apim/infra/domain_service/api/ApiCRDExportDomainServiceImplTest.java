@@ -28,6 +28,7 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
@@ -44,6 +45,7 @@ import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -81,6 +83,9 @@ class ApiCRDExportDomainServiceImplTest {
     @Mock
     ApiCrudService apiCrudService;
 
+    @Mock
+    NotificationCRDDomainService notificationCRDDomainService;
+
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
@@ -100,7 +105,8 @@ class ApiCRDExportDomainServiceImplTest {
             exportService,
             apiCrudService,
             userCrudService,
-            groupQueryServiceInMemory
+            groupQueryServiceInMemory,
+            notificationCRDDomainService
         );
     }
 
@@ -115,7 +121,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         verify(apiCrudService, times(1)).get(API_ID);
@@ -142,7 +149,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         verify(apiCrudService, never()).update(any());
@@ -167,7 +175,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertSoftly(soft -> {
@@ -191,7 +200,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertThat(spec.getMembers()).noneMatch(member -> member.getRole().equals("PRIMARY_OWNER"));
@@ -206,7 +216,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertSoftly(soft -> {
@@ -225,7 +236,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertSoftly(soft -> {
@@ -243,7 +255,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertSoftly(soft -> {
@@ -261,7 +274,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.HRID,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertSoftly(soft -> {
@@ -298,7 +312,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.GUID,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
         );
 
         assertSoftly(soft -> {
@@ -324,6 +339,49 @@ class ApiCRDExportDomainServiceImplTest {
                     soft.assertThat(page.getParentHrid()).isNull();
                 });
         });
+    }
+
+    @Test
+    void should_export_notification_with_group_names() {
+        var notificationConfig = PortalNotificationConfigEntity.builder()
+            .hooks(List.of("SUBSCRIPTION_NEW", "API_UPDATED"))
+            .groups(List.of(GROUP_ID))
+            .build();
+
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().crossId("cross-id").build())
+        );
+        when(notificationCRDDomainService.getApiConsoleNotification(API_ID, USER_ID)).thenReturn(notificationConfig);
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            IDExportStrategy.ALL,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            true
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(spec.getConsoleNotificationConfiguration()).isNotNull();
+            soft.assertThat(spec.getConsoleNotificationConfiguration().getHooks()).containsExactly("SUBSCRIPTION_NEW", "API_UPDATED");
+            soft.assertThat(spec.getConsoleNotificationConfiguration().getGroups()).containsExactly(GROUP_NAME);
+        });
+    }
+
+    @Test
+    void should_not_export_notification_when_disabled() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().crossId("cross-id").build())
+        );
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            IDExportStrategy.ALL,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
+        );
+
+        verify(notificationCRDDomainService, never()).getApiConsoleNotification(any(), any());
+        assertThat(spec.getConsoleNotificationConfiguration()).isNull();
     }
 
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
