@@ -85,7 +85,7 @@ class GraviteeDefinitionAdapterTest {
     }
 
     @Test
-    void mapV4_should_leave_allowedInApiProducts_null_when_missing_in_definition() {
+    void mapV4_should_default_allowedInApiProducts_to_false_when_missing_from_proxy_definition() {
         var v4Definition = new io.gravitee.definition.model.v4.Api();
         v4Definition.setDefinitionVersion(DefinitionVersion.V4);
         v4Definition.setType(ApiType.PROXY);
@@ -99,6 +99,44 @@ class GraviteeDefinitionAdapterTest {
             .version("1.0.0")
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.PROXY)
+            .apiDefinitionHttpV4(v4Definition)
+            .build();
+
+        var primaryOwner = PrimaryOwnerEntity.builder()
+            .id("po-id")
+            .email("po@acme.test")
+            .displayName("PO")
+            .type(PrimaryOwnerEntity.Type.USER)
+            .build();
+        var metadata = java.util.Collections.<NewApiMetadata>emptyList();
+
+        ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
+            coreApi,
+            primaryOwner,
+            WorkflowState.REVIEW_OK,
+            Set.of("group-1"),
+            (java.util.Collection<NewApiMetadata>) metadata,
+            List.of(new Flow()),
+            false
+        );
+
+        assertThat(descriptor.allowedInApiProducts()).isFalse();
+    }
+
+    @Test
+    void mapV4_should_leave_allowedInApiProducts_null_for_non_proxy_api() {
+        var v4Definition = new io.gravitee.definition.model.v4.Api();
+        v4Definition.setDefinitionVersion(DefinitionVersion.V4);
+        v4Definition.setType(ApiType.MESSAGE);
+        v4Definition.setApiVersion("1.0.0");
+        v4Definition.setName("my-api");
+
+        Api coreApi = Api.builder()
+            .id("api-id")
+            .environmentId("env-id")
+            .version("1.0.0")
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.MESSAGE)
             .apiDefinitionHttpV4(v4Definition)
             .build();
 

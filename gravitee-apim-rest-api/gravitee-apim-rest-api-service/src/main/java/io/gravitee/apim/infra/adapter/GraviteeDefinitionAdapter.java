@@ -29,6 +29,7 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -109,10 +110,7 @@ public interface GraviteeDefinitionAdapter {
         expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)"
     )
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionHttpV4.endpointGroups")
-    @Mapping(
-        target = "allowedInApiProducts",
-        expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getAllowedInApiProducts() : null)"
-    )
+    @Mapping(target = "allowedInApiProducts", expression = "java(exportedAllowedInApiProducts(apiEntity.getApiDefinitionHttpV4()))")
     @Mapping(target = "primaryOwner", source = "primaryOwner")
     @Mapping(target = "workflowState", source = "workflowState")
     @Mapping(target = "groups", source = "groups")
@@ -179,6 +177,13 @@ public interface GraviteeDefinitionAdapter {
 
     default String providerId(ApiDefinition apiDefinition) {
         return apiDefinition instanceof FederatedApi federatedApi ? federatedApi.getProviderId() : null;
+    }
+
+    default Boolean exportedAllowedInApiProducts(io.gravitee.definition.model.v4.Api apiDefinition) {
+        if (apiDefinition == null || apiDefinition.getType() != ApiType.PROXY) {
+            return null;
+        }
+        return Boolean.TRUE.equals(apiDefinition.getAllowedInApiProducts());
     }
 
     @Mapping(target = "id", expression = "java(excludeIds ? null : apiEntity.getId())")
