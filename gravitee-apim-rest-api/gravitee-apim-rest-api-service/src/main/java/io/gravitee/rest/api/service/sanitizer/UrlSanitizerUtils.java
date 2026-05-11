@@ -20,21 +20,26 @@ import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class UrlSanitizerUtils {
 
     public static boolean isUrl(String content) {
+        if (content == null || content.isBlank()) {
+            return false;
+        }
         try {
-            new URL(content);
-            return true;
+            var uri = new URI(content);
+            return uri.getScheme() != null && uri.getHost() != null;
         } catch (Exception e) {
+            log.debug("Content is not a valid URL: {}", e.getMessage());
             return false;
         }
     }
@@ -61,7 +66,7 @@ public class UrlSanitizerUtils {
 
     public static boolean isPrivate(String url) {
         try {
-            InetAddress inetAddress = Inet6Address.getByName(new URL(url).getHost());
+            InetAddress inetAddress = Inet6Address.getByName(URI.create(url).toURL().getHost());
 
             return (
                 inetAddress.isSiteLocalAddress() ||

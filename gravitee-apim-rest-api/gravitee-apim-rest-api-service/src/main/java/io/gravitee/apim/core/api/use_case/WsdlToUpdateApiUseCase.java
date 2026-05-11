@@ -20,15 +20,19 @@ import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import java.util.List;
+import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 
 @UseCase
+@RequiredArgsConstructor
 public class WsdlToUpdateApiUseCase {
 
     public sealed interface Input permits Input.Inline, Input.Url {
         String apiId();
         boolean withDocumentation();
         boolean withOASValidationPolicy();
+        List<String> withPolicies();
         AuditInfo auditInfo();
 
         record Inline(
@@ -36,11 +40,18 @@ public class WsdlToUpdateApiUseCase {
             String payload,
             boolean withDocumentation,
             boolean withOASValidationPolicy,
+            List<String> withPolicies,
             AuditInfo auditInfo
         ) implements Input {}
 
-        record Url(String apiId, String url, boolean withDocumentation, boolean withOASValidationPolicy, AuditInfo auditInfo) implements
-            Input {}
+        record Url(
+            String apiId,
+            String url,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy,
+            List<String> withPolicies,
+            AuditInfo auditInfo
+        ) implements Input {}
 
         static Input of(
             String apiId,
@@ -48,11 +59,12 @@ public class WsdlToUpdateApiUseCase {
             boolean isUrl,
             boolean withDocumentation,
             boolean withOASValidationPolicy,
+            List<String> withPolicies,
             AuditInfo auditInfo
         ) {
             return isUrl
-                ? new Url(apiId, payload, withDocumentation, withOASValidationPolicy, auditInfo)
-                : new Inline(apiId, payload, withDocumentation, withOASValidationPolicy, auditInfo);
+                ? new Url(apiId, payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo)
+                : new Inline(apiId, payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo);
         }
     }
 
@@ -61,11 +73,6 @@ public class WsdlToUpdateApiUseCase {
     private final WsdlParserDomainService wsdlParserDomainService;
     private final OAIToUpdateApiUseCase oaiToUpdateApiUseCase;
 
-    public WsdlToUpdateApiUseCase(WsdlParserDomainService wsdlParserDomainService, OAIToUpdateApiUseCase oaiToUpdateApiUseCase) {
-        this.wsdlParserDomainService = wsdlParserDomainService;
-        this.oaiToUpdateApiUseCase = oaiToUpdateApiUseCase;
-    }
-
     public Output execute(Input input) {
         String content = switch (input) {
             case Input.Url u -> u.url();
@@ -73,13 +80,14 @@ public class WsdlToUpdateApiUseCase {
         };
         String openApiYaml = wsdlParserDomainService.toOpenApiYaml(content);
 
-        if (openApiYaml == null) {
-            throw new SwaggerDescriptorException("Failed to convert WSDL to OpenAPI specification");
-        }
+        var policies = addDependentPolicies(input.withPolicies());
 
         var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
             .payload(openApiYaml)
+            .format(ImportSwaggerDescriptorEntity.Format.WSDL)
             .withDocumentation(input.withDocumentation())
+            .withPolicies(policies)
+            .skipFlows(policies != null && policies.isEmpty())
             .build();
 
         var output = oaiToUpdateApiUseCase.execute(
@@ -94,5 +102,12 @@ public class WsdlToUpdateApiUseCase {
         );
 
         return new Output(output.apiWithFlows());
+    }
+
+    private static List<String> addDependentPolicies(List<String> policies) {
+        if (policies == null || !policies.contains("rest-to-soap")) {
+            return policies;
+        }
+        return Stream.concat(policies.stream(), Stream.of("xml-json")).distinct().toList();
     }
 }

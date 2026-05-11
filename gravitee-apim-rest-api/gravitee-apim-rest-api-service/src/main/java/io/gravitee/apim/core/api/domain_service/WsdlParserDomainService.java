@@ -22,7 +22,8 @@ package io.gravitee.apim.core.api.domain_service;
 public interface WsdlParserDomainService {
     /**
      * @param content inline WSDL XML content or a remote URL
-     * @return OpenAPI 3.x YAML string, or {@code null} if parsing failed
+     * @return OpenAPI 3.x YAML string
+     * @throws io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException if parsing fails
      */
     String toOpenApiYaml(String content);
 }

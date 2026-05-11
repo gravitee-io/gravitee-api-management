@@ -625,6 +625,41 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('importWsdlApi', () => {
+    it('should POST to the WSDL import endpoint', done => {
+      const descriptor = { payload: '<definitions/>', type: 'INLINE' as const, withDocumentation: false, withPolicies: ['rest-to-soap'] };
+
+      apiV2Service.importWsdlApi(descriptor).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/wsdl`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual(descriptor);
+      req.flush(null);
+    });
+  });
+
+  describe('updateApiFromWsdl', () => {
+    it('should PUT to the API-scoped WSDL import endpoint', done => {
+      const apiId = 'existing-api';
+      const descriptor = { payload: '<definitions/>', type: 'INLINE' as const, withDocumentation: true, withPolicies: [] };
+
+      apiV2Service.updateApiFromWsdl(apiId, descriptor).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_import/wsdl`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(descriptor);
+      req.flush(null);
+    });
+  });
+
   describe('updateApiFromDefinition', () => {
     it('should PUT to the API-scoped definition import endpoint', done => {
       const apiId = 'existing-api';

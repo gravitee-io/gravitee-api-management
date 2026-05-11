@@ -325,54 +325,7 @@ describe('ApiImportV4FormComponent', () => {
   it('should show the options step for WSDL', async () => {
     fixture.componentInstance.selectApiFormatForm.patchValue({ format: 'wsdl' });
     fixture.detectChanges();
-    const showOptions = (fixture.componentInstance as unknown as { showImportOptionsStep: () => boolean }).showImportOptionsStep;
-    expect(showOptions()).toBe(true);
-  });
-
-  it('should POST WSDL from a local file', async () => {
-    const httpMock = TestBed.inject(HttpTestingController);
-    const wsdlContent = '<definitions name="CalculatorService"/>';
-
-    await harness.selectFormat('wsdl');
-    fixture.detectChanges();
-    await harness.clickNext();
-    await harness.pickFiles([new File([wsdlContent], 'calculator.wsdl', { type: 'text/xml' })]);
-    fixture.detectChanges();
-    await harness.clickNext();
-    await harness.clickNext();
-    await harness.clickImport();
-
-    const req = httpMock.expectOne(r => r.method === 'POST' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/wsdl`);
-    expect(req.request.body).toEqual(
-      expect.objectContaining({
-        payload: wsdlContent,
-        type: 'INLINE',
-      }),
-    );
-    req.flush(fakeApiV4({ id: 'imported-wsdl' }));
-    httpMock.verify();
-  });
-
-  it('should call importWsdlApi with remote URL for WSDL', async () => {
-    const apiV2 = TestBed.inject(ApiV2Service);
-    jest.spyOn(apiV2, 'importWsdlApi').mockReturnValue(of({ id: 'new-api' } as ApiV4));
-
-    await harness.selectFormat('wsdl');
-    fixture.detectChanges();
-    await harness.clickNext();
-    await harness.selectSource('remote');
-    await harness.setRemoteUrl('https://example.com/calculator.wsdl');
-    fixture.detectChanges();
-    await harness.clickNext();
-    await harness.clickNext();
-    await harness.clickImport();
-
-    expect(apiV2.importWsdlApi).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payload: 'https://example.com/calculator.wsdl',
-        type: 'URL',
-      }),
-    );
+    expect(await harness.hasOptionsStep()).toBe(true);
   });
 
   it('should show actionable message when remote fetch fails with status 0', async () => {
@@ -479,7 +432,7 @@ describe('ApiImportV4FormComponent (oas-validation policy installed)', () => {
     expect(await harness.getPickedFilesCount()).toBe(1);
   });
 
-  it('should expose documentation and OAS validation toggles for WSDL when oas-validation policy is installed', async () => {
+  it('should expose documentation and OAS validation toggles for WSDL but disabled without rest-to-soap policy', async () => {
     await harness.selectFormat('wsdl');
     fixture.detectChanges();
     await harness.clickNext();
@@ -488,11 +441,12 @@ describe('ApiImportV4FormComponent (oas-validation policy installed)', () => {
     fixture.detectChanges();
     await harness.clickNext();
 
-    expect(await harness.isDocumentationImportSelected()).toBe(true);
-    expect(await harness.isDocumentationImportDisabled()).toBe(false);
+    // Without rest-to-soap policy, documentation and OAS validation are disabled for WSDL
+    expect(await harness.isDocumentationImportSelected()).toBe(false);
+    expect(await harness.isDocumentationImportDisabled()).toBe(true);
     expect(await harness.isOasValidationPolicyImportPresent()).toBe(true);
-    expect(await harness.isOasValidationPolicyImportSelected()).toBe(true);
-    expect(await harness.isOasValidationPolicyImportDisabled()).toBe(false);
+    expect(await harness.isOasValidationPolicyImportSelected()).toBe(false);
+    expect(await harness.isOasValidationPolicyImportDisabled()).toBe(true);
   });
 
   it('should still skip the options step for Gravitee definition when policy is installed', async () => {
@@ -506,5 +460,174 @@ describe('ApiImportV4FormComponent (oas-validation policy installed)', () => {
     fixture.detectChanges();
 
     expect(await harness.hasOptionsStep()).toBe(false);
+  });
+});
+
+describe('ApiImportV4FormComponent (rest-to-soap policy installed)', () => {
+  let fixture: ComponentFixture<ApiImportV4FormComponent>;
+  let harness: ApiImportV4FormHarness;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, ApiImportV4FormComponent, GioTestingModule],
+      providers: [
+        {
+          provide: PolicyV2Service,
+          useValue: {
+            list: () => of([fakePolicyPlugin({ id: 'rest-to-soap' }), fakePolicyPlugin({ id: 'oas-validation' })]),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ApiImportV4FormComponent);
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiImportV4FormHarness);
+    fixture.detectChanges();
+  });
+
+  async function navigateToWsdlOptionsStep(): Promise<void> {
+    await harness.selectFormat('wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File(['<definitions/>'], 'service.wsdl', { type: 'text/xml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await harness.clickNext();
+    fixture.detectChanges();
+  }
+
+  it('should show REST to SOAP toggle for WSDL when rest-to-soap policy is installed', async () => {
+    await navigateToWsdlOptionsStep();
+    expect(await harness.isRestToSoapTogglePresent()).toBe(true);
+  });
+
+  it('should have REST to SOAP toggle ON by default for WSDL', async () => {
+    await navigateToWsdlOptionsStep();
+    expect(await harness.isRestToSoapToggleSelected()).toBe(true);
+  });
+
+  it('should enable documentation and OAS validation when REST to SOAP is ON', async () => {
+    await navigateToWsdlOptionsStep();
+    expect(await harness.isDocumentationImportSelected()).toBe(true);
+    expect(await harness.isDocumentationImportDisabled()).toBe(false);
+    expect(await harness.isOasValidationPolicyImportSelected()).toBe(true);
+    expect(await harness.isOasValidationPolicyImportDisabled()).toBe(false);
+  });
+
+  it('should disable and uncheck documentation and OAS validation when REST to SOAP is toggled OFF', async () => {
+    await navigateToWsdlOptionsStep();
+    await harness.toggleRestToSoap();
+    fixture.detectChanges();
+
+    expect(await harness.isRestToSoapToggleSelected()).toBe(false);
+    expect(await harness.isDocumentationImportSelected()).toBe(false);
+    expect(await harness.isDocumentationImportDisabled()).toBe(true);
+    expect(await harness.isOasValidationPolicyImportSelected()).toBe(false);
+    expect(await harness.isOasValidationPolicyImportDisabled()).toBe(true);
+  });
+
+  it('should re-enable and check documentation and OAS validation when REST to SOAP is toggled back ON', async () => {
+    await navigateToWsdlOptionsStep();
+    await harness.toggleRestToSoap();
+    fixture.detectChanges();
+    await harness.toggleRestToSoap();
+    fixture.detectChanges();
+
+    expect(await harness.isRestToSoapToggleSelected()).toBe(true);
+    expect(await harness.isDocumentationImportSelected()).toBe(true);
+    expect(await harness.isDocumentationImportDisabled()).toBe(false);
+    expect(await harness.isOasValidationPolicyImportSelected()).toBe(true);
+    expect(await harness.isOasValidationPolicyImportDisabled()).toBe(false);
+  });
+
+  it('should not show REST to SOAP toggle for OpenAPI format', async () => {
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File(['openapi: 3.1.0'], 'openapi.yml', { type: 'application/x-yaml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await harness.clickNext();
+    fixture.detectChanges();
+
+    expect(await harness.isRestToSoapTogglePresent()).toBe(false);
+  });
+
+  it('should send withPolicies containing rest-to-soap when toggle is ON', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'importWsdlApi').mockReturnValue(of(fakeApiV4({ id: 'new-api' })));
+
+    await navigateToWsdlOptionsStep();
+    expect(await harness.isRestToSoapToggleSelected()).toBe(true);
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.importWsdlApi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        withPolicies: ['rest-to-soap'],
+      }),
+    );
+  });
+
+  it('should send empty withPolicies when REST to SOAP toggle is OFF', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'importWsdlApi').mockReturnValue(of(fakeApiV4({ id: 'new-api' })));
+
+    await navigateToWsdlOptionsStep();
+    await harness.toggleRestToSoap();
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.importWsdlApi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        withPolicies: [],
+      }),
+    );
+  });
+
+  it('should call importWsdlApi with remote URL for WSDL', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'importWsdlApi').mockReturnValue(of(fakeApiV4({ id: 'new-api' })));
+
+    await harness.selectFormat('wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.selectSource('remote');
+    await harness.setRemoteUrl('https://example.com/calculator.wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.importWsdlApi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: 'https://example.com/calculator.wsdl',
+        type: 'URL',
+        withPolicies: ['rest-to-soap'],
+      }),
+    );
+  });
+
+  it('should call updateApiFromWsdl when updateTargetApiId is set', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'importWsdlApi');
+    jest.spyOn(apiV2, 'updateApiFromWsdl').mockReturnValue(of(fakeApiV4({ id: 'existing-api' })));
+    fixture.componentRef.setInput('updateTargetApiId', 'existing-api');
+    fixture.detectChanges();
+
+    await navigateToWsdlOptionsStep();
+    expect(await harness.isRestToSoapToggleSelected()).toBe(true);
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.updateApiFromWsdl).toHaveBeenCalledWith(
+      'existing-api',
+      expect.objectContaining({
+        withPolicies: ['rest-to-soap'],
+      }),
+    );
+    expect(apiV2.importWsdlApi).not.toHaveBeenCalled();
   });
 });

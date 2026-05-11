@@ -133,11 +133,13 @@ export class ApiImportV4FormComponent {
   );
 
   public readonly optionsForm = this.formBuilder.group({
+    withRestToSoap: [{ value: false, disabled: false }],
     withDocumentation: [{ value: false, disabled: false }],
     withOASValidationPolicy: [{ value: false, disabled: false }],
   });
 
   protected readonly hasOasValidationPolicy = signal(false);
+  protected readonly hasRestToSoapPolicy = signal(false);
 
   protected readonly importFormat = toSignal(
     this.selectApiFormatForm.controls.format.valueChanges.pipe(
@@ -236,10 +238,36 @@ export class ApiImportV4FormComponent {
   private readonly syncPolicyOptionsEffect = effect(() => {
     const [format, policies] = this.formatAndPolicies();
     const hasOas = policies.some(policy => policy.id === 'oas-validation');
+    const hasRestToSoap = policies.some(policy => policy.id === 'rest-to-soap');
     this.hasOasValidationPolicy.set(hasOas);
-    this.syncImportOptionsFromFormat(format, hasOas);
+    this.hasRestToSoapPolicy.set(hasRestToSoap);
+    this.syncImportOptionsFromFormat(format, hasOas, hasRestToSoap);
     this.configureFileSourceForm.updateValueAndValidity({ emitEvent: true });
     this.optionsForm.updateValueAndValidity({ emitEvent: true });
+  });
+
+  private readonly restToSoapValue = toSignal(
+    this.optionsForm.controls.withRestToSoap.valueChanges.pipe(startWith(this.optionsForm.controls.withRestToSoap.value)),
+    { initialValue: this.optionsForm.controls.withRestToSoap.value },
+  );
+
+  private readonly syncRestToSoapDependentsEffect = effect(() => {
+    const format = this.importFormat();
+    if (format !== 'wsdl') return;
+    const restToSoapOn = this.restToSoapValue();
+    if (restToSoapOn) {
+      this.optionsForm.controls.withDocumentation.setValue(true, { emitEvent: false });
+      this.optionsForm.controls.withDocumentation.enable({ emitEvent: false });
+      if (this.hasOasValidationPolicy()) {
+        this.optionsForm.controls.withOASValidationPolicy.setValue(true, { emitEvent: false });
+        this.optionsForm.controls.withOASValidationPolicy.enable({ emitEvent: false });
+      }
+    } else {
+      this.optionsForm.controls.withDocumentation.setValue(false, { emitEvent: false });
+      this.optionsForm.controls.withDocumentation.disable({ emitEvent: false });
+      this.optionsForm.controls.withOASValidationPolicy.setValue(false, { emitEvent: false });
+      this.optionsForm.controls.withOASValidationPolicy.disable({ emitEvent: false });
+    }
   });
 
   private readonly applyFileSourceModeEffect = effect(() => {
@@ -334,13 +362,16 @@ export class ApiImportV4FormComponent {
     this.configureFileSourceForm.updateValueAndValidity({ emitEvent: true });
   }
 
-  private syncImportOptionsFromFormat(format: string | null, hasOasValidationPolicyInstalled: boolean): void {
-    if (format === 'openapi' || format === 'wsdl') {
+  private syncImportOptionsFromFormat(
+    format: string | null,
+    hasOasValidationPolicyInstalled: boolean,
+    hasRestToSoapPolicyInstalled: boolean,
+  ): void {
+    if (format === 'openapi') {
+      this.optionsForm.controls.withRestToSoap.setValue(false, { emitEvent: false });
+      this.optionsForm.controls.withRestToSoap.disable({ emitEvent: false });
       this.optionsForm.patchValue(
-        {
-          withDocumentation: true,
-          withOASValidationPolicy: hasOasValidationPolicyInstalled,
-        },
+        { withDocumentation: true, withOASValidationPolicy: hasOasValidationPolicyInstalled },
         { emitEvent: false },
       );
       this.optionsForm.controls.withDocumentation.enable();
@@ -352,6 +383,23 @@ export class ApiImportV4FormComponent {
       }
       return;
     }
+    if (format === 'wsdl') {
+      if (hasRestToSoapPolicyInstalled) {
+        // Intentionally emits event so `restToSoapValue` signal updates and `syncRestToSoapDependentsEffect` sets documentation/OAS controls.
+        this.optionsForm.controls.withRestToSoap.setValue(true);
+        this.optionsForm.controls.withRestToSoap.enable({ emitEvent: false });
+      } else {
+        this.optionsForm.controls.withRestToSoap.setValue(false, { emitEvent: false });
+        this.optionsForm.controls.withRestToSoap.disable({ emitEvent: false });
+        this.optionsForm.controls.withDocumentation.setValue(false, { emitEvent: false });
+        this.optionsForm.controls.withDocumentation.disable({ emitEvent: false });
+        this.optionsForm.controls.withOASValidationPolicy.setValue(false, { emitEvent: false });
+        this.optionsForm.controls.withOASValidationPolicy.disable({ emitEvent: false });
+      }
+      return;
+    }
+    this.optionsForm.controls.withRestToSoap.setValue(false, { emitEvent: false });
+    this.optionsForm.controls.withRestToSoap.disable({ emitEvent: false });
     this.optionsForm.patchValue({ withDocumentation: false, withOASValidationPolicy: false });
     this.optionsForm.controls.withDocumentation.enable();
     this.optionsForm.controls.withOASValidationPolicy.enable();
@@ -435,46 +483,48 @@ export class ApiImportV4FormComponent {
       return null;
     }
 
-    const updateId = this.updateTargetApiId();
     const source = this.configureFileSourceForm.controls.source.value;
+    return source === 'remote' ? this.resolveRemoteImport$() : this.resolveFileImport$();
+  }
+
+  private resolveRemoteImport$(): Observable<ApiV4> | null {
+    const updateId = this.updateTargetApiId();
     const format = this.selectApiFormatForm.controls.format.value;
+    const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim() as string;
 
-    if (source === 'remote') {
-      const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim() as string;
-      if (format === 'gravitee') {
-        return this.importGraviteeDefinitionFromRemoteUrl$(url, updateId);
-      }
-      if (format === 'wsdl') {
-        return updateId
-          ? this.apiV2Service.updateApiFromWsdl(updateId, this.buildImportWsdlDescriptor(url, 'URL'))
-          : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(url, 'URL'));
-      }
-      return updateId
-        ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(url))
-        : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(url));
+    if (format === 'gravitee') {
+      return this.importGraviteeDefinitionFromRemoteUrl$(url, updateId);
     }
+    if (format === 'wsdl') {
+      return updateId
+        ? this.apiV2Service.updateApiFromWsdl(updateId, this.buildImportWsdlDescriptor(url, 'URL'))
+        : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(url, 'URL'));
+    }
+    return updateId
+      ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(url))
+      : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(url));
+  }
 
+  private resolveFileImport$(): Observable<ApiV4> | null {
+    const updateId = this.updateTargetApiId();
+    const format = this.selectApiFormatForm.controls.format.value;
     const pickedType = this.importType();
-    const fileContent = this.importFileContent();
+    const fileContent = this.importFileContent() as string;
 
     if (format === 'gravitee' && pickedType === 'MAPI_V2') {
-      if (updateId) {
-        return defer(() => {
-          const definition = this.parseGraviteeDefinitionJson(fileContent as string);
-          return this.apiV2Service.updateApiFromDefinition(updateId, definition);
-        });
-      }
-      return this.apiV2Service.import(fileContent as string);
+      return updateId
+        ? defer(() => this.apiV2Service.updateApiFromDefinition(updateId, this.parseGraviteeDefinitionJson(fileContent)))
+        : this.apiV2Service.import(fileContent);
     }
     if (format === 'openapi' && pickedType === 'SWAGGER') {
       return updateId
-        ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(fileContent as string))
-        : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(fileContent as string));
+        ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(fileContent))
+        : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(fileContent));
     }
     if (format === 'wsdl' && pickedType === 'WSDL') {
       return updateId
-        ? this.apiV2Service.updateApiFromWsdl(updateId, this.buildImportWsdlDescriptor(fileContent as string, 'INLINE'))
-        : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(fileContent as string, 'INLINE'));
+        ? this.apiV2Service.updateApiFromWsdl(updateId, this.buildImportWsdlDescriptor(fileContent, 'INLINE'))
+        : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(fileContent, 'INLINE'));
     }
     return null;
   }
@@ -497,6 +547,7 @@ export class ApiImportV4FormComponent {
       type,
       withDocumentation: rawOptions.withDocumentation,
       withOASValidationPolicy: rawOptions.withOASValidationPolicy,
+      withPolicies: rawOptions.withRestToSoap ? ['rest-to-soap'] : [],
     };
   }
 

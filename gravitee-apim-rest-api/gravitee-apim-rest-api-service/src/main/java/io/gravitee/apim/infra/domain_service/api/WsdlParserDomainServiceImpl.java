@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
+import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.impl.swagger.parser.WsdlParser;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -45,7 +46,7 @@ public class WsdlParserDomainServiceImpl implements WsdlParserDomainService {
         }
         OpenAPI openAPI = new WsdlParser().parse(content);
         if (openAPI == null) {
-            return null;
+            throw new SwaggerDescriptorException("Failed to convert WSDL to OpenAPI specification");
         }
         return Yaml.pretty(openAPI);
     }

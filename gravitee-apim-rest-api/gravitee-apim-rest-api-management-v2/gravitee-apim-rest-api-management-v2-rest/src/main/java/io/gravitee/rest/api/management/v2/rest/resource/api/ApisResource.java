@@ -104,7 +104,9 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -286,6 +288,7 @@ public class ApisResource extends AbstractResource {
                     ImportWsdlDescriptor.TypeEnum.URL.equals(descriptor.getType()),
                     Boolean.TRUE.equals(descriptor.getWithDocumentation()),
                     Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()),
+                    Optional.ofNullable(descriptor.getWithPolicies()).map(ArrayList::new).orElse(null),
                     audit
                 )
             );

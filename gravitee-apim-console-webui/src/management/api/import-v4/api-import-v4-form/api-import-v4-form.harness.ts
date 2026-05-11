@@ -41,6 +41,9 @@ export class ApiImportV4FormHarness extends ComponentHarness {
   private readonly getOasValidationToggleOptional = this.locatorForOptional(
     MatSlideToggleHarness.with({ selector: '[formControlName="withOASValidationPolicy"]' }),
   );
+  private readonly getRestToSoapToggleOptional = this.locatorForOptional(
+    MatSlideToggleHarness.with({ selector: '[formControlName="withRestToSoap"]' }),
+  );
 
   public async hasRoot(): Promise<boolean> {
     return (await this.getRoot()) !== null;
@@ -175,6 +178,34 @@ export class ApiImportV4FormHarness extends ComponentHarness {
     const toggle = await this.getOasValidationToggleOptional();
     if (!toggle) {
       throw new Error('OpenAPI validation toggle is not in the DOM');
+    }
+    return toggle.toggle();
+  }
+
+  public async isRestToSoapTogglePresent(): Promise<boolean> {
+    return (await this.getRestToSoapToggleOptional()) !== null;
+  }
+
+  public async isRestToSoapToggleSelected(): Promise<boolean> {
+    const toggle = await this.getRestToSoapToggleOptional();
+    if (!toggle) {
+      throw new Error('REST to SOAP toggle is not in the DOM');
+    }
+    return toggle.isChecked();
+  }
+
+  public async isRestToSoapToggleDisabled(): Promise<boolean> {
+    const toggle = await this.getRestToSoapToggleOptional();
+    if (!toggle) {
+      throw new Error('REST to SOAP toggle is not in the DOM');
+    }
+    return toggle.isDisabled();
+  }
+
+  public async toggleRestToSoap(): Promise<void> {
+    const toggle = await this.getRestToSoapToggleOptional();
+    if (!toggle) {
+      throw new Error('REST to SOAP toggle is not in the DOM');
     }
     return toggle.toggle();
   }

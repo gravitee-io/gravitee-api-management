@@ -146,13 +146,12 @@ class WsdlToImportApiUseCaseTest {
     }
 
     @Test
-    void should_create_flows_for_each_wsdl_operation() {
+    void should_not_create_flows_when_no_policies_are_requested() {
         var output = useCase.execute(buildInput(loadWsdl(), false, false));
         var apiDefinition = (Api) output.apiWithFlows().getApiDefinitionValue();
 
         assertThat(output).isNotNull();
-        // calculator.wsdl has 4 operations × 2 bindings (SOAP 1.1 + SOAP 1.2) = 8 flows
-        assertThat(apiDefinition.getFlows()).hasSize(8);
+        assertThat(apiDefinition.getFlows()).isEmpty();
     }
 
     @Test
@@ -203,18 +202,18 @@ class WsdlToImportApiUseCaseTest {
                 "http://localhost:" + wm.getHttpPort() + "/calculator.wsdl",
                 false,
                 false,
+                List.of(),
                 AUDIT_INFO
             );
             var output = useCase.execute(input);
 
             assertThat(output).isNotNull();
             assertThat(output.apiWithFlows().getName()).isEqualTo("CalculatorService");
-            assertThat(((Api) output.apiWithFlows().getApiDefinitionValue()).getFlows()).hasSize(8);
         }
 
         @Test
         void should_throw_when_remote_url_is_unreachable() {
-            var input = new WsdlToImportApiUseCase.Input.Url("http://localhost:1/nonexistent.wsdl", false, false, AUDIT_INFO);
+            var input = new WsdlToImportApiUseCase.Input.Url("http://localhost:1/nonexistent.wsdl", false, false, List.of(), AUDIT_INFO);
 
             var throwable = catchThrowable(() -> useCase.execute(input));
 
@@ -229,6 +228,7 @@ class WsdlToImportApiUseCaseTest {
                 "http://localhost:" + wm.getHttpPort() + "/bad.wsdl",
                 false,
                 false,
+                List.of(),
                 AUDIT_INFO
             );
             var throwable = catchThrowable(() -> useCase.execute(input));
@@ -237,12 +237,22 @@ class WsdlToImportApiUseCaseTest {
         }
     }
 
+    @Test
+    void should_create_flows_when_rest_to_soap_policy_is_requested() {
+        var input = new WsdlToImportApiUseCase.Input.Inline(loadWsdl(), false, false, List.of("rest-to-soap"), AUDIT_INFO);
+        var output = useCase.execute(input);
+        var apiDefinition = (Api) output.apiWithFlows().getApiDefinitionValue();
+
+        // Flows are generated (not skipped) when policies are requested
+        assertThat(apiDefinition.getFlows()).isNotEmpty();
+    }
+
     @SneakyThrows
     private String loadWsdl() {
         return Resources.toString(Resources.getResource("wsdl/calculator.wsdl"), Charsets.UTF_8);
     }
 
     private WsdlToImportApiUseCase.Input buildInput(String payload, boolean withDocumentation, boolean withOASValidationPolicy) {
-        return new WsdlToImportApiUseCase.Input.Inline(payload, withDocumentation, withOASValidationPolicy, AUDIT_INFO);
+        return new WsdlToImportApiUseCase.Input.Inline(payload, withDocumentation, withOASValidationPolicy, List.of(), AUDIT_INFO);
     }
 }

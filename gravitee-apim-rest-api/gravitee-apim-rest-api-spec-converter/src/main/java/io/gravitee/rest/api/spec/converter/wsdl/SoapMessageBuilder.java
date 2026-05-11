@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
 import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
 import io.gravitee.rest.api.spec.converter.wsdl.soap.SoapBodyBuilder;
 import io.gravitee.rest.api.spec.converter.wsdl.soap.SoapHeadersBuilder;
+import io.gravitee.rest.api.spec.converter.wsdl.utils.ElPlaceholderXmlUtil;
 import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -48,8 +49,14 @@ public class SoapMessageBuilder {
     private List<XmlObject> schemas = new ArrayList<>();
     private SchemaTypeSystem schemaTypeSystem;
     private boolean compiled = false;
+    private final boolean useElPlaceholders;
 
     public SoapMessageBuilder(Map<String, String> namespaceMappings) {
+        this(namespaceMappings, false);
+    }
+
+    public SoapMessageBuilder(Map<String, String> namespaceMappings, boolean useElPlaceholders) {
+        this.useElPlaceholders = useElPlaceholders;
         this.namespaceMappings = namespaceMappings;
         this.namespaceMappings.put(SampleXmlUtil.XSI_TYPE.getNamespaceURI(), SampleXmlUtil.XSI_TYPE.getPrefix());
         this.namespaceMappings.put(XMLSCHEMA, XSD_PREFIX);
@@ -76,6 +83,13 @@ public class SoapMessageBuilder {
                 e
             );
         }
+    }
+
+    public SchemaTypeSystem getSchemaTypeSystem() {
+        if (!compiled) {
+            compileSchemas();
+        }
+        return schemaTypeSystem;
     }
 
     public void compileSchemas() {
@@ -134,13 +148,17 @@ public class SoapMessageBuilder {
             envelopeCursor.toBookmark(bookmark);
             envelopeCursor.toLastChild();
 
-            new SoapBodyBuilder()
+            SoapBodyBuilder bodyBuilder = new SoapBodyBuilder();
+            bodyBuilder
                 .withBindingOperation(bindingOperation)
                 .withCursor(envelopeCursor)
                 .withNamespaceMappings(namespaceMappings)
                 .withShemaTypeSystem(schemaTypeSystem)
-                .withVersion(version)
-                .build();
+                .withVersion(version);
+            if (useElPlaceholders) {
+                bodyBuilder.withTypeContentWriter(ElPlaceholderXmlUtil.typeContentWriter());
+            }
+            bodyBuilder.build();
 
             envelopeCursor.dispose();
             soapEnvelope.save(writer, options);

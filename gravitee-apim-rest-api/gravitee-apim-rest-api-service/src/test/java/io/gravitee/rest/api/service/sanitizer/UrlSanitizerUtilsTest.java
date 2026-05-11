@@ -34,12 +34,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class UrlSanitizerUtilsTest {
 
     @Test
-    public void isUrl_returnsTrue_forHttpUrl() {
+    public void is_url_returns_true_for_http_url() {
         assertTrue(UrlSanitizerUtils.isUrl("https://www.gravitee.io/spec.wsdl"));
     }
 
     @Test
-    public void isUrl_returnsFalse_forInlineContent() {
+    public void is_url_returns_false_for_inline_content() {
         assertFalse(UrlSanitizerUtils.isUrl("<definitions xmlns=\"http://schemas.xmlsoap.org/wsdl/\"/>"));
     }
 
