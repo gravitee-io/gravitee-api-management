@@ -164,8 +164,8 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     private Optional<Error> findConflictingPathError(String path, List<String> existingPaths) {
         return existingPaths
             .stream()
-            .findFirst()
             .filter(existingPath -> existingPath.startsWith(path) || path.startsWith(existingPath))
+            .findFirst()
             .map(conflictingPath -> Error.severe("Path [%s] already exists", conflictingPath));
     }
 
