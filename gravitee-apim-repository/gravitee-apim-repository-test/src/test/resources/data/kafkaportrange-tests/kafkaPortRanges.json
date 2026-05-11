@@ -1,0 +1,52 @@
+[
+  {
+    "planId": "plan-default-1",
+    "apiId": "api-default-1",
+    "environmentId": "DEFAULT",
+    "bootstrapPort": 9092,
+    "rangeStart": 9100,
+    "rangeEnd": 9105,
+    "createdAt": "2026-04-23T12:00:00Z",
+    "updatedAt": "2026-04-23T12:00:00Z"
+  },
+  {
+    "planId": "plan-default-2",
+    "apiId": "api-default-2",
+    "environmentId": "DEFAULT",
+    "bootstrapPort": 9292,
+    "rangeStart": 9300,
+    "rangeEnd": 9305,
+    "createdAt": "2026-04-23T12:00:00Z",
+    "updatedAt": "2026-04-23T12:00:00Z"
+  },
+  {
+    "planId": "plan-other-env",
+    "apiId": "api-other-env",
+    "environmentId": "OTHER_ENV",
+    "bootstrapPort": 9092,
+    "rangeStart": 9100,
+    "rangeEnd": 9105,
+    "createdAt": "2026-04-23T12:00:00Z",
+    "updatedAt": "2026-04-23T12:00:00Z"
+  },
+  {
+    "planId": "plan-same-api-a",
+    "apiId": "api-multi-plan",
+    "environmentId": "DEFAULT",
+    "bootstrapPort": 9500,
+    "rangeStart": 9510,
+    "rangeEnd": 9515,
+    "createdAt": "2026-04-23T12:00:00Z",
+    "updatedAt": "2026-04-23T12:00:00Z"
+  },
+  {
+    "planId": "plan-same-api-b",
+    "apiId": "api-multi-plan",
+    "environmentId": "DEFAULT",
+    "bootstrapPort": 9600,
+    "rangeStart": 9610,
+    "rangeEnd": 9615,
+    "createdAt": "2026-04-23T12:00:00Z",
+    "updatedAt": "2026-04-23T12:00:00Z"
+  }
+]

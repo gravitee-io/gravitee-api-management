@@ -58,6 +58,7 @@ import org.junit.runners.Suite;
         InstallationRepositoryTest.class,
         IntegrationRepositoryTest.class,
         InvitationRepositoryTest.class,
+        KafkaPortRangeRepositoryTest.class,
         MediaRepositoryTest.class,
         MembershipRepositoryTest.class,
         MetadataRepositoryTest.class,

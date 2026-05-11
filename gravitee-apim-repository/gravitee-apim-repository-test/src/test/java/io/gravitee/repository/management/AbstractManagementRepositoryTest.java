@@ -135,6 +135,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected InvitationRepository invitationRepository;
 
     @Inject
+    protected KafkaPortRangeRepository kafkaPortRangeRepository;
+
+    @Inject
     protected ClientRegistrationProviderRepository clientRegistrationProviderRepository;
 
     @Inject
@@ -282,6 +285,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case AlertTrigger alertTrigger -> alertRepository.create(alertTrigger);
             case Entrypoint entrypoint -> entrypointRepository.create(entrypoint);
             case Invitation invitation -> invitationRepository.create(invitation);
+            case KafkaPortRange kafkaPortRange -> kafkaPortRangeRepository.create(kafkaPortRange);
             case ClientRegistrationProvider clientRegistrationProvider -> clientRegistrationProviderRepository.create(
                 clientRegistrationProvider
             );
