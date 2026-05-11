@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<api-navigation-header [menuItemHeader]="{ title: 'Runtime Logs' }">
+<api-navigation-header [menuItemHeader]="{ title: 'Connection Logs' }">
   <div actionButtons>
     <a mat-raised-button [routerLink]="['../../reporter-settings']" data-testid="native_logs_configure_reporting"> Configure Reporting </a>
   </div>
@@ -30,6 +30,8 @@
       >
     </div>
   </gio-banner-info>
+} @else {
+  <api-runtime-logs-native-summary [apiId]="apiId" [from]="summaryRange().from" [to]="summaryRange().to" />
 }
 
 <mat-card>

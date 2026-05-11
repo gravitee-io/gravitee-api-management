@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -29,6 +29,7 @@ import moment from 'moment';
 
 import { NATIVE_CONNECTION_STATUSES } from './api-runtime-logs-native.models';
 import { ApiRuntimeLogsNativeListComponent } from './components/api-runtime-logs-native-list/api-runtime-logs-native-list.component';
+import { ApiRuntimeLogsNativeSummaryComponent } from './components/api-runtime-logs-native-summary/api-runtime-logs-native-summary.component';
 
 import { ApiNativeLogsV2Service } from '../../../../services-ngx/api-native-logs-v2.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -83,6 +84,7 @@ interface SearchInput {
     GioTimeframeComponent,
     GioSelectSearchComponent,
     ApiRuntimeLogsNativeListComponent,
+    ApiRuntimeLogsNativeSummaryComponent,
     ActionButtonsDirective,
     ApiNavigationModule,
   ],
@@ -98,27 +100,36 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
 
   protected readonly connectionStatusOptions: SelectOption[] = NATIVE_CONNECTION_STATUSES.map(s => ({ value: s.value, label: s.label }));
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
-
-  private readonly api$ = this.apiService
-    .get(this.activatedRoute.snapshot.params.apiId)
-    .pipe(shareReplay({ bufferSize: 1, refCount: true }));
-  protected readonly isReportingDisabled$ = this.api$.pipe(map((api: ApiV4) => api.analytics?.reporterMetricsEnabled === false));
-
-  protected readonly plans$ = this.planService
-    .list(this.activatedRoute.snapshot.params.apiId, undefined, undefined, undefined, undefined, 1, 9999)
-    .pipe(
-      map(response => response.data ?? []),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-  protected readonly planOptions$: Observable<SelectOption[]> = this.plans$.pipe(
-    map(plans => plans.map(p => ({ value: p.id, label: p.name }))),
-  );
+  protected readonly apiId = this.activatedRoute.snapshot.params.apiId as string;
 
   protected readonly logs$ = new ReplaySubject<NativeApiLogsResponse>(1);
   protected readonly rowApplications$ = new ReplaySubject<Application[]>(1);
   protected readonly loading = signal(true);
+  protected readonly form = new FormGroup<NativeLogFiltersForm>({
+    timeframe: new FormControl<TimeframeValue | null>({ period: '', from: null, to: null }),
+    applicationIds: new FormControl<string[]>([], { nonNullable: true }),
+    planIds: new FormControl<string[]>([], { nonNullable: true }),
+    connectionStatuses: new FormControl<NativeConnectionStatus[]>([], { nonNullable: true }),
+  });
 
+  // Mirrors the search "apply" semantics — only preset valueChanges and applyCustomTimeframe
+  // update this, so custom-period keystrokes don't spam /summary.
+  private readonly summaryTimeframe = signal<TimeframeValue | null>(null);
   private readonly searchTrigger$ = new Subject<SearchInput>();
+  private readonly summaryRef = viewChild(ApiRuntimeLogsNativeSummaryComponent);
+
+  private readonly api$ = this.apiService.get(this.apiId).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+  protected readonly isReportingDisabled$ = this.api$.pipe(map((api: ApiV4) => api.analytics?.reporterMetricsEnabled === false));
+
+  protected readonly plans$ = this.planService.list(this.apiId, undefined, undefined, undefined, undefined, 1, 9999).pipe(
+    map(response => response.data ?? []),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  protected readonly planOptions$: Observable<SelectOption[]> = this.plans$.pipe(
+    map(plans => plans.map(p => ({ value: p.id, label: p.name }))),
+  );
+
+  protected readonly summaryRange = computed(() => toFromTo(this.summaryTimeframe()));
 
   protected readonly applicationsResultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
     const perPage = 25;
@@ -132,25 +143,18 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
     );
   };
 
-  protected readonly form = new FormGroup<NativeLogFiltersForm>({
-    timeframe: new FormControl<TimeframeValue | null>({ period: '', from: null, to: null }),
-    applicationIds: new FormControl<string[]>([], { nonNullable: true }),
-    planIds: new FormControl<string[]>([], { nonNullable: true }),
-    connectionStatuses: new FormControl<NativeConnectionStatus[]>([], { nonNullable: true }),
-  });
-
   ngOnInit(): void {
     this.hydrateFormFromQueryParams();
+    this.summaryTimeframe.set(this.form.controls.timeframe.value);
 
-    // Each trigger runs as its own inner observable with catchError + finalize so a failed
-    // request never terminates the outer Subject. Without inner isolation, one HTTP error
-    // would silently kill all subsequent filter / pagination / refresh interactions.
+    // Inner-observable catchError keeps the outer Subject alive after an HTTP error,
+    // otherwise one failure would silently kill all subsequent filter/pagination interactions.
     this.searchTrigger$
       .pipe(
         switchMap(({ page, perPage }) => {
           this.loading.set(true);
           const params = this.toQueryParams(page, perPage);
-          return this.logsService.searchConnectionLogs(this.activatedRoute.snapshot.params.apiId, params).pipe(
+          return this.logsService.searchConnectionLogs(this.apiId, params).pipe(
             switchMap(response => this.resolveRowApplications(response)),
             tap(response => {
               this.logs$.next(response);
@@ -170,6 +174,7 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
       // Custom timeframe needs explicit Apply via gio-timeframe (apply event); preset emits here.
       const tf = this.form.controls.timeframe.value;
       if (tf?.period === CUSTOM_PERIOD) return;
+      this.summaryTimeframe.set(tf);
       this.searchTrigger$.next({ page: 1, perPage: this.currentPerPage() });
     });
   }
@@ -180,9 +185,12 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
 
   protected refresh() {
     this.searchTrigger$.next({ page: this.currentPage(), perPage: this.currentPerPage() });
+    // Re-fetch summary too — same from/to wouldn't re-trigger rxResource without an explicit reload.
+    this.summaryRef()?.reload();
   }
 
   protected applyCustomTimeframe() {
+    this.summaryTimeframe.set(this.form.controls.timeframe.value);
     this.searchTrigger$.next({ page: 1, perPage: this.currentPerPage() });
   }
 
@@ -194,8 +202,7 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
     return +(this.activatedRoute.snapshot.queryParams.perPage ?? 10);
   }
 
-  // Returns the original response so the search pipeline can flow through a single switchMap.
-  // Name resolution is non-essential — degrade gracefully on failure so log rows still render with raw IDs.
+  // Name resolution is non-essential — degrade gracefully so rows still render with raw IDs.
   private resolveRowApplications(response: NativeApiLogsResponse): Observable<NativeApiLogsResponse> {
     const ids = uniqueIds(response.data);
     if (ids.length === 0) {
@@ -214,18 +221,13 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
 
   private toQueryParams(page: number, perPage: number): NativeApiLogsParam & { period?: string } {
     const value = this.form.getRawValue();
-    const tf = value.timeframe;
-    const { from, to } = !tf?.period
-      ? {}
-      : tf.period === CUSTOM_PERIOD
-        ? { from: tf.from?.valueOf(), to: tf.to?.valueOf() }
-        : timeFrameRangesParams(tf.period);
+    const { from, to } = toFromTo(value.timeframe);
     return {
       page,
       perPage,
-      period: tf?.period || undefined,
-      from,
-      to,
+      period: value.timeframe?.period || undefined,
+      from: from ?? undefined,
+      to: to ?? undefined,
       applicationIds: value.applicationIds?.length ? value.applicationIds.join(',') : undefined,
       planIds: value.planIds?.length ? value.planIds.join(',') : undefined,
       connectionStatuses: value.connectionStatuses?.length ? value.connectionStatuses.join(',') : undefined,
@@ -252,4 +254,13 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
 function uniqueIds(rows: NativeApiLog[] | undefined): string[] {
   if (!rows?.length) return [];
   return Array.from(new Set(rows.map(r => r.applicationId).filter((id): id is string => !!id)));
+}
+
+function toFromTo(tf: TimeframeValue | null | undefined): { from: number | null; to: number | null } {
+  if (!tf?.period) return { from: null, to: null };
+  if (tf.period === CUSTOM_PERIOD) {
+    return { from: tf.from?.valueOf() ?? null, to: tf.to?.valueOf() ?? null };
+  }
+  const { from, to } = timeFrameRangesParams(tf.period);
+  return { from, to };
 }
