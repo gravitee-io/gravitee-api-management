@@ -300,6 +300,24 @@ class VerifyApiPathDomainServiceTest {
     }
 
     @Test
+    public void should_return_error_if_path_already_used_by_secondary_api_v4_path() {
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
+
+        givenExistingApis(
+            ENVIRONMENT_ID,
+            Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path1/"), Pair.of("", "/path2/"))))
+        );
+
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().host("").path("/path2/").build()))
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path2/] already exists")));
+    }
+
+    @Test
     public void should_ignore_path_already_used_by_same_api_v4() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
