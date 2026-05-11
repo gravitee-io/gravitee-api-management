@@ -152,6 +152,17 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     @Test
+    void should_export_allowedInApiProducts_false_for_v4_proxy_api() {
+        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
+
+        Response response = rootTarget().request().get();
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+
+        var json = response.readEntity(String.class);
+        assertThat(json).contains("\"allowedInApiProducts\" : false");
+    }
+
+    @Test
     void should_export_NativeApiEntityV4() {
         when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeNativeApiEntityV4())));
 
@@ -281,6 +292,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .analytics(new Analytics())
             .endpointGroups(List.of(endpointGroup))
             .flows(List.of(flow))
+            .allowedInApiProducts(false)
             .build();
     }
 
