@@ -198,7 +198,7 @@ export class ApiProductMembersComponent {
   protected readonly roleFieldShowsRequiredError = signal<Readonly<Record<string, boolean>>>({});
 
   protected readonly form = new FormGroup({
-    isNotificationsEnabled: new FormControl(true),
+    isNotificationsEnabled: new FormControl({ value: false, disabled: this.isReadOnly }, { nonNullable: true }),
     members: new FormGroup({}),
   });
 
@@ -245,6 +245,7 @@ export class ApiProductMembersComponent {
         ),
       ),
       tap(state => {
+        this.syncNotificationControl(state.apiProduct);
         this.syncMembersFormGroup(state.rows);
         this.syncGroupInheritedMembersState(state);
       }),
@@ -493,6 +494,24 @@ export class ApiProductMembersComponent {
     const dirtyEntries = Object.entries(controls).filter(([, c]) => c.dirty) as [string, FormControl<string>][];
 
     const requests: Observable<unknown>[] = [];
+
+    const notificationControl = this.form.controls.isNotificationsEnabled;
+    if (notificationControl.dirty) {
+      const apiProduct = this.membersLoadState().apiProduct;
+      if (apiProduct) {
+        requests.push(
+          this.apiProductV2Service.update(apiProductId, {
+            name: apiProduct.name,
+            version: apiProduct.version,
+            description: apiProduct.description,
+            apiIds: apiProduct.apiIds ?? [],
+            groups: apiProduct.groups,
+            disableMembershipNotifications: !notificationControl.value,
+          }),
+        );
+      }
+    }
+
     for (const [key, ctrl] of dirtyEntries) {
       if (key.startsWith('pending-')) {
         const user = this.pendingUsers().find(u => u.viewId === key);
@@ -687,6 +706,15 @@ export class ApiProductMembersComponent {
       isPrimaryOwner: (member.roles ?? []).some(r => r.name === 'PRIMARY_OWNER'),
       isPending: false,
     };
+  }
+
+  private syncNotificationControl(apiProduct: ApiProduct | null): void {
+    const ctrl = this.form.controls.isNotificationsEnabled;
+    if (ctrl.dirty) {
+      return;
+    }
+    ctrl.setValue(!apiProduct?.disableMembershipNotifications, { emitEvent: false });
+    ctrl.markAsPristine();
   }
 
   private syncMembersFormGroup(rows: MemberRow[]): void {

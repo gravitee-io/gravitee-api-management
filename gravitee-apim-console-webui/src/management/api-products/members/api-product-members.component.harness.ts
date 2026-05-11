@@ -16,6 +16,7 @@
 import { ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
@@ -36,6 +37,10 @@ export function getApiProductManageGroupsDialogPredicate(): HarnessPredicate<Mat
 
 export class ApiProductMembersComponentHarness extends ComponentHarness {
   static hostSelector = 'api-product-members';
+
+  private async getMembersNotificationToggle(): Promise<MatSlideToggleHarness> {
+    return this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="api_product_members_notify_toggle"]' }))();
+  }
 
   async getTitle(): Promise<string> {
     const el = await this.locatorFor('[data-testid="api_product_members_title"]')();
@@ -82,6 +87,18 @@ export class ApiProductMembersComponentHarness extends ComponentHarness {
 
   async getManageGroupsButton(): Promise<MatButtonHarness | null> {
     return this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="api_product_members_manage_groups_button"]' }))();
+  }
+
+  async isMembersNotificationToggleChecked(): Promise<boolean> {
+    return (await this.getMembersNotificationToggle()).isChecked();
+  }
+
+  async isMembersNotificationToggleDisabled(): Promise<boolean> {
+    return (await this.getMembersNotificationToggle()).isDisabled();
+  }
+
+  async toggleMembersNotification(): Promise<void> {
+    await (await this.getMembersNotificationToggle()).toggle();
   }
 
   /** Clicks **Manage groups** (throws if the control is absent, e.g. missing permission). */

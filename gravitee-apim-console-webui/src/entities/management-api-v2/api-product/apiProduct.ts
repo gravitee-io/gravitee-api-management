@@ -59,6 +59,11 @@ export interface ApiProduct {
    * Indicates whether the API Product is in sync with the latest deployment.
    */
   deploymentState?: ApiProductDeploymentState;
+  /**
+   * Disable membership notifications.
+   * @default false
+   */
+  disableMembershipNotifications?: boolean;
 
   _links?: { [key: string]: string };
 }

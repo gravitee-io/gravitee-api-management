@@ -206,6 +206,16 @@ describe('ApiProductMembersComponent', () => {
     expect(await harness.getDescription()).toContain('Manage who can interact with your API Product');
   }));
 
+  it('should disable notification toggle when read-only', fakeAsync(async () => {
+    await init(['api_product-member-r']);
+    expectMembersPageRequests([]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.isMembersNotificationToggleDisabled()).toBe(true);
+  }));
+
   it('should render picture, Name and Role column headers', fakeAsync(async () => {
     await init();
     expectMembersPageRequests([]);
@@ -588,4 +598,51 @@ describe('ApiProductMembersComponent', () => {
 
     expect((await harness.getInheritedGroupMemberCards()).length).toBe(0);
   }));
+
+  describe('notification toggle', () => {
+    it('should reflect disableMembershipNotifications=true as unchecked toggle', fakeAsync(async () => {
+      await init(['api_product-member-r', 'api_product-member-u']);
+      expectMembersPageRequests([], 0, 1, 10, { disableMembershipNotifications: true });
+      expectRolesRequest();
+      tick();
+      fixture.detectChanges();
+
+      expect(await harness.isMembersNotificationToggleChecked()).toBe(false);
+    }));
+
+    it('should reflect disableMembershipNotifications=false as checked toggle', fakeAsync(async () => {
+      await init(['api_product-member-r', 'api_product-member-u']);
+      expectMembersPageRequests([], 0, 1, 10, { disableMembershipNotifications: false });
+      expectRolesRequest();
+      tick();
+      fixture.detectChanges();
+
+      expect(await harness.isMembersNotificationToggleChecked()).toBe(true);
+    }));
+
+    it('should PUT API Product with disableMembershipNotifications=true when toggle is unchecked and saved', fakeAsync(async () => {
+      await init(['api_product-member-r', 'api_product-member-u']);
+      expectMembersPageRequests([], 0, 1, 10, { disableMembershipNotifications: false });
+      expectRolesRequest();
+      tick();
+      fixture.detectChanges();
+
+      await harness.toggleMembersNotification();
+      fixture.detectChanges();
+
+      await harness.clickSave();
+      tick();
+      fixture.detectChanges();
+
+      const putReq = httpTestingController.expectOne(
+        req => req.method === 'PUT' && req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`,
+      );
+      expect(putReq.request.body.disableMembershipNotifications).toEqual(true);
+      putReq.flush({ id: API_PRODUCT_ID, name: 'Test API Product', version: '1.0', apiIds: [], groups: [] });
+      tick();
+      fixture.detectChanges();
+
+      expectMembersPageRequests([]);
+    }));
+  });
 });
