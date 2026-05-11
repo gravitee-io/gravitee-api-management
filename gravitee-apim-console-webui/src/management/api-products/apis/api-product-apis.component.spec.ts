@@ -30,6 +30,7 @@ import { ApiProductApisComponent } from './api-product-apis.component';
 
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Api, fakeProxyApiV4 } from '../../../entities/management-api-v2';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -81,14 +82,15 @@ describe('ApiProductApisComponent', () => {
     ],
   });
 
-  beforeEach(() => {
+  async function init(permissions: string[] = ['api_product-definition-u']) {
     queryParams$ = new BehaviorSubject<Record<string, string>>({});
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
       imports: [ApiProductApisComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: SnackBarService, useValue: fakeSnackBarService },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -122,19 +124,24 @@ describe('ApiProductApisComponent', () => {
       }
       return Promise.resolve(true);
     });
-  });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
 
   afterEach(() => {
-    httpTestingController.verify();
+    httpTestingController?.verify();
     jest.clearAllMocks();
   });
 
-  it('should create', () => {
-    fixture.detectChanges();
+  it('should create', async () => {
+    await init();
+    await initComponent([]);
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should display empty state when no APIs in product', async () => {
+    await init();
     await initComponent([]);
 
     const emptyState = await loader.getHarness(DivHarness.with({ selector: '.api-product-apis-empty-state' }));
@@ -142,6 +149,7 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should display table with API rows when product has APIs', async () => {
+    await init();
     await initComponent([fakeApi1, fakeApi2]);
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: 'table' }));
@@ -158,8 +166,7 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should display Loading... then data', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
+    await init();
 
     const emptyState = await loader.getHarness(DivHarness.with({ selector: '.api-product-apis-empty-state' }));
     expect(await emptyState.getText()).toContain('Loading...');
@@ -176,8 +183,7 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should handle error when loading API product', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
+    await init();
 
     const req = expectApisRequest();
     req.flush({ message: 'Error' }, { status: 500, statusText: 'Server Error' });
@@ -188,8 +194,7 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should show error and navigate to list when API Product not found (404)', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
+    await init();
 
     const req = expectApisRequest();
     req.flush({ message: 'API Product not found' }, { status: 404, statusText: 'Not Found' });
@@ -201,13 +206,23 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should have Add API button', async () => {
+    await init();
     await initComponent([fakeApi1]);
 
     const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
     expect(await addButton.getText()).toContain('Add API');
   });
 
+  it('should hide Add API button when user cannot update', async () => {
+    await init(['api_product-definition-r']);
+    await initComponent([fakeApi1]);
+
+    const addButton = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
+    expect(addButton).toBeNull();
+  });
+
   it('should open Add API dialog when Add API clicked', async () => {
+    await init();
     const matDialog = TestBed.inject(MatDialog);
     const dialogOpenSpy = jest.spyOn(matDialog, 'open');
     await initComponent([fakeApi1]);
@@ -232,6 +247,7 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should filter APIs by search term', async () => {
+    await init();
     await initComponent([fakeApi1, fakeApi2]);
 
     const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
@@ -262,9 +278,6 @@ describe('ApiProductApisComponent', () => {
   }
 
   async function initComponent(apis: Api[] = []) {
-    fixture.detectChanges();
-    await fixture.whenStable();
-
     const apisReq = expectApisRequest();
     apisReq.flush({ data: apis, pagination: { totalCount: apis.length } });
 

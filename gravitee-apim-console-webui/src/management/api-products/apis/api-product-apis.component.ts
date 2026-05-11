@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, Injector, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -47,6 +47,7 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 export type ApiProductApiTableDS = {
   id: string;
@@ -97,8 +98,15 @@ export class ApiProductApisComponent implements OnInit {
   private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly snackBarService = inject(SnackBarService);
   private readonly matDialog = inject(MatDialog);
+  private readonly permissionService = inject(GioPermissionService);
 
-  readonly displayedColumns = ['picture', 'name', 'contextPath', 'definition', 'version', 'actions'] as const;
+  protected readonly canUpdate = computed(() => this.permissionService.hasAnyMatching(['api_product-definition-u']));
+
+  readonly displayedColumns = computed(() =>
+    this.canUpdate()
+      ? (['picture', 'name', 'contextPath', 'definition', 'version', 'actions'] as const)
+      : (['picture', 'name', 'contextPath', 'definition', 'version'] as const),
+  );
   apisTableDS: ApiProductApiTableDS = [];
   apisTableDSUnpaginatedLength = 0;
   searchLabel = 'Search APIs...';
