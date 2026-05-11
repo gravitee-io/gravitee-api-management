@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 
-export * from './nativeApiLog';
-export * from './nativeApiLog.fixture';
-export * from './nativeApiLogsResponse';
-export * from './nativeApiLogsResponse.fixture';
-export * from './nativeApiLogsSummary';
-export * from './nativeApiLogsSummary.fixture';
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+
+    &__badge {
+      align-self: flex-start;
+    }
+  }
+}

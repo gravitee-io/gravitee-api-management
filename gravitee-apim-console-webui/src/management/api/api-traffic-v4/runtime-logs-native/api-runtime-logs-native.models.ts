@@ -17,17 +17,23 @@ import { NativeConnectionStatus } from '../../../../entities/management-api-v2';
 
 export interface NativeConnectionStatusMeta {
   label: string;
+  // gio-badge-* utility class — colors the badge in both the table cell and the summary card.
   badgeClass: string;
+  icon: string;
 }
 
 // Record forces compile-time exhaustiveness — adding a new status to the union without an entry here is a build error.
 export const NATIVE_STATUS_META: Record<NativeConnectionStatus, NativeConnectionStatusMeta> = {
-  CONNECTED: { label: 'Connected', badgeClass: 'gio-badge-success' },
-  CONNECTION_ERROR: { label: 'Failed', badgeClass: 'gio-badge-warning' },
-  SESSION_ERROR: { label: 'Disconnected', badgeClass: 'gio-badge-warning' },
-  INTERNAL_ERROR: { label: 'Unknown', badgeClass: 'gio-badge-error' },
+  CONNECTED: { label: 'Connected', badgeClass: 'gio-badge-success', icon: 'gio:check-circled-outline' },
+  SESSION_ERROR: { label: 'Disconnected', badgeClass: 'gio-badge-warning', icon: 'gio:alert-circle' },
+  CONNECTION_ERROR: { label: 'Failed', badgeClass: 'gio-badge-error', icon: 'gio:error' },
+  INTERNAL_ERROR: { label: 'Unknown', badgeClass: 'gio-badge-accent', icon: 'gio:shield-alert' },
 };
 
 export const NATIVE_CONNECTION_STATUSES: { value: NativeConnectionStatus; label: string }[] = (
   Object.entries(NATIVE_STATUS_META) as [NativeConnectionStatus, NativeConnectionStatusMeta][]
 ).map(([value, meta]) => ({ value, label: meta.label }));
+
+// Derived from the meta table to stay in sync: adding a new status to NATIVE_STATUS_META
+// auto-appears in the summary widget at the position it was inserted at (healthy → degraded → fatal).
+export const NATIVE_SUMMARY_STATUSES = Object.keys(NATIVE_STATUS_META) as NativeConnectionStatus[];

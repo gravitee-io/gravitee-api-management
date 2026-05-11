@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, fakeAsync, flush, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -49,7 +49,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID }, queryParams } } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-        provideNoopAnimations(),
+        provideAnimationsAsync('noop'),
       ],
     });
 
@@ -120,7 +120,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     expect(await harness.getConfigureReportingLabel()).toBe('Configure Reporting');
   });
 
-  it('shows reporting-disabled banner when reporterMetricsEnabled is false', async () => {
+  it('shows reporting-disabled banner and hides the summary widget when reporterMetricsEnabled is false', async () => {
     await initComponent();
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`).flush(
       fakeApiV4({
@@ -141,6 +141,8 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     fixture.detectChanges();
 
     expect(await harness.isReportingDisabledBannerVisible()).toBe(true);
+    httpTestingController.expectNone(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`);
+    expect(fixture.nativeElement.querySelector('api-runtime-logs-native-summary')).toBeNull();
   });
 
   it('refresh re-triggers search', fakeAsync(async () => {
@@ -220,7 +222,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     flush();
   }));
 
-  it('does not trigger a search when timeframe period switches to custom (waits for explicit Apply)', fakeAsync(async () => {
+  it('does not trigger a search OR a summary refetch when timeframe period switches to custom (waits for explicit Apply)', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
     httpTestingController
@@ -234,6 +236,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     flush();
 
     httpTestingController.expectNone(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native`);
+    httpTestingController.expectNone(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`);
   }));
 
   it('hydrates form from query params and fires initial search with from/to derived from preset', fakeAsync(async () => {
@@ -250,9 +253,11 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     );
     req.flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
+    httpTestingController
+      .match(r => r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`)
+      .forEach(r => r.flush({ countByConnectionStatus: {} }));
     flush();
 
-    // Verify URL sync also carried the period for shareable links
     expect(routerNavigateSpy).toHaveBeenCalledWith(
       ['.'],
       expect.objectContaining({ queryParams: expect.objectContaining({ period: '1h' }) }),

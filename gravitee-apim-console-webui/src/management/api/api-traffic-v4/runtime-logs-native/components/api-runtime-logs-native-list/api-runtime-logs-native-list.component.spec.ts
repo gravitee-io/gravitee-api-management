@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
@@ -35,7 +35,7 @@ describe('ApiRuntimeLogsNativeListComponent', () => {
   const setup = async (logs: ReturnType<typeof fakeNativeApiLog>[], applications = apps, knownPlans = plans) => {
     TestBed.configureTestingModule({
       imports: [ApiRuntimeLogsNativeListComponent, MatIconTestingModule],
-      providers: [provideNoopAnimations()],
+      providers: [provideAnimationsAsync('noop')],
     });
     fixture = TestBed.createComponent(ApiRuntimeLogsNativeListComponent);
     component = fixture.componentInstance;
@@ -74,7 +74,7 @@ describe('ApiRuntimeLogsNativeListComponent', () => {
     expect(badges[0].text).toBe('Connected');
     expect(badges[0].classes).toContain('gio-badge-success');
     expect(badges[1].text).toBe('Failed');
-    expect(badges[1].classes).toContain('gio-badge-warning');
+    expect(badges[1].classes).toContain('gio-badge-error');
   });
 
   it('omits the badge cell when connectionStatus is missing', async () => {

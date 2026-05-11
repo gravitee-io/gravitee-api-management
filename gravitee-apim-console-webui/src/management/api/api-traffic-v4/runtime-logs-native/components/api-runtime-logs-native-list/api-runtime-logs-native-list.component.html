@@ -48,7 +48,7 @@
       <th mat-header-cell *matHeaderCellDef id="connectionStatus">Connection status</th>
       <td mat-cell *matCellDef="let log">
         @if (log.connectionStatus && statusMeta[log.connectionStatus]; as meta) {
-          <span [class]="meta.badgeClass" [matTooltip]="meta.label">{{ meta.label }}</span>
+          <span [class]="meta.badgeClass"> <mat-icon [svgIcon]="meta.icon"></mat-icon>&nbsp;{{ meta.label }} </span>
         }
       </td>
     </ng-container>

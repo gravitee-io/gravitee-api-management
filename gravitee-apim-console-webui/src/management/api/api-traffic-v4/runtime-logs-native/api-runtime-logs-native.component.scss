@@ -30,5 +30,15 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 16px;
+
+    // MDC's default form-field margin + subscript area push gio-timeframe below the other
+    // filter triggers; no theme token exposed, so override the internal layout here.
+    ::ng-deep .mat-mdc-form-field {
+      margin: 0;
+    }
+
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
   }
 }

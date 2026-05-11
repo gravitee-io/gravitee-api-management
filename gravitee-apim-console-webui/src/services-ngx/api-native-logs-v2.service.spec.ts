@@ -20,7 +20,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiNativeLogsV2Service } from './api-native-logs-v2.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
-import { fakeNativeApiLog, NativeApiLogsParam, NativeApiLogsResponse } from '../entities/management-api-v2';
+import { fakeNativeApiLog, fakeNativeApiLogsSummary, NativeApiLogsParam, NativeApiLogsResponse } from '../entities/management-api-v2';
 
 interface Row {
   queryParams: NativeApiLogsParam;
@@ -78,6 +78,24 @@ describe('ApiNativeLogsV2Service', () => {
 
       const response = await responsePromise;
       expect(response.data).toEqual(fakeResponse.data);
+    });
+  });
+
+  describe('searchSummary', () => {
+    it('calls GET /logs/native/summary with from and to params', async () => {
+      const fakeResponse = fakeNativeApiLogsSummary();
+
+      const responsePromise = firstValueFrom(service.searchSummary(API_ID, 1000, 2000));
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary?from=1000&to=2000`,
+          method: 'GET',
+        })
+        .flush(fakeResponse);
+
+      const response = await responsePromise;
+      expect(response.countByConnectionStatus).toEqual(fakeResponse.countByConnectionStatus);
     });
   });
 });

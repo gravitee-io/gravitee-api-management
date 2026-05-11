@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NativeConnectionStatus } from './nativeApiLog';
 
-export * from './nativeApiLog';
-export * from './nativeApiLog.fixture';
-export * from './nativeApiLogsResponse';
-export * from './nativeApiLogsResponse.fixture';
-export * from './nativeApiLogsSummary';
-export * from './nativeApiLogsSummary.fixture';
+export interface NativeApiLogsSummary {
+  countByConnectionStatus: Partial<Record<NativeConnectionStatus, number>>;
+}

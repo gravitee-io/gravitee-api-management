@@ -16,8 +16,8 @@
 
 import { Component, computed, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { NATIVE_STATUS_META } from '../../api-runtime-logs-native.models';
 import { FormatDurationPipe } from '../../../../../../shared/pipes/format-duration.pipe';
@@ -36,7 +36,7 @@ const DISPLAYED_COLUMNS = ['timestamp', 'application', 'plan', 'clientIdentifier
   templateUrl: './api-runtime-logs-native-list.component.html',
   styleUrls: ['./api-runtime-logs-native-list.component.scss'],
   standalone: true,
-  imports: [GioTableWrapperModule, MatTableModule, MatTooltipModule, DatePipe, FormatDurationPipe],
+  imports: [GioTableWrapperModule, MatTableModule, MatIconModule, DatePipe, FormatDurationPipe],
 })
 export class ApiRuntimeLogsNativeListComponent {
   logs = input.required<NativeApiLog[]>();
