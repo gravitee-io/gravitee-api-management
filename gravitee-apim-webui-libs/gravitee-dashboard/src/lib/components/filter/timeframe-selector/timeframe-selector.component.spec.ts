@@ -209,6 +209,50 @@ describe('TimeframeSelectorComponent', () => {
         to: toDate,
       });
     });
+
+    it('should not propagate the value while the custom range is invalid (To < From)', () => {
+      const onChangeSpy = jest.fn();
+      component.registerOnChange(onChangeSpy);
+
+      const fromDate = moment('2024-01-15');
+      const invalidToDate = moment('2024-01-10');
+      component.form.patchValue({ period: 'custom', from: fromDate, to: invalidToDate });
+
+      expect(component.form.hasError('dateRange')).toBe(true);
+      expect(onChangeSpy).not.toHaveBeenCalled();
+
+      // Fixing the To date resumes propagation.
+      const validToDate = moment('2024-01-20');
+      component.form.patchValue({ to: validToDate });
+
+      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(onChangeSpy).toHaveBeenCalledWith({
+        period: 'custom',
+        from: fromDate,
+        to: validToDate,
+      });
+    });
+
+    it('should still propagate when switching away from custom even if the stale custom range is invalid', () => {
+      const onChangeSpy = jest.fn();
+      component.registerOnChange(onChangeSpy);
+
+      const fromDate = moment('2024-01-15');
+      const invalidToDate = moment('2024-01-10');
+      component.form.patchValue({ period: 'custom', from: fromDate, to: invalidToDate });
+      onChangeSpy.mockClear();
+
+      // Switching to a preset must propagate the new period so the host and the
+      // visible dropdown don't desync, even though the stale from/to still
+      // violate the dateRange validator.
+      component.form.controls.period.setValue('1h');
+
+      expect(onChangeSpy).toHaveBeenCalledWith({
+        period: '1h',
+        from: fromDate,
+        to: invalidToDate,
+      });
+    });
   });
 
   describe('ControlValueAccessor - registerOnTouched', () => {
