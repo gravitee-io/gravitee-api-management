@@ -94,12 +94,14 @@ export function PoliciesPage() {
     const [content, setContent] = useState('');
     const [saveState, setSaveState] = useState<SaveState>('idle');
     const [loadError, setLoadError] = useState<string | null>(null);
+    const csrfTokenRef = useRef<string | null>(null);
 
     useEffect(() => { injectStyle(); }, []);
 
     useEffect(() => {
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/policies')
             .then(res => {
+                csrfTokenRef.current = res.headers.get('X-Xsrf-Token');
                 if (!res.ok) return res.text().then(t => { throw new Error(t); });
                 return res.text();
             })
@@ -109,9 +111,11 @@ export function PoliciesPage() {
 
     const save = () => {
         setSaveState('saving');
+        const headers: Record<string, string> = { 'Content-Type': 'text/plain' };
+        if (csrfTokenRef.current) headers['X-Xsrf-Token'] = csrfTokenRef.current;
         fetch('/gamma/organizations/DEFAULT/modules/ai-fleet/policies', {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
+            headers,
             body: content,
         })
             .then(res => {
