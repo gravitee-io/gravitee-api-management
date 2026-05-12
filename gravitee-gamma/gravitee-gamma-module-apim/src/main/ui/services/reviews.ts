@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ROUTES } from '../../../../config/routes';
+import { getEnvironmentV2BaseUrl, type ApimRuntimeConfig } from '../core/context/apimRuntimeContext';
+import { apimFetchJson } from '../core/http/apimFetch';
 
-/** Relative path under module root for a created API (for `useNavigate`). */
-export function apiDetailRelativePath(apiId: string): string {
-    return `${ROUTES.apis.path}/${encodeURIComponent(apiId)}`;
+export async function askForApiReview(runtime: ApimRuntimeConfig, apiId: string, message?: string): Promise<void> {
+    const base = getEnvironmentV2BaseUrl(runtime);
+    await apimFetchJson<void>(`${base}/apis/${encodeURIComponent(apiId)}/reviews/_ask`, {
+        method: 'POST',
+        body: JSON.stringify({ message: message ?? '' }),
+    });
 }

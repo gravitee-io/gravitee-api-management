@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getOrganizationV2BaseUrl, type ApimRuntimeConfig } from '../context/apimRuntimeContext';
-import { apimFetchJson } from './apimFetch';
+import { getOrganizationV2BaseUrl, type ApimRuntimeConfig } from '../core/context/apimRuntimeContext';
+import { apimFetchJson } from '../core/http/apimFetch';
 
 export type PolicyJsonSchema = {
     readonly properties?: Record<string, unknown>;
@@ -24,4 +24,3 @@ export async function fetchPolicySchema(runtime: ApimRuntimeConfig, policyId: st
     const base = getOrganizationV2BaseUrl(runtime);
     return apimFetchJson<PolicyJsonSchema>(`${base}/plugins/policies/${encodeURIComponent(policyId)}/schema`);
 }
-

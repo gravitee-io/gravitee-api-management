@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getOrganizationV2BaseUrl, type ApimRuntimeConfig } from '../context/apimRuntimeContext';
-import { apimFetchJson } from './apimFetch';
-import type { ConnectorPluginDto, ProxyConnectorBootstrap } from '../dto/types';
+import { getOrganizationV2BaseUrl, type ApimRuntimeConfig } from '../core/context/apimRuntimeContext';
+import { apimFetchJson } from '../core/http/apimFetch';
+import type { ConnectorPluginDto, ProxyConnectorBootstrap } from '../features/apis/types/api.types';
 
 const MCP_ENTRYPOINT_ID = 'mcp';
 
@@ -23,7 +23,7 @@ const MCP_ENTRYPOINT_ID = 'mcp';
 export async function listSyncEntrypointPlugins(runtime: ApimRuntimeConfig): Promise<ConnectorPluginDto[]> {
     const base = getOrganizationV2BaseUrl(runtime);
     const all = await apimFetchJson<ConnectorPluginDto[]>(`${base}/plugins/entrypoints`);
-    return all.filter((e) => e.supportedApiType === 'PROXY' && e.id !== MCP_ENTRYPOINT_ID);
+    return all.filter(entrypoint => entrypoint.supportedApiType === 'PROXY' && entrypoint.id !== MCP_ENTRYPOINT_ID);
 }
 
 export async function getEndpointPlugin(runtime: ApimRuntimeConfig, entrypointId: string): Promise<ConnectorPluginDto> {
@@ -40,7 +40,7 @@ export async function resolveProxyConnectorBootstrap(runtime: ApimRuntimeConfig)
     if (entrypoints.length === 0) {
         throw new Error('No PROXY entrypoint plugins are available in this organization.');
     }
-    const preferred = entrypoints.find((e) => e.id === 'http-proxy') ?? entrypoints[0];
+    const preferred = entrypoints.find(entrypoint => entrypoint.id === 'http-proxy') ?? entrypoints[0];
     const endpoint = await getEndpointPlugin(runtime, preferred.id);
     return { entrypoint: preferred, endpoint };
 }

@@ -76,10 +76,7 @@ export function getDefaultStandaloneApimRuntime(): ApimRuntimeConfig {
     };
 }
 
-export function ApimRuntimeProvider({
-    value,
-    children,
-}: Readonly<{ value?: ApimRuntimeConfig; children: ReactNode }>) {
+export function ApimRuntimeProvider({ value, children }: Readonly<{ value?: ApimRuntimeConfig; children: ReactNode }>) {
     const resolved = useMemo(
         () =>
             value ?? {

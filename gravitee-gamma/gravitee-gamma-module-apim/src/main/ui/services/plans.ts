@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getEnvironmentV2BaseUrl, type ApimRuntimeConfig } from '../context/apimRuntimeContext';
-import { apimFetchJson } from './apimFetch';
-import type { CreatePlanV4Payload, PlanV4Dto } from '../dto/types';
+import { getEnvironmentV2BaseUrl, type ApimRuntimeConfig } from '../core/context/apimRuntimeContext';
+import { apimFetchJson } from '../core/http/apimFetch';
+import type { CreatePlanV4Payload, PlanV4Dto } from '../features/apis/types/api.types';
 
-export async function createPlanV4(
-    runtime: ApimRuntimeConfig,
-    apiId: string,
-    plan: CreatePlanV4Payload,
-): Promise<PlanV4Dto> {
+export async function createPlanV4(runtime: ApimRuntimeConfig, apiId: string, plan: CreatePlanV4Payload): Promise<PlanV4Dto> {
     const base = getEnvironmentV2BaseUrl(runtime);
     return apimFetchJson<PlanV4Dto>(`${base}/apis/${encodeURIComponent(apiId)}/plans`, {
         method: 'POST',
@@ -31,11 +27,8 @@ export async function createPlanV4(
 
 export async function publishPlanV4(runtime: ApimRuntimeConfig, apiId: string, planId: string): Promise<PlanV4Dto> {
     const base = getEnvironmentV2BaseUrl(runtime);
-    return apimFetchJson<PlanV4Dto>(
-        `${base}/apis/${encodeURIComponent(apiId)}/plans/${encodeURIComponent(planId)}/_publish`,
-        {
-            method: 'POST',
-            body: JSON.stringify({}),
-        },
-    );
+    return apimFetchJson<PlanV4Dto>(`${base}/apis/${encodeURIComponent(apiId)}/plans/${encodeURIComponent(planId)}/_publish`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
 }

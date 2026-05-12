@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApimRuntimeConfig } from '../context/apimRuntimeContext';
+import { ROUTES } from '../config/routes';
 
-export const proxyCreationKeys = {
-    all: ['proxy-creation'] as const,
-    bootstrap: (runtime: ApimRuntimeConfig) =>
-        [...proxyCreationKeys.all, 'bootstrap', runtime.managementBaseURL, runtime.organizationId, runtime.environmentId] as const,
-    policySchema: (runtime: ApimRuntimeConfig, policyId: string) =>
-        [
-            ...proxyCreationKeys.all,
-            'policy-schema',
-            policyId,
-            runtime.managementBaseURL,
-            runtime.organizationId,
-            runtime.environmentId,
-        ] as const,
-};
+/** Relative path under module root for a created API (for `useNavigate`). */
+export function apiDetailRelativePath(apiId: string): string {
+    return `${ROUTES.apis.path}/${encodeURIComponent(apiId)}`;
+}

@@ -1,5 +1,21 @@
-import type { ApiCreationState } from './models';
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import type React from 'react';
+
+import type { ApiCreationState } from '../features/apis/types/models';
 
 export type FieldType = 'input' | 'select' | 'switch';
 
@@ -102,7 +118,7 @@ export const fieldRegistry = {
         description: 'Name shown to consumers when they subscribe.',
         bind: 'security.planName',
         required: true,
-        visible: (state) => state.security.type !== 'keyless',
+        visible: state => state.security.type !== 'keyless',
     },
     jwtSignature: {
         id: 'jwtSignature',
@@ -111,7 +127,7 @@ export const fieldRegistry = {
         description: 'Algorithm used to verify token signatures.',
         bind: 'security.signature',
         required: true,
-        visible: (state) => state.security.type === 'jwt',
+        visible: state => state.security.type === 'jwt',
     },
     jwtJwksResolver: {
         id: 'jwtJwksResolver',
@@ -120,7 +136,7 @@ export const fieldRegistry = {
         description: 'Where the gateway loads the verification key from.',
         bind: 'security.jwksResolver',
         required: true,
-        visible: (state) => state.security.type === 'jwt',
+        visible: state => state.security.type === 'jwt',
     },
     jwtResolverParam: {
         id: 'jwtResolverParam',
@@ -129,7 +145,7 @@ export const fieldRegistry = {
         description: 'Value used by the resolver (URL, key identifier).',
         bind: 'security.resolverParam',
         required: true,
-        visible: (state) => state.security.type === 'jwt',
+        visible: state => state.security.type === 'jwt',
     },
     oauth2Resource: {
         id: 'oauth2Resource',
@@ -137,7 +153,7 @@ export const fieldRegistry = {
         label: 'Resource',
         bind: 'security.resource',
         required: true,
-        visible: (state) => state.security.type === 'oauth2',
+        visible: state => state.security.type === 'oauth2',
     },
     deployImmediately: {
         id: 'deployImmediately',
@@ -147,4 +163,3 @@ export const fieldRegistry = {
         bind: 'deployImmediately',
     },
 } as const satisfies Record<string, FieldConfig>;
-

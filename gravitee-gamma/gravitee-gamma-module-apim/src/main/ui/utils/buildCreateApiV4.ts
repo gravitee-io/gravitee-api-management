@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiCreationState } from '../../../../domain/apiCreation/models';
-import type { CreateApiV4Payload, EntrypointV4, ListenerV4, PathV4 } from './types';
-import type { ProxyConnectorBootstrap } from './types';
+import type { CreateApiV4Payload, EntrypointV4, ListenerV4, PathV4 } from '../features/apis/types/api.types';
+import type { ProxyConnectorBootstrap } from '../features/apis/types/api.types';
+import type { ApiCreationState } from '../features/apis/types/models';
 
 function normalizeTargetUrl(url: string): string {
     return url.trim();
@@ -24,10 +24,10 @@ function normalizeTargetUrl(url: string): string {
 function pathsFromDraft(data: ApiCreationState['proxy']): PathV4[] {
     if (data.enableVirtualHosts) {
         const rows = data.virtualHosts?.length ? data.virtualHosts : [{ host: '', path: '/', overrideAccess: false }];
-        return rows.map((v) => ({
-            path: v.path?.trim() || '/',
-            host: v.host?.trim() || undefined,
-            overrideAccess: v.overrideAccess,
+        return rows.map(virtualHost => ({
+            path: virtualHost.path?.trim() || '/',
+            host: virtualHost.host?.trim() || undefined,
+            overrideAccess: virtualHost.overrideAccess,
         }));
     }
     const p = data.contextPath?.trim() || '/';

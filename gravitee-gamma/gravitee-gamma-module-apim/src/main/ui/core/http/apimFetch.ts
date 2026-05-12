@@ -76,11 +76,7 @@ export async function apimFetchJson<T>(url: string, init?: RequestInit): Promise
     }
 
     if (!res.ok) {
-        throw new ApimHttpError(
-            res.status,
-            readErrorMessage(parsed) ?? `${init?.method ?? 'GET'} ${url} failed (${res.status})`,
-            parsed,
-        );
+        throw new ApimHttpError(res.status, readErrorMessage(parsed) ?? `${init?.method ?? 'GET'} ${url} failed (${res.status})`, parsed);
     }
 
     return parsed as T;

@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiCreationState } from '../../../domain/apiCreation/models';
-import type { ApimRuntimeConfig } from './context/apimRuntimeContext';
-import { buildCreateApiV4 } from './dto/buildCreateApiV4';
-import { buildCreatePlansV4 } from './dto/buildCreatePlanV4';
-import type { ApiV4Dto, ProxyConnectorBootstrap } from './dto/types';
-import { createApiV4, startApi } from './services/apis';
-import { createPlanV4, publishPlanV4 } from './services/plans';
-import { askForApiReview } from './services/reviews';
-import { ApimHttpError } from './services/apimFetch';
+import { buildCreateApiV4 } from './buildCreateApiV4';
+import { buildCreatePlansV4 } from './buildCreatePlanV4';
+import type { ApimRuntimeConfig } from '../core/context/apimRuntimeContext';
+import { ApimHttpError } from '../core/http/apimFetch';
+import type { ApiV4Dto, ProxyConnectorBootstrap } from '../features/apis/types/api.types';
+import type { ApiCreationState } from '../features/apis/types/models';
+import { createApiV4, startApi } from '../services/apis/apis';
+import { createPlanV4, publishPlanV4 } from '../services/plans';
+import { askForApiReview } from '../services/reviews';
 
 export type CreateProxyWorkflowResult = {
     api: ApiV4Dto;
@@ -29,8 +29,8 @@ export type CreateProxyWorkflowResult = {
     warnings: string[];
 };
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-    return typeof v === 'object' && v !== null;
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
 }
 
 export function getApimErrorMessage(err: unknown): string {

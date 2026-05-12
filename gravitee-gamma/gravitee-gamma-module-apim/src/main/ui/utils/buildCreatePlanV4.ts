@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiCreationState } from '../../../../domain/apiCreation/models';
-import type { CreatePlanV4Payload } from './types';
+import type { CreatePlanV4Payload } from '../features/apis/types/api.types';
+import type { ApiCreationState } from '../features/apis/types/models';
 
 function mapJwtPublicKeyResolver(label: string): string {
     const l = label.trim().toUpperCase();

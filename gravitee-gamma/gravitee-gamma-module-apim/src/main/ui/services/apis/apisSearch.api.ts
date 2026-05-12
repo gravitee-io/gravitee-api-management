@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJson } from '../create-proxy/apiCreation/services/apimFetch';
-import { getEnvironmentV2BaseUrl, type ApimRuntimeConfig } from '../create-proxy/apiCreation/context/apimRuntimeContext';
-import type { ApisSearchResponse, ApisSearchResult, ApiSummary } from './apisSearch.types';
+import { getEnvironmentV2BaseUrl, type ApimRuntimeConfig } from '../../core/context/apimRuntimeContext';
+import { apimFetchJson } from '../../core/http/apimFetch';
+import type { ApiSearchItemResponse, ApisSearchResponse, ApisSearchResult, ApiSummary } from '../../features/apis/types/apisSearch.types';
 
 function parseOptionalDate(value: string | undefined): Date | undefined {
     if (!value) return undefined;
@@ -24,13 +24,17 @@ function parseOptionalDate(value: string | undefined): Date | undefined {
     return d;
 }
 
-function parseApiSummary(dto: { readonly id: string; readonly name: string; readonly description?: string; readonly apiVersion?: string; readonly state?: string; readonly deployedAt?: string; readonly updatedAt?: string }): ApiSummary {
+function parseApiSummary(dto: ApiSearchItemResponse): ApiSummary {
     return {
         id: dto.id,
         name: dto.name,
         description: dto.description,
         version: dto.apiVersion,
         state: dto.state,
+        deploymentState: dto.deploymentState,
+        lifecycleState: dto.lifecycleState,
+        primaryOwnerDisplayName: dto.primaryOwner?.displayName,
+        contextPath: dto.listeners?.[0]?.paths?.[0]?.path,
         deployedAt: parseOptionalDate(dto.deployedAt),
         updatedAt: parseOptionalDate(dto.updatedAt),
     };
@@ -41,7 +45,7 @@ export async function searchApisV2(
     options: Readonly<{ query: string; page: number; perPage: number; sortBy: string; signal?: AbortSignal }>,
 ): Promise<ApisSearchResult> {
     const base = getEnvironmentV2BaseUrl(runtime);
-    const url = `${base}/apis/_search?page=${options.page}&perPage=${options.perPage}&sortBy=${encodeURIComponent(options.sortBy)}`;
+    const url = `${base}/apis/_search?page=${options.page}&perPage=${options.perPage}&sortBy=${encodeURIComponent(options.sortBy)}&expands=deploymentState`;
 
     const res = await apimFetchJson<ApisSearchResponse>(url, {
         method: 'POST',
@@ -54,4 +58,3 @@ export async function searchApisV2(
         pagination: res.pagination,
     };
 }
-
