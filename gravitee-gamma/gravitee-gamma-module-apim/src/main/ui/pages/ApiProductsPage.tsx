@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card } from '@gravitee/graphene-core';
+import { useNavigate } from 'react-router-dom';
+
+import { ApiProductsEmptyLanding } from '../features/api-products/components';
 
 export function ApiProductsPage() {
-    return (
-        <div className="space-y-4">
-            <h1>API Products</h1>
-            <Card className="p-4">
-                <p className="text-muted-foreground">Bundle API proxies into products for your developer portal.</p>
-            </Card>
-        </div>
-    );
+    const navigate = useNavigate();
+
+    return <ApiProductsEmptyLanding onCreateProduct={() => navigate('new')} />;
 }
