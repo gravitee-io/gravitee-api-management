@@ -18,6 +18,9 @@ package io.gravitee.apim.core.json_patch.domain_service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 
+/**
+ * @author GraviteeSource Team
+ */
 public interface JsonMergePatchService {
     JsonNode applyMergePatch(JsonNode patch, JsonNode target) throws ValidationDomainException;
 }
