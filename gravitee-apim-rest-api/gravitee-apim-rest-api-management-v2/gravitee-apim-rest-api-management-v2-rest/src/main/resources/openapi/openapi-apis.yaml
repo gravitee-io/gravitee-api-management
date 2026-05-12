@@ -162,6 +162,37 @@ paths:
                                 $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/_import/definition-url:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Import API definition from a remote URL
+            description: |-
+                ⚠️ Support only v4 API for the moment. ⚠️<br>
+                Create an API by fetching an API definition from a remote URL.<br>
+                The URL must be permitted by the configured import whitelist.
+
+                User must have the ENVIRONMENT_API[CREATE] permission.
+            operationId: createApiWithImportDefinitionFromUrl
+            requestBody:
+                content:
+                    text/plain:
+                        schema:
+                            type: string
+                            format: uri
+                            example: https://example.com/api-definition.json
+                required: true
+            responses:
+                "201":
+                    description: API successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/_search:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
