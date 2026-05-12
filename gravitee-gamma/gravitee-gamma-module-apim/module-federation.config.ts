@@ -32,11 +32,7 @@ const config: ModuleFederationConfig = {
         ],
     ],
     shared: (libraryName, sharedConfig) => {
-        if (
-            ['react', 'react-dom', 'react-router-dom', '@gravitee/graphene-core', '@tanstack/react-query'].includes(
-                libraryName,
-            )
-        ) {
+        if (['react', 'react-dom', 'react-router-dom', '@gravitee/graphene-core', '@tanstack/react-query'].includes(libraryName)) {
             return {
                 singleton: true,
                 strictVersion: false,

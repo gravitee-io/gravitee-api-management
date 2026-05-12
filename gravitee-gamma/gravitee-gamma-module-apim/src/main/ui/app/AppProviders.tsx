@@ -16,7 +16,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 
-import { ApimRuntimeProvider } from '../pages/create-proxy/apiCreation/context/apimRuntimeContext';
+import { ApimRuntimeProvider } from '../core/context/apimRuntimeContext';
 
 /** Shared by standalone shell and federated wizard entry so React Query + APIM runtime are always available. */
 export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {

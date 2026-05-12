@@ -16,18 +16,39 @@
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { useMemo } from 'react';
-import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
-import { AnalyticsPage } from '../pages/AnalyticsPage';
-import { ApiProductsPage } from '../pages/ApiProductsPage';
-import { ApiCreatedPage } from '../pages/ApiCreatedPage';
-import { CreateProxyPage } from '../pages/CreateProxyPage';
-import { ApisPage } from '../pages/ApisPage';
-import { ApplicationsPage } from '../pages/ApplicationsPage';
-import { DashboardPage } from '../pages/DashboardPage';
-import { SettingsPage } from '../pages/SettingsPage';
+import { AnalyticsPage } from '../features/analytics/pages/AnalyticsPage';
+import { ApiProductsPage } from '../features/api-products/pages/ApiProductsPage';
+import { ApiDetailLayout } from '../features/apis/pages/ApiDetailLayout';
+import { ApisPage } from '../features/apis/pages/ApisPage';
+import { CreateProxyPage } from '../features/apis/pages/CreateProxyPage';
+import { ApiPropertiesPage } from '../features/apis/pages/detail/ApiPropertiesPage';
+import { ApiScorePage } from '../features/apis/pages/detail/ApiScorePage';
+import { DocumentationPage } from '../features/apis/pages/detail/DocumentationPage';
+import { ConsumersPage } from '../features/apis/pages/detail/ConsumersPage';
+import { AuthorizationPage } from '../features/apis/pages/detail/AuthorizationPage';
+import { UserPermissionsPage } from '../features/apis/pages/detail/UserPermissionsPage';
+import { AuditLogsPage } from '../features/apis/pages/detail/AuditLogsPage';
+import { BroadcastsPage } from '../features/apis/pages/detail/BroadcastsPage';
+import { CorsPage } from '../features/apis/pages/detail/CorsPage';
+import { ReporterSettingsPage } from '../features/apis/pages/detail/ReporterSettingsPage';
+import { DeploymentConfigurationPage } from '../features/apis/pages/detail/DeploymentConfigurationPage';
+import { DeploymentHistoryPage } from '../features/apis/pages/detail/DeploymentHistoryPage';
+import { EndpointsPage } from '../features/apis/pages/detail/EndpointsPage';
+import { EntrypointsPage } from '../features/apis/pages/detail/EntrypointsPage';
+import { GeneralPage } from '../features/apis/pages/detail/GeneralPage';
+import { NotificationsPage } from '../features/apis/pages/detail/NotificationsPage';
+import { OverviewPage } from '../features/apis/pages/detail/OverviewPage';
+import { PlansPage } from '../features/apis/pages/detail/PlansPage';
+import { PolicyStudioPage } from '../features/apis/pages/detail/PolicyStudioPage';
+import { ResourcesPage } from '../features/apis/pages/detail/ResourcesPage';
+import { ResponseTemplatesPage } from '../features/apis/pages/detail/ResponseTemplatesPage';
+import { ApplicationsPage } from '../features/applications/pages/ApplicationsPage';
+import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
+import { SettingsPage } from '../features/settings/pages/SettingsPage';
 
 function ModuleLayout() {
     const navigate = useNavigate();
@@ -54,11 +75,34 @@ export function AppRoutes() {
     return (
         <Routes>
             <Route element={<ModuleLayout />}>
-                <Route index element={<DashboardPage />} />
+                <Route index element={<Navigate to="apis" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="apis" element={<ApisPage />} />
                 <Route path="apis/new" element={<CreateProxyPage />} />
-                <Route path="apis/:apiId" element={<ApiCreatedPage />} />
+                <Route path="apis/:apiId" element={<ApiDetailLayout />}>
+                    <Route index element={<Navigate to="overview" replace />} />
+                    <Route path="overview" element={<OverviewPage />} />
+                    <Route path="general" element={<GeneralPage />} />
+                    <Route path="properties" element={<ApiPropertiesPage />} />
+                    <Route path="resources" element={<ResourcesPage />} />
+                    <Route path="notifications" element={<NotificationsPage />} />
+                    <Route path="score" element={<ApiScorePage />} />
+                    <Route path="response-templates" element={<ResponseTemplatesPage />} />
+                    <Route path="cors" element={<CorsPage />} />
+                    <Route path="entrypoints" element={<EntrypointsPage />} />
+                    <Route path="endpoints" element={<EndpointsPage />} />
+                    <Route path="plans" element={<PlansPage />} />
+                    <Route path="policy-studio" element={<PolicyStudioPage />} />
+                    <Route path="documentation" element={<DocumentationPage />} />
+                    <Route path="consumers" element={<ConsumersPage />} />
+                    <Route path="authorization" element={<AuthorizationPage />} />
+                    <Route path="user-permissions" element={<UserPermissionsPage />} />
+                    <Route path="audit-logs" element={<AuditLogsPage />} />
+                    <Route path="broadcasts" element={<BroadcastsPage />} />
+                    <Route path="reporter-settings" element={<ReporterSettingsPage />} />
+                    <Route path="deployment/configuration" element={<DeploymentConfigurationPage />} />
+                    <Route path="deployment/history" element={<DeploymentHistoryPage />} />
+                </Route>
                 <Route path="api-products" element={<ApiProductsPage />} />
                 <Route path="applications" element={<ApplicationsPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />

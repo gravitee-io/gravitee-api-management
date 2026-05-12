@@ -30,7 +30,7 @@ import {
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { APIM_ROUTE_CONFIG } from '../config/routes';
+import { APIM_ROUTE_CONFIG } from '../../../config/routes';
 
 export function DashboardPage() {
     const navigate = useNavigate();
@@ -62,8 +62,8 @@ export function DashboardPage() {
                     <div className="space-y-1">
                         <h2 className="text-base font-semibold">API Proxy Architecture</h2>
                         <p className="text-sm text-muted-foreground">
-                            The proxy acts as an intermediary, adding security, observability, and traffic management between clients and upstream
-                            endpoints.
+                            The proxy acts as an intermediary, adding security, observability, and traffic management between clients and
+                            upstream endpoints.
                         </p>
                     </div>
 
@@ -123,7 +123,7 @@ export function DashboardPage() {
                                     { icon: GitBranchIcon, label: 'Flows', detail: 'Request/response paths' },
                                     { icon: FilterIcon, label: 'Policies', detail: 'Transform & validate' },
                                     { icon: LockIcon, label: 'Security', detail: 'Auth & encryption' },
-                                ].map((feature) => (
+                                ].map(feature => (
                                     <div key={feature.label} className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
                                         <feature.icon className="size-3.5 text-primary shrink-0" aria-hidden="true" />
                                         <div className="min-w-0">
@@ -192,7 +192,7 @@ export function DashboardPage() {
                                         color: 'bg-primary',
                                         badgeClassName: 'border-warning text-warning',
                                     },
-                                ].map((endpoint) => (
+                                ].map(endpoint => (
                                     <div key={endpoint.name} className="rounded-lg border bg-card px-3 py-2.5 space-y-1">
                                         <div className="flex items-center gap-2">
                                             <span className={`size-2 rounded-full ${endpoint.color} shrink-0`} />
@@ -224,8 +224,8 @@ export function DashboardPage() {
                                 <p className="text-sm font-semibold">Clients</p>
                             </div>
                             <p className="text-[11px] leading-relaxed text-muted-foreground">
-                                Applications and services that consume your API. They make requests through the proxy without knowing about backend
-                                complexity.
+                                Applications and services that consume your API. They make requests through the proxy without knowing about
+                                backend complexity.
                             </p>
                         </div>
                         <div className="space-y-1.5">
@@ -236,8 +236,8 @@ export function DashboardPage() {
                                 <p className="text-sm font-semibold">Proxy Layer</p>
                             </div>
                             <p className="text-[11px] leading-relaxed text-muted-foreground">
-                                The proxy sits in the middle, handling security, transformation, observability, and routing. This is where you define
-                                Plans, Flows, and Policies.
+                                The proxy sits in the middle, handling security, transformation, observability, and routing. This is where
+                                you define Plans, Flows, and Policies.
                             </p>
                         </div>
                         <div className="space-y-1.5">
@@ -248,8 +248,8 @@ export function DashboardPage() {
                                 <p className="text-sm font-semibold">Upstream Endpoints</p>
                             </div>
                             <p className="text-[11px] leading-relaxed text-muted-foreground">
-                                Your actual backend services, databases, or third-party APIs. The proxy can route to multiple endpoints with load
-                                balancing and failover.
+                                Your actual backend services, databases, or third-party APIs. The proxy can route to multiple endpoints with
+                                load balancing and failover.
                             </p>
                         </div>
                     </div>

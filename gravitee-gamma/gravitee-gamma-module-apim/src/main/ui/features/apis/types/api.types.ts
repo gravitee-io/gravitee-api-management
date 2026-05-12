@@ -82,6 +82,19 @@ export type ApiV4Dto = {
     apiVersion?: string;
 };
 
+export type ApiDetailDto = {
+    id: string;
+    name: string;
+    description?: string;
+    apiVersion?: string;
+    state?: 'STARTED' | 'STOPPED' | 'CLOSED';
+    type?: 'PROXY' | 'MESSAGE';
+    definitionVersion?: 'V4' | 'V4_NATIVE';
+    tags?: string[];
+    groups?: string[];
+    disableMembershipNotifications?: boolean;
+};
+
 export type PlanV4Dto = {
     id: string;
     name?: string;
@@ -103,4 +116,35 @@ export type ConnectorPluginDto = {
 export type ProxyConnectorBootstrap = {
     entrypoint: ConnectorPluginDto;
     endpoint: ConnectorPluginDto;
+};
+
+export type OrgTag = {
+    id: string;
+    name: string;
+    description?: string;
+    restricted_groups?: string[];
+};
+
+export type ApiEvent = {
+    id: string;
+    type: string;
+    payload?: string;
+    createdAt: string;
+    initiator: { id: string; displayName: string };
+    properties: {
+        DEPLOYMENT_NUMBER?: string;
+        DEPLOYMENT_LABEL?: string;
+        USER?: string;
+    };
+};
+
+export type ApiEventsPage = {
+    data: ApiEvent[];
+    pagination: {
+        page: number;
+        perPage: number;
+        pageCount: number;
+        pageItemsCount: number;
+        totalCount: number;
+    };
 };

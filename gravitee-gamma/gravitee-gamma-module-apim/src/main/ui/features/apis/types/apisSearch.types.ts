@@ -35,6 +35,10 @@ export type ApiSearchItemResponse = {
     readonly createdAt?: string;
     readonly updatedAt?: string;
     readonly deployedAt?: string;
+    readonly deploymentState?: 'DEPLOYED' | 'NEED_REDEPLOY' | string;
+    readonly lifecycleState?: 'PUBLISHED' | 'UNPUBLISHED' | 'CREATED' | 'DEPRECATED' | 'ARCHIVED' | string;
+    readonly primaryOwner?: { readonly id?: string; readonly displayName?: string; readonly email?: string };
+    readonly listeners?: ReadonlyArray<{ readonly type?: string; readonly paths?: ReadonlyArray<{ readonly path?: string }> }>;
 };
 
 export type ApiSummary = {
@@ -43,6 +47,10 @@ export type ApiSummary = {
     readonly description?: string;
     readonly version?: string;
     readonly state?: string;
+    readonly deploymentState?: string;
+    readonly lifecycleState?: string;
+    readonly primaryOwnerDisplayName?: string;
+    readonly contextPath?: string;
     readonly deployedAt?: Date;
     readonly updatedAt?: Date;
 };
@@ -51,4 +59,3 @@ export type ApisSearchResult = {
     readonly apis: readonly ApiSummary[];
     readonly pagination: ApisSearchResponse['pagination'];
 };
-
