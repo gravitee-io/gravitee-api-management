@@ -2671,7 +2671,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.22.6, @babel/runtime@npm:^7.3.1":
+"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.22.6, @babel/runtime@npm:^7.29.2, @babel/runtime@npm:^7.3.1":
   version: 7.29.2
   resolution: "@babel/runtime@npm:7.29.2"
   checksum: 10c0/30b80a0140d16467792e1bbeb06f655b0dab70407da38dfac7fedae9c859f9ae9d846ef14ad77bd3814c064295fe9b1bc551f1541ea14646ae9f22b71a8bc17a
@@ -2711,6 +2711,51 @@ __metadata:
     "@babel/helper-string-parser": "npm:^7.27.1"
     "@babel/helper-validator-identifier": "npm:^7.28.5"
   checksum: 10c0/23cc3466e83bcbfab8b9bd0edaafdb5d4efdb88b82b3be6728bbade5ba2f0996f84f63b1c5f7a8c0d67efded28300898a5f930b171bb40b311bca2029c4e9b4f
+  languageName: node
+  linkType: hard
+
+"@base-ui/react@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@base-ui/react@npm:1.4.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@base-ui/utils": "npm:0.2.8"
+    "@floating-ui/react-dom": "npm:^2.1.8"
+    "@floating-ui/utils": "npm:^0.2.11"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    "@date-fns/tz": ^1.2.0
+    "@types/react": ^17 || ^18 || ^19
+    date-fns: ^4.0.0
+    react: ^17 || ^18 || ^19
+    react-dom: ^17 || ^18 || ^19
+  peerDependenciesMeta:
+    "@date-fns/tz":
+      optional: true
+    "@types/react":
+      optional: true
+    date-fns:
+      optional: true
+  checksum: 10c0/913361cd1e09f256d95bbd905287a10c34b2dab23482bf4ad5e595e4d72f5ea22e0b0b23657df6b548a938b248be3129c0bf1242c90753b59618a615c9e90ad5
+  languageName: node
+  linkType: hard
+
+"@base-ui/utils@npm:0.2.8":
+  version: 0.2.8
+  resolution: "@base-ui/utils@npm:0.2.8"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@floating-ui/utils": "npm:^0.2.11"
+    reselect: "npm:^5.1.1"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    "@types/react": ^17 || ^18 || ^19
+    react: ^17 || ^18 || ^19
+    react-dom: ^17 || ^18 || ^19
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/762ff2251875c08b9e506824d7b45299baef895944d28f633a34c088cd5d6f121ee29267d2afb79527180044d232e56591c4109b2fcab7ac926d7e490c5b2b29
   languageName: node
   linkType: hard
 
@@ -4259,7 +4304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react-dom@npm:^2.0.0":
+"@floating-ui/react-dom@npm:^2.0.0, @floating-ui/react-dom@npm:^2.1.8":
   version: 2.1.8
   resolution: "@floating-ui/react-dom@npm:2.1.8"
   dependencies:
@@ -4463,24 +4508,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:1.0.0-alpha.4":
-  version: 1.0.0-alpha.4
-  resolution: "@gravitee/graphene-core@npm:1.0.0-alpha.4"
+"@gravitee/graphene-core@npm:2.3.2":
+  version: 2.3.2
+  resolution: "@gravitee/graphene-core@npm:2.3.2"
   dependencies:
+    "@base-ui/react": "npm:1.4.1"
     class-variance-authority: "npm:0.7.1"
     clsx: "npm:2.1.1"
     cmdk: "npm:1.1.1"
     date-fns: "npm:4.1.0"
-    lucide-react: "npm:1.8.0"
+    lucide-react: "npm:1.14.0"
     radix-ui: "npm:1.4.3"
     react-day-picker: "npm:9.14.0"
-    react-resizable-panels: "npm:4.10.0"
+    react-dropzone: "npm:15.0.0"
+    react-resizable-panels: "npm:4.11.0"
     sonner: "npm:2.0.7"
-    tailwind-merge: "npm:3.5.0"
+    tailwind-merge: "npm:3.6.0"
     vaul: "npm:1.1.2"
   peerDependencies:
     "@fontsource/dm-sans": ">=5.0.0"
     "@tanstack/react-table": ^8.0.0
+    "@testing-library/dom": ">=10.0.0"
+    "@testing-library/react": ">=16.0.0"
+    "@testing-library/user-event": ">=14.0.0"
     "@typescript-eslint/eslint-plugin": ">=5.0.0"
     "@typescript-eslint/parser": ">=5.0.0"
     eslint: ">=8.0.0"
@@ -4497,6 +4547,12 @@ __metadata:
     tailwindcss: ^4.0.0
     typescript-eslint: ">=8.0.0"
   peerDependenciesMeta:
+    "@testing-library/dom":
+      optional: true
+    "@testing-library/react":
+      optional: true
+    "@testing-library/user-event":
+      optional: true
     "@typescript-eslint/eslint-plugin":
       optional: true
     "@typescript-eslint/parser":
@@ -4511,7 +4567,7 @@ __metadata:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/6effc16b939d00d3a2fff2a211f16a481af4566bf07ddf39f3ee558705857bc310a5e55281c3204064a1f6e74db6f21438f50e3fd3457908e4b2babb3dc170e6
+  checksum: 10c0/35681cc0c71c2350696e11087d07933c782498e6a868563b081c7243c1c00e606fdf1f3c7d9e762d91d7ea1c54cd0114c45ae0779ecf08a6f9352aece7436a72
   languageName: node
   linkType: hard
 
@@ -14753,6 +14809,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"attr-accept@npm:^2.2.4":
+  version: 2.2.5
+  resolution: "attr-accept@npm:2.2.5"
+  checksum: 10c0/9b4cb82213925cab2d568f71b3f1c7a7778f9192829aac39a281e5418cd00c04a88f873eb89f187e0bf786fa34f8d52936f178e62cbefb9254d57ecd88ada99b
+  languageName: node
+  linkType: hard
+
 "autolinker@npm:^3.11.0":
   version: 3.16.2
   resolution: "autolinker@npm:3.16.2"
@@ -19599,6 +19662,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"file-selector@npm:^2.1.0":
+  version: 2.1.2
+  resolution: "file-selector@npm:2.1.2"
+  dependencies:
+    tslib: "npm:^2.7.0"
+  checksum: 10c0/fe827e0e95410aacfcc3eabc38c29cc36055257f03c1c06b631a2b5af9730c142ad2c52f5d64724d02231709617bda984701f52bd1f4b7aca50fb6585a27c1d2
+  languageName: node
+  linkType: hard
+
 "filelist@npm:^1.0.4":
   version: 1.0.6
   resolution: "filelist@npm:1.0.6"
@@ -20449,7 +20521,7 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.2"
-    "@gravitee/graphene-core": "npm:1.0.0-alpha.4"
+    "@gravitee/graphene-core": "npm:2.3.2"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
@@ -24167,21 +24239,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:1.14.0":
+  version: 1.14.0
+  resolution: "lucide-react@npm:1.14.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/25c5dd878945842ffb519532f1a66f59f2d461e7be7bd322091b0ecd3cd32561c1ae3d9b50161432d39a72bf8c8f1a039268f2f20a035e520dd3f49dd46ffaf2
+  languageName: node
+  linkType: hard
+
 "lucide-react@npm:1.6.0":
   version: 1.6.0
   resolution: "lucide-react@npm:1.6.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10c0/be26a58285afca37b821cb0572a7ca99a86bde8c5e3a1d752719aa7b6dacccc1ac5d1c6bbaac4f08c5ff1e2b6104076adc32a1890c0c7d8676cb38ca790efbcd
-  languageName: node
-  linkType: hard
-
-"lucide-react@npm:1.8.0":
-  version: 1.8.0
-  resolution: "lucide-react@npm:1.8.0"
-  peerDependencies:
-    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/f7398f89a0f5b2cbfd1b7a7f6b2f00b0abd05d4b21d948bbd281ab141c42cdff9f1d2aed4e32b78b4bbdfa78308b6577705698af8bf9945bad23ed7d56e255b4
   languageName: node
   linkType: hard
 
@@ -28403,6 +28475,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-dropzone@npm:15.0.0":
+  version: 15.0.0
+  resolution: "react-dropzone@npm:15.0.0"
+  dependencies:
+    attr-accept: "npm:^2.2.4"
+    file-selector: "npm:^2.1.0"
+    prop-types: "npm:^15.8.1"
+  peerDependencies:
+    react: ">= 16.8 || 18.0.0"
+  checksum: 10c0/fb7b48a709fdd26273707f7aca5c0e77fce2b9c9201122645d3ecfb07ecfbb89e2495273ea141994f0ed0838ee79f27832c0855b2c598b377b342c3965608b54
+  languageName: node
+  linkType: hard
+
 "react-error-boundary@npm:^4.1.2":
   version: 4.1.2
   resolution: "react-error-boundary@npm:4.1.2"
@@ -28527,13 +28612,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-resizable-panels@npm:4.10.0":
-  version: 4.10.0
-  resolution: "react-resizable-panels@npm:4.10.0"
+"react-resizable-panels@npm:4.11.0":
+  version: 4.11.0
+  resolution: "react-resizable-panels@npm:4.11.0"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
-  checksum: 10c0/da42646e8d7d30c4384c58ca9cefa3fe567fc2b11d4959cb15f1ec4e42198226016f61623c04baef105fdec68651a70411360b86f6cefa0bb45a53c42d252309
+  checksum: 10c0/edcc90e0d7afaa9a6760ecf92f48ec04c97c45f765991f80bd1fc168a446b0dfacd538911bced8b00f77c9ae004b4ed2d8c05bb56074570f8f0ecee4be0bc677
   languageName: node
   linkType: hard
 
@@ -31447,10 +31532,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:3.5.0":
-  version: 3.5.0
-  resolution: "tailwind-merge@npm:3.5.0"
-  checksum: 10c0/4dc588f5b5296ba3f38e1ebb41f02b6d24a8c5bb45e44b33748c118fb4b5767dd0efc464431ca3e75404056b618b5f67bec3708158baa65fed8a2fc9201e0c53
+"tailwind-merge@npm:3.6.0":
+  version: 3.6.0
+  resolution: "tailwind-merge@npm:3.6.0"
+  checksum: 10c0/a728d929f4786bcb48641db4228cc8c006a7545491783a658fb4d24d177dab960620991d17805a047309228de50ab949ca8d9e112c30183da0432367796ae186
   languageName: node
   linkType: hard
 
@@ -32028,7 +32113,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.5.2, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.6.3, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
+"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.5.2, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.6.3, tslib@npm:^2.7.0, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
@@ -32627,7 +32712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.4.0, use-sync-external-store@npm:^1.5.0":
+"use-sync-external-store@npm:^1.4.0, use-sync-external-store@npm:^1.5.0, use-sync-external-store@npm:^1.6.0":
   version: 1.6.0
   resolution: "use-sync-external-store@npm:1.6.0"
   peerDependencies:
