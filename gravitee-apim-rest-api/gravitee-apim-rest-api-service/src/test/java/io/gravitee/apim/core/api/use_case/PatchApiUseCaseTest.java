@@ -53,6 +53,7 @@ import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +72,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -259,6 +261,15 @@ class PatchApiUseCaseTest {
     static Api apiWithFlows(List<Flow> flows) {
         var base = ApiFixtures.aProxyApiV4();
         return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().flows(flows).build()).build();
+    }
+
+    static Api apiWithResources(List<Resource> resources) {
+        var base = ApiFixtures.aProxyApiV4();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().resources(resources).build()).build();
+    }
+
+    static Map<String, Object> resourceMap(String name, String type) {
+        return Map.of("name", name, "type", type, "configuration", Map.of(), "enabled", true);
     }
 
     private static io.gravitee.definition.model.v4.Api httpV4Def(Api api) {
@@ -471,14 +482,6 @@ class PatchApiUseCaseTest {
             assertThatThrownBy(() -> execute(type, setField(type, "endpointGroups", List.of()), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
                 .hasMessageContaining("endpointGroups");
-        }
-
-        @ParameterizedTest
-        @EnumSource(PatchApiUseCase.PatchType.class)
-        void resources_field_is_rejected(PatchApiUseCase.PatchType type) {
-            assertThatThrownBy(() -> execute(type, setField(type, "resources", List.of()), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("resources");
         }
 
         @ParameterizedTest
@@ -704,6 +707,14 @@ class PatchApiUseCaseTest {
             var output = execute(type, body, false);
 
             assertThat(httpV4Def(output.api()).getProperties()).isNull();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void resources_field_is_allowed(PatchApiUseCase.PatchType type) {
+            var output = execute(type, setField(type, "resources", List.of(resourceMap("my-cache", "cache"))), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
         }
     }
 
@@ -1042,6 +1053,39 @@ class PatchApiUseCaseTest {
             var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/categories"), false);
 
             assertThat(output.api().getCategories()).isEmpty();
+        }
+
+        static Stream<Arguments> deepPathUnderResourceConfigurationCases() {
+            return Stream.of(
+                Arguments.of(patch("replace", "/resources/0/configuration/someField", "value"), "/resources/0/configuration/someField"),
+                Arguments.of(patch("replace", "/resources/0/configuration/a/b", "value"), "/resources/0/configuration/a/b"),
+                Arguments.of(patch("remove", "/resources/0/configuration/someField"), "/resources/0/configuration/someField"),
+                Arguments.of(movePatch("/resources/0/configuration/key", "/name"), "/resources/0/configuration/key"),
+                Arguments.of(copyPatch("/resources/0/configuration/key", "/name"), "/resources/0/configuration/key"),
+                Arguments.of(patch("add", "/resources/-/configuration/someKey", "value"), "/resources/-/configuration/someKey")
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("deepPathUnderResourceConfigurationCases")
+        void deep_path_under_resource_configuration_is_rejected(String patchJson, String expectedPath) {
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patchJson, false))
+                .isInstanceOf(ApiPatchNotAllowedException.class)
+                .hasMessageContaining(expectedPath);
+        }
+
+        @Test
+        void json_patch_exact_configuration_path_is_accepted() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(
+                PatchApiUseCase.PatchType.JSON_PATCH,
+                patch("replace", "/resources/0/configuration", Map.of("ttl", 300)),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
         }
     }
 
@@ -1637,6 +1681,185 @@ class PatchApiUseCaseTest {
             );
 
             assertThat(httpV4Def(output.api()).getFlowExecution()).isEqualTo(flowExecution);
+        }
+    }
+
+    @Nested
+    class ResourcesResolution {
+
+        @Test
+        void merge_patch_replaces_resources_list() {
+            var existing = Resource.builder().name("old").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(
+                PatchApiUseCase.PatchType.MERGE_PATCH,
+                mergePatch("resources", List.of(resourceMap("new-r", "oauth2"))),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getName()).isEqualTo("new-r");
+        }
+
+        @Test
+        void merge_patch_with_null_erases_resources() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", null), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).isNullOrEmpty();
+        }
+
+        @Test
+        void merge_patch_with_empty_array_clears_resources() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", List.of()), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).isEmpty();
+        }
+
+        @Test
+        void merge_patch_omitting_resources_leaves_them_unchanged() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).containsExactly(existing);
+        }
+
+        @Test
+        void merge_patch_sets_resources_when_previously_absent() {
+            givenExistingApi(apiWithResources(null));
+
+            var output = execute(
+                PatchApiUseCase.PatchType.MERGE_PATCH,
+                mergePatch("resources", List.of(resourceMap("r1", "cache"))),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getName()).isEqualTo("r1");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "SOME_UNKNOWN_TYPE", "CACHE" })
+        void merge_patch_accepts_resource_type_verbatim(String type) {
+            givenExistingApi(apiWithResources(null));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", List.of(resourceMap("r1", type))), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getType()).isEqualTo(type);
+        }
+
+        @Test
+        void json_patch_replace_resources_list() {
+            var existing = Resource.builder().name("old").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(
+                PatchApiUseCase.PatchType.JSON_PATCH,
+                patch("replace", "/resources", List.of(resourceMap("new-r", "oauth2"))),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getName()).isEqualTo("new-r");
+        }
+
+        @Test
+        void json_patch_add_single_resource() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/resources/0", resourceMap("r0", "oauth2")), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(2);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getName()).isEqualTo("r0");
+        }
+
+        @Test
+        void json_patch_append_resource_using_dash() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/resources/-", resourceMap("r2", "oauth2")), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(2);
+            assertThat(httpV4Def(output.api()).getResources().get(1).getName()).isEqualTo("r2");
+        }
+
+        @Test
+        void json_patch_remove_single_resource() {
+            var r1 = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            var r2 = Resource.builder().name("r2").type("oauth2").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(r1, r2)));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/resources/0"), false);
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getName()).isEqualTo("r2");
+        }
+
+        @Test
+        void json_patch_replace_resource_configuration_atomically() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(
+                PatchApiUseCase.PatchType.JSON_PATCH,
+                patch("replace", "/resources/0/configuration", Map.of("ttl", 300)),
+                false
+            );
+
+            assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getConfiguration()).contains("\"ttl\"");
+        }
+
+        @Test
+        void json_patch_replace_resource_non_configuration_field() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/resources/0/name", "renamed"), false);
+
+            assertThat(httpV4Def(output.api()).getResources().getFirst().getName()).isEqualTo("renamed");
+        }
+
+        @Test
+        void dry_run_resources_not_persisted() {
+            stubValidateV4ReturnsArgument();
+
+            execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", List.of(resourceMap("r1", "cache"))), true);
+
+            verify(updateApiDomainService, never()).updateV4(any(), any());
+        }
+
+        @Test
+        void dry_run_returns_sanitised_resources() {
+            var sanitisedResources = List.of(
+                Resource.builder().name("r1").type("cache").configuration("{\"timeToLiveSeconds\":0}").enabled(true).build()
+            );
+            when(updateApiDomainService.validateV4(any(), any())).thenAnswer(inv -> {
+                Api api = inv.getArgument(0);
+                var def = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+                return api.toBuilder().apiDefinitionValue(def.toBuilder().resources(sanitisedResources).build()).build();
+            });
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", List.of(resourceMap("r1", "cache"))), true);
+
+            var apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(updateApiDomainService).validateV4(apiCaptor.capture(), any());
+            assertThat(httpV4Def(apiCaptor.getValue()).getResources()).containsExactly(
+                Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build()
+            );
+
+            assertThat(httpV4Def(output.api()).getResources()).isEqualTo(sanitisedResources);
         }
     }
 }
