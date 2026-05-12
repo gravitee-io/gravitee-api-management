@@ -37,5 +37,6 @@
         <module>gravitee-gamma-plugin</module>
         <module>gravitee-gamma-rest-api</module>
         <module>gravitee-gamma-module-apim</module>
+        <module>gravitee-gamma-module-platform</module>
     </modules>
 </project>
