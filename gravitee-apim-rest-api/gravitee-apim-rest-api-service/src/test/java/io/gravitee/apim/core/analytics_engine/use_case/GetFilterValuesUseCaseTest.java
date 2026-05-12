@@ -55,6 +55,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -1144,9 +1146,25 @@ class GetFilterValuesUseCaseTest {
         }
 
         @Test
-        void should_list_all_api_products_from_database_when_no_query_provided() {
-            var prod1 = ApiProduct.builder().id("prod-id-1").name("My API Product").build();
-            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1));
+        void should_resolve_names_via_es_for_api_product_filter_without_query() {
+            var esPage = new FilterValuesPage(List.of(new FilterValue("prod-id-1")), null);
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    eq(FilterSpec.Name.API_PRODUCT),
+                    any(),
+                    any(),
+                    anyInt(),
+                    eq(10),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(esPage);
+            when(filterValueNameResolver.resolveNames(any(), eq(FilterSpec.Name.API_PRODUCT), any())).thenReturn(
+                Map.of("prod-id-1", "My API Product")
+            );
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, null));
 
@@ -1157,11 +1175,87 @@ class GetFilterValuesUseCaseTest {
                     assertThat(v.value()).isEqualTo("My API Product");
                     assertThat(v.id()).isEqualTo("prod-id-1");
                 });
-            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
-            // API_PRODUCT must NOT go to Elasticsearch — products are not in the log index
-            verifyNoInteractions(filterValuesQueryService);
-            verifyNoInteractions(filterValueNameResolver);
-            verify(apiProductQueryService).findByEnvironmentId("env-id");
+            verifyNoInteractions(apiProductQueryService);
+        }
+
+        @Test
+        void should_pass_time_range_to_es_for_api_product_without_query() {
+            var from = Instant.parse("2025-01-01T00:00:00Z");
+            var to = Instant.parse("2025-12-31T23:59:59Z");
+            when(
+                filterValuesQueryService.searchFilterValues(any(), any(), any(), any(), any(), anyInt(), eq(10), any(), any(), any())
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("prod-id-1")), null));
+            when(filterValueNameResolver.resolveNames(any(), eq(FilterSpec.Name.API_PRODUCT), any())).thenReturn(
+                Map.of("prod-id-1", "My API Product")
+            );
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", from, to, 1, 10, null));
+
+            verify(filterValuesQueryService).searchFilterValues(
+                eq("org-id"),
+                eq("env-id"),
+                eq(FilterSpec.Name.API_PRODUCT),
+                eq(from),
+                eq(to),
+                eq(1),
+                eq(10),
+                eq(null),
+                eq(null),
+                eq(Set.of())
+            );
+            assertThat(output.valuesPage().data())
+                .hasSize(1)
+                .first()
+                .satisfies(v -> {
+                    assertThat(v.value()).isEqualTo("My API Product");
+                    assertThat(v.id()).isEqualTo("prod-id-1");
+                });
+            verifyNoInteractions(apiProductQueryService);
+        }
+
+        @Test
+        void should_pass_page_number_for_api_product_without_query() {
+            var esPage = new FilterValuesPage(List.of(new FilterValue("prod-id-3")), null);
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    eq(FilterSpec.Name.API_PRODUCT),
+                    any(),
+                    any(),
+                    anyInt(),
+                    eq(5),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(esPage);
+            when(filterValueNameResolver.resolveNames(any(), eq(FilterSpec.Name.API_PRODUCT), any())).thenReturn(
+                Map.of("prod-id-3", "My API Product 3")
+            );
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 2, 5, null));
+
+            verify(filterValuesQueryService).searchFilterValues(
+                eq("org-id"),
+                eq("env-id"),
+                eq(FilterSpec.Name.API_PRODUCT),
+                eq(null),
+                eq(null),
+                eq(2),
+                eq(5),
+                eq(null),
+                eq(null),
+                eq(Set.of())
+            );
+            assertThat(output.valuesPage().data())
+                .hasSize(1)
+                .first()
+                .satisfies(v -> {
+                    assertThat(v.value()).isEqualTo("My API Product 3");
+                    assertThat(v.id()).isEqualTo("prod-id-3");
+                });
+            verifyNoInteractions(apiProductQueryService);
         }
 
         @Test
@@ -1203,56 +1297,47 @@ class GetFilterValuesUseCaseTest {
             assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(3L);
         }
 
-        @Test
-        void should_list_all_api_products_when_query_is_empty_string() {
-            var prod1 = ApiProduct.builder().id("prod-id-1").name("My API Product").build();
-            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1));
+        @ParameterizedTest
+        @ValueSource(strings = { "", "   " })
+        void should_treat_empty_or_blank_query_as_no_query_for_api_product(String query) {
+            var esPage = new FilterValuesPage(List.of(new FilterValue("prod-id-1")), null);
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    eq(FilterSpec.Name.API_PRODUCT),
+                    any(),
+                    any(),
+                    anyInt(),
+                    eq(10),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(esPage);
+            when(filterValueNameResolver.resolveNames(any(), eq(FilterSpec.Name.API_PRODUCT), any())).thenReturn(
+                Map.of("prod-id-1", "My API Product")
+            );
 
-            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, ""));
-
-            assertThat(output.valuesPage().data()).hasSize(1);
-            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
-            verifyNoInteractions(filterValuesQueryService);
-        }
-
-        @Test
-        void should_list_all_api_products_when_query_is_blank() {
-            var prod1 = ApiProduct.builder().id("prod-id-1").name("My API Product").build();
-            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1));
-
-            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, "   "));
-
-            assertThat(output.valuesPage().data()).hasSize(1);
-            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
-            verifyNoInteractions(filterValuesQueryService);
-        }
-
-        @Test
-        void should_paginate_all_api_products_when_no_query_provided() {
-            var prod1 = ApiProduct.builder().id("p-1").name("My Product A").build();
-            var prod2 = ApiProduct.builder().id("p-2").name("My Product B").build();
-            var prod3 = ApiProduct.builder().id("p-3").name("My Product C").build();
-            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1, prod2, prod3));
-
-            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 2, 2, null));
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, query));
 
             assertThat(output.valuesPage().data())
                 .hasSize(1)
                 .first()
                 .satisfies(v -> {
-                    assertThat(v.value()).isEqualTo("My Product C");
-                    assertThat(v.id()).isEqualTo("p-3");
+                    assertThat(v.value()).isEqualTo("My API Product");
+                    assertThat(v.id()).isEqualTo("prod-id-1");
                 });
-            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(3L);
+            verifyNoInteractions(apiProductQueryService);
         }
 
         @Test
-        void should_exclude_api_products_with_null_name() {
+        void should_exclude_api_products_with_null_name_when_searching_by_name() {
             var prod1 = ApiProduct.builder().id("prod-id-1").name("My API Product").build();
             var prodNoName = ApiProduct.builder().id("prod-id-2").name(null).build();
             when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1, prodNoName));
 
-            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, null));
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, "My"));
 
             assertThat(output.valuesPage().data())
                 .hasSize(1)

@@ -1321,6 +1321,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - HTTP_PROXY
     facets:
         - name: API
           label: API
