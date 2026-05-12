@@ -403,6 +403,7 @@
                                     <exclude>gravitee-apim-webui-libs/**</exclude>
                                     <exclude>gravitee-gamma-control-plane-webui/**</exclude>
                                     <exclude>gravitee-gamma-module-apim/src/main/ui/**</exclude>
+                                    <exclude>gravitee-gamma-module-platform/src/main/ui/**</exclude>
                                     <exclude>packages/**</exclude>
                                     <exclude>helm/**</exclude>
                                 </excludes>

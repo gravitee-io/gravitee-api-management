@@ -1,0 +1,16 @@
+{
+    "name": "gravitee-gamma-module-platform",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-gamma/gravitee-gamma-module-platform/src/main/ui",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "lint": {},
+        "lint-eslint": {
+            "options": {
+                "lintFilePatterns": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.tsx"]
+            }
+        },
+        "lint-license": {}
+    }
+}

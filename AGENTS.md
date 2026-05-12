@@ -29,6 +29,7 @@ Shared coding standards live under [`.agent-rules/`](.agent-rules/).
 - `gravitee-apim-reporter/AGENTS.md`
 - `gravitee-apim-rest-api/AGENTS.md`
 - `gravitee-gamma/gravitee-gamma-module-apim/AGENTS.md`
+- `gravitee-gamma/gravitee-gamma-module-platform/AGENTS.md`
 
 **Angular**
 
